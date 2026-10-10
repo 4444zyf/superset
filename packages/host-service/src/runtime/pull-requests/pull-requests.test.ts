@@ -1651,6 +1651,23 @@ async function waitFor(
 }
 
 describe("workspace-created event trigger", () => {
+	test("stopping background sync discards a late Git ref result and starts no follow-up GitHub request", async () => {
+		const db = createRealDb();
+		seedProject(db);
+		seedWorkspace(db, { id: "ws-freeze", branch: "original" });
+		let release!: (value: WorkspaceRefsSnapshot) => void;
+		let githubRequests = 0;
+		const manager = createManager(db, { readWorkspaceRefs: () => new Promise((resolve) => { release = resolve; }), execGh: async () => { githubRequests++; return {}; } });
+		const running = (manager as unknown as { enqueueWorkspaceSync: (id: string) => Promise<void> }).enqueueWorkspaceSync("ws-freeze");
+		expect(manager.activeOperations).toBeGreaterThan(0);
+		manager.stop();
+		release({ branch: "late", headSha: "late-sha", upstream: { owner: REPO.owner, name: REPO.name, branch: "late" } });
+		await running;
+		expect(getWorkspace(db, "ws-freeze")?.branch).toBe("original");
+		expect(githubRequests).toBe(0);
+		expect(manager.activeOperations).toBe(0);
+	});
+
 	// The manager only consumes workspaceId (it re-reads the row from the DB),
 	// so the snapshot payload can stay null.
 	const createdEvent: WorkspaceChangedEvent = {

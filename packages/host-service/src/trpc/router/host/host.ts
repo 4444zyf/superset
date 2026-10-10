@@ -6,6 +6,7 @@ import {
 	HOST_SERVICE_VERSION,
 } from "../../../install-source";
 import type { ApiClient } from "../../../types";
+import { requireCloudApi } from "../../../direct/cloud-capability";
 import { protectedProcedure, router } from "../../index";
 import { rethrowCloudUnreachable } from "./cloud-api-error";
 
@@ -50,7 +51,7 @@ async function getOrganization(
 
 export const hostRouter = router({
 	info: protectedProcedure.query(async ({ ctx }) => {
-		const organization = await getOrganization(ctx.api, ctx.organizationId);
+		const organization = await getOrganization(requireCloudApi(ctx.api), ctx.organizationId);
 
 		return {
 			hostId: getHostId(),

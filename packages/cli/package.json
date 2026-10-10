@@ -11,6 +11,8 @@
 		"build:all": "bun run build:darwin-arm64 && bun run build:linux-x64",
 		"prebuild:dist": "bun run --filter=@superset/i18n build",
 		"build:dist": "bun run scripts/build-dist.ts",
+		"prebuild:direct": "bun run --filter=@superset/i18n build",
+		"build:direct": "bun run scripts/build-direct.ts",
 		"typecheck": "tsc --noEmit",
 		"test": "bun test"
 	},
@@ -19,6 +21,7 @@
 		"@modelcontextprotocol/sdk": "1.31.0",
 		"@superset/agent-setup": "workspace:*",
 		"@superset/cli-framework": "workspace:*",
+		"@superset/direct-install": "workspace:*",
 		"@superset/host-service": "workspace:*",
 		"@superset/i18n": "workspace:*",
 		"@superset/local-db": "workspace:*",

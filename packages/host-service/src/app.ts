@@ -20,6 +20,11 @@ import {
 	registerChatV3Routes,
 } from "./chat-v3";
 import { createDb, type HostDb } from "./db";
+import { directChatSessionId, type DirectOperationStore } from "./direct/operations";
+import { dirname } from "node:path";
+import { registerDirectAttachmentRoute } from "./direct/attachments";
+import { beginDirectDrain, directMaintenanceStatus } from "./direct/maintenance";
+import { z } from "zod";
 import { EventBus, GitWatcher, registerEventBusRoute } from "./events";
 import { agentIsBusy, PageWatchManager } from "./page-watch/index.ts";
 import { registerForwardMuxRoute } from "./ports/forward-mux-route";
@@ -53,6 +58,7 @@ import {
 } from "./terminal-agents";
 import { matchesAgentBinding } from "./terminal-agents/matches-agent-binding";
 import { appRouter } from "./trpc/router";
+import { describeDirectBackend } from "./trpc/router/direct/direct";
 import { gitStatusStore } from "./trpc/router/git/utils/git-status-store";
 import {
 	resumeCrashedAgentSessions,
@@ -66,6 +72,7 @@ import {
 import type {
 	ApiClient,
 	BrowserBridgeConfig,
+	DirectBackendIdentity,
 	HostServiceContext,
 } from "./types";
 import { getHostWorkerPool } from "./workers/host-worker-pool";
@@ -74,9 +81,13 @@ import { disposeWorkspaceTitleJobs } from "./workspaces/workspace-title-jobs";
 
 export interface CreateAppOptions {
 	config: {
+		runtimeMode?: "direct";
+		direct?: DirectBackendIdentity;
+		directOperations?: DirectOperationStore;
+		requestDirectShutdown?: (stopTerminals: boolean) => void;
 		organizationId: string;
 		dbPath: string;
-		cloudApiUrl: string;
+		cloudApiUrl?: string;
 		migrationsFolder: string;
 		/**
 		 * Origins the renderer may call from. A sandbox answers `*`: its URL
@@ -89,7 +100,7 @@ export interface CreateAppOptions {
 		browserBridge?: BrowserBridgeConfig;
 	};
 	providers: {
-		auth: ApiAuthProvider;
+		auth?: ApiAuthProvider;
 		hostAuth: HostAuthProvider;
 		credentials: GitCredentialProvider;
 	};
@@ -109,7 +120,7 @@ export interface CreateAppOptions {
 export interface CreateAppResult {
 	app: Hono;
 	injectWebSocket: ReturnType<typeof createNodeWebSocket>["injectWebSocket"];
-	api: ApiClient;
+	api: ApiClient | null;
 	db: HostDb;
 	eventBus: EventBus;
 	/**
@@ -125,15 +136,19 @@ export interface CreateAppResult {
 
 export function createApp(options: CreateAppOptions): CreateAppResult {
 	const { config, providers } = options;
+	const isDirect = config.runtimeMode === "direct";
+	let backgroundActive = !isDirect || !config.directOperations?.maintenance().frozen;
+	if (isDirect && !config.direct) throw new Error("Direct backend identity is required");
+	if (!isDirect && (!config.cloudApiUrl || !providers.auth)) throw new Error("Cloud API configuration and auth provider are required");
 
-	const api =
+	const api = isDirect ? null : (
 		options.api ??
-		createApiClient(config.cloudApiUrl, providers.auth, config.organizationId);
+		createApiClient(config.cloudApiUrl!, providers.auth!, config.organizationId));
 	const db = options.db ?? createDb(config.dbPath, config.migrationsFolder);
 	// A sandbox is provisioned for exactly one workspace, and the env says
 	// which. Seeding it here rather than from the API keeps the schema in one
 	// place and leaves provisioning with nothing to orchestrate.
-	const sandboxIdentity = readSandboxIdentity();
+	const sandboxIdentity = isDirect ? null : readSandboxIdentity();
 	if (sandboxIdentity) runSandboxSelfSeed(db, sandboxIdentity);
 	const git = createGitFactory(providers.credentials);
 	const github =
@@ -168,7 +183,8 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 	gitWatcher.onChanged((event) => {
 		gitStatusStore.recordChange(event.workspaceId, event.paths);
 	});
-	gitWatcher.start();
+	let gitWatcherStarted = backgroundActive;
+	if (gitWatcherStarted) gitWatcher.start();
 	// Per-workspace branch/HEAD/upstream reads run in the worker pool: the
 	// PR-sync loop fires them for every workspace on each watcher event and
 	// 5-min sweep, which would otherwise spawn+drain git on the event loop.
@@ -192,9 +208,25 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 			);
 		},
 	});
-	pullRequestRuntime.start();
+	if (backgroundActive) pullRequestRuntime.start();
 
 	const app = new Hono();
+	if (isDirect) {
+		app.use("*", async (c, next) => {
+			const origin = c.req.header("origin");
+			const allowed = Array.isArray(config.allowedOrigins) ? config.allowedOrigins : [config.allowedOrigins];
+			if (origin && !allowed.includes(origin)) return c.json({ error: "Forbidden origin" }, 403);
+			if (c.req.method === "OPTIONS" && origin && allowed.includes(origin)) return next();
+			if (c.req.path.startsWith("/trpc/")) return next();
+			const isWebSocket = c.req.header("upgrade")?.toLowerCase() === "websocket";
+			const token = isWebSocket ? c.req.query("token") : undefined;
+			if (!(await providers.hostAuth.validate(c.req.raw)) && !(token && await providers.hostAuth.validateToken(token))) {
+				return c.json({ error: "Unauthorized" }, 401);
+			}
+			if (config.directOperations?.maintenance().frozen && !c.req.path.startsWith("/direct/")) return c.json({ error: "The backend is frozen for maintenance" }, 503);
+			return next();
+		});
+	}
 	const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
 	app.use(
@@ -212,7 +244,7 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 	);
 
 	const eventBus = new EventBus({ db, filesystem, gitWatcher });
-	eventBus.start();
+	if (backgroundActive) eventBus.start();
 	// Post-construction wiring (pullRequestRuntime is built before the
 	// EventBus): newly created workspaces get their first branch/upstream sync
 	// + PR link immediately instead of waiting for the 5-min safety net.
@@ -224,7 +256,7 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 	// Hygiene only — reads hide defunct bindings via the session-liveness
 	// join regardless, so a failure here must not block startup.
 	try {
-		terminalAgentPersistence.sweepDefunct();
+		if (backgroundActive) terminalAgentPersistence.sweepDefunct();
 	} catch (error) {
 		console.warn(
 			"[terminal-agents] failed to sweep defunct binding rows",
@@ -233,7 +265,7 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 	}
 	const terminalAgentStore = new TerminalAgentStore(terminalAgentPersistence);
 
-	const pageWatch = new PageWatchManager({
+	const pageWatch = api ? new PageWatchManager({
 		api: {
 			listThreads: (pageId) => api.pageComment.list.query({ pageId }),
 			claimWatch: (input) => api.page.claimWatch.mutate(input),
@@ -302,8 +334,8 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 				terminalAgentStore.get(terminalId);
 			return binding?.endedAt === undefined ? binding : undefined;
 		},
-	});
-	pageWatch.subscribeToTerminalEvents(eventBus);
+	}) : null;
+	pageWatch?.subscribeToTerminalEvents(eventBus);
 
 	const runtime = {
 		filesystem,
@@ -311,6 +343,22 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 		pageWatch,
 		chat: () => chatV3.runtime(),
 		closeChats: (scopeId: string) => chatV3.closeScope(scopeId),
+		chatMaintenanceStatus: () => chatV3.maintenanceStatus(),
+		activateBackground: () => {
+			if (backgroundActive) return;
+			backgroundActive = true;
+			if (!gitWatcherStarted) { gitWatcherStarted = true; gitWatcher.start(); }
+			eventBus.start();
+			pullRequestRuntime.start();
+			pullRequestRuntime.subscribeToWorkspaceEvents(eventBus);
+			terminalAgentPersistence.sweepDefunct();
+		},
+		suspendBackground: () => {
+			if (!backgroundActive) return;
+			backgroundActive = false;
+			pullRequestRuntime.stop();
+			eventBus.close();
+		},
 	};
 
 	// Chat v3 runtime (plans/chat-v3-pane-mount.md). Registered unconditionally:
@@ -329,6 +377,8 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 		eventBus,
 		terminalAgentStore,
 		organizationId: config.organizationId,
+		direct: config.direct,
+		directOperations: config.directOperations,
 		isAuthenticated: true,
 		browserBridge: config.browserBridge,
 	};
@@ -336,6 +386,8 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 		db,
 		dbPath: config.dbPath,
 		agents: createChatAgentBridge(chatAgentContext),
+		commandDedupe: isDirect && config.directOperations ? { run: (id, execute, input) => config.directOperations!.runCommand(id, input, execute) } : undefined,
+		mintSessionIdForCommand: isDirect ? directChatSessionId : undefined,
 		onSessionChanged: ({ scopeId, occurredAt }) =>
 			eventBus.broadcastChatSessionsChanged({
 				workspaceId: scopeId,
@@ -364,13 +416,13 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 			return 0;
 		});
 	const projectPurgeTimer =
-		process.env.SUPERSET_HOST_RUN_MODE === "sandbox"
+		isDirect || process.env.SUPERSET_HOST_RUN_MODE === "sandbox"
 			? null
 			: setInterval(() => void runProjectPurge(), PROJECT_PURGE_INTERVAL_MS);
 	projectPurgeTimer?.unref?.();
 
 	void (async () => {
-		if (process.env.SUPERSET_HOST_RUN_MODE === "sandbox") return;
+		if (isDirect || process.env.SUPERSET_HOST_RUN_MODE === "sandbox") return;
 		await runProjectBackfill({
 			db,
 			eventBus,
@@ -417,6 +469,53 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 	app.use("/browser/*", wsAuth);
 	app.use("/desktop/*", wsAuth);
 	app.use("/fwd", wsAuth);
+	app.use("/direct/*", wsAuth);
+	if (isDirect) registerDirectAttachmentRoute(app, dirname(config.dbPath));
+	if (isDirect && config.directOperations) {
+		app.use("/terminal/sessions", async (c, next) => {
+			if (c.req.method !== "POST") return next();
+			try { config.directOperations!.assertCanCreate(); } catch { return c.json({ error: "The backend is draining for maintenance" }, 409); }
+			return config.directOperations!.runCreateOperation(next);
+		});
+		app.use("/chat-v3/trpc/*", async (c, next) => {
+			const procedures = c.req.path.split("/").at(-1)?.split(",") ?? [];
+			if (c.req.method === "POST" && procedures.some((path) => ["createSession", "prompt", "resumeQueue", "steerQueuedPrompt", "forkSession"].includes(path))) {
+				try { config.directOperations!.assertCanCreate(); } catch { return c.json({ error: "The backend is draining for maintenance" }, 409); }
+				return config.directOperations!.runCreateOperation(next);
+			}
+			if (c.req.method === "POST") return config.directOperations!.runMutationOperation(next);
+			return next();
+		});
+	}
+	app.get("/direct/describe", (c) => {
+		if (!config.direct) return c.json({ error: "Not found" }, 404);
+		return c.json(describeDirectBackend(config.direct, !!config.directOperations));
+	});
+	if (isDirect && config.directOperations) {
+		app.get("/direct/maintenance", (c) => c.json(directMaintenanceStatus(config.directOperations, runtime)));
+		app.post("/direct/begin-drain", async (c) => {
+			const input = z.object({ ownerId: z.string().uuid(), freeze: z.boolean().optional().default(false) }).safeParse(await c.req.json().catch(() => null));
+			if (!input.success) return c.json({ error: "A maintenance owner UUID is required" }, 400);
+			try { beginDirectDrain(input.data.ownerId, input.data.freeze, config.directOperations, runtime); } catch { return c.json({ error: "Active work or another maintenance owner prevents this drain" }, 409); }
+			return c.json(directMaintenanceStatus(config.directOperations, runtime));
+		});
+		app.post("/direct/end-drain", async (c) => {
+			const input = z.object({ ownerId: z.string().uuid() }).safeParse(await c.req.json().catch(() => null));
+			if (!input.success) return c.json({ error: "A maintenance owner UUID is required" }, 400);
+			try { config.directOperations!.endDrain(input.data.ownerId); } catch { return c.json({ error: "Only the maintenance owner may end this drain" }, 409); }
+			runtime.activateBackground();
+			return c.json(directMaintenanceStatus(config.directOperations, runtime));
+		});
+		app.post("/direct/shutdown", async (c) => {
+			const input = z.object({ ownerId: z.string().uuid(), stopTerminals: z.boolean() }).safeParse(await c.req.json().catch(() => null));
+			if (!input.success) return c.json({ error: "Expected a maintenance owner UUID and stopTerminals" }, 400);
+			if (!config.requestDirectShutdown) return c.json({ error: "This host does not own its process lifecycle" }, 409);
+			const status = directMaintenanceStatus(config.directOperations, runtime);
+			if (!input.data.stopTerminals && (status.mode !== "draining" || status.ownerId !== input.data.ownerId || !status.safeToRestart)) return c.json({ error: "The maintenance owner must drain all active chat and create operations before shutdown" }, 409);
+			config.requestDirectShutdown(input.data.stopTerminals);
+			return c.json({ accepted: true }, 202);
+		});
+	}
 
 	// websockify listens on loopback with no credential of its own, so the
 	// check that admits a pane is this route's. Sandboxes only: on a laptop
@@ -511,6 +610,8 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 					eventBus,
 					terminalAgentStore,
 					organizationId: config.organizationId,
+					direct: config.direct,
+					directOperations: config.directOperations,
 					isAuthenticated,
 					clientMachineId:
 						c.req.header("x-superset-client-machine-id") ?? undefined,
@@ -534,7 +635,7 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 			console.warn("[host-service] pullRequestRuntime.stop failed:", err);
 		}
 		try {
-			pageWatch.stop();
+			pageWatch?.stop();
 		} catch (err) {
 			console.warn("[host-service] pageWatch.stop failed:", err);
 		}

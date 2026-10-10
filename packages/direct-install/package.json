@@ -1,0 +1,23 @@
+{
+	"name": "@superset/direct-install",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./control-runtime": "./src/control-runtime.ts"
+	},
+	"scripts": {
+		"test": "bun test",
+		"typecheck": "tsc --noEmit --emitDeclarationOnly false"
+	},
+	"dependencies": {
+		"@superset/shared": "workspace:*"
+	},
+	"devDependencies": {
+		"@superset/typescript": "workspace:*",
+		"@types/node": "24.12.0",
+		"bun-types": "1.4.2",
+		"typescript": "7.0.2"
+	}
+}

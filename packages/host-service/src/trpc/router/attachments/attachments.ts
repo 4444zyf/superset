@@ -173,6 +173,7 @@ export const attachmentsRouter = router({
 			const directory = join(worktreePath, WORKSPACE_ATTACHMENTS_DIR);
 			mkdirSync(directory, { recursive: true });
 
+			if (!ctx.api) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Cloud attachments are unavailable on a direct backend" });
 			const resolved = await ctx.api.attachment.resolve.mutate({
 				fileIds: input.fileIds,
 			});
@@ -225,10 +226,11 @@ export async function importCloudAttachments(
 					mutate: (input: { fileIds: string[] }) => Promise<CloudAttachment[]>;
 				};
 			};
-		};
+		} | null;
 	},
 	fileIds: string[],
 ): Promise<AttachmentUploadResult[]> {
+	if (!ctx.api) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Cloud attachments are unavailable on a direct backend" });
 	const resolved = await ctx.api.attachment.resolve.mutate({ fileIds });
 	const results: AttachmentUploadResult[] = [];
 	for (const attachment of resolved) {

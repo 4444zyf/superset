@@ -13,6 +13,7 @@ import {
 } from "../../src/app";
 import type { HostDb } from "../../src/db";
 import * as schema from "../../src/db/schema";
+import { DirectOperationStore } from "../../src/direct/operations";
 import type { TokenSource } from "../../src/providers/git/LocalGitCredentialProvider/credential-remedy";
 import type { AppRouter as HostAppRouter } from "../../src/trpc/router";
 import {
@@ -26,6 +27,7 @@ import {
 const MIGRATIONS_FOLDER = resolve(import.meta.dir, "../../drizzle");
 
 export interface TestHostOptions {
+	runtimeMode?: "direct";
 	organizationId?: string;
 	cloudApiUrl?: string;
 	allowedOrigins?: string[];
@@ -100,9 +102,18 @@ export async function createTestHost(
 	migrate(db, { migrationsFolder: MIGRATIONS_FOLDER });
 
 	const fakeApi = createFakeApiClient(options.apiOverrides);
+	const operationDb = options.runtimeMode === "direct" ? new BunDatabase(join(dataDir, "operations.db")) : null;
 
 	const createOptions: CreateAppOptions = {
 		config: {
+			runtimeMode: options.runtimeMode,
+			direct: options.runtimeMode === "direct" ? {
+				backendId: "00000000-0000-4000-8000-000000000002",
+				namespaceId: "00000000-0000-4000-8000-000000000001",
+				instanceId: "test-instance",
+				serviceUid: process.getuid?.() ?? 0,
+			} : undefined,
+			directOperations: operationDb ? new DirectOperationStore(operationDb, "test-instance") : undefined,
 			organizationId:
 				options.organizationId ?? "00000000-0000-0000-0000-000000000001",
 			dbPath,
@@ -119,7 +130,7 @@ export async function createTestHost(
 			),
 		},
 		db: db as unknown as HostDb,
-		api: fakeApi.client,
+		api: options.runtimeMode === "direct" ? undefined : fakeApi.client,
 		github: options.githubFactory
 			? (options.githubFactory as CreateAppOptions["github"])
 			: undefined,
@@ -175,6 +186,7 @@ export async function createTestHost(
 				delete process.env.SUPERSET_HOME_DIR;
 			}
 			try {
+				operationDb?.close();
 				sqlite.close();
 			} catch {
 				// best-effort
@@ -189,7 +201,7 @@ export async function createTestHost(
 
 	return {
 		app: result.app,
-		api: fakeApi.client,
+		api: result.api,
 		eventBus: result.eventBus,
 		db: db as unknown as HostDb,
 		dispose,

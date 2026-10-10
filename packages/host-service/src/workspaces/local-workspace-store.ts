@@ -33,7 +33,7 @@ export type HostWorkspaceRow = typeof workspaces.$inferSelect;
 export interface WorkspaceStoreContext {
 	db: HostDb;
 	eventBus: EventBus;
-	api?: ApiClient;
+	api?: ApiClient | null;
 	organizationId?: string;
 	clientMachineId?: string;
 	/** The acting user; tags they write are theirs (see `workspaceTags`). */

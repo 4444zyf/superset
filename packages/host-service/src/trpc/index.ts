@@ -103,18 +103,36 @@ const sentryMiddleware = t.middleware(async ({ next, path, type }) => {
 	return result;
 });
 
-const baseProcedure = t.procedure.use(sentryMiddleware);
+const baseProcedure = t.procedure.use(sentryMiddleware).use(async ({ ctx, next, path, type }) => {
+	if (ctx.direct && !ctx.isAuthenticated) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid or missing authentication token." });
+	if (ctx.directOperations && !path.startsWith("direct.") && path !== "health.check") {
+		if (ctx.directOperations.maintenance().frozen) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "The backend is frozen for maintenance" });
+		if (type === "mutation") return ctx.directOperations.runMutationOperation(() => next({ ctx }));
+	}
+	return next({ ctx });
+});
 
 export const router = t.router;
 export const createCallerFactory = t.createCallerFactory;
 export const publicProcedure = baseProcedure;
 
-export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
+export const protectedProcedure = baseProcedure.use(async ({ ctx, next, path, type }) => {
 	if (!ctx.isAuthenticated) {
 		throw new TRPCError({
 			code: "UNAUTHORIZED",
 			message: "Invalid or missing authentication token.",
 		});
+	}
+	if (ctx.direct && (
+		path === "host.info" || path.startsWith("pageWatch.") ||
+		path.startsWith("system.update") || path.startsWith("mobile.") ||
+		path.startsWith("sandbox.") || path === "attachments.importFromCloud" ||
+		path === "attachments.materializeIntoWorkspace"
+	)) {
+		throw new TRPCError({ code: "PRECONDITION_FAILED", message: "This capability is unavailable on a direct backend" });
+	}
+	if (ctx.direct && ctx.directOperations && type === "mutation" && ["project.create", "workspaces.create", "workspaces.createSession", "agents.run", "terminal.createSession", "terminal.launchSession"].includes(path)) {
+		return ctx.directOperations.runCreateOperation(() => next({ ctx }));
 	}
 	return next({ ctx });
 });

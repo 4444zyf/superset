@@ -42,6 +42,9 @@ interface StreamState {
 	/** Bytes written into the upstream socket but not yet credited back. */
 	uncredited: number;
 	creditScheduled: boolean;
+	upstreamEnded: boolean;
+	upstreamClosed: boolean;
+	eofSent: boolean;
 }
 
 /**
@@ -136,6 +139,13 @@ export function registerForwardMuxRoute({
 				if (state.sendQueuedBytes < MUX_INITIAL_WINDOW_BYTES) {
 					state.socket.resume();
 				}
+				if (state.sendQueue.length === 0) {
+					if (state.upstreamEnded && !state.eofSent) {
+						state.eofSent = true;
+						if (!closed) ws.send(asFrame(encodeEof(streamId)));
+					}
+					if (state.upstreamClosed) closeStream(ws, streamId, state, true);
+				}
 			};
 
 			const handleOpen = (ws: WSContext, streamId: number, port: number) => {
@@ -185,6 +195,9 @@ export function registerForwardMuxRoute({
 					sendQueuedBytes: 0,
 					uncredited: 0,
 					creditScheduled: false,
+					upstreamEnded: false,
+					upstreamClosed: false,
+					eofSent: false,
 				};
 				streams.set(streamId, state);
 
@@ -209,12 +222,14 @@ export function registerForwardMuxRoute({
 				socket.on("drain", () => scheduleCredit(ws, streamId, state));
 				socket.on("end", () => {
 					if (!closed && streams.has(streamId)) {
-						ws.send(asFrame(encodeEof(streamId)));
+						state.upstreamEnded = true;
+						pumpSend(ws, streamId, state);
 					}
 				});
 				socket.on("close", () => {
 					if (streams.has(streamId)) {
-						closeStream(ws, streamId, state, true);
+						state.upstreamClosed = true;
+						pumpSend(ws, streamId, state);
 					}
 				});
 				socket.on("error", (err: NodeJS.ErrnoException) => {

@@ -13,6 +13,7 @@ import {
 	encodeEof,
 	encodeOpen,
 	encodePing,
+	encodeWindow,
 	MUX_INITIAL_WINDOW_BYTES,
 	MUX_MAX_DATA_BYTES,
 	type MuxFrame,
@@ -30,6 +31,10 @@ let echoPort = 0;
 let v6EchoServer: net.Server;
 let v6EchoPort = 0;
 let closedEchoPort = 0;
+let finiteServer: net.Server;
+let finitePort = 0;
+let finiteClosed: Promise<void>;
+const finiteBytes = MUX_INITIAL_WINDOW_BYTES + 65536;
 const echoSockets = new Set<net.Socket>();
 
 function ownedPort(port: number, address = "127.0.0.1"): DetectedPort {
@@ -64,6 +69,18 @@ before(async () => {
 		});
 	});
 
+	finiteServer = net.createServer((socket) => {
+		finiteClosed = new Promise<void>((resolve) =>
+			socket.once("close", resolve),
+		);
+		socket.end(Buffer.alloc(finiteBytes, 0x61));
+	});
+	finitePort = await new Promise<number>((resolve) => {
+		finiteServer.listen(0, "127.0.0.1", () => {
+			resolve((finiteServer.address() as net.AddressInfo).port);
+		});
+	});
+
 	// A port the scanner attributes to the workspace but nothing listens on.
 	const probe = net.createServer();
 	closedEchoPort = await new Promise<number>((resolve) => {
@@ -84,6 +101,7 @@ before(async () => {
 						ownedPort(echoPort),
 						ownedPort(v6EchoPort, "::1"),
 						ownedPort(closedEchoPort),
+						ownedPort(finitePort),
 					]
 				: [],
 	});
@@ -101,6 +119,7 @@ after(async () => {
 	await new Promise<void>((r) => echoServer.close(() => r()));
 	await new Promise<void>((r) => v6EchoServer.close(() => r()));
 	await new Promise<void>((r) => httpServer.close(() => r()));
+	await new Promise<void>((r) => finiteServer.close(() => r()));
 });
 
 /** A test client that collects decoded frames and lets tests await them. */
@@ -315,6 +334,43 @@ test("EOF half-closes toward the upstream and its close comes back", async () =>
 			f.streamId === 9,
 	);
 	client.close();
+});
+
+test("a finite response drains queued bytes before EOF and CLOSE", async () => {
+	const client = await connect();
+	try {
+		client.send(encodeOpen(90, finitePort));
+		await client.next(
+			(f) => f.type === MuxFrameType.opened && f.streamId === 90,
+		);
+		const initial = await client.data(90, MUX_INITIAL_WINDOW_BYTES);
+		assert.equal(initial.byteLength, MUX_INITIAL_WINDOW_BYTES);
+		await finiteClosed;
+		client.send(encodeWindow(90, MUX_INITIAL_WINDOW_BYTES));
+		const next = await client.next(
+			(f) =>
+				f.streamId === 90 &&
+				[MuxFrameType.data, MuxFrameType.eof, MuxFrameType.close].some(
+					(type) => type === f.type,
+				),
+		);
+		assert.equal(
+			next.type,
+			MuxFrameType.data,
+			"EOF must follow every queued byte",
+		);
+		const remainder =
+			next.payload.byteLength < 65536
+				? await client.data(90, 65536 - next.payload.byteLength)
+				: Buffer.alloc(0);
+		assert.equal(next.payload.byteLength + remainder.byteLength, 65536);
+		await client.next((f) => f.type === MuxFrameType.eof && f.streamId === 90);
+		await client.next(
+			(f) => f.type === MuxFrameType.close && f.streamId === 90,
+		);
+	} finally {
+		client.close();
+	}
 });
 
 test("closing the session destroys upstream sockets", async () => {

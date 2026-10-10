@@ -4,6 +4,10 @@ import { delimiter, join } from "node:path";
 import { promisify } from "node:util";
 import { getBinDir } from "@superset/agent-setup";
 import { coerce, gte } from "semver";
+import {
+	directAgentPath,
+	directAgentProfiles,
+} from "../direct/agent-environment";
 import { UNGATED_VERSION } from "./acpCatalogue";
 
 const execFileAsync = promisify(execFile);
@@ -33,7 +37,10 @@ function candidateNames(binary: string): string[] {
 	return WIN32_DIRECT_EXEC_EXTENSIONS.map((ext) => binary + ext);
 }
 
-function findOnPath(binary: string, env: NodeJS.ProcessEnv): string | null {
+export function findOnPath(
+	binary: string,
+	env: NodeJS.ProcessEnv,
+): string | null {
 	for (const dir of (env.PATH ?? "").split(delimiter)) {
 		if (!dir) continue;
 		for (const name of candidateNames(binary)) {
@@ -53,6 +60,8 @@ export function agentCliCommand(
 	binary: string,
 	env: NodeJS.ProcessEnv,
 ): string {
+	if (directAgentProfiles())
+		return findOnPath(binary, directAgentPath(env)) ?? binary;
 	return supersetWrapper(binary) ?? findOnPath(binary, env) ?? binary;
 }
 

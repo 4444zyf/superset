@@ -36,7 +36,11 @@ import {
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
-type Target = "darwin-arm64" | "darwin-x64" | "linux-x64" | "linux-arm64";
+export type Target =
+	| "darwin-arm64"
+	| "darwin-x64"
+	| "linux-x64"
+	| "linux-arm64";
 
 const VALID_TARGETS: Target[] = [
 	"darwin-arm64",
@@ -44,7 +48,7 @@ const VALID_TARGETS: Target[] = [
 	"linux-x64",
 	"linux-arm64",
 ];
-const NODE_VERSION = "22.13.0";
+export const NODE_VERSION = "22.13.0";
 
 /**
  * Runtime packages that must be shipped alongside the bundled host-service
@@ -77,7 +81,7 @@ const TARGET_NATIVE_PACKAGES: Record<Target, string[]> = {
  * NODE_VERSION. Used to fetch the matching better-sqlite3 prebuild from
  * GitHub releases.
  */
-const NODE_ABI = "127"; // Node 22.x
+export const NODE_ABI = "127"; // Node 22.x
 
 function parseArgs(): { target: Target } {
 	const targetArg = process.argv.find((a) => a.startsWith("--target="));
@@ -100,13 +104,13 @@ function targetParts(target: Target): { platform: string; arch: string } {
 	return { platform, arch };
 }
 
-function nodeArchiveName(target: Target): string {
+function nodeArchiveName(target: Target, nodeVersion = NODE_VERSION): string {
 	const { platform, arch } = targetParts(target);
-	return `node-v${NODE_VERSION}-${platform}-${arch}`;
+	return `node-v${nodeVersion}-${platform}-${arch}`;
 }
 
-function nodeDownloadUrl(target: Target): string {
-	return `https://nodejs.org/dist/v${NODE_VERSION}/${nodeArchiveName(target)}.tar.gz`;
+function nodeDownloadUrl(target: Target, nodeVersion = NODE_VERSION): string {
+	return `https://nodejs.org/dist/v${nodeVersion}/${nodeArchiveName(target, nodeVersion)}.tar.gz`;
 }
 
 async function exec(cmd: string, args: string[], cwd?: string): Promise<void> {
@@ -152,20 +156,23 @@ async function curlDownload(url: string, destPath: string): Promise<void> {
 	renameSync(partial, destPath);
 }
 
-async function downloadAndExtractNode(
+export async function downloadAndExtractNode(
 	target: Target,
 	destDir: string,
+	nodeVersion = NODE_VERSION,
 ): Promise<string> {
 	const cacheDir = join(homedir(), ".superset-build-cache");
 	if (!existsSync(cacheDir)) mkdirSync(cacheDir, { recursive: true });
 
-	const archiveName = nodeArchiveName(target);
+	const archiveName = nodeArchiveName(target, nodeVersion);
 	const archivePath = join(cacheDir, `${archiveName}.tar.gz`);
 	const extractedPath = join(cacheDir, archiveName);
 
 	if (!existsSync(archivePath)) {
-		console.log(`[build-dist] downloading ${nodeDownloadUrl(target)}`);
-		await curlDownload(nodeDownloadUrl(target), archivePath);
+		console.log(
+			`[build-dist] downloading ${nodeDownloadUrl(target, nodeVersion)}`,
+		);
+		await curlDownload(nodeDownloadUrl(target, nodeVersion), archivePath);
 	}
 
 	if (!existsSync(extractedPath)) {
@@ -196,6 +203,7 @@ function findPackagePath(
 	const fallbacks = [
 		join(repoRoot, "packages", "host-service", "node_modules", packageName),
 		join(repoRoot, "packages", "workspace-fs", "node_modules", packageName),
+		join(repoRoot, "packages", "chat-runtime", "node_modules", packageName),
 		join(repoRoot, "node_modules", packageName),
 	];
 	for (const fallback of fallbacks) {
@@ -269,14 +277,22 @@ function copyPackageWithDeps(
 	}
 }
 
-function copyRuntimePackages(libDir: string, target: Target): void {
+export function copyRuntimePackages(
+	libDir: string,
+	target: Target,
+	additionalPackages: string[] = [],
+): void {
 	const repoRoot = resolve(import.meta.dir, "../../..");
 	const destModules = join(libDir, "node_modules");
 	mkdirSync(destModules, { recursive: true });
 	const copied = new Set<string>();
 
 	const hostServiceDir = join(repoRoot, "packages", "host-service");
-	const packages = [...RUNTIME_PACKAGES, ...TARGET_NATIVE_PACKAGES[target]];
+	const packages = [
+		...RUNTIME_PACKAGES,
+		...TARGET_NATIVE_PACKAGES[target],
+		...additionalPackages,
+	];
 	for (const pkg of packages) {
 		console.log(`[build-dist]   copying ${pkg} (+ deps)`);
 		copyPackageWithDeps(pkg, hostServiceDir, repoRoot, destModules, copied);
@@ -298,9 +314,10 @@ function copyRuntimePackages(libDir: string, target: Target): void {
  *   (CI does this via `npm rebuild` after `bun install --ignore-scripts`).
  *   Keep `build/Release/`.
  */
-async function fixNativeBinariesForNode(
+export async function fixNativeBinariesForNode(
 	libDir: string,
 	target: Target,
+	nodeAbi = NODE_ABI,
 ): Promise<void> {
 	const destModules = join(libDir, "node_modules");
 
@@ -310,12 +327,12 @@ async function fixNativeBinariesForNode(
 	).version as string;
 	const bsqUrl =
 		`https://github.com/WiseLibs/better-sqlite3/releases/download/` +
-		`v${bsqVersion}/better-sqlite3-v${bsqVersion}-node-v${NODE_ABI}-${target}.tar.gz`;
+		`v${bsqVersion}/better-sqlite3-v${bsqVersion}-node-v${nodeAbi}-${target}.tar.gz`;
 	const cacheDir = join(homedir(), ".superset-build-cache");
 	if (!existsSync(cacheDir)) mkdirSync(cacheDir, { recursive: true });
 	const cachedTarball = join(
 		cacheDir,
-		`better-sqlite3-v${bsqVersion}-node-v${NODE_ABI}-${target}.tar.gz`,
+		`better-sqlite3-v${bsqVersion}-node-v${nodeAbi}-${target}.tar.gz`,
 	);
 	if (!existsSync(cachedTarball)) {
 		console.log(`[build-dist] fetching Node-ABI better-sqlite3: ${bsqUrl}`);
@@ -385,7 +402,7 @@ async function buildHostService(): Promise<string> {
 	return join(hostServiceDir, "dist", "host-service.js");
 }
 
-async function buildPtyDaemon(): Promise<string> {
+export async function buildPtyDaemon(): Promise<string> {
 	const ptyDaemonDir = resolve(import.meta.dir, "../../pty-daemon");
 	await exec("bun", ["run", "build:daemon"], ptyDaemonDir);
 	return join(ptyDaemonDir, "dist", "pty-daemon.js");
@@ -488,4 +505,4 @@ async function main(): Promise<void> {
 	console.log(`[build-dist] done: ${tarball}`);
 }
 
-await main();
+if (import.meta.main) await main();

@@ -7,6 +7,7 @@ export {
 export { EXPECTED_DAEMON_VERSION } from "./expected-version.ts";
 export {
 	__resetSupervisorForTesting,
+	configureSupervisor,
 	getSupervisor,
 	resolveSupervisorScriptPath,
 	startDaemonBootstrap,

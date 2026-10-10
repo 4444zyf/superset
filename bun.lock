@@ -178,6 +178,8 @@
         "@superset/chat-ui": "workspace:*",
         "@superset/cloud-client": "workspace:*",
         "@superset/db": "workspace:*",
+        "@superset/direct-connection": "workspace:*",
+        "@superset/direct-install": "workspace:*",
         "@superset/host-service": "workspace:*",
         "@superset/i18n": "workspace:*",
         "@superset/local-db": "workspace:*",
@@ -912,6 +914,7 @@
         "@modelcontextprotocol/sdk": "1.31.0",
         "@superset/agent-setup": "workspace:*",
         "@superset/cli-framework": "workspace:*",
+        "@superset/direct-install": "workspace:*",
         "@superset/host-service": "workspace:*",
         "@superset/i18n": "workspace:*",
         "@superset/local-db": "workspace:*",
@@ -989,6 +992,35 @@
         "typescript": "7.0.2",
       },
     },
+    "packages/direct-connection": {
+      "name": "@superset/direct-connection",
+      "version": "0.1.0",
+      "dependencies": {
+        "@superset/shared": "workspace:*",
+        "better-sqlite3": "12.11.1",
+        "superjson": "2.2.6",
+      },
+      "devDependencies": {
+        "@superset/typescript": "workspace:*",
+        "@types/better-sqlite3": "7.6.13",
+        "@types/node": "24.12.0",
+        "bun-types": "1.4.2",
+        "typescript": "7.0.2",
+      },
+    },
+    "packages/direct-install": {
+      "name": "@superset/direct-install",
+      "version": "0.0.0",
+      "dependencies": {
+        "@superset/shared": "workspace:*",
+      },
+      "devDependencies": {
+        "@superset/typescript": "workspace:*",
+        "@types/node": "24.12.0",
+        "bun-types": "1.4.2",
+        "typescript": "7.0.2",
+      },
+    },
     "packages/email": {
       "name": "@superset/email",
       "version": "0.1.0",
@@ -1044,6 +1076,7 @@
         "@superset/agent-setup": "workspace:*",
         "@superset/chat": "workspace:*",
         "@superset/chat-runtime": "workspace:*",
+        "@superset/direct-install": "workspace:*",
         "@superset/port-scanner": "workspace:*",
         "@superset/pty-daemon": "workspace:*",
         "@superset/shared": "workspace:*",
@@ -3205,6 +3238,10 @@
     "@superset/db": ["@superset/db@workspace:packages/db"],
 
     "@superset/desktop": ["@superset/desktop@workspace:apps/desktop"],
+
+    "@superset/direct-connection": ["@superset/direct-connection@workspace:packages/direct-connection"],
+
+    "@superset/direct-install": ["@superset/direct-install@workspace:packages/direct-install"],
 
     "@superset/discord-triage": ["@superset/discord-triage@workspace:apps/discord-triage"],
 

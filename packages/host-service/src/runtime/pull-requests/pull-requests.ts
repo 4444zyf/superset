@@ -218,6 +218,10 @@ interface PullRequestDetails {
 }
 
 export class PullRequestRuntimeManager {
+	private stopped = false;
+	get activeOperations(): number {
+		return this.workspaceSyncState.size + this.inFlightProjects.size;
+	}
 	private readonly db: HostDb;
 	private readonly execGh: ExecGh;
 	private readonly conditionalGh: ConditionalGh;
@@ -295,6 +299,7 @@ export class PullRequestRuntimeManager {
 	}
 
 	start() {
+		this.stopped = false;
 		if (
 			this.safetyNetTimer ||
 			this.projectRefreshTimer ||
@@ -360,6 +365,7 @@ export class PullRequestRuntimeManager {
 	}
 
 	stop() {
+		this.stopped = true;
 		this.conditionalGh.clear();
 		if (this.safetyNetTimer) clearInterval(this.safetyNetTimer);
 		if (this.projectRefreshTimer) clearInterval(this.projectRefreshTimer);
@@ -640,6 +646,7 @@ export class PullRequestRuntimeManager {
 	}
 
 	private async syncWorkspaceBranches(): Promise<void> {
+		if (this.stopped) return;
 		// Route every workspace through the same per-workspace queue as the
 		// watcher path, so a concurrent watcher-triggered sync can't race the
 		// sweep's read+write and clobber the newer snapshot. enqueueWorkspaceSync
@@ -670,6 +677,7 @@ export class PullRequestRuntimeManager {
 		workspaceId: string,
 		options: { bypassCache?: boolean } = {},
 	): Promise<void> {
+		if (this.stopped) return Promise.resolve();
 		// Coalesce: if a sync is already running for this workspace, just mark
 		// "rerun pending" — there's no value in queuing N back-to-back syncs
 		// when only the final state matters. At most one sync runs and one
@@ -695,7 +703,10 @@ export class PullRequestRuntimeManager {
 					await this.syncOneWorkspace(workspaceId, { bypassCache });
 					bypassCache =
 						this.workspaceSyncState.get(workspaceId)?.bypassCache ?? false;
-				} while (this.workspaceSyncState.get(workspaceId)?.rerunPending);
+				} while (
+					!this.stopped &&
+					this.workspaceSyncState.get(workspaceId)?.rerunPending
+				);
 			} finally {
 				this.workspaceSyncState.delete(workspaceId);
 			}
@@ -714,6 +725,7 @@ export class PullRequestRuntimeManager {
 		workspaceId: string,
 		options: { bypassCache?: boolean } = {},
 	): Promise<void> {
+		if (this.stopped) return;
 		// Look up the row fresh — the workspace may have been deleted between
 		// the GitWatcher event firing and this handler running. That's expected
 		// during teardown / workspace removal; silently no-op.
@@ -739,6 +751,7 @@ export class PullRequestRuntimeManager {
 		const projectId =
 			(await this.syncWorkspaceRow(workspace)) ??
 			(options.bypassCache ? workspace.projectId : null);
+		if (this.stopped) return;
 		// One workspace moved, so only its own ref can have gained or lost a
 		// PR. Refreshing the whole project here was the runtime's biggest
 		// GitHub amplifier: every commit by any agent re-fetched every linked
@@ -755,6 +768,7 @@ export class PullRequestRuntimeManager {
 	private async syncWorkspaceRow(
 		workspace: typeof workspaces.$inferSelect,
 	): Promise<string | null> {
+		if (this.stopped) return null;
 		// A worktree deleted outside the app is a routine lifecycle state, not
 		// an error to retry: skip the git spawn entirely until the directory is
 		// back on disk (external restore, workspace repair).
@@ -767,6 +781,7 @@ export class PullRequestRuntimeManager {
 			const { branch, headSha, upstream } = await this.readWorkspaceRefs(
 				workspace.worktreePath,
 			);
+			if (this.stopped) return null;
 			if (!branch) return null;
 
 			const upstreamOwner = upstream?.owner ?? null;
@@ -822,6 +837,7 @@ export class PullRequestRuntimeManager {
 	}
 
 	private noteWorktreeMissing(workspaceId: string, worktreePath: string): void {
+		if (this.stopped) return;
 		if (this.missingWorktrees.has(workspaceId)) return;
 		this.missingWorktrees.set(workspaceId, worktreePath);
 		console.warn(
@@ -854,6 +870,7 @@ export class PullRequestRuntimeManager {
 	}
 
 	private async refreshEligibleProjects(): Promise<void> {
+		if (this.stopped) return;
 		const rows = this.db
 			.select({
 				projectId: workspaces.projectId,
@@ -881,6 +898,7 @@ export class PullRequestRuntimeManager {
 		projectId: string,
 		options: ProjectRefreshOptions = {},
 	): Promise<void> {
+		if (this.stopped) return;
 		// A scoped refresh and a full one are different work; only identical
 		// requests share an in-flight promise.
 		const inFlightKey = options.workspaceIds
@@ -914,8 +932,9 @@ export class PullRequestRuntimeManager {
 		projectId: string,
 		options: ProjectRefreshOptions = {},
 	): Promise<void> {
+		if (this.stopped) return;
 		const repo = await this.getProjectRepository(projectId);
-		if (!repo) return;
+		if (!repo || this.stopped) return;
 
 		const scope = options.workspaceIds ? new Set(options.workspaceIds) : null;
 		const projectWorkspaces = this.db
@@ -949,6 +968,7 @@ export class PullRequestRuntimeManager {
 
 		const { failedKeys, matched: keyToPullRequest } =
 			await this.fetchRepoPullRequests(projectId, repo, wantedRefs, options);
+		if (this.stopped) return;
 
 		for (const workspace of projectWorkspaces) {
 			const key = this.effectiveUpstreamKey(workspace, repo);
@@ -1015,6 +1035,7 @@ export class PullRequestRuntimeManager {
 	private async getProjectRepository(
 		projectId: string,
 	): Promise<NormalizedRepoIdentity | null> {
+		if (this.stopped) return null;
 		const project = this.db.query.projects
 			.findFirst({ where: eq(projects.id, projectId) })
 			.sync();
@@ -1043,7 +1064,9 @@ export class PullRequestRuntimeManager {
 			// refresh failure to warn about every sweep.
 			try {
 				const git = await this.git(project.repoPath);
+				if (this.stopped) return null;
 				const value = await git.remote(["get-url", remoteName]);
+				if (this.stopped) return null;
 				if (typeof value !== "string") {
 					return null;
 				}
@@ -1071,6 +1094,7 @@ export class PullRequestRuntimeManager {
 		}
 
 		const defaultBranch = await this.resolveDefaultBranch(project.repoPath);
+		if (this.stopped) return null;
 		return { ...identity, defaultBranch };
 	}
 
@@ -1244,15 +1268,20 @@ export class PullRequestRuntimeManager {
 		viaOctokit: () => Promise<T>,
 		options: { probe?: boolean } = {},
 	): Promise<T> {
+		if (this.stopped)
+			throw new Error("Background refresh is suspended for maintenance");
 		// An explicit refresh (PR just created, user asked) is allowed through a
 		// hold: it is one call, and its success is what reopens the gate early
 		// once the network is back.
 		if (!options.probe) this.githubGate.assertReachable();
 		try {
 			const result = await viaGh();
+			if (this.stopped)
+				throw new Error("Background refresh is suspended for maintenance");
 			this.githubGate.recordSuccess();
 			return result;
 		} catch (ghError) {
+			if (this.stopped) throw ghError;
 			if (isGitHubUnreachableError(ghError)) {
 				this.noteGitHubFailure(ghError);
 				throw ghError;
@@ -1274,6 +1303,7 @@ export class PullRequestRuntimeManager {
 
 	/** Trips the gate on a host-wide failure and says so once per hold. */
 	private noteGitHubFailure(error: unknown): void {
+		if (this.stopped) return;
 		const hold = this.githubGate.recordFailure(error);
 		if (!hold?.opened) return;
 		console.warn(
@@ -1522,7 +1552,7 @@ export class PullRequestRuntimeManager {
 	}> {
 		const matched = new Map<string, { id: string }>();
 		const failedKeys = new Set<string>();
-		if (wantedRefs.size === 0) return { matched, failedKeys };
+		if (wantedRefs.size === 0 || this.stopped) return { matched, failedKeys };
 
 		const latestByKey = new Map<string, GitHubPullRequestNode>();
 		await Promise.all(
@@ -1558,6 +1588,7 @@ export class PullRequestRuntimeManager {
 		);
 
 		// GitHub's `head=` filter is case-sensitive on the branch component, so
+		if (this.stopped) return { matched, failedKeys };
 		// a workspace whose local branch casing drifted from the PR's
 		// headRefName gets nothing from the per-head lookups above. Sweep the
 		// repo's open PRs once and fill the gaps case-insensitively.
@@ -1622,6 +1653,7 @@ export class PullRequestRuntimeManager {
 			}),
 		);
 
+		if (this.stopped) return { matched, failedKeys };
 		for (const [key, node] of latestByKey) {
 			const existing = this.findPullRequestRow(repo, node.number);
 			// A failed fetch keeps the last-known state rather than blanking it.

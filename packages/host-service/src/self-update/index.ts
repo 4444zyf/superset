@@ -1,5 +1,5 @@
-import { dirname } from "node:path";
-import { env } from "../env";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
 import { getHostInstallSource, HOST_SERVICE_VERSION } from "../install-source";
 import {
 	execCliUpdate,
@@ -22,9 +22,9 @@ function productionDeps(): Omit<SelfUpdaterDeps, "stopServing"> {
 		installSource: getHostInstallSource(),
 		currentVersion: HOST_SERVICE_VERSION,
 		execPath: process.execPath,
-		port: env.PORT,
-		secret: env.HOST_SERVICE_SECRET,
-		stateDir: dirname(env.HOST_DB_PATH),
+		port: Number(process.env.PORT) || 4879,
+		secret: process.env.HOST_SERVICE_SECRET ?? "",
+		stateDir: process.env.HOST_DB_PATH ? dirname(process.env.HOST_DB_PATH) : join(homedir(), ".superset", "host", "standalone"),
 		runCliUpdate: execCliUpdate,
 		spawnHost: spawnDetachedHost,
 		pollHealth: pollHostHealth,

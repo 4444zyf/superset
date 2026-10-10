@@ -219,6 +219,7 @@ export interface DaemonSupervisorOptions {
 	 * real handoff.
 	 */
 	autoUpdate?: boolean;
+	preserveExistingSessions?: boolean;
 	/**
 	 * Override for host-service's own trustd probe. Tests inject this to
 	 * exercise the degraded-host branch (heal suppressed), which can't be
@@ -605,6 +606,29 @@ export class DaemonSupervisor {
 		removePtyDaemonManifest(organizationId);
 	}
 
+	async stopExisting(organizationId: string): Promise<boolean> {
+		if (this.instances.has(organizationId)) {
+			await this.stop(organizationId);
+			return true;
+		}
+		const socketPath = ptyDaemonSocketPath(organizationId);
+		let stat: fs.Stats;
+		try { stat = fs.lstatSync(socketPath); } catch (error) {
+			if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+			const manifest = readPtyDaemonManifest(organizationId);
+			if (manifest && isProcessAlive(manifest.pid)) throw new Error("The existing terminal daemon cannot be verified; refusing to signal its manifest PID");
+			return false;
+		}
+		if (!stat.isSocket() || (process.getuid && stat.uid !== process.getuid())) throw new Error("The terminal daemon socket must belong to the service user");
+		const probe = await probeDaemonHelloWithRetry(socketPath, ADOPTION_PROBE_TOTAL_TIMEOUT_MS);
+		if (!probe) throw new Error("The existing terminal daemon did not authenticate its PID; refusing to stop an unverified process");
+		const instance = this.adoptFromProbe(organizationId, socketPath, probe, "explicit_stop");
+		if (!instance) throw new Error("The existing terminal daemon PID is unavailable");
+		this.instances.set(organizationId, instance);
+		await this.stop(organizationId);
+		return true;
+	}
+
 	/**
 	 * Poll an adopted daemon's liveness. Adopted daemons are PIDs we
 	 * inherited via the manifest — we never spawned them as a child, so
@@ -711,7 +735,7 @@ export class DaemonSupervisor {
 			probe.trustdHealthy !== undefined
 		) {
 			current.trustdHealthy = probe.trustdHealthy;
-			if (probe.trustdHealthy === false && (await this.hostTrustdHealthy())) {
+			if (this.opts.preserveExistingSessions !== true && probe.trustdHealthy === false && (await this.hostTrustdHealthy())) {
 				// Re-check after the await: a concurrent restart can have
 				// replaced the instance, and killing `current` then would
 				// unlink the successor's socket and manifest under it.
@@ -907,7 +931,7 @@ export class DaemonSupervisor {
 		// reason. Kill any running daemon for the org and spawn fresh.
 		// Production keeps the adopt path so PTY sessions survive
 		// host-service restarts (the original Phase 1 promise).
-		if (shouldKillStaleDaemonForDev()) {
+		if (this.opts.preserveExistingSessions !== true && shouldKillStaleDaemonForDev()) {
 			await this.killStaleDaemonForDev(organizationId);
 		}
 
@@ -919,6 +943,7 @@ export class DaemonSupervisor {
 		// degraded, a respawn wouldn't help; adopt and let the next healthy launch
 		// heal it.
 		if (
+			this.opts.preserveExistingSessions !== true &&
 			adopted &&
 			adopted.trustdHealthy === false &&
 			(await this.hostTrustdHealthy())
@@ -1230,7 +1255,7 @@ export class DaemonSupervisor {
 		// flow up to the developer's `bun dev` terminal. Production:
 		// hard-back stdio with the rotating log file so the detached
 		// daemon survives host-service teardown without losing logs.
-		const isDev = process.env.NODE_ENV === "development";
+		const isDev = this.opts.preserveExistingSessions !== true && process.env.NODE_ENV === "development";
 		const logFd = isDev ? -1 : openRotatingLogFd(logPath, MAX_DAEMON_LOG_BYTES);
 		const stdio: childProcess.StdioOptions = isDev
 			? ["ignore", "pipe", "pipe"]

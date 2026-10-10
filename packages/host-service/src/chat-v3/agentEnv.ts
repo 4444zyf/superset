@@ -3,6 +3,7 @@ import { getBinDir } from "@superset/agent-setup";
 import { eq } from "drizzle-orm";
 import type { HostDb } from "../db";
 import { projects, workspaces } from "../db/schema";
+import { directAgentProfiles } from "../direct/agent-environment";
 import { buildHostLaunchEnv, waitForTerminalBaseEnv } from "../terminal/env";
 import { resolveDefaultAccountTerminalEnv } from "../trpc/router/usage/default-account";
 
@@ -60,6 +61,16 @@ export async function buildChatAgentEnv(options: {
 }): Promise<Record<string, string>> {
 	await waitForTerminalBaseEnv();
 	const paths = workspacePaths(options.db, options.workspaceId);
+	if (directAgentProfiles())
+		return withoutAmbientKeys(
+			buildHostLaunchEnv({
+				cwd: options.cwd,
+				workspaceId: options.workspaceId,
+				terminalId: options.terminalId,
+				workspacePath: paths.workspacePath || options.cwd,
+				rootPath: paths.rootPath,
+			}),
+		);
 	return withoutAmbientKeys(
 		withSupersetBinFirst({
 			...buildHostLaunchEnv({

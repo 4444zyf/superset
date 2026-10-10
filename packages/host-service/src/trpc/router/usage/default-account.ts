@@ -20,6 +20,10 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import type { HostDb } from "../../../db/index.ts";
 import { hostSettings } from "../../../db/schema.ts";
+import {
+	directAgentAccountEnv,
+	directAgentProfiles,
+} from "../../../direct/agent-environment";
 
 type SwitchableAccountAgent = "claude" | "codex";
 
@@ -181,6 +185,8 @@ export interface DefaultAccountSelections {
 export function getDefaultAccountSelections(
 	db: HostDb,
 ): DefaultAccountSelections {
+	const directProfiles = directAgentProfiles();
+	if (directProfiles) return directProfiles;
 	const row = db.select().from(hostSettings).get();
 	const claudePointer = readDefaultAccountPointer("claude");
 	const codexPointer = readDefaultAccountPointer("codex");
@@ -251,6 +257,8 @@ export function setDefaultAccountSelection(
 export function resolveDefaultAccountTerminalEnv(
 	db: HostDb,
 ): Record<string, string> {
+	const directEnv = directAgentAccountEnv();
+	if (directEnv) return directEnv;
 	return {
 		...resolveDefaultAccountEnv(db, "claude"),
 		...resolveDefaultAccountEnv(db, "codex"),
@@ -267,6 +275,8 @@ export function resolveDefaultAccountEnv(
 	presetId: string,
 ): Record<string, string> {
 	if (presetId !== "claude" && presetId !== "codex") return {};
+	const directEnv = directAgentAccountEnv();
+	if (directEnv) return directEnv;
 	const selections = getDefaultAccountSelections(db);
 	if (
 		presetId === "claude" &&

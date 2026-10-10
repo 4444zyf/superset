@@ -4,6 +4,7 @@ import { agentsRouter } from "./agents";
 import { attachmentsRouter } from "./attachments";
 import { browserRouter } from "./browser/browser";
 import { configRouter } from "./config";
+import { directRouter } from "./direct/direct";
 import { filesystemRouter } from "./filesystem";
 import { gitRouter } from "./git";
 import { githubRouter } from "./github";
@@ -29,6 +30,7 @@ import { workspaceCreationRouter } from "./workspace-creation";
 import { workspacesRouter } from "./workspaces";
 
 export const appRouter = router({
+	direct: directRouter,
 	agents: agentsRouter,
 	agentTooling: agentToolingRouter,
 	attachments: attachmentsRouter,

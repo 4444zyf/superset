@@ -41,6 +41,26 @@ if (!result.success) {
 	process.exit(1);
 }
 
+for (const entry of [
+	{ source: "src/direct-serve.ts", output: "host-service-direct.js" },
+	{ source: "src/direct-supervisor.ts", output: "direct-supervisor.js" },
+]) {
+	const directResult = await Bun.build({
+		entrypoints: [entry.source],
+		plugins: [linguiMacroPlugin],
+		target: "node",
+		outdir,
+		naming: entry.output,
+		format: "esm",
+		define: { "process.env.NODE_ENV": JSON.stringify("production") },
+		external: ["better-sqlite3", "node-pty", "@parcel/watcher", "@anthropic-ai/claude-agent-sdk", "puppeteer-core", "chromium-bidi"],
+	});
+	if (!directResult.success) {
+		for (const log of directResult.logs) console.error(log);
+		throw new Error(`Direct backend bundle failed: ${entry.output}`);
+	}
+}
+
 // Worker-thread bundle, emitted side-by-side so the pool's script
 // resolution finds it next to host-service.js (see host-worker-pool.ts).
 const workerResult = await Bun.build({

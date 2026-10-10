@@ -94,6 +94,19 @@ export class LiveSessionRegistry {
 		return this.live.get(sessionId) ?? null;
 	}
 
+	maintenanceStatus(): { activeChat: number; queuedPrompts: number; waitingApprovals: number } {
+		let activeChat = 0;
+		let queuedPrompts = 0;
+		let waitingApprovals = 0;
+		for (const session of this.live.values()) {
+			const state = session.state;
+			if (state.status === "starting" || state.status === "running" || state.awaitingBackground || state.backgroundTasks?.length) activeChat++;
+			if (state.status === "awaiting_input") waitingApprovals++;
+			queuedPrompts += session.queueState.prompts.length;
+		}
+		return { activeChat, queuedPrompts, waitingApprovals };
+	}
+
 	require(sessionId: string): LiveSession {
 		const session = this.live.get(sessionId);
 		if (!session) throw new Error(`chat session ${sessionId} is not running`);

@@ -532,7 +532,7 @@ export const projectRouter = router({
 			// Default behavior (folder-first import): purely local. No local
 			// hit means the caller creates a fresh local project; the cloud
 			// is never consulted.
-			if (!input.walkAllRemotes) {
+			if (!input.walkAllRemotes || !ctx.api) {
 				return { candidates: [], cloudErrors: [] };
 			}
 
@@ -608,6 +608,7 @@ export const projectRouter = router({
 	create: machineOnlyProcedure
 		.input(
 			z.object({
+				id: z.string().uuid().optional(),
 				name: z.string().min(1),
 				mode: z.discriminatedUnion("kind", [
 					z.object({
@@ -644,17 +645,20 @@ export const projectRouter = router({
 			switch (input.mode.kind) {
 				case "empty":
 					return createFromEmpty(ctx, {
+						id: input.id,
 						name: input.name,
 						parentDir: input.mode.parentDir,
 					});
 				case "template":
 					return createFromTemplate(ctx, {
+						id: input.id,
 						name: input.name,
 						parentDir: input.mode.parentDir,
 						url: input.mode.url,
 					});
 				case "clone":
 					return createFromClone(ctx, {
+						id: input.id,
 						name: input.name,
 						parentDir: input.mode.parentDir,
 						url: input.mode.url,
@@ -662,6 +666,7 @@ export const projectRouter = router({
 					});
 				case "importLocal":
 					return createFromImportLocal(ctx, {
+						id: input.id,
 						name: input.name,
 						repoPath: input.mode.repoPath,
 						initIfNeeded: input.mode.initIfNeeded,

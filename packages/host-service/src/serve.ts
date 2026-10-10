@@ -1,4 +1,5 @@
 import { serve } from "@hono/node-server";
+import { dirname } from "node:path";
 import { createApp } from "./app";
 import { getSupervisor, startDaemonBootstrap } from "./daemon";
 import { env } from "./env";
@@ -177,7 +178,7 @@ async function main(): Promise<void> {
 			});
 		}
 
-		if (env.RELAY_URL && env.SUPERSET_HOST_RUN_MODE !== "sandbox") {
+		if (api && env.RELAY_URL && env.SUPERSET_HOST_RUN_MODE !== "sandbox") {
 			tunnelPromise = connectRelay({
 				signal: relayAbort.signal,
 				api,
@@ -196,6 +197,9 @@ async function main(): Promise<void> {
 	// can hand the port to a successor build (system.update). The desktop
 	// entry never registers this and its host-service stays non-updatable.
 	const selfUpdater = configureSelfUpdater({
+		port: env.PORT,
+		secret: env.HOST_SERVICE_SECRET,
+		stateDir: dirname(env.HOST_DB_PATH),
 		stopServing: async () => {
 			// Cancel registration retries before replacing this process.
 			relayAbort.abort();

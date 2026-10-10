@@ -52,13 +52,18 @@ export interface CreateResult {
 async function persistFromResolved(
 	ctx: HostServiceContext,
 	args: {
+		id?: string;
 		name: string;
 		resolved: ResolvedRepo;
 		cleanupRepoPathOnFailure: boolean;
 	},
 ): Promise<CreateResult> {
-	const projectId = randomUUID();
+	const projectId = args.id ?? randomUUID();
 	try {
+		if (args.id) {
+			const existing = ctx.db.query.projects.findFirst({ where: eq(projects.id, args.id) }).sync();
+			if (existing && existing.repoPath !== args.resolved.repoPath) throw new TRPCError({ code: "CONFLICT", message: "This project ID is already bound to another repository" });
+		}
 		persistLocalProject(ctx, projectId, args.resolved, { name: args.name });
 	} catch (err) {
 		if (args.cleanupRepoPathOnFailure) {
@@ -78,7 +83,7 @@ async function persistFromResolved(
 
 export async function createFromClone(
 	ctx: HostServiceContext,
-	args: { name: string; parentDir: string; url: string; signal?: AbortSignal },
+	args: { id?: string; name: string; parentDir: string; url: string; signal?: AbortSignal },
 ): Promise<CreateResult> {
 	const resolved = await cloneRepoInto(
 		args.url,
@@ -87,6 +92,7 @@ export async function createFromClone(
 		args.signal,
 	);
 	return persistFromResolved(ctx, {
+		id: args.id,
 		name: args.name,
 		resolved,
 		cleanupRepoPathOnFailure: true,
@@ -109,7 +115,7 @@ async function resolveOrInitLocalRepo(
 
 export async function createFromImportLocal(
 	ctx: HostServiceContext,
-	args: { name: string; repoPath: string; initIfNeeded?: boolean },
+	args: { id?: string; name: string; repoPath: string; initIfNeeded?: boolean },
 ): Promise<CreateResult> {
 	const resolved = await resolveOrInitLocalRepo(
 		args.repoPath,
@@ -133,6 +139,7 @@ export async function createFromImportLocal(
 	}
 
 	return persistFromResolved(ctx, {
+		id: args.id,
 		name: args.name,
 		resolved,
 		// User pointed us at an existing folder; never rm it.
@@ -146,13 +153,14 @@ export async function createFromImportLocal(
  */
 export async function createFromEmpty(
 	ctx: HostServiceContext,
-	args: { name: string; parentDir: string },
+	args: { id?: string; name: string; parentDir: string },
 ): Promise<CreateResult> {
 	const resolved = await initEmptyRepo(
 		args.parentDir,
 		dirNameForEmpty(args.name),
 	);
 	return persistFromResolved(ctx, {
+		id: args.id,
 		name: args.name,
 		resolved,
 		cleanupRepoPathOnFailure: true,
@@ -166,7 +174,7 @@ export async function createFromEmpty(
  */
 export async function createFromTemplate(
 	ctx: HostServiceContext,
-	args: { name: string; parentDir: string; url: string },
+	args: { id?: string; name: string; parentDir: string; url: string },
 ): Promise<CreateResult> {
 	const resolved = await cloneTemplateInto(
 		args.url,
@@ -175,6 +183,7 @@ export async function createFromTemplate(
 		ctx.credentials,
 	);
 	return persistFromResolved(ctx, {
+		id: args.id,
 		name: args.name,
 		resolved,
 		cleanupRepoPathOnFailure: true,

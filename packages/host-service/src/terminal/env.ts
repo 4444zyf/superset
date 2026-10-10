@@ -25,6 +25,7 @@ import {
 	TERMINAL_TERM_PROGRAM,
 	TERMINAL_TERM_PROGRAM_VERSION,
 } from "@superset/shared/constants";
+import { isolateDirectAgentEnvironment } from "../direct/agent-environment";
 import { getManagedEnv } from "../runtime/sandbox-managed-env/sandbox-managed-env.ts";
 import {
 	augmentPathForMacOS,
@@ -221,23 +222,25 @@ export function buildHostLaunchEnv(params: {
 	hostAgentHookUrl?: string;
 }): Record<string, string> {
 	const baseEnv = getTerminalBaseEnv();
-	return buildV2TerminalEnv({
-		baseEnv,
-		shell: resolveLaunchShell(baseEnv),
-		supersetHomeDir: resolveSupersetHomeDir(),
-		organizationId: process.env.ORGANIZATION_ID || "",
-		themeType: params.themeType,
-		cwd: params.cwd,
-		terminalId: params.terminalId ?? "",
-		workspaceId: params.workspaceId,
-		workspacePath: params.workspacePath,
-		rootPath: params.rootPath,
-		supersetEnv:
-			process.env.NODE_ENV === "development" ? "development" : "production",
-		agentHookPort: process.env.SUPERSET_AGENT_HOOK_PORT || "",
-		agentHookVersion: process.env.SUPERSET_AGENT_HOOK_VERSION || "",
-		hostAgentHookUrl: params.hostAgentHookUrl,
-	});
+	return isolateDirectAgentEnvironment(
+		buildV2TerminalEnv({
+			baseEnv,
+			shell: resolveLaunchShell(baseEnv),
+			supersetHomeDir: resolveSupersetHomeDir(),
+			organizationId: process.env.ORGANIZATION_ID || "",
+			themeType: params.themeType,
+			cwd: params.cwd,
+			terminalId: params.terminalId ?? "",
+			workspaceId: params.workspaceId,
+			workspacePath: params.workspacePath,
+			rootPath: params.rootPath,
+			supersetEnv:
+				process.env.NODE_ENV === "development" ? "development" : "production",
+			agentHookPort: process.env.SUPERSET_AGENT_HOOK_PORT || "",
+			agentHookVersion: process.env.SUPERSET_AGENT_HOOK_VERSION || "",
+			hostAgentHookUrl: params.hostAgentHookUrl,
+		}),
+	);
 }
 
 /**

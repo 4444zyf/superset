@@ -1,6 +1,11 @@
 import { asc, eq } from "drizzle-orm";
 import type { HostDb } from "../db";
 import { hostAgentConfigs } from "../db/schema";
+import {
+	directAgentPath,
+	directAgentProfiles,
+} from "../direct/agent-environment";
+import { getTerminalBaseEnv } from "../terminal/env";
 import { resolveDefaultAccountEnv } from "../trpc/router/usage/default-account";
 
 export interface ResolvedHostAgentConfig {
@@ -102,5 +107,12 @@ export function agentLaunchEnv(
 	db: HostDb,
 	config: Pick<ResolvedHostAgentConfig, "presetId" | "env">,
 ): Record<string, string> {
-	return { ...resolveDefaultAccountEnv(db, config.presetId), ...config.env };
+	const path: Record<string, string> = directAgentProfiles()
+		? { PATH: directAgentPath(getTerminalBaseEnv()).PATH ?? "" }
+		: {};
+	return {
+		...path,
+		...resolveDefaultAccountEnv(db, config.presetId),
+		...config.env,
+	};
 }

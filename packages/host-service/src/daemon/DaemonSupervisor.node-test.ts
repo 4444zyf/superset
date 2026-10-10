@@ -88,6 +88,18 @@ afterEach(async () => {
 });
 
 describe("DaemonSupervisor.ensure (real spawn)", () => {
+	test("an explicit stop adopts only the existing namespace and never spawns a missing daemon", async () => {
+		const orgId = crypto.randomUUID();
+		const original = new DaemonSupervisor({ scriptPath: DAEMON_BUNDLE, autoUpdate: false, preserveExistingSessions: true });
+		supervisorsToCleanup.push({ sup: original, orgId });
+		const instance = await original.ensure(orgId);
+		dropSupervisorInstance(original, orgId);
+		const fresh = new DaemonSupervisor({ scriptPath: "/not/a/daemon.js", autoUpdate: false, preserveExistingSessions: true });
+		assert.equal(await fresh.stopExisting(orgId), true);
+		assert.equal(await isReachable(instance.socketPath), false);
+		assert.equal(await fresh.stopExisting(crypto.randomUUID()), false);
+	});
+
 	test("spawns a fresh daemon and reports running == expected", async () => {
 		const sup = new DaemonSupervisor({ scriptPath: DAEMON_BUNDLE });
 		supervisorsToCleanup.push({ sup, orgId: "org-spawn" });

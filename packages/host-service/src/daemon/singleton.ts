@@ -7,10 +7,16 @@
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { DaemonSupervisor } from "./DaemonSupervisor.ts";
+import { DaemonSupervisor, type DaemonSupervisorOptions } from "./DaemonSupervisor.ts";
 
 let supervisor: DaemonSupervisor | null = null;
 let bootstrapPromise: Promise<unknown> | null = null;
+let supervisorOptions: Partial<DaemonSupervisorOptions> = {};
+
+export function configureSupervisor(options: Partial<DaemonSupervisorOptions>): void {
+	if (supervisor) throw new Error("The daemon supervisor is already running");
+	supervisorOptions = options;
+}
 
 /**
  * Resolve the daemon entry script path. In production, host-service.js and
@@ -50,6 +56,7 @@ export function getSupervisor(scriptPath?: string): DaemonSupervisor {
 	if (!supervisor) {
 		supervisor = new DaemonSupervisor({
 			scriptPath: scriptPath ?? resolveSupervisorScriptPath(),
+			...supervisorOptions,
 		});
 	}
 	return supervisor;
@@ -107,4 +114,5 @@ export async function waitForDaemonReady(
 export function __resetSupervisorForTesting(): void {
 	supervisor = null;
 	bootstrapPromise = null;
+	supervisorOptions = {};
 }

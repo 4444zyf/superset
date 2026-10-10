@@ -16,6 +16,7 @@ function markLinkedTaskStarted(
 	ctx: HostServiceContext,
 	workspaceId: string,
 ): void {
+	if (!ctx.api) return;
 	const workspace = ctx.db.query.workspaces
 		.findFirst({
 			where: eq(workspaces.id, workspaceId),

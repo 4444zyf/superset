@@ -53,7 +53,7 @@ import type {
 
 export const createSessionCommandSchema = createSessionInputSchema
 	.omit({ workspaceId: true })
-	.extend({ scopeId: z.string().min(1), cwd: z.string().min(1) });
+	.extend({ scopeId: z.string().min(1), cwd: z.string().min(1), sessionId: z.string().uuid().optional() });
 export type CreateSessionCommandInput = z.input<
 	typeof createSessionCommandSchema
 >;
@@ -132,8 +132,9 @@ export type CommandsOptions = {
 	db: ChatDb;
 	sessions: ChatSessionStore;
 	live: LiveSessionRegistry;
-	dedupe: { run<T>(commandId: string, execute: () => T): T };
+	dedupe: { run<T>(commandId: string, execute: () => T, input?: unknown): T };
 	mintSessionId?: () => string;
+	mintSessionIdForCommand?: (commandId: string) => string;
 };
 
 const MAX_CACHED_REPLAY_EVENTS = 20_000;
@@ -207,11 +208,12 @@ export function createCommands(options: CommandsOptions): ChatCommands {
 	return {
 		createSession(input) {
 			const parsed = createSessionCommandSchema.parse(input);
+			parsed.sessionId ??= options.mintSessionIdForCommand?.(parsed.commandId);
 			return options.dedupe.run(`createSession:${parsed.commandId}`, () => {
 				if (!options.live.supports(parsed.harness)) {
 					throw new Error(`unknown harness ${parsed.harness}`);
 				}
-				const sessionId = mintSessionId();
+				const sessionId = parsed.sessionId ?? mintSessionId();
 				const opened = options.journal.open({
 					sessionId,
 					scopeId: parsed.scopeId,
@@ -233,7 +235,7 @@ export function createCommands(options: CommandsOptions): ChatCommands {
 					throw error;
 				}
 				return { sessionId, epoch: opened.epoch };
-			});
+			}, parsed);
 		},
 
 		prompt(input) {
@@ -246,6 +248,7 @@ export function createCommands(options: CommandsOptions): ChatCommands {
 						parsed.clientId,
 						parsed.steer?.expectedTurnId,
 					),
+				parsed,
 			);
 		},
 
@@ -253,21 +256,21 @@ export function createCommands(options: CommandsOptions): ChatCommands {
 			const parsed: QueuedPromptInput = queuedPromptInputSchema.parse(input);
 			options.dedupe.run(`removeQueuedPrompt:${parsed.commandId}`, () => {
 				options.live.require(parsed.sessionId).removeQueued(parsed.itemId);
-			});
+			}, parsed);
 		},
 
 		steerQueuedPrompt(input) {
 			const parsed: QueuedPromptInput = queuedPromptInputSchema.parse(input);
 			options.dedupe.run(`steerQueuedPrompt:${parsed.commandId}`, () => {
 				options.live.require(parsed.sessionId).steerQueued(parsed.itemId);
-			});
+			}, parsed);
 		},
 
 		resumeQueue(input) {
 			const parsed: ResumeQueueInput = resumeQueueInputSchema.parse(input);
 			options.dedupe.run(`resumeQueue:${parsed.commandId}`, () => {
 				options.live.require(parsed.sessionId).resumeQueue();
-			});
+			}, parsed);
 		},
 
 		stopBackgroundTask(input) {
@@ -277,6 +280,7 @@ export function createCommands(options: CommandsOptions): ChatCommands {
 				options.live
 					.require(parsed.sessionId)
 					.stopBackgroundTask(parsed.taskId),
+				parsed,
 			);
 		},
 
@@ -286,7 +290,7 @@ export function createCommands(options: CommandsOptions): ChatCommands {
 				options.live
 					.require(parsed.sessionId)
 					.cancelTurn(parsed.turnId, parsed.pauseQueue);
-			});
+			}, parsed);
 		},
 
 		respondToApproval(input) {
@@ -296,14 +300,14 @@ export function createCommands(options: CommandsOptions): ChatCommands {
 				options.live
 					.require(parsed.sessionId)
 					.respondToApproval(parsed.approvalId, parsed.decision);
-			});
+			}, parsed);
 		},
 
 		setMode(input) {
 			const parsed: SetModeInput = setModeInputSchema.parse(input);
 			options.dedupe.run(`setMode:${parsed.commandId}`, () => {
 				options.live.require(parsed.sessionId).setMode(parsed.modeId);
-			});
+			}, parsed);
 		},
 
 		setConfigOption(input) {
@@ -313,7 +317,7 @@ export function createCommands(options: CommandsOptions): ChatCommands {
 				options.live
 					.require(parsed.sessionId)
 					.setConfigOption(parsed.configId, parsed.value);
-			});
+			}, parsed);
 		},
 
 		/**
@@ -323,6 +327,7 @@ export function createCommands(options: CommandsOptions): ChatCommands {
 		 */
 		async forkSession(input) {
 			const parsed = forkSessionCommandSchema.parse(input);
+			return options.dedupe.run(`forkSession:${parsed.commandId}`, async () => {
 			const live = options.live.require(parsed.sessionId);
 			const forked = await live.fork();
 			if (!forked) return null;
@@ -336,6 +341,7 @@ export function createCommands(options: CommandsOptions): ChatCommands {
 				resume: { harnessSessionId: forked },
 				terminalId: live.terminalId,
 			});
+			}, parsed);
 		},
 
 		async closeSession(input) {

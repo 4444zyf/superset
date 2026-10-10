@@ -7,6 +7,7 @@ import type { DeltaChannel } from "@superset/chat/protocol";
 import { parseCursor } from "@superset/chat/protocol";
 import type {
 	ChatRuntime,
+	ChatRuntimeOptions,
 	ChatSessionChange,
 	HarnessFactory,
 	HarnessRegistry,
@@ -22,6 +23,7 @@ import {
 } from "@superset/chat-runtime";
 import type { Hono, MiddlewareHandler } from "hono";
 import type { HostDb } from "../db";
+import { directAgentProfiles } from "../direct/agent-environment";
 import { cliFloor } from "./acpCatalogue";
 import { acpHarnessEntries } from "./acpHarnesses";
 import { resolveAgentCli } from "./agentCli";
@@ -69,8 +71,9 @@ function harnessRegistry(
 								}),
 						});
 						return {
-							pathToClaudeCodeExecutable:
-								process.env.SUPERSET_CHAT_V3_CLAUDE_BIN ?? cli.command,
+							pathToClaudeCodeExecutable: directAgentProfiles()
+								? cli.command
+								: (process.env.SUPERSET_CHAT_V3_CLAUDE_BIN ?? cli.command),
 							env: cli.env,
 						};
 					},
@@ -102,6 +105,11 @@ function harnessRegistry(
 }
 
 export type ChatV3Mount = {
+	maintenanceStatus(): {
+		activeChat: number;
+		queuedPrompts: number;
+		waitingApprovals: number;
+	};
 	runtime(): ChatRuntime;
 	closeScope(scopeId: string): Promise<void>;
 	dispose(): Promise<void>;
@@ -116,6 +124,8 @@ export function createChatV3Mount(options: {
 	dbPath: string;
 	agents?: ChatAgentBridge;
 	onSessionChanged?: (change: ChatSessionChange) => void;
+	commandDedupe?: ChatRuntimeOptions["commandDedupe"];
+	mintSessionIdForCommand?: ChatRuntimeOptions["mintSessionIdForCommand"];
 }): ChatV3Mount {
 	let built: ChatRuntime | null = null;
 
@@ -127,11 +137,19 @@ export function createChatV3Mount(options: {
 			harnesses: harnessRegistry(options.db, options.agents),
 			observer: options.agents,
 			onSessionChanged: options.onSessionChanged,
+			commandDedupe: options.commandDedupe,
+			mintSessionIdForCommand: options.mintSessionIdForCommand,
 		});
 		return built;
 	};
 
 	return {
+		maintenanceStatus: () =>
+			built?.live.maintenanceStatus() ?? {
+				activeChat: 0,
+				queuedPrompts: 0,
+				waitingApprovals: 0,
+			},
 		runtime,
 		closeScope: async (scopeId) => {
 			await built?.commands.closeScope(scopeId);

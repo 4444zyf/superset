@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { PageWatchStatus } from "../../../page-watch/index.ts";
+import type { HostServiceContext } from "../../../types";
 import { listTerminalSessions } from "../../../terminal/terminal.ts";
 import { protectedProcedure, router } from "../../index";
 
@@ -18,6 +19,11 @@ const pageInputSchema = z.object({ pageId: z.string().uuid() });
 const listInputSchema = z
 	.object({ workspaceId: z.string().min(1).optional() })
 	.optional();
+
+function requirePageWatch(ctx: HostServiceContext) {
+	if (!ctx.runtime.pageWatch) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Cloud page watching is unavailable on a direct backend" });
+	return ctx.runtime.pageWatch;
+}
 
 export interface PageWatchStatusWithSession extends PageWatchStatus {
 	sessionTitle: string | null;
@@ -50,26 +56,26 @@ export const pageWatchRouter = router({
 		.input(assignInputSchema)
 		.mutation(async ({ ctx, input }): Promise<PageWatchStatusWithSession[]> => {
 			try {
-				await ctx.runtime.pageWatch.assign(input);
+				await requirePageWatch(ctx).assign(input);
 			} catch (error) {
 				throw new TRPCError({
 					code: "PRECONDITION_FAILED",
 					message: error instanceof Error ? error.message : "Cannot watch page",
 				});
 			}
-			return withSessionTitles(ctx.runtime.pageWatch.list(input.workspaceId));
+			return withSessionTitles(requirePageWatch(ctx).list(input.workspaceId));
 		}),
 
 	unwatch: protectedProcedure
 		.input(pageInputSchema)
 		.mutation(async ({ ctx, input }): Promise<{ pageId: string }> => {
-			await ctx.runtime.pageWatch.unwatch(input.pageId);
+			await requirePageWatch(ctx).unwatch(input.pageId);
 			return { pageId: input.pageId };
 		}),
 
 	getAll: protectedProcedure
 		.input(listInputSchema)
 		.query(({ ctx, input }): PageWatchStatusWithSession[] =>
-			withSessionTitles(ctx.runtime.pageWatch.list(input?.workspaceId)),
+			withSessionTitles(requirePageWatch(ctx).list(input?.workspaceId)),
 		),
 });

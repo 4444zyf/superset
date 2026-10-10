@@ -3,6 +3,7 @@ import type { ChatRuntime } from "@superset/chat-runtime";
 import type { AppRouter } from "@superset/trpc";
 import type { TRPCClient } from "@trpc/client";
 import type { HostDb } from "./db";
+import type { DirectOperationStore } from "./direct/operations";
 import type { EventBus } from "./events";
 import type { PageWatchManager } from "./page-watch/index.ts";
 import type { WorkspaceFilesystemManager } from "./runtime/filesystem";
@@ -16,9 +17,12 @@ export type ApiClient = TRPCClient<AppRouter>;
 export interface HostServiceRuntime {
 	filesystem: WorkspaceFilesystemManager;
 	pullRequests: PullRequestRuntimeManager;
-	pageWatch: PageWatchManager;
+	pageWatch: PageWatchManager | null;
 	chat?: () => ChatRuntime;
 	closeChats?: (scopeId: string) => Promise<void>;
+	chatMaintenanceStatus?: () => { activeChat: number; queuedPrompts: number; waitingApprovals: number };
+	activateBackground?: () => void;
+	suspendBackground?: () => void;
 }
 
 export interface HostServiceContext {
@@ -26,7 +30,9 @@ export interface HostServiceContext {
 	credentials: GitCredentialProvider;
 	github: () => Promise<Octokit>;
 	execGh: ExecGh;
-	api: ApiClient;
+	api: ApiClient | null;
+	direct?: DirectBackendIdentity;
+	directOperations?: DirectOperationStore;
 	db: HostDb;
 	runtime: HostServiceRuntime;
 	eventBus: EventBus;
@@ -43,6 +49,14 @@ export interface HostServiceContext {
 	userId?: string;
 	/** Present only when a desktop app spawned this host (has browser panes). */
 	browserBridge?: BrowserBridgeConfig;
+}
+
+export interface DirectBackendIdentity {
+	socketPath?: string;
+	backendId: string;
+	namespaceId: string;
+	instanceId: string;
+	serviceUid: number;
 }
 
 export interface BrowserBridgeConfig {

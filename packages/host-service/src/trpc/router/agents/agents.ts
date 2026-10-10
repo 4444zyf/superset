@@ -28,6 +28,8 @@ import { z } from "zod";
 import { acpHarnessForPreset } from "../../../chat-v3/acpCatalogue";
 import type { HostDb } from "../../../db";
 import { workspaces } from "../../../db/schema";
+import { directAgentProfiles } from "../../../direct/agent-environment";
+import { waitForTerminalBaseEnv } from "../../../terminal/env";
 import {
 	createTerminalSessionInternal,
 	sendAgentMessage,
@@ -132,6 +134,7 @@ function buildAttachmentBlock(
 }
 
 export interface AgentRunInput {
+	requestTerminalId?: string;
 	colors?: TerminalColors;
 	workspaceId: string;
 	agent: string;
@@ -497,7 +500,7 @@ async function runTerminalAgent(
 ): Promise<AgentRunResult> {
 	const { fullCommand, label } = buildTerminalAgentLaunch(ctx.db, input);
 
-	const terminalId = crypto.randomUUID();
+	const terminalId = input.requestTerminalId ?? crypto.randomUUID();
 	const result = await createTerminalSessionInternal({
 		terminalId,
 		workspaceId: input.workspaceId,
@@ -698,7 +701,7 @@ function launchChatAgent(
 	const chat = ctx.runtime.chat?.();
 	if (!chat?.live.supports(target.harness)) return null;
 
-	const terminalId = crypto.randomUUID();
+	const terminalId = input.requestTerminalId ?? crypto.randomUUID();
 	const { sessionId } = chat.commands.createSession({
 		commandId: crypto.randomUUID(),
 		scopeId: input.workspaceId,
@@ -799,6 +802,7 @@ export async function runAgentInWorkspace(
 		});
 	}
 	// Ahead of the launch path: continuing costs no pty and no trust seeding.
+	if (directAgentProfiles()) await waitForTerminalBaseEnv();
 	const continued =
 		continueChatAgent(ctx, input) ?? (await continueTerminalAgent(ctx, input));
 	if (continued) return continued;
@@ -824,6 +828,7 @@ export const agentsRouter = router({
 	run: protectedProcedure
 		.input(
 			z.object({
+				requestTerminalId: z.string().uuid().optional(),
 				workspaceId: z.string().uuid(),
 				colors: terminalColorsSchema.optional(),
 				agent: z.string().min(1),

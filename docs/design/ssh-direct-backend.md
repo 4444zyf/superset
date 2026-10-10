@@ -1,23 +1,23 @@
 # Superset SSH 直连与自动安装守护后端设计
 
-- 状态：设计提案，已经过源码对照和静态自审；尚未实现。
+- 状态：作为实现契约使用；源码与运行验证进度见[实现及验收记录](../implementation/ssh-direct-backend.md)。
 - 日期：2026-10-10。
 - 源码基线：`4444zyf/superset@4ec5b6e287d380480a71b4b2ad98976354c82d4f`。
 - 前置材料：[账号、远程主机与会话现状](../current-state-accounts-remote-sessions.md)。
 - 复核记录：[设计复核](ssh-direct-backend-review.md)。
-- 本次交付仅为设计与复核文档，不修改应用代码，不安装或操作用户的 Mac mini。
+- 原始设计基于以上提交；后续用户已授权按 TDD 与对抗审查实施。本文保留需求，并记录实现中发现的必要修订；未操作用户的 Mac mini。
 
 ## 1. 目标与核心决定
 
 机器 A 安装客户端后，无需注册或登录 Superset；用户添加 Mac mini 的 SSH 连接，客户端自动探测环境、上传完整后端发行包、安装并启动守护服务。随后能在 Mac mini 上添加代码项目、创建独立会话或项目 workspace、运行终端/chat agent。退出或强制关闭 A 的客户端后，B 上的任务继续执行；再次打开 A 可以连接回同一执行资源。
 
-**采用：系统 OpenSSH 的 TCP 转发 + Mac mini 上由 launchd 管理的独立后端 + 现有 host-service/PTY/chat 核心。**
+**采用：系统 OpenSSH 转发到私有 Unix socket + Mac mini 上由 launchd 管理的独立后端 + 现有 host-service/PTY/chat 核心。**
 
 | 决策 | 具体内容 |
 | --- | --- |
 | SSH 的职责 | 认证操作系统用户、探测/安装后端、获取连接信息，以及转发数据流。 |
 | 后端的职责 | 独立持有 workspace、任务、终端、聊天和文件操作；不以 SSH 会话或客户端 PID 作为存活条件。 |
-| 业务传输 | 继续使用 HTTP/tRPC 和 WebSocket，经 SSH 转发到远端 loopback；不另造 SSH stdio 业务协议。 |
+| 业务传输 | 继续使用 HTTP/tRPC 和 WebSocket，经 SSH streamlocal 转发到远端用户私有 Unix socket。 |
 | Mac mini 服务托管 | 默认安装 system LaunchDaemon，运行进程使用 SSH 登录的普通用户身份；一次管理员安装后支持无 GUI 登录。 |
 | 身份 | SSH 的 OS 用户授权 + 主机本地 PSK；没有 Superset 用户、组织成员、JWT 或远端主机名册。 |
 | 数据 | B 上的 SQLite、仓库目录和 PTY daemon 是执行资源的来源；A 保存连接配置与客户端状态。 |
@@ -43,26 +43,27 @@ flowchart LR
     UI["无账号 Desktop UI"]
     Registry["Electron main：连接登记与 SSH 管理"]
     SSH["独立 ssh -N 转发进程"]
-    UI <-->|"HTTP / WS 到 A 的 loopback"| SSH
     UI <-->|"IPC：连接状态与操作"| Registry
-    Registry --> SSH
+    Registry <-->|"main 持有凭据，经 A 的 loopback"| SSH
   end
   subgraph B["Mac mini"]
     LD["launchd system job：运行身份为目标用户"]
     SUP["Backend Supervisor"]
     HS["direct 模式 host-service"]
+    Sock["0700 私有目录中的 0600 Unix socket"]
     PTY["独立 PTY daemon"]
     T["shell / terminal agent"]
     C["chat runtime / harness"]
     DB["host.db / chat.db / 操作记录 / 仓库"]
     LD --> SUP
     SUP -->|"启动、健康检查、升级切换"| HS
+    Sock <-->|"HTTP / WS"| HS
     HS <-->|"Unix socket"| PTY
     PTY --> T
     HS --> C
     HS --> DB
   end
-  SSH <-->|"SSH 加密通道，只转发至 B 的 127.0.0.1"| HS
+  SSH <-->|"SSH 加密通道，streamlocal forwarding"| Sock
   Registry -->|"短期 SSH：探测、安装、读连接信息"| LD
 ```
 
@@ -73,7 +74,7 @@ flowchart LR
 1. A 的 renderer、Electron、ssh 进程均不拥有 B 的 agent 生命周期。
 2. B 的服务不设置 A 的 `HOST_PARENT_PID`，不依赖 SSH stdin、TTY、连接数或 heartbeat 才保持运行。
 3. A 的退出、断开、移除本地连接只销毁本地转发和订阅；停止远端 agent 是独立的显式动作。
-4. host-service HTTP 仅监听 B 的 `127.0.0.1`；PTY socket 保持用户私有。
+4. 新 direct 客户端、安装器和控制工具仅向用户私有 Unix socket 发送 PSK；现有 loopback TCP listener 只保留兼容用途，缺失 socket 时不回退 TCP。PTY socket 保持用户私有。
 5. 每个 B 的 OS 用户/数据 namespace 同一时间只有一个服务写其数据库、一个 daemon 持有该 namespace 的 PTY。
 6. chat agent 在 B 的 host-service 中运行，因此 A 离开不停止 host-service；正常升级必须考虑活跃 chat。
 
@@ -120,15 +121,16 @@ flowchart LR
 - 安装脚本是固定内容；远端路径、UID 和其他参数通过验证过的 JSON/数据文件传递，不能直接插值到远端 shell。
 - 上传优先用同一套有效 SSH 配置的 SFTP；只有其子系统不可用才提供明确的受控兼容路径。
 - 首次主机密钥需要用户确认，变更后停止并提示核查；不使用 `StrictHostKeyChecking=no` 或删除旧记录“自动修复”。
-- 不在首版使用 ControlMaster；连接管理器自己复用一条转发并按窗口计数，避免关闭别的 SSH master，也减少 Windows 差异。
-- 转发设置覆盖 `ControlMaster/ControlPath` 的继承；不让 A 的代理转发成为 B 后台 Git/模型认证的来源。
+- 每个连接建立应用自有的 ControlMaster，ControlPath 位于 A 的 0700 临时目录；覆盖继承的 ControlMaster/ControlPath/ControlPersist，绝不采用或关闭用户已有 master。
+- master 用 `ClearAllForwardings=yes` 清除 SSH config 继承的 LocalForward/RemoteForward，再用空配置的 `-O forward` 添加唯一受控转发；覆盖 RemoteCommand/SessionType，禁止 agent/X11 转发。
+- A 的独立 watchdog 监测原父进程，父进程消失时终止自己拥有的 SSH 进程组并清理临时目录；不向 B 发送停止命令。当前客户端明确禁用尚未验证的 Windows 路径。
 
 隧道逻辑形式为：
 
 ```text
 A 127.0.0.1:<临时端口>
     → OpenSSH -N -T 的本地转发
-    → B 127.0.0.1:<已认证 manifest 给出的服务端口>
+    → B /tmp/superset-direct-<uid>-<namespace 路径摘要>/control.sock
 ```
 
 设置 `ExitOnForwardFailure=yes` 和 SSH keepalive；keepalive 超时只判定连接失效，不向 B 发停止任务命令。
@@ -145,7 +147,8 @@ ready → reconnecting → probing → forwarding → verifying → ready
 
 每个连接维护 `connectionId + generation`；A 的临时端口不是永久 hostId。backendId 及 namespaceId 由 B 持久生成，客户端保存期望值；新的地址命中另一后端时不能把旧 tab/cache 直接挂过去。
 
-- B 用端口 0 原子绑定，成功后写真实端口至 owner-only manifest；重启后端口可以变化。
+- B 以 UID、数据 home 和持久身份计算短 Unix socket 路径，目录 0700、socket 0600，并验证所有权。A 校验 descriptor 的 socketPath 与同一算法完全一致，缺失或不符时先拒绝连接。
+- 保留的 TCP port 0 只用于兼容。审查实际复现了服务退出后其他 UID 抢占旧 TCP 端口并收到 PSK；因此新路径禁止向该端口发送凭据，认证后的身份校验也不能代替私有传输端点。
 - A 的转发端口选取后若 bind 竞争失败，选择新端口重试。SSH forward 成功后还需验证服务身份/健康，不能将端口 bind 当成 B 服务可用。
 - 转发断开立即撤销对应 endpoint lease、清除秘密映射、关闭旧 WS 和只适用于旧 generation 的 client。
 - tRPC client 按连接及 generation 缓存，不仅按 URL；查询缓存按稳定的 backendId/namespace/resource 标识保存。
@@ -224,7 +227,7 @@ probe → acquire install lock → upload .partial → verify
   credentials/host-secret              # 32-byte 随机 PSK，0600
   state/install-journal.json
   state/version.json
-  state/endpoint.json                  # PID、instanceId、端口；非真实性凭据
+  state/endpoint.json                  # instanceId、私有 socketPath、兼容端口
   host/<namespaceId>/host.db
   host/<namespaceId>/chat.db
   sessions/
@@ -439,7 +442,7 @@ supervisor 是独立稳定入口，不随本次 host-service release 的切换�
 
 ## 11. 实施落点与分阶段交付
 
-以下是后续实现范围，本次没有执行。
+以下是实现范围；实际源码、测试和未完成验收分别记在[实现记录](../implementation/ssh-direct-backend.md)。
 
 | 区域 | 实施内容 |
 | --- | --- |
@@ -494,7 +497,7 @@ unit/integration 检查覆盖连接状态机、安装 journal、路径与权限�
 
 静态复核已把以下问题纳入最终方案：无 GUI 的 launchd 条件、一次管理员安装、chat 升级中断、原生 ABI、后台凭据、官方 API 的隐式调用、端口复用/身份、持久去重、安装锁范围、破坏性 daemon 修复以及 schema/外部副作用回滚。详见[逐项复核](ssh-direct-backend-review.md)。
 
-这些是实施和验收条件，不是已完成的产品能力。本次未创建发布物、未执行远端安装、未运行双机或 launchd 测试。
+这些是实施和验收条件。Linux cloud 的真实进程/SSH/Electron 证据不等同于真实 Mac 的双架构发行与 launchd 验收；完成情况见实现记录。
 
 [quit]: https://github.com/4444zyf/superset/blob/4ec5b6e287d380480a71b4b2ad98976354c82d4f/apps/desktop/src/main/lib/quit-sequence.ts#L49-L76
 [terminal-close]: https://github.com/4444zyf/superset/blob/4ec5b6e287d380480a71b4b2ad98976354c82d4f/packages/host-service/src/terminal/terminal.ts#L3895-L3905

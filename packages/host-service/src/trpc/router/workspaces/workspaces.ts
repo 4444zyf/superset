@@ -455,6 +455,7 @@ async function fetchLinkedTaskBranch(
 	ctx: HostServiceContext,
 	taskId: string,
 ): Promise<string | undefined> {
+	if (!ctx.api) return undefined;
 	try {
 		const task = await Promise.race([
 			ctx.api.task.byId.query(taskId),
@@ -505,7 +506,7 @@ async function registerLocalWorkspace(args: {
 		});
 	}
 
-	void ctx.api.v2Workspace.trackCreated
+	void ctx.api?.v2Workspace.trackCreated
 		.mutate({
 			workspaceId: localRow.id,
 			organizationId: ctx.organizationId,
@@ -785,7 +786,7 @@ export const workspacesRouter = router({
 				worktreePath = repoPath;
 				workspaceRow = toCloudShape(row, ctx.organizationId);
 				if (!alreadyExists)
-					void ctx.api.v2Workspace.trackCreated
+					void ctx.api?.v2Workspace.trackCreated
 						.mutate({
 							workspaceId: row.id,
 							organizationId: ctx.organizationId,
@@ -1406,6 +1407,7 @@ export const workspacesRouter = router({
 			// workspace keeps its own task link, so only nudge when this call
 			// actually linked the requested task.
 			if (
+				ctx.api &&
 				input.taskId &&
 				(!alreadyExists || workspaceRow.taskId === input.taskId)
 			) {

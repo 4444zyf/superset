@@ -1,6 +1,7 @@
 import { getHostId } from "@superset/shared/host-info";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { requireCloudApi } from "../../../direct/cloud-capability";
 import { getSelfUpdater, SelfUpdateError } from "../../../self-update";
 import { protectedProcedure, router } from "../../index";
 
@@ -30,7 +31,7 @@ export const systemRouter = router({
 					code: "FORBIDDEN",
 					message: "An authenticated host owner is required to update",
 				});
-			const access = await ctx.api.host.authorizeUpdate.query(
+			const access = await requireCloudApi(ctx.api).host.authorizeUpdate.query(
 				{
 					organizationId: ctx.organizationId,
 					machineId: getHostId(),

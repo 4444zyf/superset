@@ -1,4 +1,4 @@
-import type { ChatCommands } from "./commands";
+import type { ChatCommands, CommandsOptions } from "./commands";
 import { CommandDedupe, createCommands } from "./commands";
 import type { ChatDb, OpenChatDb } from "./db";
 import { createChatDb } from "./db";
@@ -29,6 +29,8 @@ export type ChatRuntimeOptions = {
 	schedule?: Schedule;
 	bootstrapLimit?: number;
 	dedupeCapacity?: number;
+	commandDedupe?: CommandsOptions["dedupe"];
+	mintSessionIdForCommand?: (commandId: string) => string;
 	onSessionChanged?: ChatJournalOptions["onSessionChanged"];
 };
 
@@ -71,7 +73,8 @@ export function createChatRuntime(options: ChatRuntimeOptions): ChatRuntime {
 		db,
 		sessions,
 		live,
-		dedupe: new CommandDedupe(options.dedupeCapacity),
+		dedupe: options.commandDedupe ?? new CommandDedupe(options.dedupeCapacity),
+		mintSessionIdForCommand: options.mintSessionIdForCommand,
 	});
 
 	return {
