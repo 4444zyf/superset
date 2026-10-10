@@ -31,6 +31,26 @@ import {
 	fixNativeBinariesForNode,
 } from "./build-dist";
 
+export async function smokeHostImport(
+	nodePath: string,
+	modulePath: string,
+): Promise<void> {
+	await promisify(execFile)(
+		nodePath,
+		[
+			"--input-type=module",
+			"-e",
+			"await import(process.argv[2])",
+			"direct-import-smoke",
+			modulePath,
+		],
+		{
+			cwd: resolve(modulePath, "../.."),
+			env: { HOME: process.env.HOME, PATH: "/usr/bin:/bin:/usr/sbin:/sbin" },
+		},
+	);
+}
+
 function argument(name: string): string {
 	const value = process.argv
 		.find((arg) => arg.startsWith(`--${name}=`))
@@ -192,7 +212,7 @@ async function main(): Promise<void> {
 		nativeExternals,
 	);
 	await bundle(
-		join(hostRoot, "src/direct-supervisor.ts"),
+		join(hostRoot, "src/direct-supervisor-serve.ts"),
 		join(root, "lib/direct-supervisor.js"),
 	);
 	await bundle(
@@ -250,18 +270,9 @@ async function main(): Promise<void> {
 		"--smoke-user",
 		Buffer.from("{}").toString("base64"),
 	]);
-	await run(
+	await smokeHostImport(
 		join(root, "lib/node"),
-		[
-			"--input-type=module",
-			"-e",
-			"await import(process.argv[1])",
-			join(root, "lib/host-service-direct.js"),
-		],
-		{
-			cwd: root,
-			env: { HOME: process.env.HOME, PATH: "/usr/bin:/bin:/usr/sbin:/sbin" },
-		},
+		join(root, "lib/host-service-direct.js"),
 	);
 	signRelease(
 		root,

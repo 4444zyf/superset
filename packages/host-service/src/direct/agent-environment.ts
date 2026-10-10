@@ -1,6 +1,6 @@
 import { lstatSync, mkdirSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
-import { delimiter, join, resolve } from "node:path";
+import { delimiter, join, resolve, sep } from "node:path";
 
 let directHome: string | null = null;
 
@@ -44,10 +44,18 @@ export function directAgentAccountEnv(): Record<string, string> | null {
 	privateDirectory(join(directHome, "providers"));
 	privateDirectory(profiles.claudeConfigDir);
 	privateDirectory(profiles.codexHome);
-	return {
-		CLAUDE_CONFIG_DIR: profiles.claudeConfigDir,
-		CODEX_HOME: profiles.codexHome,
-	};
+	return directAgentAccountOverlay();
+}
+
+function directAgentAccountOverlay(): Record<string, string> | null {
+	const profiles = directAgentProfiles();
+	return profiles
+		? {
+				CLAUDE_CONFIG_DIR: profiles.claudeConfigDir,
+				CLAUDE_SECURESTORAGE_CONFIG_DIR: profiles.claudeConfigDir,
+				CODEX_HOME: profiles.codexHome,
+			}
+		: null;
 }
 
 function canonical(path: string): string {
@@ -58,16 +66,31 @@ function canonical(path: string): string {
 	}
 }
 
-export function directAgentPath(
-	environment: NodeJS.ProcessEnv,
-): NodeJS.ProcessEnv {
-	if (!directHome) return environment;
+function blockedAgentBins(environment: NodeJS.ProcessEnv): string[] {
+	if (!directHome) return [];
 	const oldHome = environment.HOME ?? homedir();
-	const blocked = [
+	return [
 		join(oldHome, ".superset", "bin"),
 		join(homedir(), ".superset", "bin"),
 		join(directHome, "bin"),
 	].map(canonical);
+}
+
+export function directAgentExecutableAllowed(
+	path: string,
+	environment: NodeJS.ProcessEnv,
+): boolean {
+	const target = canonical(path);
+	return !blockedAgentBins(environment).some(
+		(bin) => target === bin || target.startsWith(`${bin}${sep}`),
+	);
+}
+
+export function directAgentPath(
+	environment: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv {
+	if (!directHome) return environment;
+	const blocked = blockedAgentBins(environment);
 	return {
 		...environment,
 		PATH: (environment.PATH ?? "")
@@ -82,6 +105,14 @@ export function isolateDirectAgentEnvironment(
 ): Record<string, string> {
 	const accounts = directAgentAccountEnv();
 	if (!accounts) return environment;
+	return isolateDirectRuntimeEnvironment(environment) as Record<string, string>;
+}
+
+export function isolateDirectRuntimeEnvironment(
+	environment: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv {
+	const accounts = directAgentAccountOverlay();
+	if (!accounts) return environment;
 	const env = { ...environment };
 	for (const key of Object.keys(env)) {
 		if (
@@ -94,5 +125,5 @@ export function isolateDirectAgentEnvironment(
 		)
 			delete env[key];
 	}
-	return { ...(directAgentPath(env) as Record<string, string>), ...accounts };
+	return { ...directAgentPath(env), ...accounts };
 }

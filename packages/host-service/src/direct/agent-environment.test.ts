@@ -1,5 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
 import {
+	existsSync,
 	mkdirSync,
 	mkdtempSync,
 	readdirSync,
@@ -13,12 +14,14 @@ import { tmpdir } from "node:os";
 import { delimiter, join } from "node:path";
 import { agentCliCommand } from "../chat-v3/agentCli";
 import type { HostDb } from "../db";
+import { applyLoginShellEnvToProcess } from "../runtime/login-shell-env";
 import {
 	buildHostLaunchEnv,
 	initTerminalBaseEnv,
 	resetTerminalBaseEnvForTests,
 } from "../terminal/env";
 import { agentLaunchEnv } from "../terminal-agents/agent-config";
+import { buildAgentCommandString } from "../trpc/router/agents/agents";
 import { resolveDefaultAccountTerminalEnv } from "../trpc/router/usage/default-account";
 import { configureDirectAgentEnvironment } from "./agent-environment";
 
@@ -102,7 +105,8 @@ test("direct launches use empty private vendor profiles without reading legacy a
 	expect(env.SUPERSET_DEFAULT_CODEX_HOME).toBeUndefined();
 	expect(env.SUPERSET_AMBIENT_CODEX_HOME).toBeUndefined();
 	expect(agentCliCommand("codex", env)).toBe(f.executable);
-	for (const path of [env.CLAUDE_CONFIG_DIR!, env.CODEX_HOME!]) {
+	for (const path of [env.CLAUDE_CONFIG_DIR, env.CODEX_HOME]) {
+		if (!path) throw new Error("A direct vendor profile was not selected");
 		expect(readdirSync(path)).toEqual([]);
 		expect(statSync(path).mode & 0o777).toBe(0o700);
 	}
@@ -125,4 +129,77 @@ test("an unexpected profile symlink fails closed instead of loading the old user
 	expect(() => resolveDefaultAccountTerminalEnv({} as HostDb)).toThrow(
 		"private vendor profile",
 	);
+});
+
+test("chat and terminal agents skip executable aliases into old Superset wrappers", () => {
+	const f = fixture();
+	const aliases = join(f.root, "alias-bin");
+	mkdirSync(aliases, { mode: 0o700 });
+	symlinkSync(
+		join(f.home, ".superset", "bin", "codex"),
+		join(aliases, "codex"),
+	);
+	const env = {
+		HOME: f.home,
+		PATH: [aliases, join(f.root, "vendor-bin")].join(delimiter),
+		SHELL: "/bin/bash",
+	};
+	configureDirectAgentEnvironment(f.direct);
+	initTerminalBaseEnv(env);
+	expect(agentCliCommand("codex", env)).toBe(f.executable);
+	expect(
+		buildAgentCommandString(
+			{
+				id: "codex",
+				presetId: "codex",
+				label: "Codex",
+				command: "codex",
+				args: [],
+				promptTransport: "argv",
+				promptArgs: [],
+				resumeArgs: [],
+				forkArgs: [],
+				env: {},
+			},
+			"hello",
+		),
+	).toBe(`'${f.executable}' 'hello'`);
+	expect(() => agentCliCommand("codex", { ...env, PATH: aliases })).toThrow(
+		"outside Superset wrappers",
+	);
+});
+
+test("a delayed login-shell merge cannot restore old vendor profiles, secure storage, wrappers or Superset credentials", async () => {
+	const f = fixture();
+	configureDirectAgentEnvironment(f.direct);
+	let release!: (env: Record<string, string>) => void;
+	const resolved = new Promise<Record<string, string>>((resolve) => {
+		release = resolve;
+	});
+	const target: NodeJS.ProcessEnv = {
+		HOME: f.home,
+		PATH: join(f.root, "vendor-bin"),
+		SUPERSET_AUTH_TOKEN: "old-launcher-token",
+	};
+	const merging = applyLoginShellEnvToProcess(target, {
+		resolveShellEnvironment: () => resolved,
+	});
+	release({
+		HOME: f.home,
+		PATH: join(f.home, ".superset", "bin"),
+		CLAUDE_CONFIG_DIR: f.home,
+		CLAUDE_SECURESTORAGE_CONFIG_DIR: f.home,
+		CODEX_HOME: f.home,
+		SUPERSET_DEFAULT_CODEX_HOME: f.home,
+		SUPERSET_API_URL: "https://api.superset.sh",
+	});
+	await merging;
+	expect(target.CLAUDE_CONFIG_DIR).toBe(join(f.direct, "providers", "claude"));
+	expect(target.CLAUDE_SECURESTORAGE_CONFIG_DIR).toBe(target.CLAUDE_CONFIG_DIR);
+	expect(target.CODEX_HOME).toBe(join(f.direct, "providers", "codex"));
+	expect(target.PATH).toBe(join(f.root, "vendor-bin"));
+	expect(target.SUPERSET_AUTH_TOKEN).toBeUndefined();
+	expect(target.SUPERSET_API_URL).toBeUndefined();
+	expect(target.SUPERSET_DEFAULT_CODEX_HOME).toBeUndefined();
+	expect(existsSync(join(f.direct, "providers"))).toBe(false);
 });

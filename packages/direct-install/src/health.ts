@@ -10,7 +10,10 @@ export function readPrivateBackendFile(
 	path: string,
 	maximumBytes: number,
 ): string {
-	const descriptor = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+	const descriptor = openSync(
+		path,
+		constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
+	);
 	try {
 		const stat = fstatSync(descriptor);
 		if (

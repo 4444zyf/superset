@@ -1,4 +1,5 @@
 import path from "node:path";
+import { isolateDirectRuntimeEnvironment } from "../direct/agent-environment";
 import { getTerminalBaseEnv, waitForTerminalBaseEnv } from "../terminal/env";
 
 /**
@@ -33,10 +34,17 @@ const MERGE_DENYLIST = new Set([
  */
 export async function applyLoginShellEnvToProcess(
 	targetEnv: NodeJS.ProcessEnv = process.env,
+	options: {
+		resolveShellEnvironment?: () => Promise<Record<string, string>>;
+	} = {},
 ): Promise<void> {
 	try {
-		await waitForTerminalBaseEnv();
-		const shellEnv = getTerminalBaseEnv();
+		const shellEnv = options.resolveShellEnvironment
+			? await options.resolveShellEnvironment()
+			: await (async () => {
+					await waitForTerminalBaseEnv();
+					return getTerminalBaseEnv();
+				})();
 
 		for (const [key, value] of Object.entries(shellEnv)) {
 			if (key === "PATH" || MERGE_DENYLIST.has(key)) continue;
@@ -63,5 +71,12 @@ export async function applyLoginShellEnvToProcess(
 			"[host-service] login-shell env merge failed (continuing):",
 			error,
 		);
+	} finally {
+		const isolated = isolateDirectRuntimeEnvironment(targetEnv);
+		if (isolated !== targetEnv) {
+			for (const key of Object.keys(targetEnv))
+				if (!(key in isolated)) delete targetEnv[key];
+			Object.assign(targetEnv, isolated);
+		}
 	}
 }

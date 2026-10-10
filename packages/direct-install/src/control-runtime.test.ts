@@ -1,5 +1,12 @@
 import { expect, test } from "bun:test";
-import { mkdtempSync, rmSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -7,9 +14,13 @@ import {
 	type ActivationDriver,
 	type ActivationJournal,
 	advanceActivation,
+	backupDatabases,
+	consumeCommittedStagedRelease,
 	finishPendingActivation,
 	requestBackendSocket,
 } from "./control-runtime";
+import { acquireInstallerLock } from "./installer-lock";
+import { pruneManagedBackups } from "./user-maintenance";
 
 function fixture(phase: ActivationJournal["phase"] = "quiescing") {
 	const calls: string[] = [];
@@ -207,4 +218,68 @@ test("a partial restore failure cannot start any host before restoration succeed
 	).rejects.toThrow("disk full");
 	expect(f.journal.phase).toBe("rolling-back");
 	expect(f.calls).not.toContain("config:old");
+});
+
+test("a committed activation consumes only its own staged marker while publication shares the install lock", () => {
+	const home = mkdtempSync(join(tmpdir(), "direct-stage-"));
+	mkdirSync(join(home, "state"), { mode: 0o700 });
+	const marker = join(home, "state/staged-release.json");
+	writeFileSync(marker, JSON.stringify({ releaseId: "newer-release" }), {
+		mode: 0o600,
+	});
+	const release = acquireInstallerLock(join(home, "state/install.lock"));
+	try {
+		expect(consumeCommittedStagedRelease(home, "committed-old-release")).toBe(
+			false,
+		);
+		expect(existsSync(marker)).toBe(true);
+		expect(consumeCommittedStagedRelease(home, "newer-release")).toBe(true);
+		expect(existsSync(marker)).toBe(false);
+	} finally {
+		release();
+		rmSync(home, { recursive: true, force: true });
+	}
+});
+
+test("a failed backup publishes its owned building marker before copying bytes and can later be reclaimed", async () => {
+	const home = mkdtempSync(join(tmpdir(), "direct-failed-backup-"));
+	const { journal } = fixture();
+	journal.oldConfig.homeDir = home;
+	mkdirSync(join(home, "state/backups"), { recursive: true, mode: 0o700 });
+	mkdirSync(join(home, "host", journal.oldConfig.namespaceId), {
+		recursive: true,
+		mode: 0o700,
+	});
+	writeFileSync(
+		join(home, "host", journal.oldConfig.namespaceId, "host.db"),
+		"source database",
+		{ mode: 0o600 },
+	);
+	const snapshotRoot = join(home, "state/backups", journal.transactionId);
+	class FailedBackup {
+		async backup(path: string) {
+			const marker = JSON.parse(
+				readFileSync(join(snapshotRoot, "snapshot.json"), "utf8"),
+			);
+			expect(marker.phase).toBe("building");
+			writeFileSync(path, "partially copied database", { mode: 0o600 });
+			throw new Error("backup disk full");
+		}
+		close() {}
+		prepare() {
+			return { run() {} };
+		}
+	}
+	try {
+		await expect(backupDatabases(journal, FailedBackup)).rejects.toThrow(
+			"disk full",
+		);
+		expect(existsSync(join(snapshotRoot, "host.db"))).toBe(true);
+		expect(
+			pruneManagedBackups(home, "44444444-4444-4444-4444-444444444444"),
+		).toEqual([journal.transactionId]);
+		expect(existsSync(snapshotRoot)).toBe(false);
+	} finally {
+		rmSync(home, { recursive: true, force: true });
+	}
 });

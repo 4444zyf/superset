@@ -4,7 +4,7 @@
 
 ## 基础阶段
 
-已实现以下源码路径，桌面最终集成仍在收尾：
+基础版本 `58284bc64` 已提交并推送到 `origin/work`。已实现以下源码路径，桌面与离线导入整合继续在后续阶段交付：
 
 | 组件 | 实现 |
 | --- | --- |
@@ -31,20 +31,27 @@
 | drain/frozen 阶段仍能启动终端或后台写入 | mutation/原始终端入口统一维护边界；SQL 原子冻结；统计 PR 后台工作，冻结后迟到回调不继续写。 |
 | 激活中 A 断开、健康失败或提交响应丢失 | 持久阶段 journal + resident supervisor 推进；可回滚阶段恢复一致性备份；已提交响应丢失不恢复旧数据覆盖新写入。 |
 | 本机 supervisor 误调用 Mac root-release 激活工具 | 明确 local/managed installationMode；本机不走系统发行目录校验或 Mac 激活流程。 |
-| direct 导入时校验云环境/读取旧账号配置 | 独立启动入口、懒加载 legacy cloud 功能；direct vendor profile 和账号解析隔离。 |
+| direct 启动时校验云环境/读取旧账号配置 | 独立启动入口、懒加载 legacy cloud 功能；direct vendor profile 和账号解析隔离。 |
+| 已提交的旧激活清理后来上传的候选 | 发布、控制和消费共用 namespace 安装锁；只消费当前事务对应的 release 标记。 |
+| 私有配置或身份被换成 FIFO 后阻塞 | 所有相关 reader 使用 O_NOFOLLOW/O_NONBLOCK 并检查 owner、普通文件及长度；root→UID 子进程设截止与 SIGKILL；真实 Node FIFO 回归先红后绿。 |
+| shell PATH 别名绕过 direct CLI 隔离 | 校验 realpath 指向实际可执行文件；异步 login-shell env 合并后再次固定 provider profile、清理旧 token/wrapper。 |
+| 完整桌面打包后本机后端找不到 PTY daemon | 从已配置的 host-service 入口定位 sibling bundle；拆开 supervisor 的纯导出与 CLI serve 入口；真实 Electron 本机 session/PTY 验证通过。 |
+| 备份失败的目录不计入回收、挤掉最后完整快照 | 创建目录时即记录 building 状态；回收区分完整与未完成快照并保留最后完整备份；真实 SQLite/WAL 与恢复两项 Node 回归通过。 |
 
 截至基础阶段已实际执行：direct-connection 47 项 Bun 测试及类型检查；SSH watchdog 3 项真实 Node 测试；host 端口 18 项真实 Node 测试；direct/PR 77 项定向测试；chat-runtime 241 通过、2 项供应商 live 测试跳过；terminal Node 50 通过、2 跳过；shared/chat/host 类型检查；最新 host bundle 构建。安装器及 builder 50 项测试通过，并完成类型和 scoped Biome 检查。计数是各自命令的结果，不汇总为一个重复计算的总数。
 
 ## 实际运行证据与边界
 
-基础 checkpoint 之后仍需关闭的审查问题：激活完成的旧 journal 不能删掉后来上传的候选标记（需统一发布/消费锁）；私有文件读取需避免 FIFO 阻塞并给 UID 子进程设置超时；direct CLI 的 PATH 别名必须校验真实可执行路径；Mac builder 的 import smoke 需避开 CLI main guard。阶段提交不是发布验收通过。daemon `auto-update defers when live sessions exist` 的失败已使用未改基线复现，基线允许 live fd-handoff 的实现与旧测试期望不一致；完整 daemon suite 不记为通过。
+基础 checkpoint 后的候选标记竞争、FIFO 阻塞、UID 子进程截止、PATH 别名与 builder import smoke 问题均已修复并通过独立复验。安装器和 builder 最新 54 项测试通过，真实 Node SQLite 两项通过；本机 FIFO 的一项真实 Node 回归通过。新增 Node suites 已注册为 Turbo task，并与 Bun tests 一起进入 CI。阶段提交不是发布验收通过。daemon `auto-update defers when live sessions exist` 的失败已使用未改基线复现，基线允许 live fd-handoff 的实现与旧测试期望不一致；完整 daemon suite 不记为通过。
 
 Linux cloud 采用隔离的普通 UID 后端、真实 OpenSSH sshd、真实 PTY、Electron 与 CDP，未操作用户机器。现有证据目录为 `/workspace/.cloud-onboarding/superset/runtime-verification/`；本机进程退出/复连的检查记录在 `/tmp/superset-local-unix-persistence-check.json`。
 
 - `ssh-unix-proof.json`：真实 SSH streamlocal 请求成功；关闭 A 转发后 B 仍响应。
 - `orphan-unix-proof.json`：A 被 SIGKILL 后其 SSH listener 消失；B 前后 PID 相同。
 - 本机 Unix 链：真实客户端进程退出后 PTY 心跳仍增长，新客户端连接同一 terminal，终端 WS attached；显式 Stop 后数据保留。
-- 早期 Electron UI 已验证无账号进入、添加 SSH、远端 session/terminal 与普通关闭后心跳继续。该轮早于最终安全修订；最终源码的 GUI 闭环需重跑。早期一轮心跳后来结束，原因未确定；另一次相同 PTY 命令监测超过 300 秒未复现。不能将早期结果表述为无限运行或完整恢复证明。
+- 完整构建的 Electron UI 已验证无账号进入、添加 SSH、远端 session/terminal；强制关闭 A 的 SSH master 后自动重连到同一 PTY，断线期间写入控件禁用；正常关闭 A 后 B 的同一 PTY 心跳继续，重开 A 后连接配置仍在。最新修正的本机入口也已实际创建 session/PTY。最终项目、端口与退出闭环仍在检查。
+- 早期一轮心跳后来结束，原因未确定；新的同一远端 PTY 监测超过 337 秒未复现。不能将结果表述为无限运行证明。
+- installer 的两项真实 SQLite 试验使用 Node 内置 SQLite 注入适配；生产 Darwin release 的 better-sqlite3 原生驱动尚未验证。SSH 完全失联时可能遗留 incoming 暂存目录；跨 ABI/schema/PTY bundle 的版本拒绝自动激活，尚未实现停机迁移。
 
 ## 验收矩阵
 

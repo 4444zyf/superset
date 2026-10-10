@@ -26,10 +26,14 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { acpHarnessForPreset } from "../../../chat-v3/acpCatalogue";
+import { agentCliCommand } from "../../../chat-v3/agentCli";
 import type { HostDb } from "../../../db";
 import { workspaces } from "../../../db/schema";
 import { directAgentProfiles } from "../../../direct/agent-environment";
-import { waitForTerminalBaseEnv } from "../../../terminal/env";
+import {
+	getTerminalBaseEnv,
+	waitForTerminalBaseEnv,
+} from "../../../terminal/env";
 import {
 	createTerminalSessionInternal,
 	sendAgentMessage,
@@ -83,8 +87,15 @@ export function buildAgentCommandString(
 	const forkArgv = options.forkSessionId
 		? buildForkArgv(config.forkArgs, options.forkSessionId)
 		: [];
+	const command =
+		directAgentProfiles() && /^[\w.-]+$/.test(config.command)
+			? agentCliCommand(config.command, {
+					...getTerminalBaseEnv(),
+					...config.env,
+				})
+			: config.command;
 	const baseArgv = [
-		config.command,
+		command,
 		...config.args,
 		...modelArgs,
 		...resumeArgv,

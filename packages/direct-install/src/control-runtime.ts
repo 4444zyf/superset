@@ -80,6 +80,19 @@ export interface ActivationDriver {
 	cancelPreparation(): void;
 }
 export type ActivationPhase = "before-start" | "after-start";
+export function consumeCommittedStagedRelease(
+	homeDir: string,
+	releaseId: string,
+): boolean {
+	const path = join(homeDir, "state/staged-release.json");
+	if (!existsSync(path)) return false;
+	const staged = JSON.parse(readPrivateBackendFile(path, 4096)) as {
+		releaseId: string;
+	};
+	if (staged.releaseId !== releaseId) return false;
+	rmSync(path);
+	return true;
+}
 export async function advanceActivation(
 	journal: ActivationJournal,
 	phase: ActivationPhase,
@@ -389,12 +402,12 @@ export async function backendRequest<T>(
 	}
 	return result;
 }
-interface SqliteDatabase {
+export interface SqliteDatabase {
 	backup(path: string): Promise<unknown>;
 	close(): void;
 	prepare(sql: string): { run(...params: unknown[]): unknown };
 }
-type SqliteConstructor = new (
+export type SqliteConstructor = new (
 	path: string,
 	options?: { readonly?: boolean; fileMustExist?: boolean },
 ) => SqliteDatabase;
@@ -430,8 +443,9 @@ function databasePath(config: ServiceConfig, database: string): string {
 		throw new Error("Invalid backup database");
 	return join(config.homeDir, "host", config.namespaceId, database);
 }
-async function backupDatabases(
+export async function backupDatabases(
 	journal: ActivationJournal,
+	Database?: SqliteConstructor,
 ): Promise<DatabaseBackup[]> {
 	const root = join(
 		journal.oldConfig.homeDir,
@@ -445,7 +459,8 @@ async function backupDatabases(
 		phase: "building",
 		createdAt: Date.now(),
 	});
-	const Database = loadSqlite(journal.oldConfig);
+	syncDirectory(dirname(root));
+	const Sqlite = Database ?? loadSqlite(journal.oldConfig);
 	const backups: DatabaseBackup[] = [];
 	for (const database of ["host.db", "chat.db", "operations.db"]) {
 		const source = databasePath(journal.oldConfig, database);
@@ -457,7 +472,7 @@ async function backupDatabases(
 		if (!lstatSync(source).isFile() || isSymlink(source))
 			throw new Error("Invalid database backup source");
 		rmSync(backupPath, { force: true });
-		const db = new Database(source, { readonly: true, fileMustExist: true });
+		const db = new Sqlite(source, { readonly: true, fileMustExist: true });
 		try {
 			await db.backup(backupPath);
 		} finally {
@@ -482,13 +497,16 @@ async function backupDatabases(
 	});
 	return backups;
 }
-async function restoreDatabases(journal: ActivationJournal): Promise<void> {
+export async function restoreDatabases(
+	journal: ActivationJournal,
+	Database?: SqliteConstructor,
+): Promise<void> {
 	if (
 		journal.backups.length !== 3 ||
 		new Set(journal.backups.map((item) => item.database)).size !== 3
 	)
 		throw new Error("Incomplete activation backup");
-	const Database = loadSqlite(journal.oldConfig);
+	const Sqlite = Database ?? loadSqlite(journal.oldConfig);
 	for (const item of journal.backups) {
 		const destination = databasePath(journal.oldConfig, item.database);
 		if (
@@ -510,7 +528,7 @@ async function restoreDatabases(journal: ActivationJournal): Promise<void> {
 		}
 		const temporary = `${destination}.${journal.transactionId}.restore`;
 		rmSync(temporary, { force: true });
-		const db = new Database(item.backupPath, {
+		const db = new Sqlite(item.backupPath, {
 			readonly: true,
 			fileMustExist: true,
 		});
@@ -545,7 +563,7 @@ export async function finishPendingActivation(
 	const path = join(config.homeDir, "state/activation-journal.json");
 	if (!existsSync(path)) return;
 	const releaseLock = acquireInstallerLock(
-		join(config.homeDir, "state/activation-control.lock"),
+		join(config.homeDir, "state/install.lock"),
 	);
 	try {
 		const journal = JSON.parse(
@@ -684,9 +702,7 @@ export async function finishPendingActivation(
 				clearOfflineMaintenance(journal.oldConfig, journal.transactionId),
 		});
 		if (journal.phase === "committed")
-			rmSync(join(config.homeDir, "state/staged-release.json"), {
-				force: true,
-			});
+			consumeCommittedStagedRelease(config.homeDir, journal.candidateReleaseId);
 		if (["committed", "rolled-back", "canceled"].includes(journal.phase)) {
 			try {
 				pruneManagedBackups(config.homeDir, journal.transactionId);

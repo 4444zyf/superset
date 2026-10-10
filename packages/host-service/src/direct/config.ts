@@ -5,7 +5,7 @@ import {
 	fstatSync,
 	mkdirSync,
 	openSync,
-	readFileSync,
+	readSync,
 	renameSync,
 	unlinkSync,
 	writeFileSync,
@@ -45,11 +45,20 @@ export interface DirectEndpoint {
 }
 
 export function loadDirectConfig(path: string): DirectConfig {
-	return directConfigSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+	return directConfigSchema.parse(
+		JSON.parse(readPrivateRegularFile(path, 65536, "configuration")),
+	);
 }
 
-export function readDirectSecret(path: string): string {
-	const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+function readPrivateRegularFile(
+	path: string,
+	maximumBytes: number,
+	kind: string,
+): string {
+	const fd = openSync(
+		path,
+		constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
+	);
 	try {
 		const stat = fstatSync(fd);
 		if (
@@ -58,16 +67,31 @@ export function readDirectSecret(path: string): string {
 			(process.getuid && stat.uid !== process.getuid())
 		) {
 			throw new Error(
-				"The backend secret must be an owner-only regular file owned by the service user",
+				`The backend ${kind} must be an owner-only regular file owned by the service user`,
 			);
 		}
-		const secret = readFileSync(fd, "utf8").trim();
-		if (!/^[a-f0-9]{64}$/.test(secret))
-			throw new Error("Expected a 32-byte hexadecimal backend secret");
-		return secret;
+		if (stat.size > maximumBytes)
+			throw new Error(`The backend ${kind} exceeds its size limit`);
+		const bytes = Buffer.alloc(maximumBytes + 1);
+		let length = 0;
+		while (length < bytes.length) {
+			const count = readSync(fd, bytes, length, bytes.length - length, length);
+			if (count === 0) break;
+			length += count;
+		}
+		if (length > maximumBytes)
+			throw new Error(`The backend ${kind} exceeds its size limit`);
+		return bytes.subarray(0, length).toString("utf8");
 	} finally {
 		closeSync(fd);
 	}
+}
+
+export function readDirectSecret(path: string): string {
+	const secret = readPrivateRegularFile(path, 1024, "secret").trim();
+	if (!/^[a-f0-9]{64}$/.test(secret))
+		throw new Error("Expected a 32-byte hexadecimal backend secret");
+	return secret;
 }
 
 export function publishDirectEndpoint(

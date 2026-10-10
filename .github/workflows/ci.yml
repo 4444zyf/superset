@@ -199,7 +199,7 @@ jobs:
               done
             } > "$RUNNER_TEMP/test-hang.txt" 2>&1
           ) > /dev/null 2>&1 &
-          timeout --kill-after=15 360 bun x turbo test test:integration:terminal --concurrency=4 --log-order=stream
+          timeout --kill-after=15 360 bun x turbo test test:integration:terminal test:integration:direct test:integration:ssh test:integration:local test:integration:ports --concurrency=4 --log-order=stream
 
       - name: Show what a hung test run was blocked on
         if: failure() || cancelled()

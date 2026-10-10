@@ -22,6 +22,7 @@ import {
 } from "./control-actions";
 import { controlAsRoot } from "./control-root";
 import { backendRequest, readServiceConfig } from "./control-runtime";
+import { readPrivateBackendFile } from "./health";
 import type { InstallResult, RemoteBackendProbe } from "./install";
 import { acquireInstallerLock } from "./installer-lock";
 import { createLaunchDaemonPlist } from "./launchd";
@@ -81,7 +82,7 @@ export function prepareUserInstallation(
 		const identityPath = join(homeDir, "identity.json");
 		let identity: InstallResult["identity"];
 		if (existsSync(identityPath)) {
-			identity = JSON.parse(readFileSync(identityPath, "utf8"));
+			identity = JSON.parse(readPrivateBackendFile(identityPath, 4096));
 			if (
 				!UUID.test(identity.backendId) ||
 				!UUID.test(identity.namespaceId) ||
@@ -104,14 +105,14 @@ export function prepareUserInstallation(
 			});
 		if (
 			lstatSync(secretFile).isSymbolicLink() ||
-			!/^[a-f0-9]{64}$/.test(readFileSync(secretFile, "utf8").trim())
+			!/^[a-f0-9]{64}$/.test(readPrivateBackendFile(secretFile, 128).trim())
 		)
 			throw new Error("Invalid installed backend secret");
 		chmodSync(secretFile, 0o600);
 		const configPath = join(homeDir, "service-config.json");
 		let status: InstallResult["status"] = "installed";
 		if (existsSync(configPath)) {
-			const config = JSON.parse(readFileSync(configPath, "utf8"));
+			const config = JSON.parse(readPrivateBackendFile(configPath, 65536));
 			if (
 				config.backendId !== identity.backendId ||
 				config.namespaceId !== identity.namespaceId ||
@@ -269,6 +270,8 @@ function userCommand(
 				PATH: "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
 			},
 			maxBuffer: 1024 * 1024,
+			timeout: flag === "--health-user" ? 120000 : 30000,
+			killSignal: "SIGKILL",
 		},
 	).trim();
 }
@@ -548,20 +551,30 @@ async function main(): Promise<void> {
 				input.extra as InstallResult,
 				input.request.probe.uid,
 			);
-		else if (flag === "--retention-user")
-			process.stdout.write(
-				JSON.stringify(
-					userRetainedReleaseRoots(
-						readServiceConfig(
-							join(
-								input.request.probe.userHome,
-								".superset-direct/service-config.json",
+		else if (flag === "--retention-user") {
+			const release = acquireInstallerLock(
+				join(
+					input.request.probe.userHome,
+					".superset-direct/state/install.lock",
+				),
+			);
+			try {
+				process.stdout.write(
+					JSON.stringify(
+						userRetainedReleaseRoots(
+							readServiceConfig(
+								join(
+									input.request.probe.userHome,
+									".superset-direct/service-config.json",
+								),
 							),
 						),
 					),
-				),
-			);
-		else if (flag === "--disabled-user")
+				);
+			} finally {
+				release();
+			}
+		} else if (flag === "--disabled-user")
 			process.stdout.write(
 				JSON.stringify({
 					disabled: existsSync(

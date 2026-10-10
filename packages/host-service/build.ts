@@ -43,7 +43,7 @@ if (!result.success) {
 
 for (const entry of [
 	{ source: "src/direct-serve.ts", output: "host-service-direct.js" },
-	{ source: "src/direct-supervisor.ts", output: "direct-supervisor.js" },
+	{ source: "src/direct-supervisor-serve.ts", output: "direct-supervisor.js" },
 ]) {
 	const directResult = await Bun.build({
 		entrypoints: [entry.source],
@@ -53,7 +53,14 @@ for (const entry of [
 		naming: entry.output,
 		format: "esm",
 		define: { "process.env.NODE_ENV": JSON.stringify("production") },
-		external: ["better-sqlite3", "node-pty", "@parcel/watcher", "@anthropic-ai/claude-agent-sdk", "puppeteer-core", "chromium-bidi"],
+		external: [
+			"better-sqlite3",
+			"node-pty",
+			"@parcel/watcher",
+			"@anthropic-ai/claude-agent-sdk",
+			"puppeteer-core",
+			"chromium-bidi",
+		],
 	});
 	if (!directResult.success) {
 		for (const log of directResult.logs) console.error(log);

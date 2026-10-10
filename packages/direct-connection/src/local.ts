@@ -100,7 +100,7 @@ function privateDirectory(path: string): void {
 function privateRead(path: string): string | null {
 	let fd: number;
 	try {
-		fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+		fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
 	} catch (error) {
 		if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
 		throw new Error("Local backend data must be owner-only regular files", {

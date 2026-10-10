@@ -9,6 +9,7 @@
 	},
 	"scripts": {
 		"test": "bun test",
+		"test:integration:direct": "bun build src/sqlite-backup.node-test.ts --target=node --outfile=dist/sqlite-backup.node-test.mjs && node --test dist/sqlite-backup.node-test.mjs",
 		"typecheck": "tsc --noEmit --emitDeclarationOnly false"
 	},
 	"dependencies": {

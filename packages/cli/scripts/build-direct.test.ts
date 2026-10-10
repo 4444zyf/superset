@@ -14,6 +14,7 @@ import {
 	listReleaseFiles,
 	resolveDirectRuntime,
 	signRelease,
+	smokeHostImport,
 } from "./build-direct";
 
 const roots: string[] = [];
@@ -25,6 +26,18 @@ const root = () => {
 afterEach(() => {
 	for (const directory of roots.splice(0))
 		rmSync(directory, { recursive: true, force: true });
+});
+test("release import smoke does not execute the emitted host CLI main guard", async () => {
+	const directory = root();
+	const entry = join(directory, "host-service-direct.mjs");
+	writeFileSync(
+		entry,
+		"import {pathToFileURL} from 'node:url';import {resolve} from 'node:path';if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href)throw new Error('host CLI executed during import smoke');export const ready=true;",
+	);
+	const node = Bun.which("node");
+	if (!node)
+		throw new Error("Node is required by the direct release build tests");
+	await smokeHostImport(node, entry);
 });
 test("signs exact manifest bytes with the release key and records digests and executable modes", () => {
 	const directory = root();

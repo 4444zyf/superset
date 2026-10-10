@@ -33,6 +33,7 @@ test("snapshot pruning retains the active transaction and a previous completed b
 		"11111111-1111-1111-1111-111111111111",
 		"22222222-2222-2222-2222-222222222222",
 		"33333333-3333-3333-3333-333333333333",
+		"44444444-4444-4444-4444-444444444444",
 	] as const;
 	for (const [i, id] of ids.entries()) {
 		mkdirSync(join(backupRoot, id), { mode: 0o700 });
@@ -41,7 +42,7 @@ test("snapshot pruning retains the active transaction and a previous completed b
 			JSON.stringify({
 				formatVersion: 1,
 				transactionId: id,
-				phase: "complete",
+				phase: i === 3 ? "building" : "complete",
 				createdAt: i,
 			}),
 			{ mode: 0o600 },
@@ -49,7 +50,10 @@ test("snapshot pruning retains the active transaction and a previous completed b
 	}
 	mkdirSync(join(backupRoot, "unrecognized"));
 	try {
-		expect(pruneManagedBackups(home, ids[2] ?? "", 2)).toEqual([ids[0]]);
+		expect(pruneManagedBackups(home, ids[2] ?? "", 2).sort()).toEqual([
+			ids[0],
+			ids[3],
+		]);
 		expect(statSync(join(backupRoot, ids[1] ?? "")).isDirectory()).toBe(true);
 		expect(statSync(join(backupRoot, "unrecognized")).isDirectory()).toBe(true);
 	} finally {

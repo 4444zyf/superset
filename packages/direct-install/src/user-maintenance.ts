@@ -80,7 +80,11 @@ export function pruneManagedBackups(
 	if (!existsSync(root)) return [];
 	for (const directory of [homeDir, join(homeDir, "state"), root])
 		privateDirectory(directory, uid);
-	const managed: { id: string; createdAt: number }[] = [];
+	const managed: {
+		id: string;
+		createdAt: number;
+		phase: "building" | "complete";
+	}[] = [];
 	for (const id of readdirSync(root)) {
 		if (
 			!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id)
@@ -94,17 +98,21 @@ export function pruneManagedBackups(
 			formatVersion: number;
 			transactionId: string;
 			createdAt: number;
+			phase: "building" | "complete";
 		};
 		if (
 			snapshot.formatVersion !== 1 ||
 			snapshot.transactionId !== id ||
-			!Number.isFinite(snapshot.createdAt)
+			!Number.isFinite(snapshot.createdAt) ||
+			!["building", "complete"].includes(snapshot.phase)
 		)
 			throw new Error("Invalid managed snapshot marker");
-		managed.push({ id, createdAt: snapshot.createdAt });
+		managed.push({ id, createdAt: snapshot.createdAt, phase: snapshot.phase });
 	}
 	const retained = new Set([retainedTransactionId]);
-	for (const item of managed.sort((a, b) => b.createdAt - a.createdAt)) {
+	for (const item of managed
+		.filter((item) => item.phase === "complete")
+		.sort((a, b) => b.createdAt - a.createdAt)) {
 		if (retained.size >= maximumSnapshots) break;
 		retained.add(item.id);
 	}

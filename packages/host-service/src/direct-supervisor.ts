@@ -1,10 +1,14 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join } from "node:path";
 import { setTimeout as wait } from "node:timers/promises";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { finishPendingActivation } from "@superset/direct-install/control-runtime";
+import { fileURLToPath } from "node:url";
+import {
+	finishPendingActivation,
+	maintainBackendLogs,
+} from "@superset/direct-install/control-runtime";
 import { loadDirectConfig } from "./direct/config";
+import { assertNoOfflineImport } from "./direct/import-lock";
 import { acquireDirectProcessLock } from "./direct/process-lock";
 import {
 	monitorDirectChild,
@@ -13,6 +17,7 @@ import {
 
 export async function runDirectSupervisor(configPath: string): Promise<void> {
 	const config = loadDirectConfig(configPath);
+	assertNoOfflineImport(config.homeDir);
 	const release = acquireDirectProcessLock(
 		join(config.homeDir, "state", "supervisor.lock"),
 	);
@@ -21,10 +26,12 @@ export async function runDirectSupervisor(configPath: string): Promise<void> {
 	process.on("SIGTERM", stop);
 	process.on("SIGINT", stop);
 	try {
+		assertNoOfflineImport(config.homeDir);
 		await superviseDirectBackend({
 			signal: controller.signal,
 			isDisabled: () => existsSync(join(config.homeDir, "state", "disabled")),
 			beforeStart: async () => {
+				maintainBackendLogs(config.homeDir);
 				if (config.installationMode !== "local")
 					await finishPendingActivation(configPath, { phase: "before-start" });
 			},
@@ -66,16 +73,17 @@ export async function runDirectSupervisor(configPath: string): Promise<void> {
 				};
 				controller.signal.addEventListener("abort", terminate, { once: true });
 				try {
-					return config.installationMode === "local"
-						? await exited
-						: await monitorDirectChild(
-								{ exited, terminate },
-								({ stopCurrent }) =>
-									finishPendingActivation(configPath, {
-										phase: "after-start",
-										stopCurrent,
-									}),
-							);
+					return await monitorDirectChild(
+						{ exited, terminate },
+						async ({ stopCurrent }) => {
+							maintainBackendLogs(config.homeDir);
+							if (config.installationMode !== "local")
+								await finishPendingActivation(configPath, {
+									phase: "after-start",
+									stopCurrent,
+								});
+						},
+					);
 				} finally {
 					controller.signal.removeEventListener("abort", terminate);
 				}
@@ -90,24 +98,5 @@ export async function runDirectSupervisor(configPath: string): Promise<void> {
 		process.off("SIGTERM", stop);
 		process.off("SIGINT", stop);
 		release();
-	}
-}
-
-if (
-	process.argv[1] &&
-	import.meta.url === pathToFileURL(resolve(process.argv[1])).href
-) {
-	const index = process.argv.indexOf("--config");
-	const configPath = process.argv[index + 1];
-	if (index === -1 || !configPath) {
-		console.error(
-			"Usage: direct-supervisor.js --config <absolute config path>",
-		);
-		process.exitCode = 1;
-	} else {
-		void runDirectSupervisor(resolve(configPath)).catch((error) => {
-			console.error("[direct-supervisor] failed", error);
-			process.exitCode = 1;
-		});
 	}
 }

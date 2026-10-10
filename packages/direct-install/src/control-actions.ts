@@ -161,27 +161,27 @@ export async function controlAsUser(
 		request.probe.userHome,
 		".superset-direct/service-config.json",
 	);
-	const config = readServiceConfig(configPath);
-	const disabled = join(config.homeDir, "state/disabled");
-	if (command === "disabled") return { disabled: existsSync(disabled) };
-	if (command === "metadata") {
-		const stagedPath = join(config.homeDir, "state/staged-release.json");
-		const staged = existsSync(stagedPath)
-			? (JSON.parse(readPrivateBackendFile(stagedPath, 4096)) as {
-					releaseRoot: string;
-				})
-			: null;
-		return {
-			config,
-			stagedReleaseRoot: staged?.releaseRoot,
-			disabled: existsSync(disabled),
-			retainedReleaseRoots: userRetainedReleaseRoots(config),
-		} satisfies ControlMetadata;
-	}
 	const release = acquireInstallerLock(
-		join(config.homeDir, "state/activation-control.lock"),
+		join(request.probe.userHome, ".superset-direct/state/install.lock"),
 	);
 	try {
+		const config = readServiceConfig(configPath);
+		const disabled = join(config.homeDir, "state/disabled");
+		if (command === "disabled") return { disabled: existsSync(disabled) };
+		if (command === "metadata") {
+			const stagedPath = join(config.homeDir, "state/staged-release.json");
+			const staged = existsSync(stagedPath)
+				? (JSON.parse(readPrivateBackendFile(stagedPath, 4096)) as {
+						releaseRoot: string;
+					})
+				: null;
+			return {
+				config,
+				stagedReleaseRoot: staged?.releaseRoot,
+				disabled: existsSync(disabled),
+				retainedReleaseRoots: userRetainedReleaseRoots(config),
+			} satisfies ControlMetadata;
+		}
 		if (command === "verify-stopped") {
 			if (!existsSync(disabled))
 				throw new Error(

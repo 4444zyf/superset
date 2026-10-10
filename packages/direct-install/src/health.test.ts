@@ -1,4 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
+import { execFile } from "node:child_process";
 import {
 	chmodSync,
 	mkdirSync,
@@ -9,6 +10,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { promisify } from "node:util";
 import { readPrivateBackendFile } from "./health";
 
 const roots: string[] = [];
@@ -39,3 +41,18 @@ test("requires owner-only permissions and a bounded regular file", () => {
 	chmodSync(path, 0o644);
 	expect(() => readPrivateBackendFile(path, 1024)).toThrow("private");
 });
+test.skipIf(process.platform === "win32")(
+	"a credential FIFO is rejected before any blocking read",
+	async () => {
+		const root = mkdtempSync(join(tmpdir(), "direct-fifo-"));
+		roots.push(root);
+		const path = join(root, "secret");
+		const run = promisify(execFile);
+		await run("/usr/bin/mkfifo", ["-m", "600", path]);
+		const source = `import {readPrivateBackendFile} from ${JSON.stringify(join(import.meta.dir, "health.ts"))};try{readPrivateBackendFile(${JSON.stringify(path)},1024);throw new Error('unexpected FIFO accepted');}catch(error){if(!error.message.includes('private'))throw error;process.stdout.write('rejected-special-file');}`;
+		const result = await run(process.execPath, ["--eval", source], {
+			timeout: 1000,
+		});
+		expect(result.stdout).toBe("rejected-special-file");
+	},
+);

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
+	existsSync,
 	lstatSync,
 	mkdirSync,
 	readFileSync,
@@ -8,7 +9,7 @@ import {
 } from "node:fs";
 import { createServer, type Server } from "node:http";
 import type { Socket } from "node:net";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { getRequestListener, serve } from "@hono/node-server";
 import { directBackendSocketPath } from "@superset/shared/direct-backend-socket";
 import Database from "better-sqlite3";
@@ -25,6 +26,7 @@ import {
 	publishDirectEndpoint,
 	readDirectSecret,
 } from "./config";
+import { assertNoOfflineImport } from "./import-lock";
 import { configureManagedWorkspaceHome } from "./managed-paths";
 import { DirectOperationStore } from "./operations";
 import { acquireDirectProcessLock } from "./process-lock";
@@ -66,6 +68,7 @@ export async function startDirectBackend(
 	options: { onStopped?: () => void } = {},
 ) {
 	const config = loadDirectConfig(configPath);
+	assertNoOfflineImport(config.homeDir);
 	const secret = readDirectSecret(config.secretFile);
 	const release = acquireDirectProcessLock(
 		join(config.homeDir, "state", "backend.lock"),
@@ -107,6 +110,7 @@ export async function startDirectBackend(
 		);
 	};
 	try {
+		assertNoOfflineImport(config.homeDir);
 		mkdirSync(hostDir, { recursive: true, mode: 0o700 });
 		process.env.SUPERSET_HOME_DIR = config.homeDir;
 		process.env.ORGANIZATION_ID = config.namespaceId;
@@ -116,7 +120,16 @@ export async function startDirectBackend(
 			process.env.SUPERSET_CHAT_V3_MIGRATIONS = config.chatMigrationsFolder;
 		configureManagedWorkspaceHome(config.homeDir);
 		configureDirectAgentEnvironment(config.homeDir);
-		configureSupervisor({ autoUpdate: false, preserveExistingSessions: true });
+		const packagedDaemon = config.hostServicePath
+			? join(dirname(config.hostServicePath), "pty-daemon.js")
+			: undefined;
+		configureSupervisor({
+			autoUpdate: false,
+			preserveExistingSessions: true,
+			...(packagedDaemon && existsSync(packagedDaemon)
+				? { scriptPath: packagedDaemon }
+				: {}),
+		});
 		startTerminalBaseEnvResolution();
 		void applyLoginShellEnvToProcess();
 		operationDb = new Database(join(hostDir, "operations.db"));

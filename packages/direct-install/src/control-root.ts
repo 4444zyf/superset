@@ -189,6 +189,8 @@ export async function controlAsRoot(
 							PATH: "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
 						},
 						maxBuffer: 1024 * 1024,
+						timeout: 30000,
+						killSignal: "SIGKILL",
 					},
 				).trim(),
 			);

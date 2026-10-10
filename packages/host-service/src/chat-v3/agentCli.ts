@@ -5,6 +5,7 @@ import { promisify } from "node:util";
 import { getBinDir } from "@superset/agent-setup";
 import { coerce, gte } from "semver";
 import {
+	directAgentExecutableAllowed,
 	directAgentPath,
 	directAgentProfiles,
 } from "../direct/agent-environment";
@@ -44,7 +45,12 @@ export function findOnPath(
 	for (const dir of (env.PATH ?? "").split(delimiter)) {
 		if (!dir) continue;
 		for (const name of candidateNames(binary)) {
-			if (isExecutableFile(join(dir, name))) return join(dir, name);
+			const candidate = join(dir, name);
+			if (
+				isExecutableFile(candidate) &&
+				directAgentExecutableAllowed(candidate, env)
+			)
+				return candidate;
 		}
 	}
 	return null;
@@ -60,8 +66,14 @@ export function agentCliCommand(
 	binary: string,
 	env: NodeJS.ProcessEnv,
 ): string {
-	if (directAgentProfiles())
-		return findOnPath(binary, directAgentPath(env)) ?? binary;
+	if (directAgentProfiles()) {
+		const command = findOnPath(binary, directAgentPath(env));
+		if (!command)
+			throw new Error(
+				`${binary} was not found outside Superset wrappers on the service user's PATH`,
+			);
+		return command;
+	}
 	return supersetWrapper(binary) ?? findOnPath(binary, env) ?? binary;
 }
 
