@@ -6,6 +6,7 @@ export interface ProcessInfo {
 	pgid: number;
 	/** Controlling terminal name as ps reports it (e.g. "ttys012"), or null for none ("??"). */
 	tty: string | null;
+	sessionId?: string;
 }
 
 export interface ProcessSignalError {
@@ -31,7 +32,7 @@ export interface SignalProcessTreeAndGroupsOptions {
 	signalPids?: boolean;
 	excludeCurrentProcessGroup?: boolean;
 	/**
-	 * Also target live processes whose controlling terminal matches — catches
+	 * Also target live processes in the root's OS session whose terminal matches — catches
 	 * descendants that reparented to pid 1 in a new process group but kept
 	 * the session's tty.
 	 */
@@ -92,6 +93,7 @@ export function collectProcessSignalTargets(
 		}
 	}
 	const rootPgid = getProcessGroupId(rootPid, table);
+	const rootSessionId = table.find((row) => row.pid === rootPid)?.sessionId;
 	const pids = collectProcessTree(rootPid, table);
 	for (const pid of protectedPids) pids.delete(pid);
 	for (const row of table) {
@@ -99,7 +101,11 @@ export function collectProcessSignalTargets(
 		if (row.pid === process.pid) continue;
 		if (protectedPids.has(row.pid)) continue;
 		if (protectedPgids.has(row.pgid)) continue;
-		const onSessionTty = options.ttyName != null && row.tty === options.ttyName;
+		const onSessionTty =
+			rootSessionId !== undefined &&
+			row.sessionId === rootSessionId &&
+			options.ttyName != null &&
+			row.tty === options.ttyName;
 		const inKnownGroup = options.knownPgids?.has(row.pgid) ?? false;
 		if (onSessionTty || inKnownGroup) pids.add(row.pid);
 	}
@@ -145,7 +151,12 @@ export function signalProcessTargets(
 	}
 }
 
-const PS_TABLE_ARGS = ["-axo", "pid=,ppid=,pgid=,tty=,stat="];
+// Darwin exposes an opaque hexadecimal session pointer through sess, not sid.
+const SESSION_COLUMN = process.platform === "darwin" ? "sess" : "sid";
+const PS_TABLE_ARGS = [
+	"-axo",
+	`pid=,ppid=,pgid=,tty=,stat=,${SESSION_COLUMN}=`,
+];
 // Bound every ps: a hung ps (stale NFS mount, kernel proc stalls) must fail
 // the read, not wedge the kill chain or the daemon shutdown drain.
 const PS_TIMEOUT_MS = 5_000;
@@ -183,7 +194,7 @@ export function parseProcessTable(stdout: string): ProcessInfo[] {
 		.map((line) => line.trim())
 		.filter(Boolean)
 		.flatMap((line) => {
-			const [pidText, ppidText, pgidText, ttyText, statText] =
+			const [pidText, ppidText, pgidText, ttyText, statText, sessionText] =
 				line.split(/\s+/);
 			if (
 				pidText === undefined ||
@@ -203,7 +214,21 @@ export function parseProcessTable(stdout: string): ProcessInfo[] {
 				return [];
 			}
 			if (!isPositiveInteger(pgid)) return [];
-			return [{ pid, ppid, pgid, tty: normalizeTtyName(ttyText) }];
+			const sessionId =
+				sessionText !== undefined &&
+				/^[\da-f]+$/i.test(sessionText) &&
+				/[1-9a-f]/i.test(sessionText)
+					? sessionText
+					: undefined;
+			return [
+				{
+					pid,
+					ppid,
+					pgid,
+					tty: normalizeTtyName(ttyText),
+					...(sessionId === undefined ? {} : { sessionId }),
+				},
+			];
 		});
 }
 

@@ -25,15 +25,20 @@ interface PsRow {
 	ppid: number;
 	pgid: number;
 	tty: string;
+	sessionId: string;
 	command: string;
 }
 
-const trackedPgids = new Set<number>();
+const trackedPgids = new Map<number, string>();
+const trackedPtys = new Set<ReturnType<typeof spawn>>();
 
 function ps(): PsRow[] {
-	const out = spawnSync("ps", ["-axo", "pid=,ppid=,pgid=,tty=,command="], {
-		encoding: "utf8",
-	}).stdout;
+	const sessionColumn = process.platform === "darwin" ? "sess" : "sid";
+	const out = spawnSync(
+		"ps",
+		["-axo", `pid=,ppid=,pgid=,tty=,${sessionColumn}=,command=`],
+		{ encoding: "utf8" },
+	).stdout;
 	return out
 		.split("\n")
 		.map((l) => l.trim())
@@ -45,7 +50,8 @@ function ps(): PsRow[] {
 				ppid: Number(m[1]),
 				pgid: Number(m[2]),
 				tty: m[3] ?? "??",
-				command: m.slice(4).join(" "),
+				sessionId: m[4] ?? "",
+				command: m.slice(5).join(" "),
 			};
 		})
 		.filter((r) => Number.isInteger(r.pid) && r.pid > 0);
@@ -77,49 +83,50 @@ function spawnScript(script: string) {
 		rows: 24,
 	};
 	const pty = spawn({ meta });
-	trackedPgids.add(pty.pid);
+	trackedPtys.add(pty);
 	const output: string[] = [];
 	pty.onData((d) => output.push(d.toString("utf8")));
 	return {
 		pty,
 		getOutput: () => output.join(""),
-		waitForMarker: (marker: string, timeoutMs = 8000) =>
-			waitFor(
+		waitForMarker: async (marker: string, timeoutMs = 8000) => {
+			await waitFor(
 				`marker ${marker}`,
 				() => (output.join("").includes(marker) ? true : undefined),
 				timeoutMs,
-			),
+			);
+			const root = ps().find((row) => row.pid === pty.pid);
+			if (root) trackedPgids.set(root.pgid, root.sessionId);
+		},
 	};
 }
 
 function isPidAlive(pid: number): boolean {
-	try {
-		process.kill(pid, 0);
-		return true;
-	} catch (err) {
-		return (err as NodeJS.ErrnoException).code === "EPERM";
-	}
+	const result = spawnSync("ps", ["-o", "stat=", "-p", String(pid)], {
+		encoding: "utf8",
+		timeout: 5000,
+	});
+	if (result.error) return true;
+	const stat = result.stdout.trim();
+	return stat.length > 0 && !stat.startsWith("Z");
 }
 
 after(() => {
-	// Belt and braces: nuke every group the tests created.
-	for (const pgid of trackedPgids) {
+	for (const pty of trackedPtys) pty.kill("SIGKILL");
+	const table = ps();
+	for (const [pgid, sessionId] of trackedPgids) {
+		const members = table.filter((row) => row.pgid === pgid);
+		if (
+			!sessionId ||
+			members.length === 0 ||
+			members.some((row) => row.sessionId !== sessionId)
+		) {
+			continue;
+		}
 		try {
 			process.kill(-pgid, "SIGKILL");
 		} catch {
 			// already gone
-		}
-	}
-	for (const row of ps()) {
-		if (row.command.startsWith("sleep 3")) {
-			// stray sleeper from a failed run — only ours use 300/333/344s
-			if (["sleep 300", "sleep 333", "sleep 344"].includes(row.command)) {
-				try {
-					process.kill(row.pid, "SIGKILL");
-				} catch {
-					// already gone
-				}
-			}
 		}
 	}
 });
@@ -174,6 +181,8 @@ describe("PTY tree kill", () => {
 		const match = /SPAWNED:(\d+)/.exec(getOutput());
 		assert.ok(match?.[1], "setup: trap should echo the escaper pid");
 		const escaperPid = Number(match[1]);
+		const escaper = ps().find((row) => row.pid === escaperPid);
+		if (escaper) trackedPgids.set(escaper.pgid, escaper.sessionId);
 
 		// Escalation fires at ~1s and must re-snapshot to see this process.
 		await waitFor(
@@ -205,12 +214,13 @@ describe("PTY tree kill", () => {
 					(r) =>
 						r.command === "sleep 300" &&
 						r.tty === rootRow.tty &&
+						r.sessionId === rootRow.sessionId &&
 						r.ppid === 1 &&
 						r.pgid !== pty.pid,
 				),
 			8000,
 		);
-		trackedPgids.add(straggler.pgid);
+		trackedPgids.set(straggler.pgid, straggler.sessionId);
 
 		pty.kill();
 

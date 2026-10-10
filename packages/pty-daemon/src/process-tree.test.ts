@@ -5,6 +5,19 @@ import {
 } from "./process-tree.ts";
 
 describe("parseProcessTable", () => {
+	test("preserves decimal and opaque hexadecimal OS session identities", () => {
+		const rows = parseProcessTable(
+			[
+				"100 1 100 pts/0 Ss 100",
+				"200 1 200 ttys012 S fffffe001abc1230",
+				"300 1 300 ttys013 S 0",
+			].join("\n"),
+		);
+		expect(rows[0]?.sessionId).toBe("100");
+		expect(rows[1]?.sessionId).toBe("fffffe001abc1230");
+		expect(rows[2]?.sessionId).toBeUndefined();
+	});
+
 	test("parses pid/ppid/pgid/tty columns", () => {
 		const rows = parseProcessTable(
 			[
@@ -48,7 +61,38 @@ describe("collectProcessSignalTargets — caller-ancestry protection", () => {
 		ppid: number,
 		pgid: number,
 		tty: string | null = null,
-	) => ({ pid, ppid, pgid, tty });
+		sessionId?: string,
+	) => ({ pid, ppid, pgid, tty, sessionId });
+
+	test("TTY expansion stays inside the root's proven OS session", () => {
+		const table = [
+			row(100, 1, 100, "pts/0", "100"),
+			row(200, 1, 200, "pts/0", "100"),
+			row(900, 1, 900, "pts/0", "900"),
+			row(901, 1, 901, "pts/0"),
+		];
+		const targets = collectProcessSignalTargets(100, {
+			table,
+			ttyName: "pts/0",
+			excludeCurrentProcessGroup: false,
+		});
+		expect(targets).toEqual([
+			{ target: "pgid", id: 100 },
+			{ target: "pgid", id: 200 },
+			{ target: "pid", id: 100 },
+			{ target: "pid", id: 200 },
+		]);
+		expect(
+			collectProcessSignalTargets(901, {
+				table,
+				ttyName: "pts/0",
+				excludeCurrentProcessGroup: false,
+			}),
+		).toEqual([
+			{ target: "pgid", id: 901 },
+			{ target: "pid", id: 901 },
+		]);
+	});
 
 	test("never signals a group the caller's ancestor chain belongs to", () => {
 		// A target-tree member sharing a pgid with the caller's ancestor
@@ -78,8 +122,8 @@ describe("collectProcessSignalTargets — caller-ancestry protection", () => {
 		const table = [
 			row(process.pid, 4000, 5000, "ttys009"),
 			row(4000, 1, 4500, "ttys009"), // ancestor on the same tty
-			row(100, 1, 100, "ttys009"), // kill root on the session tty
-			row(900, 1, 900, "ttys009"), // unrelated straggler on the tty
+			row(100, 1, 100, "ttys009", "100"), // kill root on the session tty
+			row(900, 1, 900, "ttys009", "100"), // same-session straggler
 		];
 		const targets = collectProcessSignalTargets(100, {
 			table,
