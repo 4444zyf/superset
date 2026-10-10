@@ -45,7 +45,7 @@ import { TRPCError } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { app } from "electron";
 import { env } from "main/env.main";
-import { exitImmediately } from "main/index";
+import { exitImmediately } from "main/legacy-cloud";
 import { hasCustomRingtone } from "main/lib/custom-ringtones";
 import { getHostServiceCoordinator } from "main/lib/host-service-coordinator";
 import { applyAppLanguage, languageEvents } from "main/lib/language";

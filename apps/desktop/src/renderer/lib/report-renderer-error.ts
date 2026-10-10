@@ -3,11 +3,4 @@ export function reportRendererError(
 	componentStack?: string | null,
 ) {
 	console.error("[renderer] Error boundary caught:", error, componentStack);
-	void import("@sentry/electron/renderer")
-		.then((Sentry) =>
-			Sentry.captureException(error, {
-				extra: componentStack ? { componentStack } : undefined,
-			}),
-		)
-		.catch(() => {});
 }

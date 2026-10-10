@@ -26,6 +26,10 @@ export function defineEnv(
 
 const RESOURCES_TO_COPY = [
 	{
+		src: resolve(__dirname, "..", resources, "direct-backend"),
+		dest: resolve(__dirname, "..", devPath, "resources/direct-backend"),
+	},
+	{
 		src: resolve(__dirname, "..", resources, "sounds"),
 		dest: resolve(__dirname, "..", devPath, "resources/sounds"),
 	},
@@ -74,6 +78,22 @@ export function copyResourcesPlugin(): Plugin {
 			for (const resource of RESOURCES_TO_COPY) {
 				copyDir(resource);
 			}
+			const releaseKeys = resolve(
+				__dirname,
+				"..",
+				resources,
+				"direct-release-keys.json",
+			);
+			if (existsSync(releaseKeys))
+				cpSync(
+					releaseKeys,
+					resolve(
+						__dirname,
+						"..",
+						devPath,
+						"resources/direct-release-keys.json",
+					),
+				);
 		},
 	};
 }

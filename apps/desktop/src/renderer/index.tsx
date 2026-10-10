@@ -1,85 +1,41 @@
 import "./globals.css";
 import "./styles/bundled-fonts.css";
-import { initSentry } from "./lib/sentry";
-
-initSentry();
-
-import { createRouter } from "@tanstack/react-router";
+import "@xterm/xterm/css/xterm.css";
+import {
+	createHashHistory,
+	createRootRoute,
+	createRouter,
+} from "@tanstack/react-router";
 import ReactDom from "react-dom/client";
 import { RendererRouter } from "./components/RendererRouter";
 import {
-	cleanupBootErrorHandling,
 	initBootErrorHandling,
 	isBootErrorReported,
 	markBootMounted,
 	reportBootError,
 } from "./lib/boot-errors";
-import { sweepDeadPersistedKeys } from "./lib/persisted-keys";
-import { persistentHistory } from "./lib/persistent-hash-history";
-import { posthog } from "./lib/posthog";
-import { pruneExpiredTerminalState } from "./lib/terminal/terminal-buffer-gc";
-import { electronQueryClient } from "./providers/ElectronTRPCProvider";
+import type { cloudRouter } from "./lib/cloud-router";
 import { NotFound } from "./routes/not-found";
-import { routeTree } from "./routeTree.gen";
+import { Workstation } from "./workstation/Workstation/Workstation";
 
 const rootElement = document.querySelector("app");
 initBootErrorHandling(rootElement);
-
-// Before any terminal mounts: unbounded persisted scrollback wedged the
-// renderer once it grew to hundreds of orphaned buffers (23.7 MB observed).
-pruneExpiredTerminalState();
-// Keys from removed features otherwise live on user profiles forever.
-sweepDeadPersistedKeys();
-
 const router = createRouter({
-	routeTree,
-	history: persistentHistory,
-	defaultPreload: "intent",
+	routeTree: createRootRoute({ component: Workstation }),
+	history: createHashHistory(),
 	defaultNotFoundComponent: NotFound,
-	context: {
-		queryClient: electronQueryClient,
-	},
 });
-
-const unsubscribe = router.subscribe("onResolved", (event) => {
-	posthog.capture("$pageview", {
-		$current_url: event.toLocation.pathname,
-		$pathname: event.toLocation.pathname,
-	});
-});
-
-const handleDeepLink = (path: string) => {
-	console.log("[deep-link] Navigating to:", path);
-	router.navigate({ to: path });
-};
-const ipcRenderer = window.ipcRenderer as typeof window.ipcRenderer | undefined;
-if (ipcRenderer) {
-	ipcRenderer.on("deep-link-navigate", handleDeepLink);
-} else {
-	reportBootError(
-		"Renderer preload not available (window.ipcRenderer missing)",
-	);
-}
-
-if (import.meta.hot) {
-	import.meta.hot.dispose(() => {
-		unsubscribe();
-		if (ipcRenderer) {
-			ipcRenderer.off("deep-link-navigate", handleDeepLink);
-		}
-		cleanupBootErrorHandling();
-	});
-}
 
 declare module "@tanstack/react-router" {
 	interface Register {
-		router: typeof router;
+		router: typeof cloudRouter;
 	}
 }
 
-if (!rootElement) {
-	reportBootError("Missing <app> root element");
-} else if (!isBootErrorReported()) {
+if (!rootElement) reportBootError("Missing <app> root element");
+else if (!window.directWorkstation)
+	reportBootError("Workstation preload is unavailable");
+else if (!isBootErrorReported()) {
 	ReactDom.createRoot(rootElement).render(<RendererRouter router={router} />);
 	markBootMounted();
 }

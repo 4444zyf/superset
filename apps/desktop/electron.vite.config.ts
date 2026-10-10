@@ -126,6 +126,8 @@ export default defineConfig({
 			rollupOptions: {
 				input: {
 					index: resolve("src/main/index.ts"),
+					"direct-backend": resolve("src/main/direct-backend.ts"),
+					"direct-supervisor": resolve("src/main/direct-supervisor.ts"),
 					// Terminal host daemon process - runs separately for terminal persistence
 					"terminal-host": resolve("src/main/terminal-host/index.ts"),
 					// PTY subprocess - spawned by terminal-host for each terminal

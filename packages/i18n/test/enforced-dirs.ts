@@ -55,6 +55,7 @@ export const ENFORCED_DIRS: readonly string[] = [
 	"apps/desktop/src/renderer/commandPalette",
 	"apps/desktop/src/renderer/components",
 	"apps/desktop/src/renderer/react-query",
+	"apps/desktop/src/renderer/workstation",
 	"apps/desktop/src/renderer/routes/create-organization",
 	"apps/desktop/src/renderer/routes/sign-in",
 	// batch 5: the Expo mobile app (routing, screens, shared components)

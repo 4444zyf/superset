@@ -16,6 +16,7 @@ import {
 import { homedir, userInfo } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { directBackendSocketPath } from "@superset/shared/direct-backend-socket";
+import { runLocalImportProcess } from "./local-import-process";
 import {
 	assertPrivateSocket,
 	privateSocketFetch,
@@ -31,6 +32,17 @@ export interface LocalConnection {
 	secret: string;
 	url: string;
 	close(): void;
+}
+
+export interface LocalLegacyImportResult {
+	sourceNamespace: string;
+	targetNamespace: string;
+	projects: number;
+	workspaces: number;
+	terminals: number;
+	chats: number;
+	journalPath: string;
+	warnings?: string[];
 }
 
 export interface LocalBackendOptions {
@@ -64,6 +76,10 @@ export interface LocalBackendOptions {
 		once?(event: "error", callback: (error: Error) => void): unknown;
 	};
 	stopOwned?: (configPath: string) => Promise<void>;
+	importOwned?: (
+		configPath: string,
+		sourceDirectory: string,
+	) => Promise<LocalLegacyImportResult>;
 }
 
 interface LocalIdentity {
@@ -100,7 +116,10 @@ function privateDirectory(path: string): void {
 function privateRead(path: string): string | null {
 	let fd: number;
 	try {
-		fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+		fd = openSync(
+			path,
+			constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
+		);
 	} catch (error) {
 		if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
 		throw new Error("Local backend data must be owner-only regular files", {
@@ -198,6 +217,14 @@ export class LocalBackend {
 	start(): Promise<LocalConnection> {
 		return this.serialize(async () => {
 			await this.test();
+			if (
+				privateRead(
+					join(this.options.dataDir, "state", "legacy-import.lock"),
+				) !== null
+			)
+				throw new Error(
+					"An offline data import must finish before starting the local backend",
+				);
 			const { config, secret } = this.prepare();
 			const running = await this.inspect(config, secret);
 			if (!running) {
@@ -262,6 +289,74 @@ export class LocalBackend {
 				);
 			else await this.stopOffline(config);
 		});
+	}
+	importLocalData(sourceDirectory: string): Promise<LocalLegacyImportResult> {
+		return this.serialize(async () => {
+			await this.test();
+			if (!isAbsolute(sourceDirectory) || /[\0\r\n]/.test(sourceDirectory))
+				throw new Error("Select an absolute legacy namespace directory");
+			const { config } = this.prepare();
+			if (
+				privateRead(join(this.options.dataDir, "state", "disabled")) === null ||
+				privateRead(join(this.options.dataDir, "state", "endpoint.json")) !==
+					null
+			)
+				throw new Error("Stop the local backend before importing data");
+			const configPath = join(this.options.dataDir, "service-config.json");
+			const result = this.options.importOwned
+				? await this.options.importOwned(configPath, sourceDirectory)
+				: await this.importOffline(config, sourceDirectory);
+			if (
+				!result ||
+				result.targetNamespace !== config.namespaceId ||
+				typeof result.sourceNamespace !== "string" ||
+				!result.sourceNamespace ||
+				typeof result.journalPath !== "string" ||
+				!result.journalPath.startsWith(`${this.options.dataDir}/state/`) ||
+				[
+					result.projects,
+					result.workspaces,
+					result.terminals,
+					result.chats,
+				].some((count) => !Number.isSafeInteger(count) || count < 0) ||
+				(result.warnings !== undefined &&
+					(!Array.isArray(result.warnings) ||
+						result.warnings.length > 10 ||
+						result.warnings.some(
+							(warning) =>
+								typeof warning !== "string" ||
+								!warning ||
+								warning.length > 512 ||
+								/[\0\r]/.test(warning),
+						)))
+			)
+				throw new Error(
+					"The local importer returned an invalid result; inspect its journal before retrying",
+				);
+			return result;
+		});
+	}
+	private async importOffline(
+		config: LocalConfig,
+		sourceDirectory: string,
+	): Promise<LocalLegacyImportResult> {
+		const stdout = await runLocalImportProcess({
+			executable: this.options.execPath,
+			args: [
+				config.hostServicePath,
+				"--import-local-data",
+				sourceDirectory,
+				"--config",
+				join(this.options.dataDir, "service-config.json"),
+			],
+			cwd: this.options.dataDir,
+			environment: this.environment(),
+		});
+		try {
+			return JSON.parse(stdout) as LocalLegacyImportResult;
+		} catch {
+			throw new Error("The local importer returned an invalid result");
+		}
 	}
 	private replaceConfig(config: LocalConfig): void {
 		const target = join(this.options.dataDir, "service-config.json");

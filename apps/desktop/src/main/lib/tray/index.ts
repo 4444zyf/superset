@@ -11,7 +11,7 @@ import {
 } from "electron";
 import { loadToken } from "lib/trpc/routers/auth/utils/auth-functions";
 import { env } from "main/env.main";
-import { focusMainWindow, quitApp } from "main/index";
+import { focusMainWindow, quitApp } from "main/legacy-cloud";
 import { checkForUpdatesInteractive } from "main/lib/auto-updater";
 import {
 	getHostServiceCoordinator,

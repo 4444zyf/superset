@@ -58,6 +58,15 @@ const config: Configuration = {
 
 	// Extra resources placed outside asar archive (accessible via process.resourcesPath)
 	extraResources: [
+		{
+			from: "dist/resources/direct-backend",
+			to: "resources/direct-backend",
+			filter: ["**/*"],
+		},
+		{
+			from: "dist/resources/direct-release-keys.json",
+			to: "resources/direct-release-keys.json",
+		},
 		// Database migrations - must be outside asar for drizzle-orm to read
 		{
 			from: "dist/resources/migrations",

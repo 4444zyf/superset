@@ -1,7 +1,7 @@
 import { msg } from "@lingui/core/macro";
 import { i18n } from "@superset/i18n";
 import { dialog } from "electron";
-import { quitAppCompletely } from "main/index";
+import { quitAppCompletely } from "main/legacy-cloud";
 
 export async function confirmAndQuitCompletely(): Promise<void> {
 	try {

@@ -7,7 +7,7 @@ import { app, dialog } from "electron";
 import log from "electron-log/main";
 import { autoUpdater, type UpdateCheckResult } from "electron-updater";
 import { env } from "main/env.main";
-import { setSkipQuitConfirmation } from "main/index";
+import { setSkipQuitConfirmation } from "main/legacy-cloud";
 import { appState } from "main/lib/app-state";
 import {
 	isEnvironmentUpdateError,

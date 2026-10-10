@@ -37,9 +37,6 @@ GlobalRegistrator.register({ url: "http://localhost" });
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
 const captured: unknown[] = [];
-mock.module("@sentry/electron/renderer", () => ({
-	captureException: (error: unknown) => captured.push(error),
-}));
 const originalError = new Error("Original route failure");
 let failLayout = false;
 let failErrorPage = false;
@@ -124,7 +121,10 @@ const routeTree = Route.addChildren([
 	dashboard.addChildren([brokenDashboard, healthyDashboard]),
 ]);
 const consoleErrors: unknown[][] = [];
-console.error = (...args: unknown[]) => consoleErrors.push(args);
+console.error = (...args: unknown[]) => {
+	consoleErrors.push(args);
+	if (args[0] === "[renderer] Error boundary caught:") captured.push(args[1]);
+};
 console.warn = () => {};
 
 function check(condition: unknown, message: string): asserts condition {

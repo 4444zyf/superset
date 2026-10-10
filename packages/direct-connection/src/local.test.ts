@@ -12,7 +12,11 @@ import { createServer, type Server } from "node:http";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { directBackendSocketPath } from "@superset/shared/direct-backend-socket";
-import { LOCAL_CONNECTION_ID, LocalBackend } from "./local";
+import {
+	LOCAL_CONNECTION_ID,
+	LocalBackend,
+	type LocalBackendOptions,
+} from "./local";
 
 const directories: string[] = [];
 const servers: Server[] = [];
@@ -30,6 +34,7 @@ function fixture(
 		failSpawn?: boolean;
 		realProxy?: boolean;
 		deferReady?: boolean;
+		importOwned?: LocalBackendOptions["importOwned"];
 	} = {},
 ) {
 	const dataDir = mkdtempSync(join(tmpdir(), "direct-local-"));
@@ -72,6 +77,7 @@ function fixture(
 		stopOwned: async () => {
 			offlineStops++;
 		},
+		importOwned: setupOptions.importOwned,
 		proxy: setupOptions.realProxy
 			? undefined
 			: async (path) => {
@@ -302,4 +308,61 @@ test("stop waits for a pending startup and stops its newly published instance", 
 	connection.close();
 	expect(setup.shutdowns).toBe(1);
 	await expect(setup.backend.connect()).rejects.toThrow("stopped");
+});
+
+test("an offline import lock prevents Start from reenabling the namespace", async () => {
+	const setup = fixture();
+	await setup.backend.stop();
+	writeFileSync(
+		join(setup.dataDir, "state", "legacy-import.lock"),
+		"offline import",
+		{ mode: 0o600 },
+	);
+	await expect(setup.backend.start()).rejects.toThrow("import");
+	expect(
+		readFileSync(join(setup.dataDir, "state", "disabled"), "utf8"),
+	).toContain("stop");
+	expect(setup.started).toBe(0);
+});
+
+test("local import runs only while stopped and serializes with explicit Start", async () => {
+	let releaseImport!: () => void;
+	let notifyImport!: () => void;
+	const gate = new Promise<void>((resolve) => {
+		releaseImport = resolve;
+	});
+	const startedImport = new Promise<void>((resolve) => {
+		notifyImport = resolve;
+	});
+	const setup = fixture({
+		importOwned: async (configPath, sourceDirectory) => {
+			expect(sourceDirectory).toBe("/old/host/organization");
+			const config = JSON.parse(readFileSync(configPath, "utf8"));
+			notifyImport();
+			await gate;
+			return {
+				sourceNamespace: "organization",
+				targetNamespace: config.namespaceId,
+				projects: 1,
+				workspaces: 2,
+				terminals: 0,
+				chats: 0,
+				journalPath: join(setup.dataDir, "state", "import.json"),
+			};
+		},
+	});
+	await expect(
+		setup.backend.importLocalData("/old/host/organization"),
+	).rejects.toThrow("Stop");
+	await setup.backend.stop();
+	const importing = setup.backend.importLocalData("/old/host/organization");
+	await startedImport;
+	const starting = setup.backend.start();
+	await new Promise<void>((resolve) => setImmediate(resolve));
+	expect(setup.started).toBe(0);
+	releaseImport();
+	expect((await importing).projects).toBe(1);
+	const connection = await starting;
+	connection.close();
+	expect(setup.started).toBe(1);
 });
