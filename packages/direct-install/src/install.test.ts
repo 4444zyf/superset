@@ -93,6 +93,68 @@ test("failed uploads and rejected authorization reclaim only their own private i
 		rmSync(release.root, { recursive: true, force: true });
 	}
 });
+test("incoming cache admission rejects another upload before creating directories or sending payload bytes", async () => {
+	const release = createSignedReleaseFixture();
+	let uploads = 0;
+	const commands: string[] = [];
+	try {
+		await expect(
+			installRemoteBackend({
+				releaseRoot: release.root,
+				trustedKeys: release.keys,
+				transport: {
+					async exec(command) {
+						commands.push(command);
+						if (command.includes("uname"))
+							return {
+								stdout: [
+									"Darwin",
+									"arm64",
+									"501",
+									"alice",
+									"staff",
+									"/Users/alice",
+									"14.5",
+									"",
+								].join("\0"),
+								stderr: "",
+								exitCode: 0,
+							};
+						if (command.includes("df -Pk"))
+							return {
+								stdout:
+									"Filesystem 1024-blocks Used Available Capacity Mounted on\n/dev/disk1 1000000000 1 999999999 1% /\n",
+								stderr: "",
+								exitCode: 0,
+							};
+						if (command === "/bin/sh -s")
+							return {
+								stdout: "",
+								stderr: "incoming cache budget exhausted",
+								exitCode: 66,
+							};
+						return { stdout: "", stderr: "", exitCode: 0 };
+					},
+					async upload() {
+						uploads++;
+						throw new Error("Payload sent without cache admission");
+					},
+				},
+			}),
+		).rejects.toThrow("upload cache");
+		expect(uploads).toBe(0);
+		expect(
+			commands.some(
+				(command) =>
+					command.includes("mkdir") ||
+					command.includes("sudo") ||
+					command.includes("rm -rf"),
+			),
+		).toBe(false);
+	} finally {
+		rmSync(release.root, { recursive: true, force: true });
+	}
+});
 test("rejects privileged or unsupported SSH identities", async () => {
 	const transport = {
 		exec: async () => ({

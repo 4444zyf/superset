@@ -28,6 +28,7 @@ import { acquireInstallerLock } from "./installer-lock";
 import { createLaunchDaemonPlist } from "./launchd";
 import type { ControlRequest } from "./lifecycle";
 import { runNativeSmoke } from "./native-smoke";
+import { readIncomingPayload } from "./payload-reader";
 import {
 	hasControlCharacters,
 	type TrustedReleaseKeys,
@@ -355,16 +356,13 @@ async function installAsRoot(
 			if (["lib/node", "lib/direct-installer.js"].includes(file.path)) continue;
 			if (file.size > 256 * 1024 * 1024)
 				throw new Error("A release file exceeds the installation size limit");
-			const bytes = execFileSync(
-				"/usr/bin/head",
-				["-c", String(file.size + 1), join(request.incoming, file.path)],
-				{
-					uid: request.probe.uid,
-					gid,
-					maxBuffer: file.size + 2,
-					env: { HOME: request.probe.userHome, PATH: "/usr/bin:/bin" },
-				},
-			);
+			const bytes = readIncomingPayload({
+				path: join(request.incoming, file.path),
+				size: file.size,
+				uid: request.probe.uid,
+				gid,
+				userHome: request.probe.userHome,
+			});
 			mkdirSync(join(payload, file.path, ".."), {
 				recursive: true,
 				mode: 0o755,

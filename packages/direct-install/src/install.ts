@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { join, posix } from "node:path";
+import { buildBootstrapReader } from "./bootstrap-reader";
 import { assertReleaseCapacity, parseDiskFreeBytes } from "./capacity";
+import { buildIncomingAdmission, incomingReservationBytes } from "./incoming";
 import {
 	hasControlCharacters,
 	type TrustedReleaseKeys,
@@ -103,12 +105,15 @@ export function buildPrivilegedBootstrap(input: {
 umask 077
 [ "$(/usr/bin/id -u)" = 0 ] || exit 77
 work=$(/usr/bin/mktemp -d /private/tmp/superset-direct.XXXXXXXX)
-trap '/bin/rm -rf "$work"' EXIT HUP INT TERM
+trap '/bin/rm -rf "$work"' EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 payload="$work/payload"
 /bin/mkdir "$payload"
 /bin/mkdir "$payload/lib"
-/usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.nodeSize + 1} ${quote(`${input.incoming}/lib/node`)} > "$payload/lib/node"
-/usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.installerSize + 1} ${quote(`${input.incoming}/lib/direct-installer.js`)} > "$payload/lib/direct-installer.js"
+/bin/bash -c ${quote(buildBootstrapReader())} reader "$work" 30 /usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.nodeSize + 1} ${quote(`${input.incoming}/lib/node`)} > "$payload/lib/node"
+/bin/bash -c ${quote(buildBootstrapReader())} reader "$work" 30 /usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.installerSize + 1} ${quote(`${input.incoming}/lib/direct-installer.js`)} > "$payload/lib/direct-installer.js"
 [ -f "$payload/lib/node" ] && [ -f "$payload/lib/direct-installer.js" ] || exit 65
 nodeDigest=$(/usr/bin/shasum -a 256 "$payload/lib/node")
 installerDigest=$(/usr/bin/shasum -a 256 "$payload/lib/direct-installer.js")
@@ -151,21 +156,36 @@ export async function installRemoteBackend(
 	);
 	if (disk.exitCode !== 0)
 		throw new Error("Cannot inspect available remote disk space");
-	assertReleaseCapacity(
-		verified.manifest.files.reduce(
-			(total, file) => total + file.size,
-			verified.manifestBytes.length + verified.signatureBytes.length,
-		),
-		parseDiskFreeBytes(disk.stdout),
+	const payloadBytes = verified.manifest.files.reduce(
+		(total, file) => total + file.size,
+		verified.manifestBytes.length + verified.signatureBytes.length,
 	);
+	assertReleaseCapacity(payloadBytes, parseDiskFreeBytes(disk.stdout));
 	const installId = randomUUID();
 	const incoming = `${probe.userHome}/.superset-direct/incoming/${installId}.partial`;
+	const paths = [
+		"release-manifest.json",
+		"release-signature.json",
+		...verified.manifest.files.map((file) => file.path),
+	];
+	const admission = await options.transport.exec(
+		"/bin/sh -s",
+		buildIncomingAdmission({
+			userHome: probe.userHome,
+			uid: probe.uid,
+			installId,
+			reservedBytes: incomingReservationBytes(payloadBytes, paths),
+		}),
+	);
+	if (admission.exitCode !== 0)
+		throw new Error(
+			admission.exitCode === 66
+				? "The incoming upload cache is full; review its previous uploads and remove only confirmed abandoned UUID.partial directories before retrying"
+				: admission.exitCode === 75
+					? "Another incoming upload cache admission is in progress; retry after it completes"
+					: "The incoming upload cache could not be safely inspected; retry after other transfers finish or review its ownership and file types",
+		);
 	try {
-		const paths = [
-			"release-manifest.json",
-			"release-signature.json",
-			...verified.manifest.files.map((file) => file.path),
-		];
 		const directories = [
 			...new Set(
 				paths.map((path) => posix.dirname(posix.join(incoming, path))),
