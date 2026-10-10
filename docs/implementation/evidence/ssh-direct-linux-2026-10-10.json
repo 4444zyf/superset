@@ -1,0 +1,434 @@
+{
+  "date": "2026-10-10",
+  "environment": "Linux cloud, real Electron 41.10.7, OpenSSH sshd and PTYs; ordinary UID backend fixture",
+  "source": "d89278ab7 (accountless/import checkpoint ba6c39a18, installer checkpoint a6b6f95b2); historical GUI observations retain their measured window",
+  "limitations": [
+    "No native macOS, launchd, signed Darwin release or authenticated vendor chat acceptance",
+    "The desktop preview build is not an installed ASAR package",
+    "Earlier Ctrl+Q did not exit; latest production desktop XTest Ctrl+Q and UI reattachment passed. External system-browser launch remains unverified in the bare Xorg container",
+    "Remote persistent fixture continues using the earlier backend bundle; final A reattachment does not establish a B release upgrade",
+    "The original 11:15:04 multi-namespace task exit lacks a signal trace; its full cause is not retrospectively established",
+    "Complete PTY Node integration suite: 51 pass / 7 fail; private baseline comparison covers 42 cases with signal interception, not an equivalent full suite",
+    "Latest three-namespace Stop uses a private mirror with three instrumented backend helpers; the frontend and other production bytes are unchanged. All signal attempts and synthetic ESRCH are audited separately."
+  ],
+  "observations": [
+    {
+      "artifact": "final-auto-reconnected.json",
+      "reconnecting": true,
+      "remoteOperationsDisabled": true,
+      "recovered": true,
+      "blocked": false,
+      "terminalPidBefore": 72994,
+      "terminalPidAfter": 72994,
+      "heartbeatBefore": 66,
+      "heartbeatAfter": 71,
+      "samePtyProcessSurvived": true
+    },
+    {
+      "artifact": "final-reattached-after-reopen.json",
+      "helperFileOverwrittenByFailedRetestAfterOriginalStopIncident": true,
+      "resumedSameRemoteTerminal": false,
+      "remoteTerminalPid": 72994,
+      "expectedPid": 72994,
+      "historicalSuccessful1051SecondWindowReportedSeparatelyInRuntimeEvidence": true,
+      "currentFileIsNotEvidenceOfLatestSurvival": true
+    },
+    {
+      "artifact": "final-native-quit.json",
+      "nativeFileMenuQuit": true,
+      "appRunning": false,
+      "publicForwardClosed": true,
+      "remoteTaskPid": 72994,
+      "remoteTaskAlive": true,
+      "remoteHeartbeatBefore": 800,
+      "remoteHeartbeatAfter": 802,
+      "localTaskPid": 79596,
+      "localTaskAlive": true,
+      "localHeartbeatBefore": 332,
+      "localHeartbeatAfter": 334,
+      "workspacePortBackendSamePid": true,
+      "remoteBackendInstanceUnchanged": true,
+      "localBackendInstanceUnchanged": true
+    },
+    {
+      "artifact": "final-whole-electron-sigkill.json",
+      "wholeElectronSigkill": true,
+      "appRunning": false,
+      "ownedSshMasters": [
+        89610
+      ],
+      "sshMastersStillActive": [
+        false
+      ],
+      "publicForwardClosed": true,
+      "remoteTaskPid": 72994,
+      "remoteTaskAlive": true,
+      "remoteHeartbeatBefore": 1096,
+      "remoteHeartbeatAfter": 1100,
+      "localTaskPid": 79596,
+      "localTaskAlive": true,
+      "localHeartbeatBefore": 627,
+      "localHeartbeatAfter": 632,
+      "remoteBackendInstanceUnchanged": true,
+      "localBackendInstanceUnchanged": true,
+      "workspaceServiceSamePid": true
+    },
+    {
+      "artifact": "final-remote-project.json",
+      "projectImported": true,
+      "pendingNotice": "[]"
+    },
+    {
+      "artifact": "final-lost-response-reconciled.json",
+      "actualCommittedResponseDropped": true,
+      "reconnecting": true,
+      "blockedDuringReconnect": true,
+      "recovered": true,
+      "completedResultVisible": true,
+      "reconciledByVisibleButton": true,
+      "executeCount": 1,
+      "workspaceCountBefore": 2,
+      "workspaceCountAfter": 3,
+      "operationRows": 1,
+      "operationStatus": "completed",
+      "createdExactlyOnce": true
+    },
+    {
+      "artifact": "final-import-v2-before-start.json",
+      "importedByNativePicker": true,
+      "sourceDatabaseUnchanged": true,
+      "disabledSentinel": true,
+      "endpointAbsent": true,
+      "importedCounts": {
+        "projects": 1,
+        "workspaces": 1,
+        "terminals": 1
+      }
+    },
+    {
+      "artifact": "final-import-v1-before-start.json",
+      "importedByNativePicker": true,
+      "sourceDatabaseUnchanged": true,
+      "disabledSentinel": true,
+      "endpointAbsent": true,
+      "importedCounts": {
+        "projects": 1,
+        "workspaces": 1,
+        "terminals": 1
+      }
+    },
+    {
+      "artifact": "final-import-v1-static-archive.json",
+      "archiveDirectoryExists": true,
+      "staticScrollbackBytesMatch": true,
+      "terminalStatus": "exited",
+      "bindingCount": 1
+    },
+    {
+      "artifact": "final-source-stop-anomaly.json",
+      "observedUTC": "2026-10-10T11:23:54.872058+00:00",
+      "measuredSourceCommit": "ba6c39a18",
+      "desktopManifestSha256": "b7969603a2f78245d160320bb65f074a3928b268c05f60c581e6521ab3b303da",
+      "stoppedNamespace": "fresh import-v2 local test namespace",
+      "otherTaskPidsThatExited": [
+        79596,
+        72994
+      ],
+      "otherBackendsAndDaemonsStillRunning": true,
+      "remoteHttpTaskPidStillRunning": 83561,
+      "newOneShotCommandPid": 127058,
+      "newOneShotCommandAlreadyFinished": true,
+      "targetPtySidOrTtyCapturedBeforeStop": false,
+      "oldTasksHadNoDeadline": true,
+      "noGlobalKillOrProbeCleanupIssued": true,
+      "rootCauseEstablished": false,
+      "procExitFieldZeroDoesNotDetermineSignalCause": true
+    },
+    {
+      "artifact": "direct-core-tty-session-proof.json",
+      "kind": "protected real PTY collector before/after comparison",
+      "baselineSourceCommit": "ba6c39a18",
+      "fixedSourceCommit": "d89278ab7",
+      "guardBlockedSignalsToExternalResources": true,
+      "guardIsNotProductionCode": true,
+      "originalIncidentFullyAttributed": false,
+      "results": [
+        {
+          "source": "old",
+          "rootPtyPid": 143663,
+          "rootSession": "143663",
+          "rootTty": "pts/1",
+          "httpShellPid": 83552,
+          "httpTaskPid": 83561,
+          "httpSession": "83552",
+          "sameTtyDifferentSession": true,
+          "mainCloseForeignAttemptCount": 4,
+          "paddingCleanupForeignAttemptCount": 8,
+          "allForeignAttemptCount": 12,
+          "alreadyGoneSyntheticEsrchCount": 2,
+          "ownCloseCasePass": 1
+        },
+        {
+          "source": "fixed",
+          "rootPtyPid": 143689,
+          "rootSession": "143689",
+          "rootTty": "pts/1",
+          "httpShellPid": 83552,
+          "httpTaskPid": 83561,
+          "httpSession": "83552",
+          "sameTtyDifferentSession": true,
+          "mainCloseForeignAttemptCount": 0,
+          "paddingCleanupForeignAttemptCount": 0,
+          "allForeignAttemptCount": 0,
+          "alreadyGoneSyntheticEsrchCount": 1,
+          "ownCloseCasePass": 1
+        }
+      ]
+    },
+    {
+      "sourceCommit": "d89278ab7",
+      "productionFingerprint": "bb243484f1e335d762afdeb26648754453dbc5197444b93105ddd8167fd79c0e",
+      "instrumentedHelpers": 3,
+      "privateSignalGateEnabled": true,
+      "nativeLocalDeviceStopConfirmed": true,
+      "targetProcessesAfterStop": [
+        {
+          "pid": 145220,
+          "state": "absent"
+        },
+        {
+          "pid": 145212,
+          "state": "absent"
+        },
+        {
+          "pid": 145608,
+          "state": "absent"
+        },
+        {
+          "pid": 145622,
+          "state": "absent"
+        },
+        {
+          "pid": 145244,
+          "state": "absent"
+        }
+      ],
+      "targetTerminated": true,
+      "targetEndpointAbsent": true,
+      "targetDisabledSentinel": true,
+      "survivors": {
+        "local-survivor": {
+          "pid": 142539,
+          "sameStartTicks": true,
+          "alive": true,
+          "heartbeatBefore": 288,
+          "heartbeatAfter": 370,
+          "lastHeartbeatUTC": "2026-10-10T11:41:18.848000+00:00"
+        },
+        "remote-survivor": {
+          "pid": 142880,
+          "sameStartTicks": true,
+          "alive": true,
+          "heartbeatBefore": 265,
+          "heartbeatAfter": 347,
+          "lastHeartbeatUTC": "2026-10-10T11:41:18.991000+00:00"
+        }
+      },
+      "httpFixturePid": 83561,
+      "httpFixtureSameStartTicks": true,
+      "httpFixtureLive": true,
+      "httpRespondedFromSameFixturePid": true,
+      "outsideOwnedBlockedCount": 0,
+      "alreadyGoneCount": 2,
+      "foreignToStoppedNamespaceAttemptCount": 0,
+      "survivorNamespaceAttemptCount": 0,
+      "successfulNonzeroSignalCount": 7,
+      "allThreeTaskTtyLabel": "/dev/pts/0",
+      "allThreeTtyNumber": 34816,
+      "distinctTaskSessions": true,
+      "distinctMountNamespaces": true,
+      "observedUTC": "2026-10-10T11:41:19.377537+00:00",
+      "passed": true,
+      "artifact": "stop-isolation/after-stop.json",
+      "signalMetadataArtifact": "stop-isolation/stop-signal-metadata.json",
+      "instrumentedHelperManifest": [
+        {
+          "path": "main/direct-supervisor.js",
+          "productionSha256": "3fe93a13e1660c2b3b38cbdf1be19a2bd9f5286a8ca7727ee52f760068c8a050",
+          "instrumentedSha256": "db2328f2d7a430ff0a353bb6850b3ebd66c0f437e2ddd9a9cd2602e1dbe58312",
+          "instrumentation": "private allowlist signal trace require before original unchanged bytes"
+        },
+        {
+          "path": "main/direct-backend.js",
+          "productionSha256": "afde32e4797a47b92cc170a929a4cd4563df5b3cb6eeea9cb068940ec4c767ee",
+          "instrumentedSha256": "b8e9e427803bf3300002ff71bf1a2c64f3210609229befca632e66b07da054aa",
+          "instrumentation": "private allowlist signal trace require before original unchanged bytes"
+        },
+        {
+          "path": "main/pty-daemon.js",
+          "productionSha256": "174a18d0c0c72f25bf18b44d87855cfeedba07f268df53762c71a5396ea51af0",
+          "instrumentedSha256": "2e5850795dce771fe277eb1cf29141075b7acb8284553e8289490898216f39f8",
+          "instrumentation": "private allowlist signal trace require before original unchanged bytes"
+        }
+      ],
+      "otherProductionFileBytesChanged": [],
+      "rawLogsNotEquivalentToMacReleaseAcceptance": true,
+      "beforeStopCoordinates": {
+        "local-survivor": {
+          "taskPid": 142539,
+          "shellPid": 141760,
+          "sid": 141760,
+          "startTicks": "1481967",
+          "ttyNumber": 34816,
+          "mountNamespace": "mnt:[4026532685]",
+          "devptsInstances": [
+            "0:163"
+          ]
+        },
+        "remote-survivor": {
+          "taskPid": 142880,
+          "shellPid": 142874,
+          "sid": 142874,
+          "startTicks": "1484315",
+          "ttyNumber": 34816,
+          "mountNamespace": "mnt:[4026532552]",
+          "devptsInstances": [
+            "0:40"
+          ]
+        },
+        "stopped-target": {
+          "taskPid": 145622,
+          "shellPid": 145608,
+          "sid": 145608,
+          "startTicks": "1506858",
+          "ttyNumber": 34816,
+          "mountNamespace": "mnt:[4026532767]",
+          "devptsInstances": [
+            "0:151"
+          ]
+        }
+      },
+      "originalBackendsUnchanged": [
+        {
+          "sameInstance": true,
+          "sameDaemonPid": true,
+          "daemonLive": true
+        },
+        {
+          "sameInstance": true,
+          "sameDaemonPid": true,
+          "daemonLive": true
+        }
+      ]
+    },
+    {
+      "appPid": 147364,
+      "productionFingerprint": "bb243484f1e335d762afdeb26648754453dbc5197444b93105ddd8167fd79c0e",
+      "nativeQuitInput": "real XTest Ctrl+Q",
+      "beforeMillis": 1791632585864,
+      "survivors": {
+        "local-survivor": {
+          "pid": 142539,
+          "startTicks": "1481967",
+          "heartbeatBefore": 476,
+          "aliveAfterQuit": true,
+          "heartbeatAfterQuit": 477,
+          "restoredSamePidByVisibleUiAfterReopen": true,
+          "heartbeatAfterReopen": 507,
+          "rendererErrors": [],
+          "observedRequests": []
+        },
+        "remote-survivor": {
+          "pid": 142880,
+          "startTicks": "1484315",
+          "heartbeatBefore": 453,
+          "aliveAfterQuit": true,
+          "heartbeatAfterQuit": 454,
+          "restoredSamePidByVisibleUiAfterReopen": true,
+          "heartbeatAfterReopen": 474,
+          "rendererErrors": [],
+          "observedRequests": []
+        }
+      },
+      "nativeAppExitCode": 0,
+      "noSQLiteClosedExceptionObserved": true,
+      "afterMillis": 1791632586417,
+      "reopenedAppPid": 148285,
+      "passed": true,
+      "artifact": "stop-isolation/native-quit-and-reopen.json",
+      "sourceCommit": "d89278ab7",
+      "productionDesktopFileBytesUnchanged": true,
+      "heartbeatFixturesUsePrivateSignalPreload": true,
+      "oldFailedTasksNotRevived": true
+    },
+    {
+      "artifact": "stop-isolation/cleanup-result.json",
+      "kind": "explicit cleanup after the verified survival window",
+      "completedUTC": "2026-10-10T11:47:23.872494+00:00",
+      "approvedIdentityCount": 14,
+      "all14IdentitiesWereMatchedBeforeCleanup": true,
+      "nativeElectronExitCode": 0,
+      "oldCollectorBypassed": true,
+      "negativeGroupSignalsUsed": false,
+      "signalsPinnedByPidfd": true,
+      "signalCount": 7,
+      "liveOwnFixturePids": [],
+      "remainingPid1Zombies": [
+        78707,
+        78722,
+        78755,
+        66114,
+        141760,
+        142539,
+        142874,
+        142880,
+        83552,
+        83561,
+        72994,
+        79596
+      ],
+      "pid1ZombiesNotClaimedReaped": true,
+      "onboardingServicesNotSignalled": true,
+      "productionDist69StillMatchesTestedSnapshot": true,
+      "artifactsDataAndDependenciesPreserved": true,
+      "passed": true
+    }
+  ],
+  "finalBuild": {
+    "sourceCommit": "d89278ab7",
+    "manifestSha256": "bb243484f1e335d762afdeb26648754453dbc5197444b93105ddd8167fd79c0e",
+    "manifestScope": "69 emitted JS/CSS/HTML files; excludes native release signing acceptance",
+    "desktopBuildExitCode": 0,
+    "desktopTypecheckExitCode": 0,
+    "directedDesktopTests": {
+      "pass": 70,
+      "fail": 0,
+      "assertions": 288,
+      "runAfterBuildAndTypecheck": true,
+      "measuredSourceCommit": "ba6c39a18",
+      "rerunAfterPtyIsolationPatch": false
+    },
+    "nativeDarwinRelease": false,
+    "ptyIsolationTests": {
+      "bunPass": 191,
+      "bunFail": 0,
+      "bunAssertions": 5896,
+      "nodeKillTreePass": 3,
+      "nodeKillTreeFail": 0,
+      "ptyTypecheckExitCode": 0,
+      "hostTypecheckExitCode": 0,
+      "independentProcessTreePass": 8,
+      "independentProcessTreeAssertions": 20
+    }
+  },
+  "onboardingAfterFixtureCleanup": {
+    "existingSmokeExitCode": 0,
+    "apiHealthHttpStatus": 200,
+    "databaseHealthy": true,
+    "webSignInHttpStatus": 200,
+    "developmentSignInAndAuthenticatedSessionPassed": true,
+    "authenticatedDashboardHttpStatus": 200,
+    "installScriptSaved": true,
+    "startInstructionsSaved": true
+  }
+}
