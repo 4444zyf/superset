@@ -1,0 +1,117 @@
+name: Release SSH Desktop Preview
+
+on:
+  push:
+    branches: ["release/ssh-preview-*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ssh-desktop-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Preview DMG (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            arch: arm64
+          - os: macos-15-intel
+            arch: x64
+    env:
+      TARGET_PLATFORM: darwin
+      TARGET_ARCH: ${{ matrix.arch }}
+      SUPERSET_DIRECT_DEVELOPMENT_PACKAGE: "1"
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+      - name: Install pinned dependencies
+        run: bun install --frozen --ignore-scripts
+      - name: Check unified versions
+        run: bun run check:versions
+      - name: Rebuild native modules on the matching Mac architecture
+        working-directory: apps/desktop
+        run: bun run install:deps
+      - name: Compile the accountless desktop
+        working-directory: apps/desktop
+        run: bun run compile:app
+      - name: Build explicit development DMG
+        working-directory: apps/desktop
+        run: bun run package -- --publish never --config electron-builder.preview.ts --${{ matrix.arch }}
+      - name: Verify actual DMG, isolated app identity and native SQLite/PTY
+        run: |
+          set -euo pipefail
+          version=$(bun -e 'console.log(require("./apps/desktop/package.json").version)')
+          dmg="apps/desktop/release/Superset-SSH-Preview-${version}-${TARGET_ARCH}.dmg"
+          bash apps/desktop/scripts/verify-preview-dmg.sh "$dmg" "$TARGET_ARCH" "$version"
+          cd apps/desktop/release
+          shasum -a 256 "Superset-SSH-Preview-${version}-${TARGET_ARCH}.dmg" > "SHA256SUMS-${TARGET_ARCH}.txt"
+          printf '%s\n' "$GITHUB_SHA" > "SOURCE-${TARGET_ARCH}.txt"
+      - name: Upload only verified DMG and provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ssh-preview-${{ matrix.arch }}
+          path: |
+            apps/desktop/release/*.dmg
+            apps/desktop/release/SHA256SUMS-*.txt
+            apps/desktop/release/SOURCE-*.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish verified preview downloads
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Download both verified architectures
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: ssh-preview-*
+          path: preview-downloads
+          merge-multiple: true
+      - name: Verify checksums and source before publication
+        run: |
+          set -euo pipefail
+          cd preview-downloads
+          for arch in arm64 x64; do
+            test "$(cat "SOURCE-${arch}.txt")" = "$GITHUB_SHA"
+            shasum -a 256 -c "SHA256SUMS-${arch}.txt"
+          done
+      - name: Publish preview without changing the stable release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version=$(node -p 'require("./apps/desktop/package.json").version')
+          tag="ssh-preview-v${version}"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            test "$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag}" --jq .object.sha)" = "$GITHUB_SHA"
+            test "$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isPrerelease --jq .isPrerelease)" = true
+            test "$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = false
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --prerelease --latest=false
+            gh release upload "$tag" preview-downloads/* --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$tag" preview-downloads/* \
+              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "Superset SSH Preview ${version}" \
+              --notes-file docs/releases/ssh-desktop-preview.md \
+              --prerelease --latest=false
+          fi
