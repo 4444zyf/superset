@@ -17,6 +17,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { isPidRunning } from "@superset/pty-daemon/process-tree";
 import {
 	CURRENT_PROTOCOL_VERSION,
 	encodeFrame,
@@ -27,6 +28,7 @@ import { EXPECTED_DAEMON_VERSION } from "./expected-version.ts";
 import {
 	type PtyDaemonManifest,
 	ptyDaemonManifestDir,
+	readPtyDaemonManifest,
 	writePtyDaemonManifest,
 } from "./manifest.ts";
 
@@ -88,13 +90,63 @@ afterEach(async () => {
 });
 
 describe("DaemonSupervisor.ensure (real spawn)", () => {
+	test(
+		"stop waits for an in-flight start and removes its daemon and health poll",
+		{ timeout: 5000 },
+		async () => {
+			const orgId = crypto.randomUUID();
+			const sup = new DaemonSupervisor({
+				scriptPath: DAEMON_BUNDLE,
+				autoUpdate: false,
+			});
+			supervisorsToCleanup.push({ sup, orgId });
+			const internals = sup as unknown as {
+				start: (id: string) => ReturnType<DaemonSupervisor["ensure"]>;
+				healthPollTimers: Map<string, NodeJS.Timeout>;
+			};
+			const start = internals.start.bind(sup);
+			let releaseStart!: () => void;
+			const gate = new Promise<void>((resolve) => {
+				releaseStart = resolve;
+			});
+			internals.start = async (id) => {
+				await gate;
+				return start(id);
+			};
+			const starting = sup.ensure(orgId);
+			const stopped = sup.stop(orgId);
+			releaseStart();
+			try {
+				const instance = await starting;
+				await stopped;
+				assert.equal(sup.getSocketPath(orgId), null);
+				assert.equal(internals.healthPollTimers.has(orgId), false);
+				assert.equal(readPtyDaemonManifest(orgId), null);
+				assert.equal(await isPidRunning(instance.pid), false);
+				assert.equal(await isReachable(instance.socketPath), false);
+			} finally {
+				await starting.catch(() => {});
+				await stopped;
+				await sup.stop(orgId);
+			}
+		},
+	);
+
 	test("an explicit stop adopts only the existing namespace and never spawns a missing daemon", async () => {
 		const orgId = crypto.randomUUID();
-		const original = new DaemonSupervisor({ scriptPath: DAEMON_BUNDLE, autoUpdate: false, preserveExistingSessions: true });
+		const original = new DaemonSupervisor({
+			scriptPath: DAEMON_BUNDLE,
+			autoUpdate: false,
+			preserveExistingSessions: true,
+		});
 		supervisorsToCleanup.push({ sup: original, orgId });
 		const instance = await original.ensure(orgId);
 		dropSupervisorInstance(original, orgId);
-		const fresh = new DaemonSupervisor({ scriptPath: "/not/a/daemon.js", autoUpdate: false, preserveExistingSessions: true });
+		const fresh = new DaemonSupervisor({
+			scriptPath: "/not/a/daemon.js",
+			autoUpdate: false,
+			preserveExistingSessions: true,
+		});
 		assert.equal(await fresh.stopExisting(orgId), true);
 		assert.equal(await isReachable(instance.socketPath), false);
 		assert.equal(await fresh.stopExisting(crypto.randomUUID()), false);
@@ -664,120 +716,150 @@ describe("DaemonSupervisor.update (Phase 2 fd-handoff)", () => {
 		}
 	});
 
-	test("auto-update defers when live sessions exist", async () => {
-		// Heavy path: auto-update fires on every adopt with version drift.
-		// If the stale daemon owns live shells, the background path should
-		// not silently handoff/restart under the user's typing. The visible
-		// Settings action remains available for a user-approved update.
-		const orgId = "org-autoupdate-live-defer";
-		const socketPath = path.join(
-			os.tmpdir(),
-			`superset-ptyd-${crypto
-				.createHash("sha256")
-				.update(orgId)
-				.digest("hex")
-				.slice(0, 12)}.sock`,
-		);
-		try {
-			fs.unlinkSync(socketPath);
-		} catch {}
-
-		const child = childProcess.spawn(
-			process.execPath,
-			[DAEMON_BUNDLE, `--socket=${socketPath}`],
-			{
-				detached: true,
-				stdio: "ignore",
-				env: { ...process.env, SUPERSET_PTY_DAEMON_VERSION: "0.0.1" },
-			},
-		);
-		child.unref();
-
-		try {
-			const ready = await waitForSocket(socketPath, 5000);
-			assert.equal(ready, true);
-
-			// Open a session BEFORE auto-update kicks in. This is the
-			// "user has live shells" path — the failure must leave them alone.
-			const { DaemonClient } = await import(
-				"../terminal/DaemonClient/index.ts"
+	test(
+		"failed automatic handoff leaves live sessions untouched",
+		{ timeout: 5000 },
+		async () => {
+			const orgId = "org-autoupdate-live-failure";
+			const socketPath = path.join(
+				os.tmpdir(),
+				`superset-ptyd-${crypto
+					.createHash("sha256")
+					.update(orgId)
+					.digest("hex")
+					.slice(0, 12)}.sock`,
 			);
-			const client = new DaemonClient({ socketPath });
-			await client.connect();
-			const opened = await client.open("survivor", {
-				shell: "/bin/sh",
-				argv: ["-c", "echo alive; sleep 30"],
-				cols: 80,
-				rows: 24,
-			});
-			const shellPid = opened.pid;
-			assert.ok(shellPid > 0);
-			await client.dispose();
-
-			fs.mkdirSync(ptyDaemonManifestDir(orgId), {
-				recursive: true,
-				mode: 0o700,
-			});
-			writePtyDaemonManifest({
-				pid: child.pid as number,
-				socketPath,
-				protocolVersions: [1],
-				startedAt: Date.now(),
-				organizationId: orgId,
-			});
-
-			const sup = new DaemonSupervisor({ scriptPath: DAEMON_BUNDLE });
-			supervisorsToCleanup.push({ sup, orgId });
-			let runUpdateCalled = false;
-			(
-				sup as unknown as {
-					runUpdate: () => Promise<{ ok: false; reason: string }>;
-				}
-			).runUpdate = async () => {
-				runUpdateCalled = true;
-				return {
-					ok: false as const,
-					reason: "auto-update should have deferred before runUpdate",
-				};
-			};
-
-			const adopted = await sup.ensure(orgId);
-			assert.equal(adopted.updatePending, true);
-			const predecessorPid = adopted.pid;
-
-			await new Promise((r) => setTimeout(r, 500));
-			const inst = (
-				sup as unknown as { instances: Map<string, { pid: number }> }
-			).instances.get(orgId);
-			assert.equal(inst?.pid, predecessorPid);
-			assert.equal(isAlive(predecessorPid), true);
-			assert.equal(runUpdateCalled, false);
-
-			const status = sup.getUpdateStatus(orgId);
-			assert.ok(status);
-			assert.equal(
-				status.pending,
-				true,
-				`pending should remain visible for manual update (running=${status.running})`,
-			);
-
-			const verifyClient = new DaemonClient({ socketPath });
-			await verifyClient.connect();
-			const sessions = await verifyClient.list();
-			const survivor = sessions.find((s) => s.id === "survivor");
-			assert.ok(
-				survivor,
-				`live session should remain on predecessor: ${JSON.stringify(sessions)}`,
-			);
-			assert.equal(survivor.pid, shellPid);
-			await verifyClient.dispose();
-		} catch (err) {
 			try {
-				if (child.pid) process.kill(child.pid, "SIGTERM");
+				fs.unlinkSync(socketPath);
 			} catch {}
-			throw err;
-		}
-	});
+
+			const child = childProcess.spawn(
+				process.execPath,
+				[DAEMON_BUNDLE, `--socket=${socketPath}`],
+				{
+					detached: true,
+					stdio: "ignore",
+					env: { ...process.env, SUPERSET_PTY_DAEMON_VERSION: "0.0.1" },
+				},
+			);
+			child.unref();
+
+			try {
+				const ready = await waitForSocket(socketPath, 5000);
+				assert.equal(ready, true);
+
+				// Open a session BEFORE auto-update kicks in. This is the
+				// "user has live shells" path — the failure must leave them alone.
+				const { DaemonClient } = await import(
+					"../terminal/DaemonClient/index.ts"
+				);
+				const client = new DaemonClient({ socketPath });
+				let shellPid: number;
+				try {
+					await client.connect();
+					const opened = await client.open("survivor", {
+						shell: "/bin/sh",
+						argv: ["-c", "echo alive; sleep 30"],
+						cols: 80,
+						rows: 24,
+					});
+					shellPid = opened.pid;
+					assert.ok(shellPid > 0);
+				} finally {
+					await client.dispose();
+				}
+
+				fs.mkdirSync(ptyDaemonManifestDir(orgId), {
+					recursive: true,
+					mode: 0o700,
+				});
+				writePtyDaemonManifest({
+					pid: child.pid as number,
+					socketPath,
+					protocolVersions: [1],
+					startedAt: Date.now(),
+					organizationId: orgId,
+				});
+
+				const sup = new DaemonSupervisor({ scriptPath: DAEMON_BUNDLE });
+				supervisorsToCleanup.push({ sup, orgId });
+				const internals = sup as unknown as {
+					runUpdate: (
+						organizationId: string,
+					) => Promise<{ ok: false; reason: string }>;
+					recordAutoUpdateFailure: (
+						organizationId: string,
+						instance: Awaited<ReturnType<DaemonSupervisor["ensure"]>>,
+						reason: string,
+					) => void;
+				};
+				let markFailureRecorded: () => void = () => {};
+				const failureRecorded = new Promise<void>((resolve) => {
+					markFailureRecorded = resolve;
+				});
+				const recordFailure = internals.recordAutoUpdateFailure.bind(sup);
+				internals.recordAutoUpdateFailure = (...args) => {
+					recordFailure(...args);
+					markFailureRecorded();
+				};
+				let runUpdateCalls = 0;
+				const failureReason = "snapshot write failed: ENOSPC";
+				internals.runUpdate = async (organizationId) => {
+					assert.equal(organizationId, orgId);
+					runUpdateCalls++;
+					return {
+						ok: false as const,
+						reason: failureReason,
+					};
+				};
+
+				const adopted = await sup.ensure(orgId);
+				assert.equal(adopted.updatePending, true);
+				const predecessorPid = adopted.pid;
+
+				await failureRecorded;
+				const inst = (
+					sup as unknown as { instances: Map<string, { pid: number }> }
+				).instances.get(orgId);
+				assert.equal(inst?.pid, predecessorPid);
+				assert.equal(await isPidRunning(predecessorPid), true);
+				assert.equal(await isPidRunning(shellPid), true);
+				assert.equal(runUpdateCalls, 1);
+				assert.equal(readPtyDaemonManifest(orgId)?.pid, predecessorPid);
+				assert.notEqual(readPtyDaemonManifest(orgId)?.handoffInProgress, true);
+
+				const status = sup.getUpdateStatus(orgId);
+				assert.ok(status);
+				assert.equal(
+					status.pending,
+					true,
+					`pending should remain visible after failed handoff (running=${status.running})`,
+				);
+				assert.equal(status.running, adopted.runningVersion);
+				assert.equal(status.autoUpdateFailure?.reason, failureReason);
+
+				const verifyClient = new DaemonClient({ socketPath });
+				try {
+					await verifyClient.connect();
+					const sessions = await verifyClient.list();
+					const survivor = sessions.find((s) => s.id === "survivor");
+					assert.ok(
+						survivor,
+						`live session should remain on predecessor: ${JSON.stringify(sessions)}`,
+					);
+					assert.equal(survivor.pid, shellPid);
+					assert.equal(survivor.alive, true);
+				} finally {
+					await verifyClient.dispose();
+				}
+			} catch (err) {
+				try {
+					if (child.pid) process.kill(child.pid, "SIGTERM");
+				} catch {}
+				throw err;
+			}
+		},
+	);
 
 	test("update() returns ok:false and leaves predecessor alive when there's no daemon", async () => {
 		const orgId = "org-update-noop";
@@ -1133,6 +1215,90 @@ describe("trustd-degraded daemon heal", () => {
 			recycled.kill("SIGKILL");
 		}
 	});
+
+	test(
+		"a late heal does not respawn a namespace stopped while termination was pending",
+		{ timeout: 5000 },
+		async () => {
+			const orgId = crypto.randomUUID();
+			const socketPath = socketPathFor(orgId);
+			const placeholder = childProcess.spawn(
+				process.execPath,
+				["-e", "setInterval(() => {}, 1000)"],
+				{
+					detached: true,
+					stdio: "ignore",
+				},
+			);
+			let reportDegraded = false;
+			const server = net.createServer((socket) => {
+				const decoder = new FrameDecoder();
+				socket.on("error", () => {});
+				socket.on("data", (chunk: Buffer) => {
+					decoder.push(chunk);
+					for (const { message } of decoder.drain()) {
+						if ((message as { type?: string }).type !== "hello") continue;
+						socket.write(
+							encodeFrame({
+								type: "hello-ack",
+								protocol: CURRENT_PROTOCOL_VERSION,
+								daemonVersion: EXPECTED_DAEMON_VERSION,
+								daemonPid: placeholder.pid,
+								...(reportDegraded ? { trustdHealthy: false } : {}),
+							}),
+						);
+					}
+				});
+			});
+			await new Promise<void>((resolve) => server.listen(socketPath, resolve));
+			let releaseTermination!: () => void;
+			const terminationGate = new Promise<void>((resolve) => {
+				releaseTermination = resolve;
+			});
+			let healEntered!: () => void;
+			const healing = new Promise<void>((resolve) => {
+				healEntered = resolve;
+			});
+			let refresh: Promise<void> | undefined;
+			try {
+				seedManifest(orgId, placeholder.pid as number, socketPath);
+				const sup = new DaemonSupervisor({
+					scriptPath: DAEMON_BUNDLE,
+					autoUpdate: false,
+					hostTrustdProbe: async () => true,
+				});
+				supervisorsToCleanup.push({ sup, orgId });
+				const adopted = await sup.ensure(orgId);
+				const internals = sup as unknown as {
+					killAdoptedDaemon: () => Promise<void>;
+					refreshReachability: (id: string, pid: number) => Promise<void>;
+				};
+				internals.killAdoptedDaemon = async () => {
+					healEntered();
+					await terminationGate;
+				};
+				let respawns = 0;
+				sup.ensure = async () => {
+					respawns++;
+					return adopted;
+				};
+				reportDegraded = true;
+				refresh = internals.refreshReachability(orgId, adopted.pid);
+				await healing;
+				await sup.stop(orgId);
+				releaseTermination();
+				await refresh;
+				assert.equal(respawns, 0);
+				assert.equal(sup.getSocketPath(orgId), null);
+				assert.equal(await isPidRunning(adopted.pid), false);
+			} finally {
+				releaseTermination();
+				await refresh;
+				await new Promise<void>((resolve) => server.close(() => resolve()));
+				placeholder.kill("SIGKILL");
+			}
+		},
+	);
 
 	test("heals when a daemon adopted before its probe landed later reports degraded", async () => {
 		// The daemon binds before probeTrustdHealthy() completes, so an
