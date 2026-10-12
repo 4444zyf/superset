@@ -1,0 +1,2599 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-12",
+  "repository": "4444zyf/superset",
+  "branch": "work",
+  "tests": [
+    {
+      "scope": "PTY Node all",
+      "pass": 60,
+      "fail": 0,
+      "skip": 0,
+      "log": "/tmp/direct-core-final-pty-turbo-target-green.log"
+    },
+    {
+      "scope": "PTY Bun",
+      "pass": 194,
+      "fail": 0,
+      "assertions": 5913,
+      "log": "/tmp/direct-core-final-pty-bun-green.log"
+    },
+    {
+      "scope": "host daemon Node all",
+      "pass": 33,
+      "fail": 0,
+      "skip": 3,
+      "skipReason": "Existing Darwin-only checks",
+      "log": "/tmp/direct-core-host-daemon-final-node.log"
+    },
+    {
+      "scope": "host daemon Bun",
+      "pass": 57,
+      "fail": 0,
+      "assertions": 184,
+      "log": "/tmp/direct-core-host-daemon-final-bun.log"
+    },
+    {
+      "scope": "release and installer",
+      "pass": 84,
+      "fail": 0,
+      "assertions": 238,
+      "files": 23,
+      "log": "/tmp/root-release-final-verification.log"
+    },
+    {
+      "scope": "Desktop source checkpoint21c targeted",
+      "pass": 107,
+      "fail": 0,
+      "assertions": 405,
+      "files": 25,
+      "log": "/tmp/root-final-desktop-tests-20261012.log"
+    },
+    {
+      "scope": "Codex attachment single regression",
+      "pass": 1,
+      "fail": 0,
+      "assertions": 8,
+      "redLog": "/tmp/direct-core-codex-attachment-red.log",
+      "log": "/tmp/direct-core-codex-attachment-green.log"
+    },
+    {
+      "scope": "Codex existing suite with fix",
+      "pass": 33,
+      "fail": 0,
+      "skip": 1,
+      "assertions": 118,
+      "files": 7,
+      "skipReason": "Existing real authenticated vendor opt-in test",
+      "log": "/tmp/direct-core-codex-attachment-suite.log"
+    },
+    {
+      "scope": "Independent ordinary Codex review",
+      "pass": 24,
+      "fail": 0,
+      "assertions": 102,
+      "files": 4
+    }
+  ],
+  "testCountsAreNotDeduplicated": true,
+  "artifacts": {
+    "desktop21c": {
+      "sourceCommit": "21c2169b824391fc997ba185ca3e94a6f006dab8",
+      "fileCount": 69,
+      "manifestSha256": "15ca1d6ce055966fac754e455cdff47a03cc5caae64c99ea3ca959078b4784bd",
+      "productionJsUnmodified": true
+    },
+    "desktop2217": {
+      "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+      "fileCount": 69,
+      "manifestSha256": "38365d9abda25d333f2da66be694c83744caca2222457b6b80c22e1057124ee4",
+      "productionJsUnmodified": true
+    },
+    "node2217": {
+      "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+      "productHelpers": [
+        {
+          "path": "packages/host-service/dist/host-service-direct.js",
+          "sha256": "99f8406b0b5cf2392a457ad57a5767b658f365937ad7718b8b08c93ec7306dad"
+        },
+        {
+          "path": "packages/host-service/dist/direct-supervisor.js",
+          "sha256": "3948ddc78c4563c23a44fe9b3dabfcca73f3bbfec17609893752862f312ada95"
+        },
+        {
+          "path": "packages/host-service/dist/host-worker.js",
+          "sha256": "0873c2ccd997d4f7e8e03b9e5af340bb0fde586dfcaf34c6c886e6ee039c0702"
+        },
+        {
+          "path": "packages/pty-daemon/dist/pty-daemon.js",
+          "sha256": "33545167cf92296f687cfe9102578dab8ee4ca74a76e9276b62441aef9e0d7f8"
+        }
+      ],
+      "productionJsUnmodified": true,
+      "oldLiveBackendMirrorModified": false
+    },
+    "asar21cDevelopment": {
+      "scope": "Linux x64 explicit development ASAR package; no production signing/trust resources or Mac deployment",
+      "sourceCommit": "21c2169b824391fc997ba185ca3e94a6f006dab8",
+      "artifact": {
+        "sizeBytes": 891770105,
+        "sha256": "5ce5579937124131e978721ebd10791d84f984e46ba7ebc5c48a5d1e1310557f",
+        "packagedDistJsCssHtmlFiles": 69,
+        "allDistBytesMatchFrozenCompilation": true
+      },
+      "checks": {
+        "installedOnlyPreflight": "pass",
+        "nativeMaterialization": "pass",
+        "nativeRuntimeValidation": "pass",
+        "electron145NativeSQLiteAndPty": "pass",
+        "asarEntryFileReads": "pass",
+        "asarNativeUnpackLayout": "pass",
+        "asarBackendSupervisorPtySdk": "pass",
+        "guiDefaultSandbox": {
+          "status": "blocked",
+          "signal": "SIGTRAP",
+          "reason": "chrome-sandbox is agent-owned mode755; Chromium requires root-owned4755",
+          "sandboxDisabled": false,
+          "appIsPackagedObserved": false
+        }
+      },
+      "sdk": {
+        "uid": 1000,
+        "electron": "41.10.7",
+        "abi": "145",
+        "environmentAllowlistOnly": true,
+        "ambientSshBindingsInherited": false,
+        "backendEntryInsideAsar": true,
+        "supervisorEntryInsideAsar": true,
+        "migrationsOutsideAsar": true,
+        "cloudAccountRequired": false,
+        "authenticatedDescribe": true,
+        "sessionCreated": true,
+        "ptyCommandExecuted": true,
+        "websocketAttached": true,
+        "disconnectReattachedSameInstance": true,
+        "explicitStopCompleted": true,
+        "dataPreserved": true,
+        "supervisorPid": 1358784,
+        "stoppedDatabaseRows": {
+          "projects": 0,
+          "workspaces": 1,
+          "terminals": 1
+        }
+      },
+      "cleanup": {
+        "method": "Authenticated LocalBackend.stop for each owned namespace; supervised child exit awaited/reaped after successful SDK run; Xorg105 SIGTERM after exact command+uid match; no global process scans used to kill",
+        "knownPidStatus": [
+          {
+            "pid": 1352164,
+            "present": false
+          },
+          {
+            "pid": 1353204,
+            "present": false
+          },
+          {
+            "pid": 1355309,
+            "present": true,
+            "state": "Z",
+            "parentPid": 1,
+            "startTicks": "15761003",
+            "uid": 1000,
+            "ownedPackageArguments": false
+          },
+          {
+            "pid": 1356504,
+            "present": false
+          },
+          {
+            "pid": 1357552,
+            "present": false
+          },
+          {
+            "pid": 1358784,
+            "present": false
+          },
+          {
+            "namespaceDataDir": "/workspace/.cloud-onboarding/superset/asar-development-20261012/fixture/local-backend-complete",
+            "disabled": true,
+            "endpointAbsent": true
+          },
+          {
+            "namespaceDataDir": "/workspace/.cloud-onboarding/superset/asar-development-20261012/fixture/local-backend",
+            "disabled": true,
+            "endpointAbsent": true
+          },
+          {
+            "namespaceDataDir": "/workspace/.cloud-onboarding/superset/asar-development-20261012/fixture/local-backend-sdk",
+            "disabled": true,
+            "endpointAbsent": true
+          },
+          {
+            "namespaceDataDir": "/workspace/.cloud-onboarding/superset/asar-development-20261012/fixture/local-backend-final",
+            "disabled": true,
+            "endpointAbsent": true
+          }
+        ],
+        "remainingLiveOwnedWorkloads": false,
+        "isolatedRuntimeDisplay104Untouched": true,
+        "startTicks": "Recorded for remaining exited zombie only; stopped/reaped PID stat no longer exists, no original startTicks invented."
+      },
+      "limitations": [
+        "No successful packaged GUI startup or app.isPackaged observation due cloud sandbox prerequisite",
+        "No Darwin packaging/codesign/notarization/launchd/physical Mac or reboot verification",
+        "No managed SSH Mac installation because development package intentionally contains no trusted signed Mac payload",
+        "No actual vendor credentials or provider turn in this isolated SDK proof"
+      ]
+    }
+  },
+  "gui21c": {
+    "actualNativeAttachment": {
+      "sourceCommit": "21c2169b824391fc997ba185ca3e94a6f006dab8",
+      "actualNativeUploadAndDownload": true,
+      "backendId": "1276d2b8-1774-4382-9c51-f10672110cd8",
+      "namespaceId": "cde3a08c-0fb1-4b12-b3af-fd050aab2509",
+      "attachmentId": "6c4f2e6d-22ba-40ae-99a2-2c5f44efb421",
+      "originalFilename": "attachment-fixture.txt",
+      "sizeBytes": 27,
+      "opaqueStorageFilename": "6c4f2e6d-22ba-40ae-99a2-2c5f44efb421.txt",
+      "sourceSha256": "188b38631883b794a017c2335dfb1ea80ba2460542e75f1507f1cb6489e4ea99",
+      "storageSha256": "188b38631883b794a017c2335dfb1ea80ba2460542e75f1507f1cb6489e4ea99",
+      "nativeDownloadedSha256": "188b38631883b794a017c2335dfb1ea80ba2460542e75f1507f1cb6489e4ea99",
+      "authenticatedGetSha256": "188b38631883b794a017c2335dfb1ea80ba2460542e75f1507f1cb6489e4ea99",
+      "authenticatedGetStatus": 200,
+      "filenameHeaderMatches": true,
+      "noPskStatus": 401,
+      "invalidPskStatus": 401,
+      "disallowedOriginStatus": 403,
+      "secretOrBodiesLogged": false,
+      "passed": true
+    },
+    "fileSave": {
+      "savedByActualPriorUiInput": true,
+      "backendBytesMatch": true,
+      "bytes": 27,
+      "sha256": "c184de3c8db2de3f4abb62eb69517c5da70524345164376c80d8b7910268a5b3",
+      "saveDisabledWhenClean": true
+    },
+    "fileConflict": {
+      "draftRetained": true,
+      "externalBytesUnchanged": true,
+      "conflictVisible": true,
+      "saveStillDirty": true
+    },
+    "legacy": {
+      "sourceCount": 3,
+      "conflictTypes": 6,
+      "sourceFilesChecked": 14,
+      "allSourceBytesAndModesUnchanged": true,
+      "allImportsStopped": true,
+      "unselectedImmediatelyAfterEveryImport": true,
+      "laterExplicitSelectionIsSeparate": true,
+      "duplicateV2IdsPreservedSeparately": true,
+      "closedPaneLiveTerminals": 0,
+      "historyFirst": {
+        "actualArchivedHistory": true,
+        "utf8Bytes": 8192,
+        "replacementCharacterAbsent": true,
+        "agentContextVisible": true,
+        "noAutomaticConnection": true
+      },
+      "historyNext": {
+        "actualNextPart": true,
+        "utf8Bytes": 8192,
+        "oldFirstMarkerAbsent": true,
+        "differentChunk": true,
+        "replacementCharacterAbsent": true
+      },
+      "historyPrevious": {
+        "actualPreviousPart": true,
+        "firstChunkExactlyRestored": true,
+        "utf8Bytes": 8192
+      }
+    },
+    "targetStop": {
+      "before": {
+        "record": "before-target-stop.json",
+        "productionLogicUninstrumented": true,
+        "roles": {
+          "remote": {
+            "backendId": "1276d2b8-1774-4382-9c51-f10672110cd8",
+            "namespaceId": "cde3a08c-0fb1-4b12-b3af-fd050aab2509",
+            "instanceId": "d4704018-1492-42e3-8f5a-3f3b4660ef68",
+            "heartbeats": 1113,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1356699,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1356680,
+              "pgid": 1356699,
+              "ttyNumber": 34816,
+              "startTicks": "15771393"
+            },
+            "shell": {
+              "pid": 1356680,
+              "state": "S",
+              "sid": 1356680,
+              "startTicks": "15771319"
+            },
+            "daemon": {
+              "pid": 1349420,
+              "state": "S",
+              "startTicks": "15714212"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532824]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 91,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "local": {
+            "backendId": "ecce3e09-6ce8-412b-8b20-d1b127598976",
+            "namespaceId": "946290a8-2dac-43b2-8257-c8b11dfc987a",
+            "instanceId": "c4feab37-739a-47de-bca7-4f46973392e7",
+            "heartbeats": 927,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1358910,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1358899,
+              "pgid": 1358910,
+              "ttyNumber": 34816,
+              "startTicks": "15790096"
+            },
+            "shell": {
+              "pid": 1358899,
+              "state": "S",
+              "sid": 1358899,
+              "startTicks": "15790026"
+            },
+            "daemon": {
+              "pid": 1358560,
+              "state": "S",
+              "startTicks": "15787493"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 135,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "target": {
+            "backendId": "78108fa4-3530-4da3-8141-009d30865e3c",
+            "namespaceId": "7ab38181-cf2e-4c57-947c-b1d1eefc7a7a",
+            "instanceId": "4e8b4d25-7de4-4e8b-80af-ed6dc2ce5436",
+            "heartbeats": 41,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1368694,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1368683,
+              "pgid": 1368694,
+              "ttyNumber": 34817,
+              "startTicks": "15878831"
+            },
+            "shell": {
+              "pid": 1368683,
+              "state": "S",
+              "sid": 1368683,
+              "startTicks": "15878762"
+            },
+            "daemon": {
+              "pid": 1367990,
+              "state": "S",
+              "startTicks": "15873027"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/1",
+              "dev": 135,
+              "inode": 4,
+              "rdev": 34817
+            }
+          }
+        },
+        "provider": [
+          {
+            "process": {
+              "pid": 1364811,
+              "state": "S",
+              "startTicks": "15844796"
+            },
+            "heartbeats": 963,
+            "turnStarts": [
+              {
+                "turnId": "12c2c4cf-70c7-4d99-8f6d-f96dd6bcf05c",
+                "turnStartCount": 1,
+                "threadId": "06345f51-feb9-45e4-aea8-2d7425634d32"
+              }
+            ],
+            "finished": []
+          }
+        ]
+      },
+      "after": {
+        "record": "after-target-stop.json",
+        "productionLogicUninstrumented": true,
+        "roles": {
+          "remote": {
+            "backendId": "1276d2b8-1774-4382-9c51-f10672110cd8",
+            "namespaceId": "cde3a08c-0fb1-4b12-b3af-fd050aab2509",
+            "instanceId": "d4704018-1492-42e3-8f5a-3f3b4660ef68",
+            "heartbeats": 1127,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1356699,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1356680,
+              "pgid": 1356699,
+              "ttyNumber": 34816,
+              "startTicks": "15771393"
+            },
+            "shell": {
+              "pid": 1356680,
+              "state": "S",
+              "sid": 1356680,
+              "startTicks": "15771319"
+            },
+            "daemon": {
+              "pid": 1349420,
+              "state": "S",
+              "startTicks": "15714212"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532824]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 91,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "local": {
+            "backendId": "ecce3e09-6ce8-412b-8b20-d1b127598976",
+            "namespaceId": "946290a8-2dac-43b2-8257-c8b11dfc987a",
+            "instanceId": "c4feab37-739a-47de-bca7-4f46973392e7",
+            "heartbeats": 940,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1358910,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1358899,
+              "pgid": 1358910,
+              "ttyNumber": 34816,
+              "startTicks": "15790096"
+            },
+            "shell": {
+              "pid": 1358899,
+              "state": "S",
+              "sid": 1358899,
+              "startTicks": "15790026"
+            },
+            "daemon": {
+              "pid": 1358560,
+              "state": "S",
+              "startTicks": "15787493"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 135,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "target": {
+            "backendId": "78108fa4-3530-4da3-8141-009d30865e3c",
+            "namespaceId": "7ab38181-cf2e-4c57-947c-b1d1eefc7a7a",
+            "instanceId": null,
+            "heartbeats": 54,
+            "disabled": true,
+            "endpointPublished": false,
+            "task": {
+              "pid": 1368694,
+              "state": "absent"
+            },
+            "shell": {
+              "pid": 1368683,
+              "state": "absent"
+            },
+            "daemon": null,
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/1",
+              "dev": 135,
+              "inode": 4,
+              "rdev": 34817
+            }
+          }
+        },
+        "provider": [
+          {
+            "process": {
+              "pid": 1364811,
+              "state": "S",
+              "startTicks": "15844796"
+            },
+            "heartbeats": 1018,
+            "turnStarts": [
+              {
+                "turnId": "12c2c4cf-70c7-4d99-8f6d-f96dd6bcf05c",
+                "turnStartCount": 1,
+                "threadId": "06345f51-feb9-45e4-aea8-2d7425634d32"
+              }
+            ],
+            "finished": []
+          }
+        ]
+      },
+      "independentlyChecked": {
+        "remote": {
+          "sameBackend": true,
+          "sameNamespace": true,
+          "sameInstance": true,
+          "sameTaskPidAndStart": true,
+          "runningTask": true,
+          "heartbeatsIncreased": true
+        },
+        "local": {
+          "sameBackend": true,
+          "sameNamespace": true,
+          "sameInstance": true,
+          "sameTaskPidAndStart": true,
+          "runningTask": true,
+          "heartbeatsIncreased": true
+        }
+      }
+    },
+    "nativeQuit": {
+      "before": {
+        "record": "before-native-quit.json",
+        "productionLogicUninstrumented": true,
+        "roles": {
+          "remote": {
+            "backendId": "1276d2b8-1774-4382-9c51-f10672110cd8",
+            "namespaceId": "cde3a08c-0fb1-4b12-b3af-fd050aab2509",
+            "instanceId": "d4704018-1492-42e3-8f5a-3f3b4660ef68",
+            "heartbeats": 1522,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1356699,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1356680,
+              "pgid": 1356699,
+              "ttyNumber": 34816,
+              "startTicks": "15771393"
+            },
+            "shell": {
+              "pid": 1356680,
+              "state": "S",
+              "sid": 1356680,
+              "startTicks": "15771319"
+            },
+            "daemon": {
+              "pid": 1349420,
+              "state": "S",
+              "startTicks": "15714212"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532824]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 91,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "local": {
+            "backendId": "ecce3e09-6ce8-412b-8b20-d1b127598976",
+            "namespaceId": "946290a8-2dac-43b2-8257-c8b11dfc987a",
+            "instanceId": "c4feab37-739a-47de-bca7-4f46973392e7",
+            "heartbeats": 1335,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1358910,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1358899,
+              "pgid": 1358910,
+              "ttyNumber": 34816,
+              "startTicks": "15790096"
+            },
+            "shell": {
+              "pid": 1358899,
+              "state": "S",
+              "sid": 1358899,
+              "startTicks": "15790026"
+            },
+            "daemon": {
+              "pid": 1358560,
+              "state": "S",
+              "startTicks": "15787493"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 135,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "target": {
+            "backendId": "78108fa4-3530-4da3-8141-009d30865e3c",
+            "namespaceId": "7ab38181-cf2e-4c57-947c-b1d1eefc7a7a",
+            "instanceId": null,
+            "heartbeats": 54,
+            "disabled": true,
+            "endpointPublished": false,
+            "task": {
+              "pid": 1368694,
+              "state": "absent"
+            },
+            "shell": {
+              "pid": 1368683,
+              "state": "absent"
+            },
+            "daemon": null,
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/1",
+              "dev": 135,
+              "inode": 4,
+              "rdev": 34817
+            }
+          }
+        },
+        "provider": [
+          {
+            "process": {
+              "pid": 1364811,
+              "state": "S",
+              "startTicks": "15844796"
+            },
+            "heartbeats": 2593,
+            "turnStarts": [
+              {
+                "turnId": "12c2c4cf-70c7-4d99-8f6d-f96dd6bcf05c",
+                "turnStartCount": 1,
+                "threadId": "06345f51-feb9-45e4-aea8-2d7425634d32"
+              }
+            ],
+            "finished": []
+          }
+        ]
+      },
+      "after": {
+        "record": "after-native-quit.json",
+        "productionLogicUninstrumented": true,
+        "roles": {
+          "remote": {
+            "backendId": "1276d2b8-1774-4382-9c51-f10672110cd8",
+            "namespaceId": "cde3a08c-0fb1-4b12-b3af-fd050aab2509",
+            "instanceId": "d4704018-1492-42e3-8f5a-3f3b4660ef68",
+            "heartbeats": 1555,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1356699,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1356680,
+              "pgid": 1356699,
+              "ttyNumber": 34816,
+              "startTicks": "15771393"
+            },
+            "shell": {
+              "pid": 1356680,
+              "state": "S",
+              "sid": 1356680,
+              "startTicks": "15771319"
+            },
+            "daemon": {
+              "pid": 1349420,
+              "state": "S",
+              "startTicks": "15714212"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532824]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 91,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "local": {
+            "backendId": "ecce3e09-6ce8-412b-8b20-d1b127598976",
+            "namespaceId": "946290a8-2dac-43b2-8257-c8b11dfc987a",
+            "instanceId": "c4feab37-739a-47de-bca7-4f46973392e7",
+            "heartbeats": 1368,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1358910,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1358899,
+              "pgid": 1358910,
+              "ttyNumber": 34816,
+              "startTicks": "15790096"
+            },
+            "shell": {
+              "pid": 1358899,
+              "state": "S",
+              "sid": 1358899,
+              "startTicks": "15790026"
+            },
+            "daemon": {
+              "pid": 1358560,
+              "state": "S",
+              "startTicks": "15787493"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 135,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "target": {
+            "backendId": "78108fa4-3530-4da3-8141-009d30865e3c",
+            "namespaceId": "7ab38181-cf2e-4c57-947c-b1d1eefc7a7a",
+            "instanceId": null,
+            "heartbeats": 54,
+            "disabled": true,
+            "endpointPublished": false,
+            "task": {
+              "pid": 1368694,
+              "state": "absent"
+            },
+            "shell": {
+              "pid": 1368683,
+              "state": "absent"
+            },
+            "daemon": null,
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/1",
+              "dev": 135,
+              "inode": 4,
+              "rdev": 34817
+            }
+          }
+        },
+        "provider": [
+          {
+            "process": {
+              "pid": 1364811,
+              "state": "S",
+              "startTicks": "15844796"
+            },
+            "heartbeats": 2724,
+            "turnStarts": [
+              {
+                "turnId": "12c2c4cf-70c7-4d99-8f6d-f96dd6bcf05c",
+                "turnStartCount": 1,
+                "threadId": "06345f51-feb9-45e4-aea8-2d7425634d32"
+              }
+            ],
+            "finished": []
+          }
+        ]
+      },
+      "independentlyChecked": {
+        "remote": {
+          "sameBackend": true,
+          "sameNamespace": true,
+          "sameInstance": true,
+          "sameTaskPidAndStart": true,
+          "runningTask": true,
+          "heartbeatsIncreased": true
+        },
+        "local": {
+          "sameBackend": true,
+          "sameNamespace": true,
+          "sameInstance": true,
+          "sameTaskPidAndStart": true,
+          "runningTask": true,
+          "heartbeatsIncreased": true
+        }
+      }
+    },
+    "attachmentPromptFailure": {
+      "status": "failed before fix",
+      "reason": "Omitted attachment notice emitted with empty turnId; Zod validation failed after provider already accepted exactly one turn/start",
+      "actualVendor": false,
+      "automaticRetry": false
+    },
+    "accountlessStartup": {
+      "sourceCommit": "21c2169b824391fc997ba185ca3e94a6f006dab8",
+      "workstationVisible": true,
+      "errors": [],
+      "externalRendererRequests": [],
+      "userSshCredentialValuesIncluded": false
+    },
+    "localActiveSelection": {
+      "actualLocalNamespaceChange": true,
+      "oldWorkspaceCleared": true,
+      "noAutomaticConnection": true,
+      "errors": [],
+      "requests": []
+    },
+    "sshTransportAfterMainKill": {
+      "phase": "after-a-kill",
+      "at": 1791776943581,
+      "ownedSsh": [],
+      "originalTransport": [
+        {
+          "pid": 1379887,
+          "expectedStartTicks": "15960047",
+          "current": {
+            "pid": 1379887,
+            "state": "absent"
+          },
+          "wrapper": {
+            "pid": 1379879,
+            "ppid": 1,
+            "state": "Z",
+            "startTicks": "15960032",
+            "uid": 1000
+          },
+          "controlPath": "/tmp/superset-ssh-Tfo6vE/control",
+          "controlSocketExists": false
+        }
+      ]
+    },
+    "wholeAMainSigkill": {
+      "before": {
+        "record": "before-whole-a-kill.json",
+        "productionLogicUninstrumented": true,
+        "roles": {
+          "remote": {
+            "backendId": "1276d2b8-1774-4382-9c51-f10672110cd8",
+            "namespaceId": "cde3a08c-0fb1-4b12-b3af-fd050aab2509",
+            "instanceId": "d4704018-1492-42e3-8f5a-3f3b4660ef68",
+            "heartbeats": 1837,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1356699,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1356680,
+              "pgid": 1356699,
+              "ttyNumber": 34816,
+              "startTicks": "15771393"
+            },
+            "shell": {
+              "pid": 1356680,
+              "state": "S",
+              "sid": 1356680,
+              "startTicks": "15771319"
+            },
+            "daemon": {
+              "pid": 1349420,
+              "state": "S",
+              "startTicks": "15714212"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532824]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 91,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "local": {
+            "backendId": "ecce3e09-6ce8-412b-8b20-d1b127598976",
+            "namespaceId": "946290a8-2dac-43b2-8257-c8b11dfc987a",
+            "instanceId": "c4feab37-739a-47de-bca7-4f46973392e7",
+            "heartbeats": 1651,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1358910,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1358899,
+              "pgid": 1358910,
+              "ttyNumber": 34816,
+              "startTicks": "15790096"
+            },
+            "shell": {
+              "pid": 1358899,
+              "state": "S",
+              "sid": 1358899,
+              "startTicks": "15790026"
+            },
+            "daemon": {
+              "pid": 1358560,
+              "state": "S",
+              "startTicks": "15787493"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 135,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "target": {
+            "backendId": "78108fa4-3530-4da3-8141-009d30865e3c",
+            "namespaceId": "7ab38181-cf2e-4c57-947c-b1d1eefc7a7a",
+            "instanceId": null,
+            "heartbeats": 54,
+            "disabled": true,
+            "endpointPublished": false,
+            "task": {
+              "pid": 1368694,
+              "state": "absent"
+            },
+            "shell": {
+              "pid": 1368683,
+              "state": "absent"
+            },
+            "daemon": null,
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/1",
+              "dev": 135,
+              "inode": 4,
+              "rdev": 34817
+            }
+          }
+        },
+        "provider": [
+          {
+            "process": {
+              "pid": 1364811,
+              "state": "S",
+              "startTicks": "15844796"
+            },
+            "heartbeats": 3849,
+            "turnStarts": [
+              {
+                "turnId": "12c2c4cf-70c7-4d99-8f6d-f96dd6bcf05c",
+                "turnStartCount": 1,
+                "threadId": "06345f51-feb9-45e4-aea8-2d7425634d32"
+              }
+            ],
+            "finished": []
+          }
+        ]
+      },
+      "after": {
+        "record": "after-whole-a-kill.json",
+        "productionLogicUninstrumented": true,
+        "roles": {
+          "remote": {
+            "backendId": "1276d2b8-1774-4382-9c51-f10672110cd8",
+            "namespaceId": "cde3a08c-0fb1-4b12-b3af-fd050aab2509",
+            "instanceId": "d4704018-1492-42e3-8f5a-3f3b4660ef68",
+            "heartbeats": 1873,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1356699,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1356680,
+              "pgid": 1356699,
+              "ttyNumber": 34816,
+              "startTicks": "15771393"
+            },
+            "shell": {
+              "pid": 1356680,
+              "state": "S",
+              "sid": 1356680,
+              "startTicks": "15771319"
+            },
+            "daemon": {
+              "pid": 1349420,
+              "state": "S",
+              "startTicks": "15714212"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532824]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 91,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "local": {
+            "backendId": "ecce3e09-6ce8-412b-8b20-d1b127598976",
+            "namespaceId": "946290a8-2dac-43b2-8257-c8b11dfc987a",
+            "instanceId": "c4feab37-739a-47de-bca7-4f46973392e7",
+            "heartbeats": 1687,
+            "disabled": false,
+            "endpointPublished": true,
+            "task": {
+              "pid": 1358910,
+              "uid": 1000,
+              "state": "S",
+              "sid": 1358899,
+              "pgid": 1358910,
+              "ttyNumber": 34816,
+              "startTicks": "15790096"
+            },
+            "shell": {
+              "pid": 1358899,
+              "state": "S",
+              "sid": 1358899,
+              "startTicks": "15790026"
+            },
+            "daemon": {
+              "pid": 1358560,
+              "state": "S",
+              "startTicks": "15787493"
+            },
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/0",
+              "dev": 135,
+              "inode": 3,
+              "rdev": 34816
+            }
+          },
+          "target": {
+            "backendId": "78108fa4-3530-4da3-8141-009d30865e3c",
+            "namespaceId": "7ab38181-cf2e-4c57-947c-b1d1eefc7a7a",
+            "instanceId": null,
+            "heartbeats": 54,
+            "disabled": true,
+            "endpointPublished": false,
+            "task": {
+              "pid": 1368694,
+              "state": "absent"
+            },
+            "shell": {
+              "pid": 1368683,
+              "state": "absent"
+            },
+            "daemon": null,
+            "devpts": {
+              "mountNamespace": "mnt:[4026532838]",
+              "stdinPath": "/dev/pts/1",
+              "dev": 135,
+              "inode": 4,
+              "rdev": 34817
+            }
+          }
+        },
+        "provider": [
+          {
+            "process": {
+              "pid": 1364811,
+              "state": "S",
+              "startTicks": "15844796"
+            },
+            "heartbeats": 3993,
+            "turnStarts": [
+              {
+                "turnId": "12c2c4cf-70c7-4d99-8f6d-f96dd6bcf05c",
+                "turnStartCount": 1,
+                "threadId": "06345f51-feb9-45e4-aea8-2d7425634d32"
+              }
+            ],
+            "finished": []
+          }
+        ]
+      },
+      "independentlyChecked": {
+        "remote": {
+          "sameBackend": true,
+          "sameNamespace": true,
+          "sameInstance": true,
+          "sameTaskPidAndStart": true,
+          "runningTask": true,
+          "heartbeatsIncreased": true
+        },
+        "local": {
+          "sameBackend": true,
+          "sameNamespace": true,
+          "sameInstance": true,
+          "sameTaskPidAndStart": true,
+          "runningTask": true,
+          "heartbeatsIncreased": true
+        }
+      },
+      "action": {
+        "pid": 1378488,
+        "startTicks": "15949541",
+        "identityMatched": true,
+        "signal": "SIGKILL"
+      }
+    },
+    "nativeQuitReopenActualGui": {
+      "actualOriginalRemoteTerminalAndChatSelected": true,
+      "taskPid": 1356699,
+      "heartbeatFreshWithin5s": true,
+      "originalNoticeFailurePreserved": true,
+      "errors": [],
+      "requests": []
+    },
+    "mainSigkillReopenActualGui": {
+      "actualOriginalRemoteTerminalAndChatSelected": true,
+      "taskPid": 1356699,
+      "heartbeatFreshWithin5s": true,
+      "originalNoticeFailurePreserved": true,
+      "errors": [],
+      "requests": []
+    }
+  },
+  "environmentConfiguration": {
+    "installScriptSaved": true,
+    "startSkillSaved": true,
+    "sshBindingsSet": {
+      "SUPERSET_SSH_HOST": true,
+      "SUPERSET_SSH_USER": true,
+      "SUPERSET_SSH_PORT": true,
+      "SUPERSET_SSH_PASSWORD": true
+    },
+    "pendingRuntimeRequirements": 0,
+    "sshConnectivity": "ECONNREFUSED before SSH authentication",
+    "authenticationMaterialTransmitted": false,
+    "credentialValuesRecorded": false
+  },
+  "limits": {
+    "operatingSystem": "Linux cloud only",
+    "simulatedPrivateOsHomes": true,
+    "originalProductJs": true,
+    "signalGates": false,
+    "runtimeChildEnvironmentAllowlist": true,
+    "userSshBindingsInheritedByFixtureChildren": false,
+    "rawGuiNoSandboxForCloudPrerequisite": true,
+    "loopbackSshdStrictModes": false,
+    "strictModesFailureCauseProven": false,
+    "actualAuthenticatedVendor": false,
+    "physicalMac": false,
+    "productionReleasePublished": false,
+    "old20261010StopIncidentCauseProven": false
+  },
+  "finalBuilds": {
+    "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+    "hostBuild": {
+      "status": "passed",
+      "log": "/tmp/root-codex-final-host-build-20261012.log"
+    },
+    "desktopCompileApp": {
+      "status": "passed",
+      "log": "/tmp/root-codex-final-desktop-build-20261012.log"
+    },
+    "desktopFullTypecheck": {
+      "status": "passed",
+      "log": "/tmp/root-codex-final-desktop-tsc-20261012.log"
+    },
+    "chatRuntimeTypecheck": {
+      "status": "passed",
+      "log": "/tmp/direct-core-codex-attachment-tsc.log"
+    }
+  },
+  "gui2217": {
+    "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+    "freshHomeAndBackendIdentity": true,
+    "actualVendorAuthenticated": false,
+    "singleSend": {
+      "phase": "after-single-send",
+      "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+      "productionJsUninstrumented": true,
+      "controlledProviderFixtureNotVendorAuth": true,
+      "backendId": "cd65efa5-436f-4d95-9605-4f7d6b0ace82",
+      "namespaceId": "cb3621c4-c95c-42b6-a5a7-2501bcde6888",
+      "instanceId": "1187b56d-a59d-4f23-8975-820be6988d53",
+      "heartbeats": 93,
+      "sessions": [
+        {
+          "session_id": "8351220a-8b64-4c1f-bc4a-dbde86b8a431",
+          "harness": "codex",
+          "status": "running",
+          "epoch": "daff55ba-8cf7-4723-84ac-9266caa415c4"
+        }
+      ],
+      "uniqueUserMessageItems": 1,
+      "turns": [
+        {
+          "seq": 6,
+          "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+          "status": "running"
+        },
+        {
+          "seq": 9,
+          "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+          "status": "running"
+        }
+      ],
+      "notices": [
+        {
+          "seq": 10,
+          "id": "64dd32d3-ff72-4045-a6d2-83e3bcf97fab",
+          "kind": "info",
+          "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+          "expectedOmissionNotice": true
+        }
+      ],
+      "singlePromptAndWireTurn": true,
+      "backend": {
+        "pid": 1382737,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1382726,
+        "pgid": 1382726,
+        "ttyNumber": 0,
+        "startTicks": "15983611"
+      },
+      "daemon": {
+        "pid": 1382754,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1382754,
+        "pgid": 1382754,
+        "ttyNumber": 0,
+        "startTicks": "15983678"
+      },
+      "task": {
+        "pid": 1383511,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1383500,
+        "pgid": 1383511,
+        "ttyNumber": 34816,
+        "startTicks": "15988246"
+      },
+      "shell": {
+        "pid": 1383500,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1383500,
+        "pgid": 1383500,
+        "ttyNumber": 34816,
+        "startTicks": "15988172"
+      },
+      "devpts": {
+        "mountNamespace": "mnt:[4026532862]",
+        "stdinPath": "/dev/pts/0",
+        "dev": 152,
+        "inode": 3,
+        "rdev": 34816
+      },
+      "provider": [
+        {
+          "process": {
+            "pid": 1383541,
+            "state": "S",
+            "startTicks": "15988300"
+          },
+          "heartbeats": 253,
+          "turnStarts": [
+            {
+              "threadId": "b54f6b96-ca1f-4849-adcf-c232215a3a1d",
+              "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+              "count": 1,
+              "inputParts": 1
+            }
+          ],
+          "finished": []
+        }
+      ],
+      "noticeMatchesAcceptedProtocolTurnId": true
+    },
+    "actualNativeAttachment": {
+      "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+      "actualNativeUploadAndDownload": true,
+      "backendId": "cd65efa5-436f-4d95-9605-4f7d6b0ace82",
+      "namespaceId": "cb3621c4-c95c-42b6-a5a7-2501bcde6888",
+      "attachmentId": "7a77c746-aca1-4b48-8525-158ee26ea64a",
+      "originalFilename": "attachment-fixture.txt",
+      "sizeBytes": 27,
+      "opaqueStorageFilename": "7a77c746-aca1-4b48-8525-158ee26ea64a.txt",
+      "sourceSha256": "188b38631883b794a017c2335dfb1ea80ba2460542e75f1507f1cb6489e4ea99",
+      "storageSha256": "188b38631883b794a017c2335dfb1ea80ba2460542e75f1507f1cb6489e4ea99",
+      "nativeDownloadedSha256": "188b38631883b794a017c2335dfb1ea80ba2460542e75f1507f1cb6489e4ea99",
+      "authenticatedGetSha256": "188b38631883b794a017c2335dfb1ea80ba2460542e75f1507f1cb6489e4ea99",
+      "authenticatedGetStatus": 200,
+      "filenameHeaderMatches": true,
+      "noPskStatus": 401,
+      "invalidPskStatus": 401,
+      "disallowedOriginStatus": 403,
+      "secretOrBodiesLogged": false,
+      "passed": true
+    },
+    "nativeQuit": {
+      "before": {
+        "phase": "after-single-send",
+        "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+        "productionJsUninstrumented": true,
+        "controlledProviderFixtureNotVendorAuth": true,
+        "backendId": "cd65efa5-436f-4d95-9605-4f7d6b0ace82",
+        "namespaceId": "cb3621c4-c95c-42b6-a5a7-2501bcde6888",
+        "instanceId": "1187b56d-a59d-4f23-8975-820be6988d53",
+        "heartbeats": 93,
+        "sessions": [
+          {
+            "session_id": "8351220a-8b64-4c1f-bc4a-dbde86b8a431",
+            "harness": "codex",
+            "status": "running",
+            "epoch": "daff55ba-8cf7-4723-84ac-9266caa415c4"
+          }
+        ],
+        "uniqueUserMessageItems": 1,
+        "turns": [
+          {
+            "seq": 6,
+            "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "status": "running"
+          },
+          {
+            "seq": 9,
+            "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "status": "running"
+          }
+        ],
+        "notices": [
+          {
+            "seq": 10,
+            "id": "64dd32d3-ff72-4045-a6d2-83e3bcf97fab",
+            "kind": "info",
+            "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "expectedOmissionNotice": true
+          }
+        ],
+        "singlePromptAndWireTurn": true,
+        "backend": {
+          "pid": 1382737,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1382726,
+          "pgid": 1382726,
+          "ttyNumber": 0,
+          "startTicks": "15983611"
+        },
+        "daemon": {
+          "pid": 1382754,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1382754,
+          "pgid": 1382754,
+          "ttyNumber": 0,
+          "startTicks": "15983678"
+        },
+        "task": {
+          "pid": 1383511,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1383500,
+          "pgid": 1383511,
+          "ttyNumber": 34816,
+          "startTicks": "15988246"
+        },
+        "shell": {
+          "pid": 1383500,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1383500,
+          "pgid": 1383500,
+          "ttyNumber": 34816,
+          "startTicks": "15988172"
+        },
+        "devpts": {
+          "mountNamespace": "mnt:[4026532862]",
+          "stdinPath": "/dev/pts/0",
+          "dev": 152,
+          "inode": 3,
+          "rdev": 34816
+        },
+        "provider": [
+          {
+            "process": {
+              "pid": 1383541,
+              "state": "S",
+              "startTicks": "15988300"
+            },
+            "heartbeats": 253,
+            "turnStarts": [
+              {
+                "threadId": "b54f6b96-ca1f-4849-adcf-c232215a3a1d",
+                "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+                "count": 1,
+                "inputParts": 1
+              }
+            ],
+            "finished": []
+          }
+        ],
+        "noticeMatchesAcceptedProtocolTurnId": true
+      },
+      "after": {
+        "phase": "after-native-quit",
+        "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+        "productionJsUninstrumented": true,
+        "controlledProviderFixtureNotVendorAuth": true,
+        "backendId": "cd65efa5-436f-4d95-9605-4f7d6b0ace82",
+        "namespaceId": "cb3621c4-c95c-42b6-a5a7-2501bcde6888",
+        "instanceId": "1187b56d-a59d-4f23-8975-820be6988d53",
+        "heartbeats": 120,
+        "sessions": [
+          {
+            "session_id": "8351220a-8b64-4c1f-bc4a-dbde86b8a431",
+            "harness": "codex",
+            "status": "running",
+            "epoch": "daff55ba-8cf7-4723-84ac-9266caa415c4"
+          }
+        ],
+        "uniqueUserMessageItems": 1,
+        "turns": [
+          {
+            "seq": 6,
+            "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "status": "running"
+          },
+          {
+            "seq": 9,
+            "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "status": "running"
+          }
+        ],
+        "notices": [
+          {
+            "seq": 10,
+            "id": "64dd32d3-ff72-4045-a6d2-83e3bcf97fab",
+            "kind": "info",
+            "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "expectedOmissionNotice": true
+          }
+        ],
+        "singlePromptAndWireTurn": true,
+        "backend": {
+          "pid": 1382737,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1382726,
+          "pgid": 1382726,
+          "ttyNumber": 0,
+          "startTicks": "15983611"
+        },
+        "daemon": {
+          "pid": 1382754,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1382754,
+          "pgid": 1382754,
+          "ttyNumber": 0,
+          "startTicks": "15983678"
+        },
+        "task": {
+          "pid": 1383511,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1383500,
+          "pgid": 1383511,
+          "ttyNumber": 34816,
+          "startTicks": "15988246"
+        },
+        "shell": {
+          "pid": 1383500,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1383500,
+          "pgid": 1383500,
+          "ttyNumber": 34816,
+          "startTicks": "15988172"
+        },
+        "devpts": {
+          "mountNamespace": "mnt:[4026532862]",
+          "stdinPath": "/dev/pts/0",
+          "dev": 152,
+          "inode": 3,
+          "rdev": 34816
+        },
+        "provider": [
+          {
+            "process": {
+              "pid": 1383541,
+              "state": "S",
+              "startTicks": "15988300"
+            },
+            "heartbeats": 361,
+            "turnStarts": [
+              {
+                "threadId": "b54f6b96-ca1f-4849-adcf-c232215a3a1d",
+                "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+                "count": 1,
+                "inputParts": 1
+              }
+            ],
+            "finished": []
+          }
+        ],
+        "noticeMatchesAcceptedProtocolTurnId": true
+      },
+      "independentlyChecked": {
+        "sameBackend": true,
+        "sameNamespace": true,
+        "sameInstance": true,
+        "ptyHeartbeatsIncreased": true,
+        "protocolHeartbeatsIncreased": true,
+        "backendSamePidAndStart": true,
+        "daemonSamePidAndStart": true,
+        "taskSamePidAndStart": true,
+        "shellSamePidAndStart": true,
+        "providerSamePidAndStart": true
+      }
+    },
+    "mainSigkillAndReopen": {
+      "before": {
+        "phase": "before-main-kill",
+        "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+        "productionJsUninstrumented": true,
+        "controlledProviderFixtureNotVendorAuth": true,
+        "backendId": "cd65efa5-436f-4d95-9605-4f7d6b0ace82",
+        "namespaceId": "cb3621c4-c95c-42b6-a5a7-2501bcde6888",
+        "instanceId": "1187b56d-a59d-4f23-8975-820be6988d53",
+        "heartbeats": 199,
+        "sessions": [
+          {
+            "session_id": "8351220a-8b64-4c1f-bc4a-dbde86b8a431",
+            "harness": "codex",
+            "status": "running",
+            "epoch": "daff55ba-8cf7-4723-84ac-9266caa415c4"
+          }
+        ],
+        "uniqueUserMessageItems": 1,
+        "turns": [
+          {
+            "seq": 6,
+            "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "status": "running"
+          },
+          {
+            "seq": 9,
+            "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "status": "running"
+          }
+        ],
+        "notices": [
+          {
+            "seq": 10,
+            "id": "64dd32d3-ff72-4045-a6d2-83e3bcf97fab",
+            "kind": "info",
+            "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "expectedOmissionNotice": true
+          }
+        ],
+        "singlePromptAndWireTurn": true,
+        "backend": {
+          "pid": 1382737,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1382726,
+          "pgid": 1382726,
+          "ttyNumber": 0,
+          "startTicks": "15983611"
+        },
+        "daemon": {
+          "pid": 1382754,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1382754,
+          "pgid": 1382754,
+          "ttyNumber": 0,
+          "startTicks": "15983678"
+        },
+        "task": {
+          "pid": 1383511,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1383500,
+          "pgid": 1383511,
+          "ttyNumber": 34816,
+          "startTicks": "15988246"
+        },
+        "shell": {
+          "pid": 1383500,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1383500,
+          "pgid": 1383500,
+          "ttyNumber": 34816,
+          "startTicks": "15988172"
+        },
+        "devpts": {
+          "mountNamespace": "mnt:[4026532862]",
+          "stdinPath": "/dev/pts/0",
+          "dev": 152,
+          "inode": 3,
+          "rdev": 34816
+        },
+        "provider": [
+          {
+            "process": {
+              "pid": 1383541,
+              "state": "S",
+              "startTicks": "15988300"
+            },
+            "heartbeats": 675,
+            "turnStarts": [
+              {
+                "threadId": "b54f6b96-ca1f-4849-adcf-c232215a3a1d",
+                "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+                "count": 1,
+                "inputParts": 1
+              }
+            ],
+            "finished": []
+          }
+        ],
+        "noticeMatchesAcceptedProtocolTurnId": true
+      },
+      "after": {
+        "phase": "after-main-kill-reopen",
+        "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+        "productionJsUninstrumented": true,
+        "controlledProviderFixtureNotVendorAuth": true,
+        "backendId": "cd65efa5-436f-4d95-9605-4f7d6b0ace82",
+        "namespaceId": "cb3621c4-c95c-42b6-a5a7-2501bcde6888",
+        "instanceId": "1187b56d-a59d-4f23-8975-820be6988d53",
+        "heartbeats": 237,
+        "sessions": [
+          {
+            "session_id": "8351220a-8b64-4c1f-bc4a-dbde86b8a431",
+            "harness": "codex",
+            "status": "running",
+            "epoch": "daff55ba-8cf7-4723-84ac-9266caa415c4"
+          }
+        ],
+        "uniqueUserMessageItems": 1,
+        "turns": [
+          {
+            "seq": 6,
+            "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "status": "running"
+          },
+          {
+            "seq": 9,
+            "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "status": "running"
+          }
+        ],
+        "notices": [
+          {
+            "seq": 10,
+            "id": "64dd32d3-ff72-4045-a6d2-83e3bcf97fab",
+            "kind": "info",
+            "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+            "expectedOmissionNotice": true
+          }
+        ],
+        "singlePromptAndWireTurn": true,
+        "backend": {
+          "pid": 1382737,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1382726,
+          "pgid": 1382726,
+          "ttyNumber": 0,
+          "startTicks": "15983611"
+        },
+        "daemon": {
+          "pid": 1382754,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1382754,
+          "pgid": 1382754,
+          "ttyNumber": 0,
+          "startTicks": "15983678"
+        },
+        "task": {
+          "pid": 1383511,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1383500,
+          "pgid": 1383511,
+          "ttyNumber": 34816,
+          "startTicks": "15988246"
+        },
+        "shell": {
+          "pid": 1383500,
+          "uid": 1000,
+          "state": "S",
+          "sid": 1383500,
+          "pgid": 1383500,
+          "ttyNumber": 34816,
+          "startTicks": "15988172"
+        },
+        "devpts": {
+          "mountNamespace": "mnt:[4026532862]",
+          "stdinPath": "/dev/pts/0",
+          "dev": 152,
+          "inode": 3,
+          "rdev": 34816
+        },
+        "provider": [
+          {
+            "process": {
+              "pid": 1383541,
+              "state": "S",
+              "startTicks": "15988300"
+            },
+            "heartbeats": 825,
+            "turnStarts": [
+              {
+                "threadId": "b54f6b96-ca1f-4849-adcf-c232215a3a1d",
+                "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+                "count": 1,
+                "inputParts": 1
+              }
+            ],
+            "finished": []
+          }
+        ],
+        "noticeMatchesAcceptedProtocolTurnId": true
+      },
+      "independentlyChecked": {
+        "sameBackend": true,
+        "sameNamespace": true,
+        "sameInstance": true,
+        "ptyHeartbeatsIncreased": true,
+        "protocolHeartbeatsIncreased": true,
+        "backendSamePidAndStart": true,
+        "daemonSamePidAndStart": true,
+        "taskSamePidAndStart": true,
+        "shellSamePidAndStart": true,
+        "providerSamePidAndStart": true
+      }
+    },
+    "mainSigkillImmediateObservation": {
+      "phase": "after-main-kill",
+      "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+      "productionJsUninstrumented": true,
+      "controlledProviderFixtureNotVendorAuth": true,
+      "backendId": "cd65efa5-436f-4d95-9605-4f7d6b0ace82",
+      "namespaceId": "cb3621c4-c95c-42b6-a5a7-2501bcde6888",
+      "instanceId": "1187b56d-a59d-4f23-8975-820be6988d53",
+      "heartbeats": 199,
+      "sessions": [
+        {
+          "session_id": "8351220a-8b64-4c1f-bc4a-dbde86b8a431",
+          "harness": "codex",
+          "status": "running",
+          "epoch": "daff55ba-8cf7-4723-84ac-9266caa415c4"
+        }
+      ],
+      "uniqueUserMessageItems": 1,
+      "turns": [
+        {
+          "seq": 6,
+          "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+          "status": "running"
+        },
+        {
+          "seq": 9,
+          "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+          "status": "running"
+        }
+      ],
+      "notices": [
+        {
+          "seq": 10,
+          "id": "64dd32d3-ff72-4045-a6d2-83e3bcf97fab",
+          "kind": "info",
+          "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+          "expectedOmissionNotice": true
+        }
+      ],
+      "singlePromptAndWireTurn": true,
+      "backend": {
+        "pid": 1382737,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1382726,
+        "pgid": 1382726,
+        "ttyNumber": 0,
+        "startTicks": "15983611"
+      },
+      "daemon": {
+        "pid": 1382754,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1382754,
+        "pgid": 1382754,
+        "ttyNumber": 0,
+        "startTicks": "15983678"
+      },
+      "task": {
+        "pid": 1383511,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1383500,
+        "pgid": 1383511,
+        "ttyNumber": 34816,
+        "startTicks": "15988246"
+      },
+      "shell": {
+        "pid": 1383500,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1383500,
+        "pgid": 1383500,
+        "ttyNumber": 34816,
+        "startTicks": "15988172"
+      },
+      "devpts": {
+        "mountNamespace": "mnt:[4026532862]",
+        "stdinPath": "/dev/pts/0",
+        "dev": 152,
+        "inode": 3,
+        "rdev": 34816
+      },
+      "provider": [
+        {
+          "process": {
+            "pid": 1383541,
+            "state": "S",
+            "startTicks": "15988300"
+          },
+          "heartbeats": 677,
+          "turnStarts": [
+            {
+              "threadId": "b54f6b96-ca1f-4849-adcf-c232215a3a1d",
+              "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+              "count": 1,
+              "inputParts": 1
+            }
+          ],
+          "finished": []
+        }
+      ],
+      "noticeMatchesAcceptedProtocolTurnId": true
+    },
+    "immediatePtyHeartbeatDelta": 0,
+    "immediatePtyGrowthNotClaimed": true,
+    "ptyHeartbeatPeriodMs": 1000,
+    "mainSigkillAction": {
+      "pid": 1385443,
+      "uid": 1000,
+      "startTicks": "16003731",
+      "identityMatched": true,
+      "signal": "SIGKILL",
+      "onlyMainProcessSignalled": true
+    },
+    "sshClosingEarlyObservation": {
+      "phase": "after-a-kill",
+      "at": 1791777370858,
+      "ownedSsh": [
+        {
+          "pid": 1385728,
+          "ppid": 1385720,
+          "state": "S",
+          "startTicks": "16005002",
+          "uid": 1000,
+          "controlPath": "/tmp/superset-ssh-M1tBFl/control",
+          "wrapper": {
+            "pid": 1385720,
+            "ppid": 1,
+            "state": "S",
+            "startTicks": "16004984",
+            "uid": 1000
+          }
+        }
+      ],
+      "originalTransport": [
+        {
+          "pid": 1385728,
+          "expectedStartTicks": "16005002",
+          "current": {
+            "pid": 1385728,
+            "ppid": 1385720,
+            "state": "S",
+            "startTicks": "16005002",
+            "uid": 1000
+          },
+          "wrapper": {
+            "pid": 1385720,
+            "ppid": 1,
+            "state": "S",
+            "startTicks": "16004984",
+            "uid": 1000
+          },
+          "controlPath": "/tmp/superset-ssh-M1tBFl/control",
+          "controlSocketExists": true
+        }
+      ]
+    },
+    "sshClosingSettledObservation": {
+      "phase": "after-a-kill-settled",
+      "at": 1791777391789,
+      "ownedSsh": [],
+      "originalTransport": [
+        {
+          "pid": 1385728,
+          "expectedStartTicks": "16005002",
+          "current": {
+            "pid": 1385728,
+            "state": "absent"
+          },
+          "wrapper": {
+            "pid": 1385720,
+            "ppid": 1,
+            "state": "Z",
+            "startTicks": "16004984",
+            "uid": 1000
+          },
+          "controlPath": "/tmp/superset-ssh-M1tBFl/control",
+          "controlSocketExists": false
+        }
+      ]
+    },
+    "nativeQuitActualGuiReopen": {
+      "actualOriginalRemoteTerminalAndChatSelected": true,
+      "taskPid": 1383511,
+      "heartbeatFreshWithin5s": true,
+      "expectedOmissionNoticeVisible": true,
+      "noZodError": true,
+      "composerEmpty": true,
+      "errors": [],
+      "requests": []
+    },
+    "mainKillActualGuiReopen": {
+      "actualOriginalRemoteTerminalAndChatSelected": true,
+      "taskPid": 1383511,
+      "heartbeatFreshWithin5s": true,
+      "expectedOmissionNoticeVisible": true,
+      "noZodError": true,
+      "composerEmpty": true,
+      "errors": [],
+      "requests": []
+    },
+    "completionSameTurn": {
+      "phase": "after-completion",
+      "sourceCommit": "2217b95f5e7697e60475d14d6ab2eed237bd2132",
+      "productionJsUninstrumented": true,
+      "controlledProviderFixtureNotVendorAuth": true,
+      "backendId": "cd65efa5-436f-4d95-9605-4f7d6b0ace82",
+      "namespaceId": "cb3621c4-c95c-42b6-a5a7-2501bcde6888",
+      "instanceId": "1187b56d-a59d-4f23-8975-820be6988d53",
+      "heartbeats": 263,
+      "sessions": [
+        {
+          "session_id": "8351220a-8b64-4c1f-bc4a-dbde86b8a431",
+          "harness": "codex",
+          "status": "idle",
+          "epoch": "daff55ba-8cf7-4723-84ac-9266caa415c4"
+        }
+      ],
+      "uniqueUserMessageItems": 1,
+      "turns": [
+        {
+          "seq": 6,
+          "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+          "status": "running"
+        },
+        {
+          "seq": 9,
+          "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+          "status": "running"
+        },
+        {
+          "seq": 13,
+          "id": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+          "status": "completed"
+        }
+      ],
+      "notices": [
+        {
+          "seq": 10,
+          "id": "64dd32d3-ff72-4045-a6d2-83e3bcf97fab",
+          "kind": "info",
+          "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+          "expectedOmissionNotice": true
+        }
+      ],
+      "singlePromptAndWireTurn": true,
+      "backend": {
+        "pid": 1382737,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1382726,
+        "pgid": 1382726,
+        "ttyNumber": 0,
+        "startTicks": "15983611"
+      },
+      "daemon": {
+        "pid": 1382754,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1382754,
+        "pgid": 1382754,
+        "ttyNumber": 0,
+        "startTicks": "15983678"
+      },
+      "task": {
+        "pid": 1383511,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1383500,
+        "pgid": 1383511,
+        "ttyNumber": 34816,
+        "startTicks": "15988246"
+      },
+      "shell": {
+        "pid": 1383500,
+        "uid": 1000,
+        "state": "S",
+        "sid": 1383500,
+        "pgid": 1383500,
+        "ttyNumber": 34816,
+        "startTicks": "15988172"
+      },
+      "devpts": {
+        "mountNamespace": "mnt:[4026532862]",
+        "stdinPath": "/dev/pts/0",
+        "dev": 152,
+        "inode": 3,
+        "rdev": 34816
+      },
+      "provider": [
+        {
+          "process": {
+            "pid": 1383541,
+            "state": "S",
+            "startTicks": "15988300"
+          },
+          "heartbeats": 931,
+          "turnStarts": [
+            {
+              "threadId": "b54f6b96-ca1f-4849-adcf-c232215a3a1d",
+              "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a",
+              "count": 1,
+              "inputParts": 1
+            }
+          ],
+          "finished": [
+            {
+              "status": "completed",
+              "turnId": "f8c46be3-4bbc-476d-b0f2-4aa2e8e0154a"
+            }
+          ]
+        }
+      ],
+      "noticeMatchesAcceptedProtocolTurnId": true
+    },
+    "originalFinalBackendAndDesktopBytesIndependentlyVerified": true,
+    "completionActualGui": {
+      "sameChatSelected": true,
+      "finalFixtureMessageVisible": true,
+      "activeTurnStopAbsent": true,
+      "noZodError": true,
+      "errors": [],
+      "requests": []
+    }
+  },
+  "runtimeCleanup": {
+    "nativeQuitExit": {
+      "code": 0,
+      "signal": null,
+      "at": 1791777772465
+    },
+    "plannedIdentityCount": 19,
+    "actions": [
+      {
+        "pid": 1358531,
+        "role": "local-supervisor",
+        "startTicks": "15787389",
+        "signal": "SIGKILL",
+        "result": "sent-only-owned-matched-pid",
+        "before": {
+          "pid": 1358531,
+          "state": "S",
+          "startTicks": "15787389",
+          "uid": 1000,
+          "ppid": 1,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1349399,
+        "role": "remote-21c-backend",
+        "startTicks": "15714112",
+        "signal": "SIGKILL",
+        "result": "sent-only-owned-matched-pid",
+        "before": {
+          "pid": 1349399,
+          "state": "S",
+          "startTicks": "15714112",
+          "uid": 1000,
+          "ppid": 1349375,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1358539,
+        "role": "local-21c-backend",
+        "startTicks": "15787427",
+        "signal": "SIGKILL",
+        "result": "sent-only-owned-matched-pid",
+        "before": {
+          "pid": 1358539,
+          "state": "S",
+          "startTicks": "15787427",
+          "uid": 1000,
+          "ppid": 1358531,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1382737,
+        "role": "remote-2217-backend",
+        "startTicks": "15983611",
+        "signal": "SIGKILL",
+        "result": "sent-only-owned-matched-pid",
+        "before": {
+          "pid": 1382737,
+          "state": "S",
+          "startTicks": "15983611",
+          "uid": 1000,
+          "ppid": 1382730,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1349420,
+        "role": "remote-21c-daemon",
+        "startTicks": "15714212",
+        "signal": "SIGKILL",
+        "result": "sent-only-owned-matched-pid",
+        "before": {
+          "pid": 1349420,
+          "state": "S",
+          "startTicks": "15714212",
+          "uid": 1000,
+          "ppid": 1349399,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1358560,
+        "role": "local-21c-daemon",
+        "startTicks": "15787493",
+        "signal": "SIGKILL",
+        "result": "sent-only-owned-matched-pid",
+        "before": {
+          "pid": 1358560,
+          "state": "S",
+          "startTicks": "15787493",
+          "uid": 1000,
+          "ppid": 1358539,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1382754,
+        "role": "remote-2217-daemon",
+        "startTicks": "15983678",
+        "signal": "SIGKILL",
+        "result": "sent-only-owned-matched-pid",
+        "before": {
+          "pid": 1382754,
+          "state": "S",
+          "startTicks": "15983678",
+          "uid": 1000,
+          "ppid": 1382737,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1356699,
+        "role": "remote-21c-task",
+        "signal": null,
+        "result": "zombie-not-signalled",
+        "before": {
+          "pid": 1356699,
+          "state": "Z",
+          "startTicks": "15771393",
+          "uid": 1000,
+          "ppid": 1,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1358910,
+        "role": "local-21c-task",
+        "signal": null,
+        "result": "zombie-not-signalled",
+        "before": {
+          "pid": 1358910,
+          "state": "Z",
+          "startTicks": "15790096",
+          "uid": 1000,
+          "ppid": 1,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1383511,
+        "role": "remote-2217-task",
+        "signal": null,
+        "result": "zombie-not-signalled",
+        "before": {
+          "pid": 1383511,
+          "state": "Z",
+          "startTicks": "15988246",
+          "uid": 1000,
+          "ppid": 1,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1364811,
+        "role": "provider-21c",
+        "signal": null,
+        "result": "zombie-not-signalled",
+        "before": {
+          "pid": 1364811,
+          "state": "Z",
+          "startTicks": "15844796",
+          "uid": 1000,
+          "ppid": 1,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1383541,
+        "role": "provider-2217",
+        "signal": null,
+        "result": "zombie-not-signalled",
+        "before": {
+          "pid": 1383541,
+          "state": "Z",
+          "startTicks": "15988300",
+          "uid": 1000,
+          "ppid": 1,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1356680,
+        "role": "remote-21c-shell",
+        "signal": null,
+        "result": "zombie-not-signalled",
+        "before": {
+          "pid": 1356680,
+          "state": "Z",
+          "startTicks": "15771319",
+          "uid": 1000,
+          "ppid": 1,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1358899,
+        "role": "local-21c-shell",
+        "signal": null,
+        "result": "zombie-not-signalled",
+        "before": {
+          "pid": 1358899,
+          "state": "Z",
+          "startTicks": "15790026",
+          "uid": 1000,
+          "ppid": 1,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1383500,
+        "role": "remote-2217-shell",
+        "signal": null,
+        "result": "zombie-not-signalled",
+        "before": {
+          "pid": 1383500,
+          "state": "Z",
+          "startTicks": "15988172",
+          "uid": 1000,
+          "ppid": 1,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1349398,
+        "role": "sshd-21c",
+        "startTicks": "15714111",
+        "signal": "SIGTERM",
+        "result": "sent-only-owned-matched-pid",
+        "before": {
+          "pid": 1349398,
+          "state": "S",
+          "startTicks": "15714111",
+          "uid": 1000,
+          "ppid": 1349366,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1382777,
+        "role": "sshd-2217",
+        "startTicks": "15983730",
+        "signal": "SIGTERM",
+        "result": "sent-only-owned-matched-pid",
+        "before": {
+          "pid": 1382777,
+          "state": "S",
+          "startTicks": "15983730",
+          "uid": 1000,
+          "ppid": 1382770,
+          "identityMatched": true
+        }
+      },
+      {
+        "pid": 1349406,
+        "role": "Xorg",
+        "startTicks": "15714114",
+        "signal": "SIGTERM",
+        "result": "sent-only-owned-matched-pid",
+        "before": {
+          "pid": 1349406,
+          "state": "S",
+          "startTicks": "15714114",
+          "uid": 1000,
+          "ppid": 1349383,
+          "identityMatched": true
+        }
+      }
+    ],
+    "final": [
+      {
+        "role": "A-final-native-quit",
+        "expectedStartTicks": "16010243",
+        "pid": 1386354,
+        "state": "absent",
+        "identityMatched": true
+      },
+      {
+        "role": "local-supervisor",
+        "expectedStartTicks": "15787389",
+        "pid": 1358531,
+        "state": "Z",
+        "startTicks": "15787389",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "remote-21c-backend",
+        "expectedStartTicks": "15714112",
+        "pid": 1349399,
+        "state": "absent",
+        "identityMatched": true
+      },
+      {
+        "role": "local-21c-backend",
+        "expectedStartTicks": "15787427",
+        "pid": 1358539,
+        "state": "Z",
+        "startTicks": "15787427",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "remote-2217-backend",
+        "expectedStartTicks": "15983611",
+        "pid": 1382737,
+        "state": "absent",
+        "identityMatched": true
+      },
+      {
+        "role": "remote-21c-daemon",
+        "expectedStartTicks": "15714212",
+        "pid": 1349420,
+        "state": "Z",
+        "startTicks": "15714212",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "local-21c-daemon",
+        "expectedStartTicks": "15787493",
+        "pid": 1358560,
+        "state": "Z",
+        "startTicks": "15787493",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "remote-2217-daemon",
+        "expectedStartTicks": "15983678",
+        "pid": 1382754,
+        "state": "Z",
+        "startTicks": "15983678",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "remote-21c-task",
+        "expectedStartTicks": "15771393",
+        "pid": 1356699,
+        "state": "Z",
+        "startTicks": "15771393",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "local-21c-task",
+        "expectedStartTicks": "15790096",
+        "pid": 1358910,
+        "state": "Z",
+        "startTicks": "15790096",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "remote-2217-task",
+        "expectedStartTicks": "15988246",
+        "pid": 1383511,
+        "state": "Z",
+        "startTicks": "15988246",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "provider-21c",
+        "expectedStartTicks": "15844796",
+        "pid": 1364811,
+        "state": "Z",
+        "startTicks": "15844796",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "provider-2217",
+        "expectedStartTicks": "15988300",
+        "pid": 1383541,
+        "state": "Z",
+        "startTicks": "15988300",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "remote-21c-shell",
+        "expectedStartTicks": "15771319",
+        "pid": 1356680,
+        "state": "Z",
+        "startTicks": "15771319",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "local-21c-shell",
+        "expectedStartTicks": "15790026",
+        "pid": 1358899,
+        "state": "Z",
+        "startTicks": "15790026",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "remote-2217-shell",
+        "expectedStartTicks": "15988172",
+        "pid": 1383500,
+        "state": "Z",
+        "startTicks": "15988172",
+        "uid": 1000,
+        "ppid": 1,
+        "identityMatched": true
+      },
+      {
+        "role": "sshd-21c",
+        "expectedStartTicks": "15714111",
+        "pid": 1349398,
+        "state": "absent",
+        "identityMatched": true
+      },
+      {
+        "role": "sshd-2217",
+        "expectedStartTicks": "15983730",
+        "pid": 1382777,
+        "state": "absent",
+        "identityMatched": true
+      },
+      {
+        "role": "Xorg",
+        "expectedStartTicks": "15714114",
+        "pid": 1349406,
+        "state": "absent",
+        "identityMatched": true
+      }
+    ],
+    "identityMismatches": [],
+    "liveOwnedFixtures": [],
+    "negativePgidSignals": 0,
+    "unknownPidSignals": 0,
+    "onboardingServicesSignalled": 0,
+    "preservedArtifactsDatabasesDependencies": true,
+    "passed": true,
+    "method": "Final native Quit, disabled only three owned fixture homes, positive PID signals after exact UID/startTicks/owned argument checks; manual SIGKILL for owned supervisor/backends/daemons and TERM for own SSHD/Xorg. This is fixture cleanup, not an additional production Stop acceptance.",
+    "pid1ZombiesNotReaped": 13,
+    "listenerConnectivity": {
+      "ports": [
+        {
+          "port": 19334,
+          "state": "closed-or-unreachable"
+        },
+        {
+          "port": 19335,
+          "state": "closed-or-unreachable"
+        },
+        {
+          "port": 19336,
+          "state": "closed-or-unreachable"
+        },
+        {
+          "port": 19340,
+          "state": "closed-or-unreachable"
+        },
+        {
+          "port": 19341,
+          "state": "closed-or-unreachable"
+        },
+        {
+          "port": 19342,
+          "state": "closed-or-unreachable"
+        },
+        {
+          "port": 19343,
+          "state": "closed-or-unreachable"
+        },
+        {
+          "port": 19344,
+          "state": "closed-or-unreachable"
+        },
+        {
+          "port": 19345,
+          "state": "closed-or-unreachable"
+        }
+      ],
+      "unknownListenersNotSignalled": true
+    },
+    "privateEntrypointAudit": {
+      "knownRuntimeEntrypointsStillLive": [],
+      "noGlobalSignalIssued": true,
+      "scope": "only node/electron/bun exact private runtime path argv; known 19 identities separately audited"
+    }
+  },
+  "ordinaryIndependentEvidenceReview": "Passed before final cleanup: Desktop21c and fresh2217 artifact scope, counters, PID/startTicks/instance/growth, raw GUI completion screenshot and limitations matched source records.",
+  "postCleanupCloudSmoke": {
+    "status": "passed",
+    "apiHealthHttp": 200,
+    "database": "ok",
+    "webSignInHttp": 200,
+    "developmentSignInAndSession": "passed",
+    "authenticatedDashboardHttp": 200,
+    "log": "/tmp/root-completion-cloud-smoke-20261012.log",
+    "thisDoesNotImposeDesktopAccountRequirement": true
+  }
+}
