@@ -9,12 +9,184 @@ import {
 } from "@testing-library/react";
 import type {
 	DirectConnectionEvent,
+	DirectDescriptor,
+	DirectLocalDataApi,
 	DirectProfile,
 	DirectWorkstationApi,
 } from "../../../shared/direct-workstation";
 import { Workstation } from "./Workstation";
 
 afterEach(cleanup);
+
+test("selecting another local namespace clears the old workspace without reconnecting or stopping workloads", async () => {
+	let selected = "old";
+	let connects = 0;
+	const controls: string[] = [];
+	const namespaces = [
+		{
+			id: "old",
+			label: "Original",
+			namespaceId: "old",
+			backendId: "backend",
+			selected: true,
+			isDefault: true,
+		},
+		{
+			id: "new",
+			label: "Other work",
+			namespaceId: "new",
+			backendId: "other-backend",
+			selected: false,
+			isDefault: false,
+		},
+	];
+	const localData: DirectLocalDataApi = {
+		listNamespaces: async () =>
+			namespaces.map((row) => ({ ...row, selected: row.id === selected })),
+		selectNamespace: async (id) => {
+			selected = id;
+			const namespace = namespaces.find((row) => row.id === id);
+			if (!namespace) throw new Error("Unknown namespace");
+			return {
+				...namespace,
+				selected: true,
+			};
+		},
+		createNamespace: async () => {
+			throw new Error("Unexpected creation");
+		},
+		removeNamespace: async () => {},
+		discoverLegacySources: async () => ({ sources: [], issues: [] }),
+		previewLegacySources: async () => ({
+			sources: [],
+			conflicts: [],
+			conflictCount: 0,
+			conflictsTruncated: false,
+			strategy: "separate-namespaces",
+		}),
+		importSource: async () => ({ status: "cancelled" }),
+		listLegacyHistory: async () => ({ entries: [], total: 0 }),
+		readLegacyHistory: async () => {
+			throw new Error("No history selected");
+		},
+	};
+	const api = {
+		platform: "linux",
+		localData,
+		list: async () => [
+			{ id: "local", kind: "local", name: "Local Device", host: "localhost" },
+		],
+		connect: async () => {
+			connects++;
+			return {
+				connectionId: "local",
+				generation: 1,
+				backendId: "backend",
+				namespaceId: "old",
+				instanceId: "instance",
+				capabilities: { projects: true, sessions: true },
+			};
+		},
+		control: async (_id: string, action: string) => {
+			controls.push(action);
+		},
+		rpc: async (request: { path: string }) =>
+			request.path === "workspace.list"
+				? [{ id: "workspace", name: "Old local session", worktreePath: "/old" }]
+				: request.path === "project.list"
+					? [{ id: "project", name: "Old local project", repoPath: "/old" }]
+					: request.path === "terminal.list"
+						? { sessions: [] }
+						: [],
+	} as unknown as DirectWorkstationApi;
+	render(<Workstation api={api} />);
+	fireEvent.click(await screen.findByRole("button", { name: "Connect" }));
+	await screen.findByRole("button", { name: "Old local session" });
+	const selector = await screen.findByLabelText("Local namespace");
+	await act(async () =>
+		fireEvent.change(selector, { target: { value: "new" } }),
+	);
+	expect(
+		Boolean(screen.queryByRole("button", { name: "Old local session" })),
+	).toBe(false);
+	expect(Boolean(screen.queryByText("Old local project"))).toBe(false);
+	expect(connects).toBe(1);
+	expect(controls).toEqual([]);
+});
+
+test("a pending local connection cannot return after namespace selection changed away and back", async () => {
+	let selected = "old";
+	let finishConnect!: (descriptor: DirectDescriptor) => void;
+	let connects = 0;
+	const requests: string[] = [];
+	const rows = [
+		{
+			id: "old",
+			namespaceId: "old",
+			backendId: "backend",
+			label: "Original",
+			isDefault: true,
+		},
+		{
+			id: "new",
+			namespaceId: "new",
+			backendId: "other",
+			label: "Other work",
+			isDefault: false,
+		},
+	];
+	const localData = {
+		listNamespaces: async () =>
+			rows.map((row) => ({ ...row, selected: row.id === selected })),
+		selectNamespace: async (id: string) => {
+			selected = id;
+			const row = rows.find((item) => item.id === id);
+			if (!row) throw new Error("Unknown namespace");
+			return { ...row, selected: true };
+		},
+		listLegacyHistory: async () => ({ entries: [], total: 0 }),
+	} as unknown as DirectLocalDataApi;
+	const api = {
+		platform: "linux",
+		localData,
+		list: async () => [
+			{ id: "local", kind: "local", name: "Local Device", host: "localhost" },
+		],
+		connect: () => {
+			connects++;
+			return new Promise<DirectDescriptor>((resolve) => {
+				finishConnect = resolve;
+			});
+		},
+		rpc: async (request: { path: string }) => {
+			requests.push(request.path);
+			return [];
+		},
+	} as unknown as DirectWorkstationApi;
+	render(<Workstation api={api} />);
+	const selector = await screen.findByLabelText("Local namespace");
+	fireEvent.click(screen.getByRole("button", { name: "Connect" }));
+	await act(async () =>
+		fireEvent.change(selector, { target: { value: "new" } }),
+	);
+	await act(async () =>
+		fireEvent.change(selector, { target: { value: "old" } }),
+	);
+	await act(async () =>
+		finishConnect({
+			connectionId: "local",
+			generation: 1,
+			backendId: "backend",
+			namespaceId: "old",
+			instanceId: "instance",
+		}),
+	);
+	expect(Boolean(screen.queryByRole("button", { name: "Disconnect" }))).toBe(
+		false,
+	);
+	expect(requests).toEqual([]);
+	expect(connects).toBe(1);
+});
 
 test("workstation opens without a Superset account and saves only SSH connection settings", async () => {
 	const saved: unknown[] = [];

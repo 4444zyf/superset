@@ -134,3 +134,19 @@ test("pending intents created while a dialog waits also prevent its backend acti
 	await expect(action).rejects.toThrow("pending");
 	expect(events).toEqual([]);
 });
+
+test("explicit control can stop the same namespace while its operation needs reconciliation", async () => {
+	const { controller, events, setPending } = fixture();
+	setPending();
+	let controlled: string | undefined;
+	await controller.runSelected(
+		async () => true,
+		async (namespace) => {
+			controlled = namespace.id;
+		},
+		{ allowPending: true },
+	);
+	expect(controlled).toBe("a");
+	expect(events).toEqual(["close-A-and-invalidate-generation"]);
+	expect(() => controller.selectNamespace("b")).toThrow("pending");
+});

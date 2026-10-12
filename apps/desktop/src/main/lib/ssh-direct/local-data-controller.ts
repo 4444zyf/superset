@@ -61,15 +61,15 @@ export class LocalDataController {
 	async runSelected<T>(
 		prepare: (namespace: DirectLocalNamespace) => Promise<boolean>,
 		operation: (namespace: DirectLocalNamespace) => Promise<T>,
-		options: { disconnect?: boolean } = {},
+		options: { disconnect?: boolean; allowPending?: boolean } = {},
 	): Promise<T | { status: "cancelled" }> {
 		this.assertAvailable();
-		this.assertNoPending();
+		if (!options.allowPending) this.assertNoPending();
 		const selection = this.capture();
 		if (!(await prepare(selection.namespace))) return { status: "cancelled" };
 		this.assertCurrent(selection);
 		this.assertAvailable();
-		this.assertNoPending();
+		if (!options.allowPending) this.assertNoPending();
 		this.busy = true;
 		try {
 			if (options.disconnect !== false) this.options.disconnect();

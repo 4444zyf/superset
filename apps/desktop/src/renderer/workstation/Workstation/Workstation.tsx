@@ -2,9 +2,11 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
 	DirectDescriptor,
+	DirectLocalNamespace,
 	DirectProfile,
 	DirectWorkstationApi,
 } from "../../../shared/direct-workstation";
+import { LocalDataPanel } from "./components/LocalDataPanel";
 import { RemoteChat } from "./components/RemoteChat/RemoteChat";
 import { RemoteFiles } from "./components/RemoteFiles/RemoteFiles";
 import { RemoteProjectCreator } from "./components/RemoteProjectCreator/RemoteProjectCreator";
@@ -80,6 +82,12 @@ export function Workstation({
 			}) as Record<string, string>
 		)[status] ?? t({ message: "Unknown" });
 	const active = useRef<DirectDescriptor | null>(null);
+	const localSelection = useRef<{
+		profileId: string;
+		backendId: string;
+		namespaceId: string;
+		epoch: number;
+	} | null>(null);
 	const selectedWorkspace = useRef<string | null>(null);
 	const password = useRef<HTMLInputElement>(null);
 	const operation = async (execute: () => Promise<void>) => {
@@ -212,11 +220,52 @@ export function Workstation({
 			setProfiles((previous) => [...previous, saved]);
 			form.reset();
 		});
+	const namespaceSelected = (
+		profileId: string,
+		namespace: DirectLocalNamespace,
+	) => {
+		const previous = localSelection.current;
+		const sameIdentity =
+			previous?.profileId === profileId &&
+			previous.backendId === namespace.backendId &&
+			previous.namespaceId === namespace.namespaceId;
+		localSelection.current = {
+			profileId,
+			backendId: namespace.backendId,
+			namespaceId: namespace.namespaceId,
+			epoch: previous ? previous.epoch + (sameIdentity ? 0 : 1) : 0,
+		};
+		const current = active.current;
+		if (
+			!current ||
+			current.connectionId !== profileId ||
+			(current.namespaceId === namespace.namespaceId &&
+				current.backendId === namespace.backendId)
+		)
+			return;
+		active.current = null;
+		selectedWorkspace.current = null;
+		setConnection(null);
+		setReconnecting(false);
+		setWorkspaceId(null);
+		setTerminalId(null);
+		setTerminalIds([]);
+		setProjects([]);
+		setWorkspaces([]);
+		setDirectory(null);
+		setForward(null);
+		setPending([]);
+	};
 	const connect = (profile: DirectProfile) =>
 		operation(async () => {
+			const selectionEpoch = localSelection.current?.epoch ?? 0;
+			const selectionIsCurrent = () =>
+				profile.kind !== "local" ||
+				(localSelection.current?.epoch ?? 0) === selectionEpoch;
 			const oneTimePassword = password.current?.value || undefined;
 			if (password.current) password.current.value = "";
 			if (active.current) await api.disconnect(active.current.connectionId);
+			if (!selectionIsCurrent()) return;
 			active.current = null;
 			setReconnecting(false);
 			selectedWorkspace.current = null;
@@ -229,7 +278,23 @@ export function Workstation({
 			setWorkspaces([]);
 			setForward(null);
 			setPending([]);
-			const descriptor = await api.connect(profile.id, oneTimePassword);
+			let descriptor: DirectDescriptor;
+			try {
+				descriptor = await api.connect(profile.id, oneTimePassword);
+			} catch (error) {
+				if (!selectionIsCurrent()) return;
+				throw error;
+			}
+			if (!selectionIsCurrent()) return;
+			const selected = localSelection.current;
+			if (
+				profile.kind === "local" &&
+				selected &&
+				(selected.profileId !== descriptor.connectionId ||
+					selected.backendId !== descriptor.backendId ||
+					selected.namespaceId !== descriptor.namespaceId)
+			)
+				return;
 			active.current = descriptor;
 			setConnection(descriptor);
 			await refresh(descriptor);
@@ -326,7 +391,7 @@ export function Workstation({
 				</output>
 			)}
 			<div className="grid grid-cols-[280px_1fr] gap-6">
-				<aside className="space-y-5">
+				<aside className="min-w-0 space-y-5">
 					<form
 						className="grid gap-2"
 						onSubmit={(event) => {
@@ -567,8 +632,8 @@ export function Workstation({
 							{profile.kind === "local" && (
 								<p className="text-xs text-zinc-400">
 									<Trans>
-										Stop the local backend before importing. Start it after
-										import.
+										For folder import, stop the selected backend first, then
+										start it after import.
 									</Trans>{" "}
 									<Trans>
 										Choose the legacy .superset folder for v1 data, or a single
@@ -576,6 +641,17 @@ export function Workstation({
 									</Trans>
 								</p>
 							)}
+							{profile.kind === "local" &&
+								api.localData &&
+								api.platform !== "win32" && (
+									<LocalDataPanel
+										api={api.localData}
+										onError={setError}
+										onNamespaceSelected={(namespace) =>
+											namespaceSelected(profile.id, namespace)
+										}
+									/>
+								)}
 						</div>
 					))}
 					{connection && (

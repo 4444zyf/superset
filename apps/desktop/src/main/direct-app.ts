@@ -523,8 +523,10 @@ export async function startWorkstation(): Promise<void> {
 						return answer.response === 1;
 					};
 					if (input.id === localConnectionId)
-						return localData.runSelected(confirmControl, async () =>
-							local.control(input.action as "start" | "stop"),
+						return localData.runSelected(
+							confirmControl,
+							async () => local.control(input.action as "start" | "stop"),
+							{ allowPending: true },
 						);
 					return runConfirmedRemoteControl({
 						getProfile: () => registry.get(input.id),
