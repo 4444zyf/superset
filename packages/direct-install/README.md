@@ -42,13 +42,33 @@ bun run --cwd packages/cli build:direct \
   --node-abi=137 \
   --minimum-macos=13.5 \
   --key-id=<embedded-release-key-id> \
-  --signing-key-file=/private/path/release-ed25519.pem
+  --signing-key-file=/private/path/release-ed25519.pem \
+  --trusted-keys-file=/private/path/release-public-keys.json \
+  --codesign-identity=<Developer-ID-certificate-SHA1>
 ```
 
 Repeat on an x64 macOS worker for `darwin-x64`. The output directory is `packages/cli/dist/superset-direct-<target>`. The approved runtime descriptors currently pin Node `24.21.0` / ABI `137` / macOS `13.5`, and Node `22.23.3` / ABI `127` / macOS `11.0`; a release can raise the minimum OS to account for its other native components. Update these descriptors deliberately when adopting another supported patch. The builder rejects an unsupported version, a mismatched ABI and an OS floor below the runtime's requirement before downloading anything. It requires a worker of the target architecture and executes the packaged Node to confirm its version/ABI and pass the SQLite/watcher/PTY smoke check before signing.
 
 The builder reuses CLI Node/native packaging, emits direct host/supervisor/installer/worker/PTY bundles, and includes both migration sets, offline hook templates, SDK native assets and ACP adapters. Vendor CLI authentication and background-accessible Git/model credentials remain separate user prerequisites.
 
-The signing key is a release operator input and is never generated or adopted from an installation payload. Embed its public verification key in the desktop's `resources/direct-release-keys.json` and the signed backend directory in `resources/direct-backend`, or select a signed offline directory. Do not ship a signing private key.
+The signing key is a release operator input and is never generated or adopted from an installation payload. The builder requires an independently supplied public key map and refuses a private signing key that does not match it. It codesigns Mach-O runtime/native payloads with the operator's Developer ID identity, performs native smoke checks, then seals the resulting bytes with Ed25519. Official Node archives are checked against freshly fetched HTTPS `SHASUMS256.txt`; modified cached archives fail, and previously extracted mutable binaries are never reused. Do not ship a signing private key.
+
+The desktop release workflow now calls `build-direct.yml` on separate arm64 and Intel macOS workers. Configure these **production GitHub secrets** before running a release: `DIRECT_RELEASE_SIGNING_KEY` (Ed25519 PKCS8 PEM), `DIRECT_RELEASE_KEY_ID`, and `DIRECT_RELEASE_PUBLIC_KEYS_JSON` (a JSON map of independently pinned key IDs to Ed25519 SPKI public PEM). The existing `MAC_CERTIFICATE` and `MAC_CERTIFICATE_PASSWORD` provide the Developer ID keychain. These are release configuration, not runtime `.env` values. No signing identity is generated automatically.
+
+Both complete signed targets are uploaded as CI artifacts, downloaded by each desktop job, checked against the independent pins, and staged under `dist/resources/direct-backend/darwin-arm64`, `darwin-x64` and `direct-release-keys.json`. Artifact executable modes are restored from the signed manifest. Pair version, protocol/schema, Node ABI/version and host/chat migration digests must match. The application ships both targets outside ASAR, so fresh A can deploy to either supported Mac without downloading a separate backend or selecting a directory. Electron signing excludes these already sealed bytes, and post-package verification checks the actual copied resources again.
+
+Desktop packaging fails if signed resources or independent pins are absent. `electron-vite` development and normal web checks do not require these release secrets. An explicitly local development package can use `SUPERSET_DIRECT_DEVELOPMENT_PACKAGE=1` only when the backend payload and public-key resources are absent; remove stale `dist/resources/direct-backend` and `direct-release-keys.json` before this mode. It cannot deploy a managed remote backend. Selecting an offline directory still requires its signer to match the packaged application pins.
+
+Stable and canary publisher metadata use the validated `GITHUB_REPOSITORY` owner/repository from the release job; local packaging defaults to this fork, `4444zyf/superset`, instead of the official upstream. The release workflow still packages with `--publish never` and publishes through its existing release job. Backend assets are carried inside the desktop package; no unconfigured runtime backend download URL is assumed.
+
+For manual release assembly, keep both validated backend directories under one input directory named `darwin-arm64` and `darwin-x64`, set `DIRECT_RELEASE_PUBLIC_KEYS_JSON` from the independent public configuration, and run:
+
+```sh
+bun run --cwd packages/cli stage:direct-resources \
+  --input-dir=/path/to/validated-backends \
+  --resources-dir=/path/to/superset/apps/desktop/dist/resources
+```
+
+Stage after compiling the desktop and before packaging it. This command never derives trust from a chosen payload. It verifies the source and copied bytes before replacing existing resources; validation failure preserves the previous resources. The CI workflow itself, Apple notarization, and no-tools Mac deployment have not been executed in this Linux environment and remain release acceptance requirements.
 
 Linux unit tests verify the protocol, signature, permission and transaction contracts with temporary files. `bun run --cwd packages/direct-install test:integration:direct` additionally checks real SQLite WAL snapshots, file restoration and missing snapshots using Node's built-in SQLite test adapter. Production uses the signed old release's `better-sqlite3`; this test does not verify that macOS native binding. macOS launchd, native ABI compatibility, system-job Keychain/TCC behavior, FileVault and physical two-machine task continuity require the design's macOS acceptance scenarios before a release.

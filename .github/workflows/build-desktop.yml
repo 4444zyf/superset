@@ -29,7 +29,15 @@ on:
         default: 30
 
 jobs:
+  direct-backends:
+    uses: ./.github/workflows/build-direct.yml
+    with:
+      artifact_prefix: ${{ inputs.artifact_prefix }}
+      artifact_retention_days: ${{ inputs.artifact_retention_days }}
+    secrets: inherit
+
   build-macos:
+    needs: [direct-backends]
     name: Build - macOS (${{ matrix.arch }})
     runs-on: macos-latest
     timeout-minutes: 60
@@ -111,6 +119,23 @@ jobs:
           TARGET_ARCH: ${{ matrix.arch }}
         run: bun run compile:app
 
+      - name: Download signed arm64 backend
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: direct-backend-${{ inputs.artifact_prefix }}-darwin-arm64
+          path: .direct-release-artifacts/darwin-arm64
+
+      - name: Download signed x64 backend
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: direct-backend-${{ inputs.artifact_prefix }}-darwin-x64
+          path: .direct-release-artifacts/darwin-x64
+
+      - name: Stage complete independently trusted backend resources
+        env:
+          DIRECT_RELEASE_PUBLIC_KEYS_JSON: ${{ secrets.DIRECT_RELEASE_PUBLIC_KEYS_JSON }}
+        run: bun run --cwd packages/cli stage:direct-resources --input-dir=../../.direct-release-artifacts --resources-dir=../../apps/desktop/dist/resources
+
       # electron-builder manages its own signing keychain when CSC_LINK is set,
       # and that path is broken: createKeychain makes the keychain with a random
       # password, then importCerts calls
@@ -162,12 +187,22 @@ jobs:
       - name: Build Electron app
         working-directory: apps/desktop
         env:
+          DIRECT_RELEASE_PUBLIC_KEYS_JSON: ${{ secrets.DIRECT_RELEASE_PUBLIC_KEYS_JSON }}
           # No CSC_LINK on purpose — see the keychain step above.
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           TARGET_ARCH: ${{ matrix.arch }}
         run: bun run package -- --publish never --config ${{ inputs.electron_builder_config }} --${{ matrix.arch }}
+
+      - name: Verify signed backend bytes in the packaged Mac app
+        env:
+          DIRECT_RELEASE_PUBLIC_KEYS_JSON: ${{ secrets.DIRECT_RELEASE_PUBLIC_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          app_dir=$(find apps/desktop/release -maxdepth 2 -name '*.app' -type d | head -1)
+          test -n "$app_dir"
+          bun packages/cli/scripts/stage-direct-resources.ts --verify --resources-dir="$app_dir/Contents/Resources/resources"
 
       - name: Delete signing keychain
         if: always()
@@ -238,6 +273,7 @@ jobs:
           if-no-files-found: error
 
   build-linux:
+    needs: [direct-backends]
     name: Build - Linux (x64)
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -315,9 +351,35 @@ jobs:
           TARGET_ARCH: x64
         run: bun run compile:app
 
+      - name: Download signed arm64 backend
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: direct-backend-${{ inputs.artifact_prefix }}-darwin-arm64
+          path: .direct-release-artifacts/darwin-arm64
+
+      - name: Download signed x64 backend
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: direct-backend-${{ inputs.artifact_prefix }}-darwin-x64
+          path: .direct-release-artifacts/darwin-x64
+
+      - name: Stage complete independently trusted backend resources
+        env:
+          DIRECT_RELEASE_PUBLIC_KEYS_JSON: ${{ secrets.DIRECT_RELEASE_PUBLIC_KEYS_JSON }}
+        run: bun run --cwd packages/cli stage:direct-resources --input-dir=../../.direct-release-artifacts --resources-dir=../../apps/desktop/dist/resources
+
       - name: Build Electron app
         working-directory: apps/desktop
+        env:
+          DIRECT_RELEASE_PUBLIC_KEYS_JSON: ${{ secrets.DIRECT_RELEASE_PUBLIC_KEYS_JSON }}
         run: bun run package -- --publish never --config ${{ inputs.electron_builder_config }}
+
+      - name: Verify signed backend bytes in the packaged Linux app
+        env:
+          DIRECT_RELEASE_PUBLIC_KEYS_JSON: ${{ secrets.DIRECT_RELEASE_PUBLIC_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          bun packages/cli/scripts/stage-direct-resources.ts --verify --resources-dir=apps/desktop/release/linux-unpacked/resources/resources
 
       - name: Verify Linux AppImage + update manifest exist
         working-directory: apps/desktop

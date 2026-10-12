@@ -1,0 +1,105 @@
+name: Build Signed Direct Backends
+
+on:
+  workflow_call:
+    inputs:
+      artifact_prefix:
+        required: true
+        type: string
+      artifact_retention_days:
+        required: false
+        type: number
+        default: 14
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Signed backend - ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    environment: production
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: darwin-arm64
+          - os: macos-15-intel
+            target: darwin-x64
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      - name: Install pinned dependencies without lifecycle scripts
+        run: bun install --frozen --ignore-scripts
+
+      - name: Prepare independently pinned release signing identity
+        env:
+          DIRECT_RELEASE_SIGNING_KEY: ${{ secrets.DIRECT_RELEASE_SIGNING_KEY }}
+          DIRECT_RELEASE_KEY_ID: ${{ secrets.DIRECT_RELEASE_KEY_ID }}
+          DIRECT_RELEASE_PUBLIC_KEYS_JSON: ${{ secrets.DIRECT_RELEASE_PUBLIC_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          bun packages/cli/scripts/prepare-direct-signing.ts \
+            --signing-key-file="$RUNNER_TEMP/direct-release-signing.pem" \
+            --trusted-keys-file="$RUNNER_TEMP/direct-release-public-keys.json"
+
+      - name: Prepare Developer ID keychain
+        env:
+          MAC_CERTIFICATE: ${{ secrets.MAC_CERTIFICATE }}
+          MAC_CERTIFICATE_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$MAC_CERTIFICATE" && test -n "$MAC_CERTIFICATE_PASSWORD" || {
+            echo '::error::Configure the production Developer ID certificate and password'
+            exit 1
+          }
+          keychain="$RUNNER_TEMP/direct-runtime-signing.keychain-db"
+          certificate="$RUNNER_TEMP/direct-runtime-certificate.p12"
+          keychain_password="$(openssl rand -base64 24)"
+          umask 077
+          printf '%s' "$MAC_CERTIFICATE" | base64 --decode > "$certificate"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$certificate" -k "$keychain" -P "$MAC_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          identity=$(security find-identity -v -p codesigning "$keychain" | awk '/Developer ID Application/ {print $2; exit}')
+          test -n "$identity" || { echo '::error::No Developer ID Application identity found'; exit 1; }
+          printf 'DIRECT_CODESIGN_IDENTITY=%s\n' "$identity" >> "$GITHUB_ENV"
+          rm -f "$certificate"
+
+      - name: Build, native-smoke, codesign and seal complete backend
+        env:
+          DIRECT_RELEASE_KEY_ID: ${{ secrets.DIRECT_RELEASE_KEY_ID }}
+        run: |
+          set -euo pipefail
+          bun run --cwd packages/cli build:direct \
+            --target=${{ matrix.target }} \
+            --node-version=24.21.0 --node-abi=137 --minimum-macos=13.5 \
+            --key-id="$DIRECT_RELEASE_KEY_ID" \
+            --signing-key-file="$RUNNER_TEMP/direct-release-signing.pem" \
+            --trusted-keys-file="$RUNNER_TEMP/direct-release-public-keys.json" \
+            --codesign-identity="$DIRECT_CODESIGN_IDENTITY"
+
+      - name: Remove signing material
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/direct-release-signing.pem" "$RUNNER_TEMP/direct-release-public-keys.json" "$RUNNER_TEMP/direct-runtime-certificate.p12"
+          security delete-keychain "$RUNNER_TEMP/direct-runtime-signing.keychain-db" || true
+
+      - name: Upload complete signed backend
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: direct-backend-${{ inputs.artifact_prefix }}-${{ matrix.target }}
+          path: packages/cli/dist/superset-direct-${{ matrix.target }}/
+          retention-days: ${{ inputs.artifact_retention_days }}
+          if-no-files-found: error

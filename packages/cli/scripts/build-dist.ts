@@ -26,6 +26,7 @@ import {
 	cpSync,
 	existsSync,
 	mkdirSync,
+	mkdtempSync,
 	readdirSync,
 	readFileSync,
 	realpathSync,
@@ -35,6 +36,7 @@ import {
 } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
+import { prepareVerifiedNodeRuntime } from "./node-runtime";
 
 export type Target =
 	| "darwin-arm64"
@@ -140,6 +142,10 @@ async function curlDownload(url: string, destPath: string): Promise<void> {
 	rmSync(partial, { force: true });
 	await exec("curl", [
 		"-fsSL",
+		"--proto",
+		"=https",
+		"--proto-redir",
+		"=https",
 		"--retry",
 		"6",
 		"--retry-delay",
@@ -166,7 +172,6 @@ export async function downloadAndExtractNode(
 
 	const archiveName = nodeArchiveName(target, nodeVersion);
 	const archivePath = join(cacheDir, `${archiveName}.tar.gz`);
-	const extractedPath = join(cacheDir, archiveName);
 
 	if (!existsSync(archivePath)) {
 		console.log(
@@ -175,16 +180,22 @@ export async function downloadAndExtractNode(
 		await curlDownload(nodeDownloadUrl(target, nodeVersion), archivePath);
 	}
 
-	if (!existsSync(extractedPath)) {
-		console.log(`[build-dist] extracting Node.js for ${target}`);
-		await exec("tar", ["-xzf", archivePath, "-C", cacheDir]);
+	const work = mkdtempSync(join(cacheDir, "node-checksums-"));
+	try {
+		const checksumFile = join(work, "SHASUMS256.txt");
+		await curlDownload(
+			`https://nodejs.org/dist/v${nodeVersion}/SHASUMS256.txt`,
+			checksumFile,
+		);
+		return await prepareVerifiedNodeRuntime({
+			archivePath,
+			checksums: readFileSync(checksumFile, "utf8"),
+			archiveName,
+			destinationDir: destDir,
+		});
+	} finally {
+		rmSync(work, { recursive: true, force: true });
 	}
-
-	const sourceBinary = join(extractedPath, "bin", "node");
-	const destBinary = join(destDir, "node");
-	cpSync(sourceBinary, destBinary);
-	chmodSync(destBinary, 0o755);
-	return destBinary;
 }
 
 function findPackagePath(

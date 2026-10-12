@@ -3,9 +3,12 @@
  * @see https://www.electron.build/configuration/configuration
  */
 
+import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { promisify } from "node:util";
 import type { Configuration } from "electron-builder";
+import { directPublisher } from "./direct-publisher";
 import pkg from "./package.json";
 import {
 	packagedAsarUnpackGlobs,
@@ -28,17 +31,20 @@ const config: Configuration = {
 	productName,
 	copyright: `Copyright © ${currentYear} — ${author}`,
 	electronVersion: pkg.devDependencies.electron.replace(/^\^/, ""),
+	beforePack: async () => {
+		await promisify(execFile)(
+			"bun",
+			[join(__dirname, "scripts/verify-direct-resources.ts")],
+			{ cwd: __dirname, env: process.env },
+		);
+	},
 
 	// Generate update manifests for all channels (latest.yml, canary.yml, etc.)
 	// This enables proper channel-based auto-updates following electron-builder conventions
 	generateUpdatesFilesForAllChannels: true,
 
 	// Generate latest-mac.yml for auto-update (workflow handles actual upload)
-	publish: {
-		provider: "github",
-		owner: "superset-sh",
-		repo: "superset",
-	},
+	publish: directPublisher(process.env.GITHUB_REPOSITORY),
 
 	// Directories
 	directories: {
@@ -92,6 +98,8 @@ const config: Configuration = {
 
 	files: [
 		"dist/**/*",
+		"!dist/resources/direct-backend/**/*",
+		"!dist/resources/direct-release-keys.json",
 		"package.json",
 		{
 			from: pkg.resources,
@@ -122,6 +130,7 @@ const config: Configuration = {
 
 	// macOS
 	mac: {
+		signIgnore: ["resources/direct-backend/"],
 		...(existsSync(macIconPath) ? { icon: macIconPath } : {}),
 		category: "public.app-category.utilities",
 		target: "default",

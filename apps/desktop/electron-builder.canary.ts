@@ -10,6 +10,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { Configuration } from "electron-builder";
+import { directPublisher } from "./direct-publisher";
 import baseConfig from "./electron-builder";
 import pkg from "./package.json";
 
@@ -24,9 +25,7 @@ const config: Configuration = {
 	productName,
 
 	publish: {
-		provider: "github",
-		owner: "superset-sh",
-		repo: "superset",
+		...directPublisher(process.env.GITHUB_REPOSITORY),
 		releaseType: "prerelease",
 	},
 

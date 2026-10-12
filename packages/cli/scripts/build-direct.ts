@@ -1,10 +1,5 @@
 import { execFile } from "node:child_process";
-import {
-	createHash,
-	createPrivateKey,
-	createPublicKey,
-	sign,
-} from "node:crypto";
+import { createHash, createPrivateKey, sign } from "node:crypto";
 import {
 	chmodSync,
 	cpSync,
@@ -30,6 +25,11 @@ import {
 	downloadAndExtractNode,
 	fixNativeBinariesForNode,
 } from "./build-dist";
+import { codesignDirectRuntime } from "./direct-codesign";
+import {
+	parseDirectReleaseKeys,
+	validateDirectSigningIdentity,
+} from "./direct-release-resources";
 
 export async function smokeHostImport(
 	nodePath: string,
@@ -185,7 +185,12 @@ async function main(): Promise<void> {
 			"Pin a supported Node LTS version and its matching native ABI",
 		);
 	const keyId = argument("key-id");
+	const codesignIdentity = argument("codesign-identity");
 	const keyPem = readFileSync(resolve(argument("signing-key-file")), "utf8");
+	const trustedKeys = parseDirectReleaseKeys(
+		JSON.parse(readFileSync(resolve(argument("trusted-keys-file")), "utf8")),
+	);
+	validateDirectSigningIdentity(keyPem, keyId, trustedKeys);
 	const version = JSON.parse(
 		readFileSync(resolve(import.meta.dir, "../package.json"), "utf8"),
 	).version as string;
@@ -250,6 +255,11 @@ async function main(): Promise<void> {
 		{ recursive: true },
 	);
 	const run = promisify(execFile);
+	await codesignDirectRuntime(
+		root,
+		codesignIdentity,
+		resolve(import.meta.dir, "direct-runtime.entitlements.plist"),
+	);
 	const actualRuntime = JSON.parse(
 		(
 			await run(join(root, "lib/node"), [
@@ -288,11 +298,7 @@ async function main(): Promise<void> {
 		keyId,
 		keyPem,
 	);
-	verifyReleaseBundle(root, {
-		[keyId]: createPublicKey(keyPem)
-			.export({ format: "pem", type: "spki" })
-			.toString(),
-	});
+	verifyReleaseBundle(root, trustedKeys);
 	console.log(`[build-direct] signed standalone backend: ${root}`);
 }
 if (import.meta.main) await main();
