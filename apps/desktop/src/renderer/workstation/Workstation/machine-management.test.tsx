@@ -1,5 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
 import {
+	act,
 	cleanup,
 	fireEvent,
 	render,
@@ -7,10 +8,67 @@ import {
 	waitFor,
 	within,
 } from "@testing-library/react";
-import type { DirectWorkstationApi } from "../../../shared/direct-workstation";
+import type {
+	DirectConnectionEvent,
+	DirectWorkstationApi,
+} from "../../../shared/direct-workstation";
 import { Workstation } from "./Workstation";
 
 afterEach(cleanup);
+
+test("switching panes and reconnecting preserves the unsent chat draft without submitting it", async () => {
+	const f = fixture();
+	let listener!: (event: DirectConnectionEvent) => void;
+	const connect = f.api.connect,
+		rpc = f.api.rpc;
+	const descriptor = {
+		...(await connect("mini")),
+		capabilities: { sessions: true, durableOperations: true, chat: true },
+		chatHarnesses: [{ id: "codex", available: true }],
+	};
+	f.api.connect = async () => descriptor;
+	f.api.rpc = async (request) =>
+		request.path === "chat.listSessions"
+			? ([{ sessionId: "chat", harness: "codex" }] as never)
+			: rpc(request);
+	f.api.onSocket = () => () => {};
+	f.api.openSocket = async () => {};
+	f.api.closeSocket = async () => {};
+	f.api.onConnection = (callback) => {
+		listener = callback;
+		return () => {};
+	};
+	render(<Workstation api={f.api} />);
+	fireEvent.click(await screen.findByRole("button", { name: "Connect" }));
+	fireEvent.click(await screen.findByRole("button", { name: "mini session" }));
+	const input = await screen.findByLabelText("Message");
+	fireEvent.change(input, { target: { value: "Keep this draft" } });
+	fireEvent.click(screen.getByRole("button", { name: "Terminal" }));
+	fireEvent.click(screen.getByRole("button", { name: "Chat" }));
+	expect(
+		((await screen.findByLabelText("Message")) as HTMLTextAreaElement).value,
+	).toBe("Keep this draft");
+	act(() =>
+		listener({
+			kind: "reconnecting",
+			connectionId: "mini",
+			previousGeneration: 1,
+			attempt: 1,
+		}),
+	);
+	act(() =>
+		listener({
+			kind: "connected",
+			connectionId: "mini",
+			previousGeneration: 1,
+			descriptor: { ...descriptor, generation: 2 },
+		}),
+	);
+	expect(
+		((await screen.findByLabelText("Message")) as HTMLTextAreaElement).value,
+	).toBe("Keep this draft");
+	expect(f.calls.filter((c) => c.type === "mutation")).toEqual([]);
+});
 
 function fixture() {
 	const calls: {

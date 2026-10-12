@@ -161,26 +161,30 @@ export function WorkspaceEditor({
 					</span>
 				</div>
 				<div className="ws-editor-body">
-					{tab === "chat" && connection.capabilities?.chat && (
-						<RemoteChat
-							key={`chat:${workspace.id}`}
-							api={api}
-							connection={connection}
-							workspaceId={workspace.id}
-							onError={onError}
-						/>
+					{connection.capabilities?.chat && (
+						<div hidden={tab !== "chat"}>
+							<RemoteChat
+								key={`chat:${workspace.id}`}
+								api={api}
+								connection={connection}
+								workspaceId={workspace.id}
+								onError={onError}
+							/>
+						</div>
 					)}
-					{tab === "files" && connection.capabilities?.files && (
-						<RemoteFiles
-							key={`files:${connection.generation}:${workspace.id}`}
-							api={api}
-							connection={connection}
-							workspaceId={workspace.id}
-							onError={onError}
-						/>
+					{connection.capabilities?.files && (
+						<div hidden={tab !== "files"}>
+							<RemoteFiles
+								key={`files:${connection.generation}:${workspace.id}`}
+								api={api}
+								connection={connection}
+								workspaceId={workspace.id}
+								onError={onError}
+							/>
+						</div>
 					)}
-					{tab === "terminal" && (
-						<>
+					{
+						<div hidden={tab !== "terminal"}>
 							<div className="ws-terminal-tabs">
 								{terminalIds.map((id, index) => (
 									<button
@@ -248,8 +252,8 @@ export function WorkspaceEditor({
 									</button>
 								</div>
 							)}
-						</>
-					)}
+						</div>
+					}
 				</div>
 			</div>
 		</>
