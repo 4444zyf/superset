@@ -638,17 +638,7 @@ export class Server {
 				// must get a fresh deadline, not the remainder of this one.
 				if (c.pausedSessions.size === 0) this.clearPauseTimer(c);
 			}
-			// Delete the session immediately. Without this, every closed
-			// terminal pane left a row in the store forever — list-reply
-			// inflated, memory grew unbounded.
-			//
-			// Tradeoff: a late subscriber that connects after this point
-			// (e.g. host-service restarting *during* the shell exit window)
-			// gets ENOENT instead of the buffered output + exit event. The
-			// renderer's xterm.js already has whatever was rendered before
-			// disconnect — it just loses the "Process exited with code N"
-			// footer for that narrow window.
-			this.store.delete(session.id);
+			this.store.complete(session);
 		});
 	}
 

@@ -12,6 +12,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { after, before, describe, test } from "node:test";
+import { isPidRunning } from "../src/process-tree.ts";
 import { encodeFrame } from "../src/protocol/index.ts";
 import { Server } from "../src/Server/index.ts";
 import {
@@ -56,15 +57,6 @@ function shellQuote(value: string): string {
 	return `'${value.replaceAll("'", "'\\''")}'`;
 }
 
-function isPidAlive(pid: number): boolean {
-	try {
-		process.kill(pid, 0);
-		return true;
-	} catch (err) {
-		return (err as NodeJS.ErrnoException).code === "EPERM";
-	}
-}
-
 function readPositivePidFile(filePath: string): number | null {
 	if (!existsSync(filePath)) return null;
 	const raw = readFileSync(filePath, "utf8").trim();
@@ -74,12 +66,12 @@ function readPositivePidFile(filePath: string): number | null {
 }
 
 async function waitForCondition(
-	predicate: () => boolean,
+	predicate: () => boolean | Promise<boolean>,
 	timeoutMs = 3000,
 ): Promise<void> {
 	const start = Date.now();
 	while (Date.now() - start < timeoutMs) {
-		if (predicate()) return;
+		if (await predicate()) return;
 		await new Promise((resolve) => setTimeout(resolve, 25));
 	}
 	throw new Error(`condition timed out after ${timeoutMs}ms`);
@@ -262,15 +254,22 @@ describe("session lifecycle", () => {
 
 			helperPid = readPositivePidFile(pidPath);
 			assert.notEqual(helperPid, null);
-			assert.equal(isPidAlive(helperPid as number), true);
+			assert.equal(await isPidRunning(helperPid as number), true);
 
 			c.send({ type: "close", id });
 			await c.waitFor((m) => m.type === "closed" && m.id === id);
 			await c.waitFor((m) => m.type === "exit" && m.id === id, 3000);
 
-			await waitForCondition(() => !isPidAlive(helperPid as number), 3000);
+			await waitForCondition(
+				async () => (await isPidRunning(helperPid as number)) === false,
+				3000,
+			);
 		} finally {
-			if (helperPid !== null && helperPid > 0 && isPidAlive(helperPid)) {
+			if (
+				helperPid !== null &&
+				helperPid > 0 &&
+				(await isPidRunning(helperPid)) !== false
+			) {
 				try {
 					process.kill(helperPid, "SIGKILL");
 				} catch {
@@ -349,7 +348,7 @@ describe("I/O patterns", () => {
 			id,
 			meta: {
 				...baseMeta,
-				argv: ["-c", "printf 'rocket: \\xf0\\x9f\\x9a\\x80\\n'; sleep 0.1"],
+				argv: ["-c", "printf 'rocket: \\360\\237\\232\\200\\n'; sleep 0.1"],
 			},
 		});
 		await c.waitFor((m) => m.type === "open-ok" && m.id === id);
@@ -381,12 +380,20 @@ describe("multi-client fan-out", () => {
 		a.send({
 			type: "open",
 			id,
-			meta: { ...baseMeta, argv: ["-c", "echo fanout-marker; sleep 0.5"] },
+			meta: {
+				...baseMeta,
+				argv: ["-c", "read ready; echo fanout-marker; sleep 0.5"],
+			},
 		});
 		await a.waitFor((m) => m.type === "open-ok" && m.id === id);
 
-		a.send({ type: "subscribe", id, replay: false });
-		b.send({ type: "subscribe", id, replay: false });
+		a.send({ type: "subscribe", id, replay: false, modeSnapshot: true });
+		b.send({ type: "subscribe", id, replay: false, modeSnapshot: true });
+		await Promise.all([
+			a.waitFor((m) => m.type === "replay-complete" && m.id === id),
+			b.waitFor((m) => m.type === "replay-complete" && m.id === id),
+		]);
+		a.send({ type: "input", id }, Buffer.from("ready\n"));
 
 		await Promise.all([
 			a.waitFor(

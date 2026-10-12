@@ -188,6 +188,27 @@ export function readProcessTableAsync(): Promise<ProcessInfo[] | null> {
 	});
 }
 
+export function isPidRunning(pid: number): Promise<boolean | null> {
+	if (!isPositiveInteger(pid)) return Promise.resolve(false);
+	return new Promise((resolve) => {
+		execFile(
+			"ps",
+			["-o", "stat=", "-p", String(pid)],
+			{ encoding: "utf8", timeout: PS_TIMEOUT_MS },
+			(error, stdout, stderr) => {
+				if (error) {
+					resolve(
+						error.code === 1 && !stdout.trim() && !stderr.trim() ? false : null,
+					);
+					return;
+				}
+				const state = stdout.trim();
+				resolve(state.length > 0 && !/^[ZX]/.test(state));
+			},
+		);
+	});
+}
+
 export function parseProcessTable(stdout: string): ProcessInfo[] {
 	return stdout
 		.split("\n")

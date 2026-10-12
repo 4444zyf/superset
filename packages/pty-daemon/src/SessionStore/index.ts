@@ -1,4 +1,8 @@
-export type { Session, SessionStoreOptions } from "./SessionStore.ts";
+export type {
+	CompletedSession,
+	Session,
+	SessionStoreOptions,
+} from "./SessionStore.ts";
 export { SessionStore } from "./SessionStore.ts";
 export type {
 	HandoffSnapshot,

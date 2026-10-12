@@ -103,6 +103,14 @@ export function connect(socketPath: string): Promise<DaemonClient> {
 		const waiters: Waiter[] = [];
 		const closeCbs: Array<() => void> = [];
 		let isClosed = false;
+		let transportError: Error | null = null;
+		const rejectPending = (error: Error) => {
+			transportError ??= error;
+			for (const waiter of waiters.splice(0)) {
+				clearTimeout(waiter.timer);
+				waiter.reject(transportError);
+			}
+		};
 
 		socket.on("data", (chunk) => {
 			try {
@@ -123,18 +131,17 @@ export function connect(socketPath: string): Promise<DaemonClient> {
 					}
 				}
 			} catch (err) {
-				for (const w of waiters) {
-					clearTimeout(w.timer);
-					w.reject(err as Error);
-				}
-				waiters.length = 0;
+				rejectPending(err as Error);
+				socket.destroy();
 			}
 		});
 
 		socket.on("close", () => {
 			isClosed = true;
+			rejectPending(new Error("Daemon connection closed"));
 			for (const cb of closeCbs) cb();
 		});
+		socket.on("error", rejectPending);
 		socket.once("error", reject);
 		socket.once("connect", () => {
 			socket.off("error", reject);
@@ -142,15 +149,17 @@ export function connect(socketPath: string): Promise<DaemonClient> {
 				socket,
 				messages,
 				send(m, payload) {
-					if (!socket.destroyed) socket.write(encodeFrame(m, payload));
+					if (!socket.destroyed && !socket.writableEnded)
+						socket.write(encodeFrame(m, payload));
 				},
 				sendRaw(buf) {
-					if (!socket.destroyed) socket.write(buf);
+					if (!socket.destroyed && !socket.writableEnded) socket.write(buf);
 				},
 				waitFor(predicate, ms = 5000) {
 					return new Promise<ServerMessage>((res, rej) => {
 						const found = messages.find(predicate);
 						if (found) return res(found);
+						if (transportError) return rej(transportError);
 						const timer = setTimeout(() => {
 							const i = waiters.findIndex((w) => w.predicate === predicate);
 							if (i >= 0) waiters.splice(i, 1);
@@ -162,6 +171,7 @@ export function connect(socketPath: string): Promise<DaemonClient> {
 				waitForNext(predicate, ms = 5000) {
 					const startIndex = messages.length;
 					return new Promise<ServerMessage>((res, rej) => {
+						if (transportError) return rej(transportError);
 						let waiter: Waiter;
 						const timer = setTimeout(() => {
 							const i = waiters.indexOf(waiter);
@@ -200,12 +210,9 @@ export function connect(socketPath: string): Promise<DaemonClient> {
 				},
 				close() {
 					return new Promise<void>((res) => {
-						if (socket.destroyed) return res();
-						socket.end(() => res());
-						setTimeout(() => {
-							if (!socket.destroyed) socket.destroy();
-							res();
-						}, 200);
+						if (isClosed) return res();
+						socket.once("close", () => res());
+						if (!socket.destroyed) socket.end();
 					});
 				},
 				closed() {

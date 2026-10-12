@@ -1,10 +1,12 @@
 import * as childProcess from "node:child_process";
 import * as fs from "node:fs";
+import type { Readable } from "node:stream";
 import * as tty from "node:tty";
 import * as nodePty from "node-pty";
 import {
 	collectProcessSignalTargets,
 	getProcessGroupAndTty,
+	isPidRunning,
 	type ProcessInfo,
 	type ProcessSignalError,
 	readProcessTable,
@@ -473,16 +475,24 @@ class AdoptedPty implements Pty {
 	readonly pid: number;
 	meta: SessionMeta;
 	private readonly fd: number;
-	private readonly reader: tty.ReadStream;
+	private readonly reader: Readable;
 	private exitFired = false;
 	private exitInfo: { code: number | null; signal: number | null } | null =
 		null;
 	private disposed = false;
 	private livenessTimer: NodeJS.Timeout | null = null;
+	private livenessPollPending = false;
+	private hasOutputConsumer = false;
+	private outputPaused = false;
 	private readonly killer: TreeKiller;
 	private exitCallbacks: PtyOnExit[] = [];
 
-	constructor(fd: number, pid: number, meta: SessionMeta) {
+	constructor(
+		fd: number,
+		pid: number,
+		meta: SessionMeta,
+		options: AdoptOptions,
+	) {
 		this.fd = fd;
 		this.pid = pid;
 		this.meta = meta;
@@ -499,14 +509,13 @@ class AdoptedPty implements Pty {
 			},
 		);
 		void this.killer.captureIdentity();
-		this.reader = new tty.ReadStream(fd);
+		this.reader = options.readerFactory?.(fd) ?? new tty.ReadStream(fd);
 
 		// onExit signal sources:
 		//   1. read stream 'end' or 'error' — the slave-side close drives EOF
 		//      / EIO on the master fd, which Node's stream surfaces as 'end'
 		//      (EOF) or 'error' (EIO).
-		//   2. PID-liveness poll — defense in depth for cases where the read
-		//      stream lingers without firing 'end' promptly.
+		//   2. PID status when disposal or an unread stream makes EOF unavailable.
 		const onExit = (info: { code: number | null; signal: number | null }) => {
 			if (this.exitFired) return;
 			this.exitFired = true;
@@ -520,10 +529,25 @@ class AdoptedPty implements Pty {
 		};
 		this.reader.on("end", () => onExit({ code: null, signal: null }));
 		this.reader.on("error", () => onExit({ code: null, signal: null }));
-		this.livenessTimer = setInterval(() => {
-			if (!isPidAlive(this.pid)) onExit({ code: null, signal: null });
-		}, 1000);
+		const probePid = options.probePid ?? isPidRunning;
+		const scheduleExitPoll = options.scheduleExitPoll ?? setInterval;
+		this.livenessTimer = scheduleExitPoll(() => {
+			if (!this.needsExitProbe() || this.livenessPollPending) return;
+			this.livenessPollPending = true;
+			void probePid(this.pid)
+				.then((running) => {
+					if (running === false && this.livenessTimer && this.needsExitProbe())
+						onExit({ code: null, signal: null });
+				})
+				.finally(() => {
+					this.livenessPollPending = false;
+				});
+		}, options.exitPollIntervalMs ?? 1000);
 		this.livenessTimer.unref();
+	}
+
+	private needsExitProbe(): boolean {
+		return this.disposed || (!this.hasOutputConsumer && !this.outputPaused);
 	}
 
 	dispose(options: DisposeOptions = {}): void {
@@ -600,6 +624,7 @@ class AdoptedPty implements Pty {
 	}
 
 	onData(cb: PtyOnData): void {
+		this.hasOutputConsumer = true;
 		this.reader.on("data", (chunk) => {
 			cb(typeof chunk === "string" ? Buffer.from(chunk, "utf8") : chunk);
 		});
@@ -615,11 +640,13 @@ class AdoptedPty implements Pty {
 
 	pause(): void {
 		if (this.exitFired || this.disposed) return;
+		this.outputPaused = true;
 		this.reader.pause();
 	}
 
 	resume(): void {
 		if (this.exitFired || this.disposed) return;
+		this.outputPaused = false;
 		this.reader.resume();
 	}
 }
@@ -647,9 +674,17 @@ export interface AdoptOptions {
 	fd: number;
 	pid: number;
 	meta: SessionMeta;
+	readerFactory?: (fd: number) => Readable;
+	probePid?: (pid: number) => Promise<boolean | null>;
+	exitPollIntervalMs?: number;
+	scheduleExitPoll?: (
+		callback: () => void,
+		intervalMs: number,
+	) => NodeJS.Timeout;
 }
 
-export function adoptFromFd({ fd, pid, meta }: AdoptOptions): Pty {
+export function adoptFromFd(options: AdoptOptions): Pty {
+	const { fd, pid, meta } = options;
 	if (!Number.isInteger(fd) || fd < 0) {
 		throw new Error(`invalid fd: ${fd}`);
 	}
@@ -658,7 +693,7 @@ export function adoptFromFd({ fd, pid, meta }: AdoptOptions): Pty {
 			throw new Error(`invalid pid: ${pid}`);
 		}
 		validateDims(meta.cols, meta.rows);
-		return new AdoptedPty(fd, pid, meta);
+		return new AdoptedPty(fd, pid, meta, options);
 	} catch (err) {
 		// Ownership transfers once a valid fd reaches adoption. Close this
 		// inherited copy on validation or construction failure; the predecessor

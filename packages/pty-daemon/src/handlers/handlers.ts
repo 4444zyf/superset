@@ -177,6 +177,25 @@ export function handleSubscribe(
 ): void {
 	const session = ctx.store.get(msg.id);
 	if (!session) {
+		const completed = ctx.store.getCompletion(msg.id);
+		if (completed) {
+			if (msg.replay && completed.output.byteLength > 0)
+				conn.send({ type: "output", id: msg.id }, completed.output);
+			if (msg.modeSnapshot)
+				conn.send({
+					type: "replay-complete",
+					id: msg.id,
+					modes: completed.modes,
+				});
+			conn.send({
+				type: "exit",
+				id: msg.id,
+				code: completed.code,
+				signal: completed.signal,
+			});
+			conn.subscriptions.delete(msg.id);
+			return;
+		}
 		conn.send(errorFor(msg.id, `unknown session: ${msg.id}`, "ENOENT"));
 		return;
 	}

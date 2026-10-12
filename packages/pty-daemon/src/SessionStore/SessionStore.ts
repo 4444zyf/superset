@@ -1,6 +1,9 @@
 import type { Pty } from "../Pty/index.ts";
 import type { SessionInfo } from "../protocol/index.ts";
-import { TerminalModes } from "../TerminalModes/index.ts";
+import {
+	TerminalModes,
+	type TerminalModesSnapshot,
+} from "../TerminalModes/index.ts";
 import { TerminalColors } from "./TerminalColors/index.ts";
 
 const DEFAULT_BUFFER_BYTES = 64 * 1024;
@@ -21,6 +24,18 @@ export interface Session {
 
 export interface SessionStoreOptions {
 	bufferCap?: number;
+	completionLimit?: number;
+	completionBufferCap?: number;
+	completionRetentionMs?: number;
+	now?: () => number;
+}
+
+export interface CompletedSession {
+	id: string;
+	output: Buffer;
+	modes: TerminalModesSnapshot;
+	code: number | null;
+	signal: number | null;
 }
 
 /**
@@ -35,6 +50,15 @@ export interface SessionStoreOptions {
 export class SessionStore {
 	private readonly sessions = new Map<string, Session>();
 	private readonly bufferCap: number;
+	private readonly completions = new Map<
+		string,
+		{ result: CompletedSession; expiresAt: number }
+	>();
+	private completionBytes = 0;
+	private readonly completionLimit: number;
+	private readonly completionBufferCap: number;
+	private readonly completionRetentionMs: number;
+	private readonly now: () => number;
 
 	/** Retention this store was configured with, for handoff to a successor. */
 	get bufferCapBytes(): number {
@@ -43,12 +67,17 @@ export class SessionStore {
 
 	constructor(opts: SessionStoreOptions = {}) {
 		this.bufferCap = opts.bufferCap ?? DEFAULT_BUFFER_BYTES;
+		this.completionLimit = opts.completionLimit ?? 32;
+		this.completionBufferCap = opts.completionBufferCap ?? 2 * 1024 * 1024;
+		this.completionRetentionMs = opts.completionRetentionMs ?? 30_000;
+		this.now = opts.now ?? Date.now;
 	}
 
 	add(id: string, pty: Pty): Session {
 		if (this.sessions.has(id)) {
 			throw new Error(`session already exists: ${id}`);
 		}
+		this.deleteCompletion(id);
 		const session: Session = {
 			id,
 			pty,
@@ -75,6 +104,57 @@ export class SessionStore {
 
 	delete(id: string): boolean {
 		return this.sessions.delete(id);
+	}
+
+	complete(session: Session): void {
+		if (this.sessions.get(session.id) !== session) return;
+		this.sessions.delete(session.id);
+		this.pruneCompletions();
+		this.deleteCompletion(session.id);
+		const buffered = this.snapshotBuffer(session);
+		const output = Buffer.from(
+			buffered.subarray(
+				Math.max(0, buffered.byteLength - this.completionBufferCap),
+			),
+		);
+		this.completions.set(session.id, {
+			result: {
+				id: session.id,
+				output,
+				modes: session.modes.snapshot(),
+				code: session.exitCode,
+				signal: session.exitSignal,
+			},
+			expiresAt: this.now() + this.completionRetentionMs,
+		});
+		this.completionBytes += output.byteLength;
+		while (
+			this.completions.size > this.completionLimit ||
+			this.completionBytes > this.completionBufferCap
+		) {
+			const oldest = this.completions.keys().next().value;
+			if (oldest === undefined) break;
+			this.deleteCompletion(oldest);
+		}
+	}
+
+	getCompletion(id: string): CompletedSession | undefined {
+		this.pruneCompletions();
+		return this.completions.get(id)?.result;
+	}
+
+	private pruneCompletions(): void {
+		const now = this.now();
+		for (const [id, entry] of this.completions) {
+			if (entry.expiresAt <= now) this.deleteCompletion(id);
+		}
+	}
+
+	private deleteCompletion(id: string): void {
+		const entry = this.completions.get(id);
+		if (!entry) return;
+		this.completionBytes -= entry.result.output.byteLength;
+		this.completions.delete(id);
 	}
 
 	list(): SessionInfo[] {

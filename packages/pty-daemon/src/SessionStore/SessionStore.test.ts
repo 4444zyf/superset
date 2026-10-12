@@ -24,6 +24,51 @@ function fakePty(meta: { cols: number; rows: number }): Pty {
 }
 
 describe("SessionStore", () => {
+	test("completion replay is bounded and expires without retaining active PTYs", () => {
+		let now = 0;
+		const store = new SessionStore({
+			completionLimit: 2,
+			completionBufferCap: 12,
+			completionRetentionMs: 10,
+			now: () => now,
+		});
+		for (const id of ["a", "b", "c"]) {
+			const session = store.add(id, fakePty({ cols: 80, rows: 24 }));
+			store.appendOutput(session, Buffer.from("data"));
+			session.exited = true;
+			session.exitCode = 7;
+			store.complete(session);
+		}
+		expect(store.list()).toEqual([]);
+		expect(store.getCompletion("a")).toBeUndefined();
+		expect(store.getCompletion("b")?.output.toString()).toBe("data");
+		expect(store.getCompletion("c")?.output.toString()).toBe("data");
+		const oversized = store.add("large", fakePty({ cols: 80, rows: 24 }));
+		store.appendOutput(oversized, Buffer.from("large-output-payload"));
+		oversized.exited = true;
+		store.complete(oversized);
+		expect(store.getCompletion("b")).toBeUndefined();
+		expect(store.getCompletion("c")).toBeUndefined();
+		expect(store.getCompletion("large")?.output.toString()).toBe(
+			"tput-payload",
+		);
+		expect(store.getCompletion("large")).not.toHaveProperty("pty");
+		now = 10;
+		expect(store.getCompletion("large")).toBeUndefined();
+	});
+
+	test("reopening an id removes completion from the previous process", () => {
+		const store = new SessionStore();
+		const previous = store.add("recycled", fakePty({ cols: 80, rows: 24 }));
+		previous.exited = true;
+		previous.exitCode = 1;
+		store.complete(previous);
+		expect(store.getCompletion("recycled")?.code).toBe(1);
+		store.add("recycled", fakePty({ cols: 80, rows: 24 }));
+		expect(store.getCompletion("recycled")).toBeUndefined();
+		expect(store.size()).toBe(1);
+	});
+
 	test("add / get / delete", () => {
 		const store = new SessionStore();
 		const pty = fakePty({ cols: 80, rows: 24 });
