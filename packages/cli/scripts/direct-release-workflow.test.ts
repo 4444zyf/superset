@@ -79,6 +79,7 @@ test("preview builders export only public trust and never upload or retain their
 	expect(steps[upload]?.with?.path).toStartWith(
 		"packages/cli/dist/superset-direct-",
 	);
+	expect(steps[upload]?.with?.["include-hidden-files"]).toBe(true);
 });
 
 test("desktop release jobs await dual native signed backends and verify staged resources before and after packaging", () => {
@@ -142,6 +143,7 @@ test("direct backend workflow uses separate native Mac workers and signs before 
 	expect(steps[build]?.run).toContain("--trusted-keys-file=");
 	expect(steps[build]?.run).toContain("--codesign-identity=");
 	expect(steps[upload]?.with?.["if-no-files-found"]).toBe("error");
+	expect(steps[upload]?.with?.["include-hidden-files"]).toBe(true);
 	expect(steps[upload]?.with?.name).toBe(
 		// biome-ignore lint/suspicious/noTemplateCurlyInString: These are GitHub Actions expressions.
 		"direct-backend-${{ inputs.artifact_prefix }}-${{ matrix.target }}",
