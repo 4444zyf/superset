@@ -13,6 +13,32 @@ import {
 import type { LocalBackend } from "./local";
 
 const profile = { id: "mac", name: "Mac mini", host: "mini" };
+
+test("an unsaved SSH profile probe leaves registry pins, connection state and backend untouched", async () => {
+	const f = fixture();
+	const before = f.registry.list();
+	const probe = await f.manager.testProfile({
+		id: "draft",
+		name: "Draft",
+		host: "mini.example",
+	});
+	expect(probe).toMatchObject({
+		platform: "darwin",
+		architecture: "arm64",
+		installed: true,
+	});
+	expect(f.registry.list()).toEqual(before);
+	expect(f.registry.get("draft")).toBeNull();
+	expect(f.manager.getLease("draft")).toBeNull();
+	expect(f.requests).toEqual([]);
+	await expect(
+		f.manager.testProfile({
+			id: "draft",
+			name: "Draft",
+			host: "-oProxyCommand=bad",
+		}),
+	).rejects.toThrow("Invalid SSH host");
+});
 const descriptor = {
 	backendId: "5b2ea852-8428-4a22-91e6-980f81432131",
 	namespaceId: "18817038-3f91-4c8c-99e5-7267c6398f0a",

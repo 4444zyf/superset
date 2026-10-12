@@ -6,6 +6,7 @@ import {
 	render,
 	screen,
 	waitFor,
+	within,
 } from "@testing-library/react";
 import type {
 	DirectConnectionEvent,
@@ -102,6 +103,11 @@ test("selecting another local namespace clears the old workspace without reconne
 	render(<Workstation api={api} />);
 	fireEvent.click(await screen.findByRole("button", { name: "Connect" }));
 	await screen.findByRole("button", { name: "Old local session" });
+	fireEvent.click(
+		within(screen.getByRole("navigation")).getByRole("button", {
+			name: "SSH machines",
+		}),
+	);
 	const selector = await screen.findByLabelText("Local namespace");
 	await act(async () =>
 		fireEvent.change(selector, { target: { value: "new" } }),
@@ -198,7 +204,8 @@ test("workstation opens without a Superset account and saves only SSH connection
 		},
 	} as unknown as DirectWorkstationApi;
 	render(<Workstation api={api} />);
-	await screen.findByRole("heading", { name: "SSH workstation" });
+	await screen.findByRole("heading", { name: "SSH machines" });
+	fireEvent.click(screen.getAllByRole("button", { name: "Add machine" })[0]);
 	fireEvent.change(screen.getByLabelText("Name"), {
 		target: { value: "Mac mini" },
 	});
@@ -445,6 +452,11 @@ test("local data import waits for an explicit stop and never starts the backend 
 	} as unknown as DirectWorkstationApi;
 	render(<Workstation api={api} />);
 	fireEvent.click(await screen.findByRole("button", { name: "Connect" }));
+	fireEvent.click(
+		within(screen.getByRole("navigation")).getByRole("button", {
+			name: "SSH machines",
+		}),
+	);
 	const button = await screen.findByRole("button", {
 		name: "Import local data",
 	});

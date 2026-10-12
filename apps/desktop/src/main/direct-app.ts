@@ -397,6 +397,28 @@ export async function startWorkstation(): Promise<void> {
 				}
 				case "test":
 					return manager.test(uuid(payload));
+				case "testProfile": {
+					const input = profileSchema.parse(payload);
+					if (input.id === localConnectionId)
+						throw new Error("The local connection is managed by this app");
+					const profile = validateProfile({
+						...input,
+						...(input.identityFile?.startsWith("~/")
+							? {
+									identityFile: path.join(
+										homedir(),
+										input.identityFile.slice(2),
+									),
+								}
+							: {}),
+					});
+					const probe = await manager.testProfile(profile);
+					return {
+						platform: probe.platform,
+						architecture: probe.architecture,
+						installed: probe.installed,
+					};
+				}
 				case "refreshFeatures": {
 					const input = z
 						.object({

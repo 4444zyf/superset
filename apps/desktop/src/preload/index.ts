@@ -33,6 +33,7 @@ const directWorkstation: DirectWorkstationApi = {
 	save: (profile) => invoke("save", profile),
 	remove: (id) => invoke("remove", id),
 	test: (id) => invoke("test", id),
+	testProfile: (profile) => invoke("testProfile", profile),
 	connect: (id, password) =>
 		invoke("connect", { id, ...(password ? { password } : {}) }),
 	refreshFeatures: (connection) =>

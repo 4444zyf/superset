@@ -116,6 +116,9 @@ export interface DirectWorkstationApi {
 	save(profile: DirectProfile): Promise<DirectProfile>;
 	remove(id: string): Promise<void>;
 	test(id: string): Promise<unknown>;
+	testProfile(
+		profile: DirectProfile,
+	): Promise<{ platform: string; architecture: string; installed: boolean }>;
 	connect(id: string, password?: string): Promise<DirectDescriptor>;
 	refreshFeatures(connection: DirectDescriptor): Promise<DirectDescriptor>;
 	disconnect(id: string): Promise<void>;

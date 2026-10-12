@@ -6,6 +6,7 @@ import {
 	type ConnectionProfile,
 	type ConnectionRegistry,
 	uuidPattern,
+	validateProfile,
 } from "./registry";
 import {
 	isSafeSocketPath,
@@ -212,6 +213,12 @@ export class DirectConnectionManager {
 				throw new Error("The local backend is unavailable");
 			return this.options.local.test();
 		}
+		return this.testProfile(profile);
+	}
+	async testProfile(input: ConnectionProfile): Promise<RemoteProbe> {
+		const profile = validateProfile(input);
+		if (profile.kind === "local")
+			throw new Error("Use the managed local connection");
 		const result = await this.runtime.exec(profile, probeCommand);
 		if (result.exitCode !== 0) throw sshFailure(result.stderr);
 		const [platform, architecture, uid, user, homeDir] =
