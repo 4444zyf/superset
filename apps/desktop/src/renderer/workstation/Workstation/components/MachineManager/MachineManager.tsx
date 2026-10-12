@@ -581,7 +581,7 @@ export function MachineManager({
 										</p>
 									</>
 								)}
-								{selected.kind === "local" && (
+								{selected.kind === "local" && tab === "connection" && (
 									<div className="ws-local-data">
 										{localData}
 										<div className="ws-service-actions">

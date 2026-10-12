@@ -108,6 +108,9 @@ test("selecting another local namespace clears the old workspace without reconne
 			name: "SSH machines",
 		}),
 	);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Connection details" }),
+	);
 	const selector = await screen.findByLabelText("Local namespace");
 	await act(async () =>
 		fireEvent.change(selector, { target: { value: "new" } }),
@@ -170,6 +173,9 @@ test("a pending local connection cannot return after namespace selection changed
 		},
 	} as unknown as DirectWorkstationApi;
 	render(<Workstation api={api} />);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Connection details" }),
+	);
 	const selector = await screen.findByLabelText("Local namespace");
 	fireEvent.click(screen.getByRole("button", { name: "Connect" }));
 	await act(async () =>
@@ -456,6 +462,9 @@ test("local data import waits for an explicit stop and never starts the backend 
 		within(screen.getByRole("navigation")).getByRole("button", {
 			name: "SSH machines",
 		}),
+	);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Connection details" }),
 	);
 	const button = await screen.findByRole("button", {
 		name: "Import local data",

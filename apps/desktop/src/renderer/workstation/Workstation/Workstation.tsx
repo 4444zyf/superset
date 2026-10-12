@@ -1,5 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { inferLocale, initI18nAsync } from "@superset/i18n";
+import { i18n, inferLocale, initI18nAsync } from "@superset/i18n";
 import { useEffect, useRef, useState } from "react";
 import { LocalDataPanel } from "./components/LocalDataPanel";
 import { MachineForm } from "./components/MachineForm/MachineForm";
