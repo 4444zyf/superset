@@ -1,8 +1,29 @@
 import { expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { verifyDirectPackaging } from "./verify-direct-resources";
+
+test("the signed preview guard rejects a missing trust configuration even with the development flag set", () => {
+	const result = spawnSync(
+		process.execPath,
+		[
+			resolve(import.meta.dirname, "verify-direct-resources.ts"),
+			"--require-signed",
+		],
+		{
+			env: {
+				...process.env,
+				DIRECT_RELEASE_PUBLIC_KEYS_JSON: "",
+				SUPERSET_DIRECT_DEVELOPMENT_PACKAGE: "1",
+			},
+			encoding: "utf8",
+		},
+	);
+	expect(result.status).toBe(1);
+	expect(result.stderr).toContain("requires DIRECT_RELEASE_PUBLIC_KEYS_JSON");
+});
 
 test("explicit unsigned development packaging cannot carry stale embedded backend trust or payload", () => {
 	const root = mkdtempSync(join(tmpdir(), "direct-development-package-"));

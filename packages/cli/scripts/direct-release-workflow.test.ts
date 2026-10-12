@@ -12,6 +12,7 @@ const workflow = (name: string) =>
 		jobs: Record<
 			string,
 			{
+				env?: Record<string, string>;
 				needs?: string | string[];
 				uses?: string;
 				"runs-on"?: string;
@@ -28,6 +29,57 @@ const workflow = (name: string) =>
 			}
 		>;
 	};
+
+test("an SSH preview waits for signed backends and stages them before packaging, then verifies the actual DMG", () => {
+	const preview = workflow("release-desktop-preview.yml");
+	for (const job of ["direct-arm64", "direct-x64"])
+		expect(preview.jobs[job]?.uses).toBe(
+			"./.github/workflows/build-direct-preview.yml",
+		);
+	const build = preview.jobs.build;
+	expect(build?.needs).toEqual(["direct-arm64", "direct-x64"]);
+	expect(build?.env?.SUPERSET_DIRECT_DEVELOPMENT_PACKAGE).toBeUndefined();
+	const steps = build?.steps ?? [];
+	const pin = steps.findIndex((step) =>
+		step.run?.includes("DIRECT_RELEASE_PUBLIC_KEYS_JSON="),
+	);
+	expect(pin).toBeGreaterThan(-1);
+	const stage = steps.findIndex((step) =>
+		step.run?.includes("stage:direct-resources"),
+	);
+	const pack = steps.findIndex((step) => step.run?.includes("bun run package"));
+	const verify = steps.findIndex((step) =>
+		step.run?.includes("verify-preview-dmg.sh"),
+	);
+	expect(stage).toBeGreaterThan(-1);
+	expect(stage).toBeGreaterThan(pin);
+	for (const target of ["darwin-arm64", "darwin-x64"]) {
+		const download = steps.findIndex(
+			(step) => step.with?.name === `direct-backend-ssh-preview-${target}`,
+		);
+		expect(download).toBeGreaterThan(-1);
+		expect(download).toBeLessThan(stage);
+	}
+	expect(pack).toBeGreaterThan(stage);
+	expect(verify).toBeGreaterThan(pack);
+});
+
+test("preview builders export only public trust and never upload or retain their private signing files", () => {
+	const preview = workflow("build-direct-preview.yml");
+	const steps = preview.jobs.build?.steps ?? [];
+	const seal = steps.findIndex((step) => step.run?.includes("build:direct"));
+	const cleanup = steps.findIndex((step) => step.run?.startsWith("rm -f"));
+	const upload = steps.findIndex((step) =>
+		step.uses?.startsWith("actions/upload-artifact@"),
+	);
+	expect(seal).toBeGreaterThan(-1);
+	expect(steps[seal]?.run).toContain("--development-preview");
+	expect(cleanup).toBeGreaterThan(seal);
+	expect(upload).toBeGreaterThan(cleanup);
+	expect(steps[upload]?.with?.path).toStartWith(
+		"packages/cli/dist/superset-direct-",
+	);
+});
 
 test("desktop release jobs await dual native signed backends and verify staged resources before and after packaging", () => {
 	const build = workflow("build-desktop.yml");

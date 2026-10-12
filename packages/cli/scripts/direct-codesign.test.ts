@@ -1,5 +1,20 @@
 import { expect, test } from "bun:test";
-import { isMachOBinary } from "./direct-codesign";
+import { directCodesignArguments, isMachOBinary } from "./direct-codesign";
+
+test("ad-hoc code signing requires an explicit development preview and production retains timestamped certificate signing", () => {
+	expect(() => directCodesignArguments("-", "entitlements.plist")).toThrow(
+		"explicit development preview",
+	);
+	expect(directCodesignArguments("-", "entitlements.plist", true)).toContain(
+		"--timestamp=none",
+	);
+	expect(
+		directCodesignArguments("a".repeat(40), "entitlements.plist"),
+	).toContain("--timestamp");
+	expect(() =>
+		directCodesignArguments("untrusted", "entitlements.plist", true),
+	).toThrow("certificate identity");
+});
 
 test("release signing recognizes thin and universal Mach-O payloads without treating scripts or ELF as Mac code", () => {
 	for (const magic of [

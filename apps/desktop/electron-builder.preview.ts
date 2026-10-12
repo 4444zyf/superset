@@ -1,3 +1,6 @@
+import { execFile } from "node:child_process";
+import { join } from "node:path";
+import { promisify } from "node:util";
 import type { Configuration } from "electron-builder";
 import baseConfig from "./electron-builder";
 
@@ -12,12 +15,16 @@ const config: Configuration = {
 		productName,
 	},
 	publish: null,
-	extraResources: baseConfig.extraResources?.filter(
-		(resource) =>
-			typeof resource === "string" ||
-			(resource.from !== "dist/resources/direct-backend" &&
-				resource.from !== "dist/resources/direct-release-keys.json"),
-	),
+	beforePack: async () => {
+		await promisify(execFile)(
+			"bun",
+			[
+				join(__dirname, "scripts/verify-direct-resources.ts"),
+				"--require-signed",
+			],
+			{ cwd: __dirname, env: process.env },
+		);
+	},
 	protocols: { name: productName, schemes: ["superset-ssh-preview"] },
 	mac: {
 		...baseConfig.mac,

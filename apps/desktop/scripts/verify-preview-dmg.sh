@@ -34,8 +34,12 @@ test -x "$preview_executable"
 test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$preview_app/Contents/Info.plist")" = com.superset.desktop.ssh-preview
 test "$(lipo -archs "$preview_executable")" = "$preview_macho_arch"
 codesign --verify --deep --strict "$preview_app"
-test ! -e "$preview_app/Contents/Resources/resources/direct-backend"
-test ! -e "$preview_app/Contents/Resources/resources/direct-release-keys.json"
+bun "$(dirname "$0")/../../../packages/cli/scripts/stage-direct-resources.ts" \
+  --verify --resources-dir="$preview_app/Contents/Resources/resources"
+preview_backend="$preview_app/Contents/Resources/resources/direct-backend/darwin-${preview_arch}/lib"
+"$preview_backend/node" "$preview_backend/direct-installer.js" --smoke-user e30=
+"$preview_backend/node" --input-type=module -e \
+  'await import(process.argv[1])' "$preview_backend/host-service-direct.js"
 ELECTRON_RUN_AS_NODE=1 "$preview_executable" \
   "$(dirname "$0")/verify-preview-package.cjs" "$preview_app" "$preview_arch" "$preview_version"
 "$preview_app/Contents/Resources/resources/bin/superset" --version
