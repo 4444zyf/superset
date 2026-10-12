@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { Notice } from "@superset/chat/protocol";
+import { durableEventSchema } from "@superset/chat/protocol";
 import type { AdapterEvent } from "../../types";
 import { FixturePlayer } from "../fixturePlayer";
 import { fixtureCwd, loadCodexFixture } from "../fixtures";
@@ -87,6 +88,62 @@ function notices(events: AdapterEvent[]): Notice[] {
 }
 
 describe("codex adapter resilience", () => {
+	test("an omitted attachment notice belongs to the accepted prompt's Codex turn", async () => {
+		const harness = startAdapter();
+		try {
+			harness.adapter.prompt([
+				{ type: "text", text: "read the upload" },
+				{
+					type: "attachment",
+					attachmentId: "upload-1",
+					name: "notes.txt",
+					mimeType: "text/plain",
+				},
+			]);
+			await harness.settle();
+			const requests = harness.sent.filter(
+				(frame) => frame.method === "turn/start",
+			);
+			expect(requests).toHaveLength(1);
+			expect(requests[0]?.params).toMatchObject({
+				input: [{ type: "text", text: "read the upload", text_elements: [] }],
+			});
+			harness.receive({
+				id: requests[0]?.id,
+				result: { turn: { id: TURN_ID, status: "inProgress" } },
+			});
+			await harness.settle();
+			const notice = harness.events.find(
+				(event) => event.kind === "item" && event.item.kind === "notice",
+			);
+			expect(notice?.kind).toBe("item");
+			if (!notice || notice.kind !== "item")
+				throw new Error("attachment notice missing");
+			expect(() =>
+				durableEventSchema.parse({
+					type: "item",
+					item: notice.item,
+					turnId: notice.turnId,
+				}),
+			).not.toThrow();
+			expect(notice).toMatchObject({
+				turnId: TURN_ID,
+				item: {
+					noticeKind: "info",
+					text: "Attachments are not supported by the codex harness and were omitted",
+				},
+			});
+			expect(notices(harness.events)).toHaveLength(1);
+			const turnIndex = harness.events.findIndex(
+				(event) => event.kind === "turn" && event.turn.id === TURN_ID,
+			);
+			expect(turnIndex).toBeGreaterThanOrEqual(0);
+			expect(harness.events.indexOf(notice)).toBeGreaterThan(turnIndex);
+		} finally {
+			await harness.adapter.dispose();
+		}
+	});
+
 	test("an unreadable notification becomes a notice, not a thrown frame", async () => {
 		const harness = startAdapter();
 		await harness.settle();

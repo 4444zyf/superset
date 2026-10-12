@@ -105,6 +105,11 @@ type InFlightItem = {
 	startedAtMs: number;
 };
 
+type PreparedCodexInput = {
+	input: unknown[];
+	attachmentsOmitted: boolean;
+};
+
 export type CodexAdapterOptions = SpawnCodexOptions & {
 	launch?: () => Promise<Pick<SpawnCodexOptions, "command" | "args" | "env">>;
 	minVersion?: string;
@@ -125,7 +130,7 @@ export class CodexAdapter implements HarnessAdapter {
 	private readonly settledTurns = new Set<string>();
 	private pendingTurnStart = false;
 	private cancelRequested = false;
-	private readonly queuedInput: unknown[][] = [];
+	private readonly queuedInput: PreparedCodexInput[] = [];
 	private client: CodexRpcClient | null = null;
 	private threadId: string | null = null;
 	private cwd = process.cwd();
@@ -284,7 +289,10 @@ export class CodexAdapter implements HarnessAdapter {
 		}
 	}
 
-	private async startTurn(input: unknown[]): Promise<void> {
+	private async startTurn({
+		input,
+		attachmentsOmitted,
+	}: PreparedCodexInput): Promise<void> {
 		const client = this.client;
 		if (!client || !this.threadId) return;
 		this.pendingTurnStart = true;
@@ -298,7 +306,16 @@ export class CodexAdapter implements HarnessAdapter {
 			const parsed = turnLifecycleSchema
 				.partial({ threadId: true })
 				.safeParse(response);
-			if (parsed.success && parsed.data.turn) this.emitTurn(parsed.data.turn);
+			if (parsed.success && parsed.data.turn) {
+				this.emitTurn(parsed.data.turn);
+				if (attachmentsOmitted) {
+					this.emitNotice(
+						"info",
+						"Attachments are not supported by the codex harness and were omitted",
+						parsed.data.turn.id,
+					);
+				}
+			}
 		} catch (error) {
 			this.emitNotice("error", (error as Error).message);
 			this.emitTurnState({
@@ -658,7 +675,7 @@ export class CodexAdapter implements HarnessAdapter {
 		if (this.cancelRequested) this.interrupt(turn.id);
 	}
 
-	private toCodexInput(content: UserContent[]): unknown[] {
+	private toCodexInput(content: UserContent[]): PreparedCodexInput {
 		const input: unknown[] = [];
 		let skippedAttachment = false;
 		for (const entry of content) {
@@ -675,13 +692,7 @@ export class CodexAdapter implements HarnessAdapter {
 			}
 			skippedAttachment = true;
 		}
-		if (skippedAttachment) {
-			this.emitNotice(
-				"info",
-				"Attachments are not supported by the codex harness and were omitted",
-			);
-		}
-		return input;
+		return { input, attachmentsOmitted: skippedAttachment };
 	}
 
 	private emitItem(item: Item, turnId: string): void {
@@ -691,6 +702,7 @@ export class CodexAdapter implements HarnessAdapter {
 	private emitNotice(
 		noticeKind: "info" | "error" | "compaction" | "config_change",
 		text?: string,
+		turnId = this.currentTurn?.id ?? "",
 	): void {
 		this.emitItem(
 			{
@@ -701,7 +713,7 @@ export class CodexAdapter implements HarnessAdapter {
 				completedAtMs: this.now(),
 				...(text ? { text } : {}),
 			},
-			this.currentTurn?.id ?? "",
+			turnId,
 		);
 	}
 
