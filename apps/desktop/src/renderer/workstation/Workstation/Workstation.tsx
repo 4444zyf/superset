@@ -27,9 +27,11 @@ export function Workstation({
 	const { t } = useLingui();
 	const ui = useWorkstation(api);
 	useEffect(() => {
-		void initI18nAsync(inferLocale()).catch((error) =>
-			ui.setError(String(error)),
-		);
+		void initI18nAsync(inferLocale())
+			.then(() => {
+				document.documentElement.lang = i18n.locale;
+			})
+			.catch((error) => ui.setError(String(error)));
 	}, [ui.setError]);
 	const [page, setPage] = useState<"machines" | "workspaces">("machines");
 	const [selectedId, setSelectedId] = useState("");
