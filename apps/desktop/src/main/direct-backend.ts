@@ -1,4 +1,5 @@
 import { importLegacyNamespace } from "@superset/host-service/direct-legacy-import";
+import { queryLocalLegacyData } from "@superset/host-service/direct-legacy-query";
 import {
 	startDirectBackend,
 	stopOwnedBackend,
@@ -9,6 +10,11 @@ void runLocalBackendCommand(process.argv.slice(2), {
 	start: (configPath) =>
 		startDirectBackend(configPath, { onStopped: () => process.exit(0) }),
 	stopOwned: stopOwnedBackend,
+	queryLocalData: async (configPath, request) => {
+		process.stdout.write(
+			`${JSON.stringify(await queryLocalLegacyData(configPath, request))}\n`,
+		);
+	},
 	importLocalData: async (targetConfigPath, sourceNamespaceDir) => {
 		const result = await importLegacyNamespace({
 			targetConfigPath,

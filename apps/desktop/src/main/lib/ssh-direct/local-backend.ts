@@ -1,6 +1,6 @@
 import {
-	LocalBackend,
 	type LocalBackendOptions,
+	LocalNamespaceBackend,
 } from "@superset/direct-connection";
 
 export function createLocalBackend(
@@ -13,6 +13,6 @@ export function createLocalBackend(
 		| "migrationsFolder"
 		| "chatMigrationsFolder"
 	>,
-): LocalBackend {
-	return new LocalBackend({ ...options, environment: process.env });
+): LocalNamespaceBackend {
+	return new LocalNamespaceBackend({ ...options, environment: process.env });
 }

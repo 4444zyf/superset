@@ -1,5 +1,4 @@
 import { mkdirSync, readFileSync } from "node:fs";
-import { readFile, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
 import { msg } from "@lingui/core/macro";
@@ -26,13 +25,16 @@ import {
 	DIRECT_SOCKET_CHANNEL,
 } from "../shared/direct-workstation";
 import { AutomaticReconnect } from "./lib/ssh-direct/automatic-reconnect";
+import { runConfirmedRemoteControl } from "./lib/ssh-direct/confirmed-remote-control";
 import { importSelectedLocalData } from "./lib/ssh-direct/import-local-data";
 import { createLocalBackend } from "./lib/ssh-direct/local-backend";
+import { LocalDataController } from "./lib/ssh-direct/local-data-controller";
 import { OperationIntents } from "./lib/ssh-direct/operation-intents";
 import {
 	readRemoteAttachment,
 	uploadSelectedAttachment,
 } from "./lib/ssh-direct/remote-files";
+import { readSelectedAttachmentBytes } from "./lib/ssh-direct/selected-attachment";
 import { SocketBroker } from "./lib/ssh-direct/socket-broker";
 import { closeWindowTransports } from "./lib/ssh-direct/window-transports";
 import { WorkstationController } from "./lib/ssh-direct/workstation-controller";
@@ -191,7 +193,55 @@ export async function startWorkstation(): Promise<void> {
 			void window.loadURL(process.env.ELECTRON_RENDERER_URL);
 		else void window.loadFile(path.join(__dirname, "../renderer/index.html"));
 	};
+	const pinLocalNamespace = (namespace: {
+		backendId: string;
+		namespaceId: string;
+	}) => {
+		const profile = registry.get(localConnectionId);
+		if (!profile) throw new Error("The local connection is missing");
+		registry.save({
+			...profile,
+			backendId: namespace.backendId,
+			namespaceId: namespace.namespaceId,
+			serviceUid: process.getuid?.(),
+		});
+	};
+	const localData = new LocalDataController({
+		local,
+		hasPending: () => intents.list(localConnectionId).length > 0,
+		disconnect: () => {
+			reconnect.disarm(localConnectionId);
+			sockets.closeConnection(localConnectionId);
+			forwards.closeConnection(localConnectionId);
+			manager.disconnect(localConnectionId);
+		},
+		pin: pinLocalNamespace,
+	});
+	pinLocalNamespace(localData.capture().namespace);
 	const uuid = (value: unknown) => z.string().uuid().parse(value);
+	const namespaceLabel = z
+		.string()
+		.trim()
+		.min(1)
+		.max(128)
+		.regex(/^[^\0\r\n]+$/);
+	const sourceId = z.string().regex(/^[a-f0-9]{64}$/);
+	const historyPage = z
+		.object({
+			namespaceId: z.string().uuid(),
+			offset: z.number().int().nonnegative().optional(),
+			limit: z.number().int().min(1).max(100).optional(),
+		})
+		.strict();
+	const historyChunk = z
+		.object({
+			namespaceId: z.string().uuid(),
+			workspaceId: z.string().uuid(),
+			terminalId: z.string().uuid(),
+			byteOffset: z.number().int().nonnegative().optional(),
+			byteLimit: z.number().int().min(4).max(8192).optional(),
+		})
+		.strict();
 	ipcMain.handle(
 		DIRECT_CHANNEL,
 		async (event, action: unknown, payload: unknown) => {
@@ -201,8 +251,107 @@ export async function startWorkstation(): Promise<void> {
 				event.senderFrame !== window.webContents.mainFrame
 			)
 				throw new Error("Unauthorized workstation caller");
+			const callerWindow = window;
 			const owner = event.sender.id;
 			switch (action) {
+				case "localData.list":
+					return local.listNamespaces();
+				case "localData.create":
+					localData.assertAvailable();
+					return local.createNamespace(namespaceLabel.parse(payload));
+				case "localData.select":
+					return localData.selectNamespace(uuid(payload));
+				case "localData.remove": {
+					const id = uuid(payload);
+					const target = local.listNamespaces().find((row) => row.id === id);
+					if (!target || target.selected || target.isDefault)
+						throw new Error(
+							"Only an inactive additional namespace can be removed",
+						);
+					return localData.runSelected(
+						async () => {
+							const answer = await dialog.showMessageBox(callerWindow, {
+								type: "warning",
+								message: i18n._(msg({ message: "Remove" })),
+								detail: target.label,
+								buttons: [
+									i18n._(msg({ message: "Cancel" })),
+									i18n._(msg({ message: "Continue" })),
+								],
+								defaultId: 0,
+								cancelId: 0,
+							});
+							return answer.response === 1;
+						},
+						async () => local.removeNamespace(id),
+						{ disconnect: false },
+					);
+				}
+				case "localData.discover":
+					return local.discoverLegacySources();
+				case "localData.preview": {
+					const ids = z.array(sourceId).min(1).max(32).parse(payload);
+					if (new Set(ids).size !== ids.length)
+						throw new Error("Select each source once");
+					return local.previewLegacySources(ids);
+				}
+				case "localData.history":
+					return local.listLegacyHistory(historyPage.parse(payload));
+				case "localData.readHistory":
+					return local.readLegacyHistory(historyChunk.parse(payload));
+				case "localData.import": {
+					const input = z
+						.object({ sourceId, label: namespaceLabel.optional() })
+						.strict()
+						.parse(payload);
+					let sourceDirectory: string | undefined;
+					return localData.runSelected(
+						async () => {
+							const source = (await local.discoverLegacySources()).sources.find(
+								(row) => row.id === input.sourceId,
+							);
+							if (!source)
+								throw new Error(
+									"The selected legacy source is no longer available",
+								);
+							sourceDirectory = source.sourceDirectory;
+							const answer = await dialog.showMessageBox(callerWindow, {
+								type: "warning",
+								message: i18n._(msg({ message: "Import local data" })),
+								detail: source.sourceDirectory,
+								buttons: [
+									i18n._(msg({ message: "Cancel" })),
+									i18n._(msg({ message: "Import" })),
+								],
+								defaultId: 0,
+								cancelId: 0,
+							});
+							return answer.response === 1;
+						},
+						async () => {
+							const source = (await local.discoverLegacySources()).sources.find(
+								(row) => row.id === input.sourceId,
+							);
+							if (!source || source.sourceDirectory !== sourceDirectory)
+								throw new Error("The selected legacy source changed");
+							const result = await local.importLocalData(
+								source.sourceDirectory,
+								{ createNamespace: true, label: input.label },
+							);
+							return {
+								destinationNamespaceId: result.destinationNamespaceId,
+								sourceNamespace: result.sourceNamespace,
+								targetNamespace: result.targetNamespace,
+								projects: result.projects,
+								workspaces: result.workspaces,
+								terminals: result.terminals,
+								chats: result.chats,
+								warnings: result.warnings ?? [],
+							};
+						},
+						{ disconnect: false },
+					);
+				}
 				case "list":
 					return registry.list();
 				case "save": {
@@ -313,6 +462,7 @@ export async function startWorkstation(): Promise<void> {
 						})
 						.strict()
 						.parse(payload);
+					if (id === localConnectionId) localData.assertAvailable();
 					reconnect.disarm(id);
 					manager.disconnect(id);
 					if (password) passwords.set(id, password);
@@ -352,8 +502,10 @@ export async function startWorkstation(): Promise<void> {
 						input.action !== "stop"
 					)
 						throw new Error("The local backend is updated with this app");
-					if (input.action === "stop" || input.action === "uninstall") {
-						const answer = await dialog.showMessageBox(window, {
+					const confirmControl = async () => {
+						if (input.action !== "stop" && input.action !== "uninstall")
+							return true;
+						const answer = await dialog.showMessageBox(callerWindow, {
 							type: "warning",
 							message: i18n._(
 								msg({
@@ -368,26 +520,36 @@ export async function startWorkstation(): Promise<void> {
 							defaultId: 0,
 							cancelId: 0,
 						});
-						if (answer.response !== 1) return { status: "cancelled" };
-					}
-					reconnect.disarm(input.id);
-					if (input.action !== "install") {
-						sockets.closeConnection(input.id);
-						forwards.closeConnection(input.id);
-						await controller.disconnect(input.id);
-					}
+						return answer.response === 1;
+					};
 					if (input.id === localConnectionId)
-						return local.control(input.action as "start" | "stop");
-					return manager.withRemoteTransport<unknown>(input.id, (transport) =>
-						input.action === "install"
-							? install(input.id, transport, input.password)
-							: controlRemoteBackend({
-									transport,
-									trustedKeys: trustedKeys(),
-									action: input.action,
-									...(input.password ? { password: input.password } : {}),
-								}),
-					);
+						return localData.runSelected(confirmControl, async () =>
+							local.control(input.action as "start" | "stop"),
+						);
+					return runConfirmedRemoteControl({
+						getProfile: () => registry.get(input.id),
+						confirm: confirmControl,
+						control: async () => {
+							reconnect.disarm(input.id);
+							if (input.action !== "install") {
+								sockets.closeConnection(input.id);
+								forwards.closeConnection(input.id);
+								manager.disconnect(input.id);
+							}
+							return manager.withRemoteTransport<unknown>(
+								input.id,
+								(transport) =>
+									input.action === "install"
+										? install(input.id, transport, input.password)
+										: controlRemoteBackend({
+												transport,
+												trustedKeys: trustedKeys(),
+												action: input.action,
+												...(input.password ? { password: input.password } : {}),
+											}),
+							);
+						},
+					});
 				}
 				case "openPort": {
 					const input = z
@@ -431,10 +593,7 @@ export async function startWorkstation(): Promise<void> {
 					});
 					if (selected.canceled || !selected.filePaths[0]) return null;
 					const file = selected.filePaths[0];
-					const info = await stat(file);
-					if (!info.isFile() || info.size < 1 || info.size > 25 * 1024 * 1024)
-						throw new Error("Choose a nonempty attachment under 25 MiB");
-					const bytes = await readFile(file);
+					const bytes = await readSelectedAttachmentBytes(file);
 					controller.assertGeneration(input.connectionId, input.generation);
 					const mediaTypes: Record<string, string> = {
 						".png": "image/png",
@@ -498,6 +657,7 @@ export async function startWorkstation(): Promise<void> {
 							"Reconcile pending operations before importing local data",
 						);
 					const importerWindow = window;
+					const selection = localData.capture();
 					return importSelectedLocalData({
 						chooseSource: async () => {
 							const result = await dialog.showOpenDialog(importerWindow, {
@@ -505,9 +665,11 @@ export async function startWorkstation(): Promise<void> {
 								properties: ["openDirectory"],
 								defaultPath: path.join(homedir(), ".superset"),
 							});
+							localData.assertCurrent(selection);
 							return result.canceled ? null : (result.filePaths[0] ?? null);
 						},
 						confirmSource: async (source) => {
+							localData.assertCurrent(selection);
 							const result = await dialog.showMessageBox(importerWindow, {
 								type: "warning",
 								message: i18n._(msg({ message: "Import local data" })),
@@ -519,14 +681,16 @@ export async function startWorkstation(): Promise<void> {
 								defaultId: 0,
 								cancelId: 0,
 							});
+							localData.assertCurrent(selection);
 							return result.response === 1;
 						},
 						importData: async (source) => {
-							reconnect.disarm(id);
-							sockets.closeConnection(id);
-							forwards.closeConnection(id);
-							await controller.disconnect(id);
-							return local.importLocalData(source);
+							localData.assertCurrent(selection);
+							return localData.runSelected(
+								async () => true,
+								async (namespace) =>
+									local.importLocalData(source, { namespaceId: namespace.id }),
+							);
 						},
 					});
 				}

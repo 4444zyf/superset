@@ -4,6 +4,9 @@
 	"private": true,
 	"type": "module",
 	"exports": {
+		"./direct-legacy-query": "./src/direct/legacy-query.ts",
+		"./direct-legacy-sources": "./src/direct/legacy-sources.ts",
+		"./direct-legacy-history": "./src/direct/legacy-history.ts",
 		"./direct-legacy-import": "./src/direct/legacy-import.ts",
 		"./direct-runtime": "./src/direct/runtime.ts",
 		"./direct-supervisor": "./src/direct-supervisor.ts",
@@ -69,7 +72,7 @@
 		"test": "bun test --pass-with-no-tests --parallel",
 		"test:integration": "bun test --pass-with-no-tests test/integration",
 		"test:integration:daemon": "node --experimental-strip-types --test src/terminal/DaemonClient/DaemonClient.node-test.ts src/daemon/DaemonSupervisor.node-test.ts",
-		"test:integration:direct": "node --import tsx --test src/direct/unix-listener.node-test.ts src/direct/supervisor-maintenance.node-test.ts src/direct/private-config.node-test.ts",
+		"test:integration:direct": "node --import tsx --test src/direct/unix-listener.node-test.ts src/direct/supervisor-maintenance.node-test.ts src/direct/private-config.node-test.ts src/direct/attachments.node-test.ts src/direct/legacy-history.node-test.ts",
 		"test:integration:terminal": "node --import tsx --test src/terminal/terminal.initial-command.node-test.ts src/terminal/terminal.ungated-launch.node-test.ts src/terminal/terminal.shell-ready-learning.node-test.ts src/terminal/terminal.fish-prompt-transport.node-test.ts src/terminal/terminal.send-snapshot.node-test.ts",
 		"test:integration:ports": "node --import tsx --test src/ports/forward-mux-route.node-test.ts src/ports/direct-forward.node-test.ts",
 		"test:integration:workers": "node --experimental-strip-types --test src/workers/worker-termination.node-test.ts",

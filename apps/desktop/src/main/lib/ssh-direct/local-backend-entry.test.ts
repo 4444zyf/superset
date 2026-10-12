@@ -1,6 +1,33 @@
 import { expect, test } from "bun:test";
 import { runLocalBackendCommand } from "./local-backend-entry";
 
+test("a local data query dispatches without starting a backend or a workload", async () => {
+	let starts = 0;
+	const requests: unknown[] = [];
+	await runLocalBackendCommand(
+		[
+			"--query-local-data",
+			JSON.stringify({ action: "listHistory" }),
+			"--config",
+			"/private/local/config.json",
+		],
+		{
+			start: async () => {
+				starts++;
+				return { stop: async () => {} };
+			},
+			stopOwned: async () => {},
+			queryLocalData: async (config, request) => {
+				requests.push([config, request]);
+			},
+		},
+	);
+	expect(starts).toBe(0);
+	expect(requests).toEqual([
+		["/private/local/config.json", { action: "listHistory" }],
+	]);
+});
+
 test("offline cleanup dispatches to the owned daemon stop without starting a backend", async () => {
 	const calls: string[] = [];
 	const result = await runLocalBackendCommand(

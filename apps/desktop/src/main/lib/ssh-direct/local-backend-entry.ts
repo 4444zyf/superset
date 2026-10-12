@@ -9,6 +9,7 @@ export async function runLocalBackendCommand(
 	handlers: {
 		start(configPath: string): Promise<BackendHandle>;
 		stopOwned(configPath: string): Promise<void>;
+		queryLocalData?(configPath: string, request: unknown): Promise<void>;
 		importLocalData?(
 			configPath: string,
 			sourceDirectory: string,
@@ -19,6 +20,27 @@ export async function runLocalBackendCommand(
 	const configPath = argv[index + 1];
 	if (index < 0 || !configPath || configPath.startsWith("--"))
 		throw new Error("A local backend config path is required");
+	if (
+		argv.filter((value) =>
+			["--query-local-data", "--import-local-data", "--stop-owned"].includes(
+				value,
+			),
+		).length > 1
+	)
+		throw new Error("Select one local backend action");
+	const queryIndex = argv.indexOf("--query-local-data");
+	if (queryIndex >= 0) {
+		const raw = argv[queryIndex + 1];
+		if (
+			!raw ||
+			raw.startsWith("--") ||
+			Buffer.byteLength(raw) > 32 * 1024 ||
+			!handlers.queryLocalData
+		)
+			throw new Error("A bounded local data query is required");
+		await handlers.queryLocalData(resolve(configPath), JSON.parse(raw));
+		return null;
+	}
 	const importIndex = argv.indexOf("--import-local-data");
 	if (importIndex >= 0) {
 		const source = argv[importIndex + 1];

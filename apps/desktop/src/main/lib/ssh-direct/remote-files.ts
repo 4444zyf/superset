@@ -3,7 +3,7 @@ import { msg } from "@lingui/core/macro";
 import { i18n } from "@superset/i18n";
 import superjson from "superjson";
 
-const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+export const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
 const uuidPattern =
 	/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 

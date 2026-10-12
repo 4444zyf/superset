@@ -97,6 +97,7 @@ export class WorkstationController {
 				"terminals",
 				"chat",
 				"files",
+				"attachments",
 				"git",
 				"durableOperations",
 			].map((key) => [key, metadata.capabilities?.[key] === true]),

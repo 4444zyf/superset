@@ -35,6 +35,11 @@ import {
 import { acquireDirectProcessLock } from "./process-lock";
 
 type Row = Record<string, string | number | null>;
+export {
+	assertOffline as assertLegacySourceOffline,
+	fingerprint as legacySourceFingerprint,
+	readRegular as readLegacySourceFile,
+};
 export interface ImportDatabase {
 	exec(sql: string): unknown;
 	prepare(sql: string): {

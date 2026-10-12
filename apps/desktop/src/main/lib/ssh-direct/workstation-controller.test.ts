@@ -269,6 +269,18 @@ test("a stale reconciliation reply cannot clear an intent on the new connection"
 	db.close();
 });
 
+test("attachment readiness requires an explicit backend capability", async () => {
+	const { manager } = fixture();
+	for (const advertised of [true, false, undefined]) {
+		manager.request = async () =>
+			Response.json({ capabilities: { attachments: advertised } });
+		const features = await new WorkstationController(manager).features(
+			"machine",
+		);
+		expect(features.capabilities?.attachments).toBe(advertised === true);
+	}
+});
+
 test("backend capabilities are checked after the response body finishes parsing", async () => {
 	const { manager, nextGeneration } = fixture();
 	const body = deferred<unknown>();

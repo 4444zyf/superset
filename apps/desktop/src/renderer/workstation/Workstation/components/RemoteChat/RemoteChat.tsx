@@ -11,7 +11,7 @@ import {
 	type Item,
 	knownItemSchema,
 } from "@superset/chat/protocol";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -74,6 +74,28 @@ export function RemoteChat({
 			sizeBytes: number;
 		}[]
 	>([]);
+	const mounted = useRef(false);
+	const namespaceScope = JSON.stringify([
+		connection.connectionId,
+		connection.backendId,
+		connection.namespaceId,
+		workspaceId,
+	]);
+	const draftScope = JSON.stringify([namespaceScope, sessionId]);
+	const operationScope = JSON.stringify([draftScope, connection.generation]);
+	const currentScope = useRef({ key: operationScope, epoch: 0 });
+	if (currentScope.current.key !== operationScope)
+		currentScope.current = {
+			key: operationScope,
+			epoch: currentScope.current.epoch + 1,
+		};
+	const operationSequence = useRef(0);
+	const sessionListVersion = useRef(0);
+	const scopeEpoch = currentScope.current.epoch;
+	const previousBusyEpoch = useRef(scopeEpoch);
+	const previousDraftScope = useRef(draftScope);
+	const previousNamespaceScope = useRef(namespaceScope);
+	const attachmentsAvailable = connection.capabilities?.attachments === true;
 	const available =
 		connection.chatHarnesses?.find((candidate) => candidate.id === harness)
 			?.available === true;
@@ -85,18 +107,48 @@ export function RemoteChat({
 			type,
 			input,
 		});
-	const run = async (execute: () => Promise<void>) => {
+	const run = async (execute: (isCurrent: () => boolean) => Promise<void>) => {
+		const epoch = currentScope.current.epoch;
+		const sequence = ++operationSequence.current;
+		const isCurrent = () =>
+			mounted.current &&
+			currentScope.current.epoch === epoch &&
+			operationSequence.current === sequence;
 		setBusy(true);
 		try {
-			await execute();
+			await execute(isCurrent);
 		} catch (error) {
-			onError(String(error));
+			if (isCurrent()) onError(String(error));
 		} finally {
-			setBusy(false);
+			if (isCurrent()) setBusy(false);
 		}
 	};
 	useEffect(() => {
+		mounted.current = true;
+		return () => {
+			mounted.current = false;
+		};
+	}, []);
+	useEffect(() => {
+		if (previousBusyEpoch.current === scopeEpoch) return;
+		previousBusyEpoch.current = scopeEpoch;
+		setBusy(false);
+	}, [scopeEpoch]);
+	useEffect(() => {
+		if (previousDraftScope.current === draftScope) return;
+		previousDraftScope.current = draftScope;
+		setPrompt("");
+		setAttachments([]);
+	}, [draftScope]);
+	useEffect(() => {
+		if (previousNamespaceScope.current === namespaceScope) return;
+		previousNamespaceScope.current = namespaceScope;
+		setSessions([]);
+		setSessionId(null);
+	}, [namespaceScope]);
+	useEffect(() => {
 		let active = true;
+		const version = ++sessionListVersion.current;
 		void api
 			.rpc<{ sessionId: string; harness: string }[]>({
 				connectionId: connection.connectionId,
@@ -106,7 +158,7 @@ export function RemoteChat({
 				input: { workspaceId },
 			})
 			.then((rows) => {
-				if (active) {
+				if (active && sessionListVersion.current === version) {
 					setSessions(rows);
 					setSessionId((previous) =>
 						rows.some((row) => row.sessionId === previous)
@@ -116,7 +168,8 @@ export function RemoteChat({
 				}
 			})
 			.catch((error) => {
-				if (active) onError(String(error));
+				if (active && sessionListVersion.current === version)
+					onError(String(error));
 			});
 		return () => {
 			active = false;
@@ -162,9 +215,10 @@ export function RemoteChat({
 				});
 		});
 	const downloadAttachment = (attachmentId: string) =>
-		run(async () => {
+		run(async (isCurrent) => {
+			if (!attachmentsAvailable) return;
 			const downloaded = await api.readAttachment(connection, attachmentId);
-			saveAttachment(downloaded);
+			if (isCurrent()) saveAttachment(downloaded);
 		});
 	return (
 		<section className="border border-zinc-700 rounded p-3 space-y-3">
@@ -185,12 +239,14 @@ export function RemoteChat({
 						busy || !available || !connection.capabilities?.durableOperations
 					}
 					onClick={() =>
-						void run(async () => {
+						void run(async (isCurrent) => {
 							const result = await rpc<{ sessionId: string }>(
 								"createSession",
 								"mutation",
 								{ commandId: crypto.randomUUID(), workspaceId, harness },
 							);
+							if (!isCurrent()) return;
+							sessionListVersion.current++;
 							setSessions((previous) => [
 								...previous,
 								{ sessionId: result.sessionId, harness },
@@ -237,6 +293,11 @@ export function RemoteChat({
 					</Trans>
 				</p>
 			)}
+			{!attachmentsAvailable && (
+				<p className="text-xs text-zinc-400">
+					<Trans>Attachments are unavailable on this backend.</Trans>
+				</p>
+			)}
 			<div className="max-h-96 overflow-auto space-y-3">
 				{[...snapshot.items.values()].map(({ item: value }) => {
 					const parsed = knownItemSchema.safeParse(value);
@@ -264,7 +325,7 @@ export function RemoteChat({
 											type="button"
 											key={part.attachmentId}
 											className={button}
-											disabled={busy}
+											disabled={busy || !attachmentsAvailable}
 											onClick={() => void downloadAttachment(part.attachmentId)}
 										>
 											{part.name}
@@ -327,11 +388,14 @@ export function RemoteChat({
 						<button
 							type="button"
 							className={button}
-							disabled={busy || attachments.length >= 16}
+							disabled={
+								busy || !attachmentsAvailable || attachments.length >= 16
+							}
 							onClick={() =>
-								void run(async () => {
+								void run(async (isCurrent) => {
+									if (!attachmentsAvailable) return;
 									const attachment = await api.chooseAttachment(connection);
-									if (attachment)
+									if (attachment && isCurrent())
 										setAttachments((previous) => [...previous, attachment]);
 								})
 							}
@@ -343,6 +407,7 @@ export function RemoteChat({
 								type="button"
 								className={button}
 								key={attachment.attachmentId}
+								disabled={busy || !attachmentsAvailable}
 								onClick={() => void downloadAttachment(attachment.attachmentId)}
 							>
 								{attachment.originalFilename ?? attachment.attachmentId}
@@ -354,7 +419,8 @@ export function RemoteChat({
 						onSubmit={(event) => {
 							event.preventDefault();
 							if (!prompt.trim() && !attachments.length) return;
-							void run(async () => {
+							if (attachments.length && !attachmentsAvailable) return;
+							void run(async (isCurrent) => {
 								await rpc("prompt", "mutation", {
 									commandId: crypto.randomUUID(),
 									clientId: crypto.randomUUID(),
@@ -370,6 +436,7 @@ export function RemoteChat({
 										})),
 									],
 								});
+								if (!isCurrent()) return;
 								setPrompt("");
 								setAttachments([]);
 							});
@@ -378,12 +445,17 @@ export function RemoteChat({
 						<textarea
 							aria-label={t({ message: "Message" })}
 							className="flex-1 bg-zinc-900 rounded p-2 text-sm"
+							readOnly={busy}
 							value={prompt}
 							onChange={(event) => setPrompt(event.target.value)}
 						/>
 						<button
 							className={button}
-							disabled={busy || !connection.capabilities?.durableOperations}
+							disabled={
+								busy ||
+								!connection.capabilities?.durableOperations ||
+								(attachments.length > 0 && !attachmentsAvailable)
+							}
 							type="submit"
 						>
 							<Trans>Send</Trans>

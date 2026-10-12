@@ -10,7 +10,15 @@ export function runLocalImportProcess(options: {
 	spawn?: typeof spawnProcess;
 	timeoutMs?: number;
 	graceMs?: number;
+	maxOutputBytes?: number;
 }): Promise<string> {
+	const maxOutputBytes = options.maxOutputBytes ?? 64 * 1024;
+	if (
+		!Number.isSafeInteger(maxOutputBytes) ||
+		maxOutputBytes < 1 ||
+		maxOutputBytes > 1024 * 1024
+	)
+		throw new Error("Invalid local response byte limit");
 	return new Promise((resolve, reject) => {
 		const child = (options.spawn ?? spawnProcess)(
 			options.executable,
@@ -57,7 +65,7 @@ export function runLocalImportProcess(options: {
 		child.stdout?.on("data", (chunk: Buffer) => {
 			if (failure || settled) return;
 			stdoutBytes += chunk.length;
-			if (stdoutBytes > 64 * 1024) {
+			if (stdoutBytes > maxOutputBytes) {
 				stop(new Error("The local importer returned an invalid response"));
 				return;
 			}

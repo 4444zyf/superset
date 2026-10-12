@@ -1,3 +1,57 @@
+import type {
+	ImportedLegacyHistoryChunk,
+	ImportedLegacyHistoryPage,
+	LegacyDiscovery,
+	LegacyImportPreview,
+} from "@superset/shared/direct-legacy-data";
+
+export interface DirectLocalNamespace {
+	id: string;
+	label: string;
+	selected: boolean;
+	isDefault: boolean;
+	backendId: string;
+	namespaceId: string;
+}
+
+export interface DirectLocalImportResult {
+	destinationNamespaceId: string;
+	sourceNamespace: string;
+	targetNamespace: string;
+	projects: number;
+	workspaces: number;
+	terminals: number;
+	chats: number;
+	warnings: string[];
+}
+
+export interface DirectLocalDataApi {
+	listNamespaces(): Promise<DirectLocalNamespace[]>;
+	createNamespace(label: string): Promise<DirectLocalNamespace>;
+	selectNamespace(namespaceId: string): Promise<DirectLocalNamespace>;
+	removeNamespace(
+		namespaceId: string,
+	): Promise<undefined | { status: "cancelled" }>;
+	discoverLegacySources(): Promise<LegacyDiscovery>;
+	previewLegacySources(sourceIds: string[]): Promise<LegacyImportPreview>;
+	importSource(input: {
+		sourceId: string;
+		label?: string;
+	}): Promise<DirectLocalImportResult | { status: "cancelled" }>;
+	listLegacyHistory(input: {
+		namespaceId: string;
+		offset?: number;
+		limit?: number;
+	}): Promise<ImportedLegacyHistoryPage>;
+	readLegacyHistory(input: {
+		namespaceId: string;
+		workspaceId: string;
+		terminalId: string;
+		byteOffset?: number;
+		byteLimit?: number;
+	}): Promise<ImportedLegacyHistoryChunk>;
+}
+
 export interface DirectProfile {
 	id: string;
 	kind?: "ssh" | "local";
@@ -57,6 +111,7 @@ export type DirectConnectionEvent =
 
 export interface DirectWorkstationApi {
 	readonly platform: string;
+	readonly localData?: DirectLocalDataApi;
 	list(): Promise<DirectProfile[]>;
 	save(profile: DirectProfile): Promise<DirectProfile>;
 	remove(id: string): Promise<void>;

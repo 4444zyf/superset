@@ -18,6 +18,17 @@ const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
 	platform: process.platform,
+	localData: {
+		listNamespaces: () => invoke("localData.list"),
+		createNamespace: (label) => invoke("localData.create", label),
+		selectNamespace: (id) => invoke("localData.select", id),
+		removeNamespace: (id) => invoke("localData.remove", id),
+		discoverLegacySources: () => invoke("localData.discover"),
+		previewLegacySources: (ids) => invoke("localData.preview", ids),
+		importSource: (input) => invoke("localData.import", input),
+		listLegacyHistory: (input) => invoke("localData.history", input),
+		readLegacyHistory: (input) => invoke("localData.readHistory", input),
+	},
 	list: () => invoke("list"),
 	save: (profile) => invoke("save", profile),
 	remove: (id) => invoke("remove", id),

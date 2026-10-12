@@ -46,6 +46,7 @@ export interface LocalLegacyImportResult {
 }
 
 export interface LocalBackendOptions {
+	namespaceIdentity?: { backendId: string; namespaceId: string };
 	dataDir: string;
 	execPath: string;
 	supervisorPath: string;
@@ -150,6 +151,12 @@ function createPrivate(path: string, value: string): void {
 }
 
 export class LocalBackend {
+	describeNamespace(): { backendId: string; namespaceId: string } {
+		if (this.uid < 1)
+			throw new Error("A local namespace requires an ordinary OS user");
+		const { config } = this.prepare();
+		return { backendId: config.backendId, namespaceId: config.namespaceId };
+	}
 	private pending: Promise<AuthenticatedLocalBackend> | undefined;
 	private lifecycle: Promise<void> = Promise.resolve();
 	private readonly uid: number;
@@ -427,6 +434,7 @@ export class LocalBackend {
 			"AUTH_TOKEN",
 			"ORGANIZATION_ID",
 			"SUPERSET_HOSTED_PLUGINS",
+			"SUPERSET_RUN_DIR",
 		])
 			delete environment[key];
 		return environment;
@@ -465,7 +473,12 @@ export class LocalBackend {
 			privateDirectory(path);
 		createPrivate(
 			join(root, "identity.json"),
-			JSON.stringify({ backendId: randomUUID(), namespaceId: randomUUID() }),
+			JSON.stringify(
+				this.options.namespaceIdentity ?? {
+					backendId: randomUUID(),
+					namespaceId: randomUUID(),
+				},
+			),
 		);
 		const identity = JSON.parse(
 			privateRead(join(root, "identity.json")) ?? "null",
@@ -476,6 +489,12 @@ export class LocalBackend {
 			!uuidPattern.test(identity.namespaceId)
 		)
 			throw new Error("Invalid local backend identity");
+		if (
+			this.options.namespaceIdentity &&
+			(identity.backendId !== this.options.namespaceIdentity.backendId ||
+				identity.namespaceId !== this.options.namespaceIdentity.namespaceId)
+		)
+			throw new Error("Local namespace identity does not match its catalog");
 		const secretFile = join(root, "credentials", "host-secret");
 		createPrivate(secretFile, randomBytes(32).toString("hex"));
 		const secret = privateRead(secretFile)?.trim();
