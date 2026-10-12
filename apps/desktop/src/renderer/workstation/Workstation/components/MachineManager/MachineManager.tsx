@@ -176,9 +176,15 @@ export function MachineManager({
 						</label>
 					</div>
 					<div className="ws-table-heading">
-						<Trans>Machine</Trans>
-						<Trans>Status</Trans>
-						<Trans>Workspaces</Trans>
+						<span>
+							<Trans>Machine</Trans>
+						</span>
+						<span>
+							<Trans>Status</Trans>
+						</span>
+						<span>
+							<Trans>Workspaces</Trans>
+						</span>
 					</div>
 					<div className="ws-machine-list">
 						{rows.map((p) => (

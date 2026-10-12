@@ -1,4 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
+import { inferLocale, initI18nAsync } from "@superset/i18n";
 import { useEffect, useRef, useState } from "react";
 import { LocalDataPanel } from "./components/LocalDataPanel";
 import { MachineForm } from "./components/MachineForm/MachineForm";
@@ -25,6 +26,11 @@ export function Workstation({
 }) {
 	const { t } = useLingui();
 	const ui = useWorkstation(api);
+	useEffect(() => {
+		void initI18nAsync(inferLocale()).catch((error) =>
+			ui.setError(String(error)),
+		);
+	}, [ui.setError]);
 	const [page, setPage] = useState<"machines" | "workspaces">("machines");
 	const [selectedId, setSelectedId] = useState("");
 	const selectedRef = useRef("");
