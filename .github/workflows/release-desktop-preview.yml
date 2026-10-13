@@ -10,6 +10,11 @@ on:
         required: false
         type: boolean
         default: false
+      inspect_profile:
+        description: "Only observe the verified old preview's real data profile"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -19,12 +24,43 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  inspect-profile:
+    if: ${{ inputs.inspect_profile }}
+    runs-on: macos-14
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: ssh-preview-arm64
+          run-id: 38337365153
+          github-token: ${{ github.token }}
+          path: old-preview
+      - name: Observe actual packaged name, data path and renderer
+        run: |
+          set -euo pipefail
+          (cd old-preview && shasum -a 256 -c SHA256SUMS-arm64.txt)
+          mount="$RUNNER_TEMP/old-preview-mount"
+          mkdir "$mount"
+          hdiutil attach -readonly -nobrowse -mountpoint "$mount" old-preview/Superset-SSH-Preview-1.37.3-arm64.dmg
+          trap 'hdiutil detach "$mount"' EXIT
+          node apps/desktop/scripts/inspect-preview-profile.mjs "$mount/Superset SSH Preview.app" profile-evidence
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: old-preview-profile-evidence
+          path: profile-evidence/
+          if-no-files-found: error
+
   direct-arm64:
+    if: ${{ !inputs.inspect_profile }}
     uses: ./.github/workflows/build-direct-preview.yml
     with:
       target: darwin-arm64
 
   direct-x64:
+    if: ${{ !inputs.inspect_profile }}
     uses: ./.github/workflows/build-direct-preview.yml
     with:
       target: darwin-x64
