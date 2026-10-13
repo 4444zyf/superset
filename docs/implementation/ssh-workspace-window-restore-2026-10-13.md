@@ -1,6 +1,6 @@
 # SSH工作窗口恢复实现与验收
 
-状态：实现完成；原生双架构DMG验收进行中。版本1.37.6，分支`release-ssh-workspace-restore-1.37.6`，基于`release-ssh-performance-1.37.5@ed4e9964794f9a09887a1a7e25eb5e02f165b31e`。设计见[窗口恢复](../design/ssh-workspace-window-restore.md)。
+状态：实现完成；原版布局与新图标的原生双架构DMG完整验收通过。版本1.37.6，分支`release-ssh-workspace-restore-1.37.6`，基于`release-ssh-performance-1.37.5@ed4e9964794f9a09887a1a7e25eb5e02f165b31e`。设计见[窗口恢复](../design/ssh-workspace-window-restore.md)。
 
 ## TDD记录
 
@@ -94,3 +94,27 @@ Intel 本轮骨架 P95 超过200ms，不能声称该目标在双架构全部达�
 混合分屏拖拽测试曾选中内层垂直分隔条而错误地按外层水平轴测量；定位为外层分组直接子分隔条后，实际非默认比例和重开后的完整树一致。此测试错误不作为产品性能故障统计。
 
 本轮64项Workstation行为测试、121项原版panes测试、22项终端共享能力测试通过；desktop类型检查、构建、17语言严格编译通过。既有restore主进程、daemon和安装协议测试记录仍保留。新版原生包验收结果待下面独立记录。
+
+## 原版组件：双架构原生通过（新图标之前）
+
+[运行38402982466](https://github.com/4444zyf/superset/actions/runs/38402982466)，冻结源码`98acfb5b33ecebbf059c517c36975150cbc5e8cf`。两个架构的实际DMG均通过完整验收，每架构20次退出重开与60条退出期间新输出记录；包括真实远端代码编辑/保存/重读、搜索、侧栏折叠、窗格拖拽、全部恢复异常场景和原生SQLite/PTY。原始记录：[ARM64](evidence/ssh-workspace-restore/native-upstream-before-icon-arm64)、[Intel](evidence/ssh-workspace-restore/native-upstream-before-icon-x64)。
+
+| 20样本指标 | ARM64 中位数 / P95 / 最大 | Intel 中位数 / P95 / 最大 |
+| --- | --- | --- |
+| renderer→布局 | 77.65 / 95.10 / 95.60 ms | 140.50 / 156.70 / 167.80 ms |
+| 认证→三个attached观测上界 | 209.11 / 242.93 / 252.11 ms | 240.32 / 298.94 / 312.27 ms |
+
+此轮两架构骨架P95均低于200ms。图标随后按用户要求重新设计为折带S，新图标发行物的冻结源码为`5f57715ff03a6cb984c04cde0243d297872654ff`，其验收独立进行。此轮旧图标截图不作为新图标的证明。
+
+## 新图标实际DMG：双架构验收
+
+[运行38406074334](https://github.com/4444zyf/superset/actions/runs/38406074334)，冻结源码`5f57715ff03a6cb984c04cde0243d297872654ff`。双架构实际DMG均通过完整验收。每架构20次退出/重开、60条客户端关闭期间原执行的新输出以及全部异常生命周期通过；远端代码编辑/保存、终端搜索、原版侧栏和窗格拖拽均通过。此测试使用心跳PTY，不冒充真实供应商Agent验收。原始证据：[ARM64](evidence/ssh-workspace-restore/native-final-arm64)、[Intel](evidence/ssh-workspace-restore/native-final-x64)。
+
+| ARM64 20样本指标 | 中位数 | P95 | 最大 |
+| --- | ---: | ---: | ---: |
+| renderer→布局 | 118.95ms | 195.80ms | 199.30ms |
+| 认证→三个attached观测上界 | 367.74ms | 561.05ms | 588.35ms |
+
+源码图标导出、实际侧栏/About截图与打包资源分别验证；没有以侧栏截图代替真实Dock截图。已验证[ARM64下载](https://github.com/4444zyf/superset/actions/runs/38406074334/artifacts/11819389283)，14天保留。
+
+Intel 20样本renderer→布局中位数/P95/最大为339.80/656.10/780.30ms；认证→三个attached观测上界为725.03/1325.50/1725.54ms。Intel本轮未达到骨架200ms的性能目标，功能验收通过不等于性能目标通过。已验证[Intel下载](https://github.com/4444zyf/superset/actions/runs/38406074334/artifacts/11821542454)，14天保留。

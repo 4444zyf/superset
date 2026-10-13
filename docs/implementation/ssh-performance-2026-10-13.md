@@ -126,3 +126,17 @@
 独立安装脚本仅 installer 阶段 ARM64 9.445秒、Intel30.511秒，不能与完整GUI入口耗时混用。30次断开/重连与工作区读取以及阶段明细记录见[ARM64](evidence/ssh-performance/native-restore-fourth-arm64)和[Intel](evidence/ssh-performance/native-restore-fourth-x64)。此前均衡重复首次安装测量仍然有效：不能用单次ARM64小于10秒的结果，覆盖15.600秒中位数或承诺全网络、双架构稳定小于10秒。
 
 此轮组件布局为旧实现。后续复用原版UI的发行物会独立测量，保留所有已经测过的方案和失败数据。
+
+## 原版UI复用：冻结原生结果（新图标之前）
+
+[运行38402982466](https://github.com/4444zyf/superset/actions/runs/38402982466)，源码`98acfb5b33ecebbf059c517c36975150cbc5e8cf`，两种实际DMG均通过。真实点击连接→工作区可见：ARM64 **9.687秒**、Intel **22.652秒**；GUI重连0.625/1.175秒，实例不变。记录见[ARM64](evidence/ssh-performance/native-upstream-before-icon-arm64)与[Intel](evidence/ssh-performance/native-upstream-before-icon-x64)。
+
+复用原版分屏、编辑器和终端能力后，首次安装仍保留完整代理依赖，未以删功能换速度。单次ARM64继续小于10秒，Intel及均衡重复数据仍不支持全环境稳定10秒的结论。后续图标修改保持独立冻结SHA与验收记录。
+
+## 新图标冻结源码的实际DMG：双架构
+
+[运行38406074334](https://github.com/4444zyf/superset/actions/runs/38406074334)，源码`5f57715ff03a6cb984c04cde0243d297872654ff`。ARM64实际DMG完整验收通过，真实点击到首次工作区可见 **13.979秒**，健康重连 **0.737秒**且服务实例不变。原始记录：[ARM64](evidence/ssh-performance/native-final-arm64)。Intel实际DMG完整验收同样通过：首装 **53.192秒**，健康重连 **2.028秒**且实例不变，见[Intel原始记录](evidence/ssh-performance/native-final-x64)。
+
+本轮首装超过10秒；保留此前单次9秒及均衡重复15.600秒结果，不把图标修改和机器负载漂移解释为已证实的性能因果。恢复骨架P95为195.80ms，认证后接回三个原执行的观测上界P95为561.05ms；这些已有后端恢复指标不是完整首次安装耗时。
+
+Intel本轮恢复骨架P95为656.10ms，认证后接回三个原执行的观测上界P95为1325.50ms。此前冻结源码测量更快，本轮保留变慢的实际记录；功能通过不能解释为双架构首次安装10秒或骨架200ms目标全部达到。
