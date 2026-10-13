@@ -15,6 +15,11 @@ on:
         required: false
         type: boolean
         default: false
+      balanced_benchmark:
+        description: "Rotate the four archive variants through each position"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -98,6 +103,7 @@ jobs:
         working-directory: apps/desktop
         env:
           FULL_BENCHMARK: ${{ inputs.full_benchmark }}
+          BALANCED_BENCHMARK: ${{ inputs.balanced_benchmark }}
         run: |
           set -euo pipefail
           preview_electron=$(node -p 'require("electron")')
@@ -107,11 +113,25 @@ jobs:
           if [ "$FULL_BENCHMARK" = true ]; then
             variants="v1-independent v1-shared v2-gzip1 $variants"
           fi
-          for variant in $variants; do
-            for iteration in 1 2 3; do
-              BENCH_ITERATION="$iteration" ELECTRON_RUN_AS_NODE=1 "$preview_electron" --import "$preview_loader" scripts/verify-direct-ssh-install.mts dist/resources --stage "--variant=$variant"
+          if [ "$BALANCED_BENCHMARK" = true ]; then
+            for iteration in 1 2 3 4; do
+              case "$iteration" in
+                1) ordered="v2-gzip6-serial-scan v2-gzip6-serial-fast v2-gzip6 v2-gzip6-parallel8-fast" ;;
+                2) ordered="v2-gzip6-serial-fast v2-gzip6 v2-gzip6-parallel8-fast v2-gzip6-serial-scan" ;;
+                3) ordered="v2-gzip6 v2-gzip6-parallel8-fast v2-gzip6-serial-scan v2-gzip6-serial-fast" ;;
+                4) ordered="v2-gzip6-parallel8-fast v2-gzip6-serial-scan v2-gzip6-serial-fast v2-gzip6" ;;
+              esac
+              for variant in $ordered; do
+                BENCH_ITERATION="$iteration" ELECTRON_RUN_AS_NODE=1 "$preview_electron" --import "$preview_loader" scripts/verify-direct-ssh-install.mts dist/resources --stage "--variant=$variant"
+              done
             done
-          done
+          else
+            for variant in $variants; do
+              for iteration in 1 2 3; do
+                BENCH_ITERATION="$iteration" ELECTRON_RUN_AS_NODE=1 "$preview_electron" --import "$preview_loader" scripts/verify-direct-ssh-install.mts dist/resources --stage "--variant=$variant"
+              done
+            done
+          fi
       - name: Build preview DMG with automatic remote installation
         working-directory: apps/desktop
         run: bun run package -- --publish never --config electron-builder.preview.ts --${{ matrix.arch }}
