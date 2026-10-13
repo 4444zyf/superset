@@ -1,0 +1,66 @@
+name: Build Signed Preview Backend
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+    outputs:
+      public_keys_json:
+        description: "Public verification keys generated before sealing this preview payload"
+        value: ${{ jobs.build.outputs.public_keys_json }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Preview backend - ${{ inputs.target }}
+    runs-on: ${{ inputs.target == 'darwin-arm64' && 'macos-14' || 'macos-15-intel' }}
+    timeout-minutes: 45
+    outputs:
+      public_keys_json: ${{ steps.trust.outputs.public_keys_json }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+      - name: Install pinned dependencies
+        run: bun install --frozen --ignore-scripts
+      - name: Prepare private ephemeral preview signing identity
+        id: trust
+        env:
+          PREVIEW_TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          bun packages/cli/scripts/prepare-direct-preview-signing.ts \
+            --key-id="preview-$PREVIEW_TARGET" \
+            --signing-key-file="$RUNNER_TEMP/direct-preview-signing.pem" \
+            --trusted-keys-file="$RUNNER_TEMP/direct-preview-public-keys.json" \
+            --output-file="$GITHUB_OUTPUT"
+      - name: Build, native-smoke, ad-hoc codesign and seal preview backend
+        env:
+          PREVIEW_TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          bun run --cwd packages/cli build:direct \
+            --target="$PREVIEW_TARGET" \
+            --node-version=24.21.0 --node-abi=137 --minimum-macos=13.5 \
+            --key-id="preview-$PREVIEW_TARGET" \
+            --signing-key-file="$RUNNER_TEMP/direct-preview-signing.pem" \
+            --trusted-keys-file="$RUNNER_TEMP/direct-preview-public-keys.json" \
+            --codesign-identity=- --development-preview
+      - name: Remove private preview signing material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/direct-preview-signing.pem" "$RUNNER_TEMP/direct-preview-public-keys.json"
+      - name: Upload sealed preview backend without private keys
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: direct-backend-ssh-preview-${{ inputs.target }}
+          path: packages/cli/dist/superset-direct-${{ inputs.target }}/
+          retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: error

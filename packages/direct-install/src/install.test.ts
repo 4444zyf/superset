@@ -1,11 +1,75 @@
 import { expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
 import { rmSync } from "node:fs";
 import {
 	buildPrivilegedBootstrap,
 	installRemoteBackend,
 	probeRemoteBackend,
 } from "./install";
+import { verifyReleaseBundle } from "./release";
 import { createSignedReleaseFixture } from "./release-fixture";
+
+test("a capable transport uploads the complete verified backend in one batch before authorization", async () => {
+	const release = createSignedReleaseFixture();
+	const verified = verifyReleaseBundle(release.root, release.keys);
+	let batches = 0;
+	let count = 0;
+	try {
+		const result = await installRemoteBackend({
+			releaseRoot: release.root,
+			trustedKeys: release.keys,
+			transport: {
+				exec: async (command) => ({
+					exitCode: 0,
+					stderr: "",
+					stdout: command.includes("uname")
+						? [
+								"Darwin",
+								"arm64",
+								"501",
+								"alice",
+								"staff",
+								"/Users/alice",
+								"14.5",
+								"",
+							].join("\0")
+						: command.includes("df -Pk")
+							? "Filesystem 1024-blocks Used Available Capacity Mounted on\n/dev/disk1 1000000000 1 999999999 1% /\n"
+							: "",
+				}),
+				upload: async () => {
+					throw new Error("Individual upload must not be used");
+				},
+				uploadFiles: async (files) => {
+					batches++;
+					count = files.length;
+					expect(files[0]?.localPath).toBe(
+						`${release.root}/release-manifest.json`,
+					);
+					expect(
+						files.every((file) =>
+							file.remotePath.startsWith(
+								"/Users/alice/.superset-direct/incoming/",
+							),
+						),
+					).toBe(true);
+				},
+			},
+			authorize: async () => {
+				expect(batches).toBe(1);
+				return {
+					exitCode: 0,
+					stderr: "",
+					stdout: `SUPERSET_DIRECT_INSTALL=${JSON.stringify({ status: "installed", releaseId: verified.releaseId, identity: { backendId: "11111111-1111-4111-8111-111111111111", namespaceId: "22222222-2222-4222-8222-222222222222", homeDir: "/Users/alice/.superset-direct" } })}\n`,
+				};
+			},
+		});
+		expect(result.status).toBe("installed");
+		expect(count).toBe(release.manifest.files.length + 2);
+	} finally {
+		rmSync(release.root, { recursive: true, force: true });
+	}
+});
 
 test("probes a fresh Mac without requiring a remote language runtime", async () => {
 	let command = "";
@@ -194,4 +258,34 @@ test("bootstrap copies into root-private storage and verifies Node before execut
 	expect(script).toContain("/usr/bin/head -c 101");
 	expect(script).toContain("/usr/bin/sudo -n -u '#501'");
 	expect(script).not.toContain("nohup");
+});
+
+test("a complete large release request is decoded through stdin instead of process arguments", () => {
+	const request = JSON.stringify({ manifest: "signed-entry".repeat(100000) });
+	const script = buildPrivilegedBootstrap({
+		incoming: "/Users/alice/.superset-direct/incoming/install-123",
+		uid: 501,
+		nodeSize: 100,
+		installerSize: 200,
+		nodeDigest: "a".repeat(64),
+		installerDigest: "b".repeat(64),
+		requestBase64: Buffer.from(request).toString("base64"),
+	});
+	const decoder = script.slice(
+		script.indexOf("/usr/bin/base64 -D"),
+		script.indexOf("/usr/bin/env -i"),
+	);
+	const result = spawnSync("/bin/sh", ["-s"], {
+		input: decoder
+			.replace(' > "$work/request.json"', "")
+			.replace(
+				"base64 -D",
+				`base64 ${process.platform === "darwin" ? "-D" : "-d"}`,
+			),
+		encoding: "utf8",
+		maxBuffer: 4 * 1024 * 1024,
+	});
+	expect(result.stderr).toBe("");
+	expect(result.status).toBe(0);
+	expect(result.stdout).toBe(request);
 });

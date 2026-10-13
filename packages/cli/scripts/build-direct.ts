@@ -259,6 +259,7 @@ async function main(): Promise<void> {
 		root,
 		codesignIdentity,
 		resolve(import.meta.dir, "direct-runtime.entitlements.plist"),
+		process.argv.includes("--development-preview"),
 	);
 	const actualRuntime = JSON.parse(
 		(

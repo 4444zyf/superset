@@ -4,6 +4,12 @@ on:
   push:
     branches: ["release/ssh-preview-*"]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish verified downloads as a GitHub prerelease"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -13,7 +19,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  direct-arm64:
+    uses: ./.github/workflows/build-direct-preview.yml
+    with:
+      target: darwin-arm64
+
+  direct-x64:
+    uses: ./.github/workflows/build-direct-preview.yml
+    with:
+      target: darwin-x64
+
   build:
+    needs: [direct-arm64, direct-x64]
     name: Preview DMG (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -28,7 +45,6 @@ jobs:
     env:
       TARGET_PLATFORM: darwin
       TARGET_ARCH: ${{ matrix.arch }}
-      SUPERSET_DIRECT_DEVELOPMENT_PACKAGE: "1"
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -39,6 +55,17 @@ jobs:
           bun-version-file: .bun-version
       - name: Install pinned dependencies
         run: bun install --frozen --ignore-scripts
+      - name: Pin preview public keys from the native build jobs
+        env:
+          ARM64_KEYS_JSON: ${{ needs.direct-arm64.outputs.public_keys_json }}
+          X64_KEYS_JSON: ${{ needs.direct-x64.outputs.public_keys_json }}
+        run: |
+          set -euo pipefail
+          node -e '
+            const fs = require("node:fs");
+            const keys = {...JSON.parse(process.env.ARM64_KEYS_JSON), ...JSON.parse(process.env.X64_KEYS_JSON)};
+            fs.appendFileSync(process.env.GITHUB_ENV, "DIRECT_RELEASE_PUBLIC_KEYS_JSON=" + JSON.stringify(keys) + "\n");
+          '
       - name: Check unified versions
         run: bun run check:versions
       - name: Rebuild native modules on the matching Mac architecture
@@ -47,7 +74,29 @@ jobs:
       - name: Compile the accountless desktop
         working-directory: apps/desktop
         run: bun run compile:app
-      - name: Build explicit development DMG
+      - name: Download signed arm64 backend
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: direct-backend-ssh-preview-darwin-arm64
+          path: .direct-release-artifacts/darwin-arm64
+      - name: Download signed x64 backend
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: direct-backend-ssh-preview-darwin-x64
+          path: .direct-release-artifacts/darwin-x64
+      - name: Stage complete independently trusted backend resources
+        run: bun run --cwd packages/cli stage:direct-resources --input-dir=../../.direct-release-artifacts --resources-dir=../../apps/desktop/dist/resources
+      - name: Prepare Electron for the fresh Mac installation acceptance
+        working-directory: apps/desktop
+        run: node node_modules/electron/install.js
+      - name: Verify fresh Mac SSH upload, install, launchd and reconnect before packaging
+        working-directory: apps/desktop
+        run: |
+          set -euo pipefail
+          preview_electron=$(node -p 'require("electron")')
+          preview_loader=$(cd ../../packages/direct-connection/node_modules/tsx/dist && pwd)/loader.mjs
+          ELECTRON_RUN_AS_NODE=1 "$preview_electron" --import "$preview_loader" scripts/verify-direct-ssh-install.mts dist/resources --stage
+      - name: Build preview DMG with automatic remote installation
         working-directory: apps/desktop
         run: bun run package -- --publish never --config electron-builder.preview.ts --${{ matrix.arch }}
       - name: Verify actual DMG, isolated app identity and native SQLite/PTY
@@ -67,10 +116,12 @@ jobs:
             apps/desktop/release/*.dmg
             apps/desktop/release/SHA256SUMS-*.txt
             apps/desktop/release/SOURCE-*.txt
+            apps/desktop/release/SSH-INSTALL-*.json
           if-no-files-found: error
           retention-days: 14
 
   release:
+    if: github.event_name == 'push' || inputs.publish
     name: Publish verified preview downloads
     needs: build
     runs-on: ubuntu-latest

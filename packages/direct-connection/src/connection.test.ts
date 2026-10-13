@@ -68,6 +68,10 @@ function fixture(
 		forward?: SshRuntime["forward"];
 		rpcBody?: ReadableStream<Uint8Array>;
 		local?: Pick<LocalBackend, "test" | "connect">;
+		runtime?: SshRuntime;
+		install?: ConstructorParameters<
+			typeof DirectConnectionManager
+		>[0]["install"];
 	} = {},
 ) {
 	const db = new Database(":memory:");
@@ -99,8 +103,9 @@ function fixture(
 	const requests: { url: string; authorization: string | null }[] = [];
 	const manager = new DirectConnectionManager({
 		registry,
-		runtime,
+		runtime: options.runtime ?? runtime,
 		local: options.local,
+		install: options.install,
 		fetch: async (input, init) => {
 			requests.push({
 				url: String(input),
@@ -121,6 +126,58 @@ function fixture(
 }
 
 describe("direct connections", () => {
+	test("the first explicit connection installs a missing backend before forwarding and reuses it on reconnect", async () => {
+		let installed = false;
+		const events: string[] = [];
+		const f = fixture({
+			runtime: {
+				exec: async (_profile, command) => {
+					if (command.includes("uname"))
+						return {
+							exitCode: 0,
+							stderr: "",
+							stdout: [
+								"Darwin",
+								"arm64",
+								"501",
+								"alice",
+								"/Users/alice",
+								"",
+							].join("\0"),
+						};
+					return {
+						exitCode: installed ? 0 : 1,
+						stderr: "",
+						stdout: installed ? `${JSON.stringify(descriptor)}\n${secret}` : "",
+					};
+				},
+				upload: async () => {},
+				forward: async () => {
+					events.push("forward");
+					return { url: "http://127.0.0.1:12345", close() {} };
+				},
+			},
+			install: async (target) => {
+				expect(target.id).toBe("mac");
+				expect(f.manager.getStatus("mac").state).toBe("installing");
+				events.push("install");
+				installed = true;
+			},
+		});
+		try {
+			expect((await f.manager.test("mac")).installed).toBe(false);
+			expect(events).toEqual([]);
+			await f.manager.connect("mac");
+			expect(f.manager.getStatus("mac").state).toBe("ready");
+			expect(events).toEqual(["install", "forward"]);
+			f.manager.disconnect("mac");
+			await f.manager.connect("mac");
+			expect(events).toEqual(["install", "forward", "forward"]);
+		} finally {
+			f.manager.dispose();
+			f.registry.close();
+		}
+	});
 	test.each([
 		["ssh: connect to host mini port 22: Connection timed out", true],
 		["alice@mini: Permission denied (publickey).", false],

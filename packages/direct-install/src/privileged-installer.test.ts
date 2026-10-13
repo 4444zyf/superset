@@ -23,6 +23,39 @@ afterEach(() => {
 	for (const root of roots.splice(0))
 		rmSync(root, { recursive: true, force: true });
 });
+test.skipIf(!process.getuid?.())(
+	"the unprivileged installer reads a large request from stdin",
+	async () => {
+		const child = Bun.spawn(
+			[
+				process.execPath,
+				join(import.meta.dirname, "privileged-installer.ts"),
+				"--disabled-user",
+				"-",
+			],
+			{
+				stdin: new Blob([
+					JSON.stringify({
+						request: {
+							probe: { uid: process.getuid?.(), userHome: temporary() },
+							manifestBase64: "entry".repeat(300000),
+						},
+					}),
+				]),
+				stdout: "pipe",
+				stderr: "pipe",
+			},
+		);
+		const [status, stdout, stderr] = await Promise.all([
+			child.exited,
+			new Response(child.stdout).text(),
+			new Response(child.stderr).text(),
+		]);
+		expect(stderr).toBe("");
+		expect(status).toBe(0);
+		expect(JSON.parse(stdout)).toEqual({ disabled: false });
+	},
+);
 test("serializes installation mutations and releases on completion", () => {
 	const path = join(temporary(), "install.lock");
 	const release = acquireInstallerLock(path);

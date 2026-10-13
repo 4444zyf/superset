@@ -46,7 +46,9 @@ if (import.meta.main) {
 		resourcesDir: resolve(import.meta.dirname, "../dist/resources"),
 		expectedVersion: version,
 		keysJson: process.env.DIRECT_RELEASE_PUBLIC_KEYS_JSON,
-		developmentPackage: process.env.SUPERSET_DIRECT_DEVELOPMENT_PACKAGE === "1",
+		developmentPackage:
+			!process.argv.includes("--require-signed") &&
+			process.env.SUPERSET_DIRECT_DEVELOPMENT_PACKAGE === "1",
 	});
 	console.log(
 		`[direct-resources] ${mode === "signed" ? "complete independently trusted backend resources verified" : "explicit development package: managed Mac deployment is unavailable"}`,

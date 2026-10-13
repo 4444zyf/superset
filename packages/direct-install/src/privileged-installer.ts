@@ -236,6 +236,9 @@ function rootDirectory(path: string): void {
 		throw new Error(
 			"Installation directories must be root-owned and not writable by other users",
 		);
+	// The bootstrap uses umask 077, so mkdir's requested 0755 becomes 0700.
+	// Verified runtime directories must be traversable by the service UID.
+	chmodSync(path, 0o755);
 }
 function makeRuntimeReadable(path: string): void {
 	chmodSync(path, 0o755);
@@ -255,14 +258,9 @@ function userCommand(
 	);
 	return execFileSync(
 		join(releaseRoot, "lib/node"),
-		[
-			join(releaseRoot, "lib/direct-installer.js"),
-			flag,
-			Buffer.from(JSON.stringify({ request, releaseRoot, extra })).toString(
-				"base64",
-			),
-		],
+		[join(releaseRoot, "lib/direct-installer.js"), flag, "-"],
 		{
+			input: JSON.stringify({ request, releaseRoot, extra }),
 			uid: request.probe.uid,
 			gid,
 			encoding: "utf8",
@@ -514,7 +512,9 @@ async function main(): Promise<void> {
 		process.stdout.write(`SUPERSET_DIRECT_INSTALL=${JSON.stringify(result)}\n`);
 	} else {
 		const input = JSON.parse(
-			Buffer.from(argument, "base64").toString("utf8"),
+			argument === "-"
+				? readFileSync(0, "utf8")
+				: Buffer.from(argument, "base64").toString("utf8"),
 		) as { request: InstallerRequest; releaseRoot: string; extra: unknown };
 		if (
 			flag !== "--smoke-user" &&

@@ -15,7 +15,7 @@ async function verify() {
 	assert.equal(metadata.name, "superset-ssh-preview");
 	assert.equal(metadata.version, version);
 	for (const name of ["direct-backend", "direct-release-keys.json"]) {
-		assert.equal(fs.existsSync(path.join(resources, "resources", name)), false);
+		assert.equal(fs.existsSync(path.join(resources, "resources", name)), true);
 		assert.equal(fs.existsSync(path.join(asar, "dist/resources", name)), false);
 	}
 	for (const name of [
@@ -87,7 +87,7 @@ async function verify() {
 			abi: process.versions.modules,
 			nativeSQLite: "pass",
 			nativePty: "pass",
-			managedBackendResources: false,
+			managedBackendResources: true,
 		}),
 	);
 }

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { join, posix } from "node:path";
+import { authorizeRemoteScript } from "./authorization";
 import { buildBootstrapReader } from "./bootstrap-reader";
 import { assertReleaseCapacity, parseDiskFreeBytes } from "./capacity";
 import { buildIncomingAdmission, incomingReservationBytes } from "./incoming";
@@ -17,6 +18,9 @@ export interface RemoteCommandResult {
 export interface RemoteTransport {
 	exec(command: string, stdin?: string): Promise<RemoteCommandResult>;
 	upload(localPath: string, remotePath: string): Promise<void>;
+	uploadFiles?(
+		files: readonly { localPath: string; remotePath: string }[],
+	): Promise<void>;
 }
 export interface RemoteBackendProbe {
 	target: "darwin-arm64" | "darwin-x64";
@@ -120,7 +124,9 @@ installerDigest=$(/usr/bin/shasum -a 256 "$payload/lib/direct-installer.js")
 [ "${"$"}{nodeDigest%% *}" = '${input.nodeDigest}' ] || { echo 'Node digest mismatch' >&2; exit 65; }
 [ "${"$"}{installerDigest%% *}" = '${input.installerDigest}' ] || { echo 'Installer digest mismatch' >&2; exit 65; }
 /bin/chmod 755 "$payload/lib/node"
-/usr/bin/printf '%s' '${input.requestBase64}' | /usr/bin/base64 -D > "$work/request.json"
+/usr/bin/base64 -D > "$work/request.json" <<'SUPERSET_DIRECT_REQUEST'
+${input.requestBase64.match(/.{1,76}/g)?.join("\n")}
+SUPERSET_DIRECT_REQUEST
 /usr/bin/env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin HOME=/var/root "$payload/lib/node" "$payload/lib/direct-installer.js" --install "$payload" "$work/request.json"
 `;
 }
@@ -201,11 +207,15 @@ export async function installRemoteBackend(
 			if (created.exitCode !== 0)
 				throw new Error("Could not create the private upload directory");
 		}
-		for (const path of paths)
-			await options.transport.upload(
-				join(options.releaseRoot, path),
-				`${incoming}/${path}`,
-			);
+		const files = paths.map((path) => ({
+			localPath: join(options.releaseRoot, path),
+			remotePath: `${incoming}/${path}`,
+		}));
+		if (options.transport.uploadFiles)
+			await options.transport.uploadFiles(files);
+		else
+			for (const file of files)
+				await options.transport.upload(file.localPath, file.remotePath);
 		const node = verified.manifest.files.find(
 			(file) => file.path === "lib/node",
 		);
@@ -237,19 +247,13 @@ export async function installRemoteBackend(
 		});
 		let result: RemoteCommandResult;
 		if (options.authorize) result = await options.authorize(script);
-		else if (options.password !== undefined) {
-			if (
-				options.password.includes("\r") ||
-				options.password.includes("\n") ||
-				options.password.includes("\0")
-			)
-				throw new Error("Invalid administrator password input");
-			const pipeline = `/usr/bin/printf '%s' ${quote(Buffer.from(script).toString("base64"))} | /usr/bin/base64 -D | /bin/sh`;
-			result = await options.transport.exec(
-				`/usr/bin/sudo -S -p '' /bin/sh -c ${quote(pipeline)}`,
-				`${options.password}\n`,
+		else if (options.password !== undefined)
+			result = await authorizeRemoteScript(
+				options.transport,
+				script,
+				options.password,
 			);
-		} else
+		else
 			result = await options.transport.exec(
 				"/usr/bin/sudo -n /bin/sh -s",
 				script,
@@ -259,15 +263,21 @@ export async function installRemoteBackend(
 				result.exitCode === 77 ||
 					/sudo|password|administrator/i.test(result.stderr)
 					? "Administrator authorization is required to install the macOS background service"
-					: "The verified backend installer failed; the previous service was preserved",
+					: `The verified backend installer failed; the previous service was preserved: ${result.stderr.trim().slice(0, 2048) || `exit ${result.exitCode}`}`,
 			);
 		const marker = result.stdout
 			.split("\n")
 			.find((line) => line.startsWith("SUPERSET_DIRECT_INSTALL="));
 		if (!marker) throw new Error("The installer returned no committed result");
-		const installed = JSON.parse(
-			marker.slice("SUPERSET_DIRECT_INSTALL=".length),
-		) as InstallResult;
+		const payload = marker.slice("SUPERSET_DIRECT_INSTALL=".length);
+		let installed: InstallResult;
+		try {
+			installed = JSON.parse(payload) as InstallResult;
+		} catch {
+			throw new Error(
+				`The installer returned an incomplete committed result (${Buffer.byteLength(payload)} result bytes in ${Buffer.byteLength(result.stdout)} stdout bytes)`,
+			);
+		}
 		if (
 			installed.releaseId !== verified.releaseId ||
 			!["installed", "already-installed", "staged"].includes(

@@ -102,4 +102,5 @@ jobs:
           name: direct-backend-${{ inputs.artifact_prefix }}-${{ matrix.target }}
           path: packages/cli/dist/superset-direct-${{ matrix.target }}/
           retention-days: ${{ inputs.artifact_retention_days }}
+          include-hidden-files: true
           if-no-files-found: error
