@@ -37,10 +37,17 @@ Technical names are deliberately preserved. This includes `@superset/*`, CLI `su
 
 ## Assets and evidence
 
-Editable mother artwork, exports and generation instructions are in [assets/branding](../../assets/branding/README.md). Provider and integration assets are unchanged. All 17 supported locales have the new notice/About/menu copy; the product name stays untranslated. Root legal terms and upstream author metadata remain original.
+Canonical artwork masters, exports and generation instructions are in [assets/branding](../../assets/branding/README.md). Provider and integration assets are unchanged. All 17 supported locales have the new notice/About/menu copy; the product name stays untranslated. Root legal terms and upstream author metadata remain original.
 
 The equivalent baseline is the actual old 1.37.3 preview inspected in [native run 38341584803](https://github.com/4444zyf/superset/actions/runs/38341584803), including its original Workstation screenshot. The old source is historical evidence; it is not an upgrade fixture under the fresh-data policy.
 
 `verify-brand-ui.mjs` drives the real packaged Electron renderer with CDP. It checks source path and package identity, fresh user/session data paths, actual version/title, minimum-window About/name layout, real navigation and About clicks, byte-identical offline license, scroll, Escape close, single-instance behavior and app reopen. It captures seven screenshots plus numeric observations. Source-mode Linux execution is explicitly marked separately and never substitutes for native DMG acceptance. The native SSH installation checks remain mandatory before and after packaging.
 
 Both final native DMGs passed in [run 38347760341](https://github.com/4444zyf/superset/actions/runs/38347760341), source `2f71640cedd4155781dbb9e87a4baaaf6c956a87`. Packaged screenshots/measurements were downloaded and inspected for both architectures. Validation results and source/download links are recorded in [implementation notes](../implementation/fork-branding-2026-10-13.md). A surface marked unpublished above is not represented as a completed fork deployment.
+
+
+## App icon redesign (2026-10-13)
+
+The app icon now uses a white and blue-violet folded S on a dark rounded-square tile. The same silhouette supplies the monochrome application and menu-bar marks. Canonical image-generation masters are retained in `assets/branding`; the existing pinned generator exports all PNG sizes, ICNS/ICO containers, channel variants, wordmarks and renderer mask metadata. No provider or agent logos change.
+
+The 29 generated resources passed byte-for-byte checks. PNG proofs and the tray template have transparent corners. Actual source-renderer screenshots confirmed the new sidebar/About mark, minimum-size layout, license access, quit/reopen and single-instance behavior. Native packaged macOS verification is recorded independently with its frozen source SHA, rather than treating this source render as DMG proof.

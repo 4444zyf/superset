@@ -9,12 +9,18 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const brand = JSON.parse(
 	readFileSync(resolve(root, "packages/shared/src/product-brand.json"), "utf8"),
 );
-const mark = readFileSync(resolve(root, "assets/branding/mark.svg"), "utf8");
-const paths = [...mark.matchAll(/<path d="([^"]+)"\/>/g)].map(
-	(match) => match[1],
+const appSource = readFileSync(
+	resolve(root, "assets/branding/app-icon-source.png"),
 );
-assert.equal(paths.length, 3);
-const geometry = paths.map((d) => `<path d="${d}"/>`).join("");
+const markSource = readFileSync(
+	resolve(root, "assets/branding/mark-source.png"),
+);
+const compactMask = await sharp(markSource).resize(128, 128).png().toBuffer();
+const maskDataUri = `data:image/png;base64,${compactMask.toString("base64")}`;
+const iconDataUri = `data:image/png;base64,${appSource.toString("base64")}`;
+const maskedMark = (id, color = "currentColor") =>
+	`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="32" height="32" style="mask-type:luminance"><image width="32" height="32" href="${maskDataUri}"/></mask></defs><rect width="32" height="32" fill="${color}" mask="url(#${id})"/>`;
+const mark = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">${maskedMark("brand-mark")}</svg>\n`;
 const escapedName = brand.displayName
 	.replaceAll("&", "&amp;")
 	.replaceAll("<", "&lt;")
@@ -23,10 +29,11 @@ const outputs = new Map();
 const svg = (body, width = 1024, height = width) =>
 	`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${body}</svg>\n`;
 const wordmark = svg(
-	`<g transform="translate(0 8) scale(2.5)" fill="#ededef">${geometry}</g><text x="100" y="65" fill="#ededef" font-family="Inter,Arial,sans-serif" font-size="44" font-weight="600">${escapedName}</text>`,
+	`<g transform="translate(0 8) scale(2.5)">${maskedMark("wordmark", "#ededef")}</g><text x="100" y="65" fill="#ededef" font-family="Inter,Arial,sans-serif" font-size="44" font-weight="600">${escapedName}</text>`,
 	600,
 	96,
 );
+outputs.set("assets/branding/mark.svg", mark);
 outputs.set("assets/branding/wordmark.svg", wordmark);
 outputs.set(
 	"apps/desktop/src/renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/assets/superset-empty-state-wordmark.svg",
@@ -34,7 +41,7 @@ outputs.set(
 );
 outputs.set(
 	"packages/shared/src/product-brand-mark.json",
-	`${JSON.stringify({ viewBox: "0 0 32 32", paths }, null, "\t")}\n`,
+	`${JSON.stringify({ viewBox: "0 0 32 32", maskDataUri }, null, "\t")}\n`,
 );
 for (const [theme, color] of [
 	["light", "#ededef"],
@@ -42,7 +49,7 @@ for (const [theme, color] of [
 ])
 	outputs.set(
 		`assets/branding/mark-${theme}.svg`,
-		mark.replace('fill="currentColor"', `fill="${color}"`),
+		svg(maskedMark(`mark-${theme}`, color), 32),
 	);
 function icns(images) {
 	const chunks = images.map(([type, bytes]) => {
@@ -81,7 +88,7 @@ for (const channel of ["", "-dev", "-canary"]) {
 		? `<circle cx="805" cy="215" r="76" fill="#b9adff"/><text x="805" y="240" fill="#17181b" font-family="Arial,sans-serif" text-anchor="middle" font-size="72" font-weight="700">${channel === "-dev" ? "D" : "C"}</text>`
 		: "";
 	const master = svg(
-		`<defs><linearGradient id="tile" x2="0" y2="1"><stop stop-color="#24252b"/><stop offset="1" stop-color="#121316"/></linearGradient></defs><rect x="100" y="100" width="824" height="824" rx="184" fill="url(#tile)"/><g transform="translate(128 128) scale(24)" fill="#ededef">${geometry}</g>${badge}`,
+		`<image width="1024" height="1024" href="${iconDataUri}"/>${badge}`,
 	);
 	outputs.set(`assets/branding/app-icon${channel}.svg`, master);
 	const sizes = [16, 24, 32, 48, 64, 128, 256, 512, 1024];
@@ -119,7 +126,7 @@ for (const channel of ["", "-dev", "-canary"]) {
 		for (const size of [16, 24, 32, 128, 1024])
 			outputs.set(`assets/branding/icon-${size}.png`, pngs.get(size));
 }
-const tray = svg(`<g fill="#000">${geometry}</g>`, 32);
+const tray = svg(maskedMark("tray", "#000"), 32);
 outputs.set(
 	"apps/desktop/src/resources/tray/iconTemplate.png",
 	await sharp(Buffer.from(tray)).resize(32, 32).png().toBuffer(),
