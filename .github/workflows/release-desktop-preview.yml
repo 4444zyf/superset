@@ -111,6 +111,14 @@ jobs:
           printf '%s\n' "$GITHUB_SHA" > "SOURCE-${TARGET_ARCH}.txt"
           cp ../../../LICENSE.md ../../../FORK_NOTICE.md .
           zip -r "BRAND-${TARGET_ARCH}.zip" "BRAND-${TARGET_ARCH}"
+      - name: Upload actual packaged UI evidence for inspection
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: brand-ui-evidence-${{ matrix.arch }}
+          path: apps/desktop/release/BRAND-${{ matrix.arch }}/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload only verified DMG and provenance
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

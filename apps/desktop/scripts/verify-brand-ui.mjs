@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	realpathSync,
+	writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -17,6 +23,7 @@ const brand = JSON.parse(
 	readFileSync(join(root, "packages/shared/src/product-brand.json"), "utf8"),
 );
 const application = resolve(process.argv[2]);
+const canonicalApplication = realpathSync(application);
 const output = resolve(process.argv[3]);
 const version = JSON.parse(
 	readFileSync(join(root, "apps/desktop/package.json"), "utf8"),
@@ -207,10 +214,21 @@ async function screenshot(name) {
 async function attach() {
 	const renderer = await target(
 		19392,
-		(entry) =>
-			entry.type === "page" &&
-			entry.url.startsWith("file:") &&
-			decodeURI(entry.url).includes(application),
+		(entry) => {
+			if (entry.type !== "page" || !entry.url.startsWith("file:")) return false;
+			try {
+				const marker = sourceTest
+					? "/dist/renderer/"
+					: "/Contents/Resources/app.asar/";
+				const rootPath = fileURLToPath(entry.url).split(marker);
+				return (
+					rootPath.length === 2 &&
+					realpathSync(rootPath[0]) === canonicalApplication
+				);
+			} catch {
+				return false;
+			}
+		},
 		child,
 	);
 	main = await connect(
@@ -219,10 +237,20 @@ async function attach() {
 	const metadata = await until(() =>
 		main.evaluate(`(() => {
  const {app, BrowserWindow} = ${electron};
- if (!app?.isReady() || !app.getAppPath().startsWith(${JSON.stringify(application)}) || !BrowserWindow.getAllWindows().length) return null;
+ if (!app?.isReady() || !BrowserWindow.getAllWindows().length) return null;
  const fs = process.getBuiltinModule('fs');
  const metadata = JSON.parse(fs.readFileSync(app.getAppPath() + '/package.json', 'utf8'));
  return {name:app.getName(), version:app.getVersion(), packaged:app.isPackaged, appPath:app.getAppPath(), userData:app.getPath('userData'), sessionData:app.getPath('sessionData'), appData:app.getPath('appData'), metadata}; })()`),
+	);
+	writeFileSync(
+		join(output, "observed-identity.json"),
+		`${JSON.stringify(metadata, null, 2)}\n`,
+	);
+	assert.equal(
+		realpathSync(metadata.appPath),
+		sourceTest
+			? canonicalApplication
+			: join(canonicalApplication, "Contents/Resources/app.asar"),
 	);
 	assert.equal(metadata.packaged, !sourceTest);
 	assert.equal(metadata.name, brand.displayName);
@@ -355,6 +383,13 @@ try {
 		`::notice::${JSON.stringify({ brand: brand.displayName, version, profile, sourceTest, singleInstance: true, reopen: true, offlineLicense: true, screenshots: 7 })}`,
 	);
 } finally {
+	if (main) {
+		try {
+			await main.evaluate(
+				`setTimeout(() => ${electron}.app.quit(), 100); true`,
+			);
+		} catch {}
+	}
 	writeFileSync(
 		join(output, "application-log.txt"),
 		[...children].map((owned) => owned.log).join("\n"),
@@ -364,4 +399,14 @@ try {
 	for (const owned of children) {
 		if (owned.exitCode === null) owned.kill("SIGTERM");
 	}
+	await Promise.all(
+		[...children].map(async (owned) => {
+			if (owned.exitCode === null)
+				await Promise.race([
+					new Promise((resolve) => owned.once("close", resolve)),
+					delay(3000),
+				]);
+			if (owned.exitCode === null) owned.kill("SIGKILL");
+		}),
+	);
 }
