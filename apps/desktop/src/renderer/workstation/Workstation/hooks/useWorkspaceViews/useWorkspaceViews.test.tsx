@@ -89,3 +89,93 @@ test("successful manual restore reloads the main process auto-connect decision",
 		expect(hook.result.current.view?.targets[0]?.autoConnect).toBe(true),
 	);
 });
+
+test("upstream tab reorder and rename persist without changing execution ownership", async () => {
+	let backing: WorkspaceViewSnapshot = {
+		schemaVersion: 1,
+		revision: 1,
+		updatedAt: 1,
+		restoreOnLaunch: false,
+		activeConnectionId: "mac",
+		window: { x: 0, y: 0, width: 1200, height: 900, maximized: false },
+		targets: [
+			{
+				connectionId: "mac",
+				targetRevision: 1,
+				backendId: "backend",
+				namespaceId: "namespace",
+				serviceUid: 501,
+				autoConnect: false,
+				activeTabId: "a",
+				workspaces: ["a", "b"].map((id) => ({
+					tabId: id,
+					workspaceId: `workspace-${id}`,
+					label: id,
+					activeTool: "terminal" as const,
+					activePaneId: `pane-${id}`,
+					panes: [
+						{
+							paneId: `pane-${id}`,
+							kind: "terminal" as const,
+							resourceId: `session-${id}`,
+							executionId: `exec-${id}`,
+						},
+					],
+					layout: { type: "pane" as const, paneId: `pane-${id}` },
+				})),
+			},
+		],
+	};
+	const original = structuredClone(backing.targets[0]!.workspaces);
+	const api = {
+		getWorkspaceView: async () => ({
+			snapshot: structuredClone(backing),
+			revision: backing.revision,
+			invalid: false,
+			navigationRevision: 0,
+		}),
+		saveWorkspaceView: async ({
+			view,
+			expectedRevision,
+		}: Parameters<
+			NonNullable<DirectWorkstationApi["saveWorkspaceView"]>
+		>[0]) => {
+			expect(expectedRevision).toBe(backing.revision);
+			backing = {
+				...view,
+				schemaVersion: 1,
+				revision: backing.revision + 1,
+				updatedAt: 1,
+			};
+			return structuredClone(backing);
+		},
+		beginWorkspaceRestore: async () => {
+			throw new Error("Disabled restore must not connect");
+		},
+	} as unknown as DirectWorkstationApi;
+	const hook = renderHook(() =>
+		useWorkspaceViews(api, null, {
+			onSkeleton: () => {},
+			onDescriptor: async () => {},
+			onForget: () => {},
+			onError: (message) => {
+				throw new Error(message);
+			},
+		}),
+	);
+	await waitFor(() => expect(hook.result.current.view?.revision).toBe(1));
+	await act(async () => {
+		await hook.result.current.reorderTab("b", 0);
+		await hook.result.current.renameTab("a", "Claude");
+	});
+	expect(backing.targets[0]!.workspaces.map((w) => w.tabId)).toEqual([
+		"b",
+		"a",
+	]);
+	expect(backing.targets[0]!.activeTabId).toBe("a");
+	expect(backing.targets[0]!.workspaces[1]!.label).toBe("Claude");
+	for (const w of backing.targets[0]!.workspaces) {
+		expect(w.workspaceId).toBe(`workspace-${w.tabId}`);
+		expect(w.panes).toEqual(original.find((o) => o.tabId === w.tabId)!.panes);
+	}
+});

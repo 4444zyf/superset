@@ -66,6 +66,10 @@ export interface PaneTitleSource {
 }
 
 export interface PaneDefinition<TData> {
+	canDrop?(
+		item: { paneId?: string; tabId?: string; store?: unknown },
+		context: RendererContext<TData>,
+	): boolean;
 	renderPane(context: RendererContext<TData>): ReactNode;
 	getTitle?(pane: Pane<TData>): string | undefined;
 	/**

@@ -17,6 +17,7 @@ import type {
 import { RemoteChat } from "../RemoteChat/RemoteChat";
 import { RemoteFiles } from "../RemoteFiles/RemoteFiles";
 import { RemoteTerminal } from "../RemoteTerminal/RemoteTerminal";
+import { WorkspacePortControls } from "../WorkspacePortControls";
 
 export function WorkspaceEditor({
 	api,
@@ -219,39 +220,12 @@ export function WorkspaceEditor({
 									onError={onError}
 								/>
 							)}
-							<form
-								className="ws-port-form"
-								onSubmit={(e) => {
-									e.preventDefault();
-									onOpenPort(Number(new FormData(e.currentTarget).get("port")));
-								}}
-							>
-								<label className="ws-field">
-									<Trans>Port</Trans>
-									<input
-										name="port"
-										type="number"
-										min={1}
-										max={65535}
-										required
-									/>
-								</label>
-								<button className="ws-button" type="submit" disabled={busy}>
-									<Trans>Open port</Trans>
-								</button>
-							</form>
-							{forward && (
-								<div className="ws-service-actions">
-									<code>{forward.url}</code>
-									<button
-										type="button"
-										className="ws-button small"
-										onClick={onClosePort}
-									>
-										<Trans>Close</Trans>
-									</button>
-								</div>
-							)}
+							<WorkspacePortControls
+								busy={busy}
+								forward={forward}
+								onOpenPort={onOpenPort}
+								onClosePort={onClosePort}
+							/>
 						</div>
 					}
 				</div>

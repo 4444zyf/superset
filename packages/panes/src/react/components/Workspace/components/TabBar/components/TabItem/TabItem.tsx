@@ -22,6 +22,7 @@ import { TabRenameInput } from "./components/TabRenameInput";
 export const TAB_DRAG_TYPE = "tab";
 
 interface TabItemProps<TData> {
+	canDropPane?: (item: { paneId?: string; store?: unknown }) => boolean;
 	tab: Tab<TData>;
 	tabs: Tab<TData>[];
 	store?: unknown;
@@ -38,6 +39,7 @@ interface TabItemProps<TData> {
 }
 
 export function TabItem<TData>({
+	canDropPane,
 	tab,
 	tabs,
 	store,
@@ -93,14 +95,17 @@ export function TabItem<TData>({
 	const [{ isOver: isPaneOver }, connectPaneDrop] = useDrop(
 		() => ({
 			accept: PANE_DRAG_TYPE,
-			hover: () => {
+			canDrop: (item: { paneId?: string; store?: unknown }) =>
+				canDropPane?.(item) ?? true,
+			hover: (item: { paneId?: string; store?: unknown }) => {
+				if (canDropPane && !canDropPane(item)) return;
 				if (!isActive) onSelect();
 			},
 			collect: (monitor) => ({
 				isOver: monitor.isOver(),
 			}),
 		}),
-		[isActive, onSelect],
+		[isActive, onSelect, canDropPane],
 	);
 
 	const setRef = useCallback(
@@ -119,6 +124,8 @@ export function TabItem<TData>({
 				{/* biome-ignore lint/a11y/useKeyWithClickEvents: tabs are pointer-driven; keyboard nav is out of scope here */}
 				<div
 					ref={setRef}
+					data-tab-id={tab.id}
+					data-active={isActive}
 					className={cn(
 						"group relative flex h-full w-full items-center rounded-t-md transition-colors",
 						isActive

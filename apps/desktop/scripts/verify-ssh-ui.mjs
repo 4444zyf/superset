@@ -9,10 +9,10 @@ import {
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { ownedRestoreControls } from "./verify-restore-controls.mjs";
 import { OpenSshRuntime } from "../../../packages/direct-connection/src/ssh.ts";
 import { createSshFixture } from "../../../packages/direct-connection/src/ssh-fixture.ts";
 import { controlRemoteBackend } from "../../../packages/direct-install/src/lifecycle.ts";
+import { ownedRestoreControls } from "./verify-restore-controls.mjs";
 
 export async function verifySshUi({
 	page,
@@ -65,7 +65,9 @@ export async function verifySshUi({
 			`Host SupersetPerfFixture\n  HostName 127.0.0.1\n  Port ${fixture.profile.port}\n  User ${fixture.profile.user}\n  IdentityFile "${fixture.profile.identityFile}"\n  UserKnownHostsFile "${join(fixture.root, "known_hosts")}"\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n`,
 			{ mode: 0o600, flag: "wx" },
 		);
-		await click('.ws-sidebar nav button[aria-label="SSH machines"]');
+		await click(
+			'[data-slot=sidebar-content] button[aria-label="SSH machines"]',
+		);
 		await click(".ws-heading > button.primary");
 		await type('input[name="name"]', "Performance Mac");
 		await type('input[name="host"]', "SupersetPerfFixture");
@@ -77,7 +79,7 @@ export async function verifySshUi({
 			window.sshUiMeasurement = { started: performance.now(), phases: [] };
 			const observer = new MutationObserver(() => {
 				const current = window.sshUiMeasurement;
-				if (document.querySelector('.ws-sidebar nav button[aria-label="Workspaces"]')?.getAttribute('aria-current') === 'page' && current.workspaceReadyMs === undefined) current.workspaceReadyMs = performance.now() - current.started;
+				if (document.querySelector('[data-slot=sidebar-content] button[aria-label="Workspaces"]')?.getAttribute('aria-current') === 'page' && current.workspaceReadyMs === undefined) current.workspaceReadyMs = performance.now() - current.started;
 				const element = document.querySelector('.ws-setup-progress');
 				if (element) { const current = window.sshUiMeasurement; const label = element.querySelector('p')?.textContent; if (current.phases.at(-1)?.label !== label) current.phases.push({ label, status: element.dataset.setupStatus, elapsedMs: performance.now() - current.started }); }
 			});
@@ -93,14 +95,16 @@ export async function verifySshUi({
 		await screenshot("ssh-install-progress");
 		await until(async () => {
 			const state = await page.evaluate(
-				"({ ready: document.querySelector('.ws-sidebar nav button[aria-label=\"Workspaces\"]')?.getAttribute('aria-current') === 'page', status: document.querySelector('.ws-setup-progress')?.dataset.setupStatus, error: document.querySelector('.ws-error')?.textContent })",
+				"({ ready: document.querySelector('[data-slot=sidebar-content] button[aria-label=\"Workspaces\"]')?.getAttribute('aria-current') === 'page', status: document.querySelector('.ws-setup-progress')?.dataset.setupStatus, error: document.querySelector('.ws-error')?.textContent })",
 			);
 			if (state.status === "failed" || state.error)
 				throw new Error(`SSH UI connection failed: ${state.error}`);
 			return state.ready;
 		});
 		await screenshot("ssh-workspaces-ready");
-		await click('.ws-sidebar nav button[aria-label="SSH machines"]');
+		await click(
+			'[data-slot=sidebar-content] button[aria-label="SSH machines"]',
+		);
 		await until(() =>
 			page.evaluate(
 				"document.querySelector('.ws-setup-progress')?.dataset.setupStatus === 'completed'",
@@ -130,11 +134,13 @@ export async function verifySshUi({
 		await click(".ws-detail-actions button.primary");
 		await until(() =>
 			page.evaluate(
-				"document.querySelector('.ws-sidebar nav button[aria-label=\"Workspaces\"]')?.getAttribute('aria-current') === 'page'",
+				"document.querySelector('[data-slot=sidebar-content] button[aria-label=\"Workspaces\"]')?.getAttribute('aria-current') === 'page'",
 			),
 		);
 		const reconnectMs = performance.now() - reconnectStarted;
-		await click('.ws-sidebar nav button[aria-label="SSH machines"]');
+		await click(
+			'[data-slot=sidebar-content] button[aria-label="SSH machines"]',
+		);
 		await until(() =>
 			page.evaluate(
 				"document.querySelector('.ws-setup-progress')?.dataset.setupStatus === 'completed'",

@@ -1,18 +1,28 @@
 import { Trans, useLingui } from "@lingui/react/macro";
+import { createWorkspaceStore, WorkspaceTabBar } from "@superset/panes";
 import type { RestoreResourceCheck } from "@superset/shared/workspace-restore";
-import { Columns2, Rows2, X } from "lucide-react";
-import { useLayoutEffect, useState } from "react";
+import { Button } from "@superset/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@superset/ui/dropdown-menu";
+import { Columns2, Folder, Rows2 } from "lucide-react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
 import type {
 	TargetView,
+	WorkspacePane,
 	WorkspaceRestoreSnapshot,
 } from "../../../../../shared/workspace-view";
 import type { WorkspaceViewActions } from "../../hooks/useWorkspaceViews/useWorkspaceViews";
 import { RemoteChat } from "../RemoteChat/RemoteChat";
 import { RemoteFiles } from "../RemoteFiles/RemoteFiles";
+import { WorkspacePortControls } from "../WorkspacePortControls";
 import { WorkstationDialog } from "../WorkstationDialog/WorkstationDialog";
 import { PaneGrid } from "./components/PaneGrid/PaneGrid";
 
@@ -27,6 +37,10 @@ export function WorkspaceWindow({
 	onBrowse,
 	onMachines,
 	onError,
+	onNewSession,
+	onRefresh,
+	onPending,
+	ports,
 }: {
 	api: DirectWorkstationApi;
 	target: TargetView;
@@ -35,6 +49,15 @@ export function WorkspaceWindow({
 	resourceRevision: number;
 	restore: WorkspaceRestoreSnapshot | null;
 	actions: WorkspaceViewActions;
+	onNewSession(): void;
+	onRefresh(): void;
+	onPending(): void;
+	ports: {
+		busy: boolean;
+		forward: { id: string; url: string } | null;
+		onOpen(workspaceId: string, port: number): void;
+		onClose(): void;
+	};
 	onBrowse(): void;
 	onMachines(): void;
 	onError(message: string): void;
@@ -44,6 +67,33 @@ export function WorkspaceWindow({
 		if (!performance.getEntriesByName("workspace-layout-visible").length)
 			performance.mark("workspace-layout-visible");
 	}, []);
+	const tabScope = useMemo(
+		() => ({
+			connectionId: target.connectionId,
+			store: createWorkspaceStore<WorkspacePane>(),
+		}),
+		[target.connectionId],
+	);
+	const tabStore = tabScope.store;
+	const tabs = useMemo(
+		() =>
+			target.workspaces.map((w) => ({
+				id: w.tabId,
+				titleOverride: w.label ?? w.workspaceId,
+				createdAt: 0,
+				activePaneId: w.activePaneId,
+				layout: { type: "pane" as const, paneId: w.activePaneId ?? "empty" },
+				panes: {},
+			})),
+		[target.workspaces],
+	);
+	useLayoutEffect(
+		() =>
+			tabStore
+				.getState()
+				.replaceState({ version: 1, tabs, activeTabId: target.activeTabId }),
+		[tabStore, tabs, target.activeTabId],
+	);
 	const [chatPicker, setChatPicker] = useState(false);
 	const workspace = target.workspaces.find(
 		(w) => w.tabId === target.activeTabId,
@@ -53,41 +103,59 @@ export function WorkspaceWindow({
 	return (
 		<div className="ws-workspace-window">
 			<div className="ws-window-toolbar">
-				<button type="button" className="ws-link" onClick={onBrowse}>
+				<Button type="button" variant="ghost" size="sm" onClick={onBrowse}>
 					<Trans>Workspaces</Trans>
-				</button>
-				<button type="button" className="ws-button small" onClick={onMachines}>
+				</Button>
+				<Button type="button" variant="ghost" size="sm" onClick={onMachines}>
 					<Trans>SSH machines</Trans>
-				</button>
+				</Button>
 			</div>
-			<nav className="ws-workspace-tabs" role="tablist">
-				{target.workspaces.map((w) => (
-					<div
-						key={w.tabId}
-						className={w.tabId === target.activeTabId ? "active" : ""}
-					>
-						<button
-							type="button"
-							role="tab"
-							aria-selected={w.tabId === target.activeTabId}
-							onClick={() => {
-								void actions.selectTab(w.tabId);
-							}}
-						>
-							{w.label ?? w.workspaceId}
-						</button>
-						<button
-							type="button"
-							aria-label={t({ message: "Close tab" })}
-							onClick={() => {
-								void actions.closeTab(w.tabId);
-							}}
-						>
-							<X size={12} />
-						</button>
-					</div>
-				))}
-			</nav>
+			<div className="ws-workspace-tabs">
+				<WorkspaceTabBar
+					store={tabStore}
+					tabs={tabs}
+					registry={{}}
+					activeTabId={target.activeTabId}
+					canDropItem={(item) => item.store === tabStore && !!item.tabId}
+					onSelectTab={(id) => {
+						void actions.selectTab(id);
+					}}
+					onCloseTab={(id) => {
+						void actions.closeTab(id);
+					}}
+					onCloseOtherTabs={(id) => {
+						for (const w of target.workspaces)
+							if (w.tabId !== id) void actions.closeTab(w.tabId);
+					}}
+					onCloseAllTabs={() => {
+						for (const w of target.workspaces) void actions.closeTab(w.tabId);
+					}}
+					onRenameTab={(id, label) => {
+						void actions.renameTab(id, label);
+					}}
+					onReorderTab={(id, index) => {
+						void actions.reorderTab(id, index);
+					}}
+					onMovePaneToNewTab={() => {}}
+					renderTabIcon={() => <Folder size={14} />}
+					renderAddTabMenu={() => (
+						<>
+							<DropdownMenuItem
+								disabled={
+									!connection?.capabilities?.sessions ||
+									!connection.capabilities.durableOperations
+								}
+								onSelect={onNewSession}
+							>
+								<Trans>New session</Trans>
+							</DropdownMenuItem>
+							<DropdownMenuItem onSelect={onBrowse}>
+								<Trans>Workspaces</Trans>
+							</DropdownMenuItem>
+						</>
+					)}
+				/>
+			</div>
 			{(!connection || restore?.status === "paused") && (
 				<output className="ws-notice" aria-live="polite">
 					{restoring ? (
@@ -95,24 +163,26 @@ export function WorkspaceWindow({
 					) : (
 						<Trans>Reconnect manually</Trans>
 					)}{" "}
-					<button
+					<Button
 						type="button"
-						className="ws-button small"
+						variant="ghost"
+						size="sm"
 						disabled={restoring}
 						onClick={() => {
 							void actions.restoreManual();
 						}}
 					>
 						<Trans>Retry</Trans>
-					</button>
+					</Button>
 				</output>
 			)}
 			{workspace && (
 				<>
 					<div className="ws-window-toolbar">
-						<button
+						<Button
 							type="button"
-							className="ws-button small"
+							variant="ghost"
+							size="sm"
 							disabled={
 								!connection?.capabilities?.durableOperations || actions.busy
 							}
@@ -121,10 +191,11 @@ export function WorkspaceWindow({
 							}}
 						>
 							<Trans>New terminal</Trans>
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
-							className="ws-button small"
+							variant="ghost"
+							size="sm"
 							aria-label={t({ message: "Split horizontally" })}
 							disabled={
 								!connection?.capabilities?.durableOperations || actions.busy
@@ -135,10 +206,11 @@ export function WorkspaceWindow({
 						>
 							<Columns2 size={14} />
 							<Trans>Split horizontally</Trans>
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
-							className="ws-button small"
+							variant="ghost"
+							size="sm"
 							aria-label={t({ message: "Split vertically" })}
 							disabled={
 								!connection?.capabilities?.durableOperations || actions.busy
@@ -149,20 +221,59 @@ export function WorkspaceWindow({
 						>
 							<Rows2 size={14} />
 							<Trans>Split vertically</Trans>
-						</button>
+						</Button>
 						{connection?.capabilities?.chat && (
-							<button
+							<Button
 								type="button"
-								className="ws-button small"
+								variant="ghost"
+								size="sm"
 								onClick={() => setChatPicker(true)}
 							>
 								<Trans>Chat</Trans>
-							</button>
+							</Button>
+						)}
+						{connection && (
+							<>
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button variant="ghost" size="sm">
+											<Trans>Port</Trans>
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent className="p-3" align="end">
+										<WorkspacePortControls
+											busy={ports.busy}
+											forward={ports.forward}
+											onOpenPort={(port) =>
+												ports.onOpen(workspace.workspaceId, port)
+											}
+											onClosePort={ports.onClose}
+										/>
+									</DropdownMenuContent>
+								</DropdownMenu>
+								<Button
+									variant="ghost"
+									size="sm"
+									disabled={ports.busy}
+									onClick={onRefresh}
+								>
+									<Trans>Refresh</Trans>
+								</Button>
+								<Button
+									variant="ghost"
+									size="sm"
+									disabled={ports.busy}
+									onClick={onPending}
+								>
+									<Trans>Check pending action</Trans>
+								</Button>
+							</>
 						)}
 						{connection?.capabilities?.files && (
-							<button
+							<Button
 								type="button"
-								className="ws-button small"
+								variant="ghost"
+								size="sm"
 								onClick={() => {
 									void actions.setTool(
 										workspace.workspaceId,
@@ -175,7 +286,7 @@ export function WorkspaceWindow({
 								) : (
 									<Trans>Files</Trans>
 								)}
-							</button>
+							</Button>
 						)}
 					</div>
 					{workspace.activeTool === "files" && connection ? (

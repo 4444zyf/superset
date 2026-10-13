@@ -1,6 +1,5 @@
-import { Trans, useLingui } from "@lingui/react/macro";
+import { Trans } from "@lingui/react/macro";
 import type { RestoreResourceCheck } from "@superset/shared/workspace-restore";
-import { X } from "lucide-react";
 import { useState } from "react";
 import type {
 	DirectDescriptor,
@@ -22,8 +21,6 @@ export function WorkspacePaneView({
 	active,
 	allowed,
 	onFocus,
-	onClose,
-	onRename,
 	onChat,
 	onRetry,
 	onAttached,
@@ -38,15 +35,12 @@ export function WorkspacePaneView({
 	active: boolean;
 	allowed: boolean;
 	onFocus(): void;
-	onClose(): void;
-	onRename(label: string): void;
 	onChat(id: string): void;
 	onRetry(): void;
 	onAttached(): void;
 	onFailed(): void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 }) {
-	const { t } = useLingui();
 	const [state, setState] = useState<
 		"pending" | "attached" | "failed" | "ended"
 	>("pending");
@@ -76,41 +70,6 @@ export function WorkspacePaneView({
 				if (!active) onFocus();
 			}}
 		>
-			<header>
-				<input
-					aria-label={t({ message: "Title" })}
-					maxLength={128}
-					defaultValue={
-						pane.label ??
-						(pane.kind === "chat"
-							? t({ message: "Chat" })
-							: t({ message: "Terminal" }))
-					}
-					key={`${pane.paneId}:${pane.label}`}
-					onBlur={(event) => {
-						if (event.currentTarget.value !== pane.label)
-							onRename(event.currentTarget.value);
-					}}
-				/>
-				<span aria-live="polite">
-					{state === "attached" && live ? (
-						<Trans>Connected</Trans>
-					) : state === "ended" || check?.state === "exited" ? (
-						<Trans>Ended</Trans>
-					) : check?.state === "interrupted" ? (
-						<Trans>Interrupted</Trans>
-					) : (
-						<Trans>Reconnecting</Trans>
-					)}
-				</span>
-				<button
-					type="button"
-					aria-label={t({ message: "Close pane" })}
-					onClick={onClose}
-				>
-					<X size={12} />
-				</button>
-			</header>
 			<div className="ws-pane-content">
 				{live && !failed && allowed && connection ? (
 					pane.kind === "terminal" ? (
@@ -160,7 +119,7 @@ export function WorkspacePaneView({
 						/>
 					)
 				) : (
-					<div className="ws-pane-placeholder" role="status">
+					<output className="ws-pane-placeholder">
 						{check?.reason === "execution-changed" ? (
 							<Trans>This terminal was restarted.</Trans>
 						) : state === "ended" || check?.state === "exited" ? (
@@ -175,7 +134,7 @@ export function WorkspacePaneView({
 						<button type="button" className="ws-button small" onClick={onRetry}>
 							<Trans>Retry</Trans>
 						</button>
-					</div>
+					</output>
 				)}
 			</div>
 		</section>

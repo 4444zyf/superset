@@ -33,6 +33,8 @@ export type {
 	WorkspaceProps,
 } from "./react";
 export { resolveTabTitle, useTabTitle, Workspace } from "./react";
+export { Tab as WorkspaceTab } from "./react/components/Workspace/components/Tab";
+export { TabBar as WorkspaceTabBar } from "./react/components/Workspace/components/TabBar";
 export type {
 	LayoutNode,
 	Pane,

@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import { useLingui } from "@lingui/react/macro";
 import { formatNumber } from "@superset/i18n/format";
 import type { RestoreResourceCheck } from "@superset/shared/workspace-restore";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -10,9 +10,9 @@ import {
 	emptyWorkspaceView,
 	type PaneTree,
 	type WorkspacePane,
+	type WorkspaceRestoreSnapshot,
 	type WorkspaceViewInput,
 	type WorkspaceViewSnapshot,
-	type WorkspaceRestoreSnapshot,
 } from "../../../../../shared/workspace-view";
 import type { RemoteWorkspace } from "../../types";
 import {
@@ -354,6 +354,7 @@ export function useWorkspaceViews(
 				setResources(refs.map((r) => ({ ...r, state: "unknown" })));
 		}
 	}, [api]);
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Navigation invalidates pending resource checks even when IDs stay equal.
 	useEffect(() => {
 		if (
 			enabled &&
@@ -526,7 +527,7 @@ export function useWorkspaceViews(
 				if (mounted.current) setBusy(false);
 			}
 		},
-		[addPane, api, busy],
+		[addPane, api],
 	);
 	const saveLayout = useCallback(
 		(workspaceId: string, layout: PaneTree, final: boolean) => {
@@ -648,6 +649,31 @@ export function useWorkspaceViews(
 			return mutate((v) => {
 				const target = v.targets.find((t) => t.connectionId === connectionId);
 				if (target) target.activeTabId = id;
+			});
+		},
+		renameTab: (id: string, label: string | undefined) => {
+			const connectionId = targetId();
+			return mutate((v) => {
+				const workspace = v.targets
+					.find((t) => t.connectionId === connectionId)
+					?.workspaces.find((w) => w.tabId === id);
+				if (workspace) workspace.label = label?.slice(0, 128);
+			});
+		},
+		reorderTab: (id: string, toIndex: number) => {
+			const connectionId = targetId();
+			return mutate((v) => {
+				const target = v.targets.find((t) => t.connectionId === connectionId);
+				if (!target) return;
+				const index = target.workspaces.findIndex((w) => w.tabId === id);
+				if (index < 0) return;
+				const [workspace] = target.workspaces.splice(index, 1);
+				if (workspace)
+					target.workspaces.splice(
+						Math.max(0, Math.min(toIndex, target.workspaces.length)),
+						0,
+						workspace,
+					);
 			});
 		},
 		closeTab: (id: string) => {

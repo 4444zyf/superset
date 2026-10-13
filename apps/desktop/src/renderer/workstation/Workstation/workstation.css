@@ -1,15 +1,15 @@
 .ssh-workstation,
 .workstation-dialog,
 .ws-about {
-	--ws-bg: #17181b;
-	--ws-side: #121316;
-	--ws-panel: #1c1d21;
-	--ws-line: #ffffff0e;
-	--ws-text: #ededef;
-	--ws-muted: #9698a3;
-	--ws-dim: #727580;
-	--ws-accent: #b9adff;
-	--ws-green: #8bd9ae;
+	--ws-bg: var(--background);
+	--ws-side: var(--sidebar);
+	--ws-panel: var(--card);
+	--ws-line: var(--border);
+	--ws-text: var(--foreground);
+	--ws-muted: var(--muted-foreground);
+	--ws-dim: var(--muted-foreground);
+	--ws-accent: var(--sidebar-primary);
+	--ws-green: var(--success);
 	color: var(--ws-text);
 	font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 	font-size: 13px;
@@ -50,125 +50,6 @@
 	align-items: center;
 	gap: 7px;
 }
-.ws-shell {
-	height: calc(100vh - 44px);
-	display: grid;
-	grid-template-columns: 210px minmax(0, 1fr);
-}
-.ws-sidebar {
-	background: var(--ws-side);
-	border-right: 1px solid var(--ws-line);
-	padding: 28px 14px 18px;
-	display: flex;
-	flex-direction: column;
-	gap: 28px;
-	overflow: hidden;
-}
-.ws-brand {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding: 0 12px;
-	font-weight: 650;
-	font-size: 16px;
-	letter-spacing: -0.7px;
-}
-.ws-brand svg {
-	width: 25px;
-	height: 25px;
-	flex-shrink: 0;
-}
-.ws-sidebar nav {
-	display: grid;
-	gap: 5px;
-}
-.ws-sidebar nav button {
-	display: flex;
-	align-items: center;
-	gap: 11px;
-	width: 100%;
-	padding: 11px 12px;
-	border-radius: 7px;
-	text-align: left;
-	color: var(--ws-muted);
-}
-.ws-sidebar nav button.active {
-	color: var(--ws-text);
-	background: #ffffff08;
-}
-.ws-sidebar nav button:hover {
-	background: #ffffff04;
-}
-.ws-sidebar-projects .ws-eyebrow {
-	padding: 0 12px;
-	margin-bottom: 12px;
-}
-.ws-sidebar-projects {
-	flex: 1;
-	min-height: 0;
-	overflow: auto;
-}
-.ws-brand,
-.ws-sidebar nav,
-.ws-sidebar-local,
-.ws-about-button {
-	flex-shrink: 0;
-}
-.ws-sidebar-projects button {
-	display: flex;
-	align-items: center;
-	gap: 9px;
-	width: 100%;
-	color: var(--ws-muted);
-	padding: 9px 12px;
-	font-size: 12px;
-	text-align: left;
-	border-radius: 7px;
-}
-.ws-sidebar-projects button span {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-.ws-sidebar-projects button:hover {
-	color: var(--ws-accent);
-	background: #ffffff03;
-}
-.ws-sidebar-projects svg {
-	flex-shrink: 0;
-	color: var(--ws-accent);
-}
-.ws-sidebar-local {
-	margin-top: auto;
-	padding: 18px 10px 0;
-	border-top: 1px solid var(--ws-line);
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	color: var(--ws-dim);
-}
-.ws-sidebar-local strong {
-	font-size: 11px;
-	color: var(--ws-text);
-	font-weight: 500;
-}
-.ws-sidebar-local p {
-	font-size: 9px;
-	margin-top: 5px;
-	line-height: 1.8;
-}
-.ws-about-button {
-	color: var(--ws-muted);
-	text-align: left;
-	font-size: 11px;
-	padding: 10px;
-	border-radius: 6px;
-}
-.ws-about-button:hover {
-	color: var(--ws-text);
-	background: #ffffff03;
-}
-
 .ws-view-settings {
 	margin-bottom: 16px;
 	color: var(--ws-muted);
@@ -239,35 +120,6 @@
 	min-width: 0;
 	min-height: 0;
 }
-.ws-pane-split {
-	display: flex;
-	width: 100%;
-	height: 100%;
-	min-width: 0;
-	min-height: 0;
-}
-.ws-pane-split.vertical {
-	flex-direction: column;
-}
-.ws-split-child {
-	min-width: 0;
-	min-height: 0;
-	display: flex;
-}
-.ws-pane-separator {
-	flex: 0 0 6px;
-	background: var(--ws-line);
-	touch-action: none;
-	cursor: col-resize;
-}
-.ws-pane-split.vertical > .ws-pane-separator {
-	cursor: row-resize;
-}
-.ws-pane-separator:hover,
-.ws-pane-separator:focus-visible {
-	background: var(--ws-accent);
-	outline: none;
-}
 .ws-workspace-pane {
 	display: flex;
 	flex-direction: column;
@@ -280,29 +132,6 @@
 }
 .ws-workspace-pane[data-active="true"] {
 	border-color: var(--ws-accent);
-}
-.ws-workspace-pane > header {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 6px 8px;
-	border-bottom: 1px solid var(--ws-line);
-	flex-shrink: 0;
-}
-.ws-workspace-pane > header input {
-	min-width: 0;
-	flex: 1;
-	border: 0;
-	background: transparent;
-	color: var(--ws-text);
-	font-size: 12px;
-}
-.ws-workspace-pane > header span {
-	font-size: 10px;
-	color: var(--ws-muted);
-}
-.ws-workspace-pane > header button {
-	padding: 4px;
 }
 .ws-pane-content {
 	flex: 1;
@@ -320,9 +149,6 @@
 	padding: 16px;
 	color: var(--ws-muted);
 	font-size: 12px;
-}
-.ws-brand span {
-	white-space: nowrap;
 }
 .ws-about {
 	background: var(--ws-panel);
@@ -1278,4 +1104,122 @@
 		transition: none;
 		animation: none;
 	}
+}
+
+.ws-shell {
+	display: flex;
+	height: calc(100vh - 44px);
+	min-height: 0;
+}
+.ws-native-sidebar > div[data-slot="sidebar-container"] {
+	position: absolute;
+	top: 44px;
+	bottom: 0;
+	height: auto;
+}
+.ws-native-sidebar svg {
+	flex-shrink: 0;
+}
+.ws-native-sidebar [data-slot="sidebar-header"] svg {
+	width: 24px;
+	height: 24px;
+}
+.ws-main {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	flex: 1;
+	padding: 0;
+	overflow: hidden;
+}
+.ws-native-topbar {
+	display: flex;
+	height: 36px;
+	flex-shrink: 0;
+	align-items: center;
+	gap: 8px;
+	padding: 0 10px;
+	border-bottom: 1px solid var(--border);
+	font-size: 12px;
+	color: var(--muted-foreground);
+}
+.ws-native-topbar > button:last-child {
+	margin-left: auto;
+}
+.ws-main-body {
+	flex: 1;
+	min-width: 0;
+	min-height: 0;
+	padding: 24px;
+	overflow: auto;
+}
+.ws-main-workspace .ws-main-body {
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+	overflow: hidden;
+}
+.ws-main-workspace .ws-content {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	padding: 0;
+	min-height: 0;
+}
+.ws-workspace-window {
+	flex: 1;
+	min-height: 0;
+	gap: 0;
+	overflow: hidden;
+}
+.ws-window-toolbar {
+	padding: 4px 8px;
+	border-bottom: 1px solid var(--border);
+	gap: 2px;
+	flex-shrink: 0;
+}
+.ws-window-toolbar button {
+	font-size: 12px;
+}
+.ws-workspace-tabs {
+	display: block;
+	padding: 0;
+	overflow: visible;
+}
+.ws-workspace-tabs > div {
+	border: 0;
+	border-radius: 0;
+}
+.ws-workspace-tabs button {
+	padding: 0;
+}
+.ws-pane-grid {
+	flex: 1;
+	height: auto;
+	min-height: 0;
+}
+.ws-pane-layout > div {
+	flex: 1;
+	min-width: 0;
+	min-height: 0;
+}
+.ws-workspace-pane {
+	border: 0;
+	border-radius: 0;
+	height: 100%;
+	width: 100%;
+}
+.ws-workspace-pane[data-active="true"] {
+	border: 0;
+}
+.ws-view-settings {
+	margin: 0;
+	padding: 8px;
+}
+.ws-view-settings button {
+	margin: 4px 0;
+}
+.ws-view-settings label {
+	margin: 8px 0;
 }

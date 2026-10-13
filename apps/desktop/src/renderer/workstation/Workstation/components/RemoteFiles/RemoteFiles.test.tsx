@@ -1,5 +1,8 @@
 import { afterEach, expect, test } from "bun:test";
+import { EditorState } from "@codemirror/state";
+import { EditorView } from "@codemirror/view";
 import {
+	act,
 	cleanup,
 	fireEvent,
 	render,
@@ -14,6 +17,27 @@ import type {
 import { RemoteFiles } from "./RemoteFiles";
 
 afterEach(cleanup);
+async function fileEditor() {
+	const element = await screen.findByLabelText("File contents");
+	await waitFor(() =>
+		expect(element.querySelector(".cm-editor")).not.toBeNull(),
+	);
+	return element;
+}
+function contentOf(element: HTMLElement): string {
+	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!);
+	if (!view) throw new Error("Code editor did not mount");
+	return view.state.doc.toString();
+}
+function replaceContent(element: HTMLElement, value: string) {
+	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!);
+	if (!view) throw new Error("Code editor did not mount");
+	act(() =>
+		view.dispatch({
+			changes: { from: 0, to: view.state.doc.length, insert: value },
+		}),
+	);
+}
 
 const connection: DirectDescriptor = {
 	connectionId: "mini",
@@ -108,9 +132,9 @@ test("reads and saves the remote file with an optimistic revision instead of loc
 		/>,
 	);
 	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
-	const editor = await screen.findByLabelText("File contents");
-	expect((editor as HTMLTextAreaElement).value).toBe("remote contents");
-	fireEvent.change(editor, { target: { value: "updated from A" } });
+	const editor = await fileEditor();
+	expect(contentOf(editor)).toBe("remote contents");
+	replaceContent(editor, "updated from A");
 	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
 	await waitFor(() =>
 		expect(calls.some((call) => call.path === "filesystem.writeFile")).toBe(
@@ -151,12 +175,12 @@ test("a concurrent remote edit preserves the user's draft without a blind retry"
 		/>,
 	);
 	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
-	const editor = await screen.findByLabelText("File contents");
-	fireEvent.change(editor, { target: { value: "keep my draft" } });
+	const editor = await fileEditor();
+	replaceContent(editor, "keep my draft");
 	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
 	await waitFor(() => expect(errors).toHaveLength(1));
 	expect(errors[0]).toContain("changed on the remote machine");
-	expect((editor as HTMLTextAreaElement).value).toBe("keep my draft");
+	expect(contentOf(editor)).toBe("keep my draft");
 	expect(
 		calls.filter((call) => call.path === "filesystem.writeFile"),
 	).toHaveLength(1);
@@ -180,8 +204,12 @@ test("a truncated read cannot overwrite the complete remote file", async () => {
 		/>,
 	);
 	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
-	const editor = await screen.findByLabelText("File contents");
-	expect((editor as HTMLTextAreaElement).readOnly).toBe(true);
+	const editor = await fileEditor();
+	expect(
+		EditorView.findFromDOM(editor.querySelector(".cm-editor")!)!.state.facet(
+			EditorState.readOnly,
+		),
+	).toBe(true);
 	expect(
 		(screen.getByRole("button", { name: "Save file" }) as HTMLButtonElement)
 			.disabled,
@@ -234,11 +262,9 @@ test("editing a remote UTF-8 file retains its byte order mark", async () => {
 		/>,
 	);
 	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
-	const editor = (await screen.findByLabelText(
-		"File contents",
-	)) as HTMLTextAreaElement;
-	expect(editor.value).toBe("\uFEFFhello");
-	fireEvent.change(editor, { target: { value: `${editor.value}!` } });
+	const editor = (await fileEditor()) as HTMLElement;
+	expect(contentOf(editor)).toBe("\uFEFFhello");
+	replaceContent(editor, `${contentOf(editor)}!`);
 	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
 	await waitFor(() =>
 		expect(calls.some((call) => call.path === "filesystem.writeFile")).toBe(
@@ -268,10 +294,8 @@ test("editing a remote CRLF file preserves its line endings", async () => {
 		/>,
 	);
 	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
-	const editor = (await screen.findByLabelText(
-		"File contents",
-	)) as HTMLTextAreaElement;
-	fireEvent.change(editor, { target: { value: "one\ntwo changed\n" } });
+	const editor = (await fileEditor()) as HTMLElement;
+	replaceContent(editor, "one\ntwo changed\n");
 	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
 	await waitFor(() =>
 		expect(calls.some((call) => call.path === "filesystem.writeFile")).toBe(

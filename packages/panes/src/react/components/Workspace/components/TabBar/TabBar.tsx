@@ -27,6 +27,11 @@ import { TAB_DRAG_TYPE, TabItem } from "./components/TabItem";
 import { computeInsertIndex, TAB_WIDTH } from "./utils";
 
 interface TabBarProps<TData> {
+	canDropItem?: (item: {
+		tabId?: string;
+		paneId?: string;
+		store?: unknown;
+	}) => boolean;
 	store: StoreApi<WorkspaceStore<TData>>;
 	tabs: Tab<TData>[];
 	registry: PaneRegistry<TData>;
@@ -79,6 +84,7 @@ function AddTabButton<_TData>({
 }
 
 export function TabBar<TData>({
+	canDropItem,
 	store,
 	tabs,
 	registry,
@@ -105,6 +111,8 @@ export function TabBar<TData>({
 	const [{ isOver }, connectDrop] = useDrop(
 		() => ({
 			accept: [TAB_DRAG_TYPE, PANE_DRAG_TYPE],
+			canDrop: (item: TabDragItem | PaneDragItem) =>
+				canDropItem?.(item) ?? true,
 			hover: (_item: TabDragItem | PaneDragItem, monitor) => {
 				const track = tabsTrackRef.current;
 				const offset = monitor.getClientOffset();
@@ -169,7 +177,7 @@ export function TabBar<TData>({
 				isOver: monitor.isOver(),
 			}),
 		}),
-		[store, tabs, onReorderTab, onMovePaneToNewTab],
+		[store, tabs, onReorderTab, onMovePaneToNewTab, canDropItem],
 	);
 
 	// Clear indicator when cursor leaves the tab bar
@@ -226,6 +234,7 @@ export function TabBar<TData>({
 							style={{ width: TAB_WIDTH }}
 						>
 							<TabItem
+								canDropPane={canDropItem}
 								tab={tab}
 								tabs={tabs}
 								store={store}

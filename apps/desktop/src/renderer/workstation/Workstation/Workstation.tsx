@@ -11,8 +11,8 @@ import { WorkspaceEditor } from "./components/WorkspaceEditor/WorkspaceEditor";
 import { WorkspaceWindow } from "./components/WorkspaceWindow/WorkspaceWindow";
 import { WorkstationDialog } from "./components/WorkstationDialog/WorkstationDialog";
 import { WorkstationShell } from "./components/WorkstationShell/WorkstationShell";
-import { useWorkstation } from "./hooks/useWorkstation/useWorkstation";
 import { useWorkspaceViews } from "./hooks/useWorkspaceViews/useWorkspaceViews";
+import { useWorkstation } from "./hooks/useWorkstation/useWorkstation";
 import type {
 	DirectProfile,
 	DirectWorkstationApi,
@@ -217,10 +217,88 @@ export function Workstation({
 		createRef.current = null;
 		ui.setDirectory(null);
 	};
+	const activeWorkspaceRef = useRef<string | undefined>(undefined);
+	activeWorkspaceRef.current =
+		savedTarget?.workspaces.find((w) => w.tabId === savedTarget.activeTabId)
+			?.workspaceId ?? workspace?.id;
+	const forwardedWorkspace = useRef<string | null>(null);
+	const openPort = (workspaceId: string, port: number) =>
+		void ui.operation(async () => {
+			const target = ui.active.current;
+			if (!target) return;
+			if (ui.forward) {
+				await api.closePort(ui.forward.id);
+				ui.setForward(null);
+			}
+			const forward = await api.openPort(target, workspaceId, port);
+			if (
+				ui.active.current !== target ||
+				activeWorkspaceRef.current !== workspaceId
+			) {
+				await api.closePort(forward.id);
+				return;
+			}
+			forwardedWorkspace.current = workspaceId;
+			ui.setForward(forward);
+		});
+	const closePort = () =>
+		void ui.operation(async () => {
+			if (ui.forward) {
+				await api.closePort(ui.forward.id);
+				ui.setForward(null);
+				forwardedWorkspace.current = null;
+			}
+		});
 	const disabled = ui.busy || api.platform === "win32";
 	return (
 		<WorkstationShell
 			page={page}
+			workspaceOpen={page === "workspaces" && !!savedTarget?.activeTabId}
+			settings={
+				views.enabled ? (
+					<details className="ws-view-settings">
+						<summary>
+							<Trans>Window layout</Trans>
+						</summary>
+						<label>
+							<input
+								type="checkbox"
+								checked={views.view?.restoreOnLaunch ?? true}
+								disabled={views.invalid}
+								onChange={(event) => {
+									void views.setRestoreOnLaunch(event.currentTarget.checked);
+								}}
+							/>
+							<Trans>Restore on launch</Trans>
+						</label>
+						<button
+							type="button"
+							className="ws-button small"
+							disabled={!views.view?.activeConnectionId}
+							onClick={() => {
+								void views.restoreManual();
+							}}
+						>
+							<Trans>Restore last window</Trans>
+						</button>
+						<button
+							type="button"
+							className="ws-button small"
+							disabled={!views.view && !views.invalid}
+							onClick={() => {
+								void views.forget();
+							}}
+						>
+							<Trans>Forget saved layout</Trans>
+						</button>
+						{views.invalid && (
+							<output>
+								<Trans>Saved layout is unavailable.</Trans>
+							</output>
+						)}
+					</details>
+				) : null
+			}
 			projects={ui.connection?.connectionId === selectedId ? ui.projects : []}
 			onNavigate={(next) => {
 				views.navigate();
@@ -238,49 +316,6 @@ export function Workstation({
 				ui.clearWorkspace();
 			}}
 		>
-			{views.enabled && (
-				<details className="ws-view-settings">
-					<summary>
-						<Trans>Window layout</Trans>
-					</summary>
-					<label>
-						<input
-							type="checkbox"
-							checked={views.view?.restoreOnLaunch ?? true}
-							disabled={views.invalid}
-							onChange={(event) => {
-								void views.setRestoreOnLaunch(event.currentTarget.checked);
-							}}
-						/>
-						<Trans>Restore on launch</Trans>
-					</label>
-					<button
-						type="button"
-						className="ws-button small"
-						disabled={!views.view?.activeConnectionId}
-						onClick={() => {
-							void views.restoreManual();
-						}}
-					>
-						<Trans>Restore last window</Trans>
-					</button>
-					<button
-						type="button"
-						className="ws-button small"
-						disabled={!views.view && !views.invalid}
-						onClick={() => {
-							void views.forget();
-						}}
-					>
-						<Trans>Forget saved layout</Trans>
-					</button>
-					{views.invalid && (
-						<output role="status">
-							<Trans>Saved layout is unavailable.</Trans>
-						</output>
-					)}
-				</details>
-			)}
 			{api.platform === "win32" && (
 				<output className="ws-notice">
 					<Trans>Windows connections are not supported yet.</Trans>
@@ -360,6 +395,26 @@ export function Workstation({
 				>
 					{views.enabled && savedTarget?.activeTabId ? (
 						<WorkspaceWindow
+							onNewSession={() => {
+								ui.setError(null);
+								setCreate("session");
+							}}
+							onRefresh={() =>
+								void ui.operation(async () => {
+									await ui.refresh(ui.active.current, true);
+									await views.refreshResources();
+								})
+							}
+							onPending={() => void checkPending()}
+							ports={{
+								busy: ui.busy,
+								forward:
+									forwardedWorkspace.current === activeWorkspaceRef.current
+										? ui.forward
+										: null,
+								onOpen: openPort,
+								onClose: closePort,
+							}}
 							api={api}
 							target={savedTarget}
 							connection={
@@ -439,30 +494,8 @@ export function Workstation({
 									ui.setTerminalId(id);
 								})
 							}
-							onOpenPort={(port) =>
-								void ui.operation(async () => {
-									const target = ui.active.current;
-									if (!target) return;
-									if (ui.forward) {
-										await api.closePort(ui.forward.id);
-										ui.setForward(null);
-									}
-									const forward = await api.openPort(
-										target,
-										workspace.id,
-										port,
-									);
-									if (ui.active.current === target) ui.setForward(forward);
-								})
-							}
-							onClosePort={() =>
-								void ui.operation(async () => {
-									if (ui.forward) {
-										await api.closePort(ui.forward.id);
-										ui.setForward(null);
-									}
-								})
-							}
+							onOpenPort={(port) => openPort(workspace.id, port)}
+							onClosePort={closePort}
 						/>
 					) : (
 						<WorkspaceBrowser

@@ -189,7 +189,7 @@ async function stop() {
 }
 async function click(selector) {
 	const point = await page.evaluate(
-		`(() => { const selector=${JSON.stringify(selector)}; const e = selector.startsWith("text:") ? [...document.querySelectorAll("button")].find(b=>b.textContent.trim()===selector.slice(5)) : document.querySelector(selector); if (!e) throw new Error('Missing visible input'); const r = e.getBoundingClientRect(); if (r.y < 0 || r.bottom > innerHeight) throw new Error('Input is outside viewport'); return {x:r.x+r.width/2, y:r.y+r.height/2}; })()`,
+		`(() => { const selector=${JSON.stringify(selector)}; const e = selector.startsWith("text:") ? [...document.querySelectorAll("button,[data-tab-id]")].find(b=>b.textContent.trim()===selector.slice(5)) : document.querySelector(selector); if (!e) throw new Error('Missing visible input'); const r = e.getBoundingClientRect(); if (r.y < 0 || r.bottom > innerHeight) throw new Error('Input is outside viewport'); return {x:r.x+r.width/2, y:r.y+r.height/2}; })()`,
 	);
 	await page.call("Input.dispatchMouseEvent", {
 		type: "mousePressed",
@@ -287,8 +287,8 @@ try {
 		1,
 	);
 	evidence.singleInstance = true;
-	await click('.ws-sidebar nav button[aria-label="Workspaces"]');
-	await click('.ws-sidebar nav button[aria-label="SSH machines"]');
+	await click('[data-slot=sidebar-content] button[aria-label="Workspaces"]');
+	await click('[data-slot=sidebar-content] button[aria-label="SSH machines"]');
 	await click(".ws-about-button");
 	await until(
 		() =>
@@ -351,7 +351,7 @@ try {
 	await delay(250);
 	const layout = await page.evaluate(`(() => {
  const aboutButton=document.querySelector('.ws-about-button').getBoundingClientRect();
- const name=document.querySelector('.ws-brand span'); const rect=name.getBoundingClientRect();
+ const name=document.querySelector('.ws-native-brand span'); const rect=name.getBoundingClientRect();
  return {width:innerWidth,height:innerHeight,aboutButtonBottom:aboutButton.bottom,aboutButtonTop:aboutButton.top,nameWidth:rect.width,nameScrollWidth:name.scrollWidth}; })()`);
 	assert.ok(
 		layout.aboutButtonTop >= 0 && layout.aboutButtonBottom <= layout.height,
@@ -460,7 +460,9 @@ try {
 				"./verify-source-ssh-fixture.mjs"
 			);
 			ownedSourceFixture = await sourceSshFixture(root);
-			await click('.ws-sidebar nav button[aria-label="SSH machines"]');
+			await click(
+				'[data-slot=sidebar-content] button[aria-label="SSH machines"]',
+			);
 			await click(".ws-heading > button.primary");
 			for (const [name, value] of Object.entries({
 				name: "Restore Linux fixture",
@@ -476,7 +478,7 @@ try {
 			await click(".ws-detail-actions button.primary");
 			await until(() =>
 				page.evaluate(
-					"document.querySelector('.ws-sidebar nav button[aria-label=\"Workspaces\"]')?.getAttribute('aria-current')==='page'",
+					"document.querySelector('[data-slot=sidebar-content] button[aria-label=\"Workspaces\"]')?.getAttribute('aria-current')==='page'",
 				),
 			);
 			await verifyRestore(ownedSourceFixture.controls);
@@ -500,6 +502,21 @@ try {
 	console.log(
 		`::notice::${JSON.stringify({ brand: brand.displayName, version, profile, sourceTest, singleInstance: true, reopen: true, offlineLicense: true, screenshots: 7 })}`,
 	);
+} catch (error) {
+	if (page) {
+		await screenshot("failure").catch(() => {});
+		const bounds = await page
+			.evaluate(
+				"[...document.querySelectorAll('.ws-workspace-pane,.xterm-screen,.ws-pane-grid,.ws-main-body')].map(e=>({className:e.className,x:e.getBoundingClientRect().x,y:e.getBoundingClientRect().y,width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))",
+			)
+			.catch(() => []);
+		writeFileSync(
+			join(output, "failure-bounds.json"),
+			JSON.stringify(bounds, null, 2),
+		);
+	}
+	if(page) { const view = await page.evaluate("window.directWorkstation.getWorkspaceView()").catch(()=>null); writeFileSync(join(output,"failure-view.json"),JSON.stringify(view,null,2)); }
+	throw error;
 } finally {
 	if (ownedSourceFixture)
 		await ownedSourceFixture

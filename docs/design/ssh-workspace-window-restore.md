@@ -438,3 +438,7 @@ renderer 优先调用结构化 `openRestoredTerminal(connection, ref, socketId)`
 8. 路由错误码为`RESOURCE_UNAVAILABLE`、`EXECUTION_CHANGED`、`RESTORE_UNSUPPORTED`、`RESTORE_UNAVAILABLE`、`DAEMON_UNAVAILABLE`等；renderer明确显示占位。已退出的同一执行与权威列表中消失的执行分别显示已结束/中断。
 
 原生DMG的20次样本、实际退出方式、只用PTY心跳的限制及不同性能方案见[验收记录](../implementation/ssh-workspace-window-restore-2026-10-13.md)和[连接性能记录](../implementation/ssh-performance-2026-10-13.md)。首次安装的当前目标为10秒；布局骨架200ms与认证后接回三个窗格2秒仍是独立指标。
+
+### 原版 UI 复用补充（2026-10-13）
+
+工作窗口改用原有 `@superset/panes` 标签栏、窗格和分屏组件，不再维护独立 PaneTreeView。侧栏、代码编辑器、终端底层构造器/搜索、聊天 Markdown 和已有工作区操作按[原版UI复用设计](ssh-workspace-upstream-ui-reuse.md)接入。这里只换展示与交互适配；main SQLite、原执行条件附着、只读检查、关闭不停止任务和有界恢复规则继续有效。

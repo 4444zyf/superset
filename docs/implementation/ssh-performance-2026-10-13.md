@@ -113,3 +113,16 @@
 本轮ARM最快为4写入15.600秒，Intel最快为8写入33.695秒。据此将后续版本的默认值设为ARM4、Intel8；实验参数仍只允许1/4/8，所有签名、集合、逐文件摘要、UID与smoke验证保留。不同架构选择的是当前最有证据的折中，不保证任意机器始终最快。
 第三轮ARM实际UI首装9.205秒，证明特定健康环境下达到过10秒；第四轮ARM默认首装13.601–18.650秒，Intel也超过10秒。因此**首次完整安装未稳定达到10秒**，不把它写成保证。健康重连120样本的P95为ARM默认1.132秒、Intel选用8路1.393秒。慢网约154–158 MiB归档的传输下限仍适用；5秒保留为最初研究目标，而非当前验收门槛。
 原始数据：[ARM](evidence/ssh-performance/native-balanced-arm64)、[Intel](evidence/ssh-performance/native-balanced-x64)。本轮DMG包含用户要求的侧栏标识移除：[Apple Silicon](https://github.com/4444zyf/superset/actions/runs/38373722281/artifacts/11801488368)、[Intel](https://github.com/4444zyf/superset/actions/runs/38373722281/artifacts/11803122248)，14天保留，未发布正式版本。
+
+
+## 窗口恢复版本的原生补充
+
+1.37.6源码a333f838d的Intel实际DMG完整首装50.762秒；ARM实际DMG首装约15秒后在窗口比例验收脚本处失败。原生CPU/磁盘负载的漂移仍明显；不能把第三轮1.37.5 ARM达到过9.205秒改写成最新版稳定10秒。首次安装与已有后端的窗口接回保持分别统计。窗口恢复版本的冻结源码完整复测正在进行，见[恢复验收](ssh-workspace-window-restore-2026-10-13.md)。
+
+## 1.37.6第四轮原生实际DMG（布局复用之前）
+
+[运行38394518343](https://github.com/4444zyf/superset/actions/runs/38394518343)，源码 `02309ed5474fbfde3efe5469262c28c0543bd106`。ARM64 默认4写入、Intel默认8写入；两架构实际DMG的自动安装与窗口恢复验收通过。真实点击连接到工作区可见：ARM64 **9.198秒**、Intel **30.453秒**；首反馈6.7/34.9ms；真实GUI重连0.624/1.579秒，接回同一服务实例。
+
+独立安装脚本仅 installer 阶段 ARM64 9.445秒、Intel30.511秒，不能与完整GUI入口耗时混用。30次断开/重连与工作区读取以及阶段明细记录见[ARM64](evidence/ssh-performance/native-restore-fourth-arm64)和[Intel](evidence/ssh-performance/native-restore-fourth-x64)。此前均衡重复首次安装测量仍然有效：不能用单次ARM64小于10秒的结果，覆盖15.600秒中位数或承诺全网络、双架构稳定小于10秒。
+
+此轮组件布局为旧实现。后续复用原版UI的发行物会独立测量，保留所有已经测过的方案和失败数据。

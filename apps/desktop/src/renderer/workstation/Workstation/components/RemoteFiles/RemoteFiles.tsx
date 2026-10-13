@@ -1,9 +1,18 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useEffect, useRef, useState } from "react";
+import { darkTheme } from "@superset/shared/themes";
+import { Button } from "@superset/ui/button";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { detectLanguage } from "shared/detect-language";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
+
+const CodeEditorSurface = lazy(() =>
+	import(
+		"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/views/CodeView/components/CodeEditor/CodeEditorSurface"
+	).then((module) => ({ default: module.CodeEditorSurface })),
+);
 
 interface Entry {
 	absolutePath: string;
@@ -42,8 +51,7 @@ interface Diff {
 }
 type Category = "staged" | "unstaged" | "against-base";
 
-const button =
-	"rounded border border-zinc-700 px-3 py-2 text-sm disabled:opacity-40";
+const button = "justify-start text-xs";
 
 function editorFromRead(absolutePath: string, result: ReadResult): Editor {
 	let content = result.content;
@@ -248,17 +256,21 @@ export function RemoteFiles({
 				setEditor(editorFromRead(absolutePath, result));
 		});
 	return (
-		<section className="rounded border border-zinc-700 p-3 space-y-3">
+		<section className="flex-1 min-h-0 overflow-auto p-3 space-y-3 bg-background text-foreground">
 			<div className="flex gap-2 flex-wrap">
-				<button
+				<Button
+					variant="outline"
+					size="sm"
 					type="button"
 					className={button}
 					onClick={() => setTab("files")}
 					aria-pressed={tab === "files"}
 				>
 					<Trans>Files</Trans>
-				</button>
-				<button
+				</Button>
+				<Button
+					variant="outline"
+					size="sm"
 					type="button"
 					className={button}
 					onClick={() => setTab("changes")}
@@ -266,8 +278,10 @@ export function RemoteFiles({
 					aria-pressed={tab === "changes"}
 				>
 					<Trans>Changes</Trans>
-				</button>
-				<button
+				</Button>
+				<Button
+					variant="outline"
+					size="sm"
 					type="button"
 					className={button}
 					disabled={busy || !directory}
@@ -281,14 +295,16 @@ export function RemoteFiles({
 					}
 				>
 					<Trans>Refresh files and Git</Trans>
-				</button>
+				</Button>
 			</div>
 			{tab === "files" ? (
 				<>
 					<code className="block text-xs break-all">{directory}</code>
 					<div className="flex gap-2 flex-wrap">
 						{directory !== root && directory && (
-							<button
+							<Button
+								variant="outline"
+								size="sm"
 								type="button"
 								className={button}
 								disabled={busy || dirty}
@@ -302,10 +318,12 @@ export function RemoteFiles({
 								}
 							>
 								..
-							</button>
+							</Button>
 						)}
 						{entries.map((entry) => (
-							<button
+							<Button
+								variant="outline"
+								size="sm"
 								type="button"
 								key={entry.absolutePath}
 								className={button}
@@ -318,7 +336,7 @@ export function RemoteFiles({
 							>
 								{entry.name}
 								{entry.kind === "directory" ? "/" : ""}
-							</button>
+							</Button>
 						))}
 					</div>
 					{editor && (
@@ -327,7 +345,7 @@ export function RemoteFiles({
 								{editor.absolutePath}
 							</code>
 							{editor.binary ? (
-								<p className="text-sm text-zinc-400">
+								<p className="text-sm text-muted-foreground">
 									<Trans>Binary files cannot be edited here.</Trans>
 								</p>
 							) : (
@@ -339,25 +357,45 @@ export function RemoteFiles({
 											</Trans>
 										</p>
 									)}
-									<textarea
+									<section
+										className="h-80 border border-border rounded-md overflow-hidden"
 										aria-label={t({ message: "File contents" })}
-										className="min-h-52 w-full bg-zinc-900 rounded p-3 font-mono text-sm"
-										value={editor.content}
-										readOnly={busy || editor.truncated}
-										onChange={(event) =>
-											setEditor({ ...editor, content: event.target.value })
-										}
-									/>
+									>
+										<Suspense
+											fallback={
+												<div className="p-3 text-muted-foreground">
+													<Trans>Files</Trans>
+												</div>
+											}
+										>
+											<CodeEditorSurface
+												value={editor.content}
+												language={detectLanguage(editor.absolutePath)}
+												theme={darkTheme}
+												readOnly={busy || editor.truncated}
+												onChange={(content) =>
+													setEditor({ ...editor, content })
+												}
+												onSave={() => {
+													if (!busy && !editor.truncated && dirty) void save();
+												}}
+											/>
+										</Suspense>
+									</section>
 									<div className="flex gap-2">
-										<button
+										<Button
+											variant="outline"
+											size="sm"
 											type="button"
 											className={button}
 											disabled={busy || editor.truncated || !dirty}
 											onClick={() => void save()}
 										>
 											<Trans>Save file</Trans>
-										</button>
-										<button
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
 											type="button"
 											className={button}
 											disabled={busy}
@@ -366,7 +404,7 @@ export function RemoteFiles({
 											}}
 										>
 											<Trans>Close file and discard draft</Trans>
-										</button>
+										</Button>
 									</div>
 								</>
 							)}
@@ -377,7 +415,9 @@ export function RemoteFiles({
 				<>
 					{status && <p className="text-sm">{status.currentBranch.name}</p>}
 					<div className="flex gap-2 flex-wrap">
-						<button
+						<Button
+							variant="outline"
+							size="sm"
 							type="button"
 							className={button}
 							disabled={busy}
@@ -388,8 +428,10 @@ export function RemoteFiles({
 							aria-pressed={category === "unstaged"}
 						>
 							<Trans>Unstaged</Trans>
-						</button>
-						<button
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
 							type="button"
 							className={button}
 							disabled={busy}
@@ -400,8 +442,10 @@ export function RemoteFiles({
 							aria-pressed={category === "staged"}
 						>
 							<Trans>Staged</Trans>
-						</button>
-						<button
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
 							type="button"
 							className={button}
 							disabled={busy}
@@ -412,14 +456,16 @@ export function RemoteFiles({
 							aria-pressed={category === "against-base"}
 						>
 							<Trans>Against base</Trans>
-						</button>
+						</Button>
 					</div>
 					<div className="space-y-1">
 						{(category === "against-base"
 							? status?.againstBase
 							: status?.[category]
 						)?.map((file) => (
-							<button
+							<Button
+								variant="outline"
+								size="sm"
 								type="button"
 								key={file.path}
 								className={`${button} block`}
@@ -437,7 +483,7 @@ export function RemoteFiles({
 								}
 							>
 								{file.path}
-							</button>
+							</Button>
 						))}
 					</div>
 					{diff && (

@@ -1,28 +1,8 @@
-import {
-	getCellDimensions,
-	installTerminalWheelEventHandler,
-} from "@superset/shared/terminal-wheel-handler";
+import { getCellDimensions } from "@superset/shared/terminal-wheel-handler";
 import { toast } from "@superset/ui/sonner";
-import { ClipboardAddon } from "@xterm/addon-clipboard";
-import { FitAddon } from "@xterm/addon-fit";
-import { ImageAddon } from "@xterm/addon-image";
-import { LigaturesAddon } from "@xterm/addon-ligatures";
-import { SearchAddon } from "@xterm/addon-search";
-import { Unicode11Addon } from "@xterm/addon-unicode11";
-import { WebglAddon } from "@xterm/addon-webgl";
-import type { ITheme } from "@xterm/xterm";
-import { Terminal as XTerm } from "@xterm/xterm";
-import { applyTerminalFontFamilyCssVariable } from "renderer/lib/terminal/appearance";
-import { Utf8Base64 } from "renderer/lib/terminal/clipboard-base64";
-import { FocusAwareClipboardProvider } from "renderer/lib/terminal/clipboard-provider";
+import type { ITheme, Terminal as XTerm } from "@xterm/xterm";
+import { createTerminalSurface } from "renderer/lib/terminal/createTerminalSurface";
 import type { DetectedLink } from "renderer/lib/terminal/links";
-import {
-	createParserIdleGate,
-	type ParserIdleGate,
-	wrapWrite,
-} from "renderer/lib/terminal/parser-idle-gate";
-import { TerminalLinkManager } from "renderer/lib/terminal/terminal-link-manager";
-import { installInputModeReclaimer } from "renderer/lib/terminal/terminalInputModeReclaimer";
 import { electronTrpcClient as trpcClient } from "renderer/lib/trpc-client";
 import { toXtermTheme } from "renderer/stores/theme/utils";
 import {
@@ -30,8 +10,6 @@ import {
 	DEFAULT_THEME_ID,
 	getTerminalColors,
 } from "shared/themes";
-import { DEFAULT_TERMINAL_FONT_FAMILY, TERMINAL_OPTIONS } from "./config";
-import { suppressQueryResponses } from "./suppressQueryResponses";
 
 /**
  * Get the default terminal theme from localStorage cache.
@@ -69,9 +47,6 @@ export function getDefaultTerminalBg(): string {
 	return getDefaultTerminalTheme().background ?? "#151110";
 }
 
-// Once WebGL fails, skip it for all subsequent terminals (VS Code pattern).
-let suggestedRendererType: "webgl" | "dom" | undefined;
-
 export interface CreateTerminalOptions {
 	/**
 	 * Workspace id used for worktree lookup during path stat/resolution.
@@ -91,90 +66,12 @@ export interface CreateTerminalOptions {
  *
  * Used by v1-terminal-cache.ts to keep xterm alive across React mount/unmount.
  */
-export function createTerminalInWrapper(options: CreateTerminalOptions = {}): {
-	xterm: XTerm;
-	fitAddon: FitAddon;
-	searchAddon: SearchAddon;
-	gate: ParserIdleGate;
-	wrapper: HTMLDivElement;
-	linkManager: TerminalLinkManager;
-	cleanup: () => void;
-} {
-	const {
-		workspaceId,
-		initialTheme,
-		onFileLinkClick,
-		onUrlClickRef: urlClickRef,
-	} = options;
-
-	const theme = initialTheme ?? getDefaultTerminalTheme();
-	const terminalOptions = { ...TERMINAL_OPTIONS, theme };
-	const xterm = new XTerm(terminalOptions);
-	const gate = createParserIdleGate();
-	xterm.write = wrapWrite(gate, xterm.write.bind(xterm));
-	const fitAddon = new FitAddon();
-	const searchAddon = new SearchAddon();
-
-	// Utf8Base64 replaces the addon's UTF-8-unsafe default codec (#4839).
-	const clipboardAddon = new ClipboardAddon(
-		new Utf8Base64(),
-		new FocusAwareClipboardProvider(),
-	);
-	const unicode11Addon = new Unicode11Addon();
-	const imageAddon = new ImageAddon();
-
-	let disposed = false;
-	let webglAddon: WebglAddon | null = null;
-
-	// Open into a detached wrapper div — not the live container.
-	const wrapper = document.createElement("div");
-	wrapper.style.width = "100%";
-	wrapper.style.height = "100%";
-	applyTerminalFontFamilyCssVariable(
-		wrapper,
-		terminalOptions.fontFamily ?? DEFAULT_TERMINAL_FONT_FAMILY,
-	);
-	xterm.open(wrapper);
-
-	xterm.loadAddon(fitAddon);
-	xterm.loadAddon(searchAddon);
-	xterm.loadAddon(clipboardAddon);
-	xterm.loadAddon(unicode11Addon);
-	xterm.loadAddon(imageAddon);
-
-	try {
-		xterm.loadAddon(new LigaturesAddon());
-	} catch {
-		// Ligatures not supported by current font
-	}
-
-	// Defer WebGL to rAF to avoid racing xterm's post-open viewport sync.
-	const rafId = requestAnimationFrame(() => {
-		if (disposed || suggestedRendererType === "dom") return;
-
-		try {
-			webglAddon = new WebglAddon();
-			webglAddon.onContextLoss(() => {
-				webglAddon?.dispose();
-				webglAddon = null;
-				suggestedRendererType = "dom";
-				xterm.refresh(0, xterm.rows - 1);
-			});
-			xterm.loadAddon(webglAddon);
-		} catch {
-			suggestedRendererType = "dom";
-			webglAddon = null;
-		}
+export function createTerminalInWrapper(options: CreateTerminalOptions = {}) {
+	const { workspaceId, onFileLinkClick, onUrlClickRef: urlClickRef } = options;
+	const surface = createTerminalSurface({
+		initialTheme: options.initialTheme ?? getDefaultTerminalTheme(),
 	});
-
-	const cleanupQuerySuppression = suppressQueryResponses(xterm);
-	const uninstallWheelHandler = installTerminalWheelEventHandler(xterm);
-	// Disarm TUI-only input modes (kitty keyboard / mouse / focus) leaked into a
-	// live shell prompt by a TUI killed while attached (#4949) — keyed on the
-	// OSC 777 shell-ready marker, same as v2's terminal-runtime.
-	const inputModeReclaimer = installInputModeReclaimer(xterm);
-
-	const linkManager = new TerminalLinkManager(xterm);
+	const { linkManager } = surface;
 	linkManager.setHandlers({
 		stat: async (path) => {
 			try {
@@ -225,28 +122,7 @@ export function createTerminalInWrapper(options: CreateTerminalOptions = {}): {
 		},
 	});
 
-	xterm.unicode.activeVersion = "11";
-
-	return {
-		xterm,
-		fitAddon,
-		searchAddon,
-		gate,
-		wrapper,
-		linkManager,
-		cleanup: () => {
-			disposed = true;
-			cancelAnimationFrame(rafId);
-			cleanupQuerySuppression();
-			uninstallWheelHandler();
-			inputModeReclaimer.dispose();
-			linkManager.dispose();
-			try {
-				webglAddon?.dispose();
-			} catch {}
-			webglAddon = null;
-		},
-	};
+	return surface;
 }
 
 export function setupFocusListener(

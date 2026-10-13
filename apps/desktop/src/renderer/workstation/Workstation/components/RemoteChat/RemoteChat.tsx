@@ -11,14 +11,21 @@ import {
 	type Item,
 	knownItemSchema,
 } from "@superset/chat/protocol";
-import { useEffect, useRef, useState } from "react";
+import { Button } from "@superset/ui/button";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
 
+const ChatMarkdown = lazy(() =>
+	import("@superset/chat-ui/ChatMarkdown").then((module) => ({
+		default: module.ChatMarkdown,
+	})),
+);
+
 const button =
-	"rounded border border-zinc-700 px-3 py-2 text-sm disabled:opacity-40";
+	"rounded border border-border px-3 py-2 text-sm disabled:opacity-40";
 const harnessLabels = { codex: "Codex", "claude-code": "Claude Code" } as const;
 
 type DownloadedAttachment = Awaited<
@@ -159,7 +166,7 @@ export function RemoteChat({
 		previousNamespaceScope.current = namespaceScope;
 		setSessions([]);
 		if (selectedSessionId === undefined) setLocalSessionId(null);
-	}, [namespaceScope]);
+	}, [namespaceScope, selectedSessionId]);
 	useEffect(() => {
 		let active = true;
 		const version = ++sessionListVersion.current;
@@ -189,7 +196,7 @@ export function RemoteChat({
 		return () => {
 			active = false;
 		};
-	}, [api, connection, workspaceId]);
+	}, [api, connection, workspaceId, selectedSessionId]);
 	useEffect(() => {
 		setSnapshot(emptySnapshot());
 		if (!sessionId) return;
@@ -237,18 +244,20 @@ export function RemoteChat({
 			if (isCurrent()) saveAttachment(downloaded);
 		});
 	return (
-		<section className="border border-zinc-700 rounded p-3 space-y-3">
+		<section className="border border-border rounded p-3 space-y-3">
 			<div className="flex flex-wrap gap-2">
 				<select
 					aria-label={t({ message: "Agent" })}
-					className="bg-zinc-900 rounded p-2"
+					className="bg-muted rounded p-2"
 					value={harness}
 					onChange={(event) => setHarness(event.target.value)}
 				>
 					<option value="codex">{harnessLabels.codex}</option>
 					<option value="claude-code">{harnessLabels["claude-code"]}</option>
 				</select>
-				<button
+				<Button
+					variant="outline"
+					size="sm"
 					type="button"
 					className={button}
 					disabled={
@@ -272,19 +281,23 @@ export function RemoteChat({
 					}
 				>
 					<Trans>New chat</Trans>
-				</button>
+				</Button>
 				{sessions.map((session, index) => (
-					<button
+					<Button
+						variant="outline"
+						size="sm"
 						type="button"
 						className={button}
 						key={session.sessionId}
 						onClick={() => setSessionId(session.sessionId)}
 					>
 						{session.harness} #{index + 1}
-					</button>
+					</Button>
 				))}
 				{runningTurnId(snapshot.turns) && (
-					<button
+					<Button
+						variant="outline"
+						size="sm"
 						type="button"
 						className={button}
 						disabled={busy}
@@ -299,18 +312,18 @@ export function RemoteChat({
 						}
 					>
 						<Trans>Stop</Trans>
-					</button>
+					</Button>
 				)}
 			</div>
 			{!available && (
-				<p className="text-xs text-zinc-400">
+				<p className="text-xs text-muted-foreground">
 					<Trans>
 						Install the agent CLI on the remote machine to start a chat.
 					</Trans>
 				</p>
 			)}
 			{!attachmentsAvailable && (
-				<p className="text-xs text-zinc-400">
+				<p className="text-xs text-muted-foreground">
 					<Trans>Attachments are unavailable on this backend.</Trans>
 				</p>
 			)}
@@ -324,20 +337,24 @@ export function RemoteChat({
 							key={item.id}
 							className="whitespace-pre-wrap break-words text-sm"
 						>
-							{item.kind === "user_message"
-								? userMessageText(item)
-								: item.kind === "agent_message" || item.kind === "reasoning"
-									? displayText(snapshot, item.id)
-									: item.kind === "notice"
-										? item.text
-										: item.kind === "tool_call"
-											? item.title
-											: null}
+							{item.kind === "user_message" ? (
+								userMessageText(item)
+							) : item.kind === "agent_message" || item.kind === "reasoning" ? (
+								<Suspense fallback={displayText(snapshot, item.id)}>
+									<ChatMarkdown>{displayText(snapshot, item.id)}</ChatMarkdown>
+								</Suspense>
+							) : item.kind === "notice" ? (
+								item.text
+							) : item.kind === "tool_call" ? (
+								item.title
+							) : null}
 							{item.kind === "user_message" &&
 								item.content
 									.filter((part) => part.type === "attachment")
 									.map((part) => (
-										<button
+										<Button
+											variant="outline"
+											size="sm"
 											type="button"
 											key={part.attachmentId}
 											className={button}
@@ -345,7 +362,7 @@ export function RemoteChat({
 											onClick={() => void downloadAttachment(part.attachmentId)}
 										>
 											{part.name}
-										</button>
+										</Button>
 									))}
 							{item.kind === "approval_request" && (
 								<>
@@ -354,7 +371,9 @@ export function RemoteChat({
 										<div className="flex gap-2">
 											{item.options?.length ? (
 												item.options.map((option) => (
-													<button
+													<Button
+														variant="outline"
+														size="sm"
 														type="button"
 														key={option.optionId}
 														className={button}
@@ -366,11 +385,13 @@ export function RemoteChat({
 														}
 													>
 														{option.label}
-													</button>
+													</Button>
 												))
 											) : (
 												<>
-													<button
+													<Button
+														variant="outline"
+														size="sm"
 														type="button"
 														className={button}
 														onClick={() =>
@@ -378,8 +399,10 @@ export function RemoteChat({
 														}
 													>
 														<Trans>Allow</Trans>
-													</button>
-													<button
+													</Button>
+													<Button
+														variant="outline"
+														size="sm"
 														type="button"
 														className={button}
 														onClick={() =>
@@ -387,7 +410,7 @@ export function RemoteChat({
 														}
 													>
 														<Trans>Deny</Trans>
-													</button>
+													</Button>
 												</>
 											)}
 										</div>
@@ -401,7 +424,9 @@ export function RemoteChat({
 			{sessionId && (
 				<>
 					<div className="flex gap-2 flex-wrap">
-						<button
+						<Button
+							variant="outline"
+							size="sm"
 							type="button"
 							className={button}
 							disabled={
@@ -417,9 +442,11 @@ export function RemoteChat({
 							}
 						>
 							<Trans>Attach files</Trans>
-						</button>
+						</Button>
 						{attachments.map((attachment) => (
-							<button
+							<Button
+								variant="outline"
+								size="sm"
 								type="button"
 								className={button}
 								key={attachment.attachmentId}
@@ -427,7 +454,7 @@ export function RemoteChat({
 								onClick={() => void downloadAttachment(attachment.attachmentId)}
 							>
 								{attachment.originalFilename ?? attachment.attachmentId}
-							</button>
+							</Button>
 						))}
 					</div>
 					<form
@@ -460,12 +487,14 @@ export function RemoteChat({
 					>
 						<textarea
 							aria-label={t({ message: "Message" })}
-							className="flex-1 bg-zinc-900 rounded p-2 text-sm"
+							className="flex-1 bg-muted rounded p-2 text-sm"
 							readOnly={busy}
 							value={prompt}
 							onChange={(event) => setPrompt(event.target.value)}
 						/>
-						<button
+						<Button
+							variant="outline"
+							size="sm"
 							className={button}
 							disabled={
 								busy ||
@@ -475,7 +504,7 @@ export function RemoteChat({
 							type="submit"
 						>
 							<Trans>Send</Trans>
-						</button>
+						</Button>
 					</form>
 				</>
 			)}

@@ -1,10 +1,10 @@
 import { afterEach, expect, test } from "bun:test";
 import {
 	cleanup,
-	render,
-	waitFor,
 	fireEvent,
+	render,
 	screen,
+	waitFor,
 } from "@testing-library/react";
 import type { DirectWorkstationApi } from "../../../shared/direct-workstation";
 import type { WorkspaceViewSnapshot } from "../../../shared/workspace-view";
@@ -105,13 +105,13 @@ test("offline startup keeps all three saved panes, ratios and focus without ordi
 	expect(
 		ui.container
 			.querySelector('[data-split-path=""]')
-			?.getAttribute("data-ratio"),
-	).toBe("0.37");
+			?.getAttribute("data-split-percentage"),
+	).toBe("37");
 	expect(
 		ui.container
 			.querySelector('[data-split-path="second"]')
-			?.getAttribute("data-ratio"),
-	).toBe("0.64");
+			?.getAttribute("data-split-percentage"),
+	).toBe("64");
 	expect(
 		ui.container
 			.querySelector('[data-pane-id="codex"]')
@@ -235,8 +235,9 @@ test("a newly created SSH workspace opens its saved tab before the refreshed lis
 	fireEvent.click(screen.getByRole("button", { name: "Create" }));
 	await waitFor(() =>
 		expect(
-			view.container.querySelector('.ws-workspace-tabs [aria-selected="true"]')
-				?.textContent,
+			view.container.querySelector(
+				'.ws-workspace-tabs [data-tab-id][data-active="true"]',
+			)?.textContent,
 		).toBe("New SSH workspace"),
 	);
 	expect(

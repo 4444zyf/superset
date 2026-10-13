@@ -1,7 +1,11 @@
-import { FitAddon } from "@xterm/addon-fit";
-import { Terminal } from "@xterm/xterm";
-import { useEffect, useRef, useState } from "react";
+import { darkTheme, getTerminalColors } from "@superset/shared/themes";
 import type { RestoreResourceRef } from "@superset/shared/workspace-restore";
+import type { SearchAddon } from "@xterm/addon-search";
+import type { Terminal } from "@xterm/xterm";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createTerminalSurface } from "renderer/lib/terminal/createTerminalSurface";
+import { TerminalSearch } from "renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/Terminal/TerminalSearch";
+import { toXtermTheme } from "renderer/stores/theme/utils";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -13,18 +17,25 @@ export interface TerminalEmulator {
 		"cols" | "rows" | "write" | "writeln" | "onData" | "onResize" | "dispose"
 	> & { focus?(): void };
 	fit(): void;
+	searchAddon?: SearchAddon;
+	cleanup?(): void;
 }
 
 function createXterm(element: HTMLDivElement): TerminalEmulator {
-	const terminal = new Terminal({
-		fontSize: 13,
-		scrollback: 3000,
-		theme: { background: "#09090b" },
+	const surface = createTerminalSurface({
+		initialTheme: toXtermTheme(getTerminalColors(darkTheme)),
 	});
-	const addon = new FitAddon();
-	terminal.loadAddon(addon);
-	terminal.open(element);
-	return { terminal, fit: () => addon.fit() };
+	element.appendChild(surface.wrapper);
+	if (surface.xterm.element) surface.xterm.element.style.padding = "8px";
+	return {
+		terminal: surface.xterm,
+		fit: () => surface.fitAddon.fit(),
+		searchAddon: surface.searchAddon,
+		cleanup: () => {
+			surface.cleanup();
+			surface.wrapper.remove();
+		},
+	};
 }
 
 export function RemoteTerminal({
@@ -52,17 +63,32 @@ export function RemoteTerminal({
 	onError(message: string): void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 }) {
+	const workspaceId = restoreRef?.workspaceId;
+	const resourceId = restoreRef?.resourceId;
+	const executionId = restoreRef?.executionId;
+	const restoreTarget = useMemo(
+		() =>
+			workspaceId && resourceId
+				? { kind: "terminal" as const, workspaceId, resourceId, executionId }
+				: undefined,
+		[workspaceId, resourceId, executionId],
+	);
 	const element = useRef<HTMLDivElement>(null);
 	const focus = useRef(focused);
 	focus.current = focused;
 	const focusTerminal = useRef<(() => void) | null>(null);
 	const [state, setState] = useState("pending");
+	const [searchOpen, setSearchOpen] = useState(false);
+	const [searchAddon, setSearchAddon] = useState<SearchAddon | null>(null);
 	const callbacks = useRef({ onError, onAttached, onExited });
 	callbacks.current = { onError, onAttached, onExited };
 	useEffect(() => {
 		if (!element.current || !visible) return;
 		setState("pending");
-		const { terminal, fit } = createEmulator(element.current);
+		const { terminal, fit, searchAddon, cleanup } = createEmulator(
+			element.current,
+		);
+		setSearchAddon(searchAddon ?? null);
 		fit();
 		const socketId = crypto.randomUUID();
 		let closed = false;
@@ -90,7 +116,7 @@ export function RemoteTerminal({
 		const off = api.onSocket((event) => {
 			if (event.socketId !== socketId || closed) return;
 			if (event.kind === "open") {
-				if (!restoreRef) {
+				if (!restoreTarget) {
 					ready = true;
 					setState("attached");
 					announce();
@@ -98,15 +124,15 @@ export function RemoteTerminal({
 			}
 			if (event.kind === "message") {
 				if (event.data instanceof Uint8Array) {
-					if (ready || !restoreRef) terminal.write(event.data);
+					if (ready || !restoreTarget) terminal.write(event.data);
 				} else if (typeof event.data === "string") {
 					try {
 						const message = JSON.parse(event.data);
-						if (message.type === "attached" && restoreRef && !ready) {
+						if (message.type === "attached" && restoreTarget && !ready) {
 							if (
 								message.terminalId !== terminalId ||
-								message.workspaceId !== restoreRef.workspaceId ||
-								message.executionId !== restoreRef.executionId
+								message.workspaceId !== restoreTarget.workspaceId ||
+								message.executionId !== restoreTarget.executionId
 							) {
 								closed = true;
 								setState("unknown");
@@ -142,7 +168,7 @@ export function RemoteTerminal({
 			if (event.kind === "close" || event.kind === "error") {
 				ready = false;
 				clearTimeout(attachTimer);
-				if (restoreRef && !ended)
+				if (restoreTarget && !ended)
 					callbacks.current.onError("RESTORE_UNAVAILABLE");
 			}
 		});
@@ -154,7 +180,7 @@ export function RemoteTerminal({
 		);
 		const observer = new ResizeObserver(fit);
 		observer.observe(element.current);
-		if (restoreRef)
+		if (restoreTarget)
 			attachTimer = setTimeout(() => {
 				if (!ready && !closed) {
 					closed = true;
@@ -163,8 +189,8 @@ export function RemoteTerminal({
 					callbacks.current.onError("RESTORE_UNAVAILABLE");
 				}
 			}, 10000);
-		const opening = restoreRef
-			? (api.openRestoredTerminal?.(connection, restoreRef, socketId) ??
+		const opening = restoreTarget
+			? (api.openRestoredTerminal?.(connection, restoreTarget, socketId) ??
 				Promise.reject(new Error("Strict restore is unsupported")))
 			: api.openSocket(connection, `/terminal/${terminalId}`, socketId);
 		void opening
@@ -187,31 +213,48 @@ export function RemoteTerminal({
 			resize.dispose();
 			observer.disconnect();
 			void api.closeSocket(socketId).catch(() => {});
+			cleanup?.();
 			terminal.dispose();
 		};
-	}, [
-		api,
-		connection,
-		terminalId,
-		restoreRef?.workspaceId,
-		restoreRef?.executionId,
-		visible,
-		createEmulator,
-	]);
+	}, [api, connection, terminalId, restoreTarget, visible, createEmulator]);
 	useEffect(() => {
+		focus.current = focused;
 		focusTerminal.current?.();
 	}, [focused]);
 	return (
 		<div
-			ref={element}
-			data-terminal-id={terminalId}
-			data-execution-id={restoreRef?.executionId}
-			data-restore-state={state}
-			className={
-				fill
-					? "h-full min-h-0 p-2"
-					: "h-[360px] border border-zinc-700 rounded p-2"
-			}
-		/>
+			className="relative h-full min-h-0"
+			onKeyDownCapture={(event) => {
+				if (
+					(event.metaKey || event.ctrlKey) &&
+					event.key.toLowerCase() === "f" &&
+					searchAddon
+				) {
+					event.preventDefault();
+					event.stopPropagation();
+					setSearchOpen(true);
+				}
+			}}
+		>
+			<div
+				ref={element}
+				data-terminal-id={terminalId}
+				data-execution-id={restoreRef?.executionId}
+				data-restore-state={state}
+				className={
+					fill
+						? "h-full min-h-0 overflow-hidden"
+						: "h-[360px] border border-zinc-700 rounded p-2"
+				}
+			/>
+			<TerminalSearch
+				searchAddon={searchAddon}
+				isOpen={searchOpen}
+				onClose={() => {
+					setSearchOpen(false);
+					focusTerminal.current?.();
+				}}
+			/>
+		</div>
 	);
 }

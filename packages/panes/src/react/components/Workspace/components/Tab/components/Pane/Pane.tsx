@@ -186,6 +186,8 @@ export function Pane<TData>({
 		() => ({
 			accept: [PANE_DRAG_TYPE, TAB_DRAG_TYPE],
 			canDrop: (item: PaneDropItem, monitor) => {
+				if (definition?.canDrop && !definition.canDrop(item, context))
+					return false;
 				// Can't drop a tab onto a pane it already owns, or a pane onto itself.
 				if (monitor.getItemType() === TAB_DRAG_TYPE) {
 					return "tabId" in item && item.tabId !== tab.id;
@@ -248,7 +250,7 @@ export function Pane<TData>({
 				canDrop: monitor.canDrop(),
 			}),
 		}),
-		[pane.id, tab.id, store],
+		[pane.id, tab.id, store, definition?.canDrop, context],
 	);
 
 	// Merge refs: connectDrop needs a node, and we need dropRef for rect calculations

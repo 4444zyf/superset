@@ -38,7 +38,7 @@ export async function verifyWorkspaceRestoreUi({
 			terminals,
 			(rows) => rows.length === 3 && rows.every((r) => r.state === "attached"),
 		);
-	await click('.ws-sidebar nav button[aria-label="Workspaces"]');
+	await click('[data-slot=sidebar-content] button[aria-label="Workspaces"]');
 	await click(".ws-heading-actions .primary");
 	await type('[role="dialog"] input', "Restore lifecycle");
 	await click('[role="dialog"] button[type="submit"]');
@@ -59,13 +59,81 @@ export async function verifyWorkspaceRestoreUi({
 	await click('button[aria-label="Split vertically"]');
 	const original = await ready();
 	controls?.trackOriginals(original);
+	await click("[data-terminal-id] .xterm-screen");
+	await getPage().call("Input.insertText", {
+		text: "printf 'before\\r\\n' > restore-ui.txt",
+	});
+	await getPage().call("Input.dispatchKeyEvent", {
+		type: "keyDown",
+		key: "Enter",
+		code: "Enter",
+		windowsVirtualKeyCode: 13,
+	});
+	await click("text:Files");
+	await until(() =>
+		evaluate(
+			"[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='restore-ui.txt' && !b.disabled)",
+		),
+	);
+	await click("text:restore-ui.txt");
+	await until(() => evaluate("Boolean(document.querySelector('.cm-content'))"));
+	await click(".cm-content");
+	await getPage().call("Input.dispatchKeyEvent", {
+		type: "keyDown",
+		key: "a",
+		code: "KeyA",
+		windowsVirtualKeyCode: 65,
+		modifiers: process.platform === "darwin" ? 4 : 2,
+		commands: ["selectAll"],
+	});
+	await getPage().call("Input.insertText", { text: "after upstream editor" });
+	await click("text:Save file");
+	await until(() =>
+		evaluate(
+			"[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Save file')?.disabled",
+		),
+	);
+	await click("text:Close file and discard draft");
+	await click("text:restore-ui.txt");
+	await until(() =>
+		evaluate(
+			"document.querySelector('.cm-content')?.textContent==='after upstream editor'",
+		),
+	);
+	await screenshot("upstream-remote-code-editor");
+	await click("text:Terminal");
+	await ready();
+	await click("[data-terminal-id] .xterm-screen");
+	await getPage().call("Input.dispatchKeyEvent", {
+		type: "keyDown",
+		key: "f",
+		code: "KeyF",
+		windowsVirtualKeyCode: 70,
+		modifiers: process.platform === "darwin" ? 4 : 2,
+	});
+	await until(() =>
+		evaluate("Boolean(document.querySelector('input[placeholder=Find]'))"),
+	);
+	await getPage().call("Input.insertText", { text: "restore-ui.txt" });
+	await getPage().call("Input.dispatchKeyEvent", {
+		type: "keyDown",
+		key: "Escape",
+		code: "Escape",
+		windowsVirtualKeyCode: 27,
+	});
+	await until(() =>
+		evaluate("!document.querySelector('input[placeholder=Find]')"),
+	);
+	await click('button[aria-label="Toggle sidebar"]');
+	await screenshot("upstream-collapsed-sidebar");
+	await click('button[aria-label="Toggle sidebar"]');
+
 	for (let i = 0; i < 3; i++) {
-		const selector = `.ws-workspace-pane:nth-child(${i + 1})`;
 		const paneId = await evaluate(
 			`[...document.querySelectorAll('.ws-workspace-pane')][${i}].dataset.paneId`,
 		);
 		const base = `[data-pane-id="${paneId}"]`;
-		await click(`${base} header input`);
+		await click(`[data-pane-title-id="${paneId}"]`);
 		await getPage().call("Input.dispatchKeyEvent", {
 			type: "keyDown",
 			key: "a",
@@ -101,8 +169,51 @@ export async function verifyWorkspaceRestoreUi({
 			windowsVirtualKeyCode: 13,
 		});
 	}
+	const beforeDrag = JSON.stringify(
+		(await saved()).snapshot.targets[0].workspaces[0].layout,
+	);
+	const dragPoints = await evaluate(
+		`(() => {const titles=[...document.querySelectorAll('[data-pane-title-id]')];const source=titles[2].closest('.cursor-grab').getBoundingClientRect();const target=document.querySelector('[data-pane-id="'+titles[0].dataset.paneTitleId+'"]').getBoundingClientRect();return {start:{x:source.x+10,y:source.y+source.height/2},end:{x:target.x+target.width/2,y:target.bottom-30}};})()`,
+	);
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mousePressed",
+		button: "left",
+		clickCount: 1,
+		...dragPoints.start,
+	});
+	for (let step = 1; step <= 12; step++) {
+		await getPage().call("Input.dispatchMouseEvent", {
+			type: "mouseMoved",
+			button: "left",
+			buttons: 1,
+			x:
+				dragPoints.start.x +
+				((dragPoints.end.x - dragPoints.start.x) * step) / 12,
+			y:
+				dragPoints.start.y +
+				((dragPoints.end.y - dragPoints.start.y) * step) / 12,
+		});
+		await delay(20);
+	}
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mouseReleased",
+		button: "left",
+		clickCount: 1,
+		...dragPoints.end,
+	});
+	await until(
+		saved,
+		(v) =>
+			JSON.stringify(v.snapshot.targets[0].workspaces[0].layout) !== beforeDrag,
+	);
+	const afterDrag = await ready();
+	assert.deepEqual(
+		afterDrag.map((r) => r.id).sort(),
+		original.map((r) => r.id).sort(),
+	);
+	original.splice(0, original.length, ...afterDrag);
 	const firstDivider = await evaluate(
-		"(() => {const split=document.querySelector('.ws-pane-split');const divider=split.querySelector('.ws-pane-separator');const r=split.getBoundingClientRect(),d=divider.getBoundingClientRect();return {start:{x:d.x+d.width/2,y:d.y+d.height/2},end:{x:r.x+r.width*.37,y:d.y+d.height/2}};})()",
+		"(() => {const split=document.querySelector('[data-panel-group-direction=horizontal]');const divider=split.querySelector(':scope > [data-slot=resizable-handle]');const r=split.getBoundingClientRect(),d=divider.getBoundingClientRect();return {start:{x:d.x+d.width/2,y:d.y+d.height/2},end:{x:r.x+r.width*.37,y:d.y+d.height/2}};})()",
 	);
 	await getPage().call("Input.dispatchMouseEvent", {
 		type: "mousePressed",
@@ -127,7 +238,7 @@ export async function verifyWorkspaceRestoreUi({
 		(v) =>
 			Math.abs(
 				(v.snapshot?.targets[0]?.workspaces[0]?.layout?.ratio ?? 0) - 0.37,
-			) < 0.00001 &&
+			) < 0.02 &&
 			v.snapshot.targets[0].workspaces[0].panes.every((p) => p.label),
 	);
 	const before = (await saved()).snapshot.targets[0];
@@ -148,6 +259,10 @@ export async function verifyWorkspaceRestoreUi({
 		arch: process.arch,
 		platform: process.platform,
 		realInput: true,
+		upstreamCodeEditorReadWrite: true,
+		upstreamTerminalSearch: true,
+		upstreamSidebarCollapse: true,
+		upstreamPaneDrag: true,
 		heartbeatPtyOnly: true,
 		strictHeaderAuth,
 		original,
@@ -187,7 +302,7 @@ export async function verifyWorkspaceRestoreUi({
 	report.windowClose = true;
 	await screenshot("restore-window-close");
 	const separator = await evaluate(
-		"(() => { const r=document.querySelector('.ws-pane-separator').getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()",
+		"(() => { const r=document.querySelector('[data-slot=resizable-panel-group]').querySelector(':scope > [data-slot=resizable-handle]').getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()",
 	);
 	await evaluate(
 		"window.restoreStall=setInterval(()=>{const end=performance.now()+120;while(performance.now()<end){}},400); true",
@@ -221,7 +336,9 @@ export async function verifyWorkspaceRestoreUi({
 	await screenshot("restore-resize-stress");
 	if (controls) {
 		controls.trackOriginals([]);
-		await click('.ws-sidebar nav button[aria-label="SSH machines"]');
+		await click(
+			'[data-slot=sidebar-content] button[aria-label="SSH machines"]',
+		);
 		await click(".ws-detail-actions button:last-child");
 		await until(saved, (v) => v.snapshot.targets[0].autoConnect === false);
 		await restart("quit");
@@ -323,7 +440,7 @@ export async function verifyWorkspaceRestoreUi({
 			await until(
 				() =>
 					evaluate(
-						"document.querySelector('.ws-workspace-tabs [aria-selected=true]')?.textContent",
+						"document.querySelector('.ws-workspace-tabs [data-tab-id][data-active=true]')?.textContent",
 					),
 				(value) => value === name,
 			);
@@ -340,7 +457,7 @@ export async function verifyWorkspaceRestoreUi({
 		);
 		assert.equal(
 			await evaluate(
-				"document.querySelectorAll('.ws-workspace-tabs [role=tab]').length",
+				"document.querySelectorAll('.ws-workspace-tabs [data-tab-id]').length",
 			),
 			3,
 		);

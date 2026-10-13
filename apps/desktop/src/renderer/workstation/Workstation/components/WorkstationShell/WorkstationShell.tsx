@@ -1,8 +1,33 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { PRODUCT_BRAND } from "@superset/shared/product-brand";
-import { Folder, Grid2X2, Laptop, Monitor, ShieldCheck } from "lucide-react";
+import { Button } from "@superset/ui/button";
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarGroupLabel,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarProvider,
+	SidebarTrigger,
+} from "@superset/ui/sidebar";
+import { TooltipProvider } from "@superset/ui/tooltip";
+import {
+	Folder,
+	Grid2X2,
+	Info,
+	Laptop,
+	Monitor,
+	ShieldCheck,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { BrandMark } from "../../../../components/BrandMark";
 import type { RemoteProject } from "../../types";
 import { AboutDialog } from "../AboutDialog";
@@ -11,92 +36,172 @@ export function WorkstationShell({
 	page,
 	projects,
 	children,
+	settings,
+	workspaceOpen,
 	onNavigate,
 	onProject,
 }: {
 	page: "machines" | "workspaces";
 	projects: RemoteProject[];
 	children: ReactNode;
+	settings?: ReactNode;
+	workspaceOpen?: boolean;
 	onNavigate(page: "machines" | "workspaces"): void;
 	onProject(id: string): void;
 }) {
 	const { t } = useLingui();
 	const [aboutOpen, setAboutOpen] = useState(false);
+	const [sidebarOpen, setSidebarOpen] = useState(true);
 	return (
-		<div className="ssh-workstation">
-			<div className="ws-titlebar">
-				<span>{PRODUCT_BRAND.displayName}</span>
-				<span>
-					<ShieldCheck size={12} />
-					<Trans>Direct SSH</Trans>
-				</span>
-			</div>
-			<div className="ws-shell">
-				<aside className="ws-sidebar">
-					<div className="ws-brand">
-						<BrandMark />
+		<DndProvider backend={HTML5Backend}>
+			<TooltipProvider>
+				<div className="ssh-workstation">
+					<div className="ws-titlebar">
 						<span>{PRODUCT_BRAND.displayName}</span>
+						<span>
+							<ShieldCheck size={12} />
+							<Trans>Direct SSH</Trans>
+						</span>
 					</div>
-					<nav>
-						<button
-							type="button"
-							className={page === "workspaces" ? "active" : ""}
-							aria-label={t({ message: "Workspaces" })}
-							aria-current={page === "workspaces" ? "page" : undefined}
-							onClick={() => onNavigate("workspaces")}
-						>
-							<Grid2X2 size={17} />
-							<Trans>Workspaces</Trans>
-						</button>
-						<button
-							type="button"
-							className={page === "machines" ? "active" : ""}
-							aria-label={t({ message: "SSH machines" })}
-							aria-current={page === "machines" ? "page" : undefined}
-							onClick={() => onNavigate("machines")}
-						>
-							<Monitor size={17} />
-							<Trans>SSH machines</Trans>
-						</button>
-					</nav>
-					<div className="ws-sidebar-projects">
-						<p className="ws-eyebrow">
-							<Trans>Projects</Trans>
-						</p>
-						{projects.map((p) => (
-							<button
-								type="button"
-								key={p.id}
-								title={p.name}
-								onClick={() => onProject(p.id)}
-							>
-								<Folder size={14} />
-								<span>{p.name}</span>
-							</button>
-						))}
-					</div>
-					<div className="ws-sidebar-local">
-						<Laptop size={17} />
-						<div>
-							<strong>
-								<Trans>Local Device</Trans>
-							</strong>
-							<p>
-								<Trans>Connection settings are stored on this device.</Trans>
-							</p>
-						</div>
-					</div>
-					<button
-						type="button"
-						className="ws-about-button"
-						onClick={() => setAboutOpen(true)}
+					<SidebarProvider
+						open={sidebarOpen}
+						onOpenChange={setSidebarOpen}
+						className="ws-shell"
+						style={{ minHeight: 0 }}
 					>
-						<Trans>About</Trans>
-					</button>
-				</aside>
-				<main className="ws-main">{children}</main>
-			</div>
-			<AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
-		</div>
+						<Sidebar
+							collapsible="icon"
+							className="ws-native-sidebar"
+							variant="sidebar"
+						>
+							<SidebarHeader>
+								<div className="ws-native-brand flex h-9 items-center gap-2 overflow-hidden px-2 text-sm font-medium">
+									<BrandMark />
+									<span className="truncate group-data-[collapsible=icon]:hidden">
+										{PRODUCT_BRAND.displayName}
+									</span>
+								</div>
+							</SidebarHeader>
+							<SidebarContent>
+								<SidebarGroup>
+									<SidebarGroupContent>
+										<nav>
+											<SidebarMenu>
+												<SidebarMenuItem>
+													<SidebarMenuButton
+														isActive={page === "workspaces"}
+														tooltip={t({ message: "Workspaces" })}
+														aria-label={t({ message: "Workspaces" })}
+														aria-current={
+															page === "workspaces" ? "page" : undefined
+														}
+														onClick={() => onNavigate("workspaces")}
+													>
+														<Grid2X2 />
+														<span>
+															<Trans>Workspaces</Trans>
+														</span>
+													</SidebarMenuButton>
+												</SidebarMenuItem>
+												<SidebarMenuItem>
+													<SidebarMenuButton
+														isActive={page === "machines"}
+														tooltip={t({ message: "SSH machines" })}
+														aria-label={t({ message: "SSH machines" })}
+														aria-current={
+															page === "machines" ? "page" : undefined
+														}
+														onClick={() => onNavigate("machines")}
+													>
+														<Monitor />
+														<span>
+															<Trans>SSH machines</Trans>
+														</span>
+													</SidebarMenuButton>
+												</SidebarMenuItem>
+											</SidebarMenu>
+										</nav>
+									</SidebarGroupContent>
+								</SidebarGroup>
+								<SidebarGroup>
+									<SidebarGroupLabel>
+										<Trans>Projects</Trans>
+									</SidebarGroupLabel>
+									<SidebarGroupContent>
+										<SidebarMenu>
+											{projects.map((p) => (
+												<SidebarMenuItem key={p.id}>
+													<SidebarMenuButton
+														tooltip={p.name}
+														onClick={() => onProject(p.id)}
+													>
+														<Folder />
+														<span>{p.name}</span>
+													</SidebarMenuButton>
+												</SidebarMenuItem>
+											))}
+										</SidebarMenu>
+									</SidebarGroupContent>
+								</SidebarGroup>
+							</SidebarContent>
+							<SidebarFooter>
+								<div className="group-data-[collapsible=icon]:hidden text-xs text-muted-foreground">
+									{settings}
+								</div>
+								<SidebarMenu>
+									<SidebarMenuItem>
+										<SidebarMenuButton
+											tooltip={t({ message: "Local Device" })}
+											onClick={() => onNavigate("machines")}
+										>
+											<Laptop />
+											<span>
+												<Trans>Local Device</Trans>
+											</span>
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+									<SidebarMenuItem>
+										<SidebarMenuButton
+											className="ws-about-button"
+											tooltip={t({ message: "About" })}
+											onClick={() => setAboutOpen(true)}
+										>
+											<Info />
+											<span>
+												<Trans>About</Trans>
+											</span>
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+								</SidebarMenu>
+							</SidebarFooter>
+						</Sidebar>
+						<main
+							className={`ws-main ${workspaceOpen ? "ws-main-workspace" : ""}`}
+						>
+							<div className="ws-native-topbar">
+								<SidebarTrigger aria-label={t({ message: "Toggle sidebar" })} />
+								<span>
+									{page === "machines" ? (
+										<Trans>SSH machines</Trans>
+									) : (
+										<Trans>Workspaces</Trans>
+									)}
+								</span>
+								<Button
+									variant="ghost"
+									size="icon-sm"
+									aria-label={t({ message: "About" })}
+									onClick={() => setAboutOpen(true)}
+								>
+									<Info size={14} />
+								</Button>
+							</div>
+							<div className="ws-main-body">{children}</div>
+						</main>
+					</SidebarProvider>
+					<AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
+				</div>
+			</TooltipProvider>
+		</DndProvider>
 	);
 }

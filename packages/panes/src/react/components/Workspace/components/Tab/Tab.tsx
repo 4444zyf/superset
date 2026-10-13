@@ -97,6 +97,8 @@ function SplitView<TData>({
 	return (
 		<ResizablePanelGroup
 			ref={groupRef}
+			data-split-path={path.join(".")}
+			data-split-percentage={firstSize}
 			className="min-h-full min-w-full overflow-auto"
 			direction={node.direction}
 			onLayout={(sizes) => {
