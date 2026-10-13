@@ -3,6 +3,12 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { createRequire } = require("node:module");
+const brand = JSON.parse(
+	fs.readFileSync(
+		path.resolve(__dirname, "../../../packages/shared/src/product-brand.json"),
+		"utf8",
+	),
+);
 
 async function verify() {
 	const [app, arch, version] = process.argv.slice(2);
@@ -11,9 +17,24 @@ async function verify() {
 	const resources = path.join(app, "Contents/Resources");
 	const asar = path.join(resources, "app.asar");
 	const metadata = JSON.parse(fs.readFileSync(path.join(asar, "package.json")));
-	assert.equal(metadata.productName, "Superset SSH Preview");
-	assert.equal(metadata.name, "superset-ssh-preview");
+	assert.equal(metadata.productName, brand.displayName);
+	assert.equal(metadata.name, brand.slug);
 	assert.equal(metadata.version, version);
+	const license = fs.readFileSync(
+		path.join(asar, "resources/legal/LICENSE.md"),
+		"utf8",
+	);
+	assert.equal(
+		license,
+		fs.readFileSync(path.resolve(__dirname, "../../../LICENSE.md"), "utf8"),
+	);
+	const notice = fs.readFileSync(
+		path.join(asar, "resources/legal/FORK_NOTICE.md"),
+		"utf8",
+	);
+	assert.match(notice, /unofficial modified version/);
+	assert.ok(notice.includes(brand.forkRepository));
+	assert.ok(notice.includes(brand.upstreamCopyright));
 	for (const name of ["direct-backend", "direct-release-keys.json"]) {
 		assert.equal(fs.existsSync(path.join(resources, "resources", name)), true);
 		assert.equal(fs.existsSync(path.join(asar, "dist/resources", name)), false);
@@ -83,7 +104,9 @@ async function verify() {
 		JSON.stringify({
 			arch,
 			version,
-			appIdentity: "Superset SSH Preview",
+			appIdentity: brand.displayName,
+			originalLicense: "pass",
+			forkNotice: "pass",
 			abi: process.versions.modules,
 			nativeSQLite: "pass",
 			nativePty: "pass",

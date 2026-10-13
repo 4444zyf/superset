@@ -48,6 +48,7 @@ test("emergency UI has no transitive dependency on router, app providers, or UI 
 		"react",
 		"@lingui/core/macro",
 		"@superset/i18n",
+		"@superset/shared/product-brand",
 		"@sentry/electron/renderer",
 	]);
 	const visited = new Set<string>();
@@ -108,6 +109,13 @@ test("emergency UI has no transitive dependency on router, app providers, or UI 
 		),
 	);
 	check(resolve(renderer, "lib/boot-errors.ts"));
+	const identity = parse(
+		resolve(renderer, "../../../../packages/shared/src/product-brand.ts"),
+	);
+	expect(moduleReferences(identity).sort()).toEqual([
+		"./product-brand-mark.json",
+		"./product-brand.json",
+	]);
 });
 
 test("production renderer roots cannot bypass RendererRouter", async () => {

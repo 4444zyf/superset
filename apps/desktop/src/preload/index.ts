@@ -17,6 +17,8 @@ declare global {
 const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
+	about: () => invoke("about"),
+	openBrandLink: (id) => invoke("openBrandLink", id),
 	platform: process.platform,
 	localData: {
 		listNamespaces: () => invoke("localData.list"),

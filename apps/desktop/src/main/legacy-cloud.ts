@@ -15,6 +15,7 @@ import {
 	isDevAppProfileDirName,
 	workspaceDevAppProfileDirName,
 } from "@superset/shared/dev-app-profile";
+import { PRODUCT_BRAND } from "@superset/shared/product-brand";
 import {
 	app,
 	BrowserWindow,
@@ -82,6 +83,8 @@ import {
 } from "./windows/main";
 
 console.log("[main] Local database ready:", !!localDb);
+const productName = PRODUCT_BRAND.displayName;
+
 const IS_DEV = process.env.NODE_ENV === "development";
 
 void applyShellEnvToProcess().catch((error) => {
@@ -150,10 +153,7 @@ async function processDeepLink(url: string): Promise<void> {
 				authLink.type === "valid"
 					? (result.error ??
 							i18n._(
-								msg({
-									message:
-										"Superset could not complete sign-in. Please try again.",
-								}),
+								msg`${productName} could not complete sign-in. Please try again.`,
 							))
 					: i18n._(
 							msg({
@@ -318,7 +318,7 @@ app.on("before-quit", async (event) => {
 				],
 				defaultId: 0,
 				cancelId: 1,
-				title: i18n._(msg({ message: "Quit Superset" })),
+				title: i18n._(msg`Quit ${productName}`),
 				message: i18n._(
 					msg({
 						message: "Are you sure you want to quit?",

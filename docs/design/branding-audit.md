@@ -1,0 +1,45 @@
+# Superset Remix branding inventory
+
+Implementation target: the accountless desktop entry in `apps/desktop/src/main/index.ts` and `src/renderer/index.tsx`, the fork repository, and the macOS SSH preview distribution. Superset Remix is the working product name, centralized for later changes. The user's 2026-10-13 instruction supersedes old-data compatibility: use fresh independent profiles, without automatic migration. Remote service/protocol contracts remain compatible.
+
+## Reachability and distribution
+
+| Surface | Fork status | Handling |
+| --- | --- | --- |
+| Desktop Workstation, title, sidebar, failure UI, About | Current product | Shared name and SVG geometry; visible unofficial notice; offline original license and modification notice; fixed-ID external links through the existing trusted IPC caller check. |
+| Preview macOS DMG, bundle, executable, icons, permissions | Current distribution | Own `.preview` bundle ID, new artifact stem, same unified desktop/CLI/backend version; both backend targets and pinned verification keys retained outside ASAR. Native acceptance required before artifact upload. |
+| Data / single-instance identity | Current product | `superset-remix` installed profile; hashed independent development profiles; both selected before database setup and lock. No earlier profile scan, migration, deletion or reuse. |
+| README and all 16 translated READMEs | Current repository | Truthful fork downloads and scope; original authors/license; old marketing screenshots and cloud/mobile promises removed. |
+| Development, contribution, security, issue templates | Current repository | Fork destinations; no invented private security channel, email address or support SLA. |
+| Legacy desktop cloud routes and sidebar, tray, updater | Retained inactive source | Not imported by current Workstation entry. Shared logo/menu identity updated where convenient; upstream services remain upstream. Legacy updater is inactive; any future activation requires fork-feed acceptance. Current builders default to manual updates. |
+| Dev protocol patch / Launch Services cleanup | Retained inactive tooling | Removed from current predev chain. The Workstation has no deep-link handler; builders register no URL schemes. Do not activate these helpers without a separate protocol review. |
+| Stable / Canary workflows | Not used for this fork preview | Retained workflow infrastructure; production credentials are not configured. Do not claim stable, notarized or automatic updates. Canary artwork is derived, but its release chain is not validated for this fork. |
+| Linux / Windows desktop installers | Not distributed or validated | Identity fields and assets are prepared; source UI checks on Linux do not validate an installer or platform support. |
+| Web (`apps/web`) | Not published | Upstream app titles, favicon and hosted links retained. Requires its own deployment and branding review before use. |
+| Marketing (`apps/marketing`) | Upstream materials, not published | Existing SEO/canonical, images, screenshots and hosted/mobile claims remain upstream evidence; not reused as fork advertising. |
+| Docs (`apps/docs`) | Upstream materials, not published | Original docs branding, MCP identity, indexes and source links retained. About labels links as upstream documentation. |
+| Admin (`apps/admin`) | Not deployed | Original internal dashboard source; no fork operating claims. |
+| API (`apps/api`) | Not deployed | OAuth issuers, clients and real endpoints remain upstream; no invented fork infrastructure. |
+| Mobile (`apps/mobile`) | Not published | No fork EAS/OTA/team/App Group/Apple identity configured. Original mobile assets and app identity retained; no fork App Store link. |
+| Discord triage | Not deployed | Original bot and community identity retained. No external messages sent. |
+| Email (`packages/email`) | Not sent by this fork | Original sender, address, template logos and unsubscribe identity retained; no invented maintainer address. |
+| CLI | Bundled technical component | Version unified; executable `superset`, command syntax and internal package name remain stable. Hosted CLI functions belong to upstream; not a new fork cloud deployment. |
+| SDK / MCP / agent setup | Retained upstream modules; backend dependencies as needed | Keep public package names, generated tools, hook protocol and provisioning contracts; original service descriptions are not fork product promises. |
+| Plugins / marketplace / third-party logos | Original integrations | Preserve vendor names, authors, manifests and generated catalogs; no implicit publishing or re-signing. |
+| License / authors / history / old SSH preview evidence | Original records | Root license unchanged; generated package copy byte-identical. Historical tags, filenames, reports, checksums and screenshots retain their actual old identity. |
+
+## Source-hit inventory
+
+[branding-audit.csv](branding-audit.csv) records each matching file, baseline/current matching-line counts, classification counts, action and rationale. The initial scan was case-insensitive for `Superset` (covering `superset.sh`, `@superset/*`, schemes and bundle names); the current scan includes tracked and nonignored new files. It excludes binary contents and the audit output itself, not application directories. Counts are matching lines, not individual tokens. Files with removed hits remain represented through the baseline inventory. Categories are per line; mixed-purpose files list multiple categories.
+
+Technical names are deliberately preserved. This includes `@superset/*`, CLI `superset`, `SUPERSET_*`, local/remote compatibility contracts, `.superset-direct`, installed service IDs and generated plugin data. A remaining string does not imply a published fork surface. The table above records whether it is reachable or distributed. Re-enabling an inactive surface requires reviewing its actual UI, domains, package resources and credentials.
+
+## Assets and evidence
+
+Editable mother artwork, exports and generation instructions are in [assets/branding](../../assets/branding/README.md). Provider and integration assets are unchanged. All 17 supported locales have the new notice/About/menu copy; the product name stays untranslated. Root legal terms and upstream author metadata remain original.
+
+The equivalent baseline is the actual old 1.37.3 preview inspected in [native run 38341584803](https://github.com/4444zyf/superset/actions/runs/38341584803), including its original Workstation screenshot. The old source is historical evidence; it is not an upgrade fixture under the fresh-data policy.
+
+`verify-brand-ui.mjs` drives the real packaged Electron renderer with CDP. It checks source path and package identity, fresh user/session data paths, actual version/title, minimum-window badge/name layout, real navigation and About clicks, byte-identical offline license, scroll, Escape close, single-instance behavior and app reopen. It captures seven screenshots plus numeric observations. Source-mode Linux execution is explicitly marked separately and never substitutes for native DMG acceptance. The native SSH installation checks remain mandatory before and after packaging.
+
+Validation results and the final source/build links are recorded in [implementation notes](../implementation/fork-branding-2026-10-13.md) after verification. A surface marked unpublished above is not represented as a completed fork deployment.

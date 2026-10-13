@@ -1,5 +1,6 @@
 import { msg } from "@lingui/core/macro";
 import { i18n } from "@superset/i18n";
+import { PRODUCT_BRAND } from "@superset/shared/product-brand";
 import { failureLayoutStyles } from "../components/FailureLayout/styles";
 
 import { failureDiagnostic } from "./failure-diagnostic/failure-diagnostic";
@@ -38,7 +39,8 @@ const renderBootError = (message: string, error?: unknown) => {
 	inner.style.textAlign = "center";
 
 	const title = document.createElement("div");
-	title.textContent = "Superset failed to start";
+	const productName = PRODUCT_BRAND.displayName;
+	title.textContent = i18n._(msg`${productName} failed to start`);
 	title.style.fontSize = "18px";
 	title.style.marginBottom = "8px";
 

@@ -1,3 +1,5 @@
+> Retained upstream SDK source. Superset Remix does not operate Superset’s hosted API. The endpoints and public SDK identity below belong to upstream Superset. See the [fork surface inventory](../../docs/design/branding-audit.md).
+
 # Superset TypeScript SDK
 
 Typed wrapper around the Superset API for cloud workspaces: sandboxes Superset runs for your organization, and the terminals and agents inside them. Follows the [`superset` CLI](https://docs.superset.sh/docs/cli/getting-started) — same procedures, same shapes.

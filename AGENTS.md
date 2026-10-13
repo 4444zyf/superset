@@ -1,3 +1,7 @@
+## Fork identity
+
+This checkout maintains Superset Remix, an unofficial modified desktop based on Superset. Product identity comes from `packages/shared/src/product-brand.json`; regenerate artwork with `bun run brand:generate`. Preserve original authorship, license, technical `@superset/*` names and upstream service identities. Current Workstation profiles are new independent directories, with no automatic old-preview migration. See `docs/design/branding-audit.md` for published scope and retained upstream surfaces.
+
 # Superset Monorepo
 
 Superset is an agent-first development platform, with an Electron desktop IDE, Next.js web apps, and an Expo mobile app as the main customer-facing surfaces. It's a Turborepo monorepo, deployed apps are in apps/ and supporting packages are in packages/, and we use tRPC for the api.

@@ -7,17 +7,15 @@ import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { promisify } from "node:util";
+import { PRODUCT_BRAND } from "@superset/shared/product-brand";
 import type { Configuration } from "electron-builder";
-import { directPublisher } from "./direct-publisher";
 import pkg from "./package.json";
 import {
 	packagedAsarUnpackGlobs,
 	packagedNodeModuleCopies,
 } from "./runtime-dependencies";
 
-const currentYear = new Date().getFullYear();
-const author = pkg.author?.name ?? pkg.author;
-const productName = pkg.productName;
+const productName = PRODUCT_BRAND.displayName;
 const macIconPath = join(pkg.resources, "build/icons/icon.icns");
 const linuxIconPath = join(pkg.resources, "build/icons");
 const winIconPath = join(pkg.resources, "build/icons/icon.ico");
@@ -27,9 +25,14 @@ const dmgBackgroundPath = join(
 );
 
 const config: Configuration = {
-	appId: "com.superset.desktop",
+	appId: PRODUCT_BRAND.desktopAppId,
+	extraMetadata: {
+		name: PRODUCT_BRAND.slug,
+		productName,
+		forkSource: process.env.GITHUB_SHA,
+	},
 	productName,
-	copyright: `Copyright © ${currentYear} — ${author}`,
+	copyright: PRODUCT_BRAND.upstreamCopyright,
 	electronVersion: pkg.devDependencies.electron.replace(/^\^/, ""),
 	beforePack: async () => {
 		await promisify(execFile)(
@@ -39,12 +42,8 @@ const config: Configuration = {
 		);
 	},
 
-	// Generate update manifests for all channels (latest.yml, canary.yml, etc.)
-	// This enables proper channel-based auto-updates following electron-builder conventions
-	generateUpdatesFilesForAllChannels: true,
-
-	// Generate latest-mac.yml for auto-update (workflow handles actual upload)
-	publish: directPublisher(process.env.GITHUB_REPOSITORY),
+	generateUpdatesFilesForAllChannels: false,
+	publish: null,
 
 	// Directories
 	directories: {
@@ -146,16 +145,13 @@ const config: Configuration = {
 			CFBundleName: productName,
 			CFBundleDisplayName: productName,
 			// Required for macOS microphone permission prompt
-			NSMicrophoneUsageDescription:
-				"Superset needs microphone access so voice-enabled tools like Codex transcription can capture audio input.",
+			NSMicrophoneUsageDescription: `${productName} needs microphone access so voice-enabled tools like Codex transcription can capture audio input.`,
 			// Required for macOS local network permission prompt
-			NSLocalNetworkUsageDescription:
-				"Superset needs access to your local network to discover and connect to development servers running on your network.",
+			NSLocalNetworkUsageDescription: `${productName} needs access to your local network to discover and connect to development servers running on your network.`,
 			// Bonjour service types to browse for (triggers the permission prompt)
 			NSBonjourServices: ["_http._tcp", "_https._tcp"],
 			// Required for Apple Events / Automation permission prompt
-			NSAppleEventsUsageDescription:
-				"Superset needs to interact with other applications to run terminal commands and development tools.",
+			NSAppleEventsUsageDescription: `${productName} needs to interact with other applications to run terminal commands and development tools.`,
 		},
 	},
 
@@ -164,24 +160,21 @@ const config: Configuration = {
 	deb: { compression: "gz" },
 
 	// Deep linking protocol
-	protocols: {
-		name: productName,
-		schemes: ["superset"],
-	},
+	protocols: [],
 
 	// Linux
 	linux: {
 		...(existsSync(linuxIconPath) ? { icon: linuxIconPath } : {}),
 		// Otherwise the binary, and with it the window class the desktop entry
 		// must match, is the package name mangled to "@supersetdesktop".
-		executableName: "superset",
+		executableName: PRODUCT_BRAND.slug,
 		category: "Utility",
 		synopsis: pkg.description,
 		// The AppImage runtime needs libfuse2, which Debian 12 / Ubuntu 22.04+
 		// no longer install by default; the deb needs nothing extra and installs
 		// the desktop entry and icon that the dock and deep links resolve.
 		target: ["AppImage", "deb"],
-		artifactName: `superset-\${version}-\${arch}.\${ext}`,
+		artifactName: `${PRODUCT_BRAND.artifactStem}-\${version}-\${arch}.\${ext}`,
 		// GNOME's app menus only show their heuristic "New Window" item
 		// intermittently for running apps; an explicit desktop action (the
 		// Chrome/VS Code approach) is always shown. The action relaunches with
@@ -198,7 +191,7 @@ const config: Configuration = {
 				// Electron sets the window class from the executable name, so the
 				// default (the product name) never matches and the dock shows a
 				// second, iconless entry for the running app.
-				StartupWMClass: "superset",
+				StartupWMClass: PRODUCT_BRAND.slug,
 			},
 			desktopActions: {
 				"new-window": {
@@ -208,7 +201,7 @@ const config: Configuration = {
 					// intentionally omitted. --new-window is what the
 					// second-instance handler keys on to open a window instead
 					// of focusing the running app.
-					Exec: "superset --new-window",
+					Exec: `${PRODUCT_BRAND.slug} --new-window`,
 				},
 			},
 		},

@@ -1,7 +1,11 @@
 import { Trans, useLingui } from "@lingui/react/macro";
+import { PRODUCT_BRAND } from "@superset/shared/product-brand";
 import { Folder, Grid2X2, Laptop, Monitor, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
+import { useState } from "react";
+import { BrandMark } from "../../../../components/BrandMark";
 import type { RemoteProject } from "../../types";
+import { AboutDialog } from "../AboutDialog";
 
 export function WorkstationShell({
 	page,
@@ -17,10 +21,11 @@ export function WorkstationShell({
 	onProject(id: string): void;
 }) {
 	const { t } = useLingui();
+	const [aboutOpen, setAboutOpen] = useState(false);
 	return (
 		<div className="ssh-workstation">
 			<div className="ws-titlebar">
-				<span>Superset</span>
+				<span>{PRODUCT_BRAND.displayName}</span>
 				<span>
 					<ShieldCheck size={12} />
 					<Trans>Direct SSH</Trans>
@@ -29,10 +34,8 @@ export function WorkstationShell({
 			<div className="ws-shell">
 				<aside className="ws-sidebar">
 					<div className="ws-brand">
-						<svg viewBox="0 0 30 30" aria-hidden="true">
-							<path d="M5 10l10-6 10 6-10 6-10-6zM5 16l10 6 10-6M5 22l10 6 10-6" />
-						</svg>
-						<span>superset</span>
+						<BrandMark />
+						<span>{PRODUCT_BRAND.displayName}</span>
 					</div>
 					<nav>
 						<button
@@ -83,9 +86,17 @@ export function WorkstationShell({
 							</p>
 						</div>
 					</div>
+					<button
+						type="button"
+						className="ws-fork-notice"
+						onClick={() => setAboutOpen(true)}
+					>
+						<Trans>Unofficial modified version</Trans>
+					</button>
 				</aside>
 				<main className="ws-main">{children}</main>
 			</div>
+			<AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
 		</div>
 	);
 }

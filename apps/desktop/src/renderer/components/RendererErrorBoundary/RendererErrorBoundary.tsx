@@ -1,5 +1,6 @@
 import { msg } from "@lingui/core/macro";
 import { i18n } from "@superset/i18n";
+import { PRODUCT_BRAND } from "@superset/shared/product-brand";
 import type { ErrorInfo, ReactNode } from "react";
 import { Component } from "react";
 import { failureDiagnostic } from "../../lib/failure-diagnostic/failure-diagnostic";
@@ -55,12 +56,13 @@ export class RendererErrorBoundary extends Component<
 						)}
 					</h1>
 					<p style={{ fontSize: "14px", opacity: 0.8 }}>
-						{i18n._(
-							msg({
+						{i18n._({
+							...msg({
 								message:
-									"Superset hit an unexpected error. Reload to try again.",
+									"{productName} hit an unexpected error. Reload to try again.",
 							}),
-						)}
+							values: { productName: PRODUCT_BRAND.displayName },
+						})}
 					</p>
 					<button
 						type="button"

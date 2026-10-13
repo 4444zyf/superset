@@ -1,4 +1,4 @@
-# Contributor Covenant Code of Conduct
+# Superset Remix Code of Conduct
 
 ## Our Pledge
 
@@ -59,9 +59,10 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement by emailing
-[team@superset.sh](mailto:team@superset.sh).
-All complaints will be reviewed and investigated promptly and fairly.
+reported to this fork’s maintainers through a non-sensitive
+[request for a private contact](https://github.com/4444zyf/superset/issues).
+A dedicated private contact is not configured. Do not post private incident details publicly.
+The upstream project’s email addresses are not fork reporting channels.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.

@@ -17,13 +17,18 @@ import {
 } from "@superset/direct-install";
 import { i18n, initI18nAsync } from "@superset/i18n";
 import { resolveLocale } from "@superset/i18n/locales";
-import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
+import {
+	PRODUCT_BRAND,
+	resolveBrandLink,
+} from "@superset/shared/product-brand";
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from "electron";
 import { z } from "zod";
 import {
 	DIRECT_CHANNEL,
 	DIRECT_CONNECTION_CHANNEL,
 	DIRECT_SOCKET_CHANNEL,
 } from "../shared/direct-workstation";
+import { lockProductProfile } from "./lib/product-identity";
 import { AutomaticReconnect } from "./lib/ssh-direct/automatic-reconnect";
 import { runConfirmedRemoteControl } from "./lib/ssh-direct/confirmed-remote-control";
 import { importSelectedLocalData } from "./lib/ssh-direct/import-local-data";
@@ -60,12 +65,36 @@ const rpcSchema = z
 	.strict();
 
 export async function startWorkstation(): Promise<void> {
-	if (!app.requestSingleInstanceLock()) {
+	if (!lockProductProfile(app, process.env.SUPERSET_WORKSPACE_ID)) {
 		app.quit();
 		return;
 	}
 	await app.whenReady();
 	await initI18nAsync(resolveLocale(app.getPreferredSystemLanguages()));
+	app.setAboutPanelOptions({
+		applicationName: PRODUCT_BRAND.displayName,
+		applicationVersion: app.getVersion(),
+		copyright: PRODUCT_BRAND.upstreamCopyright,
+		credits: i18n._(msg({ message: "Unofficial modified version" })),
+		website: PRODUCT_BRAND.forkRepository,
+	});
+	Menu.setApplicationMenu(
+		Menu.buildFromTemplate([
+			{
+				label: PRODUCT_BRAND.displayName,
+				submenu: [{ role: "about" }, { type: "separator" }, { role: "quit" }],
+			},
+			{ role: "editMenu" },
+			{ role: "viewMenu" },
+			{ role: "windowMenu" },
+		]),
+	);
+	const icon = path.join(
+		app.isPackaged ? app.getAppPath() : path.join(__dirname, "../../src"),
+		"resources/build/icons",
+		app.isPackaged ? "icon.png" : "icon-dev.png",
+	);
+	app.dock?.setIcon(icon);
 	const dataDir = path.join(app.getPath("userData"), "direct-workstation");
 	mkdirSync(dataDir, { recursive: true, mode: 0o700 });
 	const registry = new ConnectionRegistry(path.join(dataDir, "connections.db"));
@@ -163,11 +192,12 @@ export async function startWorkstation(): Promise<void> {
 	});
 	const createWindow = () => {
 		window = new BrowserWindow({
+			icon,
 			width: 1280,
 			height: 850,
 			minWidth: 800,
 			minHeight: 600,
-			title: "Superset",
+			title: PRODUCT_BRAND.displayName,
 			backgroundColor: "#09090b",
 			titleBarStyle: "hiddenInset",
 			webPreferences: {
@@ -254,6 +284,23 @@ export async function startWorkstation(): Promise<void> {
 			const callerWindow = window;
 			const owner = event.sender.id;
 			switch (action) {
+				case "about": {
+					const metadata = JSON.parse(
+						readFileSync(path.join(app.getAppPath(), "package.json"), "utf8"),
+					);
+					const legal = app.isPackaged
+						? path.join(app.getAppPath(), "resources/legal")
+						: path.join(__dirname, "../../src/resources/legal");
+					return {
+						version: app.getVersion(),
+						source: metadata.forkSource,
+						license: readFileSync(path.join(legal, "LICENSE.md"), "utf8"),
+						notice: readFileSync(path.join(legal, "FORK_NOTICE.md"), "utf8"),
+					};
+				}
+				case "openBrandLink":
+					await shell.openExternal(resolveBrandLink(payload));
+					return;
 				case "localData.list":
 					return local.listNamespaces();
 				case "localData.create":

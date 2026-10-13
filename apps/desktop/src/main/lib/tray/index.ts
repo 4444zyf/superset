@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { msg } from "@lingui/core/macro";
 import { i18n } from "@superset/i18n";
+import { PRODUCT_BRAND } from "@superset/shared/product-brand";
 import {
 	app,
 	Menu,
@@ -22,6 +23,8 @@ import { menuEmitter } from "main/lib/menu-events";
 import { confirmAndQuitCompletely } from "main/lib/quit-completely";
 
 /** Must have "Template" suffix for macOS dark/light mode support */
+const productName = PRODUCT_BRAND.displayName;
+
 const TRAY_ICON_FILENAME = "iconTemplate.png";
 
 function getTrayIconPath(): string | null {
@@ -263,7 +266,7 @@ async function updateTrayMenu(): Promise<void> {
 		},
 		{ type: "separator" },
 		{
-			label: i18n._(msg({ message: "Open Superset" })),
+			label: i18n._(msg`Open ${productName}`),
 			click: focusMainWindow,
 		},
 		{
@@ -282,16 +285,12 @@ async function updateTrayMenu(): Promise<void> {
 		},
 		{ type: "separator" },
 		{
-			label: i18n._(msg({ message: "Close Superset" })),
+			label: i18n._(msg`Close ${productName}`),
 			click: () => quitApp(),
 		},
 		{ type: "separator" },
 		{
-			label: i18n._(
-				msg({
-					message: "Quit Superset Completely",
-				}),
-			),
+			label: i18n._(msg`Quit ${productName} Completely`),
 			click: () => {
 				void confirmAndQuitCompletely();
 			},
@@ -326,7 +325,7 @@ export function initTray(): void {
 		}
 
 		tray = new Tray(icon);
-		tray.setToolTip("Superset");
+		tray.setToolTip(PRODUCT_BRAND.displayName);
 
 		void updateTrayMenu();
 

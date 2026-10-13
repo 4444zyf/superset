@@ -1,6 +1,7 @@
 import { msg } from "@lingui/core/macro";
 import { i18n } from "@superset/i18n";
 import { COMPANY } from "@superset/shared/constants";
+import { PRODUCT_BRAND } from "@superset/shared/product-brand";
 import { app, BrowserWindow, Menu, shell } from "electron";
 import { env } from "main/env.main";
 import { resetTerminalStateDev } from "main/lib/terminal/dev-reset";
@@ -12,6 +13,8 @@ import {
 } from "./auto-updater";
 import { menuEmitter } from "./menu-events";
 import { confirmAndQuitCompletely } from "./quit-completely";
+
+const productName = PRODUCT_BRAND.displayName;
 
 export function createApplicationMenu() {
 	const reloadAccelerator = "CmdOrCtrl+R";
@@ -86,7 +89,7 @@ export function createApplicationMenu() {
 							{ type: "separator" },
 							{ role: "quit" },
 							{
-								label: i18n._(msg({ message: "Quit Superset Completely" })),
+								label: i18n._(msg`Quit ${productName} Completely`),
 								click: () => {
 									void confirmAndQuitCompletely();
 								},
@@ -192,22 +195,22 @@ export function createApplicationMenu() {
 				{
 					label: i18n._(
 						msg({
-							message: "Documentation",
+							message: "Superset upstream documentation",
 						}),
 					),
 					click: () => {
-						shell.openExternal(COMPANY.DOCS_URL);
+						shell.openExternal(PRODUCT_BRAND.upstreamDocs);
 					},
 				},
 				{ type: "separator" },
 				{
 					label: i18n._(
 						msg({
-							message: "Contact Us",
+							message: "Report a fork issue",
 						}),
 					),
 					click: () => {
-						shell.openExternal(COMPANY.MAIL_TO);
+						shell.openExternal(PRODUCT_BRAND.forkIssues);
 					},
 				},
 				{
@@ -217,13 +220,13 @@ export function createApplicationMenu() {
 						}),
 					),
 					click: () => {
-						shell.openExternal(COMPANY.REPORT_ISSUE_URL);
+						shell.openExternal(PRODUCT_BRAND.forkIssues);
 					},
 				},
 				{
 					label: i18n._(
 						msg({
-							message: "Join Discord",
+							message: "Superset upstream community",
 						}),
 					),
 					click: () => {
@@ -317,11 +320,7 @@ export function createApplicationMenu() {
 				{ type: "separator" },
 				{ role: "quit" },
 				{
-					label: i18n._(
-						msg({
-							message: "Quit Superset Completely",
-						}),
-					),
+					label: i18n._(msg`Quit ${productName} Completely`),
 					click: () => {
 						void confirmAndQuitCompletely();
 					},

@@ -1,13 +1,14 @@
 {
 	"name": "@superset/desktop",
-	"productName": "Superset",
-	"description": "The last developer tool you'll ever need",
-	"version": "1.37.3",
+	"productName": "Superset Remix",
+	"description": "An unofficial modified version of Superset with local and SSH workstations",
+	"version": "1.37.4",
 	"main": "./dist/main/index.js",
 	"resources": "src/resources",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/superset-sh/superset.git"
+		"url": "https://github.com/4444zyf/superset.git",
+		"directory": "apps/desktop"
 	},
 	"author": {
 		"name": "Superset",
@@ -20,7 +21,7 @@
 		"build-storybook": "storybook build",
 		"generate:icons": "bun run scripts/generate-file-icons.ts",
 		"bundle:cli": "bun run scripts/build-bundled-cli.ts",
-		"predev": "bun run --filter=@superset/i18n build && cross-env NODE_ENV=development bun run clean:dev && bun run generate:icons && bun run bundle:cli && cross-env NODE_ENV=development bun run scripts/clean-launch-services.ts && cross-env NODE_ENV=development bun run scripts/patch-dev-protocol.ts",
+		"predev": "bun run --filter=@superset/i18n build && cross-env NODE_ENV=development bun run clean:dev && bun run generate:icons && bun run bundle:cli",
 		"dev": "bun scripts/dev.ts",
 		"precompile:app": "bun run --filter=@superset/i18n build",
 		"compile:app": "cross-env NODE_OPTIONS=--max-old-space-size=8192 electron-vite build && bun run bundle:cli && bun run scripts/check-pty-daemon-bundle.ts",
@@ -296,5 +297,6 @@
 		"typescript": "7.0.2",
 		"vite": "7.3.5",
 		"vite-tsconfig-paths": "5.1.4"
-	}
+	},
+	"homepage": "https://github.com/4444zyf/superset"
 }

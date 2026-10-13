@@ -2,7 +2,8 @@
 	"name": "@superset/repo",
 	"version": "0.0.0",
 	"repository": {
-		"type": "git"
+		"type": "git",
+		"url": "https://github.com/4444zyf/superset.git"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.2",
@@ -14,10 +15,11 @@
 		"semver": "7.7.4",
 		"sherif": "1.11.0",
 		"turbo": "2.10.9",
-		"typescript": "7.0.2"
+		"typescript": "7.0.2",
+		"sharp": "0.34.5"
 	},
-	"description": "Superset Monorepo",
-	"homepage": "https://superset.sh",
+	"description": "Superset Remix monorepo \u2014 an unofficial modified version of Superset",
+	"homepage": "https://github.com/4444zyf/superset",
 	"license": "Elastic-2.0",
 	"packageManager": "bun@1.4.2",
 	"private": true,
@@ -63,7 +65,9 @@
 		"db:seed-shared-environments": "bun run --cwd packages/sandbox seed",
 		"sandbox:release": "bun run --cwd packages/sandbox release",
 		"sandbox:measure": "bun run --cwd packages/sandbox measure",
-		"check:durable-objects": "bun scripts/check-durable-objects.ts"
+		"check:durable-objects": "bun scripts/check-durable-objects.ts",
+		"brand:generate": "node scripts/generate-brand-assets.mjs",
+		"brand:check": "node scripts/generate-brand-assets.mjs --check"
 	},
 	"type": "module",
 	"workspaces": [

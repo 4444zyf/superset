@@ -1,45 +1,9 @@
-# Security Policy
+# Superset Remix security reporting
 
-We take the security of Superset seriously. Thank you for helping keep our users safe by reporting vulnerabilities responsibly.
+This policy covers this independently maintained, unofficial modified desktop and its bundled local/SSH backend. It does not cover Superset’s hosted services or other vendors.
 
-## Reporting a vulnerability
+Private vulnerability reporting is not enabled for this fork and no dedicated private reporting address is configured. Do not publish vulnerability details, credentials or exploit code in public issues. You may open a non-sensitive [issue requesting a private contact](https://github.com/4444zyf/superset/issues), without describing the vulnerability. No acknowledgement deadline or security SLA is promised. This limitation must be resolved before a production release.
 
-Please do not report security vulnerabilities through public GitHub issues, Discord, or social media.
+For a vulnerability in upstream Superset, follow [upstream’s security policy](https://github.com/superset-sh/superset/security/policy). Those channels are owned by upstream and do not represent this fork. Report third-party vulnerabilities to their vendor.
 
-Report privately through one of these channels:
-
-1. **GitHub private vulnerability reporting (preferred):** use the ["Report a vulnerability"](https://github.com/superset-sh/superset/security/advisories/new) button under the Security tab of this repository.
-2. **Email:** send details to [support@superset.sh](mailto:support@superset.sh) with "Security" in the subject line.
-
-Please include as much of the following as you can:
-
-- A description of the issue and its impact
-- Steps to reproduce, or a proof of concept
-- Affected component (desktop app, CLI, host service, API, web app, marketing site) and version
-- Any suggested remediation
-
-## What to expect
-
-- We will acknowledge your report within 3 business days.
-- We will keep you informed as we investigate and work on a fix.
-- We will credit you in the fix's release notes if you would like (tell us how you want to be credited).
-
-We ask that you give us a reasonable window to remediate before disclosing publicly, and that you avoid accessing other users' data, degrading the service, or pivoting beyond what is needed to demonstrate the issue.
-
-## Scope
-
-In scope:
-
-- The Superset desktop app, CLI, and host service (this repository)
-- The Superset API and web app (superset.sh, app.superset.sh, relay.superset.sh)
-
-Out of scope:
-
-- Denial of service and volumetric attacks
-- Social engineering of Superset employees or users
-- Findings that require a compromised device or physical access
-- Third-party services we integrate with (report those to the vendor)
-
-## Supported versions
-
-Only the latest released version of the desktop app and CLI receives security fixes. Please verify findings against the current release when possible.
+Development previews are manually updated. Verify the package version, source commit and checksum against the fork build. Only packages that pass the native verification workflow are identified as verified previews. Apple Developer ID signing and notarization are not configured.

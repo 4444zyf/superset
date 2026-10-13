@@ -1,3 +1,7 @@
+## Fork identity
+
+This checkout maintains Superset Remix, an unofficial modified desktop based on Superset. Product identity comes from `packages/shared/src/product-brand.json`; regenerate artwork with `bun run brand:generate`. Preserve original authorship, license, technical `@superset/*` names and upstream service identities. Current Workstation profiles are new independent directories, with no automatic old-preview migration. See `docs/design/branding-audit.md` for published scope and retained upstream surfaces.
+
 
 ## Server-driven announcements (desktop notices)
 

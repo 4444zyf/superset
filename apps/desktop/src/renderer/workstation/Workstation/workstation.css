@@ -1,5 +1,6 @@
 .ssh-workstation,
-.workstation-dialog {
+.workstation-dialog,
+.ws-about {
 	--ws-bg: #17181b;
 	--ws-side: #121316;
 	--ws-panel: #1c1d21;
@@ -61,7 +62,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 28px;
-	overflow: auto;
+	overflow: hidden;
 }
 .ws-brand {
 	display: flex;
@@ -69,16 +70,13 @@
 	gap: 12px;
 	padding: 0 12px;
 	font-weight: 650;
-	font-size: 19px;
+	font-size: 16px;
 	letter-spacing: -0.7px;
 }
 .ws-brand svg {
 	width: 25px;
-	height: 28px;
-	stroke: currentColor;
-	fill: none;
-	stroke-width: 2.2;
-	stroke-linejoin: round;
+	height: 25px;
+	flex-shrink: 0;
 }
 .ws-sidebar nav {
 	display: grid;
@@ -104,6 +102,17 @@
 .ws-sidebar-projects .ws-eyebrow {
 	padding: 0 12px;
 	margin-bottom: 12px;
+}
+.ws-sidebar-projects {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+}
+.ws-brand,
+.ws-sidebar nav,
+.ws-sidebar-local,
+.ws-fork-notice {
+	flex-shrink: 0;
 }
 .ws-sidebar-projects button {
 	display: flex;
@@ -147,6 +156,62 @@
 	font-size: 9px;
 	margin-top: 5px;
 	line-height: 1.8;
+}
+.ws-fork-notice {
+	color: var(--ws-text);
+	text-align: left;
+	font-size: 11px;
+	padding: 10px;
+	border: 1px solid #ffffff24;
+	border-radius: 6px;
+}
+.ws-fork-notice:hover {
+	border-color: var(--ws-accent);
+}
+.ws-brand span {
+	white-space: nowrap;
+}
+.ws-about {
+	background: var(--ws-panel);
+	max-width: min(640px, calc(100vw - 32px));
+	max-height: calc(100vh - 80px);
+	overflow: auto;
+	line-height: 1.7;
+}
+.ws-about-brand {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 22px;
+}
+.ws-about-brand svg {
+	width: 40px;
+	height: 40px;
+}
+.ws-about-version {
+	display: flex;
+	gap: 10px;
+	color: var(--ws-muted);
+	flex-wrap: wrap;
+}
+.ws-about-links {
+	display: flex;
+	gap: 8px 16px;
+	flex-wrap: wrap;
+}
+.ws-about-links button {
+	color: var(--ws-accent);
+	text-decoration: underline;
+}
+.ws-about pre {
+	font: 12px / 1.7 monospace;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	padding-top: 12px;
+}
+.ws-about summary {
+	cursor: pointer;
+	color: var(--ws-accent);
 }
 .ws-main {
 	overflow: auto;
@@ -979,6 +1044,11 @@
 	overflow-wrap: anywhere;
 }
 @media (max-width: 1200px) {
+	.ws-brand {
+		font-size: 14px;
+		padding: 0 4px;
+		gap: 8px;
+	}
 	.ws-shell {
 		grid-template-columns: 185px minmax(0, 1fr);
 	}

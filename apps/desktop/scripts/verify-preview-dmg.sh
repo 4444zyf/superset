@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 preview_script_dir=$(cd "$(dirname "$0")" && pwd)
+preview_name=$(node "$preview_script_dir/../../../scripts/print-product-brand.mjs" displayName)
+preview_app_id=$(node "$preview_script_dir/../../../scripts/print-product-brand.mjs" desktopAppId)
 
 preview_dmg=${1:?DMG path required}
 preview_arch=${2:?Architecture required}
@@ -29,10 +31,10 @@ cleanup() {
 trap cleanup EXIT
 hdiutil attach -readonly -nobrowse -mountpoint "$preview_mount_dir" "$preview_dmg"
 preview_mounted=1
-preview_app="$preview_mount_dir/Superset SSH Preview.app"
-preview_executable="$preview_app/Contents/MacOS/Superset SSH Preview"
+preview_app="$preview_mount_dir/${preview_name}.app"
+preview_executable="$preview_app/Contents/MacOS/${preview_name}"
 test -x "$preview_executable"
-test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$preview_app/Contents/Info.plist")" = com.superset.desktop.ssh-preview
+test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$preview_app/Contents/Info.plist")" = "${preview_app_id}.preview"
 test "$(lipo -archs "$preview_executable")" = "$preview_macho_arch"
 codesign --verify --deep --strict "$preview_app"
 bun "$preview_script_dir/../../../packages/cli/scripts/stage-direct-resources.ts" \
@@ -46,4 +48,6 @@ ELECTRON_RUN_AS_NODE=1 "$preview_executable" \
 ELECTRON_RUN_AS_NODE=1 "$preview_executable" \
   --import "$preview_script_dir/../../../packages/direct-connection/node_modules/tsx/dist/loader.mjs" \
   "$preview_script_dir/verify-direct-ssh-install.mts" "$preview_app/Contents/Resources/resources"
+node "$preview_script_dir/verify-brand-ui.mjs" "$preview_app" \
+  "$preview_script_dir/../release/BRAND-${preview_arch}"
 "$preview_app/Contents/Resources/resources/bin/superset" --version

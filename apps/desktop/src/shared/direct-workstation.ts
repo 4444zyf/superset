@@ -4,6 +4,14 @@ import type {
 	LegacyDiscovery,
 	LegacyImportPreview,
 } from "@superset/shared/direct-legacy-data";
+import type { BrandLinkId } from "@superset/shared/product-brand";
+
+export interface ProductAboutInfo {
+	version: string;
+	source?: string;
+	license: string;
+	notice: string;
+}
 
 export interface DirectLocalNamespace {
 	id: string;
@@ -110,6 +118,8 @@ export type DirectConnectionEvent =
 	  };
 
 export interface DirectWorkstationApi {
+	about(): Promise<ProductAboutInfo>;
+	openBrandLink(id: BrandLinkId): Promise<void>;
 	readonly platform: string;
 	readonly localData?: DirectLocalDataApi;
 	list(): Promise<DirectProfile[]>;

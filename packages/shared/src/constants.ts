@@ -21,6 +21,8 @@ export const IOS_APP = {
 	APP_ID: `${IOS_TEAM_ID}.${IOS_BUNDLE_ID}`,
 } as const;
 
+// Superset upstream services and accounts. Fork product identity is product-brand.ts;
+// changing its display name must not redirect upstream OAuth, billing or legal URLs.
 // Company
 // Root domain flips the whole brand at cutover. Default keeps superset.sh so
 // nothing changes until NEXT_PUBLIC_ROOT_DOMAIN is set (e.g. boid.so). All

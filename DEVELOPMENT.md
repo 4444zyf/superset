@@ -1,106 +1,41 @@
-# Developing Superset
+# Developing Superset Remix
 
-This guide is for contributors building Superset from source. If you just want to use Superset, [download the macOS app](https://github.com/superset-sh/superset/releases/latest) instead.
+Superset Remix is an unofficial modified version of Superset. The current desktop entry is the accountless local/SSH Workstation; retained hosted apps are not a fork deployment.
 
-## Prerequisites
+## Build the current desktop
 
-| Tool | Install |
-|:-----|:--------|
-| [Bun](https://bun.sh/) v1.4.2+ (pinned in `.bun-version`) | `curl -fsSL https://bun.sh/install \| bash` |
-| [Docker](https://docs.docker.com/get-docker/) | Docker Desktop or OrbStack |
-| `jq` | `brew install jq` |
-| Git 2.20+ and [`gh`](https://cli.github.com/) | `brew install gh` |
-
-macOS is the primary supported platform. Windows / Linux are untested.
-
-## Run it from a Superset workspace
+Use Git, Node, Bun 1.4.2 (see `.bun-version`) and platform-native Electron dependencies. macOS is the validated distribution target.
 
 ```bash
-git clone https://github.com/superset-sh/superset.git
-```
-
-Add the clone to the installed Superset app and create a workspace for your
-change. Superset creates that workspace as an isolated git worktree. In the new
-workspace terminal, run:
-
-```bash
-./.superset/setup.local.sh
-bun run dev
-```
-
-Run `setup.local.sh` separately in every new worktree before `bun run dev`. The
-setup and workspace-specific app identity allow the development desktop app to
-run alongside the installed Superset app and development apps from other
-worktrees.
-
-**You do not need a Neon account, Stripe keys, or any other third-party
-credentials.** `.env.local.example` ships fake placeholders that pass env
-validation, and `setup.local.sh` runs everything against a local Docker stack.
-
-### What `setup.local.sh` does
-
-1. Copies `.env.local.example` → `.env`
-2. Allocates a per-workspace port range so multiple worktrees don't collide
-3. Brings up Postgres + neon-proxy + Redis (behind an HTTP shim, for the relay) via `docker compose` (project-scoped to this worktree)
-4. Runs `bun install` and `bun run db:migrate`
-5. Seeds a `Local Admin` dev account via `bun run db:seed-dev`
-6. Writes a gitignored `.superset/config.local.json` overlay so subsequent worktrees automatically use this setup
-
-Re-run the script any time to refresh the workspace. To tear the local DB stack down:
-
-```bash
-./.superset/teardown.local.sh
-```
-
-### Signing in
-
-After `bun run dev`, open the web app and click the **"Sign in as dev"** button on the sign-in page (also available in the desktop sign-in screen). Or use the credentials directly:
-
-- Email: `admin@local.test`
-- Password: `supersetdev`
-
-The dev sign-in button and email/password auth are gated on `NODE_ENV=development`. They don't ship in production.
-
-## Manual setup (advanced)
-
-If you need to point at real Neon / third-party services instead of the local Docker stack:
-
-```bash
-cp .env.example .env             # fill in real Neon, Stripe, etc. credentials
+git clone https://github.com/4444zyf/superset.git
+cd superset
 bun install
-bun run dev
+bun run --cwd apps/desktop compile:app
+bun run --cwd apps/desktop start
 ```
 
-## Building the desktop app
+`start` runs compiled source. `bun run --cwd apps/desktop dev` starts the desktop development server. Build environment validation can require placeholder values from `.env.local.example`; use a private `.env` and do not supply production credentials. The accountless Workstation does not require a Superset account or a hosted API.
+
+Installed data lives under the OS application-data directory in `superset-remix`. Source development uses `superset-remix-dev-<checkout/workspace SHA256>`. Set `SUPERSET_WORKSPACE_ID` to a stable unique workspace ID when appropriate. Both directories are selected before acquiring the single-instance lock. No previous preview profile is migrated or consulted automatically.
+
+## Build verified macOS previews
+
+Run `.github/workflows/release-desktop-preview.yml` on the intended source branch with `publish=false`. Each native backend worker signs its output with a temporary Ed25519 key. The desktop embeds the independently pinned verification keys and complete backend resources for both Mac architectures. Native jobs check SFTP upload, privileged installation, launchd, authenticated RPC and reconnect before packaging and again inside the mounted final DMG. Package checks cover SQLite, PTY, code signing, license and source identity; UI acceptance captures the actual packaged Workstation and About dialog.
+
+Without backend resources and pinned keys, a source-only desktop cannot automatically install the remote backend. Do not disable verification to bypass this error. Apple Developer ID signing and notarization are not configured; preview packages are ad-hoc signed. These are manually updated previews, not a production auto-update feed.
+
+## Artwork and checks
 
 ```bash
-bun run build
-open apps/desktop/release
+bun run brand:generate
+bun run brand:check
+bun run check:versions
+bun run check:i18n
+bun run --cwd apps/desktop typecheck
 ```
 
-## Common commands
+See [assets/branding/README.md](assets/branding/README.md), [branding audit](docs/design/branding-audit.md), [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md). Run tests appropriate to your change. Source-only Linux UI checks do not establish Linux distribution support.
 
-```bash
-bun dev                # Start the api, web, and desktop dev servers
-bun run dev:all        # Start every dev server in the monorepo
-bun test               # Run tests
-bun run lint:fix       # Fix lint + format
-bun run typecheck      # Type-check all packages
-bun run check:i18n     # Regenerate and audit translation catalogs
-bun run build          # Build the desktop app
-```
+## Retained upstream development
 
-See [`AGENTS.md`](./AGENTS.md) for repo structure, monorepo conventions, and database/migration workflow.
-
-## Troubleshooting
-
-- **Dev desktop exits while the installed app is running**: launch development
-  from a Superset workspace instead of the repository's main checkout, run
-  `./.superset/setup.local.sh` in that worktree, then run `bun run dev` again.
-- **Port collision**: `setup.local.sh` allocates a fresh port window per worktree. If you ran the script before this change landed, re-run it to migrate.
-- **DB connection errors after pulling main**: re-run `./.superset/setup.local.sh`; it's idempotent and will apply any new migrations.
-- **Stuck Docker stack**: `./.superset/teardown.local.sh` then re-run setup.
-
-## Contributing
-
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the PR process and code-of-conduct expectations.
+`.superset/setup.local.sh`, Docker, API/web development, cloud sign-in, mobile and marketing remain upstream development infrastructure. They are outside this desktop release. See their source documentation if you intend to work on them; do not interpret them as running fork services.

@@ -33,3 +33,7 @@ These are literal identifiers, not vocabulary:
 Add a row whenever a translation review settles a disputed term; this file
 rides along in the LLM translation prompt, so rows here are enforcement, not
 documentation.
+
+## Fork identity
+
+Keep **Superset Remix** untranslated as one product name. **Superset** remains the upstream proper name. Translate “Unofficial modified version” as a factual modification notice, without implying endorsement.

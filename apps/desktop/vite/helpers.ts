@@ -1,8 +1,8 @@
 import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { dirname, normalize, resolve } from "node:path";
 import { transformAsync } from "@babel/core";
+import { PRODUCT_BRAND } from "@superset/shared/product-brand";
 import type { Plugin } from "vite";
-
 import { main, resources } from "../package.json";
 
 export const devPath = normalize(dirname(main)).split(/\/|\\/g)[0];
@@ -146,7 +146,14 @@ export function htmlEnvTransformPlugin(): Plugin {
 	return {
 		name: "html-env-transform",
 		transformIndexHtml(html) {
-			return html.replace(/%CONNECT_SRC_ORIGINS%/g, connectSrcOrigins());
+			return html
+				.replace(/%CONNECT_SRC_ORIGINS%/g, connectSrcOrigins())
+				.replace(
+					/%PRODUCT_DISPLAY_NAME%/g,
+					PRODUCT_BRAND.displayName
+						.replaceAll("&", "&amp;")
+						.replaceAll("<", "&lt;"),
+				);
 		},
 	};
 }

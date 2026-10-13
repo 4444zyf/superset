@@ -1,7 +1,10 @@
 import { msg } from "@lingui/core/macro";
 import { i18n } from "@superset/i18n";
+import { PRODUCT_BRAND } from "@superset/shared/product-brand";
 import { dialog } from "electron";
 import { quitAppCompletely } from "main/legacy-cloud";
+
+const productName = PRODUCT_BRAND.displayName;
 
 export async function confirmAndQuitCompletely(): Promise<void> {
 	try {
@@ -17,21 +20,12 @@ export async function confirmAndQuitCompletely(): Promise<void> {
 			],
 			defaultId: 1,
 			cancelId: 1,
-			title: i18n._(
-				msg({
-					message: "Quit Superset Completely",
-				}),
-			),
+			title: i18n._(msg`Quit ${productName} Completely`),
 			message: i18n._(
-				msg({
-					message: "Quit Superset and stop all background services?",
-				}),
+				msg`Quit ${productName} and stop all background services?`,
 			),
 			detail: i18n._(
-				msg({
-					message:
-						"All open terminal sessions will be killed and any running host-services will be stopped. Use “Close Superset” instead if you want services to keep running for the next launch.",
-				}),
+				msg`All open terminal sessions will be killed and any running host-services will be stopped. Use “Close ${productName}” instead if you want services to keep running for the next launch.`,
 			),
 		});
 		if (response === 0) {

@@ -10,11 +10,6 @@ on:
         required: false
         type: boolean
         default: false
-      inspect_profile:
-        description: "Only observe the verified old preview's real data profile"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -24,43 +19,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  inspect-profile:
-    if: ${{ inputs.inspect_profile }}
-    runs-on: macos-14
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          persist-credentials: false
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          name: ssh-preview-arm64
-          run-id: 38337365153
-          github-token: ${{ github.token }}
-          path: old-preview
-      - name: Observe actual packaged name, data path and renderer
-        run: |
-          set -euo pipefail
-          (cd old-preview && shasum -a 256 -c SHA256SUMS-arm64.txt)
-          mount="$RUNNER_TEMP/old-preview-mount"
-          mkdir "$mount"
-          hdiutil attach -readonly -nobrowse -mountpoint "$mount" old-preview/Superset-SSH-Preview-1.37.3-arm64.dmg
-          trap 'hdiutil detach "$mount"' EXIT
-          node apps/desktop/scripts/inspect-preview-profile.mjs "$mount/Superset SSH Preview.app" profile-evidence
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: old-preview-profile-evidence
-          path: profile-evidence/
-          if-no-files-found: error
-
   direct-arm64:
-    if: ${{ !inputs.inspect_profile }}
     uses: ./.github/workflows/build-direct-preview.yml
     with:
       target: darwin-arm64
 
   direct-x64:
-    if: ${{ !inputs.inspect_profile }}
     uses: ./.github/workflows/build-direct-preview.yml
     with:
       target: darwin-x64
@@ -139,11 +103,14 @@ jobs:
         run: |
           set -euo pipefail
           version=$(bun -e 'console.log(require("./apps/desktop/package.json").version)')
-          dmg="apps/desktop/release/Superset-SSH-Preview-${version}-${TARGET_ARCH}.dmg"
+          artifact_stem=$(node scripts/print-product-brand.mjs artifactStem)
+          dmg="apps/desktop/release/${artifact_stem}-${version}-${TARGET_ARCH}.dmg"
           bash apps/desktop/scripts/verify-preview-dmg.sh "$dmg" "$TARGET_ARCH" "$version"
           cd apps/desktop/release
-          shasum -a 256 "Superset-SSH-Preview-${version}-${TARGET_ARCH}.dmg" > "SHA256SUMS-${TARGET_ARCH}.txt"
+          shasum -a 256 "${artifact_stem}-${version}-${TARGET_ARCH}.dmg" > "SHA256SUMS-${TARGET_ARCH}.txt"
           printf '%s\n' "$GITHUB_SHA" > "SOURCE-${TARGET_ARCH}.txt"
+          cp ../../../LICENSE.md ../../../FORK_NOTICE.md .
+          zip -r "BRAND-${TARGET_ARCH}.zip" "BRAND-${TARGET_ARCH}"
       - name: Upload only verified DMG and provenance
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -153,6 +120,9 @@ jobs:
             apps/desktop/release/SHA256SUMS-*.txt
             apps/desktop/release/SOURCE-*.txt
             apps/desktop/release/SSH-INSTALL-*.json
+            apps/desktop/release/BRAND-*.zip
+            apps/desktop/release/LICENSE.md
+            apps/desktop/release/FORK_NOTICE.md
           if-no-files-found: error
           retention-days: 14
 
@@ -188,6 +158,7 @@ jobs:
         run: |
           set -euo pipefail
           version=$(node -p 'require("./apps/desktop/package.json").version')
+          display_name=$(node scripts/print-product-brand.mjs displayName)
           tag="ssh-preview-v${version}"
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             test "$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag}" --jq .object.sha)" = "$GITHUB_SHA"
@@ -198,7 +169,7 @@ jobs:
           else
             gh release create "$tag" preview-downloads/* \
               --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-              --title "Superset SSH Preview ${version}" \
-              --notes-file docs/releases/ssh-desktop-preview.md \
+              --title "${display_name} ${version}" \
+              --notes-file docs/releases/superset-remix-preview.md \
               --prerelease --latest=false
           fi

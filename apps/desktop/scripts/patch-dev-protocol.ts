@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+import { PRODUCT_BRAND } from "@superset/shared/product-brand";
 /**
  * Patches the development Electron.app's Info.plist to register a
  * workspace-specific URL scheme (superset-{workspace}://) for deep linking.
@@ -201,7 +202,7 @@ export function main() {
 	}
 
 	const PROTOCOL_SCHEME = `superset-${workspaceName}`;
-	const BUNDLE_ID = `com.superset.desktop.${workspaceName}`;
+	const BUNDLE_ID = `${PRODUCT_BRAND.desktopAppId}.dev.${workspaceName}`;
 	const ELECTRON_DIST_DIR = resolve(
 		import.meta.dirname,
 		"../node_modules/electron/dist",
@@ -214,7 +215,7 @@ export function main() {
 		process.exit(0);
 	}
 
-	const DISPLAY_NAME = `Superset (${bundleDisplayWorkspaceName})`;
+	const DISPLAY_NAME = `${PRODUCT_BRAND.displayName} (${bundleDisplayWorkspaceName})`;
 
 	try {
 		const currentBundleId = execSync(
@@ -293,7 +294,7 @@ export function main() {
 	const commands = [
 		`Add :CFBundleURLTypes array`,
 		`Add :CFBundleURLTypes:0 dict`,
-		`Add :CFBundleURLTypes:0:CFBundleURLName string 'Superset Dev'`,
+		`Add :CFBundleURLTypes:0:CFBundleURLName string '${PRODUCT_BRAND.displayName}'`,
 		`Add :CFBundleURLTypes:0:CFBundleURLSchemes array`,
 		`Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string '${PROTOCOL_SCHEME}'`,
 		`Add :CFBundleURLTypes:0:CFBundleTypeRole string 'Editor'`,
