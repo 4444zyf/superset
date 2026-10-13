@@ -68,6 +68,7 @@ const manager = new DirectConnectionManager({
 			},
 			releaseRoot: join(resources, "direct-backend", `darwin-${process.arch}`),
 			trustedKeys,
+			...(stage ? { password: "preview-runner-nopasswd" } : {}),
 		});
 	},
 });

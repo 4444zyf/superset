@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
 import { rmSync } from "node:fs";
 import {
 	buildPrivilegedBootstrap,
@@ -257,4 +258,34 @@ test("bootstrap copies into root-private storage and verifies Node before execut
 	expect(script).toContain("/usr/bin/head -c 101");
 	expect(script).toContain("/usr/bin/sudo -n -u '#501'");
 	expect(script).not.toContain("nohup");
+});
+
+test("a complete large release request is decoded through stdin instead of process arguments", () => {
+	const request = JSON.stringify({ manifest: "signed-entry".repeat(100000) });
+	const script = buildPrivilegedBootstrap({
+		incoming: "/Users/alice/.superset-direct/incoming/install-123",
+		uid: 501,
+		nodeSize: 100,
+		installerSize: 200,
+		nodeDigest: "a".repeat(64),
+		installerDigest: "b".repeat(64),
+		requestBase64: Buffer.from(request).toString("base64"),
+	});
+	const decoder = script.slice(
+		script.indexOf("/usr/bin/base64 -D"),
+		script.indexOf("/usr/bin/env -i"),
+	);
+	const result = spawnSync("/bin/sh", ["-s"], {
+		input: decoder
+			.replace(' > "$work/request.json"', "")
+			.replace(
+				"base64 -D",
+				`base64 ${process.platform === "darwin" ? "-D" : "-d"}`,
+			),
+		encoding: "utf8",
+		maxBuffer: 4 * 1024 * 1024,
+	});
+	expect(result.stderr).toBe("");
+	expect(result.status).toBe(0);
+	expect(result.stdout).toBe(request);
 });

@@ -1,4 +1,5 @@
 import { createPublicKey } from "node:crypto";
+import { authorizeRemoteScript } from "./authorization";
 import type {
 	RemoteBackendProbe,
 	RemoteCommandResult,
@@ -183,15 +184,13 @@ installerDigest=$(/usr/bin/shasum -a 256 ${quote(`${releaseRoot}/lib/direct-inst
 `;
 	let result: RemoteCommandResult;
 	if (options.authorize) result = await options.authorize(script);
-	else if (options.password !== undefined) {
-		if (/[\r\n\0]/.test(options.password))
-			throw new Error("Invalid administrator password input");
-		const pipeline = `/usr/bin/printf '%s' ${quote(Buffer.from(script).toString("base64"))} | /usr/bin/base64 -D | /bin/sh`;
-		result = await options.transport.exec(
-			`/usr/bin/sudo -S -p '' /bin/sh -c ${quote(pipeline)}`,
-			`${options.password}\n`,
+	else if (options.password !== undefined)
+		result = await authorizeRemoteScript(
+			options.transport,
+			script,
+			options.password,
 		);
-	} else
+	else
 		result = await options.transport.exec(
 			"/usr/bin/sudo -n /bin/sh -s",
 			script,
