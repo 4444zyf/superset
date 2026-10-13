@@ -350,7 +350,9 @@ try {
  const aboutButton=document.querySelector('.ws-about-button').getBoundingClientRect();
  const name=document.querySelector('.ws-brand span'); const rect=name.getBoundingClientRect();
  return {width:innerWidth,height:innerHeight,aboutButtonBottom:aboutButton.bottom,aboutButtonTop:aboutButton.top,nameWidth:rect.width,nameScrollWidth:name.scrollWidth}; })()`);
-	assert.ok(layout.aboutButtonTop >= 0 && layout.aboutButtonBottom <= layout.height);
+	assert.ok(
+		layout.aboutButtonTop >= 0 && layout.aboutButtonBottom <= layout.height,
+	);
 	assert.ok(layout.nameWidth >= layout.nameScrollWidth - 1);
 	evidence.observations.push(layout);
 	await screenshot("minimum-window");
