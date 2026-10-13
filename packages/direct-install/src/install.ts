@@ -272,9 +272,15 @@ export async function installRemoteBackend(
 			.split("\n")
 			.find((line) => line.startsWith("SUPERSET_DIRECT_INSTALL="));
 		if (!marker) throw new Error("The installer returned no committed result");
-		const installed = JSON.parse(
-			marker.slice("SUPERSET_DIRECT_INSTALL=".length),
-		) as InstallResult;
+		const payload = marker.slice("SUPERSET_DIRECT_INSTALL=".length);
+		let installed: InstallResult;
+		try {
+			installed = JSON.parse(payload) as InstallResult;
+		} catch {
+			throw new Error(
+				`The installer returned an incomplete committed result (${Buffer.byteLength(payload)} result bytes in ${Buffer.byteLength(result.stdout)} stdout bytes)`,
+			);
+		}
 		if (
 			installed.releaseId !== verified.releaseId ||
 			!["installed", "already-installed", "staged"].includes(

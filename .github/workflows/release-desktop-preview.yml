@@ -86,8 +86,16 @@ jobs:
           path: .direct-release-artifacts/darwin-x64
       - name: Stage complete independently trusted backend resources
         run: bun run --cwd packages/cli stage:direct-resources --input-dir=../../.direct-release-artifacts --resources-dir=../../apps/desktop/dist/resources
+      - name: Prepare Electron for the fresh Mac installation acceptance
+        working-directory: apps/desktop
+        run: node node_modules/electron/install.js
       - name: Verify fresh Mac SSH upload, install, launchd and reconnect before packaging
-        run: bun apps/desktop/scripts/verify-direct-ssh-install.ts apps/desktop/dist/resources --stage
+        working-directory: apps/desktop
+        run: |
+          set -euo pipefail
+          preview_electron=$(node -p 'require("electron")')
+          preview_loader=$(cd ../../packages/direct-connection/node_modules/tsx/dist && pwd)/loader.mjs
+          ELECTRON_RUN_AS_NODE=1 "$preview_electron" --import "$preview_loader" scripts/verify-direct-ssh-install.mts dist/resources --stage
       - name: Build preview DMG with automatic remote installation
         working-directory: apps/desktop
         run: bun run package -- --publish never --config electron-builder.preview.ts --${{ matrix.arch }}
