@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import Database from "better-sqlite3";
@@ -132,6 +138,7 @@ try {
 		installs,
 		batches,
 	};
+	mkdirSync(resolve(import.meta.dirname, "../release"), { recursive: true });
 	writeFileSync(
 		join(
 			resolve(import.meta.dirname, "../release"),
