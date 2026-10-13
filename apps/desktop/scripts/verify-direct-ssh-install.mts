@@ -49,9 +49,10 @@ let trustedKeys = JSON.parse(
 );
 const variant =
 	process.argv.find((value) => value.startsWith("--variant="))?.slice(10) ??
-	"v2-gzip6";
+	"default";
 assert.ok(
 	[
+		"default",
 		"v1-independent",
 		"v1-shared",
 		"v2-gzip1",
@@ -149,11 +150,14 @@ const manager = new DirectConnectionManager({
 			},
 			releaseRoot,
 			trustedKeys,
-			archiveWriteConcurrency: variant.includes("serial")
-				? 1
-				: variant.includes("parallel8")
-					? 8
-					: 4,
+			archiveWriteConcurrency:
+				variant === "default"
+					? undefined
+					: variant.includes("serial")
+						? 1
+						: variant.includes("parallel8")
+							? 8
+							: 4,
 			bootstrapFastRead: !variant.endsWith("scan"),
 			probe:
 				probe.groupname && probe.macOS
@@ -286,7 +290,7 @@ try {
 	writeFileSync(
 		join(
 			resolve(import.meta.dirname, "../release"),
-			`SSH-INSTALL-${stage ? "stage-" : ""}${process.arch}${variant === "v2-gzip6" ? "" : `-${variant}`}${process.env.BENCH_ITERATION ? `-${process.env.BENCH_ITERATION}` : ""}.json`,
+			`SSH-INSTALL-${stage ? "stage-" : ""}${process.arch}${["default", "v2-gzip6"].includes(variant) ? "" : `-${variant}`}${process.env.BENCH_ITERATION ? `-${process.env.BENCH_ITERATION}` : ""}.json`,
 		),
 		`${JSON.stringify(result, null, 2)}\n`,
 	);

@@ -10,6 +10,11 @@ on:
         required: false
         type: boolean
         default: false
+      repeat_benchmark:
+        description: "Repeat previously measured archive comparisons"
+        required: false
+        type: boolean
+        default: true
       full_benchmark:
         description: "Repeat the slower V1 and compression comparisons"
         required: false
@@ -102,6 +107,7 @@ jobs:
       - name: Verify fresh Mac SSH upload, install, launchd and reconnect before packaging
         working-directory: apps/desktop
         env:
+          REPEAT_BENCHMARK: ${{ inputs.repeat_benchmark }}
           FULL_BENCHMARK: ${{ inputs.full_benchmark }}
           BALANCED_BENCHMARK: ${{ inputs.balanced_benchmark }}
         run: |
@@ -109,6 +115,7 @@ jobs:
           preview_electron=$(node -p 'require("electron")')
           preview_loader=$(cd ../../packages/direct-connection/node_modules/tsx/dist && pwd)/loader.mjs
           ELECTRON_RUN_AS_NODE=1 "$preview_electron" --import "$preview_loader" scripts/verify-direct-ssh-install.mts dist/resources --stage
+          if [ "$REPEAT_BENCHMARK" != false ]; then
           variants="v2-gzip6-serial-scan v2-gzip6-serial-fast v2-gzip6 v2-gzip6-parallel8-fast"
           if [ "$FULL_BENCHMARK" = true ]; then
             variants="v1-independent v1-shared v2-gzip1 $variants"
@@ -131,6 +138,7 @@ jobs:
                 BENCH_ITERATION="$iteration" ELECTRON_RUN_AS_NODE=1 "$preview_electron" --import "$preview_loader" scripts/verify-direct-ssh-install.mts dist/resources --stage "--variant=$variant"
               done
             done
+          fi
           fi
       - name: Build preview DMG with automatic remote installation
         working-directory: apps/desktop

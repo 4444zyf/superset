@@ -44,6 +44,55 @@ function fixture() {
 	};
 }
 
+test("restoration capabilities from a changed backend cannot authorize attachment", async () => {
+	const f = fixture();
+	f.manager.request = async () =>
+		new Response(
+			JSON.stringify({
+				backendId: "different",
+				namespaceId: "namespace",
+				capabilities: { workspaceViewRestoreV1: true },
+			}),
+		);
+	await expect(f.controller.features("machine", true)).rejects.toThrow(
+		"identity",
+	);
+});
+
+test("window restore inspects pending work without resolving the operation journal or replaying a mutation", async () => {
+	const db = new Database(":memory:");
+	const intents = new OperationIntents(db as unknown as SqliteDatabase);
+	intents.begin({
+		connectionId: "machine",
+		backendId: "backend",
+		namespaceId: "namespace",
+		operationId: "operation",
+		procedure: "chat.prompt",
+		inputHash: "digest",
+	});
+	const f = fixture();
+	const requests: { path: string; type: string; input?: unknown }[] = [];
+	f.manager.invoke = async (_id, request) => {
+		requests.push(request);
+		return { status: "completed" };
+	};
+	const controller = new WorkstationController(f.manager, intents);
+	const before = JSON.stringify(intents.list("machine"));
+	const result = await controller.inspectPending("machine");
+	expect(result).toMatchObject([
+		{ operationId: "operation", status: "completed" },
+	]);
+	expect(JSON.stringify(intents.list("machine"))).toBe(before);
+	expect(requests).toEqual([
+		{
+			path: "direct.operationStatus",
+			type: "query",
+			input: { operationId: "operation" },
+		},
+	]);
+	db.close();
+});
+
 test("renderer connection descriptors omit endpoint credentials and addresses", () => {
 	const { controller } = fixture();
 	expect(controller.describe("machine")).toEqual({

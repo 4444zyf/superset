@@ -1,6 +1,8 @@
 import { existsSync } from "node:fs";
 import { basename } from "node:path";
 import { workspaceTagsInputSchema } from "@superset/shared/workspace-tags";
+import { restoreResourcesInputSchema } from "@superset/shared/workspace-restore";
+import { restoreResources } from "../../../terminal/restore-resources";
 import { TRPCError } from "@trpc/server";
 import { eq, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
@@ -17,6 +19,8 @@ import { resolveWorktreePath } from "../git/utils/resolve-worktree";
 import { destroyWorkspace } from "../workspace-cleanup";
 
 export const workspaceRouter = router({
+	restoreResources: protectedProcedure.input(restoreResourcesInputSchema)
+		.query(({ ctx, input }) => restoreResources(ctx, input.refs)),
 	get: protectedProcedure
 		.input(z.object({ id: z.string() }))
 		.query(({ ctx, input }) => {

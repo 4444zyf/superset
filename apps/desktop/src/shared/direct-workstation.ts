@@ -5,6 +5,12 @@ import type {
 	LegacyImportPreview,
 } from "@superset/shared/direct-legacy-data";
 import type { BrandLinkId } from "@superset/shared/product-brand";
+import type { RestoreResourceRef } from "@superset/shared/workspace-restore";
+import type {
+	WorkspaceRestoreSnapshot,
+	WorkspaceViewInput,
+	WorkspaceViewSnapshot,
+} from "./workspace-view";
 
 export interface ProductAboutInfo {
 	version: string;
@@ -137,6 +143,34 @@ export type DirectConnectionEvent =
 	  };
 
 export interface DirectWorkstationApi {
+	getWorkspaceView?(): Promise<{
+		revision: number;
+		snapshot: WorkspaceViewSnapshot | null;
+		invalid: boolean;
+		navigationRevision: number;
+	}>;
+	saveWorkspaceView?(input: {
+		expectedRevision: number;
+		navigationRevision: number;
+		view: WorkspaceViewInput;
+	}): Promise<WorkspaceViewSnapshot>;
+	beginWorkspaceRestore?(input: {
+		reason: "launch" | "manual";
+		navigationRevision: number;
+	}): Promise<WorkspaceRestoreSnapshot>;
+	getWorkspaceRestore?(): Promise<WorkspaceRestoreSnapshot | null>;
+	onWorkspaceRestore?(
+		listener: (snapshot: WorkspaceRestoreSnapshot) => void,
+	): () => void;
+	cancelWorkspaceRestore?(input: { restoreJobId: string }): Promise<void>;
+	forgetWorkspaceView?(input: { expectedRevision: number }): Promise<void>;
+	onWorkspaceViewFlush?(listener: () => Promise<void>): () => void;
+	inspectPending?(id: string): Promise<unknown[]>;
+	openRestoredTerminal?(
+		connection: DirectDescriptor,
+		ref: RestoreResourceRef,
+		socketId: string,
+	): Promise<void>;
 	about(): Promise<ProductAboutInfo>;
 	openBrandLink(id: BrandLinkId): Promise<void>;
 	readonly platform: string;
@@ -200,3 +234,5 @@ export const DIRECT_CHANNEL = "direct-workstation";
 export const DIRECT_SOCKET_CHANNEL = "direct-workstation:socket";
 export const DIRECT_CONNECTION_CHANNEL = "direct-workstation:connection";
 export const DIRECT_SETUP_CHANNEL = "direct-workstation:setup";
+export const DIRECT_RESTORE_CHANNEL = "direct-workstation:restore";
+export const DIRECT_VIEW_FLUSH_CHANNEL = "direct-workstation:flush-view";

@@ -13,6 +13,7 @@ import { dirname, join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
+const restoreWindows = process.argv.includes("--restore-windows");
 const sourceTest = process.argv.includes("--source-test");
 if (!sourceTest) {
 	assert.equal(process.platform, "darwin");
@@ -169,6 +170,7 @@ async function until(read, predicate = Boolean) {
 	throw new Error("UI condition timed out");
 }
 let main, page, child;
+let ownedSourceFixture;
 const evidence = {
 	sourceTest,
 	application,
@@ -187,7 +189,7 @@ async function stop() {
 }
 async function click(selector) {
 	const point = await page.evaluate(
-		`(() => { const e = document.querySelector(${JSON.stringify(selector)}); if (!e) throw new Error('Missing visible input'); const r = e.getBoundingClientRect(); if (r.y < 0 || r.bottom > innerHeight) throw new Error('Input is outside viewport'); return {x:r.x+r.width/2, y:r.y+r.height/2}; })()`,
+		`(() => { const selector=${JSON.stringify(selector)}; const e = selector.startsWith("text:") ? [...document.querySelectorAll("button")].find(b=>b.textContent.trim()===selector.slice(5)) : document.querySelector(selector); if (!e) throw new Error('Missing visible input'); const r = e.getBoundingClientRect(); if (r.y < 0 || r.bottom > innerHeight) throw new Error('Input is outside viewport'); return {x:r.x+r.width/2, y:r.y+r.height/2}; })()`,
 	);
 	await page.call("Input.dispatchMouseEvent", {
 		type: "mousePressed",
@@ -240,7 +242,7 @@ async function attach() {
  if (!app?.isReady() || !BrowserWindow.getAllWindows().length) return null;
  const fs = process.getBuiltinModule('fs');
  const metadata = JSON.parse(fs.readFileSync(app.getAppPath() + '/package.json', 'utf8'));
- return {name:app.getName(), version:app.getVersion(), packaged:app.isPackaged, appPath:app.getAppPath(), userData:app.getPath('userData'), sessionData:app.getPath('sessionData'), appData:app.getPath('appData'), metadata}; })()`),
+ return {pid:process.pid,name:app.getName(), version:app.getVersion(), packaged:app.isPackaged, appPath:app.getAppPath(), userData:app.getPath('userData'), sessionData:app.getPath('sessionData'), appData:app.getPath('appData'), metadata}; })()`),
 	);
 	writeFileSync(
 		join(output, "observed-identity.json"),
@@ -252,6 +254,7 @@ async function attach() {
 			? canonicalApplication
 			: join(canonicalApplication, "Contents/Resources/app.asar"),
 	);
+	assert.equal(metadata.pid, child.pid);
 	assert.equal(metadata.packaged, !sourceTest);
 	assert.equal(metadata.name, brand.displayName);
 	assert.equal(metadata.version, version);
@@ -376,7 +379,7 @@ try {
 	assert.deepEqual(page.errors, []);
 	evidence.reopen = true;
 	await screenshot("reopened-about");
-	if (!sourceTest) {
+	if (!sourceTest || restoreWindows) {
 		await page.call("Input.dispatchKeyEvent", {
 			type: "keyDown",
 			key: "Escape",
@@ -394,14 +397,98 @@ try {
 			`${electron}.BrowserWindow.getAllWindows()[0].setSize(1200,900); true`,
 		);
 		await delay(250);
-		const { verifySshUi } = await import("./verify-ssh-ui.mjs");
-		await verifySshUi({
-			page,
-			click,
-			screenshot,
-			resources: join(application, "Contents/Resources/resources"),
-			output,
-		});
+		const { verifyWorkspaceRestoreUi } = await import(
+			"./verify-workspace-restore-ui.mjs"
+		);
+		const verifyRestore = (controls) =>
+			verifyWorkspaceRestoreUi({
+				controls,
+				samples: Number(
+					process.argv
+						.find((value) => value.startsWith("--restore-samples="))
+						?.split("=")[1] ?? 20,
+				),
+				getPage: () => page,
+				click,
+				screenshot,
+				output,
+				restart: async (mode) => {
+					if (mode === "force") {
+						child.kill("SIGKILL");
+						page.close();
+						main.close();
+						page = main = undefined;
+						await until(
+							() => child.signalCode !== null || child.exitCode !== null,
+						);
+					} else await stop();
+					child = launch();
+					await attach();
+				},
+				closeReopen: async () => {
+					await main.evaluate(
+						`${electron}.BrowserWindow.getAllWindows()[0].close(); true`,
+					);
+					await delay(700);
+					page.close();
+					page = undefined;
+					if (process.platform !== "darwin") {
+						main.close();
+						main = undefined;
+						await until(() => child.exitCode !== null);
+						child = launch();
+						await attach();
+						return;
+					}
+					if (child.exitCode !== null) {
+						main.close();
+						main = undefined;
+						child = launch();
+						await attach();
+					} else {
+						await main.evaluate(`${electron}.app.emit('activate'); true`);
+						main.close();
+						main = undefined;
+						await attach();
+					}
+				},
+			});
+		if (sourceTest) {
+			const { sourceSshFixture } = await import(
+				"./verify-source-ssh-fixture.mjs"
+			);
+			ownedSourceFixture = await sourceSshFixture(root);
+			await click('.ws-sidebar nav button[aria-label="SSH machines"]');
+			await click(".ws-heading > button.primary");
+			for (const [name, value] of Object.entries({
+				name: "Restore Linux fixture",
+				host: ownedSourceFixture.alias,
+			})) {
+				await click('input[name="' + name + '"]');
+				await page.call("Input.insertText", { text: value });
+			}
+			await click('.ws-drawer-form button[type="submit"]');
+			await until(() =>
+				page.evaluate("!document.querySelector('.ws-drawer-form')"),
+			);
+			await click(".ws-detail-actions button.primary");
+			await until(() =>
+				page.evaluate(
+					"document.querySelector('.ws-sidebar nav button[aria-label=\"Workspaces\"]')?.getAttribute('aria-current')==='page'",
+				),
+			);
+			await verifyRestore(ownedSourceFixture.controls);
+		} else {
+			const { verifySshUi } = await import("./verify-ssh-ui.mjs");
+			await verifySshUi({
+				page,
+				click,
+				screenshot,
+				resources: join(application, "Contents/Resources/resources"),
+				verifyRestore,
+				output,
+			});
+		}
 	}
 	await stop();
 	writeFileSync(
@@ -412,6 +499,10 @@ try {
 		`::notice::${JSON.stringify({ brand: brand.displayName, version, profile, sourceTest, singleInstance: true, reopen: true, offlineLicense: true, screenshots: 7 })}`,
 	);
 } finally {
+	if (ownedSourceFixture)
+		await ownedSourceFixture
+			.close()
+			.catch((error) => console.error(error.message));
 	if (main) {
 		try {
 			await main.evaluate(

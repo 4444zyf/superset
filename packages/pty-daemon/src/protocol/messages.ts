@@ -21,6 +21,7 @@ export interface SessionMeta {
 
 export interface SessionInfo {
 	id: string;
+	executionId?: string;
 	pid: number;
 	cols: number;
 	rows: number;
@@ -54,6 +55,7 @@ export interface HelloAckMessage {
 	trustdHealthy?: boolean;
 	supportsModeSnapshots?: boolean;
 	supportsColorQueries?: boolean;
+	supportsConditionalSubscribe?: boolean;
 }
 
 // ---------- Client -> Daemon ----------
@@ -68,11 +70,13 @@ export interface OpenMessage {
 export interface InputMessage {
 	type: "input";
 	id: string;
+	executionId?: string;
 }
 
 export interface ColorsMessage {
 	type: "colors";
 	id: string;
+	executionId?: string;
 	colors: TerminalColors;
 	resetOverrides?: boolean;
 }
@@ -80,6 +84,7 @@ export interface ColorsMessage {
 export interface ResizeMessage {
 	type: "resize";
 	id: string;
+	executionId?: string;
 	cols: number;
 	rows: number;
 }
@@ -87,6 +92,7 @@ export interface ResizeMessage {
 export interface CloseMessage {
 	type: "close";
 	id: string;
+	executionId?: string;
 	signal?: "SIGINT" | "SIGTERM" | "SIGKILL" | "SIGHUP";
 }
 
@@ -97,6 +103,7 @@ export interface ListMessage {
 export interface SubscribeMessage {
 	type: "subscribe";
 	id: string;
+	executionId?: string;
 	/** if true, replay buffered output before live streaming */
 	replay: boolean;
 	modeSnapshot?: boolean;
@@ -125,6 +132,7 @@ export interface PrepareUpgradeMessage {
 export interface OpenOkMessage {
 	type: "open-ok";
 	id: string;
+	executionId?: string;
 	pid: number;
 }
 
@@ -132,6 +140,13 @@ export interface OpenOkMessage {
 export interface OutputMessage {
 	type: "output";
 	id: string;
+	executionId?: string;
+}
+
+export interface SubscribedMessage {
+	type: "subscribed";
+	id: string;
+	executionId: string;
 }
 
 export interface ReplayCompleteMessage {
@@ -195,6 +210,7 @@ export type ServerMessage =
 	| ReplayCompleteMessage
 	| ExitMessage
 	| ClosedMessage
+	| SubscribedMessage
 	| ListReplyMessage
 	| ErrorMessage
 	| UpgradePreparedMessage;

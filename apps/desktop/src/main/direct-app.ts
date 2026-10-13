@@ -1,4 +1,5 @@
 import { mkdirSync, readFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import path from "node:path";
 import { msg } from "@lingui/core/macro";
@@ -21,13 +22,24 @@ import {
 	PRODUCT_BRAND,
 	resolveBrandLink,
 } from "@superset/shared/product-brand";
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from "electron";
+import { restoreResourceRefSchema } from "@superset/shared/workspace-restore";
+import {
+	app,
+	BrowserWindow,
+	dialog,
+	ipcMain,
+	Menu,
+	shell,
+	screen,
+} from "electron";
 import { z } from "zod";
 import {
 	DIRECT_CHANNEL,
 	DIRECT_CONNECTION_CHANNEL,
 	DIRECT_SETUP_CHANNEL,
 	DIRECT_SOCKET_CHANNEL,
+	DIRECT_RESTORE_CHANNEL,
+	DIRECT_VIEW_FLUSH_CHANNEL,
 } from "../shared/direct-workstation";
 import { lockProductProfile } from "./lib/product-identity";
 import { AutomaticReconnect } from "./lib/ssh-direct/automatic-reconnect";
@@ -45,6 +57,8 @@ import { SetupProgress } from "./lib/ssh-direct/setup-progress";
 import { SocketBroker } from "./lib/ssh-direct/socket-broker";
 import { closeWindowTransports } from "./lib/ssh-direct/window-transports";
 import { WorkstationController } from "./lib/ssh-direct/workstation-controller";
+import { WorkspaceViewStore } from "./lib/ssh-direct/workspace-view-store";
+import { WorkspaceRestoreCoordinator } from "./lib/ssh-direct/workspace-restore-coordinator";
 
 const profileSchema = z
 	.object({
@@ -214,10 +228,13 @@ export async function startWorkstation(): Promise<void> {
 	});
 	const controller = new WorkstationController(manager, intents);
 	const sockets = new SocketBroker((id, socketPath) =>
-		manager.openSocket(id, socketPath),
+		socketPath.startsWith("/terminal-restore/")
+			? manager.openRestoredSocket(id, socketPath)
+			: manager.openSocket(id, socketPath),
 	);
 	const forwards = new DirectPortForwardManager(manager);
 	let quitting = false;
+	let rendererOwnerEpoch = 0;
 	const reconnect = new AutomaticReconnect({
 		getStatus: (id) => manager.getStatus(id),
 		connect: async (id) => {
@@ -225,7 +242,12 @@ export async function startWorkstation(): Promise<void> {
 			forwards.closeConnection(id);
 			automaticConnections.add(id);
 			try {
-				await manager.connect(id);
+				await manager.connect(id, {
+					mode:
+						registry.get(id)?.kind === "local"
+							? "explicit"
+							: "restore-existing",
+				});
 				const descriptor = controller.describe(id);
 				const features = await controller.features(id);
 				controller.assertGeneration(id, descriptor.generation);
@@ -239,11 +261,112 @@ export async function startWorkstation(): Promise<void> {
 				window.webContents.send(DIRECT_CONNECTION_CHANNEL, message);
 		},
 	});
+	let viewStore: WorkspaceViewStore | null = null;
+	try {
+		viewStore = new WorkspaceViewStore(
+			path.join(dataDir, "workspace-views.db"),
+		);
+	} catch (error) {
+		console.error(
+			"Workspace view storage unavailable",
+			error instanceof Error ? error.name : "unknown",
+		);
+	}
+	const windowBounds = () => ({
+		...(window?.getNormalBounds() ?? { x: 0, y: 0, width: 1280, height: 850 }),
+		maximized: window?.isMaximized() ?? false,
+	});
+	const views = viewStore
+		? new WorkspaceRestoreCoordinator({
+				store: viewStore,
+				registry,
+				manager,
+				controller,
+				window: windowBounds,
+				notify(snapshot) {
+					if (window && !window.webContents.isDestroyed())
+						window.webContents.send(DIRECT_RESTORE_CHANNEL, snapshot);
+				},
+				onReady(descriptor) {
+					reconnect.arm(descriptor, "ssh");
+				},
+			})
+		: null;
+	const requireViews = () => {
+		if (!views) throw new Error("Workspace view storage is unavailable");
+		return views;
+	};
+	let windowSaveTimer: ReturnType<typeof setTimeout> | undefined;
+	let flushWaiter: {
+		requestId: string;
+		owner: number;
+		resolve(): void;
+	} | null = null;
+	const flushWindow = async (current: BrowserWindow) => {
+		clearTimeout(windowSaveTimer);
+		const saveBounds = views?.updateWindow(windowBounds()).catch(() => {});
+		const requestId = randomUUID();
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		try {
+			await Promise.race([
+				(async () => {
+					await new Promise<void>((resolve) => {
+						flushWaiter = { requestId, owner: current.webContents.id, resolve };
+						if (!current.webContents.isDestroyed())
+							current.webContents.send(DIRECT_VIEW_FLUSH_CHANNEL, {
+								requestId,
+							});
+						else resolve();
+					});
+					await saveBounds;
+					await views?.flushWrites();
+				})(),
+				new Promise<void>((resolve) => {
+					timer = setTimeout(resolve, 500);
+				}),
+			]);
+		} finally {
+			clearTimeout(timer);
+			flushWaiter?.resolve();
+			flushWaiter = null;
+		}
+	};
 	const createWindow = () => {
+		let saved: ReturnType<WorkspaceViewStore["read"]>["snapshot"] = null;
+		try {
+			saved = viewStore?.read().snapshot ?? null;
+		} catch {}
+		const workArea = screen.getDisplayMatching(
+			saved?.window ?? screen.getPrimaryDisplay().workArea,
+		).workArea;
+		const width = Math.min(
+			Math.max(saved?.window.width ?? 1280, 800),
+			Math.max(800, workArea.width),
+		);
+		const height = Math.min(
+			Math.max(saved?.window.height ?? 850, 600),
+			Math.max(600, workArea.height),
+		);
 		window = new BrowserWindow({
 			icon,
-			width: 1280,
-			height: 850,
+			width,
+			height,
+			x: Math.max(
+				workArea.x,
+				Math.min(
+					saved?.window.x ??
+						workArea.x + Math.floor((workArea.width - width) / 2),
+					workArea.x + workArea.width - width,
+				),
+			),
+			y: Math.max(
+				workArea.y,
+				Math.min(
+					saved?.window.y ??
+						workArea.y + Math.floor((workArea.height - height) / 2),
+					workArea.y + workArea.height - height,
+				),
+			),
 			minWidth: 800,
 			minHeight: 600,
 			title: PRODUCT_BRAND.displayName,
@@ -259,7 +382,52 @@ export async function startWorkstation(): Promise<void> {
 		window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 		window.webContents.on("will-navigate", (event) => event.preventDefault());
 		const owner = window.webContents.id;
+		rendererOwnerEpoch++;
+		views?.activateOwner(owner);
+		window.webContents.on(
+			"did-start-navigation",
+			(_event, _url, isInPlace, isMainFrame) => {
+				if (isMainFrame && !isInPlace) {
+					rendererOwnerEpoch++;
+					views?.activateOwner(owner);
+					closeWindowTransports(
+						owner,
+						registry.list().map((p) => p.id),
+						{ sockets, forwards },
+					);
+				}
+			},
+		);
+		if (saved?.window.maximized) window.maximize();
+		const currentWindow = window;
+		const changedBounds = () => {
+			clearTimeout(windowSaveTimer);
+			windowSaveTimer = setTimeout(() => {
+				if (window === currentWindow)
+					void views?.updateWindow(windowBounds()).catch(() => {});
+			}, 250);
+		};
+		window.on("move", changedBounds);
+		window.on("resize", changedBounds);
+		window.on("maximize", changedBounds);
+		window.on("unmaximize", changedBounds);
+		let closing = false;
+		let allowClose = false;
+		window.on("close", (event) => {
+			if (quitting || allowClose) return;
+			event.preventDefault();
+			if (closing) return;
+			closing = true;
+			views?.invalidate();
+			void flushWindow(currentWindow).finally(() => {
+				allowClose = true;
+				if (!currentWindow.isDestroyed()) currentWindow.close();
+			});
+		});
 		window.on("closed", () => {
+			clearTimeout(windowSaveTimer);
+			rendererOwnerEpoch++;
+			views?.activateOwner(null);
 			if (!quitting) {
 				reconnect.dispose();
 				const ids = registry.list().map((profile) => profile.id);
@@ -331,8 +499,104 @@ export async function startWorkstation(): Promise<void> {
 			)
 				throw new Error("Unauthorized workstation caller");
 			const callerWindow = window;
+			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "getWorkspaceView":
+					return (
+						views?.read() ?? {
+							revision: 0,
+							snapshot: null,
+							invalid: true,
+							navigationRevision: 0,
+						}
+					);
+				case "saveWorkspaceView":
+					return requireViews().save(
+						owner,
+						z
+							.strictObject({
+								expectedRevision: z.number().int().nonnegative(),
+								navigationRevision: z.number().int().nonnegative(),
+								view: z.unknown(),
+							})
+							.parse(payload),
+					);
+				case "beginWorkspaceRestore":
+					return requireViews().begin(
+						owner,
+						z
+							.strictObject({
+								reason: z.enum(["launch", "manual"]),
+								navigationRevision: z.number().int().nonnegative(),
+							})
+							.parse(payload),
+					);
+				case "getWorkspaceRestore":
+					return views?.get() ?? null;
+				case "cancelWorkspaceRestore":
+					return requireViews().cancel(
+						owner,
+						z.strictObject({ restoreJobId: z.string().uuid() }).parse(payload)
+							.restoreJobId,
+					);
+				case "forgetWorkspaceView":
+					return requireViews().forget(
+						owner,
+						z
+							.strictObject({
+								expectedRevision: z.number().int().nonnegative(),
+							})
+							.parse(payload).expectedRevision,
+					);
+				case "workspaceViewFlushed": {
+					const input = z
+						.strictObject({ requestId: z.string().uuid() })
+						.parse(payload);
+					if (
+						flushWaiter?.owner === owner &&
+						flushWaiter.requestId === input.requestId
+					)
+						flushWaiter.resolve();
+					return;
+				}
+				case "inspectPending":
+					return controller.inspectPending(uuid(payload));
+				case "openRestoredTerminal": {
+					const input = z
+						.strictObject({
+							connectionId: z.string().uuid(),
+							generation: z.number().int().positive(),
+							ref: restoreResourceRefSchema,
+							socketId: z.string().uuid(),
+						})
+						.parse(payload);
+					controller.assertGeneration(input.connectionId, input.generation);
+					if (input.ref.kind !== "terminal" || !input.ref.executionId)
+						throw new Error("A confirmed terminal execution is required");
+					if (
+						!(await controller.features(input.connectionId, true)).capabilities
+							?.workspaceViewRestoreV1
+					)
+						throw new Error("Strict workspace restore is unsupported");
+					controller.assertGeneration(input.connectionId, input.generation);
+					if (
+						window !== callerWindow ||
+						callerEpoch !== rendererOwnerEpoch ||
+						event.sender.isDestroyed()
+					)
+						throw new Error("Workspace window closed");
+					return sockets.open(
+						owner,
+						input.socketId,
+						input.connectionId,
+						`/terminal-restore/${input.ref.resourceId}?workspaceId=${input.ref.workspaceId}&executionId=${input.ref.executionId}`,
+						(message) => {
+							if (!event.sender.isDestroyed())
+								event.sender.send(DIRECT_SOCKET_CHANNEL, message);
+						},
+					);
+				}
 				case "about": {
 					const metadata = JSON.parse(
 						readFileSync(path.join(app.getAppPath(), "package.json"), "utf8"),
@@ -451,6 +715,7 @@ export async function startWorkstation(): Promise<void> {
 				case "list":
 					return registry.list();
 				case "save": {
+					views?.invalidate();
 					const input = profileSchema.parse(payload);
 					if (input.id === localConnectionId)
 						throw new Error("The local connection is managed by this app");
@@ -488,6 +753,7 @@ export async function startWorkstation(): Promise<void> {
 					forwards.closeConnection(id);
 					await controller.disconnect(id);
 					registry.remove(id);
+					await views?.remove(id);
 					selectedReleases.delete(id);
 					return;
 				}
@@ -567,6 +833,7 @@ export async function startWorkstation(): Promise<void> {
 				}
 				case "disconnect": {
 					const id = uuid(payload);
+					await views?.recordDisconnect(id);
 					reconnect.disarm(id);
 					sockets.closeConnection(id);
 					forwards.closeConnection(id);
@@ -575,6 +842,7 @@ export async function startWorkstation(): Promise<void> {
 				case "getSetupSnapshot":
 					return progress.get(uuid(payload));
 				case "connect": {
+					views?.invalidate();
 					const { id, password } = z
 						.object({
 							id: z.string().uuid(),
@@ -593,6 +861,9 @@ export async function startWorkstation(): Promise<void> {
 							controller.assertGeneration(id, descriptor.generation);
 							const connection = { ...descriptor, ...features };
 							reconnect.arm(connection, registry.get(id)?.kind ?? "ssh");
+							await views?.recordConnect(id).catch(() => {
+								console.error("Workspace view was not saved after connection");
+							});
 							return connection;
 						} finally {
 							passwords.delete(id);
@@ -858,11 +1129,20 @@ export async function startWorkstation(): Promise<void> {
 		event.preventDefault();
 		quitting = true;
 		reconnect.dispose();
-		if (window) sockets.closeOwner(window.webContents.id);
-		forwards.dispose();
-		void Promise.resolve(controller.dispose()).finally(() => {
+		views?.invalidate();
+		void (async () => {
+			if (window) {
+				await flushWindow(window);
+				sockets.closeOwner(window.webContents.id);
+			}
+			rendererOwnerEpoch++;
+			views?.activateOwner(null);
+			forwards.dispose();
+			await controller.dispose();
+		})().finally(() => {
 			registry.close();
 			intents.close();
+			viewStore?.close();
 			ipcMain.removeHandler(DIRECT_CHANNEL);
 			app.quit();
 		});

@@ -12,7 +12,7 @@ Local and SSH workstations. An unofficial modified version of [Superset](https:/
 
 The current desktop opens the accountless Workstation: add an SSH machine, connect, and install the bundled verified backend automatically when it is missing. Initial installation may require the remote administrator password. Terminals, projects and workspaces use the selected local or SSH backend; disconnecting the desktop leaves remote tasks running.
 
-Verified 1.37.4 previews: [Apple Silicon](https://github.com/4444zyf/superset/actions/runs/38347760341/artifacts/11790341140) · [Intel](https://github.com/4444zyf/superset/actions/runs/38347760341/artifacts/11790638650). These workflow artifacts include checksums, source, SSH/UI acceptance and legal notices, and expire after 14 days. Both native jobs passed; source is `2f71640cedd4155781dbb9e87a4baaaf6c956a87`.
+Verified 1.37.5 previews: [Apple Silicon](https://github.com/4444zyf/superset/actions/runs/38373722281/artifacts/11801488368) · [Intel](https://github.com/4444zyf/superset/actions/runs/38373722281/artifacts/11803122248). These workflow artifacts include checksums, source, SSH/UI acceptance and legal notices, and expire after 14 days. Both native jobs passed; source is `ed4e9964794f9a09887a1a7e25eb5e02f165b31e`. Performance comparisons are recorded in [the implementation report](docs/implementation/ssh-performance-2026-10-13.md).
 
 macOS Apple Silicon and Intel preview DMGs are built and checked separately. Preview downloads may appear as workflow artifacts before a GitHub prerelease is published. Use the version and source checksum included with each artifact. Historical `Superset SSH Preview` downloads predate this branding. Linux and Windows distributions have not been validated for this fork.
 

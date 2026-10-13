@@ -9,6 +9,7 @@ import {
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { ownedRestoreControls } from "./verify-restore-controls.mjs";
 import { OpenSshRuntime } from "../../../packages/direct-connection/src/ssh.ts";
 import { createSshFixture } from "../../../packages/direct-connection/src/ssh-fixture.ts";
 import { controlRemoteBackend } from "../../../packages/direct-install/src/lifecycle.ts";
@@ -19,6 +20,7 @@ export async function verifySshUi({
 	screenshot,
 	resources,
 	output,
+	verifyRestore,
 }) {
 	assert.equal(process.platform, "darwin");
 	assert.equal(process.env.GITHUB_ACTIONS, "true");
@@ -35,6 +37,12 @@ export async function verifySshUi({
 	);
 	mkdirSync(sshDir, { recursive: true, mode: 0o700 });
 	const fixture = await createSshFixture();
+	const gitConfig = join(homedir(), ".gitconfig");
+	const gitContents =
+		"[user]\n name = Restore Fixture\n email = restore-fixture@example.invalid\n";
+	const ownsGitConfig = !existsSync(gitConfig);
+	if (ownsGitConfig)
+		writeFileSync(gitConfig, gitContents, { mode: 0o600, flag: "wx" });
 	const runtime = new OpenSshRuntime({ configFile: fixture.configFile });
 	const keys = JSON.parse(
 		readFileSync(join(resources, "direct-release-keys.json"), "utf8"),
@@ -138,8 +146,12 @@ export async function verifySshUi({
 			before.instanceId,
 		);
 		await screenshot("ssh-reconnected");
-		await click(".ws-detail-actions button:last-child");
-		await page.evaluate("window.sshUiObserver.disconnect(); true");
+		if (verifyRestore)
+			await verifyRestore(ownedRestoreControls(backendHome, fixture));
+		if (!verifyRestore) {
+			await click(".ws-detail-actions button:last-child");
+			await page.evaluate("window.sshUiObserver.disconnect(); true");
+		}
 		writeFileSync(
 			join(output, "ssh-ui.json"),
 			JSON.stringify(
@@ -174,6 +186,10 @@ export async function verifySshUi({
 			runtime.dispose();
 			await fixture.close();
 			rmSync(config, { force: true });
+			if (ownsGitConfig) {
+				assert.equal(readFileSync(gitConfig, "utf8"), gitContents);
+				rmSync(gitConfig);
+			}
 		}
 	}
 }

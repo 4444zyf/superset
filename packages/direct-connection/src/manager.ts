@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { directBackendSocketPath } from "@superset/shared/direct-backend-socket";
 import superjson from "superjson";
+import NodeWebSocket from "ws";
 import { DirectConnectionError, sshFailure } from "./errors";
 import type { LocalBackend } from "./local";
 import {
@@ -74,6 +75,10 @@ const probeCommand =
 	'/bin/sh -c \'printf "%s\\0" "$(uname -s)" "$(uname -m)" "$(id -u)" "$(id -un)" "$HOME"\'';
 const endpointCommand =
 	'/bin/sh -c \'test -r "$HOME/.superset-direct/state/endpoint.json" && test -r "$HOME/.superset-direct/credentials/host-secret" && cat "$HOME/.superset-direct/state/endpoint.json" && printf "\\n" && cat "$HOME/.superset-direct/credentials/host-secret"\'';
+const restoreEndpointCommand = endpointCommand.replace(
+	"test -r",
+	'test ! -e "$HOME/.superset-direct/state/disabled" && test -r',
+);
 
 function parseEndpoint(raw: string): {
 	descriptor: EndpointDescriptor;
@@ -148,7 +153,11 @@ export class DirectConnectionManager {
 	private readonly connected = new Map<string, Connected>();
 	private readonly statuses = new Map<string, ConnectionStatus>();
 	private readonly pending = new Map<string, Promise<ConnectionLease>>();
-	private readonly sockets = new Map<string, Set<WebSocket>>();
+	private readonly pendingModes = new Map<
+		string,
+		"explicit" | "restore-existing"
+	>();
+	private readonly sockets = new Map<string, Set<{ close(): void }>>();
 	private readonly targets = new Map<string, string>();
 	constructor(
 		private readonly options: {
@@ -254,17 +263,31 @@ export class DirectConnectionManager {
 			this.runtime.cancel?.(profile.id);
 		}
 	}
-	connect(id: string): Promise<ConnectionLease> {
+	connect(
+		id: string,
+		options: { mode?: "explicit" | "restore-existing" } = {},
+	): Promise<ConnectionLease> {
+		const mode = options.mode ?? "explicit";
 		const live = this.getLease(id);
 		if (live) return Promise.resolve(live);
 		const pending = this.pending.get(id);
-		if (pending) return pending;
+		if (pending) {
+			if (this.pendingModes.get(id) !== mode)
+				return Promise.reject(
+					new Error("A different connection operation is pending"),
+				);
+			return pending;
+		}
 		const generation = this.getStatus(id).generation + 1;
 		this.setStatus(id, { state: "probing", generation });
-		const promise = this.connectGeneration(id, generation).finally(() => {
-			if (this.pending.get(id) === promise) this.pending.delete(id);
+		const promise = this.connectGeneration(id, generation, mode).finally(() => {
+			if (this.pending.get(id) === promise) {
+				this.pending.delete(id);
+				this.pendingModes.delete(id);
+			}
 		});
 		this.pending.set(id, promise);
+		this.pendingModes.set(id, mode);
 		return promise;
 	}
 	private current(id: string, generation: number): void {
@@ -288,11 +311,16 @@ export class DirectConnectionManager {
 	private async connectGeneration(
 		id: string,
 		generation: number,
+		mode: "explicit" | "restore-existing",
 	): Promise<ConnectionLease> {
 		let tunnel: Tunnel | undefined;
 		let disposeUnclaimed: (() => void) | undefined;
 		try {
 			const profile = this.profile(id);
+			if (mode === "restore-existing" && profile.kind === "local")
+				throw new Error(
+					"Automatic window restore requires an existing SSH backend",
+				);
 			this.targets.set(id, profileFingerprint(profile));
 			let initialEndpoint: string | undefined;
 			let probe: RemoteProbe;
@@ -300,7 +328,7 @@ export class DirectConnectionManager {
 			else {
 				const result = await this.runtime.exec(
 					profile,
-					`${probeCommand}; printf '%s\\0' "$(id -gn)" "$(test "$(uname -s)" != Darwin || /usr/bin/sw_vers -productVersion)"; ${endpointCommand}; true`,
+					`${probeCommand}; printf '%s\\0' "$(id -gn)" "$(test "$(uname -s)" != Darwin || /usr/bin/sw_vers -productVersion)"; ${mode === "restore-existing" ? restoreEndpointCommand : endpointCommand}; true`,
 				);
 				if (result.exitCode !== 0) throw sshFailure(result.stderr);
 				const [
@@ -342,6 +370,7 @@ export class DirectConnectionManager {
 				generation,
 				probe,
 				initialEndpoint,
+				mode,
 			);
 			disposeUnclaimed = backend.dispose;
 			const { descriptor, secret } = backend;
@@ -413,6 +442,21 @@ export class DirectConnectionManager {
 				)
 			)
 				throw new Error("Backend identity mismatch");
+			if (mode === "restore-existing") {
+				const maintenance = await this.requestFetch(
+					`${tunnel.url}/direct/maintenance`,
+					{
+						headers: { Authorization: `Bearer ${secret}` },
+						signal: AbortSignal.timeout(2000),
+						redirect: "error",
+					},
+				);
+				const state = maintenance.ok
+					? ((await maintenance.json()) as { mode?: string; frozen?: boolean })
+					: null;
+				if (state?.mode !== "active" || state.frozen !== false)
+					throw new Error("The existing backend is unavailable for restore");
+			}
 			this.current(id, generation);
 			const pinned = this.options.registry.save({
 				...profile,
@@ -452,6 +496,7 @@ export class DirectConnectionManager {
 		generation: number,
 		probe: RemoteProbe,
 		initialEndpoint?: string,
+		mode: "explicit" | "restore-existing" = "explicit",
 	): Promise<{
 		descriptor: EndpointDescriptor;
 		secret: string;
@@ -485,6 +530,10 @@ export class DirectConnectionManager {
 						exitCode: initialEndpoint ? 0 : 1,
 					};
 		if (result.exitCode !== 0) {
+			if (mode === "restore-existing")
+				throw new Error(
+					"The existing backend is unavailable; restore is paused",
+				);
 			if (!this.options.install)
 				throw new Error(
 					"Direct backend is not installed; select a verified backend release",
@@ -520,6 +569,7 @@ export class DirectConnectionManager {
 		const connection = this.connected.get(id);
 		this.connected.delete(id);
 		this.pending.delete(id);
+		this.pendingModes.delete(id);
 		this.targets.delete(id);
 		this.setStatus(id, {
 			state: "disconnected",
@@ -604,6 +654,25 @@ export class DirectConnectionManager {
 		url.searchParams.set("token", connection.secret);
 		const socket = new WebSocket(url);
 		const sockets = this.sockets.get(id) ?? new Set<WebSocket>();
+		this.sockets.set(id, sockets);
+		sockets.add(socket);
+		socket.addEventListener("close", () => sockets.delete(socket));
+		return socket;
+	}
+	openRestoredSocket(id: string, path: string): NodeWebSocket {
+		const connection = this.live(id);
+		if (
+			!/^\/terminal-restore\/[\w-]+\?workspaceId=[\w-]+&executionId=[\w-]+$/.test(
+				path,
+			)
+		)
+			throw new Error("Invalid restored terminal path");
+		const url = new URL(path, connection.lease.url);
+		url.protocol = "ws:";
+		const socket = new NodeWebSocket(url, {
+			headers: { Authorization: `Bearer ${connection.secret}` },
+		});
+		const sockets = this.sockets.get(id) ?? new Set<{ close(): void }>();
 		this.sockets.set(id, sockets);
 		sockets.add(socket);
 		socket.addEventListener("close", () => sockets.delete(socket));

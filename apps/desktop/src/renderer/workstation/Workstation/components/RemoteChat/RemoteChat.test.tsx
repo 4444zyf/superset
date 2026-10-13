@@ -15,6 +15,43 @@ import type {
 import { RemoteChat } from "./RemoteChat";
 
 afterEach(cleanup);
+test("changing pane callbacks does not reopen a restored chat stream", async () => {
+	let opens = 0;
+	let closes = 0;
+	const api = {
+		rpc: async () => [],
+		onSocket: () => () => {},
+		openSocket: async () => {
+			opens++;
+		},
+		closeSocket: async () => {
+			closes++;
+		},
+	} as unknown as DirectWorkstationApi;
+	const view = render(
+		<RemoteChat
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			selectedSessionId="saved"
+			onError={() => {}}
+			onAttached={() => {}}
+		/>,
+	);
+	await waitFor(() => expect(opens).toBe(1));
+	view.rerender(
+		<RemoteChat
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			selectedSessionId="saved"
+			onError={() => {}}
+			onAttached={() => {}}
+		/>,
+	);
+	expect(opens).toBe(1);
+	expect(closes).toBe(0);
+});
 const connection: DirectDescriptor = {
 	connectionId: "machine",
 	generation: 1,
@@ -24,6 +61,42 @@ const connection: DirectDescriptor = {
 	capabilities: { durableOperations: true, attachments: true },
 	chatHarnesses: [{ id: "codex", available: true }],
 };
+
+test("restoring a controlled chat selection never selects the first session or sends a prompt", async () => {
+	const paths: string[] = [];
+	const procedures: string[] = [];
+	const selected: unknown[] = [];
+	const api = {
+		rpc: async (request: { path: string; type: string }) => {
+			procedures.push(request.type);
+			return [
+				{ sessionId: "first", harness: "codex" },
+				{ sessionId: "saved", harness: "codex" },
+			];
+		},
+		onSocket: () => () => {},
+		openSocket: async (_connection: unknown, path: string) => {
+			paths.push(path);
+		},
+		closeSocket: async () => {},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteChat
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			selectedSessionId="saved"
+			onSessionSelected={(id) => selected.push(id)}
+			onError={() => {}}
+		/>,
+	);
+	await waitFor(() =>
+		expect(paths).toContain("/chat-v3/sessions/saved/stream"),
+	);
+	expect(paths).not.toContain("/chat-v3/sessions/first/stream");
+	expect(selected).toEqual([]);
+	expect(procedures.every((type) => type === "query")).toBe(true);
+});
 
 test("closing the chat view closes only its stream, without cancelling or closing B's chat", async () => {
 	const procedures: string[] = [];

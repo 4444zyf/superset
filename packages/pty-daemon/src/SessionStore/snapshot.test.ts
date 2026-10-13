@@ -51,6 +51,7 @@ describe("handoff snapshot", () => {
 		try {
 			writeSnapshot(p, snapshot);
 			const saved = readSnapshot(p).sessions[0];
+			expect(saved?.executionId).toBe(session.executionId);
 			expect(
 				Buffer.from(saved?.buffer ?? []).includes(Buffer.from("\x1b[?2004h")),
 			).toBe(false);

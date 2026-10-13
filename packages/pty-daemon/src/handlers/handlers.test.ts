@@ -98,6 +98,42 @@ beforeEach(() => {
 	wired = [];
 });
 
+test("strict subscription rejects a replacement execution before replay or registration", () => {
+	const ctx = makeCtx();
+	const meta = { shell: "/bin/sh", argv: [], cols: 80, rows: 24 };
+	handleOpen(ctx, { type: "open", id: "terminal", meta });
+	const original = ctx.store.get("terminal")?.executionId;
+	expect(typeof original).toBe("string");
+	handleClose(ctx, { type: "close", id: "terminal" });
+	handleOpen(ctx, { type: "open", id: "terminal", meta });
+	expect(ctx.store.get("terminal")?.executionId).not.toBe(original);
+	const conn = makeConn();
+	handleSubscribe(ctx, conn, { type: "subscribe", id: "terminal", executionId: original, replay: true });
+	expect(conn.subscriptions.has("terminal")).toBe(false);
+	expect(conn.sent.map((frame) => frame.message)).toEqual([
+		{ type: "error", id: "terminal", code: "EEXECUTION", message: "Terminal execution changed" },
+	]);
+});
+
+test("input, resize and close bound to an old execution never affect the replacement", () => {
+	const ctx = makeCtx();
+	const meta = { shell: "/bin/sh", argv: [], cols: 80, rows: 24 };
+	handleOpen(ctx, { type: "open", id: "terminal", meta });
+	const executionId = ctx.store.get("terminal")?.executionId;
+	expect(typeof executionId).toBe("string");
+	const conn = makeConn();
+	handleSubscribe(ctx, conn, { type: "subscribe", id: "terminal", executionId, replay: false });
+	expect(conn.sent[0]?.message).toMatchObject({ type: "subscribed", id: "terminal", executionId });
+	handleClose(ctx, { type: "close", id: "terminal" });
+	handleOpen(ctx, { type: "open", id: "terminal", meta });
+	expect(handleInput(ctx, { type: "input", id: "terminal", executionId }, Buffer.from("unsafe\n"))).toMatchObject({ code: "EEXECUTION" });
+	expect(handleResize(ctx, { type: "resize", id: "terminal", executionId, cols: 20, rows: 10 })).toMatchObject({ code: "EEXECUTION" });
+	expect(handleClose(ctx, { type: "close", id: "terminal", executionId })).toMatchObject({ code: "EEXECUTION" });
+	expect(states[1]?.written).toEqual([]);
+	expect(states[1]?.cols).toBe(80);
+	expect(states[1]?.killed).toBe(false);
+});
+
 describe("handlers", () => {
 	test("mode checkpoint follows replay even when the mode-setting bytes were evicted", () => {
 		const ctx = makeCtx();

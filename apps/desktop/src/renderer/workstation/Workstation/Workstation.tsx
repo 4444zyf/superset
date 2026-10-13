@@ -8,9 +8,11 @@ import { ProjectDialog } from "./components/ProjectDialog/ProjectDialog";
 import { SessionDialog } from "./components/SessionDialog/SessionDialog";
 import { WorkspaceBrowser } from "./components/WorkspaceBrowser/WorkspaceBrowser";
 import { WorkspaceEditor } from "./components/WorkspaceEditor/WorkspaceEditor";
+import { WorkspaceWindow } from "./components/WorkspaceWindow/WorkspaceWindow";
 import { WorkstationDialog } from "./components/WorkstationDialog/WorkstationDialog";
 import { WorkstationShell } from "./components/WorkstationShell/WorkstationShell";
 import { useWorkstation } from "./hooks/useWorkstation/useWorkstation";
+import { useWorkspaceViews } from "./hooks/useWorkspaceViews/useWorkspaceViews";
 import type {
 	DirectProfile,
 	DirectWorkstationApi,
@@ -49,6 +51,26 @@ export function Workstation({
 		setProjectId(null);
 		ui.setDirectory(null);
 	};
+	const views = useWorkspaceViews(api, ui.connection, {
+		onSkeleton(id) {
+			select(id);
+			setPage("workspaces");
+		},
+		onDescriptor: ui.adoptConnection,
+		onForget() {
+			ui.clearWorkspace();
+			setPage("machines");
+		},
+		onError: ui.setError,
+	});
+	const savedTarget = views.view?.targets.find(
+		(target) => target.connectionId === selectedId,
+	);
+	const managesViews =
+		views.enabled &&
+		ui.connection?.capabilities?.workspaceViewRestoreV1 &&
+		ui.profiles.find((p) => p.id === ui.connection?.connectionId)?.kind !==
+			"local";
 	useEffect(() => {
 		if (!ui.profiles.some((p) => p.id === selectedRef.current)) {
 			const id =
@@ -85,6 +107,7 @@ export function Workstation({
 				ui.setDirectory(directory);
 		});
 	const connect = async (profile: DirectProfile, open = true) => {
+		views.navigate();
 		const navigation = navigationRevision.current;
 		select(profile.id);
 		if (ui.active.current?.connectionId !== profile.id || ui.reconnecting)
@@ -99,6 +122,13 @@ export function Workstation({
 			setPage("workspaces");
 		}
 		if (createRef.current === "project") await browse();
+	};
+	const openWorkspace = async (id: string, created?: RemoteWorkspace) => {
+		const workspace = created ?? ui.workspaces.find((w) => w.id === id);
+		if (managesViews && workspace) {
+			if (await views.openWorkspace(workspace))
+				ui.restoreWorkspaceSelection(id);
+		} else await ui.selectWorkspace(id);
 	};
 	const changeTarget = (id: string) => {
 		const profile = ui.profiles.find((p) => p.id === id);
@@ -160,7 +190,7 @@ export function Workstation({
 				return;
 			setCreate(null);
 			await ui.refresh(target);
-			await ui.selectWorkspace(result.workspace.id);
+			await openWorkspace(result.workspace.id, result.workspace);
 		});
 	const projectMutation = (input: unknown) =>
 		ui.operation(async () => {
@@ -193,16 +223,64 @@ export function Workstation({
 			page={page}
 			projects={ui.connection?.connectionId === selectedId ? ui.projects : []}
 			onNavigate={(next) => {
+				views.navigate();
 				navigationRevision.current++;
 				setPage(next);
-				if (next === "workspaces") ui.clearWorkspace();
+				if (next === "workspaces") {
+					if (managesViews) void views.selectTab(null);
+					ui.clearWorkspace();
+				}
 			}}
 			onProject={(id) => {
+				views.navigate();
 				setProjectId(id);
 				setPage("workspaces");
 				ui.clearWorkspace();
 			}}
 		>
+			{views.enabled && (
+				<details className="ws-view-settings">
+					<summary>
+						<Trans>Window layout</Trans>
+					</summary>
+					<label>
+						<input
+							type="checkbox"
+							checked={views.view?.restoreOnLaunch ?? true}
+							disabled={views.invalid}
+							onChange={(event) => {
+								void views.setRestoreOnLaunch(event.currentTarget.checked);
+							}}
+						/>
+						<Trans>Restore on launch</Trans>
+					</label>
+					<button
+						type="button"
+						className="ws-button small"
+						disabled={!views.view?.activeConnectionId}
+						onClick={() => {
+							void views.restoreManual();
+						}}
+					>
+						<Trans>Restore last window</Trans>
+					</button>
+					<button
+						type="button"
+						className="ws-button small"
+						disabled={!views.view && !views.invalid}
+						onClick={() => {
+							void views.forget();
+						}}
+					>
+						<Trans>Forget saved layout</Trans>
+					</button>
+					{views.invalid && (
+						<output role="status">
+							<Trans>Saved layout is unavailable.</Trans>
+						</output>
+					)}
+				</details>
+			)}
 			{api.platform === "win32" && (
 				<output className="ws-notice">
 					<Trans>Windows connections are not supported yet.</Trans>
@@ -234,9 +312,15 @@ export function Workstation({
 					probes={ui.probes}
 					setups={ui.setups}
 					password={ui.password}
-					onSelect={select}
+					onSelect={(id) => {
+						views.navigate();
+						select(id);
+					}}
 					onConnect={(p) => void connect(p)}
-					onDisconnect={() => void ui.disconnect()}
+					onDisconnect={() => {
+						views.navigate();
+						void ui.disconnect();
+					}}
 					onEdit={(p) => {
 						ui.setError(null);
 						setForm(p);
@@ -270,8 +354,42 @@ export function Workstation({
 					}
 				/>
 			) : (
-				<fieldset className="ws-content" disabled={Boolean(ui.reconnecting)}>
-					{workspace && attached && ui.connection && selected ? (
+				<fieldset
+					className="ws-content"
+					disabled={Boolean(ui.reconnecting) && !savedTarget?.activeTabId}
+				>
+					{views.enabled && savedTarget?.activeTabId ? (
+						<WorkspaceWindow
+							api={api}
+							target={savedTarget}
+							connection={
+								attached &&
+								!ui.reconnecting &&
+								savedTarget.autoConnect &&
+								ui.connection?.backendId === savedTarget.backendId &&
+								ui.connection?.namespaceId === savedTarget.namespaceId
+									? ui.connection
+									: null
+							}
+							checks={views.resources}
+							resourceRevision={views.resourceRevision}
+							restore={views.restore}
+							actions={views}
+							onError={ui.setError}
+							onBrowse={() => {
+								ui.clearWorkspace();
+								void views.selectTab(null);
+							}}
+							onMachines={() => {
+								views.navigate();
+								setPage("machines");
+							}}
+						/>
+					) : workspace &&
+						attached &&
+						ui.connection &&
+						selected &&
+						!managesViews ? (
 						<WorkspaceEditor
 							reconnecting={ui.reconnecting}
 							onNewSession={() => {
@@ -371,7 +489,7 @@ export function Workstation({
 								ui.setError(null);
 								setCreate("session");
 							}}
-							onOpen={(id) => void ui.operation(() => ui.selectWorkspace(id))}
+							onOpen={(id) => void ui.operation(() => openWorkspace(id))}
 							onRefresh={() =>
 								void ui.operation(async () => {
 									await ui.refresh(ui.active.current, true);

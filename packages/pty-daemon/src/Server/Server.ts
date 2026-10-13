@@ -168,7 +168,7 @@ export class Server {
 				});
 				let session: Session | null = null;
 				try {
-					session = this.store.add(s.id, pty);
+					session = this.store.add(s.id, pty, s.executionId);
 					if (s.buffer.byteLength > 0) {
 						const buf = Buffer.from(
 							s.buffer.buffer,
@@ -471,6 +471,7 @@ export class Server {
 				trustdHealthy: this.trustdHealthy,
 				supportsModeSnapshots: true,
 				supportsColorQueries: true,
+				supportsConditionalSubscribe: true,
 			});
 			return;
 		}
@@ -495,6 +496,10 @@ export class Server {
 				return;
 			}
 			case "colors": {
+				if (msg.executionId !== undefined && this.store.get(msg.id)?.executionId !== msg.executionId) {
+					conn.send({ type: "error", id: msg.id, code: "EEXECUTION", message: "Terminal execution changed" });
+					return;
+				}
 				const parsed = terminalColorsSchema.safeParse(msg.colors);
 				if (parsed.success)
 					this.store
@@ -572,10 +577,12 @@ export class Server {
 		let reclaimScheduled = false;
 		const deliver = (chunk: Buffer) => {
 			this.store.appendOutput(session, chunk);
-			const out: ServerMessage = { type: "output", id: session.id };
+			const out: ServerMessage = { type: "output", id: session.id, executionId: session.executionId };
 			let congested = false;
 			for (const c of this.conns) {
 				if (!c.subscriptions.has(session.id)) continue;
+				const bound = c.executionBindings?.get(session.id);
+				if (bound && bound !== session.executionId) continue;
 				c.send(out, chunk);
 				if (!c.socket.destroyed && c.socket.writableLength > pauseThreshold) {
 					c.pausedSessions.add(session.id);

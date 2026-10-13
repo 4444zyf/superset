@@ -73,6 +73,7 @@ after(async () => {
 test("prepare-upgrade hands off live sessions to a successor binary", async () => {
 	const sessionIds = ["handoff-0", "handoff-1"] as const;
 	const originalPids = new Map<string, number>();
+	const originalExecutions = new Map<string, string>();
 
 	// Open sessions on daemon A. Two sessions catches fd-index mixups that a
 	// single-session handoff can never expose.
@@ -90,7 +91,11 @@ test("prepare-upgrade hands off live sessions to a successor binary", async () =
 		});
 		const opened = await c1.waitFor((m) => m.type === "open-ok" && m.id === id);
 		assert.equal(opened.type, "open-ok");
-		if (opened.type === "open-ok") originalPids.set(id, opened.pid);
+		if (opened.type === "open-ok") {
+			originalPids.set(id, opened.pid);
+			assert.ok(opened.executionId);
+			originalExecutions.set(id, opened.executionId);
+		}
 	}
 
 	// Produce output before handoff. The successor must carry this replay
@@ -186,6 +191,7 @@ test("prepare-upgrade hands off live sessions to a successor binary", async () =
 				`expected ${id} in survivor list: ${JSON.stringify(list.sessions)}`,
 			);
 			assert.equal(survived.alive, true, `${id} should still be alive`);
+			assert.equal(survived.executionId, originalExecutions.get(id));
 			assert.equal(
 				survived.pid,
 				originalPids.get(id),

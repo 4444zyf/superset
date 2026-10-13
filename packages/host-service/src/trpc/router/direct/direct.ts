@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createResolveCwd } from "../../../chat-v3/resolveCwd";
 import { directChatHarnesses } from "../../../direct/chat-readiness";
+import { supportsWorkspaceRestore } from "../../../terminal/restore-resources";
 import {
 	beginDirectDrain,
 	directMaintenanceStatus,
@@ -14,6 +15,7 @@ import { protectedProcedure, router } from "../../index";
 export function describeDirectBackend(
 	identity: DirectBackendIdentity | undefined,
 	durableOperations = false,
+	workspaceViewRestoreV1 = false,
 ) {
 	if (!identity)
 		throw new TRPCError({
@@ -30,6 +32,7 @@ export function describeDirectBackend(
 		cloudAccountRequired: false,
 		chatHarnesses: directChatHarnesses(),
 		capabilities: {
+			workspaceViewRestoreV1,
 			projects: true,
 			sessions: true,
 			terminals: true,
@@ -128,8 +131,8 @@ async function dispatch(
 }
 
 export const directRouter = router({
-	describe: protectedProcedure.query(({ ctx }) =>
-		describeDirectBackend(ctx.direct, !!ctx.directOperations),
+	describe: protectedProcedure.query(async ({ ctx }) =>
+		describeDirectBackend(ctx.direct, !!ctx.directOperations, await supportsWorkspaceRestore()),
 	),
 	execute: protectedProcedure
 		.input(

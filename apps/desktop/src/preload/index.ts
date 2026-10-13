@@ -4,6 +4,8 @@ import {
 	DIRECT_CONNECTION_CHANNEL,
 	DIRECT_SETUP_CHANNEL,
 	DIRECT_SOCKET_CHANNEL,
+	DIRECT_RESTORE_CHANNEL,
+	DIRECT_VIEW_FLUSH_CHANNEL,
 	type DirectConnectionEvent,
 	type DirectSocketEvent,
 	type DirectWorkstationApi,
@@ -18,6 +20,37 @@ declare global {
 const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
+	getWorkspaceView: () => invoke("getWorkspaceView"),
+	saveWorkspaceView: (input) => invoke("saveWorkspaceView", input),
+	beginWorkspaceRestore: (input) => invoke("beginWorkspaceRestore", input),
+	getWorkspaceRestore: () => invoke("getWorkspaceRestore"),
+	cancelWorkspaceRestore: (input) => invoke("cancelWorkspaceRestore", input),
+	forgetWorkspaceView: (input) => invoke("forgetWorkspaceView", input),
+	inspectPending: (id) => invoke("inspectPending", id),
+	openRestoredTerminal: (connection, ref, socketId) =>
+		invoke("openRestoredTerminal", {
+			connectionId: connection.connectionId,
+			generation: connection.generation,
+			ref,
+			socketId,
+		}),
+	onWorkspaceRestore: (listener) => {
+		const wrapped = (
+			_event: unknown,
+			snapshot: Parameters<typeof listener>[0],
+		) => listener(snapshot);
+		ipcRenderer.on(DIRECT_RESTORE_CHANNEL, wrapped);
+		return () => ipcRenderer.removeListener(DIRECT_RESTORE_CHANNEL, wrapped);
+	},
+	onWorkspaceViewFlush: (listener) => {
+		const wrapped = (_event: unknown, input: { requestId: string }) => {
+			void listener()
+				.catch(() => {})
+				.finally(() => invoke("workspaceViewFlushed", input).catch(() => {}));
+		};
+		ipcRenderer.on(DIRECT_VIEW_FLUSH_CHANNEL, wrapped);
+		return () => ipcRenderer.removeListener(DIRECT_VIEW_FLUSH_CHANNEL, wrapped);
+	},
 	about: () => invoke("about"),
 	openBrandLink: (id) => invoke("openBrandLink", id),
 	platform: process.platform,

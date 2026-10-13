@@ -34,6 +34,7 @@ const procedures: Record<string, "query" | "mutation"> = {
 	"git.getStatus": "query",
 	"git.getDiff": "query",
 	"workspace.get": "query",
+	"workspace.restoreResources": "query",
 	"project.list": "query",
 	"project.create": "mutation",
 	"workspace.list": "query",
@@ -94,10 +95,25 @@ export class WorkstationController {
 			description = await response.json();
 		}
 		const metadata = description as {
+			backendId?: string;
+			namespaceId?: string;
+			serviceUid?: number;
 			capabilities?: Record<string, unknown>;
 			chatHarnesses?: { id: string; available: boolean; reason?: string }[];
 		};
 		this.assertGeneration(id, connection.generation);
+		if (metadata.capabilities?.workspaceViewRestoreV1 === true) {
+			const verified = this.manager.getVerifiedDescription?.(id) as
+				| { serviceUid?: number }
+				| undefined;
+			if (
+				metadata.backendId !== connection.backendId ||
+				metadata.namespaceId !== connection.namespaceId ||
+				(verified?.serviceUid !== undefined &&
+					metadata.serviceUid !== verified.serviceUid)
+			)
+				throw new Error("Backend identity changed; reconnect before restoring");
+		}
 		const capabilities = Object.fromEntries(
 			[
 				"projects",
@@ -108,6 +124,7 @@ export class WorkstationController {
 				"attachments",
 				"git",
 				"durableOperations",
+				"workspaceViewRestoreV1",
 			].map((key) => [key, metadata.capabilities?.[key] === true]),
 		);
 		const chatHarnesses = Array.isArray(metadata.chatHarnesses)
@@ -220,6 +237,31 @@ export class WorkstationController {
 		return this.intents?.list(connectionId) ?? [];
 	}
 
+	async inspectPending(connectionId: string): Promise<unknown[]> {
+		const connection = this.describe(connectionId);
+		const result: unknown[] = [];
+		for (const operation of this.listPending(connectionId)) {
+			if (
+				operation.backendId !== connection.backendId ||
+				operation.namespaceId !== connection.namespaceId
+			)
+				throw new Error(
+					"Reconnect to the original backend to inspect this operation",
+				);
+			const status = (await this.manager.invoke(connectionId, {
+				path: "direct.operationStatus",
+				type: "query",
+				input: { operationId: operation.operationId },
+			})) as { status: string } | null;
+			this.assertGeneration(connectionId, connection.generation);
+			result.push({
+				operationId: operation.operationId,
+				procedure: operation.procedure,
+				...(status ?? { status: "not_received" }),
+			});
+		}
+		return result;
+	}
 	async reconcile(connectionId: string): Promise<unknown[]> {
 		const connection = this.describe(connectionId);
 		const result: unknown[] = [];

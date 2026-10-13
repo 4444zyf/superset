@@ -1,6 +1,6 @@
 # SSH 连接性能实现与对比记录
 
-状态：核心优化与双架构最终 DMG 验收已通过；追加均衡顺序对比进行中。基础：`c6cca9926`。预览版本：1.37.5。
+状态：核心优化与双架构最终 DMG 验收已通过；四轮均衡顺序对比已完成。基础：`c6cca9926`。预览版本：1.37.5。
 
 采用方向：一条独占 OpenSSH master、合并探测、认证能力复用、V2签名压缩归档和受控流式安装。进度显示实际阶段和耗时，首次安装与日常重连单独计时。
 
@@ -88,7 +88,7 @@
 | --- | ---: | ---: | ---: |
 | gzip6，串行，完整tar扫描 | 10.889 / 11.097 s | 27.877 / 33.452 s | 0.641 / 1.465 s |
 | gzip6，串行，fast-read | 9.392 / 9.437 s | 35.426 / 37.098 s | 0.658 / 1.763 s |
-| gzip6，4写入，fast-read（当前默认） | 9.169 / 9.185 s | 22.490 / 36.169 s | 0.646 / 1.483 s |
+| gzip6，4写入，fast-read（第三轮默认） | 9.169 / 9.185 s | 22.490 / 36.169 s | 0.646 / 1.483 s |
 | gzip6，8写入，fast-read | 8.677 / 9.405 s | 22.185 / 22.514 s | 0.659 / 1.158 s |
 
 本轮8写入中位数最低；第二轮Intel则是4写入更快（35.685秒对39.643秒）。本轮Intel4写入三次为36.169、22.490、20.799秒，存在明显顺序/负载差异，不能仅以0.305秒的中位数差异断言8始终最快。新增四轮轮换顺序实验，让四种方案各出现在每个位置一次；它完成前仍保留4写入默认，避免把CPU和缓存漂移当成改造效果。
@@ -98,3 +98,18 @@
 原始记录：[arm64](evidence/ssh-performance/native-bounded-arm64)、[x64](evidence/ssh-performance/native-bounded-x64)；已下载并查看真实UI截图：[arm64重连](evidence/ssh-performance/native-ui-arm64/ssh-reconnected.png)、[x64重连](evidence/ssh-performance/native-ui-x64/ssh-reconnected.png)。这些冻结源码截图包含当时的历史侧栏标识；用户随后要求移除，该修改另有源码UI验证并进入后续构建。
 
 已验证DMG（14天保留）：[Apple Silicon](https://github.com/4444zyf/superset/actions/runs/38367863304/artifacts/11797799046)、[Intel](https://github.com/4444zyf/superset/actions/runs/38367863304/artifacts/11799526725)。附件包含源码SHA、校验和、安装/性能记录和原许可；未发布GitHub正式版本。
+
+## 第四轮：四轮均衡顺序与10秒目标
+
+用户将首次连接目标调整为10秒。运行 [38373722281](https://github.com/4444zyf/superset/actions/runs/38373722281)，冻结源码 `ed4e9964794f9a09887a1a7e25eb5e02f165b31e`，两个架构及最终DMG均通过。每个方案4次全新安装，轮换顺序使每种方案各位于每个测试位置一次；每次再做30次真实断开/重连和项目、工作区列表查询。首装报告中位数/最大值，重连120样本报告nearest-rank P95。
+
+| 方案 | ARM首装中位数 / 最大 | Intel首装中位数 / 最大 | ARM / Intel 重连P95 |
+| --- | ---: | ---: | ---: |
+| gzip6，串行，完整扫描 | 19.394 / 20.875 s | 39.820 / 49.996 s | 1.030 / 2.035 s |
+| gzip6，串行，fast-read | 17.586 / 19.242 s | 40.085 / 43.060 s | 1.042 / 1.879 s |
+| gzip6，4写入，fast-read | 15.600 / 18.650 s | 35.168 / 40.923 s | 1.132 / 1.722 s |
+| gzip6，8写入，fast-read | 16.356 / 17.681 s | 33.695 / 34.432 s | 1.078 / 1.393 s |
+
+本轮ARM最快为4写入15.600秒，Intel最快为8写入33.695秒。据此将后续版本的默认值设为ARM4、Intel8；实验参数仍只允许1/4/8，所有签名、集合、逐文件摘要、UID与smoke验证保留。不同架构选择的是当前最有证据的折中，不保证任意机器始终最快。
+第三轮ARM实际UI首装9.205秒，证明特定健康环境下达到过10秒；第四轮ARM默认首装13.601–18.650秒，Intel也超过10秒。因此**首次完整安装未稳定达到10秒**，不把它写成保证。健康重连120样本的P95为ARM默认1.132秒、Intel选用8路1.393秒。慢网约154–158 MiB归档的传输下限仍适用；5秒保留为最初研究目标，而非当前验收门槛。
+原始数据：[ARM](evidence/ssh-performance/native-balanced-arm64)、[Intel](evidence/ssh-performance/native-balanced-x64)。本轮DMG包含用户要求的侧栏标识移除：[Apple Silicon](https://github.com/4444zyf/superset/actions/runs/38373722281/artifacts/11801488368)、[Intel](https://github.com/4444zyf/superset/actions/runs/38373722281/artifacts/11803122248)，14天保留，未发布正式版本。

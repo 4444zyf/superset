@@ -10,6 +10,7 @@
 // failure model.
 
 import { getSupervisor, waitForDaemonReady } from "../daemon/index.ts";
+import { ptyDaemonSocketPath as existingDaemonSocketPath } from "../daemon/DaemonSupervisor.ts";
 import { DaemonClient } from "./DaemonClient/index.ts";
 
 // Read org id directly from process.env rather than importing the validated
@@ -99,6 +100,22 @@ export async function getDaemonClient(): Promise<DaemonClient> {
 			connecting = null;
 		});
 	return connecting;
+}
+
+export async function connectExistingDaemon(): Promise<DaemonClient> {
+	const socketPath =
+		process.env.SUPERSET_PTY_DAEMON_SOCKET ??
+		getSupervisor().getSocketPath(getOrganizationId()) ??
+		existingDaemonSocketPath(getOrganizationId());
+	if (!socketPath) throw new Error("The existing PTY daemon is unavailable");
+	const client = new DaemonClient({ socketPath, connectTimeoutMs: 2000 });
+	try {
+		await client.connect();
+		return client;
+	} catch (error) {
+		await client.dispose().catch(() => {});
+		throw error;
+	}
 }
 
 /** For tests / shutdown only. */

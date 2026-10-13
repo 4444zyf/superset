@@ -48,20 +48,34 @@ export function RemoteChat({
 	api,
 	connection,
 	workspaceId,
+	selectedSessionId,
+	onSessionSelected,
+	onAttached,
 	onError,
 	saveAttachment = saveDownloadedAttachment,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor;
 	workspaceId: string;
+	selectedSessionId?: string | null;
+	onSessionSelected?(id: string | null): void;
+	onAttached?(): void;
 	onError(message: string): void;
 	saveAttachment?(attachment: DownloadedAttachment): void;
 }) {
 	const { t } = useLingui();
+	const callbacks = useRef({ onError, onAttached });
+	callbacks.current = { onError, onAttached };
 	const [sessions, setSessions] = useState<
 		{ sessionId: string; harness: string }[]
 	>([]);
-	const [sessionId, setSessionId] = useState<string | null>(null);
+	const [localSessionId, setLocalSessionId] = useState<string | null>(null);
+	const sessionId =
+		selectedSessionId !== undefined ? selectedSessionId : localSessionId;
+	const setSessionId = (id: string | null) => {
+		if (selectedSessionId === undefined) setLocalSessionId(id);
+		onSessionSelected?.(id);
+	};
 	const [harness, setHarness] = useState("codex");
 	const [snapshot, setSnapshot] = useState(emptySnapshot);
 	const [prompt, setPrompt] = useState("");
@@ -118,7 +132,7 @@ export function RemoteChat({
 		try {
 			await execute(isCurrent);
 		} catch (error) {
-			if (isCurrent()) onError(String(error));
+			if (isCurrent()) callbacks.current.onError(String(error));
 		} finally {
 			if (isCurrent()) setBusy(false);
 		}
@@ -144,7 +158,7 @@ export function RemoteChat({
 		if (previousNamespaceScope.current === namespaceScope) return;
 		previousNamespaceScope.current = namespaceScope;
 		setSessions([]);
-		setSessionId(null);
+		if (selectedSessionId === undefined) setLocalSessionId(null);
 	}, [namespaceScope]);
 	useEffect(() => {
 		let active = true;
@@ -160,21 +174,22 @@ export function RemoteChat({
 			.then((rows) => {
 				if (active && sessionListVersion.current === version) {
 					setSessions(rows);
-					setSessionId((previous) =>
-						rows.some((row) => row.sessionId === previous)
-							? previous
-							: (rows[0]?.sessionId ?? null),
-					);
+					if (selectedSessionId === undefined)
+						setLocalSessionId((previous) =>
+							rows.some((row) => row.sessionId === previous)
+								? previous
+								: (rows[0]?.sessionId ?? null),
+						);
 				}
 			})
 			.catch((error) => {
 				if (active && sessionListVersion.current === version)
-					onError(String(error));
+					callbacks.current.onError(String(error));
 			});
 		return () => {
 			active = false;
 		};
-	}, [api, connection, workspaceId, onError]);
+	}, [api, connection, workspaceId]);
 	useEffect(() => {
 		setSnapshot(emptySnapshot());
 		if (!sessionId) return;
@@ -182,6 +197,7 @@ export function RemoteChat({
 		let closed = false;
 		const off = api.onSocket((message) => {
 			if (message.socketId !== socketId || closed) return;
+			if (message.kind === "open") callbacks.current.onAttached?.();
 			if (message.kind === "message" && typeof message.data === "string") {
 				try {
 					const parsed = envelopeSchema.safeParse(JSON.parse(message.data));
@@ -196,14 +212,14 @@ export function RemoteChat({
 				if (closed) return api.closeSocket(socketId).catch(() => {});
 			})
 			.catch((error) => {
-				if (!closed) onError(String(error));
+				if (!closed) callbacks.current.onError(String(error));
 			});
 		return () => {
 			closed = true;
 			off();
 			void api.closeSocket(socketId).catch(() => {});
 		};
-	}, [api, connection, sessionId, onError]);
+	}, [api, connection, sessionId]);
 	const approval = (item: Item, decision: unknown) =>
 		run(async () => {
 			if (sessionId)

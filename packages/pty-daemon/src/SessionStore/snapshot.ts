@@ -40,6 +40,7 @@ interface HandoffHeaderMessage {
 interface HandoffSessionMessage {
 	type: "handoff-session";
 	id: string;
+	executionId?: string;
 	pid: number;
 	meta: SessionMeta;
 	/**
@@ -53,6 +54,7 @@ interface HandoffSessionMessage {
 
 export interface SerializedSession {
 	id: string;
+	executionId?: string;
 	pid: number;
 	meta: SessionMeta;
 	fdIndex: number;
@@ -90,6 +92,7 @@ export function serializeSessions(opts: SerializeOptions): HandoffSnapshot {
 		}
 		out.push({
 			id: s.id,
+			executionId: s.executionId,
 			pid: s.pty.pid,
 			meta: s.pty.meta,
 			fdIndex,
@@ -122,6 +125,7 @@ export function writeSnapshot(path: string, snapshot: HandoffSnapshot): void {
 		const msg: HandoffSessionMessage = {
 			type: "handoff-session",
 			id: s.id,
+			executionId: s.executionId,
 			pid: s.pid,
 			meta: s.meta,
 			fdIndex: s.fdIndex,
@@ -185,8 +189,11 @@ export function readSnapshot(path: string): HandoffSnapshot {
 				`malformed handoff snapshot at ${path}: bad session frame at index ${i}`,
 			);
 		}
+		if (m.executionId !== undefined && (typeof m.executionId !== "string" || !/^[a-f0-9-]{36}$/i.test(m.executionId)))
+			throw new Error("Invalid handoff execution identity");
 		sessions.push({
 			id: m.id,
+			executionId: m.executionId,
 			pid: m.pid,
 			meta: m.meta as SessionMeta,
 			fdIndex: m.fdIndex,

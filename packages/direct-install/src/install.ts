@@ -282,7 +282,9 @@ export async function installRemoteBackend(
 				allowedOrigins: options.allowedOrigins ?? [],
 				installId,
 				expectedReleaseId: verified.releaseId,
-				archiveWriteConcurrency: options.archiveWriteConcurrency ?? 4,
+				archiveWriteConcurrency:
+					options.archiveWriteConcurrency ??
+					(probe.target === "darwin-x64" ? 8 : 4),
 			}),
 		).toString("base64");
 		const script = buildPrivilegedBootstrap({

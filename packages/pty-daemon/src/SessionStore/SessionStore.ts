@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { Pty } from "../Pty/index.ts";
 import type { SessionInfo } from "../protocol/index.ts";
 import {
@@ -10,6 +11,7 @@ const DEFAULT_BUFFER_BYTES = 64 * 1024;
 
 export interface Session {
 	id: string;
+	executionId: string;
 	pty: Pty;
 	modes: TerminalModes;
 	colors: TerminalColors;
@@ -73,13 +75,14 @@ export class SessionStore {
 		this.now = opts.now ?? Date.now;
 	}
 
-	add(id: string, pty: Pty): Session {
+	add(id: string, pty: Pty, executionId: string = randomUUID()): Session {
 		if (this.sessions.has(id)) {
 			throw new Error(`session already exists: ${id}`);
 		}
 		this.deleteCompletion(id);
 		const session: Session = {
 			id,
+			executionId,
 			pty,
 			modes: new TerminalModes(),
 			colors: new TerminalColors(
@@ -162,6 +165,7 @@ export class SessionStore {
 		for (const s of this.sessions.values()) {
 			out.push({
 				id: s.id,
+				executionId: s.executionId,
 				pid: s.pty.pid,
 				cols: s.pty.meta.cols,
 				rows: s.pty.meta.rows,

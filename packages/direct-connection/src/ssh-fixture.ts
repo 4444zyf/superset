@@ -85,9 +85,6 @@ export async function createSshFixture(
 			for (const line of lines)
 				if (line.includes("Accepted publickey")) authenticatedConnections++;
 		});
-		const exited = new Promise<void>((resolve) =>
-			process_.once("exit", () => resolve()),
-		);
 		await new Promise<void>((resolve, reject) => {
 			let logs = "";
 			process_.once("error", reject);
@@ -112,9 +109,42 @@ export async function createSshFixture(
 				user: username,
 				identityFile: join(root, "client"),
 			},
+			async setAvailable(available: boolean) {
+				if (!available) {
+					if (
+						daemon &&
+						daemon.exitCode === null &&
+						daemon.signalCode === null
+					) {
+						const ended = new Promise<void>((resolve) =>
+							daemon!.once("exit", () => resolve()),
+						);
+						daemon.kill();
+						await ended;
+					}
+					return;
+				}
+				daemon = spawn("/usr/sbin/sshd", ["-D", "-e", "-f", serverConfig], {
+					stdio: ["ignore", "ignore", "pipe"],
+				});
+				await new Promise<void>((resolve, reject) => {
+					daemon!.once("error", reject);
+					daemon!.once("exit", () =>
+						reject(new Error("Fixture SSH listener exited")),
+					);
+					daemon!.stderr!.on("data", (bytes) => {
+						if (String(bytes).includes("Server listening")) resolve();
+					});
+				});
+			},
 			async close() {
-				process_.kill();
-				await exited;
+				if (daemon && daemon.exitCode === null && daemon.signalCode === null) {
+					const ended = new Promise<void>((resolve) =>
+						daemon!.once("exit", () => resolve()),
+					);
+					daemon.kill();
+					await ended;
+				}
 				await rm(root, { recursive: true, force: true });
 			},
 		};

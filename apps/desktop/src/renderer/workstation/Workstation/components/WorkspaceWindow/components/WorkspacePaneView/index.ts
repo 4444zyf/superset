@@ -1,0 +1,1 @@
+export { WorkspacePaneView } from "./WorkspacePaneView";

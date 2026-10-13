@@ -59,6 +59,8 @@ import {
 import { matchesAgentBinding } from "./terminal-agents/matches-agent-binding";
 import { appRouter } from "./trpc/router";
 import { describeDirectBackend } from "./trpc/router/direct/direct";
+import { supportsWorkspaceRestore } from "./terminal/restore-resources";
+import { registerTerminalRestoreRoute } from "./terminal/restore-route";
 import { gitStatusStore } from "./trpc/router/git/utils/git-status-store";
 import {
 	resumeCrashedAgentSessions,
@@ -464,6 +466,10 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 		return next();
 	};
 	app.use("/terminal/*", wsAuth);
+	app.use("/terminal-restore/*", async (c, next) => {
+		if (!(await providers.hostAuth.validate(c.req.raw))) return c.json({ error: "Unauthorized" }, 401);
+		return next();
+	});
 	app.use("/events", wsAuth);
 	app.use("/chat-v3/*", wsAuth);
 	app.use("/browser/*", wsAuth);
@@ -487,9 +493,9 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 			return next();
 		});
 	}
-	app.get("/direct/describe", (c) => {
+	app.get("/direct/describe", async (c) => {
 		if (!config.direct) return c.json({ error: "Not found" }, 404);
-		return c.json(describeDirectBackend(config.direct, !!config.directOperations));
+		return c.json(describeDirectBackend(config.direct, !!config.directOperations, await supportsWorkspaceRestore()));
 	});
 	if (isDirect && config.directOperations) {
 		app.get("/direct/maintenance", (c) => c.json(directMaintenanceStatus(config.directOperations, runtime)));
@@ -584,6 +590,7 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 		upgradeWebSocket,
 	});
 	registerChatV3Routes({ app, db, mount: chatV3, upgradeWebSocket });
+	registerTerminalRestoreRoute(app, db, upgradeWebSocket);
 
 	app.use(
 		"/trpc/*",

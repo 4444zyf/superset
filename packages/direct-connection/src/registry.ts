@@ -118,6 +118,9 @@ export class ConnectionRegistry {
 		this.db.exec(
 			"CREATE TABLE IF NOT EXISTS direct_connections (id TEXT PRIMARY KEY, profile TEXT NOT NULL)",
 		);
+		this.db.exec(
+			"BEGIN IMMEDIATE; CREATE TABLE IF NOT EXISTS direct_connection_targets (id TEXT PRIMARY KEY, revision INTEGER NOT NULL); INSERT OR IGNORE INTO direct_connection_targets SELECT id, 1 FROM direct_connections; COMMIT;",
+		);
 	}
 	list(): ConnectionProfile[] {
 		return (
@@ -135,15 +138,15 @@ export class ConnectionRegistry {
 	save(value: unknown): ConnectionProfile {
 		const profile = validateProfile(value);
 		const previous = this.get(profile.id);
-		if (
-			previous &&
+		const changed =
+			!!previous &&
 			((previous.kind ?? "ssh") !== (profile.kind ?? "ssh") ||
 				["host", "port", "user", "identityFile"].some(
 					(field) =>
 						previous[field as keyof ConnectionProfile] !==
 						profile[field as keyof ConnectionProfile],
-				))
-		) {
+				));
+		if (changed) {
 			delete profile.backendId;
 			delete profile.namespaceId;
 			delete profile.serviceUid;
@@ -152,15 +155,43 @@ export class ConnectionRegistry {
 			profile.namespaceId ??= previous.namespaceId;
 			profile.serviceUid ??= previous.serviceUid;
 		}
-		this.db
-			.prepare(
-				"INSERT INTO direct_connections (id, profile) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET profile = excluded.profile",
-			)
-			.run(profile.id, JSON.stringify(profile));
+		this.db.exec("BEGIN IMMEDIATE");
+		try {
+			this.db
+				.prepare(
+					"INSERT INTO direct_connections (id, profile) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET profile = excluded.profile",
+				)
+				.run(profile.id, JSON.stringify(profile));
+			this.db
+				.prepare(
+					"INSERT INTO direct_connection_targets (id,revision) VALUES (?,1) ON CONFLICT(id) DO UPDATE SET revision=revision+?",
+				)
+				.run(profile.id, changed ? 1 : 0);
+			this.db.exec("COMMIT");
+		} catch (error) {
+			this.db.exec("ROLLBACK");
+			throw error;
+		}
 		return profile;
 	}
 	remove(id: string): void {
-		this.db.prepare("DELETE FROM direct_connections WHERE id = ?").run(id);
+		this.db.exec("BEGIN IMMEDIATE");
+		try {
+			this.db.prepare("DELETE FROM direct_connections WHERE id = ?").run(id);
+			this.db
+				.prepare("DELETE FROM direct_connection_targets WHERE id = ?")
+				.run(id);
+			this.db.exec("COMMIT");
+		} catch (error) {
+			this.db.exec("ROLLBACK");
+			throw error;
+		}
+	}
+	getTargetRevision(id: string): number | null {
+		const row = this.db
+			.prepare("SELECT revision FROM direct_connection_targets WHERE id=?")
+			.get(id) as { revision: number } | undefined;
+		return row?.revision ?? null;
 	}
 	close(): void {
 		this.db.close();

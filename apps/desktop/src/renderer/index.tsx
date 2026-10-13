@@ -19,6 +19,7 @@ import { NotFound } from "./routes/not-found";
 import { Workstation } from "./workstation/Workstation/Workstation";
 
 const rootElement = document.querySelector("app");
+performance.mark("workspace-renderer-ready");
 initBootErrorHandling(rootElement);
 const router = createRouter({
 	routeTree: createRootRoute({ component: Workstation }),

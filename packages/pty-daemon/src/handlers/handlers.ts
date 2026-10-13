@@ -27,6 +27,7 @@ import type { Session, SessionStore } from "../SessionStore/index.ts";
  */
 export interface Conn {
 	subscriptions: Set<string>;
+	executionBindings?: Map<string, string>;
 	send(message: ServerMessage, payload?: Uint8Array): void;
 }
 
@@ -86,6 +87,7 @@ export function handleOpen(ctx: HandlerCtx, msg: OpenMessage): ServerMessage {
 		type: "open-ok",
 		id: msg.id,
 		pid: session.pty.pid,
+		executionId: session.executionId,
 	};
 	return reply;
 }
@@ -101,6 +103,8 @@ export function handleInput(
 ): ServerMessage | undefined {
 	const session = ctx.store.get(msg.id);
 	if (!session) return errorFor(msg.id, `unknown session: ${msg.id}`, "ENOENT");
+	if (msg.executionId !== undefined && msg.executionId !== session.executionId)
+		return errorFor(msg.id, "Terminal execution changed", "EEXECUTION");
 	if (session.exited)
 		return errorFor(msg.id, `session exited: ${msg.id}`, "EEXITED");
 	if (!payload || payload.byteLength === 0) {
@@ -122,6 +126,8 @@ export function handleResize(
 ): ServerMessage | undefined {
 	const session = ctx.store.get(msg.id);
 	if (!session) return errorFor(msg.id, `unknown session: ${msg.id}`, "ENOENT");
+	if (msg.executionId !== undefined && (msg.executionId !== session.executionId || session.exited))
+		return errorFor(msg.id, "Terminal execution changed", "EEXECUTION");
 	try {
 		session.pty.resize(msg.cols, msg.rows);
 	} catch (err) {
@@ -133,6 +139,8 @@ export function handleResize(
 export function handleClose(ctx: HandlerCtx, msg: CloseMessage): ServerMessage {
 	const session = ctx.store.get(msg.id);
 	if (!session) return errorFor(msg.id, `unknown session: ${msg.id}`, "ENOENT");
+	if (msg.executionId !== undefined && (msg.executionId !== session.executionId || session.exited))
+		return errorFor(msg.id, "Terminal execution changed", "EEXECUTION");
 	let killError: unknown = null;
 	try {
 		// SIGHUP is the right signal for "your terminal is going away" —
@@ -176,6 +184,16 @@ export function handleSubscribe(
 	msg: SubscribeMessage,
 ): void {
 	const session = ctx.store.get(msg.id);
+	if (msg.executionId !== undefined) {
+		if (!session || session.executionId !== msg.executionId || session.exited) {
+			conn.send(errorFor(msg.id, "Terminal execution changed", "EEXECUTION"));
+			return;
+		}
+		conn.executionBindings ??= new Map();
+		conn.executionBindings.set(msg.id, msg.executionId);
+		conn.subscriptions.add(msg.id);
+		conn.send({ type: "subscribed", id: msg.id, executionId: session.executionId });
+	} else conn.executionBindings?.delete(msg.id);
 	if (!session) {
 		const completed = ctx.store.getCompletion(msg.id);
 		if (completed) {
@@ -218,6 +236,7 @@ export function handleSubscribe(
 
 export function handleUnsubscribe(conn: Conn, msg: UnsubscribeMessage): void {
 	conn.subscriptions.delete(msg.id);
+	conn.executionBindings?.delete(msg.id);
 }
 
 function errorFor(

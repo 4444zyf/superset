@@ -512,6 +512,49 @@ test("handshake rejection stays a plain permanent error", async () => {
 	await new Promise<void>((resolve) => rejectServer.close(() => resolve()));
 });
 
+test("an older daemon cannot trigger subscription, input or upgrade during strict restoration", async () => {
+	const socketPath = path.join(
+		os.tmpdir(),
+		`old-restore-daemon-${process.pid}.sock`,
+	);
+	const received: string[] = [];
+	const old = net.createServer((socket) => {
+		const decoder = new FrameDecoder();
+		socket.on("data", (chunk) => {
+			decoder.push(chunk);
+			for (const frame of decoder.drain()) {
+				const message = frame.message as { type: string };
+				received.push(message.type);
+				if (message.type === "hello")
+					socket.write(
+						encodeFrame({
+							type: "hello-ack",
+							protocol: CURRENT_PROTOCOL_VERSION,
+							daemonVersion: "0.3.7",
+						}),
+					);
+			}
+		});
+	});
+	await new Promise<void>((resolve) => old.listen(socketPath, resolve));
+	const client = new DaemonClient({ socketPath });
+	try {
+		await client.connect();
+		assert.equal(client.supportsConditionalSubscribe, false);
+		await assert.rejects(
+			client.subscribeExisting("terminal", "execution", {
+				onOutput: () => {},
+				onExit: () => {},
+			}),
+			/unsupported/,
+		);
+		assert.deepEqual(received, ["hello"]);
+	} finally {
+		await client.dispose();
+		await new Promise<void>((resolve) => old.close(() => resolve()));
+	}
+});
+
 async function waitFor(predicate: () => boolean, ms: number): Promise<void> {
 	const start = Date.now();
 	while (!predicate()) {

@@ -477,6 +477,20 @@ export function useWorkstation(api: DirectWorkstationApi) {
 		setTerminalIds([]);
 	};
 	return {
+		adoptConnection: async (descriptor: DirectDescriptor) => {
+			active.current = descriptor;
+			setConnection(descriptor);
+			setReconnecting(false);
+			setError(null);
+			setForward(null);
+			await refresh(descriptor);
+		},
+		restoreWorkspaceSelection: (id: string) => {
+			selectedWorkspace.current = id;
+			setWorkspaceId(id);
+			setTerminalId(null);
+			setTerminalIds([]);
+		},
 		clearWorkspace,
 		profiles,
 		connection,

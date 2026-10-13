@@ -47,6 +47,7 @@ export class DaemonUnavailableError extends Error {
 export interface OpenResult {
 	id: string;
 	pid: number;
+	executionId?: string;
 }
 
 export interface ExitInfo {
@@ -57,12 +58,14 @@ export interface ExitInfo {
 export type Signal = "SIGINT" | "SIGTERM" | "SIGKILL" | "SIGHUP";
 
 export interface SubscribeCallbacks {
+	onError?: (code: string) => void;
 	onOutput: (chunk: Buffer) => void;
 	onReplayComplete?: (modes: TerminalModesSnapshot) => void;
 	onExit: (info: ExitInfo) => void;
 }
 
 interface SessionCallbacks {
+	error?: Set<(code: string) => void>;
 	output: Set<(chunk: Buffer) => void>;
 	replayComplete: Set<(modes: TerminalModesSnapshot) => void>;
 	replay?: ReplayCompletion;
@@ -99,6 +102,7 @@ export class DaemonClient {
 	private connected = false;
 	private modeSnapshots = false;
 	private colorQueries = false;
+	private conditionalSubscribe = false;
 
 	constructor(opts: DaemonClientOptions) {
 		this.opts = opts;
@@ -136,6 +140,10 @@ export class DaemonClient {
 		return this.modeSnapshots;
 	}
 
+	get supportsConditionalSubscribe(): boolean {
+		return this.conditionalSubscribe;
+	}
+
 	waitForReplay(id: string): Promise<void> {
 		return this.callbacks.get(id)?.replay?.promise ?? Promise.resolve();
 	}
@@ -161,7 +169,8 @@ export class DaemonClient {
 			{ type: "open", id, meta },
 			OPEN_TIMEOUT_MS,
 		);
-		if (reply.type === "open-ok") return { id, pid: reply.pid };
+		if (reply.type === "open-ok")
+			return { id, pid: reply.pid, executionId: reply.executionId };
 		if (reply.type === "error") throw new Error(`open ${id}: ${reply.message}`);
 		throw new Error(`open ${id}: unexpected reply ${reply.type}`);
 	}
@@ -225,6 +234,71 @@ export class DaemonClient {
 
 	resize(id: string, cols: number, rows: number): void {
 		this.send({ type: "resize", id, cols, rows });
+	}
+
+	async subscribeExisting(
+		id: string,
+		executionId: string,
+		cb: SubscribeCallbacks,
+	): Promise<() => void> {
+		if (!this.conditionalSubscribe)
+			throw new Error("Strict terminal restore is unsupported");
+		if (this.callbacks.has(id))
+			throw new Error("Terminal subscription already exists");
+		const entry: SessionCallbacks = {
+			error: new Set(cb.onError ? [cb.onError] : []),
+			output: new Set([cb.onOutput]),
+			exit: new Set([cb.onExit]),
+			replayComplete: new Set(cb.onReplayComplete ? [cb.onReplayComplete] : []),
+			replay: new ReplayCompletion(
+				5000,
+				new DaemonUnavailableError(`Replay timed out for ${id}`),
+			),
+		};
+		this.callbacks.set(id, entry);
+		try {
+			const result = await this.requestSession(
+				id,
+				{
+					type: "subscribe",
+					id,
+					executionId,
+					replay: true,
+					modeSnapshot: true,
+				},
+				5000,
+			);
+			if (result.type !== "subscribed" || result.executionId !== executionId)
+				throw new Error(
+					result.type === "error"
+						? (result.code ?? "EEXECUTION")
+						: "EEXECUTION",
+				);
+			return () => {
+				this.callbacks.delete(id);
+				this.send({ type: "unsubscribe", id });
+			};
+		} catch (error) {
+			this.callbacks.delete(id);
+			entry.replay?.reject(error as Error);
+			throw error;
+		}
+	}
+
+	inputExisting(id: string, executionId: string, data: Buffer): void {
+		if (!this.conditionalSubscribe)
+			throw new Error("Strict terminal restore is unsupported");
+		this.send({ type: "input", id, executionId }, data);
+	}
+	resizeExisting(
+		id: string,
+		executionId: string,
+		cols: number,
+		rows: number,
+	): void {
+		if (!this.conditionalSubscribe)
+			throw new Error("Strict terminal restore is unsupported");
+		this.send({ type: "resize", id, executionId, cols, rows });
 	}
 
 	/**
@@ -331,6 +405,7 @@ export class DaemonClient {
 		}
 		this.modeSnapshots = ack.supportsModeSnapshots === true;
 		this.colorQueries = ack.supportsColorQueries === true;
+		this.conditionalSubscribe = ack.supportsConditionalSubscribe === true;
 		this.daemonVersion = ack.daemonVersion;
 		this.negotiated = ack.protocol;
 	}
@@ -339,7 +414,14 @@ export class DaemonClient {
 		id: string,
 		req:
 			| { type: "open"; id: string; meta: SessionMeta }
-			| { type: "close"; id: string; signal: Signal },
+			| { type: "close"; id: string; signal: Signal }
+			| {
+					type: "subscribe";
+					id: string;
+					executionId: string;
+					replay: boolean;
+					modeSnapshot: boolean;
+			  },
 		timeoutMs: number,
 	): Promise<ServerMessage> {
 		return new Promise<ServerMessage>((resolve, reject) => {
@@ -361,6 +443,12 @@ export class DaemonClient {
 				else if (req.type === "open" && m.type === "open-ok" && m.id === id)
 					settle(m);
 				else if (req.type === "close" && m.type === "closed" && m.id === id)
+					settle(m);
+				else if (
+					req.type === "subscribe" &&
+					m.type === "subscribed" &&
+					m.id === id
+				)
 					settle(m);
 			});
 			const offDisc = this.onDisconnect((err) =>
@@ -494,6 +582,8 @@ export class DaemonClient {
 		for (const frame of frames) {
 			const msg = frame.message as ServerMessage;
 			if (msg.type === "error" && msg.id) {
+				for (const cb of this.callbacks.get(msg.id)?.error ?? [])
+					cb(msg.code ?? "DAEMON_ERROR");
 				this.callbacks.get(msg.id)?.replay?.reject(new Error(msg.message));
 			}
 			if (msg.type === "replay-complete") {
