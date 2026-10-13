@@ -13,9 +13,10 @@ import { controlRemoteBackend } from "../../../packages/direct-install/src/lifec
 
 assert.equal(process.platform, "darwin");
 assert.equal(process.env.GITHUB_ACTIONS, "true");
+const stage = process.argv.includes("--stage");
 assert.ok(
-	process.versions.electron,
-	"Run this acceptance with the packaged Electron runtime",
+	stage ? process.versions.bun : process.versions.electron,
+	"Use Bun for the early stage check or the packaged Electron runtime for final acceptance",
 );
 const resources = resolve(process.argv[2] ?? "");
 const home = join(homedir(), ".superset-direct");
@@ -35,7 +36,11 @@ const trustedKeys = JSON.parse(
 );
 const fixture = await createSshFixture();
 const runtime = new OpenSshRuntime({ configFile: fixture.configFile });
-const registry = new ConnectionRegistry(new Database(":memory:"));
+const registry = new ConnectionRegistry(
+	stage
+		? new (await import("bun:sqlite")).Database(":memory:")
+		: new Database(":memory:"),
+);
 registry.save(fixture.profile);
 let installs = 0;
 let batches = 0;
@@ -115,7 +120,7 @@ try {
 		source: process.env.GITHUB_SHA,
 		arch: process.arch,
 		version: before.version,
-		packagedElectron: process.versions.electron,
+		packagedElectron: process.versions.electron ?? null,
 		sshProbe: "pass",
 		sftpBatch: "pass",
 		uploadedFiles,
@@ -130,7 +135,7 @@ try {
 	writeFileSync(
 		join(
 			resolve(import.meta.dirname, "../release"),
-			`SSH-INSTALL-${process.arch}.json`,
+			`SSH-INSTALL-${stage ? "stage-" : ""}${process.arch}.json`,
 		),
 		`${JSON.stringify(result, null, 2)}\n`,
 	);

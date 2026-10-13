@@ -86,6 +86,8 @@ jobs:
           path: .direct-release-artifacts/darwin-x64
       - name: Stage complete independently trusted backend resources
         run: bun run --cwd packages/cli stage:direct-resources --input-dir=../../.direct-release-artifacts --resources-dir=../../apps/desktop/dist/resources
+      - name: Verify fresh Mac SSH upload, install, launchd and reconnect before packaging
+        run: bun apps/desktop/scripts/verify-direct-ssh-install.ts apps/desktop/dist/resources --stage
       - name: Build preview DMG with automatic remote installation
         working-directory: apps/desktop
         run: bun run package -- --publish never --config electron-builder.preview.ts --${{ matrix.arch }}
