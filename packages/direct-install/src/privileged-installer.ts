@@ -167,11 +167,14 @@ interface InstallerRequest {
 	incoming: string;
 	manifestBase64: string;
 	signatureBase64: string;
+	archiveWriteConcurrency?: 1 | 4 | 8;
 }
 function validateRequest(request: InstallerRequest): void {
 	const p = request.probe;
 	if (
 		!p ||
+		(request.archiveWriteConcurrency !== undefined &&
+			![1, 4, 8].includes(request.archiveWriteConcurrency)) ||
 		!Number.isSafeInteger(p.uid) ||
 		p.uid <= 0 ||
 		!/^[a-zA-Z_][a-zA-Z0-9_.-]*$/.test(p.username) ||
@@ -370,7 +373,13 @@ async function installAsRoot(
 				const staged = `${releaseRoot}.${request.installId}.partial`;
 				stagingPath = staged;
 				mkdirSync(staged, { mode: 0o700 });
-				await extractReleaseArchive(archiveSnapshot, staged, verified);
+				await extractReleaseArchive(
+					archiveSnapshot,
+					staged,
+					verified,
+					undefined,
+					request.archiveWriteConcurrency ?? 4,
+				);
 				writeFileSync(
 					join(staged, "release-manifest.json"),
 					verified.manifestBytes,

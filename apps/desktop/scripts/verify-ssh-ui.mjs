@@ -68,6 +68,8 @@ export async function verifySshUi({
 		await page.evaluate(`(() => {
 			window.sshUiMeasurement = { started: performance.now(), phases: [] };
 			const observer = new MutationObserver(() => {
+				const current = window.sshUiMeasurement;
+				if (document.querySelector('.ws-sidebar nav button[aria-label="Workspaces"]')?.getAttribute('aria-current') === 'page' && current.workspaceReadyMs === undefined) current.workspaceReadyMs = performance.now() - current.started;
 				const element = document.querySelector('.ws-setup-progress');
 				if (element) { const current = window.sshUiMeasurement; const label = element.querySelector('p')?.textContent; if (current.phases.at(-1)?.label !== label) current.phases.push({ label, status: element.dataset.setupStatus, elapsedMs: performance.now() - current.started }); }
 			});
@@ -83,12 +85,19 @@ export async function verifySshUi({
 		await screenshot("ssh-install-progress");
 		await until(async () => {
 			const state = await page.evaluate(
-				"({ status: document.querySelector('.ws-setup-progress')?.dataset.setupStatus, error: document.querySelector('.ws-error')?.textContent })",
+				"({ ready: document.querySelector('.ws-sidebar nav button[aria-label=\"Workspaces\"]')?.getAttribute('aria-current') === 'page', status: document.querySelector('.ws-setup-progress')?.dataset.setupStatus, error: document.querySelector('.ws-error')?.textContent })",
 			);
 			if (state.status === "failed" || state.error)
 				throw new Error(`SSH UI connection failed: ${state.error}`);
-			return state.status === "completed";
+			return state.ready;
 		});
+		await screenshot("ssh-workspaces-ready");
+		await click('.ws-sidebar nav button[aria-label="SSH machines"]');
+		await until(() =>
+			page.evaluate(
+				"document.querySelector('.ws-setup-progress')?.dataset.setupStatus === 'completed'",
+			),
+		);
 		const measurement = await page.evaluate("window.sshUiMeasurement");
 		assert.ok(
 			measurement.phases.some((phase) => phase.label === "Uploading backend"),
@@ -113,10 +122,16 @@ export async function verifySshUi({
 		await click(".ws-detail-actions button.primary");
 		await until(() =>
 			page.evaluate(
-				"document.querySelector('.ws-setup-progress')?.dataset.setupStatus === 'completed' && document.querySelector('.ws-detail-actions button.primary')?.textContent.includes('Open workspace')",
+				"document.querySelector('.ws-sidebar nav button[aria-label=\"Workspaces\"]')?.getAttribute('aria-current') === 'page'",
 			),
 		);
 		const reconnectMs = performance.now() - reconnectStarted;
+		await click('.ws-sidebar nav button[aria-label="SSH machines"]');
+		await until(() =>
+			page.evaluate(
+				"document.querySelector('.ws-setup-progress')?.dataset.setupStatus === 'completed'",
+			),
+		);
 		assert.equal(
 			JSON.parse(readFileSync(join(backendHome, "state/endpoint.json"), "utf8"))
 				.instanceId,
@@ -133,7 +148,7 @@ export async function verifySshUi({
 					arch: process.arch,
 					realInput: true,
 					firstFeedbackMs: measurement.phases[0]?.elapsedMs,
-					firstInstallVisibleMs: measurement.phases.at(-1).elapsedMs,
+					firstInstallVisibleMs: measurement.workspaceReadyMs,
 					reconnectMs,
 					phases: measurement.phases,
 					sameInstance: true,

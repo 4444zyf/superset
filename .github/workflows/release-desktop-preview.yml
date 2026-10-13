@@ -10,12 +10,17 @@ on:
         required: false
         type: boolean
         default: false
+      full_benchmark:
+        description: "Repeat the slower V1 and compression comparisons"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: ssh-desktop-preview-${{ github.ref }}
+  group: ssh-desktop-preview-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && !inputs.publish && github.run_id || 'release' }}
   cancel-in-progress: false
 
 jobs:
@@ -91,12 +96,18 @@ jobs:
         run: node node_modules/electron/install.js
       - name: Verify fresh Mac SSH upload, install, launchd and reconnect before packaging
         working-directory: apps/desktop
+        env:
+          FULL_BENCHMARK: ${{ inputs.full_benchmark }}
         run: |
           set -euo pipefail
           preview_electron=$(node -p 'require("electron")')
           preview_loader=$(cd ../../packages/direct-connection/node_modules/tsx/dist && pwd)/loader.mjs
           ELECTRON_RUN_AS_NODE=1 "$preview_electron" --import "$preview_loader" scripts/verify-direct-ssh-install.mts dist/resources --stage
-          for variant in v1-independent v1-shared v2-gzip1 v2-gzip6; do
+          variants="v2-gzip6-serial-scan v2-gzip6-serial-fast v2-gzip6 v2-gzip6-parallel8-fast"
+          if [ "$FULL_BENCHMARK" = true ]; then
+            variants="v1-independent v1-shared v2-gzip1 $variants"
+          fi
+          for variant in $variants; do
             for iteration in 1 2 3; do
               BENCH_ITERATION="$iteration" ELECTRON_RUN_AS_NODE=1 "$preview_electron" --import "$preview_loader" scripts/verify-direct-ssh-install.mts dist/resources --stage "--variant=$variant"
             done

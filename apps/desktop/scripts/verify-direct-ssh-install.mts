@@ -51,11 +51,19 @@ const variant =
 	process.argv.find((value) => value.startsWith("--variant="))?.slice(10) ??
 	"v2-gzip6";
 assert.ok(
-	["v1-independent", "v1-shared", "v2-gzip1", "v2-gzip6"].includes(variant),
+	[
+		"v1-independent",
+		"v1-shared",
+		"v2-gzip1",
+		"v2-gzip6",
+		"v2-gzip6-serial-scan",
+		"v2-gzip6-serial-fast",
+		"v2-gzip6-parallel8-fast",
+	].includes(variant),
 );
 let releaseRoot = join(resources, "direct-backend", `darwin-${process.arch}`);
 let experimentRoot: string | undefined;
-if (variant !== "v2-gzip6") {
+if (variant.startsWith("v1-") || variant === "v2-gzip1") {
 	const original = verifyReleaseBundle(releaseRoot, trustedKeys);
 	assert.ok(original.manifest.archive);
 	experimentRoot = mkdtempSync(join(tmpdir(), "ssh-benchmark-release-"));
@@ -141,6 +149,12 @@ const manager = new DirectConnectionManager({
 			},
 			releaseRoot,
 			trustedKeys,
+			archiveWriteConcurrency: variant.includes("serial")
+				? 1
+				: variant.includes("parallel8")
+					? 8
+					: 4,
+			bootstrapFastRead: !variant.endsWith("scan"),
 			probe:
 				probe.groupname && probe.macOS
 					? {

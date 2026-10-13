@@ -6,6 +6,7 @@ import { join, resolve } from "node:path";
 import { createReleaseArchive } from "../../direct-install/src/archive.ts";
 import { OpenSshRuntime } from "./ssh.ts";
 import { createSshFixture } from "./ssh-fixture.ts";
+import { createShapedSshFixture } from "./ssh-shaped-fixture.ts";
 
 const samples = Number(process.env.BENCH_SAMPLES ?? 20);
 const fileCount = Number(process.env.BENCH_FILES ?? 6230);
@@ -18,7 +19,14 @@ if (
 	fileCount > 10000
 )
 	throw new Error("Invalid benchmark bounds");
-const fixture = await createSshFixture();
+const rttMs = Number(process.env.BENCH_RTT_MS ?? 0);
+const megabitsPerSecond = Number(process.env.BENCH_MBPS ?? 20);
+if (![0, 50, 150].includes(rttMs) || ![5, 20].includes(megabitsPerSecond))
+	throw new Error("Invalid network benchmark shape");
+const fixture =
+	rttMs === 0
+		? await createSshFixture()
+		: await createShapedSshFixture(rttMs, megabitsPerSecond);
 const output = resolve(process.argv[2] ?? "ssh-performance.json");
 const results: Record<string, unknown> = {};
 const measure = async (
@@ -139,7 +147,13 @@ try {
 				platform: process.platform,
 				arch: process.arch,
 				runtime: process.versions.node,
-				network: "loopback, no artificial delay",
+				network: rttMs
+					? {
+							kind: "application-level TCP relay",
+							addedRttMs: rttMs,
+							rateLimitMbps: megabitsPerSecond,
+						}
+					: "loopback, no artificial delay",
 				samples,
 				fileCount,
 				expandedBytes: fileCount * 2048,

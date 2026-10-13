@@ -1,17 +1,20 @@
 import { execFile, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { homedir, userInfo } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 
-export async function createSshFixture() {
+export async function createSshFixture(
+	options: { isolateHome?: boolean } = {},
+) {
 	const root = await mkdtemp(join(homedir(), ".superset-ssh-test-"));
 	const run = promisify(execFile);
 	let daemon: ReturnType<typeof spawn> | undefined;
 	let authenticatedConnections = 0;
 	let logBuffer = "";
+	const homeDir = options.isolateHome ? join(root, "backend-home") : homedir();
 	try {
 		for (const key of ["host", "client"])
 			await run("ssh-keygen", [
@@ -54,9 +57,21 @@ export async function createSshFixture() {
 			{ mode: 0o600 },
 		);
 		const serverConfig = join(root, "server_config");
+		if (options.isolateHome) {
+			await mkdir(homeDir, { mode: 0o700 });
+			const sftpServer =
+				process.platform === "darwin"
+					? "/usr/libexec/sftp-server"
+					: "/usr/lib/openssh/sftp-server";
+			await writeFile(
+				join(root, "command.sh"),
+				`#!/bin/sh\nexport HOME='${homeDir.replaceAll("'", "'\\''")}'\ncase "$SSH_ORIGINAL_COMMAND" in internal-sftp) exec ${sftpServer};; *) exec /bin/sh -c "$SSH_ORIGINAL_COMMAND";; esac\n`,
+				{ mode: 0o700 },
+			);
+		}
 		await writeFile(
 			serverConfig,
-			`Port ${port}\nListenAddress 127.0.0.1\nHostKey ${join(root, "host")}\nPidFile ${join(root, "pid")}\nAuthorizedKeysFile ${join(root, "authorized_keys")}\nPasswordAuthentication no\nKbdInteractiveAuthentication no\nUsePAM no\nStrictModes yes\nAllowUsers ${username}\nAllowTcpForwarding local\nAllowAgentForwarding no\nX11Forwarding no\nSubsystem sftp internal-sftp\nLogLevel VERBOSE\n`,
+			`Port ${port}\nListenAddress 127.0.0.1\nHostKey ${join(root, "host")}\nPidFile ${join(root, "pid")}\nAuthorizedKeysFile ${join(root, "authorized_keys")}\nPasswordAuthentication no\nKbdInteractiveAuthentication no\nUsePAM no\nStrictModes yes\nAllowUsers ${username}\nAllowTcpForwarding local\nAllowAgentForwarding no\nX11Forwarding no\nSubsystem sftp internal-sftp\nLogLevel VERBOSE\n${options.isolateHome ? `ForceCommand ${join(root, "command.sh")}\n` : ""}`,
 			{ mode: 0o600 },
 		);
 		daemon = spawn("/usr/sbin/sshd", ["-D", "-e", "-f", serverConfig], {
@@ -85,6 +100,7 @@ export async function createSshFixture() {
 			});
 		});
 		return {
+			homeDir,
 			stats: () => ({ authenticatedConnections }),
 			root,
 			configFile,

@@ -44,6 +44,8 @@ export interface InstallOptions {
 	authorize?: (script: string) => Promise<RemoteCommandResult>;
 	probe?: RemoteBackendProbe;
 	onPhase?: (phase: string) => void;
+	archiveWriteConcurrency?: 1 | 4 | 8;
+	bootstrapFastRead?: boolean;
 }
 const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
 
@@ -91,6 +93,7 @@ export function buildPrivilegedBootstrap(input: {
 	installerDigest: string;
 	requestBase64: string;
 	archive?: { size: number; sha256: string };
+	fastRead?: boolean;
 }): string {
 	if (
 		!input.incoming.startsWith("/") ||
@@ -114,14 +117,15 @@ export function buildPrivilegedBootstrap(input: {
 	)
 		throw new Error("Invalid privileged installer input");
 	const reader = quote(buildBootstrapReader());
+	const tarFlags = input.fastRead === false ? "-xzOf" : "-qxzOf";
 	const bootstrapReads = input.archive
 		? `
 /bin/bash -c ${reader} reader "$work" 120 /usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.archive.size + 1} ${quote(`${input.incoming}/backend.tar.gz`)} > "$work/archive.snapshot"
 [ "$(/usr/bin/stat -f %z "$work/archive.snapshot")" = '${input.archive.size}' ] || exit 65
 archiveDigest=$(/usr/bin/shasum -a 256 "$work/archive.snapshot")
 [ "${"$"}{archiveDigest%% *}" = '${input.archive.sha256}' ] || { echo 'Archive digest mismatch' >&2; exit 65; }
-/bin/bash -c ${reader} reader "$work" 120 /bin/bash -o pipefail -c '/usr/bin/tar -xzOf "$1" lib/node | /usr/bin/head -c "$2"' tar-reader "$work/archive.snapshot" ${input.nodeSize + 1} > "$payload/lib/node"
-/bin/bash -c ${reader} reader "$work" 120 /bin/bash -o pipefail -c '/usr/bin/tar -xzOf "$1" lib/direct-installer.js | /usr/bin/head -c "$2"' tar-reader "$work/archive.snapshot" ${input.installerSize + 1} > "$payload/lib/direct-installer.js"
+/bin/bash -c ${reader} reader "$work" 120 /bin/bash -o pipefail -c '/usr/bin/tar ${tarFlags} "$1" lib/node | /usr/bin/head -c "$2"' tar-reader "$work/archive.snapshot" ${input.nodeSize + 1} > "$payload/lib/node"
+/bin/bash -c ${reader} reader "$work" 120 /bin/bash -o pipefail -c '/usr/bin/tar ${tarFlags} "$1" lib/direct-installer.js | /usr/bin/head -c "$2"' tar-reader "$work/archive.snapshot" ${input.installerSize + 1} > "$payload/lib/direct-installer.js"
 `
 		: `/bin/bash -c ${reader} reader "$work" 30 /usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.nodeSize + 1} ${quote(`${input.incoming}/lib/node`)} > "$payload/lib/node"
 /bin/bash -c ${reader} reader "$work" 30 /usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.installerSize + 1} ${quote(`${input.incoming}/lib/direct-installer.js`)} > "$payload/lib/direct-installer.js"`;
@@ -278,6 +282,7 @@ export async function installRemoteBackend(
 				allowedOrigins: options.allowedOrigins ?? [],
 				installId,
 				expectedReleaseId: verified.releaseId,
+				archiveWriteConcurrency: options.archiveWriteConcurrency ?? 4,
 			}),
 		).toString("base64");
 		const script = buildPrivilegedBootstrap({
@@ -289,6 +294,7 @@ export async function installRemoteBackend(
 			installerDigest: installer.sha256,
 			requestBase64,
 			archive: verified.manifest.archive,
+			fastRead: options.bootstrapFastRead,
 		});
 		options.onPhase?.("installing");
 		let result: RemoteCommandResult;

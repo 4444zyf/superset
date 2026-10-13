@@ -40,7 +40,10 @@ export async function extractReleaseArchive(
 	destination: string,
 	verified: VerifiedRelease,
 	onProgress?: (bytes: number, files: number) => void,
+	maxWriters = 4,
 ): Promise<void> {
+	if (![1, 4, 8].includes(maxWriters))
+		throw new Error("Invalid archive writer bound");
 	const archive = verified.manifest.archive;
 	if (!archive) throw new Error("A signed archive manifest is required");
 	const expected = new Map(
@@ -62,7 +65,16 @@ export async function extractReleaseArchive(
 			callback(null, chunk);
 		},
 	});
-	let lastWrite = Promise.resolve();
+	const writes = new Set<Promise<void>>();
+	const directories = new Map<string, Promise<void>>();
+	const ensureDirectory = (path: string) => {
+		let pending = directories.get(path);
+		if (!pending) {
+			pending = mkdir(path, { recursive: true, mode: 0o755 }).then(() => {});
+			directories.set(path, pending);
+		}
+		return pending;
+	};
 	let verifiedFiles = 0;
 	const parser = new Parser({
 		strict: true,
@@ -81,11 +93,13 @@ export async function extractReleaseArchive(
 				)
 					throw new Error("Unexpected archive entry, type, size or mode");
 				seen.add(entry.path);
-				const previousWrite = lastWrite;
+				const slot =
+					writes.size >= maxWriters ? Promise.race(writes) : Promise.resolve();
 				const write = (async () => {
-					await previousWrite;
+					await slot;
+					if (failure) throw failure;
 					const path = join(destination, file.path);
-					await mkdir(dirname(path), { recursive: true, mode: 0o755 });
+					await ensureDirectory(dirname(path));
 					const hash = createHash("sha256");
 					let size = 0;
 					const digest = new Transform({
@@ -114,11 +128,15 @@ export async function extractReleaseArchive(
 						onProgress?.(completed, verifiedFiles);
 					}
 				})();
-				lastWrite = write;
-				void write.catch((error) => {
-					failure = error;
-					parser.abort(error);
-				});
+				writes.add(write);
+				void write.then(
+					() => writes.delete(write),
+					(error) => {
+						failure = error;
+						writes.delete(write);
+						parser.abort(error);
+					},
+				);
 			} catch (error) {
 				failure =
 					error instanceof Error ? error : new Error("Invalid release archive");
@@ -142,7 +160,7 @@ export async function extractReleaseArchive(
 			limit,
 			parser,
 		);
-		await lastWrite;
+		await Promise.all(writes);
 		if (failure) throw failure;
 		if (
 			archiveBytes !== archive.size ||
@@ -155,7 +173,7 @@ export async function extractReleaseArchive(
 		parser.abort(
 			error instanceof Error ? error : new Error("Release archive failed"),
 		);
-		await Promise.allSettled([lastWrite]);
+		await Promise.allSettled(writes);
 		throw error;
 	}
 }
