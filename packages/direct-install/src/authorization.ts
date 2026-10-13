@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { RemoteCommandResult, RemoteTransport } from "./install";
 
 const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
@@ -10,21 +11,15 @@ export async function authorizeRemoteScript(
 ): Promise<RemoteCommandResult> {
 	if (/[\r\n\0]/.test(password))
 		throw new Error("Invalid administrator password input");
-	let delimiter = "SUPERSET_DIRECT_BOOTSTRAP";
-	while (script.split("\n").includes(delimiter)) delimiter += "_";
+	const delimiter = `SUPERSET_DIRECT_BOOTSTRAP_${randomUUID()}`;
+	// sudo can consume the password or leave it unread (cached/NOPASSWD).
+	// The root shell skips that optional line, then executes the streamed script.
+	const reader = `while IFS= read -r superset_direct_line; do
+  [ "$superset_direct_line" != '${delimiter}' ] || exec /bin/sh -s
+done
+exit 65`;
 	return transport.exec(
-		"/bin/sh -s",
-		`set -eu
-umask 077
-work=$(/usr/bin/mktemp -d /private/tmp/superset-direct-auth.XXXXXXXX)
-trap '/bin/rm -rf "$work"' EXIT
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
-/bin/cat > "$work/bootstrap.sh" <<'${delimiter}'
-${script}
-${delimiter}
-printf '%s\\n' ${quote(password)} | /usr/bin/sudo -S -p '' /bin/sh "$work/bootstrap.sh"
-`,
+		`/usr/bin/sudo -S -p '' /bin/sh -c ${quote(reader)}`,
+		`${password}\n${delimiter}\n${script}`,
 	);
 }
