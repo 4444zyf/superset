@@ -66,10 +66,12 @@ let page;
 try {
 	main = await connect(await target(19381, (entry) => entry.type === "node"));
 	const expression = `(() => { const require = process.getBuiltinModule('module').createRequire(process.cwd() + '/brand-inspection.cjs'); const app = require('electron').app; const fs = require('node:fs'); const path = require('node:path'); return {name: app.getName(), version: app.getVersion(), packaged: app.isPackaged, userData: app.getPath('userData'), appData: app.getPath('appData'), packageMetadata: JSON.parse(fs.readFileSync(path.join(app.getAppPath(), 'package.json'), 'utf8'))}; })()`;
-	const response = await main.call("Runtime.evaluate", {
-		expression,
-		returnByValue: true,
-	});
+	let response;
+	for (let attempt = 0; attempt < 200; attempt++) {
+		response = await main.call("Runtime.evaluate", { expression, returnByValue: true });
+		if (!response.exceptionDetails && response.result?.value?.packaged) break;
+		await delay(100);
+	}
 	assert.equal(response.exceptionDetails, undefined);
 	const profile = response.result.value;
 	assert.equal(profile.packaged, true);
@@ -86,7 +88,7 @@ try {
 		(entry) =>
 			entry.type === "page" &&
 			entry.url.startsWith("file:") &&
-			entry.url.includes(application),
+				decodeURI(entry.url).includes(application),
 	);
 	page = await connect(renderer);
 	await delay(1500);
