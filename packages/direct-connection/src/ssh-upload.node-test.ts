@@ -39,6 +39,11 @@ test("real SSH uploads a batch to paths with spaces and preserves binary bytes",
 				await readFile(join(destination, file.name)),
 				file.bytes,
 			);
+		assert.equal(
+			fixture.stats().authenticatedConnections,
+			1,
+			"Commands and SFTP must share one authenticated network connection",
+		);
 	} finally {
 		runtime.dispose();
 		await fixture.close();

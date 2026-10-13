@@ -1,5 +1,6 @@
 import { useLingui } from "@lingui/react/macro";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { DirectSetupSnapshot } from "../../../../../shared/direct-workstation";
 import type {
 	DirectDescriptor,
 	DirectLocalNamespace,
@@ -14,6 +15,42 @@ import type {
 
 export function useWorkstation(api: DirectWorkstationApi) {
 	const { t } = useLingui();
+	const [setups, setSetups] = useState<Record<string, DirectSetupSnapshot>>({});
+	useEffect(() => {
+		let cancelled = false;
+		const receive = (snapshot: DirectSetupSnapshot) => {
+			if (cancelled) return;
+			setSetups((previous) => {
+				const old = previous[snapshot.connectionId];
+				if (old && old.generation > snapshot.generation) return previous;
+				if (old?.jobId === snapshot.jobId && old.sequence >= snapshot.sequence)
+					return previous;
+				return Object.fromEntries(
+					Object.entries({
+						...previous,
+						[snapshot.connectionId]: snapshot,
+					}).slice(-50),
+				);
+			});
+		};
+		const unsubscribe = api.onSetup?.(receive);
+		if (api.getSetupSnapshot)
+			void api
+				.list()
+				.then((profiles) =>
+					Promise.all(
+						profiles.slice(0, 50).map(async (profile) => {
+							const snapshot = await api.getSetupSnapshot?.(profile.id);
+							if (snapshot) receive(snapshot);
+						}),
+					),
+				)
+				.catch(() => {});
+		return () => {
+			cancelled = true;
+			unsubscribe?.();
+		};
+	}, [api]);
 	const [snapshots, setSnapshots] = useState<Record<string, MachineSnapshot>>(
 		{},
 	);
@@ -249,7 +286,8 @@ export function useWorkstation(api: DirectWorkstationApi) {
 				(localSelection.current?.epoch ?? 0) === selectionEpoch;
 			const oneTimePassword = password.current?.value || undefined;
 			if (password.current) password.current.value = "";
-			if (active.current) await api.disconnect(active.current.connectionId);
+			if (active.current && active.current.connectionId !== profile.id)
+				await api.disconnect(active.current.connectionId);
 			if (!selectionIsCurrent()) return;
 			active.current = null;
 			setReconnecting(false);
@@ -442,6 +480,7 @@ export function useWorkstation(api: DirectWorkstationApi) {
 		clearWorkspace,
 		profiles,
 		connection,
+		setups,
 		projects,
 		workspaces,
 		workspaceId,

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { directBackendSocketPath } from "@superset/shared/direct-backend-socket";
 import superjson from "superjson";
 import { DirectConnectionError, sshFailure } from "./errors";
@@ -53,6 +54,8 @@ export interface RemoteProbe {
 	user: string;
 	homeDir: string;
 	installed: boolean;
+	groupname?: string;
+	macOS?: string;
 }
 export interface DirectRequest {
 	path: string;
@@ -64,6 +67,7 @@ interface Connected {
 	lease: ConnectionLease;
 	tunnel: Tunnel;
 	secret: string;
+	health: Record<string, unknown>;
 }
 
 const probeCommand =
@@ -154,10 +158,12 @@ export class DirectConnectionManager {
 			install?: (
 				profile: ConnectionProfile,
 				transport: RemoteTransport,
+				probe: RemoteProbe,
 			) => Promise<void>;
 			fetch?: (url: string, init?: RequestInit) => Promise<Response>;
 			healthAttempts?: number;
 			healthDelay?: number;
+			onStatus?: (id: string, status: ConnectionStatus) => void;
 		},
 	) {
 		this.runtime = options.runtime ?? new OpenSshRuntime();
@@ -172,6 +178,10 @@ export class DirectConnectionManager {
 		return {
 			...(this.statuses.get(id) ?? { state: "disconnected", generation: 0 }),
 		};
+	}
+	private setStatus(id: string, status: ConnectionStatus): void {
+		this.statuses.set(id, status);
+		this.options.onStatus?.(id, { ...status });
 	}
 	async withRemoteTransport<T>(
 		id: string,
@@ -209,33 +219,40 @@ export class DirectConnectionManager {
 		}
 		return this.testProfile(profile);
 	}
+	getVerifiedDescription(id: string): Record<string, unknown> {
+		return structuredClone(this.live(id).health);
+	}
 	async testProfile(input: ConnectionProfile): Promise<RemoteProbe> {
-		const profile = validateProfile(input);
+		const profile = { ...validateProfile(input), id: randomUUID() };
 		if (profile.kind === "local")
 			throw new Error("Use the managed local connection");
-		const result = await this.runtime.exec(profile, probeCommand);
-		if (result.exitCode !== 0) throw sshFailure(result.stderr);
-		const [platform, architecture, uid, user, homeDir] =
-			result.stdout.split("\0");
-		if (
-			!platform ||
-			!architecture ||
-			!user ||
-			!homeDir?.startsWith("/") ||
-			/[\r\n]/.test(homeDir) ||
-			!Number.isInteger(Number(uid)) ||
-			Number(uid) < 1
-		)
-			throw new Error("Invalid remote environment");
-		const endpoint = await this.runtime.exec(profile, endpointCommand);
-		return {
-			platform: platform.toLowerCase(),
-			architecture,
-			uid: Number(uid),
-			user,
-			homeDir,
-			installed: endpoint.exitCode === 0,
-		};
+		try {
+			const result = await this.runtime.exec(profile, probeCommand);
+			if (result.exitCode !== 0) throw sshFailure(result.stderr);
+			const [platform, architecture, uid, user, homeDir] =
+				result.stdout.split("\0");
+			if (
+				!platform ||
+				!architecture ||
+				!user ||
+				!homeDir?.startsWith("/") ||
+				/[\r\n]/.test(homeDir) ||
+				!Number.isInteger(Number(uid)) ||
+				Number(uid) < 1
+			)
+				throw new Error("Invalid remote environment");
+			const endpoint = await this.runtime.exec(profile, endpointCommand);
+			return {
+				platform: platform.toLowerCase(),
+				architecture,
+				uid: Number(uid),
+				user,
+				homeDir,
+				installed: endpoint.exitCode === 0,
+			};
+		} finally {
+			this.runtime.cancel?.(profile.id);
+		}
 	}
 	connect(id: string): Promise<ConnectionLease> {
 		const live = this.getLease(id);
@@ -243,7 +260,7 @@ export class DirectConnectionManager {
 		const pending = this.pending.get(id);
 		if (pending) return pending;
 		const generation = this.getStatus(id).generation + 1;
-		this.statuses.set(id, { state: "probing", generation });
+		this.setStatus(id, { state: "probing", generation });
 		const promise = this.connectGeneration(id, generation).finally(() => {
 			if (this.pending.get(id) === promise) this.pending.delete(id);
 		});
@@ -277,9 +294,55 @@ export class DirectConnectionManager {
 		try {
 			const profile = this.profile(id);
 			this.targets.set(id, profileFingerprint(profile));
-			const probe = await this.test(id);
+			let initialEndpoint: string | undefined;
+			let probe: RemoteProbe;
+			if (profile.kind === "local") probe = await this.test(id);
+			else {
+				const result = await this.runtime.exec(
+					profile,
+					`${probeCommand}; printf '%s\\0' "$(id -gn)" "$(test "$(uname -s)" != Darwin || /usr/bin/sw_vers -productVersion)"; ${endpointCommand}; true`,
+				);
+				if (result.exitCode !== 0) throw sshFailure(result.stderr);
+				const [
+					platform,
+					architecture,
+					uid,
+					user,
+					homeDir,
+					groupname,
+					macOS,
+					...endpoint
+				] = result.stdout.split("\0");
+				if (
+					!platform ||
+					!architecture ||
+					!user ||
+					!homeDir?.startsWith("/") ||
+					/[\r\n]/.test(homeDir) ||
+					!Number.isSafeInteger(Number(uid)) ||
+					Number(uid) < 1
+				)
+					throw new Error("Invalid remote environment");
+				initialEndpoint = endpoint.join("\0");
+				probe = {
+					platform: platform.toLowerCase(),
+					architecture,
+					uid: Number(uid),
+					user,
+					homeDir,
+					installed: !!initialEndpoint,
+					groupname,
+					macOS,
+				};
+			}
 			this.current(id, generation);
-			const backend = await this.resolveBackend(id, profile, generation, probe);
+			const backend = await this.resolveBackend(
+				id,
+				profile,
+				generation,
+				probe,
+				initialEndpoint,
+			);
 			disposeUnclaimed = backend.dispose;
 			const { descriptor, secret } = backend;
 			if (probe.uid !== descriptor.serviceUid)
@@ -294,10 +357,10 @@ export class DirectConnectionManager {
 					);
 			}
 			this.current(id, generation);
-			this.statuses.set(id, { state: "forwarding", generation });
+			this.setStatus(id, { state: "forwarding", generation });
 			tunnel = await backend.forward();
 			this.current(id, generation);
-			this.statuses.set(id, { state: "verifying", generation });
+			this.setStatus(id, { state: "verifying", generation });
 			let health: Record<string, unknown> | undefined;
 			for (
 				let attempt = 0;
@@ -366,14 +429,16 @@ export class DirectConnectionManager {
 				namespaceId: descriptor.namespaceId,
 				instanceId: descriptor.instanceId,
 			};
-			this.connected.set(id, { lease, tunnel, secret });
-			this.statuses.set(id, { state: "ready", generation });
+			this.connected.set(id, { lease, tunnel, secret, health });
+			this.setStatus(id, { state: "ready", generation });
 			return { ...lease };
 		} catch (error) {
 			tunnel?.close();
+			if (this.getStatus(id).generation === generation)
+				this.runtime.cancel?.(id);
 			if (!tunnel) disposeUnclaimed?.();
 			if (this.getStatus(id).generation === generation)
-				this.statuses.set(id, {
+				this.setStatus(id, {
 					state: "blocked",
 					generation,
 					error: error instanceof Error ? error.message : "Connection failed",
@@ -386,6 +451,7 @@ export class DirectConnectionManager {
 		profile: ConnectionProfile,
 		generation: number,
 		probe: RemoteProbe,
+		initialEndpoint?: string,
 	): Promise<{
 		descriptor: EndpointDescriptor;
 		secret: string;
@@ -410,14 +476,21 @@ export class DirectConnectionManager {
 				throw error;
 			}
 		}
-		let result = await this.runtime.exec(profile, endpointCommand);
+		let result =
+			initialEndpoint === undefined
+				? await this.runtime.exec(profile, endpointCommand)
+				: {
+						stdout: initialEndpoint,
+						stderr: "",
+						exitCode: initialEndpoint ? 0 : 1,
+					};
 		if (result.exitCode !== 0) {
 			if (!this.options.install)
 				throw new Error(
 					"Direct backend is not installed; select a verified backend release",
 				);
-			this.statuses.set(id, { state: "installing", generation });
-			await this.options.install(profile, this.remoteTransport(profile));
+			this.setStatus(id, { state: "installing", generation });
+			await this.options.install(profile, this.remoteTransport(profile), probe);
 			this.current(id, generation);
 			result = await this.runtime.exec(profile, endpointCommand);
 			if (result.exitCode !== 0)
@@ -448,7 +521,7 @@ export class DirectConnectionManager {
 		this.connected.delete(id);
 		this.pending.delete(id);
 		this.targets.delete(id);
-		this.statuses.set(id, {
+		this.setStatus(id, {
 			state: "disconnected",
 			generation: this.getStatus(id).generation + 1,
 		});

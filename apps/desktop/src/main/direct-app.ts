@@ -26,6 +26,7 @@ import { z } from "zod";
 import {
 	DIRECT_CHANNEL,
 	DIRECT_CONNECTION_CHANNEL,
+	DIRECT_SETUP_CHANNEL,
 	DIRECT_SOCKET_CHANNEL,
 } from "../shared/direct-workstation";
 import { lockProductProfile } from "./lib/product-identity";
@@ -40,6 +41,7 @@ import {
 	uploadSelectedAttachment,
 } from "./lib/ssh-direct/remote-files";
 import { readSelectedAttachmentBytes } from "./lib/ssh-direct/selected-attachment";
+import { SetupProgress } from "./lib/ssh-direct/setup-progress";
 import { SocketBroker } from "./lib/ssh-direct/socket-broker";
 import { closeWindowTransports } from "./lib/ssh-direct/window-transports";
 import { WorkstationController } from "./lib/ssh-direct/workstation-controller";
@@ -104,6 +106,11 @@ export async function startWorkstation(): Promise<void> {
 	const selectedReleases = new Map<string, string>();
 	const passwords = new Map<string, string>();
 	const automaticConnections = new Set<string>();
+	let window: BrowserWindow | null = null;
+	const progress = new SetupProgress((snapshot) => {
+		if (window && !window.webContents.isDestroyed())
+			window.webContents.send(DIRECT_SETUP_CHANNEL, snapshot);
+	});
 	const resourcesRoot = app.isPackaged
 		? path.join(process.resourcesPath, "resources")
 		: path.join(__dirname, "../resources");
@@ -140,26 +147,69 @@ export async function startWorkstation(): Promise<void> {
 		id: string,
 		transport: RemoteTransport,
 		password?: string,
+		connectionProbe?: {
+			platform: string;
+			architecture: string;
+			uid: number;
+			user: string;
+			homeDir: string;
+			groupname?: string;
+			macOS?: string;
+		},
 	) => {
-		const probe = await probeRemoteBackend(transport);
+		const probe =
+			connectionProbe?.platform === "darwin" &&
+			["arm64", "x86_64"].includes(connectionProbe.architecture) &&
+			connectionProbe.groupname &&
+			connectionProbe.macOS
+				? {
+						target:
+							connectionProbe.architecture === "arm64"
+								? ("darwin-arm64" as const)
+								: ("darwin-x64" as const),
+						uid: connectionProbe.uid,
+						username: connectionProbe.user,
+						groupname: connectionProbe.groupname,
+						userHome: connectionProbe.homeDir,
+						macOS: connectionProbe.macOS,
+					}
+				: await probeRemoteBackend(transport);
 		return installRemoteBackend({
 			transport,
 			releaseRoot:
 				selectedReleases.get(id) ??
 				path.join(resourcesRoot, "direct-backend", probe.target),
 			trustedKeys: trustedKeys(),
+			probe,
+			onPhase: (phase) =>
+				progress.phase(
+					id,
+					phase as
+						| "probing"
+						| "checking-release"
+						| "preparing-upload"
+						| "uploading"
+						| "installing",
+				),
 			...(password ? { password } : {}),
 		});
 	};
 	const manager = new DirectConnectionManager({
 		registry,
 		local,
-		install: async (profile, transport) => {
+		onStatus: (id, status) => {
+			if (["probing", "forwarding", "verifying"].includes(status.state))
+				progress.phase(
+					id,
+					status.state as "probing" | "forwarding" | "verifying",
+				);
+		},
+		install: async (profile, transport, probe) => {
 			if (automaticConnections.has(profile.id))
 				throw new Error(
 					"The backend is unavailable. Connect explicitly to install or start it.",
 				);
-			await install(profile.id, transport, passwords.get(profile.id));
+			await install(profile.id, transport, passwords.get(profile.id), probe);
 		},
 	});
 	const controller = new WorkstationController(manager, intents);
@@ -167,7 +217,6 @@ export async function startWorkstation(): Promise<void> {
 		manager.openSocket(id, socketPath),
 	);
 	const forwards = new DirectPortForwardManager(manager);
-	let window: BrowserWindow | null = null;
 	let quitting = false;
 	const reconnect = new AutomaticReconnect({
 		getStatus: (id) => manager.getStatus(id),
@@ -475,7 +524,7 @@ export async function startWorkstation(): Promise<void> {
 						.strict()
 						.parse(payload);
 					controller.assertGeneration(input.connectionId, input.generation);
-					const features = await controller.features(input.connectionId);
+					const features = await controller.features(input.connectionId, true);
 					controller.assertGeneration(input.connectionId, input.generation);
 					return { ...controller.describe(input.connectionId), ...features };
 				}
@@ -523,6 +572,8 @@ export async function startWorkstation(): Promise<void> {
 					forwards.closeConnection(id);
 					return controller.disconnect(id);
 				}
+				case "getSetupSnapshot":
+					return progress.get(uuid(payload));
 				case "connect": {
 					const { id, password } = z
 						.object({
@@ -531,23 +582,22 @@ export async function startWorkstation(): Promise<void> {
 						})
 						.strict()
 						.parse(payload);
-					if (id === localConnectionId) localData.assertAvailable();
-					reconnect.disarm(id);
-					manager.disconnect(id);
-					if (password) passwords.set(id, password);
-					try {
-						sockets.closeConnection(id);
-						forwards.closeConnection(id);
-						await manager.connect(id);
-						const descriptor = controller.describe(id);
-						const features = await controller.features(id);
-						controller.assertGeneration(id, descriptor.generation);
-						const connection = { ...descriptor, ...features };
-						reconnect.arm(connection, registry.get(id)?.kind ?? "ssh");
-						return connection;
-					} finally {
-						passwords.delete(id);
-					}
+					return progress.run(id, async () => {
+						if (id === localConnectionId) localData.assertAvailable();
+						reconnect.disarm(id);
+						if (password) passwords.set(id, password);
+						try {
+							await manager.connect(id);
+							const descriptor = controller.describe(id);
+							const features = await controller.features(id);
+							controller.assertGeneration(id, descriptor.generation);
+							const connection = { ...descriptor, ...features };
+							reconnect.arm(connection, registry.get(id)?.kind ?? "ssh");
+							return connection;
+						} finally {
+							passwords.delete(id);
+						}
+					});
 				}
 				case "control": {
 					const input = z

@@ -1,9 +1,11 @@
+import type { ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { access, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { StringDecoder } from "node:string_decoder";
+import { DirectConnectionError, sshFailure } from "./errors";
 import { OwnedSshProcesses } from "./owned-processes";
 import type { ConnectionProfile } from "./registry";
 import { validateProfile } from "./registry";
@@ -62,6 +64,8 @@ export function sshArguments(profile: ConnectionProfile): string[] {
 		"-o",
 		"ForwardAgent=no",
 		"-o",
+		"Compression=no",
+		"-o",
 		"ControlMaster=no",
 		"-o",
 		"ControlPath=none",
@@ -106,8 +110,11 @@ export function masterArguments(
 export function sftpArguments(
 	profile: ConnectionProfile,
 	batch: string,
+	socketPath?: string,
 ): string[] {
-	const ssh = sshArguments(profile);
+	const ssh = socketPath
+		? channelArguments(profile, socketPath)
+		: sshArguments(profile);
 	const args: string[] = [];
 	for (let index = 1; index < ssh.length - 1; index += 2) {
 		const flag = ssh[index];
@@ -119,6 +126,23 @@ export function sftpArguments(
 		else args.push(flag, value);
 	}
 	return ["-b", batch, ...args, profile.host];
+}
+
+export function channelArguments(
+	profile: ConnectionProfile,
+	socketPath: string,
+): string[] {
+	const args = sshArguments(profile);
+	args[args.indexOf("ControlPath=none")] = `ControlPath=${socketPath}`;
+	args.splice(
+		args.length - 1,
+		0,
+		"-o",
+		"ProxyJump=none",
+		"-o",
+		"ProxyCommand=/usr/bin/false",
+	);
+	return args;
 }
 
 export function sftpUploadBatch(files: readonly UploadFile[]): string {
@@ -250,16 +274,136 @@ function execute(
 	});
 }
 
+interface SshSession {
+	child: ChildProcess;
+	socketPath: string;
+	emptyConfig: string;
+	version: number;
+	exited: boolean;
+	listeners: Set<() => void>;
+}
+
 export class OpenSshRuntime implements SshRuntime {
 	private readonly processes = new OwnedSshProcesses();
-	constructor(private readonly options: { configFile?: string } = {}) {}
+	private readonly sessions = new Map<
+		string,
+		{ fingerprint: string; ready: Promise<SshSession> }
+	>();
+	constructor(
+		private readonly options: {
+			configFile?: string;
+			reuseConnections?: boolean;
+		} = {},
+	) {}
+	private async session(profile: ConnectionProfile): Promise<SshSession> {
+		const fingerprint = JSON.stringify([
+			profile.host,
+			profile.port,
+			profile.user,
+			profile.identityFile,
+		]);
+		let current = this.sessions.get(profile.id);
+		if (current && current.fingerprint !== fingerprint) {
+			this.cancel(profile.id);
+			current = undefined;
+		}
+		if (!current) {
+			const ready = this.createSession(profile);
+			current = { fingerprint, ready };
+			this.sessions.set(profile.id, current);
+			void ready.catch(() => {
+				if (this.sessions.get(profile.id)?.ready === ready)
+					this.sessions.delete(profile.id);
+			});
+		}
+		return current.ready;
+	}
+	private async createSession(profile: ConnectionProfile): Promise<SshSession> {
+		const version = this.processes.version(profile.id);
+		const directory = await mkdtemp(
+			join(process.platform === "win32" ? tmpdir() : "/tmp", "superset-ssh-"),
+		);
+		const socketPath = join(directory, "control");
+		const emptyConfig = join(directory, "empty-config");
+		await writeFile(emptyConfig, "", { mode: 0o600 });
+		const child = spawnOwnedSsh(
+			"ssh",
+			[...this.configArguments(), ...masterArguments(profile, socketPath)],
+			{ stdio: "pipe", cleanupDirectory: directory },
+		);
+		this.processes.track(profile.id, child, version);
+		const session: SshSession = {
+			child,
+			socketPath,
+			emptyConfig,
+			version,
+			exited: false,
+			listeners: new Set(),
+		};
+		let stderr = "";
+		child.stderr?.on("data", (bytes) => {
+			stderr = (stderr + bytes.toString()).slice(-2048);
+		});
+		child.stdin?.end();
+		child.once("error", () => {
+			session.exited = true;
+		});
+		child.once("close", () => {
+			session.exited = true;
+			const current = this.sessions.get(profile.id);
+			if (current)
+				void current.ready.then(
+					(value) => {
+						if (value === session && this.sessions.get(profile.id) === current)
+							this.sessions.delete(profile.id);
+					},
+					() => {},
+				);
+			for (const listener of session.listeners) listener();
+			void rm(directory, { recursive: true, force: true });
+		});
+		try {
+			const deadline = performance.now() + 10_000;
+			while (performance.now() < deadline) {
+				this.assertSession(profile, session);
+				try {
+					await access(socketPath);
+					break;
+				} catch {
+					await new Promise((resolve) => setTimeout(resolve, 10));
+				}
+			}
+			const check = await execute(
+				"ssh",
+				["-F", emptyConfig, "-S", socketPath, "-O", "check", profile.host],
+				undefined,
+				{ processes: this.processes, connectionId: profile.id, version },
+			);
+			if (check.exitCode !== 0) throw sshFailure(stderr || check.stderr);
+			this.assertSession(profile, session);
+			return session;
+		} catch (error) {
+			child.kill();
+			await rm(directory, { recursive: true, force: true });
+			if (session.exited && stderr) throw sshFailure(stderr);
+			throw error;
+		}
+	}
+	private assertSession(profile: ConnectionProfile, session: SshSession): void {
+		if (session.version !== this.processes.version(profile.id))
+			throw new Error("SSH connection cancelled");
+		if (session.exited)
+			throw new DirectConnectionError("SSH control connection exited", true);
+	}
 	private configArguments(): string[] {
 		return this.options.configFile ? ["-F", this.options.configFile] : [];
 	}
 	cancel(connectionId: string): void {
+		this.sessions.delete(connectionId);
 		this.processes.cancel(connectionId);
 	}
 	dispose(): void {
+		this.sessions.clear();
 		this.processes.dispose();
 	}
 	async exec(
@@ -267,13 +411,25 @@ export class OpenSshRuntime implements SshRuntime {
 		command: string,
 		stdin?: string,
 	): Promise<RemoteCommandResult> {
+		const session =
+			this.options.reuseConnections === false
+				? undefined
+				: await this.session(profile);
+		if (session) this.assertSession(profile, session);
 		return execute(
 			"ssh",
-			[...this.configArguments(), ...sshArguments(profile), command],
+			[
+				...this.configArguments(),
+				...(session
+					? channelArguments(profile, session.socketPath)
+					: sshArguments(profile)),
+				command,
+			],
 			stdin,
 			{
 				processes: this.processes,
 				connectionId: profile.id,
+				version: session?.version,
 			},
 		);
 	}
@@ -288,7 +444,12 @@ export class OpenSshRuntime implements SshRuntime {
 		profile: ConnectionProfile,
 		files: readonly UploadFile[],
 	): Promise<void> {
-		const version = this.processes.version(profile.id);
+		const session =
+			this.options.reuseConnections === false
+				? undefined
+				: await this.session(profile);
+		if (session) this.assertSession(profile, session);
+		const version = session?.version ?? this.processes.version(profile.id);
 		const commands = sftpUploadBatch(files);
 		if (!commands) return;
 		const directory = await mkdtemp(join(tmpdir(), "superset-sftp-"));
@@ -299,7 +460,10 @@ export class OpenSshRuntime implements SshRuntime {
 			});
 			const result = await execute(
 				"sftp",
-				[...this.configArguments(), ...sftpArguments(profile, batch)],
+				[
+					...this.configArguments(),
+					...sftpArguments(profile, batch, session?.socketPath),
+				],
 				undefined,
 				{
 					processes: this.processes,
@@ -321,76 +485,43 @@ export class OpenSshRuntime implements SshRuntime {
 		target: number | string,
 		onExit: () => void,
 	): Promise<Tunnel> {
-		const version = this.processes.version(profile.id);
 		validateForwardTarget(target);
-		const directory = await mkdtemp(
-			join(process.platform === "win32" ? tmpdir() : "/tmp", "superset-ssh-"),
-		);
-		const socketPath = join(directory, "control");
-		const emptyConfig = join(directory, "empty-config");
-		await writeFile(emptyConfig, "", { mode: 0o600 });
-		const child = spawnOwnedSsh(
-			"ssh",
-			[...this.configArguments(), ...masterArguments(profile, socketPath)],
-			{
-				stdio: "ignore",
-				cleanupDirectory: directory,
-			},
-		);
-		this.processes.track(profile.id, child, version);
-		let exited = false;
-		child.once("exit", () => {
-			exited = true;
-			void rm(directory, { recursive: true, force: true });
-			onExit();
-		});
+		const session = await this.session(profile);
+		this.assertSession(profile, session);
+		session.listeners.add(onExit);
 		try {
-			await new Promise<void>((resolve, reject) => {
-				child.once("spawn", resolve);
-				child.once("error", reject);
-			});
-			let ready = false;
-			for (let attempt = 0; attempt < 100; attempt++) {
-				if (exited)
-					throw new Error(
-						"Private SSH control connection failed; check system OpenSSH support",
-					);
-				try {
-					await access(socketPath);
-					ready = true;
-					break;
-				} catch {
-					await new Promise((resolve) => setTimeout(resolve, 100));
-				}
-			}
-			if (!ready)
-				throw new Error("Private SSH control connection did not become ready");
 			for (let attempt = 0; attempt < 3; attempt++) {
 				const localPort = await freePort();
 				const result = await execute(
 					"ssh",
 					forwardArguments(
 						profile.host,
-						socketPath,
-						emptyConfig,
+						session.socketPath,
+						session.emptyConfig,
 						localPort,
 						target,
 					),
 					undefined,
-					{ processes: this.processes, connectionId: profile.id, version },
+					{
+						processes: this.processes,
+						connectionId: profile.id,
+						version: session.version,
+					},
 				);
-				if (result.exitCode === 0 && !exited)
+				this.assertSession(profile, session);
+				if (result.exitCode === 0)
 					return {
 						url: `http://127.0.0.1:${localPort}`,
 						close: () => {
-							child.kill();
+							session.listeners.delete(onExit);
+							session.child.kill();
 						},
 					};
 			}
 			throw new Error("SSH loopback forwarding failed");
 		} catch (error) {
-			child.kill();
-			await rm(directory, { recursive: true, force: true });
+			session.listeners.delete(onExit);
+			session.child.kill();
 			throw error;
 		}
 	}

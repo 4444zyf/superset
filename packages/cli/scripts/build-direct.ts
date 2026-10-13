@@ -5,15 +5,19 @@ import {
 	cpSync,
 	existsSync,
 	mkdirSync,
+	mkdtempSync,
 	readdirSync,
 	readFileSync,
+	renameSync,
 	rmSync,
 	statSync,
 	writeFileSync,
 } from "node:fs";
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 import {
+	createReleaseArchive,
 	type ReleaseFile,
 	type ReleaseManifest,
 	verifyReleaseBundle,
@@ -144,6 +148,73 @@ export function signRelease(
 			signature: sign(null, bytes, key).toString("base64"),
 		}),
 	);
+}
+
+export async function sealArchiveRelease(
+	root: string,
+	trustedKeys: Record<string, string>,
+	keyId: string,
+	privateKeyPem: string,
+	level = 6,
+): Promise<void> {
+	const verified = verifyReleaseBundle(root, trustedKeys);
+	if (verified.manifest.formatVersion !== 1)
+		throw new Error("Only an expanded V1 build can be sealed as V2");
+	validateDirectSigningIdentity(privateKeyPem, keyId, trustedKeys);
+	const work = mkdtempSync(join(tmpdir(), "direct-archive-"));
+	try {
+		const archivePath = join(work, "backend.tar.gz");
+		await createReleaseArchive(
+			root,
+			archivePath,
+			verified.manifest.files,
+			level,
+		);
+		const bytes = readFileSync(archivePath);
+		const manifest: ReleaseManifest = {
+			...verified.manifest,
+			formatVersion: 2,
+			archive: {
+				path: "backend.tar.gz",
+				compression: "gzip",
+				size: bytes.length,
+				sha256: createHash("sha256").update(bytes).digest("hex"),
+				unpackedBytes: verified.manifest.files.reduce(
+					(sum, file) => sum + file.size,
+					0,
+				),
+				entryCount: verified.manifest.files.length,
+			},
+		};
+		const manifestBytes = Buffer.from(JSON.stringify(manifest));
+		for (const name of readdirSync(root))
+			rmSync(join(root, name), { recursive: true, force: true });
+		renameSync(archivePath, join(root, "backend.tar.gz"));
+		writeFileSync(join(root, "release-manifest.json"), manifestBytes);
+		writeFileSync(
+			join(root, "release-signature.json"),
+			JSON.stringify({
+				keyId,
+				signature: sign(
+					null,
+					manifestBytes,
+					createPrivateKey(privateKeyPem),
+				).toString("base64"),
+			}),
+		);
+		verifyReleaseBundle(root, trustedKeys);
+		console.log(
+			JSON.stringify({
+				format: "v2",
+				compressionLevel: level,
+				files: manifest.files.length,
+				expandedBytes: manifest.archive?.unpackedBytes,
+				archiveBytes: bytes.length,
+			}),
+		);
+	} finally {
+		rmSync(work, { recursive: true, force: true });
+	}
 }
 
 async function bundle(
@@ -300,6 +371,7 @@ async function main(): Promise<void> {
 		keyPem,
 	);
 	verifyReleaseBundle(root, trustedKeys);
+	await sealArchiveRelease(root, trustedKeys, keyId, keyPem);
 	console.log(`[build-direct] signed standalone backend: ${root}`);
 }
 if (import.meta.main) await main();

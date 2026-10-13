@@ -10,6 +10,8 @@ export async function createSshFixture() {
 	const root = await mkdtemp(join(homedir(), ".superset-ssh-test-"));
 	const run = promisify(execFile);
 	let daemon: ReturnType<typeof spawn> | undefined;
+	let authenticatedConnections = 0;
+	let logBuffer = "";
 	try {
 		for (const key of ["host", "client"])
 			await run("ssh-keygen", [
@@ -61,6 +63,13 @@ export async function createSshFixture() {
 			stdio: ["ignore", "ignore", "pipe"],
 		});
 		const process_ = daemon;
+		process_.stderr?.on("data", (bytes) => {
+			logBuffer += bytes.toString();
+			const lines = logBuffer.split("\n");
+			logBuffer = lines.pop() ?? "";
+			for (const line of lines)
+				if (line.includes("Accepted publickey")) authenticatedConnections++;
+		});
 		const exited = new Promise<void>((resolve) =>
 			process_.once("exit", () => resolve()),
 		);
@@ -76,6 +85,7 @@ export async function createSshFixture() {
 			});
 		});
 		return {
+			stats: () => ({ authenticatedConnections }),
 			root,
 			configFile,
 			profile: {

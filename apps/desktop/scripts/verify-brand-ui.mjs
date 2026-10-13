@@ -374,6 +374,33 @@ try {
 	assert.deepEqual(page.errors, []);
 	evidence.reopen = true;
 	await screenshot("reopened-about");
+	if (!sourceTest) {
+		await page.call("Input.dispatchKeyEvent", {
+			type: "keyDown",
+			key: "Escape",
+			code: "Escape",
+		});
+		await page.call("Input.dispatchKeyEvent", {
+			type: "keyUp",
+			key: "Escape",
+			code: "Escape",
+		});
+		await until(() =>
+			page.evaluate("!document.querySelector('[role=dialog]')"),
+		);
+		await main.evaluate(
+			`${electron}.BrowserWindow.getAllWindows()[0].setSize(1200,900); true`,
+		);
+		await delay(250);
+		const { verifySshUi } = await import("./verify-ssh-ui.mjs");
+		await verifySshUi({
+			page,
+			click,
+			screenshot,
+			resources: join(application, "Contents/Resources/resources"),
+			output,
+		});
+	}
 	await stop();
 	writeFileSync(
 		join(output, "brand-ui.json"),

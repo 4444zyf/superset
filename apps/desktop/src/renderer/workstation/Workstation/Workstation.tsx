@@ -232,6 +232,7 @@ export function Workstation({
 					reconnecting={ui.reconnecting}
 					snapshots={ui.snapshots}
 					probes={ui.probes}
+					setups={ui.setups}
 					password={ui.password}
 					onSelect={select}
 					onConnect={(p) => void connect(p)}

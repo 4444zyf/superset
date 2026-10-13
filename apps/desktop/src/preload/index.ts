@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 import {
 	DIRECT_CHANNEL,
 	DIRECT_CONNECTION_CHANNEL,
+	DIRECT_SETUP_CHANNEL,
 	DIRECT_SOCKET_CHANNEL,
 	type DirectConnectionEvent,
 	type DirectSocketEvent,
@@ -43,6 +44,15 @@ const directWorkstation: DirectWorkstationApi = {
 			connectionId: connection.connectionId,
 			generation: connection.generation,
 		}),
+	getSetupSnapshot: (id) => invoke("getSetupSnapshot", id),
+	onSetup: (listener) => {
+		const wrapped = (
+			_event: unknown,
+			snapshot: Parameters<typeof listener>[0],
+		) => listener(snapshot);
+		ipcRenderer.on(DIRECT_SETUP_CHANNEL, wrapped);
+		return () => ipcRenderer.removeListener(DIRECT_SETUP_CHANNEL, wrapped);
+	},
 	disconnect: (id) => invoke("disconnect", id),
 	selectRelease: (id) => invoke("selectRelease", id),
 	importLocalData: (id) => invoke("importLocalData", id),

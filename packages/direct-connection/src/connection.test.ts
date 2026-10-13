@@ -84,7 +84,17 @@ function fixture(
 			exitCode: command.includes("uname") && options.probeFailure ? 255 : 0,
 			stderr: options.probeFailure ?? "",
 			stdout: command.includes("uname")
-				? ["Darwin", "arm64", "501", "alice", "/Users/alice", ""].join("\0")
+				? [
+						"Darwin",
+						"arm64",
+						"501",
+						"alice",
+						"/Users/alice",
+						...(command.includes("endpoint.json") ? ["staff", "14.0"] : []),
+						command.includes("endpoint.json")
+							? `${JSON.stringify(options.endpoint ?? descriptor)}\n${secret}`
+							: "",
+					].join("\0")
 				: `${JSON.stringify(options.endpoint ?? descriptor)}\n${secret}`,
 		}),
 		upload: async () => {},
@@ -142,7 +152,10 @@ describe("direct connections", () => {
 								"501",
 								"alice",
 								"/Users/alice",
-								"",
+								...(command.includes("endpoint.json") ? ["staff", "14.0"] : []),
+								command.includes("endpoint.json") && installed
+									? `${JSON.stringify(descriptor)}\n${secret}`
+									: "",
 							].join("\0"),
 						};
 					return {

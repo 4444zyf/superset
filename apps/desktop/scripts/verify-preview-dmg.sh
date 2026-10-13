@@ -39,15 +39,12 @@ test "$(lipo -archs "$preview_executable")" = "$preview_macho_arch"
 codesign --verify --deep --strict "$preview_app"
 bun "$preview_script_dir/../../../packages/cli/scripts/stage-direct-resources.ts" \
   --verify --resources-dir="$preview_app/Contents/Resources/resources"
-preview_backend="$preview_app/Contents/Resources/resources/direct-backend/darwin-${preview_arch}/lib"
-"$preview_backend/node" "$preview_backend/direct-installer.js" --smoke-user e30=
-"$preview_backend/node" --input-type=module -e \
-  'await import(process.argv[2])' direct-import-smoke "$preview_backend/host-service-direct.js"
+bun "$preview_script_dir/verify-direct-archive.mts" "$preview_app/Contents/Resources/resources"
 ELECTRON_RUN_AS_NODE=1 "$preview_executable" \
   "$preview_script_dir/verify-preview-package.cjs" "$preview_app" "$preview_arch" "$preview_version"
 ELECTRON_RUN_AS_NODE=1 "$preview_executable" \
   --import "$preview_script_dir/../../../packages/direct-connection/node_modules/tsx/dist/loader.mjs" \
   "$preview_script_dir/verify-direct-ssh-install.mts" "$preview_app/Contents/Resources/resources"
-node "$preview_script_dir/verify-brand-ui.mjs" "$preview_app" \
+node --import "$preview_script_dir/../../../packages/direct-connection/node_modules/tsx/dist/loader.mjs" "$preview_script_dir/verify-brand-ui.mjs" "$preview_app" \
   "$preview_script_dir/../release/BRAND-${preview_arch}"
 "$preview_app/Contents/Resources/resources/bin/superset" --version

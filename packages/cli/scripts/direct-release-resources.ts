@@ -143,7 +143,9 @@ export function stageDirectResources(options: DirectResourcesOptions): void {
 			const release = releases[index] as VerifiedRelease;
 			const output = join(work, "direct-backend", target);
 			for (const file of [
-				...release.manifest.files,
+				...(release.manifest.archive
+					? [{ path: release.manifest.archive.path, mode: 0o644 }]
+					: release.manifest.files),
 				{ path: "release-manifest.json", mode: 0o644 },
 				{ path: "release-signature.json", mode: 0o644 },
 			]) {
@@ -223,6 +225,7 @@ export function verifyDirectResources(options: {
 		},
 	});
 	for (const [index, target] of targets.entries()) {
+		if (releases[index]?.manifest.archive) continue;
 		for (const file of (releases[index] as VerifiedRelease).manifest.files) {
 			if (
 				(lstatSync(

@@ -7,7 +7,7 @@ import { buildIncomingAdmission, incomingReservationBytes } from "./incoming";
 import {
 	hasControlCharacters,
 	type TrustedReleaseKeys,
-	verifyReleaseBundle,
+	verifyReleaseArchiveAsync,
 } from "./release";
 
 export interface RemoteCommandResult {
@@ -42,6 +42,8 @@ export interface InstallOptions {
 	allowedOrigins?: string[];
 	password?: string;
 	authorize?: (script: string) => Promise<RemoteCommandResult>;
+	probe?: RemoteBackendProbe;
+	onPhase?: (phase: string) => void;
 }
 const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
 
@@ -88,6 +90,7 @@ export function buildPrivilegedBootstrap(input: {
 	nodeDigest: string;
 	installerDigest: string;
 	requestBase64: string;
+	archive?: { size: number; sha256: string };
 }): string {
 	if (
 		!input.incoming.startsWith("/") ||
@@ -102,9 +105,26 @@ export function buildPrivilegedBootstrap(input: {
 		hasControlCharacters(input.incoming) ||
 		!/^[a-f0-9]{64}$/.test(input.nodeDigest) ||
 		!/^[a-f0-9]{64}$/.test(input.installerDigest) ||
-		!/^[A-Za-z0-9+/=]+$/.test(input.requestBase64)
+		!/^[A-Za-z0-9+/=]+$/.test(input.requestBase64) ||
+		(input.archive &&
+			(!Number.isSafeInteger(input.archive.size) ||
+				input.archive.size < 1 ||
+				input.archive.size > 2 * 1024 ** 3 ||
+				!/^[a-f0-9]{64}$/.test(input.archive.sha256)))
 	)
 		throw new Error("Invalid privileged installer input");
+	const reader = quote(buildBootstrapReader());
+	const bootstrapReads = input.archive
+		? `
+/bin/bash -c ${reader} reader "$work" 120 /usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.archive.size + 1} ${quote(`${input.incoming}/backend.tar.gz`)} > "$work/archive.snapshot"
+[ "$(/usr/bin/stat -f %z "$work/archive.snapshot")" = '${input.archive.size}' ] || exit 65
+archiveDigest=$(/usr/bin/shasum -a 256 "$work/archive.snapshot")
+[ "${"$"}{archiveDigest%% *}" = '${input.archive.sha256}' ] || { echo 'Archive digest mismatch' >&2; exit 65; }
+/bin/bash -c ${reader} reader "$work" 120 /bin/bash -o pipefail -c '/usr/bin/tar -xzOf "$1" lib/node | /usr/bin/head -c "$2"' tar-reader "$work/archive.snapshot" ${input.nodeSize + 1} > "$payload/lib/node"
+/bin/bash -c ${reader} reader "$work" 120 /bin/bash -o pipefail -c '/usr/bin/tar -xzOf "$1" lib/direct-installer.js | /usr/bin/head -c "$2"' tar-reader "$work/archive.snapshot" ${input.installerSize + 1} > "$payload/lib/direct-installer.js"
+`
+		: `/bin/bash -c ${reader} reader "$work" 30 /usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.nodeSize + 1} ${quote(`${input.incoming}/lib/node`)} > "$payload/lib/node"
+/bin/bash -c ${reader} reader "$work" 30 /usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.installerSize + 1} ${quote(`${input.incoming}/lib/direct-installer.js`)} > "$payload/lib/direct-installer.js"`;
 	return `set -eu
 umask 077
 [ "$(/usr/bin/id -u)" = 0 ] || exit 77
@@ -116,8 +136,7 @@ trap 'exit 143' TERM
 payload="$work/payload"
 /bin/mkdir "$payload"
 /bin/mkdir "$payload/lib"
-/bin/bash -c ${quote(buildBootstrapReader())} reader "$work" 30 /usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.nodeSize + 1} ${quote(`${input.incoming}/lib/node`)} > "$payload/lib/node"
-/bin/bash -c ${quote(buildBootstrapReader())} reader "$work" 30 /usr/bin/sudo -n -u '#${input.uid}' -- /usr/bin/head -c ${input.installerSize + 1} ${quote(`${input.incoming}/lib/direct-installer.js`)} > "$payload/lib/direct-installer.js"
+${bootstrapReads}
 [ -f "$payload/lib/node" ] && [ -f "$payload/lib/direct-installer.js" ] || exit 65
 nodeDigest=$(/usr/bin/shasum -a 256 "$payload/lib/node")
 installerDigest=$(/usr/bin/shasum -a 256 "$payload/lib/direct-installer.js")
@@ -127,7 +146,7 @@ installerDigest=$(/usr/bin/shasum -a 256 "$payload/lib/direct-installer.js")
 /usr/bin/base64 -D > "$work/request.json" <<'SUPERSET_DIRECT_REQUEST'
 ${input.requestBase64.match(/.{1,76}/g)?.join("\n")}
 SUPERSET_DIRECT_REQUEST
-/usr/bin/env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin HOME=/var/root "$payload/lib/node" "$payload/lib/direct-installer.js" --install "$payload" "$work/request.json"
+/usr/bin/env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin HOME=/var/root "$payload/lib/node" "$payload/lib/direct-installer.js" --install "$payload" "$work/request.json" ${input.archive ? '"$work/archive.snapshot"' : ""}
 `;
 }
 
@@ -148,11 +167,13 @@ function versionAtLeast(actual: string, minimum: string): boolean {
 export async function installRemoteBackend(
 	options: InstallOptions,
 ): Promise<InstallResult> {
-	const verified = verifyReleaseBundle(
+	options.onPhase?.("checking-release");
+	const verified = await verifyReleaseArchiveAsync(
 		options.releaseRoot,
 		options.trustedKeys,
 	);
-	const probe = await probeRemoteBackend(options.transport);
+	options.onPhase?.("probing");
+	const probe = options.probe ?? (await probeRemoteBackend(options.transport));
 	if (probe.target !== verified.manifest.target)
 		throw new Error("Release architecture does not match the Mac");
 	if (!versionAtLeast(probe.macOS, verified.manifest.minimumMacOS))
@@ -166,13 +187,34 @@ export async function installRemoteBackend(
 		(total, file) => total + file.size,
 		verified.manifestBytes.length + verified.signatureBytes.length,
 	);
-	assertReleaseCapacity(payloadBytes, parseDiskFreeBytes(disk.stdout));
+	assertReleaseCapacity(
+		payloadBytes + (verified.manifest.archive?.size ?? 0),
+		parseDiskFreeBytes(disk.stdout),
+	);
+	if (verified.manifest.archive) {
+		const check = "set -eu\n/usr/bin/id -u\n";
+		const authorization = options.authorize
+			? await options.authorize(check)
+			: options.password !== undefined
+				? await authorizeRemoteScript(
+						options.transport,
+						check,
+						options.password,
+					)
+				: await options.transport.exec("/usr/bin/sudo -n /bin/sh -s", check);
+		if (authorization.exitCode !== 0 || authorization.stdout.trim() !== "0")
+			throw new Error(
+				"Administrator authorization is required before uploading the macOS backend package",
+			);
+	}
 	const installId = randomUUID();
 	const incoming = `${probe.userHome}/.superset-direct/incoming/${installId}.partial`;
 	const paths = [
 		"release-manifest.json",
 		"release-signature.json",
-		...verified.manifest.files.map((file) => file.path),
+		...(verified.manifest.archive
+			? [verified.manifest.archive.path]
+			: verified.manifest.files.map((file) => file.path)),
 	];
 	const admission = await options.transport.exec(
 		"/bin/sh -s",
@@ -192,6 +234,7 @@ export async function installRemoteBackend(
 					: "The incoming upload cache could not be safely inspected; retry after other transfers finish or review its ownership and file types",
 		);
 	try {
+		options.onPhase?.("preparing-upload");
 		const directories = [
 			...new Set(
 				paths.map((path) => posix.dirname(posix.join(incoming, path))),
@@ -211,6 +254,7 @@ export async function installRemoteBackend(
 			localPath: join(options.releaseRoot, path),
 			remotePath: `${incoming}/${path}`,
 		}));
+		options.onPhase?.("uploading");
 		if (options.transport.uploadFiles)
 			await options.transport.uploadFiles(files);
 		else
@@ -244,7 +288,9 @@ export async function installRemoteBackend(
 			nodeDigest: node.sha256,
 			installerDigest: installer.sha256,
 			requestBase64,
+			archive: verified.manifest.archive,
 		});
+		options.onPhase?.("installing");
 		let result: RemoteCommandResult;
 		if (options.authorize) result = await options.authorize(script);
 		else if (options.password !== undefined)

@@ -83,6 +83,25 @@ export interface DirectDescriptor {
 	chatHarnesses?: { id: string; available: boolean; reason?: string }[];
 }
 
+export interface DirectSetupSnapshot {
+	connectionId: string;
+	jobId: string;
+	generation: number;
+	sequence: number;
+	status: "running" | "completed" | "failed";
+	phase:
+		| "connecting"
+		| "probing"
+		| "checking-release"
+		| "preparing-upload"
+		| "uploading"
+		| "installing"
+		| "forwarding"
+		| "verifying";
+	elapsedMs: number;
+	steps: { phase: DirectSetupSnapshot["phase"]; elapsedMs: number }[];
+}
+
 export interface DirectRpc {
 	connectionId: string;
 	generation: number;
@@ -130,6 +149,8 @@ export interface DirectWorkstationApi {
 		profile: DirectProfile,
 	): Promise<{ platform: string; architecture: string; installed: boolean }>;
 	connect(id: string, password?: string): Promise<DirectDescriptor>;
+	getSetupSnapshot?(id: string): Promise<DirectSetupSnapshot | null>;
+	onSetup?(listener: (snapshot: DirectSetupSnapshot) => void): () => void;
 	refreshFeatures(connection: DirectDescriptor): Promise<DirectDescriptor>;
 	disconnect(id: string): Promise<void>;
 	selectRelease(id: string): Promise<boolean>;
@@ -178,3 +199,4 @@ export interface DirectWorkstationApi {
 export const DIRECT_CHANNEL = "direct-workstation";
 export const DIRECT_SOCKET_CHANNEL = "direct-workstation:socket";
 export const DIRECT_CONNECTION_CHANNEL = "direct-workstation:connection";
+export const DIRECT_SETUP_CHANNEL = "direct-workstation:setup";

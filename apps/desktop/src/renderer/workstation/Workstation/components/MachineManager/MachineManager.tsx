@@ -11,12 +11,14 @@ import {
 	ShieldCheck,
 } from "lucide-react";
 import { type ReactNode, type RefObject, useState } from "react";
+import type { DirectSetupSnapshot } from "../../../../../shared/direct-workstation";
 import type {
 	ControlAction,
 	DirectProfile,
 	MachineProbe,
 	MachineSnapshot,
 } from "../../types";
+import { SetupProgress } from "../SetupProgress";
 
 export function MachineManager({
 	profiles,
@@ -26,6 +28,7 @@ export function MachineManager({
 	reconnecting,
 	snapshots,
 	probes,
+	setups = {},
 	password,
 	localData,
 	onSelect,
@@ -47,6 +50,7 @@ export function MachineManager({
 	reconnecting: false | "reconnecting" | "blocked";
 	snapshots: Record<string, MachineSnapshot>;
 	probes: Record<string, MachineProbe>;
+	setups?: Record<string, DirectSetupSnapshot>;
 	password: RefObject<HTMLInputElement | null>;
 	localData?: ReactNode;
 	onSelect(id: string): void;
@@ -375,6 +379,9 @@ export function MachineManager({
 										{probes[selected.id].platform} ·{" "}
 										{probes[selected.id].architecture}
 									</p>
+								)}
+								{setups[selected.id] && (
+									<SetupProgress snapshot={setups[selected.id]} />
 								)}
 								<div className="ws-detail-actions">
 									{live ? (

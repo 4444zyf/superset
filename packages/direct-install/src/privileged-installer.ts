@@ -14,6 +14,7 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
+import { extractReleaseArchive } from "./archive";
 import { assertReleaseCapacity, parseDiskFreeBytes } from "./capacity";
 import {
 	controlAsUser,
@@ -32,6 +33,7 @@ import { readIncomingPayload } from "./payload-reader";
 import {
 	hasControlCharacters,
 	type TrustedReleaseKeys,
+	verifyExpandedReleaseMetadata,
 	verifyReleaseBundle,
 	verifyReleaseManifest,
 } from "./release";
@@ -310,6 +312,7 @@ async function authenticatedHealth(
 async function installAsRoot(
 	payload: string,
 	request: InstallerRequest,
+	archiveSnapshot?: string,
 ): Promise<InstallResult> {
 	if (process.platform !== "darwin" || process.getuid?.() !== 0)
 		throw new Error("System installation requires a macOS administrator");
@@ -344,62 +347,118 @@ async function installAsRoot(
 	);
 	const releaseRoot = join(SYSTEM_ROOT, "runtime", verified.releaseId);
 	let stagingPath: string | undefined;
+	let runtimeChecked = false;
 	try {
-		const gid = Number(
-			execFileSync("/usr/bin/id", ["-g", request.probe.username], {
-				encoding: "utf8",
-			}).trim(),
-		);
-		for (const file of verified.manifest.files) {
-			if (["lib/node", "lib/direct-installer.js"].includes(file.path)) continue;
-			if (file.size > 256 * 1024 * 1024)
-				throw new Error("A release file exceeds the installation size limit");
-			const bytes = readIncomingPayload({
-				path: join(request.incoming, file.path),
-				size: file.size,
-				uid: request.probe.uid,
-				gid,
-				userHome: request.probe.userHome,
-			});
-			mkdirSync(join(payload, file.path, ".."), {
-				recursive: true,
-				mode: 0o755,
-			});
-			writeFileSync(join(payload, file.path), bytes, {
-				mode: file.mode,
-				flag: "wx",
-			});
-		}
-		writeFileSync(
-			join(payload, "release-manifest.json"),
-			verified.manifestBytes,
-			{ mode: 0o644, flag: "wx" },
-		);
-		writeFileSync(
-			join(payload, "release-signature.json"),
-			verified.signatureBytes,
-			{ mode: 0o644, flag: "wx" },
-		);
-		verifyReleaseBundle(payload, request.trustedKeys);
-		if (!existsSync(releaseRoot)) {
-			const staged = `${releaseRoot}.${request.installId}.partial`;
-			stagingPath = staged;
-			rmSync(staged, { recursive: true, force: true });
-			cpSync(payload, staged, { recursive: true });
-			verifyReleaseBundle(staged, request.trustedKeys);
-			makeRuntimeReadable(staged);
-			for (const file of verified.manifest.files)
-				chmodSync(join(staged, file.path), file.mode === 0o755 ? 0o555 : 0o444);
-			for (const metadata of [
-				"release-manifest.json",
-				"release-signature.json",
-			])
-				chmodSync(join(staged, metadata), 0o444);
-			renameSync(staged, releaseRoot);
-			stagingPath = undefined;
+		if (verified.manifest.archive) {
+			if (archiveSnapshot !== join(payload, "..", "archive.snapshot"))
+				throw new Error("Invalid root archive snapshot path");
+			const snapshot = lstatSync(archiveSnapshot);
+			const parent = lstatSync(join(archiveSnapshot, ".."));
+			if (
+				!snapshot.isFile() ||
+				snapshot.isSymbolicLink() ||
+				snapshot.uid !== 0 ||
+				(snapshot.mode & 0o777) !== 0o600 ||
+				snapshot.size !== verified.manifest.archive.size ||
+				!parent.isDirectory() ||
+				parent.isSymbolicLink() ||
+				parent.uid !== 0 ||
+				(parent.mode & 0o777) !== 0o700
+			)
+				throw new Error("Archive snapshot is not root private");
+			if (!existsSync(releaseRoot)) {
+				const staged = `${releaseRoot}.${request.installId}.partial`;
+				stagingPath = staged;
+				mkdirSync(staged, { mode: 0o700 });
+				await extractReleaseArchive(archiveSnapshot, staged, verified);
+				writeFileSync(
+					join(staged, "release-manifest.json"),
+					verified.manifestBytes,
+					{ flag: "wx", mode: 0o644 },
+				);
+				writeFileSync(
+					join(staged, "release-signature.json"),
+					verified.signatureBytes,
+					{ flag: "wx", mode: 0o644 },
+				);
+				makeRuntimeReadable(staged);
+				for (const file of verified.manifest.files)
+					chmodSync(
+						join(staged, file.path),
+						file.mode === 0o755 ? 0o555 : 0o444,
+					);
+				for (const name of ["release-manifest.json", "release-signature.json"])
+					chmodSync(join(staged, name), 0o444);
+				verifyExpandedReleaseMetadata(staged, verified, 0);
+				userCommand(staged, request, "--smoke-user");
+				runtimeChecked = true;
+				renameSync(staged, releaseRoot);
+				stagingPath = undefined;
+			} else {
+				rootDirectory(releaseRoot);
+				verifyReleaseBundle(releaseRoot, request.trustedKeys);
+			}
 		} else {
-			rootDirectory(releaseRoot);
-			verifyReleaseBundle(releaseRoot, request.trustedKeys);
+			const gid = Number(
+				execFileSync("/usr/bin/id", ["-g", request.probe.username], {
+					encoding: "utf8",
+				}).trim(),
+			);
+			for (const file of verified.manifest.files) {
+				if (["lib/node", "lib/direct-installer.js"].includes(file.path))
+					continue;
+				if (file.size > 256 * 1024 * 1024)
+					throw new Error("A release file exceeds the installation size limit");
+				const bytes = readIncomingPayload({
+					path: join(request.incoming, file.path),
+					size: file.size,
+					uid: request.probe.uid,
+					gid,
+					userHome: request.probe.userHome,
+				});
+				mkdirSync(join(payload, file.path, ".."), {
+					recursive: true,
+					mode: 0o755,
+				});
+				writeFileSync(join(payload, file.path), bytes, {
+					mode: file.mode,
+					flag: "wx",
+				});
+			}
+			writeFileSync(
+				join(payload, "release-manifest.json"),
+				verified.manifestBytes,
+				{ mode: 0o644, flag: "wx" },
+			);
+			writeFileSync(
+				join(payload, "release-signature.json"),
+				verified.signatureBytes,
+				{ mode: 0o644, flag: "wx" },
+			);
+			verifyReleaseBundle(payload, request.trustedKeys);
+			if (!existsSync(releaseRoot)) {
+				const staged = `${releaseRoot}.${request.installId}.partial`;
+				stagingPath = staged;
+				rmSync(staged, { recursive: true, force: true });
+				cpSync(payload, staged, { recursive: true });
+				verifyReleaseBundle(staged, request.trustedKeys);
+				makeRuntimeReadable(staged);
+				for (const file of verified.manifest.files)
+					chmodSync(
+						join(staged, file.path),
+						file.mode === 0o755 ? 0o555 : 0o444,
+					);
+				for (const metadata of [
+					"release-manifest.json",
+					"release-signature.json",
+				])
+					chmodSync(join(staged, metadata), 0o444);
+				renameSync(staged, releaseRoot);
+				stagingPath = undefined;
+			} else {
+				rootDirectory(releaseRoot);
+				verifyReleaseBundle(releaseRoot, request.trustedKeys);
+			}
 		}
 		const result = JSON.parse(
 			userCommand(releaseRoot, request, "--prepare-user"),
@@ -420,7 +479,7 @@ async function installAsRoot(
 		} catch {
 			process.stderr.write("Unused runtime cache reclamation was skipped\n");
 		}
-		userCommand(releaseRoot, request, "--smoke-user");
+		if (!runtimeChecked) userCommand(releaseRoot, request, "--smoke-user");
 		if (result.status === "staged") return result;
 		if (
 			(
@@ -508,7 +567,7 @@ async function main(): Promise<void> {
 		const request = JSON.parse(
 			readFileSync(encoded, "utf8"),
 		) as InstallerRequest;
-		const result = await installAsRoot(argument, request);
+		const result = await installAsRoot(argument, request, process.argv[5]);
 		process.stdout.write(`SUPERSET_DIRECT_INSTALL=${JSON.stringify(result)}\n`);
 	} else {
 		const input = JSON.parse(

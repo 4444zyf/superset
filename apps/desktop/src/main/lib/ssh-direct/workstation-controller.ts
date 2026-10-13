@@ -7,6 +7,7 @@ import type {
 import type { OperationIntents } from "./operation-intents";
 
 interface WorkstationManager {
+	getVerifiedDescription?(id: string): Record<string, unknown>;
 	getLease(id: string): (DirectDescriptor & { url: string }) | null;
 	invoke(
 		id: string,
@@ -79,13 +80,20 @@ export class WorkstationController {
 
 	async features(
 		id: string,
+		refresh = false,
 	): Promise<Pick<DirectDescriptor, "capabilities" | "chatHarnesses">> {
 		const connection = this.describe(id);
-		const response = await this.manager.request(id, {
-			path: "/direct/describe",
-		});
-		if (!response.ok) throw new Error("Could not read backend capabilities");
-		const metadata = (await response.json()) as {
+		let description = refresh
+			? undefined
+			: this.manager.getVerifiedDescription?.(id);
+		if (!description) {
+			const response = await this.manager.request(id, {
+				path: "/direct/describe",
+			});
+			if (!response.ok) throw new Error("Could not read backend capabilities");
+			description = await response.json();
+		}
+		const metadata = description as {
 			capabilities?: Record<string, unknown>;
 			chatHarnesses?: { id: string; available: boolean; reason?: string }[];
 		};
