@@ -93,7 +93,7 @@ export function WorkspacePaneView({
 					}}
 				/>
 				<span aria-live="polite">
-					{state === "attached" ? (
+					{state === "attached" && live ? (
 						<Trans>Connected</Trans>
 					) : state === "ended" || check?.state === "exited" ? (
 						<Trans>Ended</Trans>

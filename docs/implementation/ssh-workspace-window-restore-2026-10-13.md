@@ -23,7 +23,7 @@
 | 权威已结束执行 | 相同executionId且alive=false显示interrupted | 返回exited；缺失执行才显示interrupted |
 | 文件耐久性 | 新功能无文件存储 | 写入提交后SIGKILL实际writer，重开文件恢复完整快照 |
 
-桌面定向套件62项、daemon单元196项、direct-connection68项、安装86项已通过；后续增加的模式隔离、旧daemon、权威结束状态独立检查通过。真实Node套件验证替代PTY及host DaemonClient/实际handoff；不会将Bun不支持的物理PTY套件失败写成全套通过。新增文案覆盖17种语言，严格i18n检查通过。最终冻结源码的检查结果另列。
+桌面定向套件63项、daemon单元196项、direct-connection68项、安装86项已通过；后续增加的模式隔离、旧daemon、权威结束状态独立检查通过。真实Node套件验证替代PTY及host DaemonClient/实际handoff；不会将Bun不支持的物理PTY套件失败写成全套通过。新增文案覆盖17种语言，严格i18n检查通过。最终冻结源码的检查结果另列。
 
 ## 真实界面与限制
 
@@ -52,3 +52,9 @@
 首轮原生ARM的实际DMG通过了签名资源、SQLite/PTY和完整SSH安装，但GUI脚本重命名时失败：Mac的CDP Cmd+A未触发全选，得到TerminalClaude等标题。该轮不能作为恢复生命周期验收通过；脚本改为随真实按键传递Chromium编辑命令selectAll，继续核对准确标题并复测。
 
 实际行为RED/GREEN另覆盖缓存租约：restore-existing仍重新确认维护状态，frozen不能绕过暂停边界。普通显式健康租约复用保持零网络路径。
+
+界面启动阶段显示正在重连，连接/核对期间禁用重复Retry；恢复已暂停/取消时即使存在旧健康descriptor也不向窗格传递连接。退出后的任务进展再增加独立证据：客户端进程已结束期间，通过只读条件订阅等回放结束，然后记录新收到的live输出字节、原executionId与PTY PID；这区别于只看到旧缓存文本。
+
+原生复测还发现验收脚本在键盘比例保存完成前采集了旧0.5，而Quit正确刷新成0.45；修正为真实拖动到0.37并等待主进程提交后采集基线。另有实际RED/GREEN回归：move/up在同一渲染批次时旧闭包会把最终比例写回0.5，现按最后指针比例提交，覆盖快速拖动结束及cancel。
+
+最终3样本源码回归（包含63项单测后的快速拖动修正）完成全部异常场景及关闭客户端期间的新live输出检查，记录见[closed-output-check.json](evidence/ssh-workspace-restore/source-linux/closed-output-check.json)。20次原生发行物测量独立进行；不会将3样本代替20样本性能统计。

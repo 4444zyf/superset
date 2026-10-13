@@ -365,6 +365,8 @@ export function Workstation({
 							connection={
 								attached &&
 								!ui.reconnecting &&
+								views.restore?.status !== "paused" &&
+								views.restore?.status !== "cancelled" &&
 								savedTarget.autoConnect &&
 								ui.connection?.backendId === savedTarget.backendId &&
 								ui.connection?.namespaceId === savedTarget.namespaceId

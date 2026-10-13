@@ -5,7 +5,10 @@ import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { createRequire } from "node:module";
 import { setTimeout as delay } from "node:timers/promises";
-import { connectAndHello } from "../../../packages/pty-daemon/test/helpers/client.ts";
+import {
+	connectAndHello,
+	payloadOf,
+} from "../../../packages/pty-daemon/test/helpers/client.ts";
 import { startPrivateSocketProxy } from "../../../packages/direct-connection/src/local-socket.ts";
 const WebSocket = createRequire(
 	new URL("../../../packages/direct-connection/package.json", import.meta.url),
@@ -25,7 +28,48 @@ export function ownedRestoreControls(home, fixture) {
 			.digest("hex")
 			.slice(0, 12)}.sock`,
 	);
+	let originals = [];
 	return {
+		trackOriginals(refs) {
+			originals = refs;
+		},
+		async observeWhileClientClosed() {
+			return Promise.all(
+				originals.map(async (ref) => {
+					const client = await connectAndHello(socket);
+					try {
+						client.send({ type: "list" });
+						const list = await client.waitFor((m) => m.type === "list-reply");
+						const row = list.sessions.find((s) => s.id === ref.id);
+						assert.equal(row?.executionId, ref.executionId);
+						assert.equal(row?.alive, true);
+						client.send({
+							type: "subscribe",
+							id: ref.id,
+							executionId: ref.executionId,
+							replay: true,
+							modeSnapshot: true,
+						});
+						await client.waitFor(
+							(m) => m.type === "replay-complete" && m.id === ref.id,
+						);
+						const fresh = await client.waitForNext(
+							(m) => m.type === "output" && m.id === ref.id,
+							10000,
+						);
+						assert.ok(payloadOf(fresh)?.byteLength);
+						return {
+							id: ref.id,
+							executionId: ref.executionId,
+							pid: row.pid,
+							newOutputBytes: payloadOf(fresh).byteLength,
+						};
+					} finally {
+						await client.close();
+					}
+				}),
+			);
+		},
 		async verifyHeaderOnly(ref) {
 			const config = JSON.parse(
 				readFileSync(join(home, "service-config.json"), "utf8"),

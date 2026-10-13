@@ -16,6 +16,7 @@ export function PaneTreeView({
 	const { t } = useLingui();
 	const element = useRef<HTMLDivElement>(null);
 	const dragging = useRef(false);
+	const lastRatio = useRef(tree.type === "split" ? tree.ratio : 0.5);
 	if (tree.type === "pane") return <>{renderPane(tree.paneId)}</>;
 	const horizontal = tree.axis === "horizontal";
 	return (
@@ -43,6 +44,7 @@ export function PaneTreeView({
 				aria-valuemax={90}
 				aria-valuenow={Math.round(tree.ratio * 100)}
 				onPointerDown={(event) => {
+					lastRatio.current = tree.ratio;
 					dragging.current = true;
 					event.currentTarget.setPointerCapture(event.pointerId);
 				}}
@@ -51,26 +53,30 @@ export function PaneTreeView({
 					const rect = element.current?.getBoundingClientRect();
 					if (!rect) return;
 					const size = horizontal ? rect.width : rect.height;
-					if (size > 0)
-						onRatio(
-							path,
-							(horizontal
-								? event.clientX - rect.left
-								: event.clientY - rect.top) / size,
-							false,
+					if (size > 0) {
+						lastRatio.current = Math.max(
+							0.1,
+							Math.min(
+								0.9,
+								(horizontal
+									? event.clientX - rect.left
+									: event.clientY - rect.top) / size,
+							),
 						);
+						onRatio(path, lastRatio.current, false);
+					}
 				}}
 				onPointerUp={(event) => {
 					if (!dragging.current) return;
 					dragging.current = false;
 					if (event.currentTarget.hasPointerCapture(event.pointerId))
 						event.currentTarget.releasePointerCapture(event.pointerId);
-					onRatio(path, tree.ratio, true);
+					onRatio(path, lastRatio.current, true);
 				}}
 				onPointerCancel={() => {
 					if (dragging.current) {
 						dragging.current = false;
-						onRatio(path, tree.ratio, true);
+						onRatio(path, lastRatio.current, true);
 					}
 				}}
 				onKeyDown={(event) => {

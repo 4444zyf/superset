@@ -422,8 +422,10 @@ try {
 							() => child.signalCode !== null || child.exitCode !== null,
 						);
 					} else await stop();
+					const closedHeartbeat = await controls?.observeWhileClientClosed();
 					child = launch();
 					await attach();
+					return closedHeartbeat;
 				},
 				closeReopen: async () => {
 					await main.evaluate(

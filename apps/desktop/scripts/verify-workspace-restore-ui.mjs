@@ -58,6 +58,7 @@ export async function verifyWorkspaceRestoreUi({
 	);
 	await click('button[aria-label="Split vertically"]');
 	const original = await ready();
+	controls?.trackOriginals(original);
 	for (let i = 0; i < 3; i++) {
 		const selector = `.ws-workspace-pane:nth-child(${i + 1})`;
 		const paneId = await evaluate(
@@ -100,21 +101,34 @@ export async function verifyWorkspaceRestoreUi({
 			windowsVirtualKeyCode: 13,
 		});
 	}
-	await click('.ws-pane-separator[role="separator"]');
-	await getPage().call("Input.dispatchKeyEvent", {
-		type: "keyDown",
-		key: "ArrowLeft",
-		code: "ArrowLeft",
-		windowsVirtualKeyCode: 37,
+	const firstDivider = await evaluate(
+		"(() => {const split=document.querySelector('.ws-pane-split');const divider=split.querySelector('.ws-pane-separator');const r=split.getBoundingClientRect(),d=divider.getBoundingClientRect();return {start:{x:d.x+d.width/2,y:d.y+d.height/2},end:{x:r.x+r.width*.37,y:d.y+d.height/2}};})()",
+	);
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mousePressed",
+		button: "left",
+		clickCount: 1,
+		...firstDivider.start,
 	});
-	await getPage().call("Input.dispatchKeyEvent", {
-		type: "keyUp",
-		key: "ArrowLeft",
-		code: "ArrowLeft",
-		windowsVirtualKeyCode: 37,
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mouseMoved",
+		button: "left",
+		buttons: 1,
+		...firstDivider.end,
 	});
-	await until(saved, (v) =>
-		v.snapshot?.targets[0]?.workspaces[0]?.panes.every((p) => p.label),
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mouseReleased",
+		button: "left",
+		clickCount: 1,
+		...firstDivider.end,
+	});
+	await until(
+		saved,
+		(v) =>
+			Math.abs(
+				(v.snapshot?.targets[0]?.workspaces[0]?.layout?.ratio ?? 0) - 0.37,
+			) < 0.00001 &&
+			v.snapshot.targets[0].workspaces[0].panes.every((p) => p.label),
 	);
 	const before = (await saved()).snapshot.targets[0];
 	const strictHeaderAuth = controls
@@ -140,7 +154,7 @@ export async function verifyWorkspaceRestoreUi({
 		samples: [],
 	};
 	for (let i = 0; i < samples; i++) {
-		await restart(i === 1 ? "force" : "quit");
+		const closedHeartbeat = await restart(i === 1 ? "force" : "quit");
 		const rows = await ready();
 		assert.deepEqual(
 			rows.map(({ id, executionId }) => ({ id, executionId })),
@@ -152,6 +166,7 @@ export async function verifyWorkspaceRestoreUi({
 			`(async () => { const job=await window.directWorkstation.getWorkspaceRestore(); const marks=performance.getEntriesByName('workspace-layout-visible'); const initial=performance.getEntriesByName('workspace-renderer-ready'); return { skeletonMs:marks[0]?.startTime-initial[0]?.startTime, authenticatedToAttachedUpperBoundMs:performance.timeOrigin+performance.now()-job.authenticatedAt }; })()`,
 		);
 		report.samples.push({
+			closedHeartbeat,
 			lifecycle: i === 1 ? "forceQuit" : "quit",
 			...timing,
 		});
@@ -205,6 +220,7 @@ export async function verifyWorkspaceRestoreUi({
 	report.resizeStress = true;
 	await screenshot("restore-resize-stress");
 	if (controls) {
+		controls.trackOriginals([]);
 		await click('.ws-sidebar nav button[aria-label="SSH machines"]');
 		await click(".ws-detail-actions button:last-child");
 		await until(saved, (v) => v.snapshot.targets[0].autoConnect === false);

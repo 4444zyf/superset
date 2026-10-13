@@ -48,6 +48,8 @@ export function WorkspaceWindow({
 	const workspace = target.workspaces.find(
 		(w) => w.tabId === target.activeTabId,
 	);
+	const restoring =
+		restore?.status === "connecting" || restore?.status === "checking";
 	return (
 		<div className="ws-workspace-window">
 			<div className="ws-window-toolbar">
@@ -88,10 +90,15 @@ export function WorkspaceWindow({
 			</nav>
 			{(!connection || restore?.status === "paused") && (
 				<output className="ws-notice" aria-live="polite">
-					<Trans>Reconnect manually</Trans>{" "}
+					{restoring ? (
+						<Trans>Reconnecting</Trans>
+					) : (
+						<Trans>Reconnect manually</Trans>
+					)}{" "}
 					<button
 						type="button"
 						className="ws-button small"
+						disabled={restoring}
 						onClick={() => {
 							void actions.restoreManual();
 						}}
