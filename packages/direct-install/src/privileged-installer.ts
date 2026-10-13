@@ -236,6 +236,9 @@ function rootDirectory(path: string): void {
 		throw new Error(
 			"Installation directories must be root-owned and not writable by other users",
 		);
+	// The bootstrap uses umask 077, so mkdir's requested 0755 becomes 0700.
+	// Verified runtime directories must be traversable by the service UID.
+	chmodSync(path, 0o755);
 }
 function makeRuntimeReadable(path: string): void {
 	chmodSync(path, 0o755);
