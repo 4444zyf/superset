@@ -23,7 +23,7 @@
 | 权威已结束执行 | 相同executionId且alive=false显示interrupted | 返回exited；缺失执行才显示interrupted |
 | 文件耐久性 | 新功能无文件存储 | 写入提交后SIGKILL实际writer，重开文件恢复完整快照 |
 
-桌面定向套件62项、daemon单元196项、direct-connection66项、安装86项已通过；后续增加的模式隔离、旧daemon、权威结束状态独立检查通过。真实Node套件验证替代PTY及host DaemonClient/实际handoff；不会将Bun不支持的物理PTY套件失败写成全套通过。新增文案覆盖17种语言，严格i18n检查通过。最终冻结源码的检查结果另列。
+桌面定向套件62项、daemon单元196项、direct-connection68项、安装86项已通过；后续增加的模式隔离、旧daemon、权威结束状态独立检查通过。真实Node套件验证替代PTY及host DaemonClient/实际handoff；不会将Bun不支持的物理PTY套件失败写成全套通过。新增文案覆盖17种语言，严格i18n检查通过。最终冻结源码的检查结果另列。
 
 ## 真实界面与限制
 
@@ -48,3 +48,7 @@
 原始记录与已检查截图：[源码界面证据](evidence/ssh-workspace-restore/source-linux)。这是提交前的本地工作树开发环境测试，包含实际执行心跳，不能冒充冻结SHA的Mac发行物，也不代表真实供应商CLI或所有网络。新建工作区时列表未渲染的回归也有实际RED/GREEN测试，直接使用创建响应打开保存的标签。
 
 手动断开后恢复另有行为RED/GREEN：主进程已经重新允许自动连接，但renderer仍持有旧autoConnect=false而拒绝接入。成功恢复事件现在重新读取主进程的可信视图决定；真实界面验证断开、重开保持暂停、明确Retry后接回原三个执行并保存autoConnect=true。目标host编辑测试也验证暂停且不覆盖旧视图。
+
+首轮原生ARM的实际DMG通过了签名资源、SQLite/PTY和完整SSH安装，但GUI脚本重命名时失败：Mac的CDP Cmd+A未触发全选，得到TerminalClaude等标题。该轮不能作为恢复生命周期验收通过；脚本改为随真实按键传递Chromium编辑命令selectAll，继续核对准确标题并复测。
+
+实际行为RED/GREEN另覆盖缓存租约：restore-existing仍重新确认维护状态，frozen不能绕过暂停边界。普通显式健康租约复用保持零网络路径。

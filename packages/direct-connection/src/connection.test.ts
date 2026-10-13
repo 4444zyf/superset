@@ -62,6 +62,7 @@ const secret = "ab".repeat(32);
 
 function fixture(
 	options: {
+		maintenance?: { mode: string; frozen: boolean };
 		describe?: unknown;
 		endpoint?: unknown;
 		probeFailure?: string;
@@ -123,6 +124,10 @@ function fixture(
 			});
 			if (String(input).includes("/trpc/") && options.rpcBody)
 				return new Response(options.rpcBody);
+			if (String(input).endsWith("/direct/maintenance"))
+				return Response.json(
+					options.maintenance ?? { mode: "active", frozen: false },
+				);
 			return Response.json(options.describe ?? descriptor);
 		},
 	});
@@ -531,6 +536,21 @@ describe("direct connections", () => {
 		f.manager.dispose();
 		f.registry.close();
 	});
+});
+
+test("a cached lease cannot bypass a frozen backend during window restoration", async () => {
+	const f = fixture({ maintenance: { mode: "active", frozen: true } });
+	try {
+		await f.manager.connect("mac");
+		await expect(
+			f.manager.connect("mac", { mode: "restore-existing" }),
+		).rejects.toThrow("unavailable for restore");
+		expect(f.requests.at(-1)?.url).toEndWith("/direct/maintenance");
+		expect(f.manager.getLease("mac")).not.toBeNull();
+	} finally {
+		f.manager.dispose();
+		f.registry.close();
+	}
 });
 
 describe("connection configuration", () => {

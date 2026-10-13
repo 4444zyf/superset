@@ -269,7 +269,23 @@ export class DirectConnectionManager {
 	): Promise<ConnectionLease> {
 		const mode = options.mode ?? "explicit";
 		const live = this.getLease(id);
-		if (live) return Promise.resolve(live);
+		if (live) {
+			if (mode === "explicit") return Promise.resolve(live);
+			if (this.options.registry.get(id)?.kind === "local")
+				return Promise.reject(
+					new Error(
+						"Automatic window restore requires an existing SSH backend",
+					),
+				);
+			const connection = this.live(id);
+			return this.assertRestoreAvailable(
+				connection.lease.url,
+				connection.secret,
+			).then(() => {
+				this.current(id, live.generation);
+				return live;
+			});
+		}
 		const pending = this.pending.get(id);
 		if (pending) {
 			if (this.pendingModes.get(id) !== mode)
@@ -442,21 +458,8 @@ export class DirectConnectionManager {
 				)
 			)
 				throw new Error("Backend identity mismatch");
-			if (mode === "restore-existing") {
-				const maintenance = await this.requestFetch(
-					`${tunnel.url}/direct/maintenance`,
-					{
-						headers: { Authorization: `Bearer ${secret}` },
-						signal: AbortSignal.timeout(2000),
-						redirect: "error",
-					},
-				);
-				const state = maintenance.ok
-					? ((await maintenance.json()) as { mode?: string; frozen?: boolean })
-					: null;
-				if (state?.mode !== "active" || state.frozen !== false)
-					throw new Error("The existing backend is unavailable for restore");
-			}
+			if (mode === "restore-existing")
+				await this.assertRestoreAvailable(tunnel.url, secret);
 			this.current(id, generation);
 			const pinned = this.options.registry.save({
 				...profile,
@@ -489,6 +492,21 @@ export class DirectConnectionManager {
 				});
 			throw error;
 		}
+	}
+	private async assertRestoreAvailable(
+		url: string,
+		secret: string,
+	): Promise<void> {
+		const maintenance = await this.requestFetch(`${url}/direct/maintenance`, {
+			headers: { Authorization: `Bearer ${secret}` },
+			signal: AbortSignal.timeout(2000),
+			redirect: "error",
+		});
+		const state = maintenance.ok
+			? ((await maintenance.json()) as { mode?: string; frozen?: boolean })
+			: null;
+		if (state?.mode !== "active" || state.frozen !== false)
+			throw new Error("The existing backend is unavailable for restore");
 	}
 	private async resolveBackend(
 		id: string,

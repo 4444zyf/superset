@@ -71,6 +71,7 @@ export async function verifyWorkspaceRestoreUi({
 			code: "KeyA",
 			windowsVirtualKeyCode: 65,
 			modifiers: process.platform === "darwin" ? 4 : 2,
+			commands: ["selectAll"],
 		});
 		await getPage().call("Input.dispatchKeyEvent", {
 			type: "keyUp",
