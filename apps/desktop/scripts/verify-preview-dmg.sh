@@ -42,4 +42,7 @@ preview_backend="$preview_app/Contents/Resources/resources/direct-backend/darwin
   'await import(process.argv[2])' direct-import-smoke "$preview_backend/host-service-direct.js"
 ELECTRON_RUN_AS_NODE=1 "$preview_executable" \
   "$(dirname "$0")/verify-preview-package.cjs" "$preview_app" "$preview_arch" "$preview_version"
+ELECTRON_RUN_AS_NODE=1 "$preview_executable" \
+  --import "$(dirname "$0")/../../../packages/direct-connection/node_modules/tsx/dist/loader.mjs" \
+  "$(dirname "$0")/verify-direct-ssh-install.ts" "$preview_app/Contents/Resources/resources"
 "$preview_app/Contents/Resources/resources/bin/superset" --version

@@ -9,7 +9,7 @@
 	"scripts": {
 		"test": "bun test",
 		"typecheck": "tsc --noEmit",
-		"test:integration:ssh": "node --experimental-strip-types --test src/ssh-process.node-test.ts",
+		"test:integration:ssh": "node --import tsx --test src/ssh-process.node-test.ts src/ssh-upload.node-test.ts",
 		"test:integration:local": "node --import tsx --test src/local-private-read.node-test.ts"
 	},
 	"dependencies": {

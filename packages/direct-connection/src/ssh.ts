@@ -17,6 +17,11 @@ export interface RemoteCommandResult {
 export interface RemoteTransport {
 	exec(command: string, stdin?: string): Promise<RemoteCommandResult>;
 	upload(localPath: string, remotePath: string): Promise<void>;
+	uploadFiles?(files: readonly UploadFile[]): Promise<void>;
+}
+export interface UploadFile {
+	localPath: string;
+	remotePath: string;
 }
 export interface Tunnel {
 	url: string;
@@ -34,6 +39,10 @@ export interface SshRuntime {
 		profile: ConnectionProfile,
 		localPath: string,
 		remotePath: string,
+	): Promise<void>;
+	uploadFiles?(
+		profile: ConnectionProfile,
+		files: readonly UploadFile[],
 	): Promise<void>;
 	forward(
 		profile: ConnectionProfile,
@@ -92,6 +101,36 @@ export function masterArguments(
 	args[args.indexOf("ControlMaster=no")] = "ControlMaster=yes";
 	args[args.indexOf("ControlPath=none")] = `ControlPath=${socketPath}`;
 	return ["-N", ...args];
+}
+
+export function sftpArguments(
+	profile: ConnectionProfile,
+	batch: string,
+): string[] {
+	const ssh = sshArguments(profile);
+	const args: string[] = [];
+	for (let index = 1; index < ssh.length - 1; index += 2) {
+		const flag = ssh[index];
+		const value = ssh[index + 1];
+		if (!flag || value === undefined) throw new Error("Invalid SSH arguments");
+		if (flag === "-o" && value === "SessionType=default") continue;
+		if (flag === "-p") args.push("-P", value);
+		else if (flag === "-l") args.push("-o", `User=${value}`);
+		else args.push(flag, value);
+	}
+	return ["-b", batch, ...args, profile.host];
+}
+
+export function sftpUploadBatch(files: readonly UploadFile[]): string {
+	const quote = (value: string) =>
+		`"${value.replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`;
+	return files
+		.map(({ localPath, remotePath }) => {
+			if ([localPath, remotePath].some((path) => /[\r\n\0]/.test(path)))
+				throw new Error("Invalid SFTP path");
+			return `@put ${quote(localPath)} ${quote(remotePath)}\n`;
+		})
+		.join("");
 }
 
 export function forwardArguments(
@@ -213,6 +252,10 @@ function execute(
 
 export class OpenSshRuntime implements SshRuntime {
 	private readonly processes = new OwnedSshProcesses();
+	constructor(private readonly options: { configFile?: string } = {}) {}
+	private configArguments(): string[] {
+		return this.options.configFile ? ["-F", this.options.configFile] : [];
+	}
 	cancel(connectionId: string): void {
 		this.processes.cancel(connectionId);
 	}
@@ -224,37 +267,39 @@ export class OpenSshRuntime implements SshRuntime {
 		command: string,
 		stdin?: string,
 	): Promise<RemoteCommandResult> {
-		return execute("ssh", [...sshArguments(profile), command], stdin, {
-			processes: this.processes,
-			connectionId: profile.id,
-		});
+		return execute(
+			"ssh",
+			[...this.configArguments(), ...sshArguments(profile), command],
+			stdin,
+			{
+				processes: this.processes,
+				connectionId: profile.id,
+			},
+		);
 	}
 	async upload(
 		profile: ConnectionProfile,
 		localPath: string,
 		remotePath: string,
 	): Promise<void> {
+		return this.uploadFiles(profile, [{ localPath, remotePath }]);
+	}
+	async uploadFiles(
+		profile: ConnectionProfile,
+		files: readonly UploadFile[],
+	): Promise<void> {
 		const version = this.processes.version(profile.id);
-		if ([localPath, remotePath].some((path) => /[\r\n\0]/.test(path)))
-			throw new Error("Invalid SFTP path");
+		const commands = sftpUploadBatch(files);
+		if (!commands) return;
 		const directory = await mkdtemp(join(tmpdir(), "superset-sftp-"));
 		const batch = join(directory, randomUUID());
-		const quote = (value: string) =>
-			`"${value.replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`;
 		try {
-			await writeFile(batch, `put ${quote(localPath)} ${quote(remotePath)}\n`, {
+			await writeFile(batch, commands, {
 				mode: 0o600,
 			});
-			const ssh = sshArguments(profile);
-			const args = ssh.slice(0, -1).filter((arg) => arg !== "-T");
-			const portFlag = args.indexOf("-p");
-			if (portFlag !== -1) args[portFlag] = "-P";
-			const userFlag = args.indexOf("-l");
-			if (userFlag !== -1)
-				args.splice(userFlag, 2, "-o", `User=${profile.user}`);
 			const result = await execute(
 				"sftp",
-				["-b", batch, ...args, profile.host],
+				[...this.configArguments(), ...sftpArguments(profile, batch)],
 				undefined,
 				{
 					processes: this.processes,
@@ -265,7 +310,7 @@ export class OpenSshRuntime implements SshRuntime {
 			);
 			if (result.exitCode !== 0)
 				throw new Error(
-					"SFTP upload failed; check SSH credentials and subsystem",
+					`SFTP upload failed: ${result.stderr.trim().slice(0, 2048) || `exit ${result.exitCode}`}`,
 				);
 		} finally {
 			await rm(directory, { recursive: true, force: true });
@@ -284,10 +329,14 @@ export class OpenSshRuntime implements SshRuntime {
 		const socketPath = join(directory, "control");
 		const emptyConfig = join(directory, "empty-config");
 		await writeFile(emptyConfig, "", { mode: 0o600 });
-		const child = spawnOwnedSsh("ssh", masterArguments(profile, socketPath), {
-			stdio: "ignore",
-			cleanupDirectory: directory,
-		});
+		const child = spawnOwnedSsh(
+			"ssh",
+			[...this.configArguments(), ...masterArguments(profile, socketPath)],
+			{
+				stdio: "ignore",
+				cleanupDirectory: directory,
+			},
+		);
 		this.processes.track(profile.id, child, version);
 		let exited = false;
 		child.once("exit", () => {

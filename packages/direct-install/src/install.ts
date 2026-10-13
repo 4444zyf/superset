@@ -17,6 +17,9 @@ export interface RemoteCommandResult {
 export interface RemoteTransport {
 	exec(command: string, stdin?: string): Promise<RemoteCommandResult>;
 	upload(localPath: string, remotePath: string): Promise<void>;
+	uploadFiles?(
+		files: readonly { localPath: string; remotePath: string }[],
+	): Promise<void>;
 }
 export interface RemoteBackendProbe {
 	target: "darwin-arm64" | "darwin-x64";
@@ -201,11 +204,15 @@ export async function installRemoteBackend(
 			if (created.exitCode !== 0)
 				throw new Error("Could not create the private upload directory");
 		}
-		for (const path of paths)
-			await options.transport.upload(
-				join(options.releaseRoot, path),
-				`${incoming}/${path}`,
-			);
+		const files = paths.map((path) => ({
+			localPath: join(options.releaseRoot, path),
+			remotePath: `${incoming}/${path}`,
+		}));
+		if (options.transport.uploadFiles)
+			await options.transport.uploadFiles(files);
+		else
+			for (const file of files)
+				await options.transport.upload(file.localPath, file.remotePath);
 		const node = verified.manifest.files.find(
 			(file) => file.path === "lib/node",
 		);
@@ -259,7 +266,7 @@ export async function installRemoteBackend(
 				result.exitCode === 77 ||
 					/sudo|password|administrator/i.test(result.stderr)
 					? "Administrator authorization is required to install the macOS background service"
-					: "The verified backend installer failed; the previous service was preserved",
+					: `The verified backend installer failed; the previous service was preserved: ${result.stderr.trim().slice(0, 2048) || `exit ${result.exitCode}`}`,
 			);
 		const marker = result.stdout
 			.split("\n")

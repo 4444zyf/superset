@@ -184,13 +184,7 @@ export class DirectConnectionManager {
 		if (profile.kind === "local")
 			throw new Error("SSH controls cannot be used for the local backend");
 		const fingerprint = profileFingerprint(profile);
-		const result = await action(
-			{
-				exec: (command, stdin) => this.runtime.exec(profile, command, stdin),
-				upload: (local, remote) => this.runtime.upload(profile, local, remote),
-			},
-			{ ...profile },
-		);
+		const result = await action(this.remoteTransport(profile), { ...profile });
 		if (profileFingerprint(this.options.registry.get(id)) !== fingerprint)
 			throw new Error("SSH connection configuration changed");
 		return result;
@@ -265,6 +259,14 @@ export class DirectConnectionManager {
 			this.disconnect(id);
 			throw new Error("SSH connection configuration changed");
 		}
+	}
+	private remoteTransport(profile: ConnectionProfile): RemoteTransport {
+		const uploadFiles = this.runtime.uploadFiles?.bind(this.runtime, profile);
+		return {
+			exec: (command, stdin) => this.runtime.exec(profile, command, stdin),
+			upload: (local, remote) => this.runtime.upload(profile, local, remote),
+			...(uploadFiles ? { uploadFiles } : {}),
+		};
 	}
 	private async connectGeneration(
 		id: string,
@@ -415,10 +417,7 @@ export class DirectConnectionManager {
 					"Direct backend is not installed; select a verified backend release",
 				);
 			this.statuses.set(id, { state: "installing", generation });
-			await this.options.install(profile, {
-				exec: (command, stdin) => this.runtime.exec(profile, command, stdin),
-				upload: (local, remote) => this.runtime.upload(profile, local, remote),
-			});
+			await this.options.install(profile, this.remoteTransport(profile));
 			this.current(id, generation);
 			result = await this.runtime.exec(profile, endpointCommand);
 			if (result.exitCode !== 0)
