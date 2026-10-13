@@ -250,6 +250,20 @@ function makeRuntimeReadable(path: string): void {
 	for (const entry of readdirSync(path, { withFileTypes: true }))
 		if (entry.isDirectory()) makeRuntimeReadable(join(path, entry.name));
 }
+export function userInstallerInput(
+	request: unknown,
+	releaseRoot: string,
+	extra?: unknown,
+): string {
+	if (!request || typeof request !== "object")
+		throw new Error("Invalid user installer request");
+	return JSON.stringify({
+		request: { ...request, manifestBase64: "", signatureBase64: "" },
+		releaseRoot,
+		extra,
+	});
+}
+
 function userCommand(
 	releaseRoot: string,
 	request: InstallerRequest,
@@ -261,23 +275,30 @@ function userCommand(
 			encoding: "utf8",
 		}).trim(),
 	);
-	return execFileSync(
-		join(releaseRoot, "lib/node"),
-		[join(releaseRoot, "lib/direct-installer.js"), flag, "-"],
-		{
-			input: JSON.stringify({ request, releaseRoot, extra }),
-			uid: request.probe.uid,
-			gid,
-			encoding: "utf8",
-			env: {
-				HOME: request.probe.userHome,
-				PATH: "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+	try {
+		return execFileSync(
+			join(releaseRoot, "lib/node"),
+			[join(releaseRoot, "lib/direct-installer.js"), flag, "-"],
+			{
+				input: userInstallerInput(request, releaseRoot, extra),
+				uid: request.probe.uid,
+				gid,
+				encoding: "utf8",
+				env: {
+					HOME: request.probe.userHome,
+					PATH: "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+				},
+				maxBuffer: 1024 * 1024,
+				timeout: flag === "--health-user" ? 120000 : 30000,
+				killSignal: "SIGKILL",
 			},
-			maxBuffer: 1024 * 1024,
-			timeout: flag === "--health-user" ? 120000 : 30000,
-			killSignal: "SIGKILL",
-		},
-	).trim();
+		).trim();
+	} catch (error) {
+		throw new Error(
+			`User installer step ${flag} failed: ${error instanceof Error ? error.message : "unknown failure"}`,
+			{ cause: error },
+		);
+	}
 }
 
 async function authenticatedHealth(

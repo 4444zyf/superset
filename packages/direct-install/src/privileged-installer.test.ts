@@ -11,9 +11,30 @@ import { join } from "node:path";
 import {
 	acquireInstallerLock,
 	prepareUserInstallation,
+	userInstallerInput,
 } from "./privileged-installer";
 
 const roots: string[] = [];
+
+test("user-only helpers receive identity and operation data without the large signed release buffers", () => {
+	const serialized = userInstallerInput(
+		{
+			probe: { uid: 501, userHome: "/Users/alice" },
+			installId: "install",
+			expectedReleaseId: "release",
+			manifestBase64: "m".repeat(2_000_000),
+			signatureBase64: "signature",
+		},
+		"/runtime",
+		{ phase: "committed" },
+	);
+	expect(Buffer.byteLength(serialized)).toBeLessThan(4096);
+	expect(JSON.parse(serialized)).toMatchObject({
+		request: { probe: { uid: 501 }, expectedReleaseId: "release" },
+		releaseRoot: "/runtime",
+		extra: { phase: "committed" },
+	});
+});
 const temporary = () => {
 	const root = mkdtempSync(join(tmpdir(), "direct-install-"));
 	roots.push(root);
