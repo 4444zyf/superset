@@ -65,7 +65,7 @@ let main;
 let page;
 try {
 	main = await connect(await target(19381, (entry) => entry.type === "node"));
-	const expression = `(() => { const require = process.getBuiltinModule('module').createRequire(process.cwd() + '/brand-inspection.cjs'); const app = require('electron').app; const fs = require('node:fs'); const path = require('node:path'); return {name: app.getName(), version: app.getVersion(), packaged: app.isPackaged, userData: app.getPath('userData'), appData: app.getPath('appData'), packageMetadata: JSON.parse(fs.readFileSync(path.join(app.getAppPath(), 'package.json'), 'utf8'))}; })()`;
+	const expression = `(() => { const require = process.getBuiltinModule('module').createRequire(process.cwd() + '/brand-inspection.cjs'); const electron = require('electron'); const app = electron.app; if (!app.isReady() || !app.getAppPath().startsWith(${JSON.stringify(application)}) || !electron.BrowserWindow.getAllWindows().length) return null; const fs = require('node:fs'); const path = require('node:path'); const metadata = JSON.parse(fs.readFileSync(path.join(app.getAppPath(), 'package.json'), 'utf8')); return {name: app.getName(), version: app.getVersion(), packaged: app.isPackaged, appPath: app.getAppPath(), userData: app.getPath('userData'), appData: app.getPath('appData'), packageMetadata: {name: metadata.name, productName: metadata.productName, version: metadata.version}}; })()`;
 	let response;
 	for (let attempt = 0; attempt < 200; attempt++) {
 		response = await main.call("Runtime.evaluate", { expression, returnByValue: true });
@@ -75,6 +75,7 @@ try {
 	assert.equal(response.exceptionDetails, undefined);
 	const profile = response.result.value;
 	assert.equal(profile.packaged, true);
+	assert.equal(profile.name, profile.packageMetadata.productName);
 	assert.equal(profile.version, "1.37.3");
 	writeFileSync(
 		join(output, "old-preview-profile.json"),
