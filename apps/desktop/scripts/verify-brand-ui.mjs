@@ -268,7 +268,7 @@ async function attach() {
 	await page.call("Runtime.enable");
 	await page.call("Page.enable");
 	await until(() =>
-		page.evaluate("Boolean(document.querySelector('.ws-fork-notice'))"),
+		page.evaluate("Boolean(document.querySelector('.ws-about-button'))"),
 	);
 	assert.equal(await page.evaluate("document.title"), brand.displayName);
 }
@@ -286,7 +286,7 @@ try {
 	evidence.singleInstance = true;
 	await click('.ws-sidebar nav button[aria-label="Workspaces"]');
 	await click('.ws-sidebar nav button[aria-label="SSH machines"]');
-	await click(".ws-fork-notice");
+	await click(".ws-about-button");
 	await until(
 		() =>
 			page.evaluate("document.querySelector('.ws-about-version')?.textContent"),
@@ -347,14 +347,14 @@ try {
 	);
 	await delay(250);
 	const layout = await page.evaluate(`(() => {
- const badge=document.querySelector('.ws-fork-notice').getBoundingClientRect();
+ const aboutButton=document.querySelector('.ws-about-button').getBoundingClientRect();
  const name=document.querySelector('.ws-brand span'); const rect=name.getBoundingClientRect();
- return {width:innerWidth,height:innerHeight,badgeBottom:badge.bottom,badgeTop:badge.top,nameWidth:rect.width,nameScrollWidth:name.scrollWidth}; })()`);
-	assert.ok(layout.badgeTop >= 0 && layout.badgeBottom <= layout.height);
+ return {width:innerWidth,height:innerHeight,aboutButtonBottom:aboutButton.bottom,aboutButtonTop:aboutButton.top,nameWidth:rect.width,nameScrollWidth:name.scrollWidth}; })()`);
+	assert.ok(layout.aboutButtonTop >= 0 && layout.aboutButtonBottom <= layout.height);
 	assert.ok(layout.nameWidth >= layout.nameScrollWidth - 1);
 	evidence.observations.push(layout);
 	await screenshot("minimum-window");
-	await click(".ws-fork-notice");
+	await click(".ws-about-button");
 	await until(
 		() =>
 			page.evaluate("document.querySelector('.ws-about-version')?.textContent"),
@@ -365,7 +365,7 @@ try {
 	await stop();
 	child = launch();
 	await attach();
-	await click(".ws-fork-notice");
+	await click(".ws-about-button");
 	await until(
 		() =>
 			page.evaluate("document.querySelector('.ws-about-version')?.textContent"),

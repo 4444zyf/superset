@@ -18,7 +18,7 @@ macOS Apple Silicon and Intel preview DMGs are built and checked separately. Pre
 
 This product starts with a new independent `superset-remix` data directory. It does not import the earlier preview or upstream application's data automatically. Update manually using this fork's downloads. Apple Developer ID signing and notarization are not configured; these are ad-hoc signed development previews.
 
-The visible **Unofficial modified version** button opens About, including the actual installed version, fork and upstream links, modification notice, and full original license offline.
+Fork identity and modification details are documented here and in [FORK_NOTICE.md](FORK_NOTICE.md). The desktop has a normal **About** entry with the installed version, source links and original license available offline.
 
 ![Superset Remix running from the verified arm64 DMG](docs/implementation/evidence/fork-branding/native-arm64/workstation.png)
 

@@ -88,10 +88,10 @@ export function WorkstationShell({
 					</div>
 					<button
 						type="button"
-						className="ws-fork-notice"
+						className="ws-about-button"
 						onClick={() => setAboutOpen(true)}
 					>
-						<Trans>Unofficial modified version</Trans>
+						<Trans>About</Trans>
 					</button>
 				</aside>
 				<main className="ws-main">{children}</main>

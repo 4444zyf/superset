@@ -2,6 +2,8 @@
 
 This change implements the [branding design](../design/fork-branding.md) for the current accountless Workstation, fork repository and macOS preview chain. Superset Remix is the working name, centralized in the shared product-brand JSON. The user explicitly requested fresh data: installed and per-workspace development profiles are independent, selected before the single-instance lock, and do not automatically use old preview data. Existing remote backend contracts and original attribution remain unchanged.
 
+User follow-up: remove the persistent “Unofficial modified version” badge. The sidebar now has an ordinary About text button without the notice border; GitHub README and FORK_NOTICE retain the fork disclosure. Source-built Electron verification passed actual navigation, About clicks, 800×600 layout, offline license and quit/reopen; 15 existing Workstation tests and all 17 locale checks passed. [Current sidebar screenshot](evidence/fork-branding/about-entry/workstation.png) and [observations](evidence/fork-branding/about-entry/observations.json) record this source check. The older native screenshots below document the prior version and still contain its historical badge.
+
 ## Implemented
 
 - One name and SVG-derived artwork for sidebar, application, Dev/Canary, tray and DMG resources. Genuine multi-resolution ICNS/ICO exports, editable sources and generation instructions are included.
