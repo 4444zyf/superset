@@ -12,15 +12,17 @@ Local and SSH workstations. An unofficial modified version of [Superset](https:/
 
 The current desktop opens the accountless Workstation: add an SSH machine, connect, and install the bundled verified backend automatically when it is missing. Initial installation may require the remote administrator password. Terminals, projects and workspaces use the selected local or SSH backend; disconnecting the desktop leaves remote tasks running.
 
+Verified 1.37.4 previews: [Apple Silicon](https://github.com/4444zyf/superset/actions/runs/38347760341/artifacts/11790341140) · [Intel](https://github.com/4444zyf/superset/actions/runs/38347760341/artifacts/11790638650). These workflow artifacts include checksums, source, SSH/UI acceptance and legal notices, and expire after 14 days. Both native jobs passed; source is `2f71640cedd4155781dbb9e87a4baaaf6c956a87`.
+
 macOS Apple Silicon and Intel preview DMGs are built and checked separately. Preview downloads may appear as workflow artifacts before a GitHub prerelease is published. Use the version and source checksum included with each artifact. Historical `Superset SSH Preview` downloads predate this branding. Linux and Windows distributions have not been validated for this fork.
 
 This product starts with a new independent `superset-remix` data directory. It does not import the earlier preview or upstream application's data automatically. Update manually using this fork's downloads. Apple Developer ID signing and notarization are not configured; these are ad-hoc signed development previews.
 
 The visible **Unofficial modified version** button opens About, including the actual installed version, fork and upstream links, modification notice, and full original license offline.
 
-![Actual source-built Superset Remix Workstation](docs/implementation/evidence/fork-branding/workstation.png)
+![Superset Remix running from the verified arm64 DMG](docs/implementation/evidence/fork-branding/native-arm64/workstation.png)
 
-This screenshot is from the real source-built Electron Workstation. Native packaged screenshots accompany verified macOS build artifacts.
+This screenshot is from the actual verified arm64 DMG, source `2f71640cedd4155781dbb9e87a4baaaf6c956a87`. Native screenshots and measurements accompany the build artifacts.
 
 ## Scope and attribution
 
