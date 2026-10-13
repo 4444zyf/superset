@@ -242,3 +242,21 @@ test("startup retries only retryable transport failures with bounded existing-on
 		f.close();
 	}
 });
+
+test("editing the SSH target pauses restoration without connecting or replacing the old view", async () => {
+	const f = fixture();
+	try {
+		const before = f.store.read().snapshot;
+		f.registry.save({ ...f.registry.get("mac")!, host: "different-machine" });
+		f.coordinator.begin(1, { reason: "launch", navigationRevision: 0 });
+		await f.coordinator.idle();
+		expect(f.calls).toEqual([]);
+		expect(f.coordinator.get()).toMatchObject({
+			status: "paused",
+			reason: "target-changed",
+		});
+		expect(f.store.read().snapshot).toEqual(before);
+	} finally {
+		f.close();
+	}
+});

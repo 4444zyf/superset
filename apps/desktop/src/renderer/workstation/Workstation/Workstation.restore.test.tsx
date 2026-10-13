@@ -239,5 +239,8 @@ test("a newly created SSH workspace opens its saved tab before the refreshed lis
 				?.textContent,
 		).toBe("New SSH workspace"),
 	);
-	expect((await api.getWorkspaceView!()).snapshot?.targets[0]?.workspaces[0]?.workspaceId).toBe("new-workspace");
+	expect(
+		(await api.getWorkspaceView!()).snapshot?.targets[0]?.workspaces[0]
+			?.workspaceId,
+	).toBe("new-workspace");
 });

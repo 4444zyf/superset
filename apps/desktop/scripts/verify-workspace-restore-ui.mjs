@@ -204,6 +204,23 @@ export async function verifyWorkspaceRestoreUi({
 	report.resizeStress = true;
 	await screenshot("restore-resize-stress");
 	if (controls) {
+		await click('.ws-sidebar nav button[aria-label="SSH machines"]');
+		await click(".ws-detail-actions button:last-child");
+		await until(saved, (v) => v.snapshot.targets[0].autoConnect === false);
+		await restart("quit");
+		await until(
+			() => evaluate("window.directWorkstation.getWorkspaceRestore()"),
+			(j) => j?.status === "paused",
+		);
+		assert.equal(
+			(await terminals()).some((t) => t.state === "attached"),
+			false,
+		);
+		await click("text:Retry");
+		await ready();
+		assert.equal((await saved()).snapshot.targets[0].autoConnect, true);
+		report.manualDisconnectThenRestore = true;
+		await screenshot("restore-manual-disconnect-retry");
 		await controls.setAvailable(false);
 		await restart("quit");
 		await until(

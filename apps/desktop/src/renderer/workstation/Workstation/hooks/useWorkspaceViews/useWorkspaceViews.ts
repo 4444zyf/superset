@@ -96,45 +96,55 @@ export function useWorkspaceViews(
 		if (captured === intent.current) setSaved(result.snapshot);
 		return result;
 	}, [api, setSaved]);
-	const receive = useCallback((snapshot: WorkspaceRestoreSnapshot) => {
-		if (!mounted.current || snapshot.navigationRevision !== navigation.current)
-			return;
-		if (
-			job.current?.jobId === snapshot.jobId &&
-			job.current.sequence >= snapshot.sequence
-		)
-			return;
-		job.current = snapshot;
-		setRestore(snapshot);
-		if (snapshot.status === "ready" && snapshot.descriptor) {
-			const target = viewRef.current?.targets.find(
-				(t) => t.connectionId === snapshot.descriptor!.connectionId,
-			);
-			const workspace = target?.workspaces.find(
-				(w) => w.tabId === target.activeTabId,
-			);
-			const refs =
-				workspace?.panes.map((p) => [
-					workspace.workspaceId,
-					p.kind,
-					p.resourceId,
-					p.executionId,
-				]) ?? [];
-			restoredScope.current = JSON.stringify([
-				snapshot.descriptor.connectionId,
-				snapshot.descriptor.generation,
-				refs,
-			]);
-			setResources(snapshot.resources);
-			setResourceRevision((n) => n + 1);
-			void callbacksRef.current
-				.onDescriptor(snapshot.descriptor)
-				.catch((error) => {
-					if (snapshot.navigationRevision === navigation.current)
-						callbacksRef.current.onError(String(error));
-				});
-		}
-	}, []);
+	const receive = useCallback(
+		(snapshot: WorkspaceRestoreSnapshot) => {
+			if (
+				!mounted.current ||
+				snapshot.navigationRevision !== navigation.current
+			)
+				return;
+			if (
+				job.current?.jobId === snapshot.jobId &&
+				job.current.sequence >= snapshot.sequence
+			)
+				return;
+			job.current = snapshot;
+			setRestore(snapshot);
+			if (snapshot.status === "ready" && snapshot.descriptor) {
+				const target = viewRef.current?.targets.find(
+					(t) => t.connectionId === snapshot.descriptor!.connectionId,
+				);
+				if (target?.autoConnect === false)
+					void read().catch(() =>
+						callbacksRef.current.onError(labelsRef.current.saveFailed),
+					);
+				const workspace = target?.workspaces.find(
+					(w) => w.tabId === target.activeTabId,
+				);
+				const refs =
+					workspace?.panes.map((p) => [
+						workspace.workspaceId,
+						p.kind,
+						p.resourceId,
+						p.executionId,
+					]) ?? [];
+				restoredScope.current = JSON.stringify([
+					snapshot.descriptor.connectionId,
+					snapshot.descriptor.generation,
+					refs,
+				]);
+				setResources(snapshot.resources);
+				setResourceRevision((n) => n + 1);
+				void callbacksRef.current
+					.onDescriptor(snapshot.descriptor)
+					.catch((error) => {
+						if (snapshot.navigationRevision === navigation.current)
+							callbacksRef.current.onError(String(error));
+					});
+			}
+		},
+		[read],
+	);
 	const flush = useCallback(async () => {
 		clearTimeout(debounce.current);
 		const action = deferred.current;
