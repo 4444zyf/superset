@@ -92,6 +92,9 @@ export async function verifyWorkstationMultipleFilesUi({
 	await input(editor, secondDraft);
 	await click('[role=tab][aria-label="feature-native.txt"]');
 	await until(text, (value) => value === firstDraft);
+	await click("text:Changes");
+	await click("text:Files");
+	await until(text, (value) => value === firstDraft);
 	await show(editor);
 	await click(editor);
 	await getPage().call("Input.dispatchKeyEvent", {
@@ -201,6 +204,22 @@ export async function verifyWorkstationMultipleFilesUi({
 	await click("text:Terminal");
 	writeFileSync(
 		join(output, "workstation-multiple-files-ui.json"),
-		`${JSON.stringify({ sourceRevision: process.env.GITHUB_SHA ?? null, sourceTest: process.argv.includes("--source-test"), physicalInput: true, workspaceId: scope.workspaceId, drafts: { first: firstDraft, second: secondDraft }, undoRedoRetainedAcrossTabs: true, noWriteBeforeSave: true, savedOnlySelectedFile: true, closeCancelledDraftRetained: true, closeAllDiscardedOnlyBuffers: true }, null, 2)}\n`,
+		`${JSON.stringify(
+			{
+				sourceRevision: process.env.GITHUB_SHA ?? null,
+				sourceTest: process.argv.includes("--source-test"),
+				physicalInput: true,
+				workspaceId: scope.workspaceId,
+				drafts: { first: firstDraft, second: secondDraft },
+				undoRedoRetainedAcrossTabs: true,
+				undoRedoRetainedAcrossToolViews: true,
+				noWriteBeforeSave: true,
+				savedOnlySelectedFile: true,
+				closeCancelledDraftRetained: true,
+				closeAllDiscardedOnlyBuffers: true,
+			},
+			null,
+			2,
+		)}\n`,
 	);
 }

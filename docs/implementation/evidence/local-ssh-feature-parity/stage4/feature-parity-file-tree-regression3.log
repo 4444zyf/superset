@@ -1,0 +1,130 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/components/RendererLayout/renderer-safety.test.ts:
+(pass) emergency UI has no transitive dependency on router, app providers, or UI libraries [26.17ms]
+(pass) production renderer roots cannot bypass RendererRouter [1005.47ms]
+(pass) every production failure boundary is included in the renderer audit [894.87ms]
+(pass) settings and dashboard outlets retain their surrounding layout on render errors [2.44ms]
+
+src/renderer/lib/clickPolicy/tiers.test.ts:
+(pass) tierFor 4-tier > treats every modifier combination independently [0.08ms]
+(pass) tierFor 2-tier > collapses shift→plain and metaShift→meta [0.02ms]
+
+src/renderer/lib/clickPolicy/policies/changesSidebarFilePolicy.test.ts:
+(pass) changes sidebar file policy > keeps plain click on the diff [0.04ms]
+(pass) changes sidebar file policy > maps shift-click through the settings map [0.01ms]
+(pass) changes sidebar file policy > maps cmd/ctrl-click to the file when the settings action is pane [0.01ms]
+(pass) changes sidebar file policy > maps cmd/ctrl-shift-click to the external editor [0.01ms]
+(pass) changes sidebar file policy > returns null for unbound tiers [0.01ms]
+(pass) changes sidebar file policy > finds shortcuts for menu items from the same map [0.04ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [1.90ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.45ms]
+(pass) a different backend cannot receive a previous backend's draft [0.43ms]
+(pass) binary bytes remain read-only and never enter a text save [0.23ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.34ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.46ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.40ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.54ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [182.74ms]
+(pass) the original explorer action opens a create form using the current remote directory [102.94ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [125.92ms]
+(pass) content search opens the selected remote file at the matched line [458.72ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [69.63ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [152.23ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [159.66ms]
+(pass) a truncated read cannot overwrite the complete remote file [115.58ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [84.81ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [165.72ms]
+(pass) editing a remote CRLF file preserves its line endings [168.82ms]
+(pass) Git diffs use the remote status category and surface transport failures [65.46ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [89.12ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [158.00ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [162.94ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [160.26ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [320.90ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [483.45ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [557.22ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [367.31ms]
+(pass) switching to Changes and back retains the original editor undo history [430.40ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/FileOperationDialog/FileOperationDialog.test.tsx:
+(pass) new files are created in the selected remote directory without overwriting existing files [47.30ms]
+(pass) a destination outside the workspace is rejected before sending a move [41.47ms]
+(pass) an existing destination keeps the name for correction and never retries with overwrite [32.34ms]
+(pass) deleting requires explicit permanent-delete confirmation and includes the selected path [33.00ms]
+(pass) a late copy result cannot update the next workspace or copy twice [57.11ms]
+(pass) a successful directory delete closes once even when refresh selects the workspace root [33.98ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileSearch/RemoteFileSearch.test.tsx:
+(pass) file search uses a bounded query against the selected workspace and opens the returned path [44.28ms]
+(pass) content results retain their line and display preview as text [65.31ms]
+(pass) a reply from the old workspace cannot populate results in the next workspace [19.43ms]
+(pass) an older backend cannot issue search queries [16.25ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteGitActions/RemoteGitActions.test.tsx:
+(pass) an IME composition Enter cannot submit the commit shortcut [11.82ms]
+(pass) a missing Git identity is configured on the current repository before the commit is enabled [53.09ms]
+(pass) a new parent error callback does not refetch identity or erase its draft [6.02ms]
+(pass) an identity read finishing after an explicit save cannot disable the new valid identity [78.38ms]
+(pass) the original commit form commits only the staged snapshot on the selected backend [21.83ms]
+(pass) double submission locks one operation while a newer message remains editable [22.54ms]
+(pass) unknown delivery keeps the message without resubmitting a commit [18.60ms]
+(pass) an older backend and an empty staged selection cannot trigger a commit shortcut [2.23ms]
+(pass) a completed reply from the previous workspace cannot clear the current draft or refresh it [19.94ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/RemoteFileTree.test.tsx:
+(pass) original tree rows expand a remote folder and open its file without replacing siblings [184.06ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/file-tree-controller.test.ts:
+(pass) the original tree loads an expanded remote folder once and retains its siblings [1.37ms]
+(pass) a directory reply from a stopped tree cannot appear in its replacement [0.49ms]
+(pass) directory responses cannot install paths outside the queried folder [0.37ms]
+(pass) a bounded tree rejects an oversized batch without dropping the current paths [0.69ms]
+(pass) refresh removes a deleted expanded directory without querying its missing path [1.30ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileDocumentStore.test.ts:
+(pass) a failed host save preserves the dirty document across pane reopen and explicit retry [0.47ms]
+(pass) external reload preserves edits made while the disk read is pending [1.04ms]
+(pass) external reloads cannot complete out of order and restore stale disk content [0.11ms]
+(pass) watcher overflow reloads open files beneath the watched root and preserves dirty buffers [0.50ms]
+(pass) a stale reload error cannot replace edits made during the read [0.15ms]
+(pass) a reload started before a save cannot roll back the saved revision [0.86ms]
+(pass) a reload started before deletion cannot clear the orphaned state [0.17ms]
+(pass) a rename during initial load reads the new path instead of leaving the document loading [0.07ms]
+(pass) an older read failure cannot replace a newer successful reload [0.10ms]
+(pass) overflow in another workspace does not reload this document [0.07ms]
+(pass) comparing an external change reads disk without saving or discarding edits [0.29ms]
+(pass) an unreadable disk version leaves the dirty buffer intact for conflict review [0.20ms]
+(pass) a pending comparison cannot reopen a conflict after save [0.14ms]
+(pass) a pending comparison cannot reopen a conflict after reload [0.70ms]
+(pass) directory rename preserves a dirty descendant document [0.14ms]
+(pass) duplicate rename events do not reload the already-moved document [0.17ms]
+(pass) an atomic save renamed over an open clean document reloads it [0.10ms]
+(pass) an atomic save renamed over an open dirty document flags the external change [2.39ms]
+(pass) the watcher echo of a move keeps a dirty buffer free of external-change flags [0.15ms]
+(pass) a replacement arriving from the old path after a move is still detected [0.10ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileDocumentStore.factory.test.ts:
+(pass) separate backend document stores isolate identical workspace IDs and paths [0.27ms]
+(pass) a new store can use a bounded read without changing the original default [0.20ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileAutoSave/fileAutoSave.test.ts:
+(pass) document auto save > a stale released read cannot evict its replacement or detach auto save [0.84ms]
+(pass) document auto save > release keeps a pending write even if an edit temporarily returns to the saved content [0.29ms]
+(pass) document auto save > saves dirty documents after all panes release them and removes the clean unleased entry [1.45ms]
+(pass) document auto save > window blur saves dirty documents in different inactive workspaces [0.31ms]
+(pass) document auto save > debounces rapid edits and reschedules newer content after an in-flight save [0.32ms]
+(pass) document auto save > queues onFocusChange during an in-flight save [0.35ms]
+(pass) document auto save > queues onWindowChange during an in-flight save [0.14ms]
+(pass) document auto save > keeps auto save suspended after conflict Cancel, even after typing or switching modes [0.32ms]
+(pass) document auto save > does not retry failed saves after dismiss; explicit retry restores auto save [0.30ms]
+(pass) document auto save > Off cancels timers and orphaned documents are never automatically written [0.19ms]
+
+ 98 pass
+ 0 fail
+ 424 expect() calls
+Ran 98 tests across 13 files. [7.82s]

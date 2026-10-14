@@ -159,3 +159,36 @@ test("a late copy result cannot update the next workspace or copy twice", async 
 	expect(f.calls).toHaveLength(1);
 	expect(f.completed).toEqual([]);
 });
+
+test("a successful directory delete closes once even when refresh selects the workspace root", async () => {
+	const f = fixture();
+	let closes = 0;
+	const operation = { kind: "delete" as const, absolutePath: "/repo/sub" };
+	const onClose = () => {
+		closes++;
+	};
+	const onComplete = async () => {
+		await act(() =>
+			view.rerender(
+				<FileOperationDialog
+					{...f.props}
+					directory="/repo"
+					operation={operation}
+					onClose={onClose}
+					onComplete={onComplete}
+				/>,
+			),
+		);
+	};
+	const view = render(
+		<FileOperationDialog
+			{...f.props}
+			operation={operation}
+			onClose={onClose}
+			onComplete={onComplete}
+		/>,
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Delete permanently" }));
+	await waitFor(() => expect(closes).toBe(1));
+	expect(f.calls).toHaveLength(1);
+});

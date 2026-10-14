@@ -76,7 +76,9 @@ export function FileOperationDialog({
 		connection.generation,
 		workspaceId,
 		root,
-		directory,
+		operation.kind === "newFile" || operation.kind === "newFolder"
+			? directory
+			: null,
 		operation,
 	]);
 	const inputOwner = useRef(scope);
