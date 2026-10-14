@@ -16,6 +16,7 @@ import {
 	gitDiffSideBlobTask,
 	gitFetchBaseRefTask,
 	gitPushTask,
+	gitRepositoryHistoryTask,
 	gitStagePathsTask,
 	gitStatusPartialTask,
 	gitStatusSnapshotTask,
@@ -249,6 +250,37 @@ function resolveStagingTargetPaths(
 }
 
 export const gitRouter = router({
+	listRepositoryCommitsV1: queryProcedure
+		.meta({ timeoutMs: 30_000 })
+		.input(
+			z.object({
+				workspaceId: z.string().min(1),
+				limit: z.number().int().min(1).max(100).optional(),
+				cursor: z
+					.object({
+						head: z.string().regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/i),
+						skip: z
+							.number()
+							.int()
+							.min(0)
+							.max(Number.MAX_SAFE_INTEGER - 100),
+					})
+					.optional(),
+			}),
+		)
+		.query(async ({ ctx, input, signal }) => {
+			const worktreePath = resolveWorktreePath(ctx, input.workspaceId);
+			return getHostWorkerPool().run(
+				gitRepositoryHistoryTask,
+				{
+					worktreePath,
+					gitEnv: await resolveGitTaskEnv(ctx, worktreePath),
+					limit: input.limit ?? 50,
+					cursor: input.cursor,
+				},
+				{ signal },
+			);
+		}),
 	getUserIdentityV1: queryProcedure
 		.input(z.object({ workspaceId: z.string().min(1) }))
 		.query(async ({ ctx, input }) => {

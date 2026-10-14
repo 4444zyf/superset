@@ -944,3 +944,61 @@ test("Git changes reuse the original split and unified diff controls without acc
 		});
 	}
 });
+
+test("history opens the selected commit files and requests that commit's original diff", async () => {
+	const hash = "a".repeat(40);
+	const f = fixture({
+		"git.listRepositoryCommitsV1": () => ({
+			head: hash,
+			commits: [
+				{
+					hash,
+					shortHash: "aaaaaaa",
+					message: "Selected history commit",
+					author: "History Author",
+					authorEmail: "history@example.invalid",
+					date: "2026-10-14T00:00:00Z",
+				},
+			],
+			nextCursor: null,
+		}),
+		"git.getCommitFiles": () => ({
+			files: [{ path: "note.txt", status: "modified" }],
+		}),
+	});
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={{
+				...connection,
+				capabilities: {
+					git: true,
+					files: true,
+					workstationGitV1: true,
+					workstationGitHistoryV1: true,
+				},
+			}}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	fireEvent.click(screen.getByRole("button", { name: "History" }));
+	fireEvent.click(
+		await screen.findByRole("button", { name: /Selected history commit/ }),
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	await waitFor(() =>
+		expect(f.calls.find((call) => call.path === "git.getDiff")).toMatchObject({
+			input: {
+				workspaceId: "workspace",
+				category: "commit",
+				commitHash: hash,
+				path: "note.txt",
+			},
+		}),
+	);
+	expect(
+		f.calls.find((call) => call.path === "git.getCommitFiles"),
+	).toMatchObject({ input: { workspaceId: "workspace", commitHash: hash } });
+	expect(f.calls.some((call) => call.type === "mutation")).toBe(false);
+});

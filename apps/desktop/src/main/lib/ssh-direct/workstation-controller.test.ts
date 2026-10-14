@@ -568,3 +568,54 @@ test("malformed operation IDs fail before creating a durable local blocker", asy
 	expect(calls).toEqual([]);
 	db.close();
 });
+
+test("repository history needs its own optional capability and reaches only the explicit workspace", async () => {
+	const f = fixture();
+	const requests: unknown[] = [];
+	const enabled = false;
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: {
+				workstationGitV1: true,
+				workstationGitHistoryV1: enabled,
+			},
+		}),
+		invoke: async (id, request) => {
+			requests.push({ id, ...request });
+			return { commits: [], head: null, nextCursor: null };
+		},
+	});
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "git.listRepositoryCommitsV1",
+		type: "query" as const,
+		input: { workspaceId: "workspace", limit: 50 },
+	};
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"required capability",
+	);
+	expect(requests).toEqual([]);
+	const updated = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationGitHistoryV1: true },
+		}),
+		invoke: async (id, request) => {
+			requests.push({ id, ...request });
+			return { commits: [], head: null, nextCursor: null };
+		},
+	});
+	await updated.invoke(request);
+	expect(requests).toHaveLength(1);
+	expect(requests[0]).toMatchObject({
+		id: "machine",
+		path: "git.listRepositoryCommitsV1",
+		input: { workspaceId: "workspace", limit: 50 },
+	});
+	await expect(
+		updated.invoke({ ...request, input: { limit: 50 } }),
+	).rejects.toThrow("explicit workspace");
+	expect(requests).toHaveLength(1);
+});

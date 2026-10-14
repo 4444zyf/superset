@@ -1,0 +1,42 @@
+bun test v1.4.2 (744846f84)
+
+src/trpc/router/git/repository-history.test.ts:
+history-before-env
+history-after-env false
+history-after-worker
+history-before-env
+history-after-env false
+history-task-before-log
+(fail) an unborn repository is empty but a corrupt HEAD is reported instead of hidden [5001.16ms]
+  ^ this test timed out after 5000ms.
+
+# Unhandled error between tests
+-------------------------------
+31 |   await simpleGit(directory).init();
+32 |   const ctx={isAuthenticated:true,db:{query:{workspaces:{findFirst:()=>({sync:()=>({worktreePath:directory})})}}},credentials:{getCredentials:async()=>({env:{}}),getToken:async()=>null}} as unknown as HostServiceContext;
+33 |   const caller=gitRouter.createCaller(ctx);
+34 |   expect(await caller.listRepositoryCommitsV1({workspaceId:'workspace'})).toEqual({head:null,commits:[],nextCursor:null});
+35 |   writeFileSync(join(directory,'.git','HEAD'),`${'0'.repeat(40)}\n`);
+36 |   await expect(caller.listRepositoryCommitsV1({workspaceId:'workspace'})).rejects.toMatchObject({code:'INTERNAL_SERVER_ERROR'});
+                                                                                       ^
+error: expect(received).toMatchObject(expected)
+
+- {
+-   "code": "INTERNAL_SERVER_ERROR",
+- }
++ [TRPCError: listRepositoryCommitsV1 timed out after 30000ms]
+
+- Expected  - 3
++ Received  + 1
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/git/repository-history.test.ts:36:83)
+-------------------------------
+
+history-error-from-worker
+
+ 0 pass
+ 1 filtered out
+ 1 fail
+ 1 error
+ 1 expect() calls
+Ran 1 test across 1 file. [30.33s]

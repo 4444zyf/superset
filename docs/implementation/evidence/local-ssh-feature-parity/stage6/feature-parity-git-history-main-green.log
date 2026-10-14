@@ -1,0 +1,20 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+162 | 			if (typeof input?.workspaceId !== "string" || !input.workspaceId.trim())
+163 | 				throw new Error("An explicit workspace is required");
+164 | 			const features = await this.features(request.connectionId);
+165 | 			this.assertGeneration(request.connectionId, request.generation);
+166 | 			if (!features.capabilities?.[workspaceProcedure.capability])
+167 | 				throw new Error(
+                    ^
+error: This backend does not support the required capability
+      at invoke (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.ts:167:15)
+      at async <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:577:32)
+(fail) repository history needs its own optional capability and reaches only the explicit workspace [0.89ms]
+
+ 0 pass
+ 21 filtered out
+ 1 fail
+ 2 expect() calls
+Ran 1 test across 1 file. [151.00ms]

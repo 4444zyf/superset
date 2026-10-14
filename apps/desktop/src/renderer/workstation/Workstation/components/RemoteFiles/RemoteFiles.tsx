@@ -43,6 +43,10 @@ import type { FileTreeController } from "./components/RemoteFileTree/file-tree-c
 import { RemoteFileTree } from "./components/RemoteFileTree/RemoteFileTree";
 import { RemoteGitActions } from "./components/RemoteGitActions/RemoteGitActions";
 import { RemoteGitDiff } from "./components/RemoteGitDiff/RemoteGitDiff";
+import {
+	RemoteGitHistory,
+	type RemoteHistoryCommit,
+} from "./components/RemoteGitHistory/RemoteGitHistory";
 
 interface ChangedFile {
 	path: string;
@@ -59,7 +63,7 @@ interface Diff {
 	oldFile: { contents: string };
 	newFile: { contents: string };
 }
-type Category = "staged" | "unstaged" | "against-base";
+type Category = "staged" | "unstaged" | "against-base" | "commit";
 
 const button = "justify-start text-xs";
 
@@ -76,7 +80,9 @@ export function RemoteFiles({
 }) {
 	const appearance = useWorkstationAppearance();
 	const { t } = useLingui();
-	const [tab, setTab] = useState<"files" | "changes" | "search">("files");
+	const [tab, setTab] = useState<"files" | "changes" | "search" | "history">(
+		"files",
+	);
 	const [root, setRoot] = useState("");
 	const [directory, setDirectory] = useState("");
 	const [treeRefresh, setTreeRefresh] = useState(0);
@@ -112,6 +118,10 @@ export function RemoteFiles({
 	const [status, setStatus] = useState<GitStatus | null>(null);
 	const [category, setCategory] = useState<Category>("unstaged");
 	const [diff, setDiff] = useState<(Diff & { path: string }) | null>(null);
+	const [selectedCommit, setSelectedCommit] = useState<{
+		commit: RemoteHistoryCommit;
+		files: ChangedFile[];
+	} | null>(null);
 	const [busy, setBusy] = useState(false);
 	const [closeIds, setCloseIds] = useState<string[]>([]);
 	const [fileOperation, setFileOperation] = useState<FileOperation | null>(
@@ -193,6 +203,7 @@ export function RemoteFiles({
 		setFileOperation(null);
 		setStatus(null);
 		setDiff(null);
+		setSelectedCommit(null);
 		setBusy(true);
 		const readRoot = async () => {
 			const workspace = await api.rpc<{ worktreePath: string }>({
@@ -322,6 +333,19 @@ export function RemoteFiles({
 						<Trans>Changes</Trans>
 					</Button>
 					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						disabled={
+							!connection.capabilities?.git ||
+							!connection.capabilities?.workstationGitHistoryV1
+						}
+						aria-pressed={tab === "history"}
+						onClick={() => setTab("history")}
+					>
+						<Trans>History</Trans>
+					</Button>
+					<Button
 						variant="outline"
 						size="sm"
 						type="button"
@@ -349,6 +373,30 @@ export function RemoteFiles({
 						<Trans>Refresh files and Git</Trans>
 					</Button>
 				</div>
+				{tab === "history" && (
+					<RemoteGitHistory
+						key={operationOwner}
+						api={api}
+						connection={connection}
+						workspaceId={workspaceId}
+						disabled={busy}
+						onError={report}
+						onSelect={(commit) => {
+							void run(async (version) => {
+								const result = await rpc<{ files: ChangedFile[] }>(
+									"git.getCommitFiles",
+									"query",
+									{ workspaceId, commitHash: commit.hash },
+								);
+								if (version !== epoch.current) return;
+								setSelectedCommit({ commit, files: result.files });
+								setCategory("commit");
+								setDiff(null);
+								setTab("changes");
+							});
+						}}
+					/>
+				)}
 				{tab === "search" && (
 					<RemoteFileSearch
 						api={api}
@@ -534,6 +582,12 @@ export function RemoteFiles({
 				{tab === "changes" && (
 					<>
 						{status && <p className="text-sm">{status.currentBranch.name}</p>}
+						{category === "commit" && selectedCommit && (
+							<code className="text-xs">
+								{selectedCommit.commit.shortHash} ·{" "}
+								{selectedCommit.commit.message}
+							</code>
+						)}
 						<RemoteGitActions
 							api={api}
 							connection={connection}
@@ -593,9 +647,11 @@ export function RemoteFiles({
 							</Button>
 						</div>
 						<div className="space-y-1">
-							{(category === "against-base"
-								? status?.againstBase
-								: status?.[category]
+							{(category === "commit"
+								? selectedCommit?.files
+								: category === "against-base"
+									? status?.againstBase
+									: status?.[category]
 							)?.map((file) => (
 								<div
 									key={file.path}
@@ -614,6 +670,9 @@ export function RemoteFiles({
 													workspaceId,
 													path: file.path,
 													category,
+													...(category === "commit" && selectedCommit
+														? { commitHash: selectedCommit.commit.hash }
+														: {}),
 												});
 												if (version === epoch.current)
 													setDiff({ ...result, path: file.path });
@@ -623,6 +682,7 @@ export function RemoteFiles({
 										{file.path}
 									</Button>
 									{category !== "against-base" &&
+										category !== "commit" &&
 										connection.capabilities?.workstationGitV1 && (
 											<StageToggleButton
 												action={category === "staged" ? "unstage" : "stage"}

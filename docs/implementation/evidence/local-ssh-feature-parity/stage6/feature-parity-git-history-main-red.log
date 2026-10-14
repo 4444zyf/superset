@@ -1,0 +1,23 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+571 |
+572 | test("repository history needs its own optional capability and reaches only the explicit workspace",async()=>{
+573 |  const f=fixture();const requests:unknown[]=[];let enabled=false;
+574 |  const controller=new WorkstationController({...f.manager,getVerifiedDescription:()=>({capabilities:{workstationGitV1:true,workstationGitHistoryV1:enabled}}),invoke:async(id,request)=>{requests.push({id,...request});return {commits:[],head:null,nextCursor:null};}});
+575 |  const request={connectionId:'machine',generation:1,path:'git.listRepositoryCommitsV1',type:'query' as const,input:{workspaceId:'workspace',limit:50}};
+576 |  await expect(controller.invoke(request)).rejects.toThrow('required capability');expect(requests).toEqual([]);
+                                                        ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "required capability"
+Received message: "Unsupported workstation procedure"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:576:51)
+(fail) repository history needs its own optional capability and reaches only the explicit workspace [0.79ms]
+
+ 0 pass
+ 21 filtered out
+ 1 fail
+ 1 expect() calls
+Ran 1 test across 1 file. [163.00ms]

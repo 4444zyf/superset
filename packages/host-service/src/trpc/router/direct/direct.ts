@@ -36,6 +36,7 @@ export function describeDirectBackend(
 			workstationFilesV1: true,
 			workstationGitV1: true,
 			workstationGitIdentityV1: true,
+			workstationGitHistoryV1: true,
 			projects: true,
 			sessions: true,
 			terminals: true,

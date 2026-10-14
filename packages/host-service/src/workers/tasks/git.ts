@@ -16,7 +16,7 @@ import {
 	readWorkspaceRefs,
 	type WorkspaceRefsSnapshot,
 } from "../../runtime/pull-requests/utils/workspace-refs.ts";
-import type { ChangedFile } from "../../trpc/router/git/types.ts";
+import type { ChangedFile, Commit } from "../../trpc/router/git/types.ts";
 import type { BaseRefFetchTarget } from "../../trpc/router/git/utils/base-ref-freshness.ts";
 import { gitConfigWrite } from "../../trpc/router/git/utils/config-write.ts";
 import { buildDiffPatch } from "../../trpc/router/git/utils/diff-patch.ts";
@@ -54,6 +54,67 @@ const DIFF_BULK_CONCURRENCY = 8;
 export interface GitTaskEnv {
 	[key: string]: string;
 }
+
+export interface RepositoryHistoryCursor {
+	head: string;
+	skip: number;
+}
+export const gitRepositoryHistoryTask = defineWorkerTask<
+	{
+		worktreePath: string;
+		gitEnv: GitTaskEnv;
+		limit: number;
+		cursor?: RepositoryHistoryCursor;
+	},
+	{
+		head: string | null;
+		commits: Commit[];
+		nextCursor: RepositoryHistoryCursor | null;
+	}
+>({
+	type: "git/listRepositoryCommitsV1",
+	handler: async ({ worktreePath, gitEnv, limit, cursor }, reportPhase) => {
+		const git = createUserSimpleGit(worktreePath, { env: gitEnv });
+		let head = cursor?.head;
+		if (!head) {
+			reportPhase?.("inspect-repository");
+			await git.raw(["rev-parse", "--is-inside-work-tree"]);
+			reportPhase?.("resolve-head");
+			head = (
+				await git.raw(["rev-parse", "--verify", "HEAD"]).catch(() => "")
+			).trim();
+			if (!head) return { head: null, commits: [], nextCursor: null };
+		}
+		const skip = cursor?.skip ?? 0;
+		const raw = await git.raw([
+			"log",
+			head,
+			`--skip=${skip}`,
+			`--max-count=${limit + 1}`,
+			"--format=%H%x00%h%x00%s%x00%an%x00%ae%x00%aI%x00",
+		]);
+		const fields = raw.split("\0");
+		const commits: Commit[] = [];
+		for (let offset = 0; offset + 5 < fields.length; offset += 6) {
+			const hash = fields[offset]?.trim();
+			if (!hash) continue;
+			commits.push({
+				hash,
+				shortHash: fields[offset + 1] ?? "",
+				message: fields[offset + 2] ?? "",
+				author: fields[offset + 3] ?? "",
+				authorEmail: fields[offset + 4] ?? "",
+				date: fields[offset + 5] ?? "",
+			});
+		}
+		const more = commits.length > limit;
+		return {
+			head,
+			commits: commits.slice(0, limit),
+			nextCursor: more ? { head, skip: skip + limit } : null,
+		};
+	},
+});
 
 export const gitUserIdentityTask = defineWorkerTask<
 	{
@@ -761,6 +822,7 @@ export const gitRestoreWorktreeTask = defineWorkerTask<
 });
 
 export const gitTasks = [
+	gitRepositoryHistoryTask,
 	gitUserIdentityTask,
 	gitStatusSnapshotTask,
 	gitStatusPartialTask,

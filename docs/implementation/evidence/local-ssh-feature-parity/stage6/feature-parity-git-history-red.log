@@ -1,0 +1,21 @@
+bun test v1.4.2 (744846f84)
+
+src/trpc/router/git/repository-history.test.ts:
+297 | 				const fullPath = path.join(".");
+298 | 				if (path.length === 1 && path[0] === "_def") return _def;
+299 | 				const procedure = await getProcedureAtPath(router, fullPath);
+300 | 				let ctx = void 0;
+301 | 				try {
+302 | 					if (!procedure) throw new TRPCError({
+                                 ^
+TRPCError: No procedure found on path "listRepositoryCommitsV1"
+ cause: undefined,
+  code: "NOT_FOUND"
+
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/tracked-DiE3uR1B.mjs:302:28)
+      at async <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/git/repository-history.test.ts:16:28)
+(fail) repository history pages include base commits and retain a fixed HEAD when new commits arrive [184.81ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [428.00ms]

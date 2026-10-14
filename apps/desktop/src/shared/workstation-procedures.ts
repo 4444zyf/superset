@@ -3,10 +3,15 @@ export interface WorkspaceProcedure {
 	capability:
 		| "workstationFilesV1"
 		| "workstationGitV1"
-		| "workstationGitIdentityV1";
+		| "workstationGitIdentityV1"
+		| "workstationGitHistoryV1";
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"git.listRepositoryCommitsV1": {
+		type: "query",
+		capability: "workstationGitHistoryV1",
+	},
 	"git.getUserIdentityV1": {
 		type: "query",
 		capability: "workstationGitIdentityV1",

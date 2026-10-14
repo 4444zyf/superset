@@ -1,0 +1,137 @@
+Skipped 1 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 8 files in 86ms. Fixed 8 files.
+Found 9 warnings.
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:32:9 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    30 │ 		expect(row).not.toBeNull();
+    31 │ 	});
+  > 32 │ 	return row!;
+       │ 	       ^^^^
+    33 │ }
+    34 │ function clickTreeRow(row: HTMLElement) {
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:45:38 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    43 │ }
+    44 │ function contentOf(element: HTMLElement): string {
+  > 45 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!);
+       │ 	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    46 │ 	if (!view) throw new Error("Code editor did not mount");
+    47 │ 	return view.state.doc.toString();
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:50:38 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    48 │ }
+    49 │ function replaceContent(element: HTMLElement, value: string) {
+  > 50 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!);
+       │ 	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    51 │ 	if (!view) throw new Error("Code editor did not mount");
+    52 │ 	act(() =>
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:206:15 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    204 │ 	fireEvent.click(await screen.findByRole("button", { name: /note.txt:3/ }));
+    205 │ 	const element = await fileEditor();
+  > 206 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!)!;
+        │ 	             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    207 │ 	await waitFor(() => expect(view.state.selection.main.head).toBe(8));
+    208 │ });
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:206:38 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    204 │ 	fireEvent.click(await screen.findByRole("button", { name: /note.txt:3/ }));
+    205 │ 	const element = await fileEditor();
+  > 206 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!)!;
+        │ 	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    207 │ 	await waitFor(() => expect(view.state.selection.main.head).toBe(8));
+    208 │ });
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:368:3 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    366 │ 	const editor = await fileEditor();
+    367 │ 	expect(
+  > 368 │ 		EditorView.findFromDOM(editor.querySelector(".cm-editor")!)!.state.facet(
+        │ 		^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    369 │ 			EditorState.readOnly,
+    370 │ 		),
+
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+
+     366  366 │   	const editor = await fileEditor();
+     367  367 │   	expect(
+     368      │ - → → EditorView.findFromDOM(editor.querySelector(".cm-editor")!)!.state.facet(
+          368 │ + → → EditorView.findFromDOM(editor.querySelector(".cm-editor")!)?.state.facet(
+     369  369 │   			EditorState.readOnly,
+     370  370 │   		),
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:368:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    366 │ 	const editor = await fileEditor();
+    367 │ 	expect(
+  > 368 │ 		EditorView.findFromDOM(editor.querySelector(".cm-editor")!)!.state.facet(
+        │ 		                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    369 │ 			EditorState.readOnly,
+    370 │ 		),
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:868:18 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    866 │ 	fireEvent.click(screen.getByRole("button", { name: "Changes" }));
+    867 │ 	fireEvent.click(screen.getByRole("button", { name: "Files" }));
+  > 868 │ 	const current = EditorView.findFromDOM(
+        │ 	                ^^^^^^^^^^^^^^^^^^^^^^^
+  > 869 │ 		(await fileEditor()).querySelector(".cm-editor")!,
+  > 870 │ 	)!;
+        │ 	^^
+    871 │ 	act(() => {
+    872 │ 		expect(undo(current)).toBe(true);
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:869:3 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    867 │ 	fireEvent.click(screen.getByRole("button", { name: "Files" }));
+    868 │ 	const current = EditorView.findFromDOM(
+  > 869 │ 		(await fileEditor()).querySelector(".cm-editor")!,
+        │ 		^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    870 │ 	)!;
+    871 │ 	act(() => {
+
+
+/workspace/superset/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteGitHistory/RemoteGitHistory.test.tsx internalError/io  INTERNAL  ━━━━━━━━━━
+
+  × No such file or directory (os error 2)
+
+  ! This diagnostic was derived from an internal Biome error. Potential bug, please report it if necessary.
+
+
+/workspace/superset/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteGitHistory/RemoteGitHistory.tsx internalError/io  INTERNAL  ━━━━━━━━━━
+
+  × No such file or directory (os error 2)
+
+  ! This diagnostic was derived from an internal Biome error. Potential bug, please report it if necessary.
