@@ -13,7 +13,7 @@ type Outputs = inferRouterOutputs<AppRouter>;
 type Branches = Outputs["git"]["listBranches"]["branches"];
 type Sync = Pick<
 	Outputs["git"]["getBranchSyncStatus"],
-	"defaultBranch" | "isDetached"
+	"defaultBranch" | "isDetached" | "currentBranch"
 >;
 
 export function RemoteBaseBranch({
@@ -168,7 +168,13 @@ export function RemoteBaseBranch({
 			</span>
 			<BaseBranchSelector
 				branches={branches}
-				currentValue={base ?? sync?.defaultBranch ?? ""}
+				currentValue={
+					base ??
+					sync?.defaultBranch ??
+					sync?.currentBranch ??
+					branches.find((branch) => branch.isHead)?.name ??
+					""
+				}
 				disabled={busy || disabled || !sync || sync.isDetached}
 				onChange={(value) => {
 					void change(value);

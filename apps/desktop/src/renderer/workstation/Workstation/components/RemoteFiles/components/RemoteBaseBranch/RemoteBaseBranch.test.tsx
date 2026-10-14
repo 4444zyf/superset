@@ -125,3 +125,24 @@ test("a lost base configuration reply is checked by reading and never writes twi
 	expect(writes).toBe(1);
 	expect(errors).toEqual(["Reply lost"]);
 });
+
+test("a repository without a remote default still shows its local HEAD branch", async () => {
+	const api = {
+		rpc: async (request: DirectRpc): Promise<unknown> =>
+			request.path === "git.listBranches"
+				? { branches: [{ name: "main", isHead: true }] }
+				: request.path === "git.getBaseBranch"
+					? { baseBranch: null }
+					: { defaultBranch: null, isDetached: false, currentBranch: "main" },
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteBaseBranch
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			onChange={() => {}}
+			onError={() => {}}
+		/>,
+	);
+	expect(await screen.findByRole("button", { name: "main" })).not.toBeNull();
+});
