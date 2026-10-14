@@ -122,7 +122,7 @@ export async function verifyWorkstationSettingsUi({
 	);
 	assert.deepEqual(await terminals(), before);
 	const measurements = await evaluate(
-		"[...document.querySelectorAll('[data-terminal-id] .xterm-char-measure-element')].map(e=>({size:getComputedStyle(e).fontSize,family:getComputedStyle(e).fontFamily}))",
+		"[...document.querySelectorAll('[data-terminal-id] .xterm-rows')].map(e=>({size:getComputedStyle(e).fontSize,family:getComputedStyle(e).fontFamily}))",
 	);
 	assert.equal(measurements.length, 3);
 	assert.ok(measurements.every((value) => value.size === "18px"));
