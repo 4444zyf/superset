@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { I18nProvider } from "@superset/i18n/react";
 import { darkTheme, getBuiltInTheme } from "@superset/shared/themes";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import {
 	applyUIColors,
 	updateThemeClass,
@@ -19,6 +19,10 @@ import { WorkstationShell } from "./components/WorkstationShell/WorkstationShell
 import { useWorkspaceViews } from "./hooks/useWorkspaceViews/useWorkspaceViews";
 import { useWorkstation } from "./hooks/useWorkstation/useWorkstation";
 import { useWorkstationPreferences } from "./hooks/useWorkstationPreferences";
+import {
+	WorkstationFileDocuments,
+	WorkstationFileDocumentsContext,
+} from "./providers/WorkstationFileDocuments";
 import { WorkstationPreferencesContext } from "./providers/WorkstationPreferencesContext";
 import type {
 	DirectProfile,
@@ -42,6 +46,18 @@ export function Workstation({
 	const { t } = useLingui();
 	const ui = useWorkstation(api);
 	const preferences = useWorkstationPreferences(api);
+	const documents = useMemo(() => new WorkstationFileDocuments(api), [api]);
+	useEffect(() => {
+		if (ui.connection) documents.activate(ui.connection);
+	}, [documents, ui.connection]);
+	useEffect(() => documents.startAutoSave(), [documents]);
+	useEffect(
+		() =>
+			documents.autoSave.setMode(
+				preferences.snapshot?.values.fileAutoSave ?? "off",
+			),
+		[documents, preferences.snapshot?.values.fileAutoSave],
+	);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const theme =
 		getBuiltInTheme(preferences.snapshot?.values.themeId ?? "dark") ??
@@ -703,7 +719,9 @@ export function Workstation({
 	return (
 		<I18nProvider locale={preferences.snapshot?.values.language ?? undefined}>
 			<WorkstationPreferencesContext value={preferences.snapshot}>
-				{content}
+				<WorkstationFileDocumentsContext value={documents}>
+					{content}
+				</WorkstationFileDocumentsContext>
 				{settingsOpen && (
 					<Suspense fallback={null}>
 						<WorkstationSettings

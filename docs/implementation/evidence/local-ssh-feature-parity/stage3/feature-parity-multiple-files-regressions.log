@@ -1,0 +1,97 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/components/RendererLayout/renderer-safety.test.ts:
+(pass) emergency UI has no transitive dependency on router, app providers, or UI libraries [36.78ms]
+(pass) production renderer roots cannot bypass RendererRouter [1449.01ms]
+(pass) every production failure boundary is included in the renderer audit [1052.67ms]
+(pass) settings and dashboard outlets retain their surrounding layout on render errors [4.31ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [291.44ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [88.43ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [93.29ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [95.07ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [110.03ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [79.60ms]
+(pass) opening a development server submits its port for forwarding on B [70.45ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [86.11ms]
+(pass) checking an empty operation journal shows a readable result [59.83ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [104.92ms]
+
+src/renderer/workstation/Workstation/Workstation.restore.test.tsx:
+(pass) offline startup keeps all three saved panes, ratios and focus without ordinary connection or mutations [90.38ms]
+(pass) the SSH window feature leaves local workspace opening on its existing path [73.56ms]
+(pass) a newly created SSH workspace opens its saved tab before the refreshed list has rendered [103.89ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [2.55ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.44ms]
+(pass) a different backend cannot receive a previous backend's draft [0.47ms]
+(pass) binary bytes remain read-only and never enter a text save [0.37ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.26ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.54ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.40ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [21.76ms]
+(pass) the original explorer action opens a create form using the current remote directory [30.63ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [57.05ms]
+(pass) content search opens the selected remote file at the matched line [454.62ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [21.28ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [122.07ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [128.27ms]
+(pass) a truncated read cannot overwrite the complete remote file [62.61ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [36.78ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [117.95ms]
+(pass) editing a remote CRLF file preserves its line endings [116.29ms]
+(pass) Git diffs use the remote status category and surface transport failures [63.21ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [48.35ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [126.65ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [109.23ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [98.79ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [274.79ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [265.42ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [383.72ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileDocumentStore.test.ts:
+(pass) a failed host save preserves the dirty document across pane reopen and explicit retry [0.34ms]
+(pass) external reload preserves edits made while the disk read is pending [0.43ms]
+(pass) external reloads cannot complete out of order and restore stale disk content [0.14ms]
+(pass) watcher overflow reloads open files beneath the watched root and preserves dirty buffers [0.16ms]
+(pass) a stale reload error cannot replace edits made during the read [0.17ms]
+(pass) a reload started before a save cannot roll back the saved revision [0.11ms]
+(pass) a reload started before deletion cannot clear the orphaned state [0.10ms]
+(pass) a rename during initial load reads the new path instead of leaving the document loading [0.08ms]
+(pass) an older read failure cannot replace a newer successful reload [0.09ms]
+(pass) overflow in another workspace does not reload this document [0.08ms]
+(pass) comparing an external change reads disk without saving or discarding edits [0.43ms]
+(pass) an unreadable disk version leaves the dirty buffer intact for conflict review [0.12ms]
+(pass) a pending comparison cannot reopen a conflict after save [0.13ms]
+(pass) a pending comparison cannot reopen a conflict after reload [0.07ms]
+(pass) directory rename preserves a dirty descendant document [0.12ms]
+(pass) duplicate rename events do not reload the already-moved document [0.15ms]
+(pass) an atomic save renamed over an open clean document reloads it [0.14ms]
+(pass) an atomic save renamed over an open dirty document flags the external change [0.12ms]
+(pass) the watcher echo of a move keeps a dirty buffer free of external-change flags [0.12ms]
+(pass) a replacement arriving from the old path after a move is still detected [0.10ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileDocumentStore.factory.test.ts:
+(pass) separate backend document stores isolate identical workspace IDs and paths [0.23ms]
+(pass) a new store can use a bounded read without changing the original default [0.13ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileAutoSave/fileAutoSave.test.ts:
+(pass) document auto save > a stale released read cannot evict its replacement or detach auto save [0.72ms]
+(pass) document auto save > release keeps a pending write even if an edit temporarily returns to the saved content [0.56ms]
+(pass) document auto save > saves dirty documents after all panes release them and removes the clean unleased entry [0.40ms]
+(pass) document auto save > window blur saves dirty documents in different inactive workspaces [0.39ms]
+(pass) document auto save > debounces rapid edits and reschedules newer content after an in-flight save [0.64ms]
+(pass) document auto save > queues onFocusChange during an in-flight save [0.26ms]
+(pass) document auto save > queues onWindowChange during an in-flight save [0.11ms]
+(pass) document auto save > keeps auto save suspended after conflict Cancel, even after typing or switching modes [0.28ms]
+(pass) document auto save > does not retry failed saves after dismiss; explicit retry restores auto save [0.37ms]
+(pass) document auto save > Off cancels timers and orphaned documents are never automatically written [0.18ms]
+
+ 75 pass
+ 0 fail
+ 289 expect() calls
+Ran 75 tests across 8 files. [7.18s]

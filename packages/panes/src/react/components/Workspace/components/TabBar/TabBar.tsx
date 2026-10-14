@@ -27,6 +27,11 @@ import { TAB_DRAG_TYPE, TabItem } from "./components/TabItem";
 import { computeInsertIndex, TAB_WIDTH } from "./utils";
 
 interface TabBarProps<TData> {
+	getTabElementProps?: (
+		tab: Tab<TData>,
+	) => import("./components/TabItem/TabItem").TabElementProps;
+	hideAddTabButton?: boolean;
+	deferMenuActions?: boolean;
 	canDropItem?: (item: {
 		tabId?: string;
 		paneId?: string;
@@ -84,6 +89,9 @@ function AddTabButton<_TData>({
 }
 
 export function TabBar<TData>({
+	getTabElementProps,
+	hideAddTabButton = false,
+	deferMenuActions,
 	canDropItem,
 	store,
 	tabs,
@@ -234,6 +242,8 @@ export function TabBar<TData>({
 							style={{ width: TAB_WIDTH }}
 						>
 							<TabItem
+								deferMenuActions={deferMenuActions}
+								elementProps={getTabElementProps?.(tab)}
 								canDropPane={canDropItem}
 								tab={tab}
 								tabs={tabs}
@@ -258,7 +268,7 @@ export function TabBar<TData>({
 						/>
 					)}
 					<div className="flex h-full w-10 shrink-0 items-center justify-center border-b border-border">
-						{!hasHorizontalOverflow && (
+						{!hasHorizontalOverflow && !hideAddTabButton && (
 							<AddTabButton renderAddTabMenu={renderAddTabMenu} />
 						)}
 					</div>
@@ -269,7 +279,9 @@ export function TabBar<TData>({
 			</OverflowFadeContainer>
 			{hasHorizontalOverflow && (
 				<div className="no-drag flex h-full w-10 shrink-0 items-center justify-center border-b border-border">
-					<AddTabButton renderAddTabMenu={renderAddTabMenu} />
+					{!hideAddTabButton && (
+						<AddTabButton renderAddTabMenu={renderAddTabMenu} />
+					)}
 				</div>
 			)}
 			{renderTabBarTrailing && (

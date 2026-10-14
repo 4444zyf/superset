@@ -528,7 +528,19 @@ export function createFileDocumentStore(
 		}
 	}
 
+	function discardDocument(workspaceId: string, absolutePath: string): boolean {
+		const id = key(workspaceId, absolutePath);
+		const entry = entries.get(id);
+		if (!entry) return true;
+		if (entry.pendingSave) return false;
+		entries.delete(id);
+		entry.subscribers.clear();
+		notifyDocuments();
+		return true;
+	}
+
 	return {
+		discardDocument,
 		acquireDocument,
 		releaseDocument,
 		getDocument,

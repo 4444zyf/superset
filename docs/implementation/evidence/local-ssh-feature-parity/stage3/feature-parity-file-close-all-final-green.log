@@ -1,0 +1,27 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [90.80ms]
+(pass) the original explorer action opens a create form using the current remote directory [59.09ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [56.42ms]
+(pass) content search opens the selected remote file at the matched line [403.76ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [16.27ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [66.04ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [84.99ms]
+(pass) a truncated read cannot overwrite the complete remote file [49.39ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [28.60ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [80.79ms]
+(pass) editing a remote CRLF file preserves its line endings [77.91ms]
+(pass) Git diffs use the remote status category and surface transport failures [47.04ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [39.15ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [90.29ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [96.41ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [94.89ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [226.60ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [240.00ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [358.76ms]
+
+ 19 pass
+ 0 fail
+ 83 expect() calls
+Ran 19 tests across 1 file. [2.54s]

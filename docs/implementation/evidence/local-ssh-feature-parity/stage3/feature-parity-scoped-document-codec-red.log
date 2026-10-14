@@ -1,0 +1,51 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [2.36ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.43ms]
+(pass) a different backend cannot receive a previous backend's draft [0.31ms]
+(pass) binary bytes remain read-only and never enter a text save [0.44ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.27ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.38ms]
+149 | test("a late read from a released view cannot change a replacement document's line endings", async () => {
+150 |  const f=fixture();let finish!: (value:unknown)=>void;let reads=0;
+151 |  f.api.rpc=async request=>{f.calls.push(request);if(request.path==="filesystem.readFile"){if(++reads===1)return await new Promise(resolve=>{finish=resolve;}) as never;return {kind:"bytes",content:btoa("current\r\n"),revision:"r2",exceededLimit:false,byteLength:9} as never;}return {ok:true,revision:"r3"} as never;};
+152 |  const manager=new WorkstationFileDocuments(f.api);manager.acquire(first,"workspace","/repo/note.txt");manager.release(first,"workspace","/repo/note.txt");
+153 |  const current=manager.acquire(first,"workspace","/repo/note.txt");await settle();finish({kind:"bytes",content:btoa("old\n"),revision:"r1",exceededLimit:false,byteLength:4});await settle();
+154 |  current.setContent("current draft\n");await current.save();expect(f.calls.at(-1)).toMatchObject({input:{content:"current draft\r\n",precondition:{ifMatch:"r2"}}});
+                                                                                         ^
+error: expect(received).toMatchObject(expected)
+
+  {
++   "connectionId": "machine",
++   "generation": 1,
+    "input": {
++     "absolutePath": "/repo/note.txt",
+      "content":
+  "current draft
+  "
+  ,
++     "encoding": "utf-8",
++     "options": {
++       "create": false,
++       "overwrite": true,
++     },
+      "precondition": {
+        "ifMatch": "r2",
+      },
++     "workspaceId": "workspace",
+    },
++   "path": "filesystem.writeFile",
++   "type": "mutation",
+  }
+
+- Expected  - 0
++ Received  + 11
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:154:84)
+(fail) a late read from a released view cannot change a replacement document's line endings [0.88ms]
+
+ 6 pass
+ 1 fail
+ 16 expect() calls
+Ran 7 tests across 1 file. [231.00ms]

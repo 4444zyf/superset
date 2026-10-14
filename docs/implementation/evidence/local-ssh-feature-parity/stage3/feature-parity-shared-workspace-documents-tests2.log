@@ -1,0 +1,28 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [90.84ms]
+(pass) the original explorer action opens a create form using the current remote directory [59.53ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [54.80ms]
+(pass) content search opens the selected remote file at the matched line [400.48ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [18.18ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [67.91ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [108.36ms]
+(pass) a truncated read cannot overwrite the complete remote file [67.07ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [33.66ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [87.45ms]
+(pass) editing a remote CRLF file preserves its line endings [82.66ms]
+(pass) Git diffs use the remote status category and surface transport failures [58.16ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [49.72ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [156.24ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [120.24ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [94.11ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [228.03ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [227.84ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [345.88ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [229.13ms]
+
+ 20 pass
+ 0 fail
+ 91 expect() calls
+Ran 20 tests across 1 file. [2.91s]

@@ -8,6 +8,7 @@ import {
 	render,
 	screen,
 	waitFor,
+	within,
 } from "@testing-library/react";
 import type {
 	DirectDescriptor,
@@ -18,7 +19,7 @@ import { RemoteFiles } from "./RemoteFiles";
 
 afterEach(cleanup);
 async function fileEditor() {
-	const element = await screen.findByLabelText("File contents");
+	const element = await screen.findByRole("region", { name: "File contents" });
 	await waitFor(() =>
 		expect(element.querySelector(".cm-editor")).not.toBeNull(),
 	);
@@ -673,4 +674,166 @@ test("a lost autosave reply does not retry the write on the next window blur", a
 		f.calls.filter((call) => call.path === "filesystem.writeFile"),
 	).toHaveLength(1);
 	expect(contentOf(element)).toBe("newer unknown draft");
+});
+
+test("opening another file keeps both editable drafts and switching back does not re-read", async () => {
+	const f = fixture({
+		"filesystem.listDirectory": () => ({
+			entries: [
+				{
+					absolutePath: "/Users/remote/repo/note.txt",
+					name: "note.txt",
+					kind: "file",
+				},
+				{
+					absolutePath: "/Users/remote/repo/other.txt",
+					name: "other.txt",
+					kind: "file",
+				},
+			],
+		}),
+	});
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={connection}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	const firstEditor = await fileEditor();
+	replaceContent(firstEditor, "first retained draft");
+	fireEvent.click(screen.getByRole("button", { name: "other.txt" }));
+	await waitFor(() =>
+		expect(
+			screen
+				.getByRole("tab", { name: /other.txt/ })
+				.getAttribute("aria-selected"),
+		).toBe("true"),
+	);
+	replaceContent(await fileEditor(), "second retained draft");
+	fireEvent.click(screen.getByRole("tab", { name: /note.txt/ }));
+	expect(contentOf(await fileEditor())).toBe("first retained draft");
+	fireEvent.click(screen.getByRole("tab", { name: /other.txt/ }));
+	expect(contentOf(await fileEditor())).toBe("second retained draft");
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.readFile"),
+	).toHaveLength(2);
+});
+
+test("closing a dirty file tab requires confirmation and Cancel keeps its draft", async () => {
+	const f = fixture();
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={connection}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	const element = await fileEditor();
+	replaceContent(element, "retained until confirmation");
+	const tab = screen.getByRole("tab", { name: "note.txt" });
+	fireEvent.click(within(tab).getByRole("button", { name: "Close tab" }));
+	expect(await screen.findByRole("dialog")).not.toBeNull();
+	fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+	expect(contentOf(await fileEditor())).toBe("retained until confirmation");
+	fireEvent.click(within(tab).getByRole("button", { name: "Close tab" }));
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Discard changes" }),
+	);
+	await waitFor(() =>
+		expect(screen.queryByRole("tab", { name: "note.txt" })).toBeNull(),
+	);
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(0);
+});
+
+test("close all file tabs confirms all dirty drafts and closes them together", async () => {
+	const f = fixture({
+		"filesystem.listDirectory": () => ({
+			entries: [
+				{
+					absolutePath: "/Users/remote/repo/note.txt",
+					name: "note.txt",
+					kind: "file",
+				},
+				{
+					absolutePath: "/Users/remote/repo/other.txt",
+					name: "other.txt",
+					kind: "file",
+				},
+			],
+		}),
+	});
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={connection}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	replaceContent(await fileEditor(), "first draft");
+	fireEvent.click(screen.getByRole("button", { name: "other.txt" }));
+	replaceContent(await fileEditor(), "second draft");
+	fireEvent.contextMenu(screen.getByRole("tab", { name: "other.txt" }));
+	fireEvent.click(await screen.findByRole("menuitem", { name: "Close All" }));
+	expect((await screen.findByRole("dialog")).textContent).toContain("note.txt");
+	expect(screen.getByRole("dialog").textContent).toContain("other.txt");
+	fireEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+	await waitFor(() => expect(screen.queryAllByRole("tab")).toHaveLength(0));
+});
+
+test("a shared document provider retains the first workspace draft while another workspace is opened", async () => {
+	const { WorkstationFileDocuments, WorkstationFileDocumentsContext } =
+		await import("../../providers/WorkstationFileDocuments");
+	const f = fixture();
+	const manager = new WorkstationFileDocuments(f.api);
+	const view = render(
+		<WorkstationFileDocumentsContext value={manager}>
+			<RemoteFiles
+				api={f.api}
+				connection={connection}
+				workspaceId="first-workspace"
+				onError={f.onError}
+			/>
+		</WorkstationFileDocumentsContext>,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	replaceContent(await fileEditor(), "first workspace draft");
+	view.rerender(
+		<WorkstationFileDocumentsContext value={manager}>
+			<RemoteFiles
+				api={f.api}
+				connection={connection}
+				workspaceId="second-workspace"
+				onError={f.onError}
+			/>
+		</WorkstationFileDocumentsContext>,
+	);
+	await waitFor(() =>
+		expect(screen.queryByRole("region", { name: "File contents" })).toBeNull(),
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	expect(contentOf(await fileEditor())).toBe("remote contents");
+	replaceContent(await fileEditor(), "second workspace draft");
+	view.rerender(
+		<WorkstationFileDocumentsContext value={manager}>
+			<RemoteFiles
+				api={f.api}
+				connection={connection}
+				workspaceId="first-workspace"
+				onError={f.onError}
+			/>
+		</WorkstationFileDocumentsContext>,
+	);
+	expect(contentOf(await fileEditor())).toBe("first workspace draft");
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.readFile"),
+	).toHaveLength(2);
 });

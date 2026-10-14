@@ -1,1 +1,1 @@
-export { FileOperationDialog, type FileOperation } from "./FileOperationDialog";
+export { type FileOperation, FileOperationDialog } from "./FileOperationDialog";

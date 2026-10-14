@@ -11,7 +11,14 @@ import { OverflowFadeText } from "@superset/ui/overflow-fade-text";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@superset/ui/tooltip";
 import { cn } from "@superset/ui/utils";
 import { PencilIcon, XIcon } from "lucide-react";
-import { type ReactNode, useCallback, useRef, useState } from "react";
+import {
+	type ComponentProps,
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { useDrag, useDrop } from "react-dnd";
 import type { Tab } from "../../../../../../../types";
 import type { PaneRegistry } from "../../../../../../types";
@@ -21,7 +28,19 @@ import { TabRenameInput } from "./components/TabRenameInput";
 
 export const TAB_DRAG_TYPE = "tab";
 
+export type TabElementProps = Pick<
+	ComponentProps<"div">,
+	| "role"
+	| "aria-selected"
+	| "aria-label"
+	| "aria-controls"
+	| "tabIndex"
+	| "onKeyDown"
+>;
+
 interface TabItemProps<TData> {
+	deferMenuActions?: boolean;
+	elementProps?: TabElementProps;
 	canDropPane?: (item: { paneId?: string; store?: unknown }) => boolean;
 	tab: Tab<TData>;
 	tabs: Tab<TData>[];
@@ -39,6 +58,8 @@ interface TabItemProps<TData> {
 }
 
 export function TabItem<TData>({
+	deferMenuActions = false,
+	elementProps,
 	canDropPane,
 	tab,
 	tabs,
@@ -55,6 +76,17 @@ export function TabItem<TData>({
 	accessory,
 }: TabItemProps<TData>) {
 	const { t } = useLingui();
+	const pendingMenuAction = useRef<(() => void) | null>(null);
+	useEffect(
+		() => () => {
+			pendingMenuAction.current = null;
+		},
+		[],
+	);
+	const menuAction = (action: () => void) => () => {
+		if (deferMenuActions) pendingMenuAction.current = action;
+		else action();
+	};
 	const [isEditing, setIsEditing] = useState(false);
 	const [editValue, setEditValue] = useState("");
 	const title = useTabTitle(tab, tabs, registry);
@@ -124,6 +156,7 @@ export function TabItem<TData>({
 				{/* biome-ignore lint/a11y/useKeyWithClickEvents: tabs are pointer-driven; keyboard nav is out of scope here */}
 				<div
 					ref={setRef}
+					{...elementProps}
 					data-tab-id={tab.id}
 					data-active={isActive}
 					className={cn(
@@ -207,20 +240,32 @@ export function TabItem<TData>({
 					)}
 				</div>
 			</ContextMenuTrigger>
-			<ContextMenuContent>
+			<ContextMenuContent
+				onCloseAutoFocus={(event) => {
+					const action = pendingMenuAction.current;
+					pendingMenuAction.current = null;
+					if (action) {
+						event.preventDefault();
+						action();
+					}
+				}}
+			>
 				<ContextMenuItem onSelect={startEditing}>
 					<PencilIcon className="mr-2 size-4" />
 					<Trans>Rename</Trans>
 				</ContextMenuItem>
 				<ContextMenuSeparator />
-				<ContextMenuItem onSelect={onClose}>
+				<ContextMenuItem onSelect={menuAction(onClose)}>
 					<XIcon className="mr-2 size-4" />
 					<Trans>Close</Trans>
 				</ContextMenuItem>
-				<ContextMenuItem onSelect={onCloseOthers}>
+				<ContextMenuItem onSelect={menuAction(onCloseOthers)}>
 					<Trans>Close Others</Trans>
 				</ContextMenuItem>
-				<ContextMenuItem onSelect={onCloseAll}>
+				<ContextMenuItem
+					data-tab-action="close-all"
+					onSelect={menuAction(onCloseAll)}
+				>
 					<Trans>Close All</Trans>
 				</ContextMenuItem>
 			</ContextMenuContent>

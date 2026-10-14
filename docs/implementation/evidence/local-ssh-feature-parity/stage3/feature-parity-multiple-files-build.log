@@ -1,0 +1,183 @@
+vite v7.3.5 building ssr environment for production...
+transforming...
+../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+"readlinkSync", "fchmodSync", "fstatSync", "ftruncateSync", "renameSync", "unlinkSync" and "writeFileSync" are imported from external module "fs" but never used in "../../node_modules/.bun/@anthropic-ai+claude-agent-sdk@0.3.286+708e55e190287106/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs".
+✓ 2283 modules transformed.
+rendering chunks...
+[plugin vite:reporter]
+(!) /workspace/superset/packages/host-service/src/trpc/router/router.ts is dynamically imported by /workspace/superset/packages/host-service/src/trpc/router/direct/direct.ts but also statically imported by /workspace/superset/packages/host-service/src/trpc/router/index.ts, dynamic import will not move module into another chunk.
+
+dist/main/chunks/_commonjsHelpers-Bc2YnDe1.js           0.50 kB │ map:     0.12 kB
+dist/main/chunks/index-BgjHiyD6.js                      0.57 kB │ map:     1.12 kB
+dist/main/chunks/direct-backend-socket-DkMZYnH0.js      0.64 kB │ map:     1.26 kB
+dist/main/chunks/opencode-db-WkkrGH7s.js                1.24 kB │ map:     1.88 kB
+dist/main/chunks/constants-DJVBYalV.js                  1.81 kB │ map:     6.51 kB
+dist/main/chunks/paths-BvRpQFCu.js                      1.82 kB │ map:     4.46 kB
+dist/main/chunks/shell-ready-scanner-CE3vRceU.js        1.95 kB │ map:     5.40 kB
+dist/main/chunks/index-CaTEVz26.js                      3.42 kB │ map:     5.58 kB
+dist/main/chunks/pty-subprocess-ipc-BfiERt0u.js         3.89 kB │ map:     6.64 kB
+dist/main/host-worker.js                                4.58 kB │ map:    10.71 kB
+dist/main/chunks/index-DzOXdPAt.js                      5.91 kB │ map:    11.14 kB
+dist/main/chunks/import-lock-ByxWJzkQ.js                7.72 kB │ map:    14.98 kB
+dist/main/chunks/process-tree-CjLETv8L.js               7.90 kB │ map:    18.16 kB
+dist/main/pty-subprocess.js                            11.35 kB │ map:    22.61 kB
+dist/main/chunks/TerminalModes-Bd_kUDt4.js             16.37 kB │ map:    39.76 kB
+dist/main/direct-supervisor.js                         29.48 kB │ map:    57.41 kB
+dist/main/chunks/lifecycle-vjxMYAX9.js                 37.55 kB │ map:    67.74 kB
+dist/main/chunks/index-AzD7sLsK.js                     46.66 kB │ map:     0.58 kB
+dist/main/pty-daemon.js                                59.47 kB │ map:   138.00 kB
+dist/main/direct-backend.js                            81.08 kB │ map:   153.47 kB
+dist/main/git-task-worker.js                           89.65 kB │ map:   226.95 kB
+dist/main/chunks/media-files-BDJLkyvk.js              112.23 kB │ map:   229.05 kB
+dist/main/chunks/workspace-restore-BOEipeax.js        159.64 kB │ map:   284.37 kB
+dist/main/chunks/schemas-D1u67zwp.js                  189.98 kB │ map:   528.31 kB
+dist/main/chunks/usage-BCQm_NHO.js                    215.29 kB │ map:   568.20 kB
+dist/main/chunks/messages-D2zCgicN.js                 294.16 kB │ map:   385.98 kB
+dist/main/chunks/messages-CssA8QOi.js                 297.39 kB │ map:   389.24 kB
+dist/main/chunks/messages-VaFHHVmg.js                 316.65 kB │ map:   408.63 kB
+dist/main/chunks/messages-DMHco7CW.js                 327.22 kB │ map:   419.30 kB
+dist/main/chunks/messages-D6BoP8Oy.js                 338.54 kB │ map:   430.77 kB
+dist/main/chunks/messages-myvMIVvL.js                 339.10 kB │ map:   431.41 kB
+dist/main/terminal-host.js                            339.99 kB │ map:   578.46 kB
+dist/main/chunks/messages-FpGnyaEj.js                 340.80 kB │ map:   432.60 kB
+dist/main/chunks/messages-CeCdnIPo.js                 347.24 kB │ map:   439.32 kB
+dist/main/chunks/messages-Cw3bWnQo.js                 347.93 kB │ map:   440.15 kB
+dist/main/chunks/messages-Dz2i4y2v.js                 348.88 kB │ map:   445.74 kB
+dist/main/chunks/messages-Bn90MYYv.js                 350.66 kB │ map:   447.48 kB
+dist/main/chunks/messages-bzBxJcAp.js                 362.25 kB │ map:   453.84 kB
+dist/main/chunks/messages-Dq-2F__v.js                 369.19 kB │ map:   461.30 kB
+dist/main/chunks/messages-Bd572PNq.js                 369.87 kB │ map:   462.44 kB
+dist/main/chunks/messages-i9Y7hB--.js                 411.64 kB │ map:   502.86 kB
+dist/main/chunks/messages-Cu-d00-d.js                 514.62 kB │ map:   611.33 kB
+dist/main/index.js                                    731.20 kB │ map: 1,311.78 kB
+dist/main/host-service.js                           1,071.55 kB │ map: 2,502.73 kB
+dist/main/chunks/PskHostAuthProvider-fGIyOu4a.js    3,714.02 kB │ map: 7,440.61 kB
+✓ built in 10.27s
+vite v7.3.5 building ssr environment for production...
+transforming...
+✓ 2 modules transformed.
+rendering chunks...
+dist/preload/index.js  5.48 kB
+✓ built in 20ms
+vite v7.3.5 building client environment for production...
+transforming...
+Found 4 warnings while optimizing generated CSS:
+
+Issue #1:
+[2m│     -webkit-app-region: no-drag;[22m
+[2m│   }[22m
+[2m│[22m   ::highlight(markdown-search-matches) {
+[2m┆[22m               [33m[2m^--[22m 'highlight' is not recognized as a valid pseudo-element. Did you mean ':highlight' (pseudo-class) or is this a typo?[39m
+[2m┆[22m
+[2m│     background-color: var(--highlight-match);[22m
+[2m│   }[22m
+
+Issue #2:
+[2m│     background-color: var(--highlight-match);[22m
+[2m│   }[22m
+[2m│[22m   ::highlight(markdown-search-active) {
+[2m┆[22m               [33m[2m^--[22m 'highlight' is not recognized as a valid pseudo-element. Did you mean ':highlight' (pseudo-class) or is this a typo?[39m
+[2m┆[22m
+[2m│     background-color: var(--highlight-active);[22m
+[2m│   }[22m
+
+Issue #3:
+[2m│     background-color: var(--highlight-active);[22m
+[2m│   }[22m
+[2m│[22m   ::highlight(chat-search-matches) {
+[2m┆[22m               [33m[2m^--[22m 'highlight' is not recognized as a valid pseudo-element. Did you mean ':highlight' (pseudo-class) or is this a typo?[39m
+[2m┆[22m
+[2m│     background-color: var(--highlight-match);[22m
+[2m│   }[22m
+
+Issue #4:
+[2m│     background-color: var(--highlight-match);[22m
+[2m│   }[22m
+[2m│[22m   ::highlight(chat-search-active) {
+[2m┆[22m               [33m[2m^--[22m 'highlight' is not recognized as a valid pseudo-element. Did you mean ':highlight' (pseudo-class) or is this a typo?[39m
+[2m┆[22m
+[2m│     background-color: var(--highlight-active);[22m
+[2m│   }[22m
+
+
+superset-font://fonts/SF-Mono-Regular.otf referenced in superset-font://fonts/SF-Mono-Regular.otf didn't resolve at build time, it will remain unchanged to be resolved at runtime
+
+superset-font://fonts/SF-Mono-Bold.otf referenced in superset-font://fonts/SF-Mono-Bold.otf didn't resolve at build time, it will remain unchanged to be resolved at runtime
+
+superset-font://fonts/SF-Mono-RegularItalic.otf referenced in superset-font://fonts/SF-Mono-RegularItalic.otf didn't resolve at build time, it will remain unchanged to be resolved at runtime
+
+superset-font://fonts/SF-Mono-BoldItalic.otf referenced in superset-font://fonts/SF-Mono-BoldItalic.otf didn't resolve at build time, it will remain unchanged to be resolved at runtime
+../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 3888 modules transformed.
+rendering chunks...
+../../dist/renderer/index.html                                        0.62 kB
+../../dist/renderer/assets/index-D1e02bPL.css                       386.36 kB
+../../dist/renderer/assets/editor-typography-rNSB3sjF.js              0.44 kB │ map:      0.94 kB
+../../dist/renderer/assets/highlighted-body-OFNGDK62-D6WnI3Qh.js      0.82 kB │ map:      1.39 kB
+../../dist/renderer/assets/toml-l-vIeJ1I.js                           2.18 kB │ map:      4.18 kB
+../../dist/renderer/assets/index-DcevLNLy.js                          2.78 kB │ map:      5.43 kB
+../../dist/renderer/assets/shell-Dth_ixQU.js                          4.70 kB │ map:      9.17 kB
+../../dist/renderer/assets/swift-CDTTnXqh.js                          6.84 kB │ map:     12.50 kB
+../../dist/renderer/assets/dockerfile-DZ98RUDB.js                     8.17 kB │ map:     15.56 kB
+../../dist/renderer/assets/ruby-BLZt1c48.js                           9.59 kB │ map:     17.87 kB
+../../dist/renderer/assets/index-YjjpIfYc.js                         15.96 kB │ map:    104.05 kB
+../../dist/renderer/assets/index-D_Rr2MSi.js                         18.47 kB │ map:     32.56 kB
+../../dist/renderer/assets/index-CarMUQcG.js                         22.19 kB │ map:     36.51 kB
+../../dist/renderer/assets/index-C3sLCYpa.js                         24.76 kB │ map:     70.07 kB
+../../dist/renderer/assets/clike-B2ncW8Rc.js                         35.15 kB │ map:     59.50 kB
+../../dist/renderer/assets/index-CQpC1Cib.js                         35.61 kB │ map:     45.13 kB
+../../dist/renderer/assets/index-D_ZmugVM.js                         35.95 kB │ map:     54.05 kB
+../../dist/renderer/assets/index.dom-Bt1aynTj.js                     37.84 kB │ map:     80.56 kB
+../../dist/renderer/assets/index-Cb1ihdeY.js                         41.81 kB │ map:     45.78 kB
+../../dist/renderer/assets/index-BgUVBAIb.js                         44.00 kB │ map:     76.05 kB
+../../dist/renderer/assets/index-kF1_4hos.js                         55.01 kB │ map:    112.36 kB
+../../dist/renderer/assets/index-Cx0c81Z5.js                         55.95 kB │ map:     75.06 kB
+../../dist/renderer/assets/index-DZxlYqTB.js                         86.68 kB │ map:     92.95 kB
+../../dist/renderer/assets/index-BKUAlr52.js                         86.76 kB │ map:    176.50 kB
+../../dist/renderer/assets/index-CC4s4IMV.js                         92.98 kB │ map:    117.30 kB
+../../dist/renderer/assets/index-BaveP3aL.js                        103.38 kB │ map:    114.00 kB
+../../dist/renderer/assets/index-CK0MBNCw.js                        106.90 kB │ map:    114.02 kB
+../../dist/renderer/assets/trpc-client-tuT66Kvo.js                  165.33 kB │ map:    430.85 kB
+../../dist/renderer/assets/messages-Dxbd26sA.js                     294.10 kB │ map:    386.01 kB
+../../dist/renderer/assets/messages-CJZgeUxn.js                     297.32 kB │ map:    389.26 kB
+../../dist/renderer/assets/messages-uCLB3qjV.js                     316.58 kB │ map:    408.66 kB
+../../dist/renderer/assets/messages-DpappL4r.js                     327.16 kB │ map:    419.32 kB
+../../dist/renderer/assets/messages-D8zjtXgq.js                     338.48 kB │ map:    430.79 kB
+../../dist/renderer/assets/messages-Bv3KqdQm.js                     339.04 kB │ map:    431.44 kB
+../../dist/renderer/assets/messages-DfvkKnw2.js                     340.73 kB │ map:    432.63 kB
+../../dist/renderer/assets/messages-DQ2BLvY8.js                     347.18 kB │ map:    439.35 kB
+../../dist/renderer/assets/messages-Caj5d4-k.js                     347.87 kB │ map:    440.18 kB
+../../dist/renderer/assets/messages-pv8yYU4N.js                     348.82 kB │ map:    445.76 kB
+../../dist/renderer/assets/messages-COKICWmk.js                     350.60 kB │ map:    447.51 kB
+../../dist/renderer/assets/messages-DZkZAt2w.js                     362.19 kB │ map:    453.87 kB
+../../dist/renderer/assets/messages-DihIis3B.js                     369.13 kB │ map:    461.32 kB
+../../dist/renderer/assets/messages-C5xZ-zJf.js                     369.81 kB │ map:    462.46 kB
+../../dist/renderer/assets/messages-CpOYllaq.js                     411.57 kB │ map:    502.88 kB
+../../dist/renderer/assets/messages-BgRWcbAV.js                     514.56 kB │ map:    611.35 kB
+../../dist/renderer/assets/mermaid-GHXKKRXX-CQQnjrw2.js             764.03 kB │ map:  1,728.41 kB
+../../dist/renderer/assets/index-BhCtpUtC.js                        766.33 kB │ map:  1,632.17 kB
+../../dist/renderer/assets/index-CcPC83-5.js                      1,275.44 kB │ map:  2,225.18 kB
+../../dist/renderer/assets/index-C_brm8hd.js                      3,924.10 kB │ map: 13,669.30 kB
+✓ built in 23.84s

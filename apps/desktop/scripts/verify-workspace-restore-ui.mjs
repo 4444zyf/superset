@@ -3,6 +3,7 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { verifyWorkstationFileGitUi } from "./verify-workstation-file-git-ui.mjs";
+import { verifyWorkstationMultipleFilesUi } from "./verify-workstation-multiple-files-ui.mjs";
 import { verifyWorkstationSettingsUi } from "./verify-workstation-settings-ui.mjs";
 
 export async function verifyWorkspaceRestoreUi({
@@ -314,6 +315,14 @@ export async function verifyWorkspaceRestoreUi({
 		ready,
 		output,
 	});
+	await verifyWorkstationMultipleFilesUi({
+		getPage,
+		click,
+		screenshot,
+		output,
+	});
+	await ready();
+
 	await until(
 		saved,
 		(value) =>

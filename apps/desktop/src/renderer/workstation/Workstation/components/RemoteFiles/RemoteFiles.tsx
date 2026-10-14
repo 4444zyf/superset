@@ -2,52 +2,43 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { Button } from "@superset/ui/button";
 import { TooltipProvider } from "@superset/ui/tooltip";
 import { FilePlus, FolderPlus } from "lucide-react";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { EMPTY_FONT_SETTINGS } from "renderer/lib/font-settings";
+import {
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from "react";
 import { FilesTabHeaderButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/components/FilesTab/components/FilesTabHeaderButton/FilesTabHeaderButton";
 import { StageToggleButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/hooks/useChangesTab/components/ChangesFileList/components/StageToggleButton/StageToggleButton";
-import type { SaveResult } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
-import { detectLanguage } from "shared/detect-language";
+import type {
+	SaveResult,
+	SharedFileDocument,
+} from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
+import {
+	useWorkstationFileDocuments,
+	WorkstationFileDocumentsContext,
+} from "../../providers/WorkstationFileDocuments";
 import { useWorkstationAppearance } from "../../providers/WorkstationPreferencesContext";
+import { CloseFileDialog } from "./components/CloseFileDialog";
 import { FileActionMenu } from "./components/FileActionMenu/FileActionMenu";
 import {
 	type FileOperation,
 	FileOperationDialog,
 } from "./components/FileOperationDialog/FileOperationDialog";
+import { RemoteDocumentEditor } from "./components/RemoteDocumentEditor";
 import { RemoteFileSearch } from "./components/RemoteFileSearch/RemoteFileSearch";
+import { RemoteFileTabs } from "./components/RemoteFileTabs";
 import { RemoteGitActions } from "./components/RemoteGitActions/RemoteGitActions";
-import { useRemoteFileAutoSave } from "./hooks/useRemoteFileAutoSave";
-
-const CodeEditorSurface = lazy(() =>
-	import(
-		"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/views/CodeView/components/CodeEditor/CodeEditorSurface"
-	).then((module) => ({ default: module.CodeEditorSurface })),
-);
 
 interface Entry {
 	absolutePath: string;
 	name: string;
 	kind: "file" | "directory" | "symlink" | "other";
-}
-interface ReadResult {
-	kind: "text" | "bytes";
-	content: string;
-	exceededLimit: boolean;
-	revision: string;
-}
-interface Editor {
-	absolutePath: string;
-	original: string;
-	content: string;
-	revision: string;
-	truncated: boolean;
-	binary: boolean;
-	lineEnding: "\n" | "\r\n";
-	revealLine?: number;
 }
 interface ChangedFile {
 	path: string;
@@ -68,38 +59,6 @@ type Category = "staged" | "unstaged" | "against-base";
 
 const button = "justify-start text-xs";
 
-function editorFromRead(absolutePath: string, result: ReadResult): Editor {
-	let content = result.content;
-	let binary = false;
-	try {
-		if (result.kind === "bytes") {
-			const bytes = Uint8Array.from(atob(result.content), (character) =>
-				character.charCodeAt(0),
-			);
-			content = new TextDecoder("utf-8", {
-				fatal: true,
-				ignoreBOM: true,
-			}).decode(bytes);
-		}
-		binary = content.includes("\0");
-	} catch {
-		binary = true;
-		content = "";
-	}
-	const lineEnding =
-		content.includes("\r\n") && !/(^|[^\r])\n/.test(content) ? "\r\n" : "\n";
-	if (lineEnding === "\r\n") content = content.replaceAll("\r\n", "\n");
-	return {
-		absolutePath,
-		original: content,
-		content,
-		revision: result.revision,
-		truncated: result.exceededLimit,
-		binary,
-		lineEnding,
-	};
-}
-
 export function RemoteFiles({
 	api,
 	connection,
@@ -117,12 +76,40 @@ export function RemoteFiles({
 	const [root, setRoot] = useState("");
 	const [directory, setDirectory] = useState("");
 	const [entries, setEntries] = useState<Entry[]>([]);
-	const [editor, setEditor] = useState<Editor | null>(null);
+	const sharedManager = useContext(WorkstationFileDocumentsContext);
+	const documentsManager = useWorkstationFileDocuments(api);
+	useSyncExternalStore(
+		documentsManager.subscribe,
+		documentsManager.getVersion,
+		documentsManager.getVersion,
+	);
+	const documentView = documentsManager.getView(connection, workspaceId);
+	const documents = documentsManager
+		.getDocuments(connection, workspaceId)
+		.sort((a, b) => {
+			const first = documentView.order.indexOf(a.id);
+			const second = documentView.order.indexOf(b.id);
+			return (first < 0 ? 1000 : first) - (second < 0 ? 1000 : second);
+		});
+	const activeDocument =
+		documents.find((document) => document.id === documentView.activeId) ??
+		documents[0];
+	const editor = activeDocument
+		? { absolutePath: activeDocument.absolutePath }
+		: null;
+	useEffect(() => {
+		if (sharedManager) return;
+		return documentsManager.startAutoSave();
+	}, [sharedManager, documentsManager]);
+	useEffect(() => {
+		if (!sharedManager)
+			documentsManager.autoSave.setMode(appearance.fileAutoSave);
+	}, [sharedManager, documentsManager, appearance.fileAutoSave]);
 	const [status, setStatus] = useState<GitStatus | null>(null);
 	const [category, setCategory] = useState<Category>("unstaged");
 	const [diff, setDiff] = useState<(Diff & { path: string }) | null>(null);
 	const [busy, setBusy] = useState(false);
-	const [saveError, setSaveError] = useState<Error | null>(null);
+	const [closeIds, setCloseIds] = useState<string[]>([]);
 	const [fileOperation, setFileOperation] = useState<FileOperation | null>(
 		null,
 	);
@@ -141,7 +128,7 @@ export function RemoteFiles({
 	onErrorRef.current = onError;
 	const gitAvailableRef = useRef(connection.capabilities?.git === true);
 	gitAvailableRef.current = connection.capabilities?.git === true;
-	const dirty = editor !== null && editor.original !== editor.content;
+	const dirty = activeDocument?.dirty ?? false;
 	const rpc = <T,>(path: string, type: "query" | "mutation", input: unknown) =>
 		api.rpc<T>({
 			connectionId: connection.connectionId,
@@ -199,8 +186,6 @@ export function RemoteFiles({
 		setRoot("");
 		setDirectory("");
 		setEntries([]);
-		setEditor(null);
-		setSaveError(null);
 		setFileOperation(null);
 		setStatus(null);
 		setDiff(null);
@@ -253,102 +238,59 @@ export function RemoteFiles({
 			epoch.current++;
 		};
 	}, [api, connection.connectionId, connection.generation, workspaceId]);
-	const save = async (): Promise<SaveResult> => {
-		let saved: SaveResult = {
+	const closeDocument = (id: string) => {
+		const document = documents.find((document) => document.id === id);
+		if (!document) return;
+		try {
+			documentsManager.discard(connection, workspaceId, document.absolutePath);
+		} catch (error) {
+			report(error);
+		}
+	};
+	const save = async (
+		document: SharedFileDocument = activeDocument,
+	): Promise<SaveResult> => {
+		let result: SaveResult = {
 			status: "error",
 			error: new Error("File is unavailable for saving"),
 		};
-		await run(
-			async (version) => {
-				if (!editor || editor.truncated || editor.binary || !dirty) return;
-				const content = editor.content;
-				const result = await rpc<
-					{ ok: true; revision: string } | { ok: false; reason: string }
-				>("filesystem.writeFile", "mutation", {
-					workspaceId,
-					absolutePath: editor.absolutePath,
-					content:
-						editor.lineEnding === "\r\n"
-							? content.replaceAll("\n", "\r\n")
-							: content,
-					options: { create: false, overwrite: true },
-					precondition: { ifMatch: editor.revision },
-				});
-				if (version !== epoch.current) return;
-				if (!result.ok) {
-					const error = new Error(
-						result.reason === "conflict"
-							? t({
-									message:
-										"This file changed on the remote machine. Your draft is preserved; reload before saving.",
-								})
-							: t({
-									message:
-										"The remote file could not be saved. Your draft is preserved.",
-								}),
-					);
-					setSaveError(error);
-					saved =
-						result.reason === "conflict"
-							? { status: "conflict", diskContent: null }
-							: { status: "error", error };
-					throw error;
-				}
-				setSaveError(null);
-				saved = { status: "saved", revision: result.revision };
-				setEditor((previous) =>
-					previous
-						? { ...previous, original: content, revision: result.revision }
-						: null,
+		await run(async (version) => {
+			if (!document || !document.dirty) return;
+			result = await document.save();
+			if (version !== epoch.current) return;
+			if (result.status === "conflict" || result.status === "error") return;
+			if (result.status !== "saved")
+				throw new Error(
+					t({
+						message:
+							"The remote file could not be saved. Your draft is preserved.",
+					}),
 				);
-				await refreshGit(version);
-			},
-			(error) => {
-				const failure =
-					error instanceof Error ? error : new Error(String(error));
-				if (saved.status !== "saved") setSaveError(failure);
-				if (saved.status !== "conflict" && saved.status !== "saved")
-					saved = { status: "error", error: failure };
-			},
-		);
-		return saved;
+			await refreshGit(version);
+		});
+		return result;
 	};
 	const openFile = (absolutePath: string, revealLine?: number) =>
 		run(async (version) => {
-			const result = await rpc<ReadResult>("filesystem.readFile", "query", {
-				workspaceId,
-				absolutePath,
-				maxBytes: 1024 * 1024,
+			if (version !== epoch.current) return;
+			const existing = documentsManager
+				.getDocuments(connection, workspaceId)
+				.find((document) => document.absolutePath === absolutePath);
+			const document =
+				existing ??
+				documentsManager.acquire(connection, workspaceId, absolutePath);
+			documentsManager.updateView(connection, workspaceId, {
+				activeId: document.id,
+				...(revealLine
+					? {
+							revealLines: {
+								...documentView.revealLines,
+								[document.id]: revealLine,
+							},
+						}
+					: {}),
 			});
-			if (version === epoch.current) {
-				setSaveError(null);
-				setEditor({ ...editorFromRead(absolutePath, result), revealLine });
-			}
 		});
-	const onEditorFocusChange = useRemoteFileAutoSave({
-		scope: operationOwner,
-		mode: appearance.fileAutoSave,
-		document: editor
-			? {
-					id: `${operationOwner}:${editor.absolutePath}`,
-					content:
-						editor.binary || editor.truncated
-							? { kind: "too-large" }
-							: {
-									kind: "text",
-									value: editor.content,
-									revision: editor.revision,
-								},
-					dirty,
-					pendingSave: busy,
-					saveError,
-					conflict: null,
-					orphaned: false,
-					hasExternalChange: saveError !== null,
-					save,
-				}
-			: null,
-	});
 
 	return (
 		<TooltipProvider>
@@ -411,10 +353,10 @@ export function RemoteFiles({
 						api={api}
 						connection={connection}
 						workspaceId={workspaceId}
-						disabled={busy || dirty}
+						disabled={busy}
 						onError={report}
 						onOpen={(path, line) => {
-							if (!dirty && !busy) {
+							if (!busy) {
 								setTab("files");
 								void openFile(path, line);
 							}
@@ -473,11 +415,12 @@ export function RemoteFiles({
 									className="flex items-center gap-1"
 								>
 									<Button
+										data-file-entry-path={entry.absolutePath}
 										variant="outline"
 										size="sm"
 										type="button"
 										className={button}
-										disabled={busy || dirty || entry.kind === "other"}
+										disabled={busy || entry.kind === "other"}
 										onClick={() =>
 											void (entry.kind === "directory"
 												? run((version) => browse(entry.absolutePath, version))
@@ -501,92 +444,61 @@ export function RemoteFiles({
 								</div>
 							))}
 						</div>
-						{editor && (
-							<div className="space-y-2">
-								<code className="block text-xs break-all">
-									{editor.absolutePath}
-								</code>
-								{editor.binary ? (
-									<p className="text-sm text-muted-foreground">
-										<Trans>Binary files cannot be edited here.</Trans>
-									</p>
-								) : (
-									<>
-										{editor.truncated && (
-											<p className="text-sm text-amber-300">
-												<Trans>
-													This preview is truncated. Saving is disabled.
-												</Trans>
-											</p>
-										)}
-										<section
-											className="h-80 border border-border rounded-md overflow-hidden"
-											aria-label={t({ message: "File contents" })}
-											onBlur={(event) => {
-												if (
-													!event.currentTarget.contains(
-														event.relatedTarget as Node | null,
-													)
-												)
-													onEditorFocusChange();
-											}}
-										>
-											<Suspense
-												fallback={
-													<div className="p-3 text-muted-foreground">
-														<Trans>Files</Trans>
-													</div>
-												}
-											>
-												<CodeEditorSurface
-													key={editor.absolutePath}
-													value={editor.content}
-													language={detectLanguage(editor.absolutePath)}
-													theme={appearance.theme}
-													fontSettings={{
-														...EMPTY_FONT_SETTINGS,
-														...appearance.fontSettings,
-													}}
-													readOnly={busy || editor.truncated}
-													revealLine={editor.revealLine}
-													onChange={(content) =>
-														setEditor({ ...editor, content })
-													}
-													onSave={() => {
-														if (!busy && !editor.truncated && dirty)
-															void save();
-													}}
-												/>
-											</Suspense>
-										</section>
-										<div className="flex gap-2">
-											<Button
-												variant="outline"
-												size="sm"
-												type="button"
-												className={button}
-												disabled={busy || editor.truncated || !dirty}
-												onClick={() => void save()}
-											>
-												<Trans>Save file</Trans>
-											</Button>
-											<Button
-												variant="outline"
-												size="sm"
-												type="button"
-												className={button}
-												disabled={busy}
-												onClick={() => {
-													setEditor(null);
-												}}
-											>
-												<Trans>Close file and discard draft</Trans>
-											</Button>
-										</div>
-									</>
-								)}
-							</div>
+						{documents.length > 0 && (
+							<RemoteFileTabs
+								documents={documents}
+								activeId={activeDocument?.id ?? null}
+								labels={documentView.labels}
+								onSelect={(id) =>
+									documentsManager.updateView(connection, workspaceId, {
+										activeId: id,
+									})
+								}
+								onClose={(ids) => {
+									if (
+										documents.some(
+											(document) => ids.includes(document.id) && document.dirty,
+										)
+									)
+										setCloseIds(ids);
+									else for (const id of ids) closeDocument(id);
+								}}
+								onRename={(id, name) => {
+									const labels = { ...documentView.labels };
+									if (name) labels[id] = name;
+									else delete labels[id];
+									documentsManager.updateView(connection, workspaceId, {
+										labels,
+									});
+								}}
+								onOrder={(id, index) => {
+									const order = documents
+										.map((document) => document.id)
+										.filter((value) => value !== id);
+									order.splice(index, 0, id);
+									documentsManager.updateView(connection, workspaceId, {
+										order,
+									});
+								}}
+							/>
 						)}
+						{documents.map((document) => (
+							<RemoteDocumentEditor
+								key={document.id}
+								document={document}
+								active={document.id === activeDocument?.id}
+								busy={busy}
+								revealLine={documentView.revealLines[document.id]}
+								onSave={() => {
+									void save(document);
+								}}
+								onClose={() => closeDocument(document.id)}
+								onFocusChange={() =>
+									documentsManager.autoSave.onFocusChange(document)
+								}
+								onError={report}
+							/>
+						))}
 					</>
 				) : (
 					<>
@@ -729,6 +641,16 @@ export function RemoteFiles({
 						)}
 					</>
 				)}
+				<CloseFileDialog
+					documents={documents.filter((document) =>
+						closeIds.includes(document.id),
+					)}
+					onCancel={() => setCloseIds([])}
+					onDiscard={() => {
+						for (const id of closeIds) closeDocument(id);
+						setCloseIds([]);
+					}}
+				/>
 				{fileOperation && (
 					<FileOperationDialog
 						api={api}
@@ -751,7 +673,7 @@ export function RemoteFiles({
 									editor?.absolutePath === fileOperation.absolutePath &&
 									fileOperation.kind !== "copy"
 								)
-									setEditor(null);
+									if (activeDocument) closeDocument(activeDocument.id);
 							})
 						}
 					/>

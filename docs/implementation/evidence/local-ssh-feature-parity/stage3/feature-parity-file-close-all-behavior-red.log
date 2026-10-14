@@ -1,0 +1,40 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [94.70ms]
+(pass) the original explorer action opens a create form using the current remote directory [68.18ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [64.21ms]
+(pass) content search opens the selected remote file at the matched line [413.16ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [23.33ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [100.13ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [87.96ms]
+(pass) a truncated read cannot overwrite the complete remote file [58.45ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [31.05ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [86.94ms]
+(pass) editing a remote CRLF file preserves its line endings [95.34ms]
+(pass) Git diffs use the remote status category and surface transport failures [35.83ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [29.05ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [84.61ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [78.74ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [95.48ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [203.55ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [256.82ms]
+732 |
+733 | test("close all file tabs confirms all dirty drafts and closes them together", async () => {
+734 |  const f=fixture({"filesystem.listDirectory":()=>({entries:[{absolutePath:"/Users/remote/repo/note.txt",name:"note.txt",kind:"file"},{absolutePath:"/Users/remote/repo/other.txt",name:"other.txt",kind:"file"}]})});render(<RemoteFiles api={f.api} connection={connection} workspaceId="workspace" onError={f.onError} />);
+735 |  fireEvent.click(await screen.findByRole("button",{name:"note.txt"}));replaceContent(await fileEditor(),"first draft");fireEvent.click(screen.getByRole("button",{name:"other.txt"}));replaceContent(await fileEditor(),"second draft");
+736 |  fireEvent.contextMenu(screen.getByRole("tab",{name:"other.txt"}));fireEvent.click(await screen.findByRole("menuitem",{name:"Close All"}));
+737 |  expect((await screen.findByRole("dialog")).textContent).toContain("note.txt");expect(screen.getByRole("dialog").textContent).toContain("other.txt");
+                                                               ^
+error: expect(received).toContain(expected)
+
+Expected to contain: "note.txt"
+Received: "Unsaved changesCancelDiscard changesClose"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:737:58)
+(fail) close all file tabs confirms all dirty drafts and closes them together [325.46ms]
+
+ 18 pass
+ 1 fail
+ 81 expect() calls
+Ran 19 tests across 1 file. [2.58s]
