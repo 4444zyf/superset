@@ -1,0 +1,87 @@
+file:///workspace/superset/apps/desktop/scripts/verify-workstation-settings-ui.mjs:21
+		throw new Error(
+		      ^
+
+Error: Settings UI acceptance did not complete: => and !==.
+
+Live preview
+17px · 1.53 line height
+settings.ts
+TypeScript
+1
+2
+3
+4
+5
+6
+7
+// Strings, numbers, booleans & symbols
+type Result<T> = { value: T; cached: boolean };
+const active = items.filter((item) => item !== null);
+const ready = active.length >= 3 && enabled !== false;
+const label = ready ? "Ready →" : "Waiting…";
+return { label, value: active ?? [] };
+// => === !== >= <= != ??
+ui-monospace, Menlo, Consolas, Liberation Mono, monospace
+400 · Ligatures on
+Terminal typography
+
+Typography and cursor behavior used in V2 terminal panels. Nerd Fonts are recommended.
+
+Reset terminal
+Font family
+JetBrains Mono
+Font size
+px
+Line height
+Letter spacing (px)
+Font weight
+400
+Ligatures
+
+Combine sequences such as => and !==.
+
+Minimum contrast
+Theme default
+Cursor style
+Block
+Cursor blinking
+
+Animate the active terminal cursor.
+
+Live preview
+18px · 1 line height
+Terminal
+zsh
+~/agent $ mastra dev
+→ Loaded 3 tools · 1 agent · 0 workflows
+~/agent $ bun test
+✓ 14 tests passed · 0.24s
+~/agent $ git status --short
+M src/settings/appearance.tsx
+tip: use &&, ||, =>, !==, >= and <=
+~/agent $
+"JetBrains Mono", "JetBrainsMono Nerd Font", "MesloLGM Nerd Font", "MesloLGM NF", "MesloLGS NF", "MesloLGS Nerd Font", "Hack Nerd Font", "FiraCode Nerd Font", "CaskaydiaCove Nerd Font", "Symbols Nerd Font Mono", "Symbols Nerd Font", "Menlo", "Monaco", "Courier New", monospace
+400 · Ligatures on
+Terminal
+Copy on select
+Close
+Aa
+Dark
+Aa
+Light
+Aa
+Monokai
+Aa
+Catppuccin Latte
+Aa
+Solarized Light
+Aa
+Vellum
+    at until (file:///workspace/superset/apps/desktop/scripts/verify-workstation-settings-ui.mjs:21:9)
+    at async select (file:///workspace/superset/apps/desktop/scripts/verify-workstation-settings-ui.mjs:74:3)
+    at async verifyWorkstationSettingsUi (file:///workspace/superset/apps/desktop/scripts/verify-workstation-settings-ui.mjs:105:2)
+    at async verifyWorkspaceRestoreUi (file:///workspace/superset/apps/desktop/scripts/verify-workspace-restore-ui.mjs:309:2)
+    at async <anonymous> (/workspace/superset/apps/desktop/scripts/verify-brand-ui.mjs:484:4)
+
+Node.js v24.19.0
