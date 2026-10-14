@@ -22,14 +22,14 @@ export async function verifyWorkstationGitDiffUi({
 	};
 	await click("text:Files");
 	await click("text:Changes");
-	const button = '[data-git-path="restore-ui.txt"] button';
+	const button = '[data-git-path="feature-native.txt"] button';
 	await until(() =>
 		evaluate(
 			`document.querySelector(${JSON.stringify(button)})?.disabled===false`,
 		),
 	);
 	await click(button);
-	const dom = `document.querySelector('[data-remote-git-diff="restore-ui.txt"] diffs-container')`;
+	const dom = `document.querySelector('[data-remote-git-diff="feature-native.txt"] diffs-container')`;
 	const shadow = `${dom}?.shadowRoot`;
 	await until(() =>
 		evaluate(
@@ -39,7 +39,7 @@ export async function verifyWorkstationGitDiffUi({
 	const before = await evaluate(
 		`(()=>{const root=${shadow};return {removed:[...root.querySelectorAll('[data-line][data-line-type*=deletion]')].map(e=>e.textContent).join('\\n'),added:[...root.querySelectorAll('[data-line][data-line-type*=addition]')].map(e=>e.textContent).join('\\n')};})()`,
 	);
-	assert.ok(before.added.includes("after upstream editor"));
+	assert.ok(before.added.includes("first retained editor draft"));
 	await click('button[aria-label="Unified view"]');
 	await until(() =>
 		evaluate(
