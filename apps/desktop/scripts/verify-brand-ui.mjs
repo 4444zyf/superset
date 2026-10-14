@@ -189,7 +189,7 @@ async function stop() {
 }
 async function click(selector) {
 	const point = await page.evaluate(
-		`(() => { const selector=${JSON.stringify(selector)}; const e = selector.startsWith("text:") ? [...document.querySelectorAll("button,[data-tab-id]")].find(b=>b.textContent.trim()===selector.slice(5)) : document.querySelector(selector); if (!e) throw new Error('Missing visible input'); const r = e.getBoundingClientRect(); if (r.y < 0 || r.bottom > innerHeight) throw new Error('Input is outside viewport'); return {x:r.x+r.width/2, y:r.y+r.height/2}; })()`,
+		`(() => { const selector=${JSON.stringify(selector)}; const e = selector.startsWith("tree:") ? [...document.querySelectorAll("file-tree-container")].map(host=>host.shadowRoot?.querySelector('[data-item-path='+JSON.stringify(selector.slice(5))+']')).find(Boolean) : selector.startsWith("text:") ? [...document.querySelectorAll("button,[data-tab-id]")].find(b=>b.textContent.trim()===selector.slice(5)) : document.querySelector(selector); if (!e) throw new Error('Missing visible input'); const r = e.getBoundingClientRect(); if (r.y < 0 || r.bottom > innerHeight) throw new Error('Input is outside viewport'); return {x:r.x+r.width/2, y:r.y+r.height/2}; })()`,
 	);
 	await page.call("Input.dispatchMouseEvent", {
 		type: "mousePressed",
@@ -515,7 +515,15 @@ try {
 			JSON.stringify(bounds, null, 2),
 		);
 	}
-	if(page) { const view = await page.evaluate("window.directWorkstation.getWorkspaceView()").catch(()=>null); writeFileSync(join(output,"failure-view.json"),JSON.stringify(view,null,2)); }
+	if (page) {
+		const view = await page
+			.evaluate("window.directWorkstation.getWorkspaceView()")
+			.catch(() => null);
+		writeFileSync(
+			join(output, "failure-view.json"),
+			JSON.stringify(view, null, 2),
+		);
+	}
 	throw error;
 } finally {
 	if (ownedSourceFixture)

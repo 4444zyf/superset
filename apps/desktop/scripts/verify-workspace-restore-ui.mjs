@@ -3,6 +3,7 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { verifyWorkstationFileGitUi } from "./verify-workstation-file-git-ui.mjs";
+import { verifyWorkstationFileTreeUi } from "./verify-workstation-file-tree-ui.mjs";
 import { verifyWorkstationMultipleFilesUi } from "./verify-workstation-multiple-files-ui.mjs";
 import { verifyWorkstationSettingsUi } from "./verify-workstation-settings-ui.mjs";
 
@@ -75,10 +76,10 @@ export async function verifyWorkspaceRestoreUi({
 	await click("text:Files");
 	await until(() =>
 		evaluate(
-			"[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='restore-ui.txt' && !b.disabled)",
+			"Boolean(document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path=\"restore-ui.txt\"]'))",
 		),
 	);
-	await click("text:restore-ui.txt");
+	await click("tree:restore-ui.txt");
 	await until(() => evaluate("Boolean(document.querySelector('.cm-content'))"));
 	await click(".cm-content");
 	await getPage().call("Input.dispatchKeyEvent", {
@@ -97,7 +98,7 @@ export async function verifyWorkspaceRestoreUi({
 		),
 	);
 	await click("text:Close file and discard draft");
-	await click("text:restore-ui.txt");
+	await click("tree:restore-ui.txt");
 	await until(() =>
 		evaluate(
 			"document.querySelector('.cm-content')?.textContent==='after upstream editor'",
@@ -299,10 +300,10 @@ export async function verifyWorkspaceRestoreUi({
 	await click("text:Files");
 	await until(() =>
 		evaluate(
-			"[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='restore-ui.txt' && !b.disabled)",
+			"Boolean(document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path=\"restore-ui.txt\"]'))",
 		),
 	);
-	await click("text:restore-ui.txt");
+	await click("tree:restore-ui.txt");
 	await until(() => evaluate("Boolean(document.querySelector('.cm-content'))"));
 	await verifyWorkstationFileGitUi({ getPage, click, screenshot, output });
 	await click("text:Terminal");
@@ -321,6 +322,7 @@ export async function verifyWorkspaceRestoreUi({
 		screenshot,
 		output,
 	});
+	await verifyWorkstationFileTreeUi({ getPage, click, screenshot, output });
 	await ready();
 
 	await until(

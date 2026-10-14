@@ -1,0 +1,37 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [97.17ms]
+(pass) the original explorer action opens a create form using the current remote directory [110.18ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [132.57ms]
+(pass) content search opens the selected remote file at the matched line [494.81ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [68.43ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [147.15ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [134.76ms]
+(pass) a truncated read cannot overwrite the complete remote file [107.01ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [73.48ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [153.19ms]
+(pass) editing a remote CRLF file preserves its line endings [151.88ms]
+(pass) Git diffs use the remote status category and surface transport failures [64.07ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [89.36ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [166.70ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [134.48ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [169.95ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [292.92ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [301.76ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [382.45ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [267.74ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/RemoteFileTree.test.tsx:
+(pass) original tree rows expand a remote folder and open its file without replacing siblings [114.60ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/file-tree-controller.test.ts:
+(pass) the original tree loads an expanded remote folder once and retains its siblings [1.46ms]
+(pass) a directory reply from a stopped tree cannot appear in its replacement [0.63ms]
+(pass) directory responses cannot install paths outside the queried folder [0.67ms]
+(pass) a bounded tree rejects an oversized batch without dropping the current paths [0.53ms]
+
+ 25 pass
+ 0 fail
+ 169 expect() calls
+Ran 25 tests across 3 files. [4.06s]

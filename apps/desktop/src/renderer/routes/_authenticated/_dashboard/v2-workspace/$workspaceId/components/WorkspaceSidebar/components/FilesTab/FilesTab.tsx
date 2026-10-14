@@ -7,10 +7,7 @@ import type {
 	ContextMenuItem as PierreContextMenuItem,
 	ContextMenuOpenContext as PierreContextMenuOpenContext,
 } from "@pierre/trees";
-import {
-	FileTree as PierreFileTree,
-	useFileTree as usePierreFileTree,
-} from "@pierre/trees/react";
+import { useFileTree as usePierreFileTree } from "@pierre/trees/react";
 import type { AppRouter } from "@superset/host-service";
 import { toast } from "@superset/ui/sonner";
 import { workspaceTrpc } from "@superset/workspace-client";
@@ -31,34 +28,22 @@ import {
 	useSidebarFilePolicy,
 } from "renderer/lib/clickPolicy";
 import { useFallthroughIcons } from "renderer/lib/fileIcons";
-import {
-	createPierreTreeStyle,
-	PIERRE_TREE_UNSAFE_CSS,
-} from "renderer/lib/pierreTree";
+import { PIERRE_TREE_UNSAFE_CSS } from "renderer/lib/pierreTree";
 import { PierreRowContextMenu } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/PierreRowContextMenu";
 import { useOpenInExternalEditor } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/useOpenInExternalEditor";
 import { setFileDragData } from "../../utils/setFileDragData";
 import { FileMenuItems } from "./components/FileMenuItems";
 import { FilesTabDropOverlay } from "./components/FilesTabDropOverlay";
 import { FilesTabHeaderButton } from "./components/FilesTabHeaderButton";
+import { FileTreeSurface } from "./components/FileTreeSurface/FileTreeSurface";
 import { FolderMenuItems } from "./components/FolderMenuItems";
-import {
-	FILE_EXPLORER_INDENT,
-	FILE_EXPLORER_OVERSCAN,
-	FILE_EXPLORER_ROW_HEIGHT,
-} from "./constants";
+import { FILE_EXPLORER_OVERSCAN, FILE_EXPLORER_ROW_HEIGHT } from "./constants";
 import { useFilesTabActions } from "./hooks/useFilesTabActions";
 import { useFilesTabBridge } from "./hooks/useFilesTabBridge";
 import { useFilesTabDrop } from "./hooks/useFilesTabDrop";
 import { useFileTreeScrollFade } from "./hooks/useFileTreeScrollFade";
 import { buildPierreGitStatus } from "./utils/buildPierreGitStatus";
 import { stripTrailingSlash, toAbs, toRel } from "./utils/treePath";
-
-const TREE_STYLE = createPierreTreeStyle({
-	rowHeight: FILE_EXPLORER_ROW_HEIGHT,
-	levelIndent: FILE_EXPLORER_INDENT,
-	withSearchChrome: true,
-});
 
 type GitStatusData = inferRouterOutputs<AppRouter>["git"]["getStatus"];
 
@@ -342,10 +327,9 @@ export function FilesTab({
 			onDrop={drop.onDrop}
 		>
 			<ShadowClickHint hint={filePolicy.hint} findRow={findFileRow}>
-				<PierreFileTree
+				<FileTreeSurface
 					model={model}
 					className="flex-1 min-h-0"
-					style={TREE_STYLE}
 					header={
 						<div
 							data-file-tree-header="true"

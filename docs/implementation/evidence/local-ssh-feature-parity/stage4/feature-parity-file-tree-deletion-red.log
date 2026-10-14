@@ -1,0 +1,31 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/file-tree-controller.test.ts:
+(pass) the original tree loads an expanded remote folder once and retains its siblings [5.39ms]
+(pass) a directory reply from a stopped tree cannot appear in its replacement [0.41ms]
+(pass) directory responses cannot install paths outside the queried folder [0.26ms]
+(pass) a bounded tree rejects an oversized batch without dropping the current paths [0.72ms]
+117 |   if(deleted)throw new Error("Directory not found");
+118 |   return [{absolutePath:"/repo/src/main.ts",kind:"file"}];
+119 |  },{onError:error=>errors.push(error)});
+120 |  controller.start();await settle();asDirectoryHandle(model.getItem("src/"))?.expand();await settle();
+121 |  deleted=true;await controller.refresh();
+122 |  expect(errors).toEqual([]);
+                      ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   [Error: Directory not found],
++ ]
+
+- Expected  - 1
++ Received  + 3
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/file-tree-controller.test.ts:122:17)
+(fail) refresh removes a deleted expanded directory without querying its missing path [0.83ms]
+
+ 4 pass
+ 1 fail
+ 13 expect() calls
+Ran 5 tests across 1 file. [185.00ms]

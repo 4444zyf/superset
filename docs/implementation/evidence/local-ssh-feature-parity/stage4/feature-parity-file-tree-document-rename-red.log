@@ -1,0 +1,25 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [2.11ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.67ms]
+(pass) a different backend cannot receive a previous backend's draft [0.46ms]
+(pass) binary bytes remain read-only and never enter a text save [0.25ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.32ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.33ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.45ms]
+188 | });
+189 |
+190 | test("a confirmed remote rename keeps the original document id, draft and CRLF codec", async () => {
+191 |  const f=fixture();const manager=new WorkstationFileDocuments(f.api);
+192 |  const document=manager.acquire(first,"workspace","/repo/src/note.txt");await settle();document.setContent("draft\n");
+193 |  manager.dispatchFsEvent(first,"workspace",{kind:"rename",oldAbsolutePath:"/repo/src",absolutePath:"/repo/renamed",isDirectory:true});
+               ^
+TypeError: manager.dispatchFsEvent is not a function. (In 'manager.dispatchFsEvent(first, "workspace", { kind: "rename", oldAbsolutePath: "/repo/src", absolutePath: "/repo/renamed", isDirectory: !0 })', 'manager.dispatchFsEvent' is undefined)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:193:10)
+(fail) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.53ms]
+
+ 7 pass
+ 1 fail
+ 16 expect() calls
+Ran 8 tests across 1 file. [184.00ms]

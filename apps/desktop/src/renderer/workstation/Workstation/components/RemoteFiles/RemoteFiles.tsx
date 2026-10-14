@@ -1,5 +1,10 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Button } from "@superset/ui/button";
+import {
+	ResizableHandle,
+	ResizablePanel,
+	ResizablePanelGroup,
+} from "@superset/ui/resizable";
 import { TooltipProvider } from "@superset/ui/tooltip";
 import { FilePlus, FolderPlus } from "lucide-react";
 import {
@@ -9,6 +14,7 @@ import {
 	useState,
 	useSyncExternalStore,
 } from "react";
+import { PierreRowContextMenu } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/PierreRowContextMenu";
 import { FilesTabHeaderButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/components/FilesTab/components/FilesTabHeaderButton/FilesTabHeaderButton";
 import { StageToggleButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/hooks/useChangesTab/components/ChangesFileList/components/StageToggleButton/StageToggleButton";
 import type {
@@ -25,7 +31,7 @@ import {
 } from "../../providers/WorkstationFileDocuments";
 import { useWorkstationAppearance } from "../../providers/WorkstationPreferencesContext";
 import { CloseFileDialog } from "./components/CloseFileDialog";
-import { FileActionMenu } from "./components/FileActionMenu/FileActionMenu";
+import { FileActionItems } from "./components/FileActionMenu/components/FileActionItems/FileActionItems";
 import {
 	type FileOperation,
 	FileOperationDialog,
@@ -33,13 +39,10 @@ import {
 import { RemoteDocumentEditor } from "./components/RemoteDocumentEditor";
 import { RemoteFileSearch } from "./components/RemoteFileSearch/RemoteFileSearch";
 import { RemoteFileTabs } from "./components/RemoteFileTabs";
+import type { FileTreeController } from "./components/RemoteFileTree/file-tree-controller";
+import { RemoteFileTree } from "./components/RemoteFileTree/RemoteFileTree";
 import { RemoteGitActions } from "./components/RemoteGitActions/RemoteGitActions";
 
-interface Entry {
-	absolutePath: string;
-	name: string;
-	kind: "file" | "directory" | "symlink" | "other";
-}
 interface ChangedFile {
 	path: string;
 	status: string;
@@ -75,7 +78,9 @@ export function RemoteFiles({
 	const [tab, setTab] = useState<"files" | "changes" | "search">("files");
 	const [root, setRoot] = useState("");
 	const [directory, setDirectory] = useState("");
-	const [entries, setEntries] = useState<Entry[]>([]);
+	const [treeRefresh, setTreeRefresh] = useState(0);
+	const treeController = useRef<FileTreeController | null>(null);
+	const pendingTreeOperation = useRef<FileOperation | null>(null);
 	const sharedManager = useContext(WorkstationFileDocumentsContext);
 	const documentsManager = useWorkstationFileDocuments(api);
 	useSyncExternalStore(
@@ -94,9 +99,7 @@ export function RemoteFiles({
 	const activeDocument =
 		documents.find((document) => document.id === documentView.activeId) ??
 		documents[0];
-	const editor = activeDocument
-		? { absolutePath: activeDocument.absolutePath }
-		: null;
+
 	useEffect(() => {
 		if (sharedManager) return;
 		return documentsManager.startAutoSave();
@@ -161,16 +164,16 @@ export function RemoteFiles({
 			}
 		}
 	};
-	const browse = async (absolutePath: string, version: number) => {
-		const result = await rpc<{ entries: Entry[] }>(
-			"filesystem.listDirectory",
-			"query",
-			{ workspaceId, absolutePath },
-		);
-		if (version === epoch.current) {
-			setDirectory(absolutePath);
-			setEntries(result.entries);
-		}
+	const browse = async (_absolutePath: string, version: number) => {
+		if (version !== epoch.current) return;
+		if (treeController.current) {
+			await treeController.current.refresh();
+			if (
+				version === epoch.current &&
+				!treeController.current?.containsDirectory(_absolutePath)
+			)
+				setDirectory(root);
+		} else setTreeRefresh((value) => value + 1);
 	};
 	const refreshGit = async (version: number) => {
 		if (!connection.capabilities?.git) return;
@@ -185,7 +188,7 @@ export function RemoteFiles({
 		running.current = false;
 		setRoot("");
 		setDirectory("");
-		setEntries([]);
+		pendingTreeOperation.current = null;
 		setFileOperation(null);
 		setStatus(null);
 		setDiff(null);
@@ -200,17 +203,7 @@ export function RemoteFiles({
 			});
 			if (version !== epoch.current) return;
 			setRoot(workspace.worktreePath);
-			const result = await api.rpc<{ entries: Entry[] }>({
-				connectionId: connection.connectionId,
-				generation: connection.generation,
-				path: "filesystem.listDirectory",
-				type: "query",
-				input: { workspaceId, absolutePath: workspace.worktreePath },
-			});
-			if (version === epoch.current) {
-				setDirectory(workspace.worktreePath);
-				setEntries(result.entries);
-			}
+			if (version === epoch.current) setDirectory(workspace.worktreePath);
 		};
 		const readStatus = async () => {
 			if (!gitAvailableRef.current) return;
@@ -224,7 +217,8 @@ export function RemoteFiles({
 			if (version === epoch.current) setStatus(result);
 		};
 		void Promise.allSettled([readRoot(), readStatus()]).then((results) => {
-			if (version !== epoch.current) return;
+			if (version !== epoch.current || ownerRef.current !== operationOwner)
+				return;
 			for (const result of results)
 				if (result.status === "rejected")
 					onErrorRef.current(
@@ -237,7 +231,13 @@ export function RemoteFiles({
 		return () => {
 			epoch.current++;
 		};
-	}, [api, connection.connectionId, connection.generation, workspaceId]);
+	}, [
+		api,
+		connection.connectionId,
+		connection.generation,
+		workspaceId,
+		operationOwner,
+	]);
 	const closeDocument = (id: string) => {
 		const document = documents.find((document) => document.id === id);
 		if (!document) return;
@@ -296,7 +296,7 @@ export function RemoteFiles({
 		<TooltipProvider>
 			<section
 				data-workspace-files={workspaceId}
-				className="flex-1 min-h-0 overflow-auto p-3 space-y-3 bg-background text-foreground"
+				className="flex-1 min-h-0 flex flex-col overflow-auto p-3 gap-3 bg-background text-foreground"
 			>
 				<div className="flex gap-2 flex-wrap">
 					<Button
@@ -348,7 +348,7 @@ export function RemoteFiles({
 						<Trans>Refresh files and Git</Trans>
 					</Button>
 				</div>
-				{tab === "search" ? (
+				{tab === "search" && (
 					<RemoteFileSearch
 						api={api}
 						connection={connection}
@@ -362,145 +362,173 @@ export function RemoteFiles({
 							}
 						}}
 					/>
-				) : tab === "files" ? (
-					<>
-						<code className="block text-xs break-all">{directory}</code>
-						<div className="flex gap-1">
-							<FilesTabHeaderButton
-								icon={FilePlus}
-								label={t({ message: "New File..." })}
-								disabled={
-									busy ||
-									dirty ||
-									!directory ||
-									!connection.capabilities?.workstationFilesV1
-								}
-								onClick={() => setFileOperation({ kind: "newFile" })}
-							/>
-							<FilesTabHeaderButton
-								icon={FolderPlus}
-								label={t({ message: "New Folder..." })}
-								disabled={
-									busy ||
-									dirty ||
-									!directory ||
-									!connection.capabilities?.workstationFilesV1
-								}
-								onClick={() => setFileOperation({ kind: "newFolder" })}
-							/>
-						</div>
-						<div className="flex gap-2 flex-wrap">
-							{directory !== root && directory && (
-								<Button
-									variant="outline"
-									size="sm"
-									type="button"
-									className={button}
-									disabled={busy || dirty}
-									onClick={() =>
-										void run((version) =>
-											browse(
-												directory.slice(0, directory.lastIndexOf("/")) || "/",
-												version,
-											),
-										)
-									}
-								>
-									..
-								</Button>
-							)}
-							{entries.map((entry) => (
-								<div
-									key={entry.absolutePath}
-									className="flex items-center gap-1"
-								>
-									<Button
-										data-file-entry-path={entry.absolutePath}
-										variant="outline"
-										size="sm"
-										type="button"
-										className={button}
-										disabled={busy || entry.kind === "other"}
-										onClick={() =>
-											void (entry.kind === "directory"
-												? run((version) => browse(entry.absolutePath, version))
-												: openFile(entry.absolutePath))
+				)}
+				<div
+					hidden={tab !== "files"}
+					className="flex min-h-0 flex-1"
+					style={tab !== "files" ? { display: "none" } : undefined}
+				>
+					<ResizablePanelGroup
+						direction="horizontal"
+						className="min-h-96 flex-1"
+					>
+						<ResizablePanel defaultSize={30} minSize={18} maxSize={65}>
+							<div className="flex h-full min-h-0 flex-col gap-2 pr-2">
+								<code className="block text-xs break-all">{directory}</code>
+								<div className="flex gap-1">
+									<FilesTabHeaderButton
+										icon={FilePlus}
+										label={t({ message: "New File..." })}
+										disabled={
+											busy ||
+											dirty ||
+											!directory ||
+											!connection.capabilities?.workstationFilesV1
 										}
-									>
-										{entry.name}
-										{entry.kind === "directory" ? "/" : ""}
-									</Button>
-									{connection.capabilities?.workstationFilesV1 && (
-										<FileActionMenu
-											name={entry.name}
-											absolutePath={entry.absolutePath}
-											disabled={busy || dirty || entry.kind === "other"}
-											onOperation={(operation) => {
-												if (ownerRef.current === operationOwner)
-													setFileOperation(operation);
-											}}
-										/>
-									)}
+										onClick={() => setFileOperation({ kind: "newFile" })}
+									/>
+									<FilesTabHeaderButton
+										icon={FolderPlus}
+										label={t({ message: "New Folder..." })}
+										disabled={
+											busy ||
+											dirty ||
+											!directory ||
+											!connection.capabilities?.workstationFilesV1
+										}
+										onClick={() => setFileOperation({ kind: "newFolder" })}
+									/>
 								</div>
-							))}
-						</div>
-						{documents.length > 0 && (
-							<RemoteFileTabs
-								documents={documents}
-								activeId={activeDocument?.id ?? null}
-								labels={documentView.labels}
-								onSelect={(id) =>
-									documentsManager.updateView(connection, workspaceId, {
-										activeId: id,
-									})
-								}
-								onClose={(ids) => {
-									if (
-										documents.some(
-											(document) => ids.includes(document.id) && document.dirty,
-										)
-									)
-										setCloseIds(ids);
-									else for (const id of ids) closeDocument(id);
-								}}
-								onRename={(id, name) => {
-									const labels = { ...documentView.labels };
-									if (name) labels[id] = name;
-									else delete labels[id];
-									documentsManager.updateView(connection, workspaceId, {
-										labels,
-									});
-								}}
-								onOrder={(id, index) => {
-									const order = documents
-										.map((document) => document.id)
-										.filter((value) => value !== id);
-									order.splice(index, 0, id);
-									documentsManager.updateView(connection, workspaceId, {
-										order,
-									});
-								}}
-							/>
-						)}
-						{documents.map((document) => (
-							<RemoteDocumentEditor
-								key={document.id}
-								document={document}
-								active={document.id === activeDocument?.id}
-								busy={busy}
-								revealLine={documentView.revealLines[document.id]}
-								onSave={() => {
-									void save(document);
-								}}
-								onClose={() => closeDocument(document.id)}
-								onFocusChange={() =>
-									documentsManager.autoSave.onFocusChange(document)
-								}
-								onError={report}
-							/>
-						))}
-					</>
-				) : (
+								{root && (
+									<RemoteFileTree
+										key={operationOwner}
+										root={root}
+										refreshKey={treeRefresh}
+										onController={(controller) => {
+											treeController.current = controller;
+										}}
+										selectedPath={activeDocument?.absolutePath}
+										list={async (absolutePath) =>
+											(
+												await rpc<{
+													entries: import("./components/RemoteFileTree/file-tree-controller").RemoteTreeEntry[];
+												}>("filesystem.listDirectory", "query", {
+													workspaceId,
+													absolutePath,
+												})
+											).entries
+										}
+										onDirectory={setDirectory}
+										onOpen={(absolutePath) => {
+											void openFile(absolutePath);
+										}}
+										onError={report}
+										onRename={(absolutePath) => {
+											if (
+												!busy &&
+												!dirty &&
+												connection.capabilities?.workstationFilesV1
+											)
+												setFileOperation({ kind: "rename", absolutePath });
+										}}
+										renderContextMenu={
+											connection.capabilities?.workstationFilesV1
+												? (item, ctx) => (
+														<PierreRowContextMenu
+															anchorRect={ctx.anchorRect}
+															onClose={ctx.close}
+															data-file-tree-context-menu-root="true"
+															onCloseAutoFocus={(event: Event) => {
+																const operation = pendingTreeOperation.current;
+																pendingTreeOperation.current = null;
+																if (
+																	!operation ||
+																	ownerRef.current !== operationOwner
+																)
+																	return;
+																event.preventDefault();
+																setFileOperation(operation);
+															}}
+														>
+															<FileActionItems
+																absolutePath={`${root === "/" ? "" : root}/${item.path.replace(/\/$/, "")}`}
+																disabled={busy || dirty}
+																onChoose={(operation) => {
+																	pendingTreeOperation.current = operation;
+																}}
+															/>
+														</PierreRowContextMenu>
+													)
+												: undefined
+										}
+									/>
+								)}
+							</div>
+						</ResizablePanel>
+						<ResizableHandle />
+						<ResizablePanel defaultSize={70} minSize={25}>
+							<div className="h-full overflow-auto pl-2 space-y-2">
+								{documents.length > 0 && (
+									<RemoteFileTabs
+										documents={documents}
+										activeId={activeDocument?.id ?? null}
+										labels={documentView.labels}
+										onSelect={(id) =>
+											documentsManager.updateView(connection, workspaceId, {
+												activeId: id,
+											})
+										}
+										onClose={(ids) => {
+											if (
+												documents.some(
+													(document) =>
+														ids.includes(document.id) && document.dirty,
+												)
+											)
+												setCloseIds(ids);
+											else for (const id of ids) closeDocument(id);
+										}}
+										onRename={(id, name) => {
+											const labels = { ...documentView.labels };
+											if (name) labels[id] = name;
+											else delete labels[id];
+											documentsManager.updateView(connection, workspaceId, {
+												labels,
+											});
+										}}
+										onOrder={(id, index) => {
+											const order = documents
+												.map((document) => document.id)
+												.filter((value) => value !== id);
+											order.splice(index, 0, id);
+											documentsManager.updateView(connection, workspaceId, {
+												order,
+											});
+										}}
+									/>
+								)}
+								{documents.map((document) => (
+									<RemoteDocumentEditor
+										key={document.id}
+										document={document}
+										active={document.id === activeDocument?.id}
+										busy={busy}
+										revealLine={documentView.revealLines[document.id]}
+										onSave={() => {
+											void save(document);
+										}}
+										onClose={() => closeDocument(document.id)}
+										onFocusChange={() =>
+											documentsManager.autoSave.onFocusChange(document)
+										}
+										onError={report}
+									/>
+								))}
+							</div>
+						</ResizablePanel>
+					</ResizablePanelGroup>
+				</div>
+				{tab === "changes" && (
 					<>
 						{status && <p className="text-sm">{status.currentBranch.name}</p>}
 						<RemoteGitActions
@@ -661,19 +689,32 @@ export function RemoteFiles({
 						operation={fileOperation}
 						onClose={() => setFileOperation(null)}
 						onError={report}
-						onComplete={() =>
+						onComplete={(absolutePath) =>
 							run(async (version) => {
+								if (
+									"absolutePath" in fileOperation &&
+									fileOperation.kind !== "copy"
+								)
+									documentsManager.dispatchFsEvent(
+										connection,
+										workspaceId,
+										fileOperation.kind === "delete"
+											? {
+													kind: "delete",
+													absolutePath: fileOperation.absolutePath,
+													isDirectory: true,
+												}
+											: {
+													kind: "rename",
+													oldAbsolutePath: fileOperation.absolutePath,
+													absolutePath,
+													isDirectory: true,
+												},
+									);
 								await Promise.all([
 									browse(directory, version),
 									refreshGit(version),
 								]);
-								if (
-									version === epoch.current &&
-									"absolutePath" in fileOperation &&
-									editor?.absolutePath === fileOperation.absolutePath &&
-									fileOperation.kind !== "copy"
-								)
-									if (activeDocument) closeDocument(activeDocument.id);
 							})
 						}
 					/>

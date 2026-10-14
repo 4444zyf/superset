@@ -57,9 +57,16 @@ export async function verifyWorkstationFileGitUi({
 	const exists = async (name) =>
 		(await list()).entries.some((entry) => entry.name === name);
 	const menu = async (name, action) => {
-		await click(
-			`button[aria-label=${JSON.stringify(`File actions: ${name}`)}]`,
+		const point = await evaluate(
+			`(()=>{const row=document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path='+${JSON.stringify(JSON.stringify(name))}+']');if(!row)throw new Error('Missing file tree row');const r=row.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`,
 		);
+		for (const type of ["mousePressed", "mouseReleased"])
+			await getPage().call("Input.dispatchMouseEvent", {
+				type,
+				button: "right",
+				clickCount: 1,
+				...point,
+			});
 		const selector = `[role=menuitem][data-file-action=${JSON.stringify(action)}]`;
 		await until(() =>
 			evaluate(
@@ -79,7 +86,7 @@ export async function verifyWorkstationFileGitUi({
 	await click("[role=dialog] button[type=submit]");
 	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
 	assert.equal(await exists("feature-native.txt"), true);
-	await click("text:feature-native.txt");
+	await click("tree:feature-native.txt");
 	await until(() => evaluate("Boolean(document.querySelector('.cm-content'))"));
 	await replace(".cm-content", "first\nfeature search candidate\nlast");
 	await click("text:Save file");

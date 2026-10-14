@@ -75,21 +75,14 @@ export async function verifyWorkstationMultipleFilesUi({
 	await click("text:Files");
 	await until(() =>
 		evaluate(
-			"[...document.querySelectorAll('[data-workspace-files] button')].some(b=>b.textContent.trim()==='feature-native.txt'&&!b.disabled)",
+			"Boolean(document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path=\"feature-native.txt\"]'))",
 		),
 	);
-	await click("text:feature-native.txt");
+	await click("tree:feature-native.txt");
 	await until(() => evaluate(`Boolean(document.querySelector('${editor}'))`));
 	const firstDraft = "first retained editor draft\nwith newline";
 	await input(editor, firstDraft);
-	const secondButton = await evaluate(
-		"(()=>{const e=[...document.querySelectorAll('[data-workspace-files] button')].find(b=>b.textContent.trim()==='restore-ui.txt');return e?.outerHTML;})()",
-	);
-	assert.ok(secondButton);
-	await show(
-		`button[data-file-entry-path=${JSON.stringify(`${scope.root}/restore-ui.txt`)}]`,
-	);
-	await click("text:restore-ui.txt");
+	await click("tree:restore-ui.txt");
 	await until(() =>
 		evaluate(
 			"document.querySelector('[role=tab][aria-label=\"restore-ui.txt\"]')?.getAttribute('aria-selected')==='true'",

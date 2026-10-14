@@ -1,3 +1,4 @@
+import type { FsWatchEvent } from "@superset/workspace-fs/client";
 import { Utf8Base64 } from "renderer/lib/terminal/clipboard-base64";
 import {
 	createFileDocumentStore,
@@ -315,6 +316,33 @@ export class WorkstationFileDocuments {
 				.filter((document) => document.workspaceId === workspaceId) ?? []
 		);
 	}
+	dispatchFsEvent(
+		connection: DirectDescriptor,
+		workspaceId: string,
+		event: FsWatchEvent,
+	): void {
+		const scope = this.scopes.get(scopeId(connection));
+		if (!scope?.active || scope.descriptor.generation !== connection.generation)
+			return;
+		if (event.kind === "delete" && event.isDirectory) {
+			const paths = scope.store
+				.getDocuments()
+				.filter(
+					(document) =>
+						document.workspaceId === workspaceId &&
+						(document.absolutePath === event.absolutePath ||
+							document.absolutePath.startsWith(`${event.absolutePath}/`)),
+				)
+				.map((document) => document.absolutePath);
+			for (const absolutePath of paths)
+				scope.store.dispatchFsEvent(workspaceId, {
+					...event,
+					absolutePath,
+					isDirectory: false,
+				});
+		} else scope.store.dispatchFsEvent(workspaceId, event);
+	}
+
 	discard(
 		connection: DirectDescriptor,
 		workspaceId: string,

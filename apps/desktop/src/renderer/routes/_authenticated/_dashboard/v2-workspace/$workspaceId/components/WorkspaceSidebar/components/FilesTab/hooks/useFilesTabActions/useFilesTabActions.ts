@@ -11,6 +11,7 @@ import { useCallback, useContext, useEffect, useRef } from "react";
 import { canonicalizeTreePath } from "renderer/lib/pierreTree";
 import { FileMoveContext } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileMoveContext";
 import { FILE_EXPLORER_ROW_HEIGHT } from "../../constants";
+import { collapseFileTreeDirectories } from "../../utils/collapseFileTreeDirectories/collapseFileTreeDirectories";
 import {
 	buildCreationKey,
 	CREATION_BASE_NAME,
@@ -589,13 +590,7 @@ export function useFilesTabActions({
 	);
 
 	const collapseAll = useCallback(() => {
-		for (const path of bridge.knownPaths) {
-			if (!path.endsWith("/")) continue;
-			const handle = asDirectoryHandle(model.getItem(path));
-			if (handle?.isExpanded()) {
-				handle.collapse();
-			}
-		}
+		collapseFileTreeDirectories(model, bridge.knownPaths);
 	}, [model, bridge.knownPaths]);
 
 	return {

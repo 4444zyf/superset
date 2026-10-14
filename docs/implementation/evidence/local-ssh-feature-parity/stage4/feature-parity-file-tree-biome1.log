@@ -1,0 +1,252 @@
+Skipped 6 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 19 files in 100ms. Fixed 16 files.
+Found 1 error.
+Found 9 warnings.
+Found 3 infos.
+scripts/verify-brand-ui.mjs:471:17 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    469 │ 				host: ownedSourceFixture.alias,
+    470 │ 			})) {
+  > 471 │ 				await click('input[name="' + name + '"]');
+        │ 				            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    472 │ 				await page.call("Input.insertText", { text: value });
+    473 │ 			}
+
+  i Unsafe fix: Use a template literal.
+
+    469 469 │   				host: ownedSourceFixture.alias,
+    470 470 │   			})) {
+    471     │ - → → → → await·click('input[name="'·+·name·+·'"]');
+        471 │ + → → → → await·click(`input[name="${name}"]`);
+    472 472 │   				await page.call("Input.insertText", { text: value });
+    473 473 │   			}
+
+
+scripts/verify-workspace-restore-ui.mjs:296:4 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━━━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    294 │ 		writeFileSync(
+    295 │ 			join(output, "workspace-restore-ui.json"),
+  > 296 │ 			JSON.stringify(report, null, 2) + "\n",
+        │ 			^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    297 │ 		);
+    298 │ 	}
+
+  i Unsafe fix: Use a template literal.
+
+    294 294 │   		writeFileSync(
+    295 295 │   			join(output, "workspace-restore-ui.json"),
+    296     │ - → → → JSON.stringify(report,·null,·2)·+·"\n",
+        296 │ + → → → `${JSON.stringify(report,·null,·2)}\n`,
+    297 297 │   		);
+    298 298 │   	}
+
+
+scripts/verify-workspace-restore-ui.mjs:528:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━━━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    526 │ 	writeFileSync(
+    527 │ 		join(output, "workspace-restore-ui.json"),
+  > 528 │ 		JSON.stringify(report, null, 2) + "\n",
+        │ 		^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    529 │ 	);
+    530 │ 	return report;
+
+  i Unsafe fix: Use a template literal.
+
+    526 526 │   	writeFileSync(
+    527 527 │   		join(output, "workspace-restore-ui.json"),
+    528     │ - → → JSON.stringify(report,·null,·2)·+·"\n",
+        528 │ + → → `${JSON.stringify(report,·null,·2)}\n`,
+    529 529 │   	);
+    530 530 │   	return report;
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:32:9 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    30 │ 		expect(row).not.toBeNull();
+    31 │ 	});
+  > 32 │ 	return row!;
+       │ 	       ^^^^
+    33 │ }
+    34 │ function clickTreeRow(row: HTMLElement) {
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:45:38 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    43 │ }
+    44 │ function contentOf(element: HTMLElement): string {
+  > 45 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!);
+       │ 	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    46 │ 	if (!view) throw new Error("Code editor did not mount");
+    47 │ 	return view.state.doc.toString();
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:50:38 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    48 │ }
+    49 │ function replaceContent(element: HTMLElement, value: string) {
+  > 50 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!);
+       │ 	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    51 │ 	if (!view) throw new Error("Code editor did not mount");
+    52 │ 	act(() =>
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:206:15 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    204 │ 	fireEvent.click(await screen.findByRole("button", { name: /note.txt:3/ }));
+    205 │ 	const element = await fileEditor();
+  > 206 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!)!;
+        │ 	             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    207 │ 	await waitFor(() => expect(view.state.selection.main.head).toBe(8));
+    208 │ });
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:206:38 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    204 │ 	fireEvent.click(await screen.findByRole("button", { name: /note.txt:3/ }));
+    205 │ 	const element = await fileEditor();
+  > 206 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!)!;
+        │ 	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    207 │ 	await waitFor(() => expect(view.state.selection.main.head).toBe(8));
+    208 │ });
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:368:3 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    366 │ 	const editor = await fileEditor();
+    367 │ 	expect(
+  > 368 │ 		EditorView.findFromDOM(editor.querySelector(".cm-editor")!)!.state.facet(
+        │ 		^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    369 │ 			EditorState.readOnly,
+    370 │ 		),
+
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+
+    366 366 │   	const editor = await fileEditor();
+    367 367 │   	expect(
+    368     │ - → → EditorView.findFromDOM(editor.querySelector(".cm-editor")!)!.state.facet(
+        368 │ + → → EditorView.findFromDOM(editor.querySelector(".cm-editor")!)?.state.facet(
+    369 369 │   			EditorState.readOnly,
+    370 370 │   		),
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:368:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    366 │ 	const editor = await fileEditor();
+    367 │ 	expect(
+  > 368 │ 		EditorView.findFromDOM(editor.querySelector(".cm-editor")!)!.state.facet(
+        │ 		                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    369 │ 			EditorState.readOnly,
+    370 │ 		),
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:100:8 lint/correctness/noUnusedVariables  FIXABLE  ━━━━━━━━━━
+
+  ! This variable editor is unused.
+
+     98 │ 		documents.find((document) => document.id === documentView.activeId) ??
+     99 │ 		documents[0];
+  > 100 │ 	const editor = activeDocument
+        │ 	      ^^^^^^
+    101 │ 		? { absolutePath: activeDocument.absolutePath }
+    102 │ 		: null;
+
+  i Unused variables are often the result of typos, incomplete refactors, or other sources of bugs.
+
+  i Unsafe fix: If this is intentional, prepend editor with an underscore.
+
+     98  98 │   		documents.find((document) => document.id === documentView.activeId) ??
+     99  99 │   		documents[0];
+    100     │ - → const·editor·=·activeDocument
+        100 │ + → const·_editor·=·activeDocument
+    101 101 │   		? { absolutePath: activeDocument.absolutePath }
+    102 102 │   		: null;
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/RemoteFileTree.test.tsx:41:10 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    39 │ 			expect(element).not.toBeNull();
+    40 │ 		});
+  > 41 │ 		return element!;
+       │ 		       ^^^^^^^^
+    42 │ 	};
+    43 │ 	fireEvent.click(await row("src/"), { composed: true });
+
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:178:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook specifies more dependencies than necessary: connection.backendId, connection.namespaceId.
+
+    176 │ 		if (version === epoch.current) setStatus(result);
+    177 │ 	};
+  > 178 │ 	useEffect(() => {
+        │ 	^^^^^^^^^
+    179 │ 		const version = ++epoch.current;
+    180 │ 		running.current = false;
+
+  i This dependency can be removed from the list.
+
+    226 │ 		api,
+    227 │ 		connection.connectionId,
+  > 228 │ 		connection.backendId,
+        │ 		^^^^^^^^^^^^^^^^^^^^
+    229 │ 		connection.namespaceId,
+    230 │ 		connection.generation,
+
+  i This dependency can be removed from the list.
+
+    227 │ 		connection.connectionId,
+    228 │ 		connection.backendId,
+  > 229 │ 		connection.namespaceId,
+        │ 		^^^^^^^^^^^^^^^^^^^^^^
+    230 │ 		connection.generation,
+    231 │ 		workspaceId,
+
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Specifying more dependencies than required can lead to unnecessary re-rendering
+    and degraded performance.
+
+  i Unsafe fix: Remove the extra dependencies from the list.
+
+    224 224 │   		};
+    225 225 │   	}, [
+    226     │ - → → api,
+    227     │ - → → connection.connectionId,
+    228     │ - → → connection.backendId,
+    229     │ - → → connection.namespaceId,
+    230     │ - → → connection.generation,
+    231     │ - → → workspaceId,
+        226 │ + → → api,·
+        227 │ + → → connection.connectionId,·
+        228 │ + → → connection.generation,·
+        229 │ + → → workspaceId
+    232 230 │   	]);
+    233 231 │   	const closeDocument = (id: string) => {
+
+
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while applying fixes.

@@ -1,14 +1,15 @@
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { Button } from "@superset/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
-	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@superset/ui/dropdown-menu";
 import { MoreVertical } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { FileOperation } from "../FileOperationDialog/FileOperationDialog";
+
+import { FileActionItems } from "./components/FileActionItems/FileActionItems";
 
 export function FileActionMenu({
 	name,
@@ -51,39 +52,12 @@ export function FileActionMenu({
 					onOperation(operation);
 				}}
 			>
-				<DropdownMenuItem
-					data-file-action="rename"
-					onSelect={() => {
-						pending.current = { kind: "rename", absolutePath };
+				<FileActionItems
+					absolutePath={absolutePath}
+					onChoose={(operation) => {
+						pending.current = operation;
 					}}
-				>
-					<Trans>Rename</Trans>
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					data-file-action="move"
-					onSelect={() => {
-						pending.current = { kind: "move", absolutePath };
-					}}
-				>
-					<Trans>Move</Trans>
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					data-file-action="copy"
-					onSelect={() => {
-						pending.current = { kind: "copy", absolutePath };
-					}}
-				>
-					<Trans>Copy</Trans>
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					data-file-action="delete"
-					variant="destructive"
-					onSelect={() => {
-						pending.current = { kind: "delete", absolutePath };
-					}}
-				>
-					<Trans>Delete permanently</Trans>
-				</DropdownMenuItem>
+				/>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

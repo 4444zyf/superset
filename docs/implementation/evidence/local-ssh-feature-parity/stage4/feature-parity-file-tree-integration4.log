@@ -1,0 +1,442 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/lib/clickPolicy/tiers.test.ts:
+(pass) tierFor 4-tier > treats every modifier combination independently [0.07ms]
+(pass) tierFor 2-tier > collapses shift→plain and metaShift→meta [0.02ms]
+
+src/renderer/lib/clickPolicy/policies/changesSidebarFilePolicy.test.ts:
+(pass) changes sidebar file policy > keeps plain click on the diff [0.03ms]
+(pass) changes sidebar file policy > maps shift-click through the settings map [0.01ms]
+(pass) changes sidebar file policy > maps cmd/ctrl-click to the file when the settings action is pane [0.02ms]
+(pass) changes sidebar file policy > maps cmd/ctrl-shift-click to the external editor [0.04ms]
+(pass) changes sidebar file policy > returns null for unbound tiers [0.01ms]
+(pass) changes sidebar file policy > finds shortcuts for menu items from the same map [0.04ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [2.64ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.47ms]
+(pass) a different backend cannot receive a previous backend's draft [1.07ms]
+(pass) binary bytes remain read-only and never enter a text save [0.82ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.29ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.37ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.80ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.42ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) the original stage button stages a file and refreshes only the selected workspace [13.83ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) the original explorer action opens a create form using the current remote directory [1.71ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) choosing Copy from the file menu leaves the destination dialog open [1.15ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) content search opens the selected remote file at the matched line [0.96ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) a backend without Git capability can browse files without issuing Git requests [0.86ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) reads and saves the remote file with an optimistic revision instead of local paths or storage [1.11ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) a concurrent remote edit preserves the user's draft without a blind retry [0.85ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) a truncated read cannot overwrite the complete remote file [0.76ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) invalid UTF-8 bytes cannot be saved through the text editor [1.01ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) editing a remote UTF-8 file retains its byte order mark [0.92ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) editing a remote CRLF file preserves its line endings [0.65ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) Git diffs use the remote status category and surface transport failures [1.55ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) a file read completing after the workspace changed cannot install an old editor [0.83ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) focus autosave reuses the remote file revision and saves once without manual Save [1.22ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) an autosave conflict preserves the draft and blocks further automatic writes [1.26ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) a lost autosave reply does not retry the write on the next window blur [0.96ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) opening another file keeps both editable drafts and switching back does not re-read [1.81ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) closing a dirty file tab requires confirmation and Cancel keeps its draft [0.99ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) close all file tabs confirms all dirty drafts and closes them together [0.93ms]
+118 | 	);
+119 | 	const operationOwner = JSON.stringify([
+120 | 		connection.connectionId,
+121 | 		connection.generation,
+122 | 		workspaceId,
+123 | 		operationOwner,
+        ^
+ReferenceError: Cannot access 'operationOwner' before initialization.
+      at RemoteFiles (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:123:3)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+      at renderRootSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+      at performWorkOnRoot (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35)
+      at performWorkOnRootViaSchedulerTask (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+(fail) a shared document provider retains the first workspace draft while another workspace is opened [1.21ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/RemoteFileTree.test.tsx:
+(pass) original tree rows expand a remote folder and open its file without replacing siblings [163.49ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/file-tree-controller.test.ts:
+(pass) the original tree loads an expanded remote folder once and retains its siblings [0.94ms]
+(pass) a directory reply from a stopped tree cannot appear in its replacement [0.31ms]
+(pass) directory responses cannot install paths outside the queried folder [0.29ms]
+(pass) a bounded tree rejects an oversized batch without dropping the current paths [0.79ms]
+(pass) refresh removes a deleted expanded directory without querying its missing path [1.16ms]
+
+20 tests failed:
+(fail) the original stage button stages a file and refreshes only the selected workspace [13.83ms]
+(fail) the original explorer action opens a create form using the current remote directory [1.71ms]
+(fail) choosing Copy from the file menu leaves the destination dialog open [1.15ms]
+(fail) content search opens the selected remote file at the matched line [0.96ms]
+(fail) a backend without Git capability can browse files without issuing Git requests [0.86ms]
+(fail) reads and saves the remote file with an optimistic revision instead of local paths or storage [1.11ms]
+(fail) a concurrent remote edit preserves the user's draft without a blind retry [0.85ms]
+(fail) a truncated read cannot overwrite the complete remote file [0.76ms]
+(fail) invalid UTF-8 bytes cannot be saved through the text editor [1.01ms]
+(fail) editing a remote UTF-8 file retains its byte order mark [0.92ms]
+(fail) editing a remote CRLF file preserves its line endings [0.65ms]
+(fail) Git diffs use the remote status category and surface transport failures [1.55ms]
+(fail) a file read completing after the workspace changed cannot install an old editor [0.83ms]
+(fail) focus autosave reuses the remote file revision and saves once without manual Save [1.22ms]
+(fail) an autosave conflict preserves the draft and blocks further automatic writes [1.26ms]
+(fail) a lost autosave reply does not retry the write on the next window blur [0.96ms]
+(fail) opening another file keeps both editable drafts and switching back does not re-read [1.81ms]
+(fail) closing a dirty file tab requires confirmation and Cancel keeps its draft [0.99ms]
+(fail) close all file tabs confirms all dirty drafts and closes them together [0.93ms]
+(fail) a shared document provider retains the first workspace draft while another workspace is opened [1.21ms]
+
+ 22 pass
+ 20 fail
+ 67 expect() calls
+Ran 42 tests across 6 files. [631.00ms]

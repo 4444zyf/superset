@@ -1,0 +1,16 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [2.37ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.41ms]
+(pass) a different backend cannot receive a previous backend's draft [0.40ms]
+(pass) binary bytes remain read-only and never enter a text save [0.22ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.28ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.35ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.47ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.59ms]
+
+ 8 pass
+ 0 fail
+ 21 expect() calls
+Ran 8 tests across 1 file. [165.00ms]

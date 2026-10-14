@@ -1,0 +1,27 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+853 |  const {undo}=await import("@codemirror/commands");
+854 |  const f=fixture();render(<RemoteFiles api={f.api} connection={connection} workspaceId="workspace" onError={f.onError}/>);
+855 |  clickTreeRow(await treeRow("note.txt"));const editor=await fileEditor();replaceContent(editor,"retained draft");
+856 |  fireEvent.click(screen.getByRole("button",{name:"Changes"}));fireEvent.click(screen.getByRole("button",{name:"Files"}));
+857 |  const current=EditorView.findFromDOM((await fileEditor()).querySelector(".cm-editor")!)!;
+858 |  act(()=>{expect(undo(current)).toBe(true);});
+                                      ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:858:33)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:48:24)
+      at <anonymous> (/workspace/superset/node_modules/.bun/react@19.2.3/node_modules/react/cjs/react.development.js:814:22)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:47:25)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:858:2)
+(fail) switching to Changes and back retains the original editor undo history [664.51ms]
+
+ 0 pass
+ 20 filtered out
+ 1 fail
+ 13 expect() calls
+Ran 1 test across 1 file. [1100.00ms]

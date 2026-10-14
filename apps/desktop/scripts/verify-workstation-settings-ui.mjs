@@ -139,10 +139,10 @@ export async function verifyWorkstationSettingsUi({
 	await click("text:Files");
 	await until(() =>
 		evaluate(
-			"[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='feature-native.txt'&&!b.disabled)",
+			"Boolean(document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path=\"feature-native.txt\"]'))",
 		),
 	);
-	await click("text:feature-native.txt");
+	await click("tree:feature-native.txt");
 	const editor = await until(
 		() =>
 			evaluate(

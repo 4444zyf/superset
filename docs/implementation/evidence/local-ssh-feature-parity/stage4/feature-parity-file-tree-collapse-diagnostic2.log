@@ -1,0 +1,23 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/RemoteFileTree.test.tsx:
+<button aria-label="src" data-file-tree-sticky-path="src/" data-file-tree-sticky-row="true" data-item-path="src/" data-item-type="folder" data-type="item" style="min-height: 28px; left: 0px; position: absolute; right: 0px; top: 0px; z-index: 1;" tabindex="-1" key="sticky:src/" type="button"><div data-item-section="icon"><svg data-icon-name="file-tree-icon-chevron" data-align-capitals="false" aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><use href="#file-tree-icon-chevron"></use></svg></div><div data-item-section="content"><div data-truncate-container="fruncate" data-truncate-variant="default"><div data-truncate-grid="true"><div aria-hidden="true" data-truncate-marker-cell="true"><div data-truncate-marker="true">…</div></div><div><div data-truncate-content="visible"><span>src</span></div><div data-truncate-content="overflow" aria-hidden="true"><span>src</span></div></div><div data-truncate-fill="true"></div></div></div></div></button>
+48 | 	expect(calls).toEqual(["/repo", "/repo/src"]);
+49 | 	expect(await row("note.txt")).not.toBeNull();
+50 |  fireEvent.click(screen.getByRole("button",{name:"Collapse All"}));
+51 |  const directoryRow=container.querySelector("file-tree-container")?.shadowRoot?.querySelector('[data-item-path="src/"]');
+52 |  console.log(directoryRow?.outerHTML.slice(0,1500));
+53 |  expect(directoryRow?.getAttribute("aria-expanded")).toBe("false");
+                                                          ^
+error: expect(received).toBe(expected)
+
+Expected: "false"
+Received: null
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/RemoteFileTree.test.tsx:53:54)
+(fail) original tree rows expand a remote folder and open its file without replacing siblings [236.12ms]
+
+ 0 pass
+ 1 fail
+ 9 expect() calls
+Ran 1 test across 1 file. [634.00ms]

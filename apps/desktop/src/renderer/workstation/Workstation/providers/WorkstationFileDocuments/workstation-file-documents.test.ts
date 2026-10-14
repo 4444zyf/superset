@@ -186,3 +186,31 @@ test("a late read from a released view cannot change a replacement document's li
 		input: { content: "current draft\r\n", precondition: { ifMatch: "r2" } },
 	});
 });
+
+test("a confirmed remote rename keeps the original document id, draft and CRLF codec", async () => {
+	const f = fixture();
+	const manager = new WorkstationFileDocuments(f.api);
+	const document = manager.acquire(first, "workspace", "/repo/src/note.txt");
+	await settle();
+	document.setContent("draft\n");
+	manager.dispatchFsEvent(first, "workspace", {
+		kind: "rename",
+		oldAbsolutePath: "/repo/src",
+		absolutePath: "/repo/renamed",
+		isDirectory: true,
+	});
+	expect(manager.getDocuments(first, "workspace")[0]?.id).toBe(document.id);
+	expect(document.absolutePath).toBe("/repo/renamed/note.txt");
+	expect(document.content).toMatchObject({ value: "draft\n" });
+	await document.save();
+	expect(f.calls.at(-1)?.input).toMatchObject({
+		absolutePath: "/repo/renamed/note.txt",
+		content: "draft\r\n",
+	});
+	manager.activate({ ...first, generation: 2 });
+	manager.dispatchFsEvent(first, "workspace", {
+		kind: "delete",
+		absolutePath: "/repo/renamed/note.txt",
+	});
+	expect(document.orphaned).toBe(false);
+});

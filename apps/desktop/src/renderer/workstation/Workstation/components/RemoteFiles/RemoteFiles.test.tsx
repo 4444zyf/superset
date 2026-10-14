@@ -18,6 +18,22 @@ import type {
 import { RemoteFiles } from "./RemoteFiles";
 
 afterEach(cleanup);
+async function treeRow(path: string) {
+	let row: HTMLElement | null = null;
+	await waitFor(() => {
+		row =
+			document
+				.querySelector("file-tree-container")
+				?.shadowRoot?.querySelector<HTMLElement>(
+					`[data-item-path="${path}"]`,
+				) ?? null;
+		expect(row).not.toBeNull();
+	});
+	return row!;
+}
+function clickTreeRow(row: HTMLElement) {
+	fireEvent.click(row, { composed: true });
+}
 async function fileEditor() {
 	const element = await screen.findByRole("region", { name: "File contents" });
 	await waitFor(() =>
@@ -93,7 +109,7 @@ test("the original explorer action opens a create form using the current remote 
 			onError={f.onError}
 		/>,
 	);
-	await screen.findByRole("button", { name: "note.txt" });
+	await treeRow("note.txt");
 	fireEvent.click(screen.getByRole("button", { name: "New File..." }));
 	fireEvent.change(await screen.findByLabelText("Name"), {
 		target: { value: "added.txt" },
@@ -129,16 +145,11 @@ test("choosing Copy from the file menu leaves the destination dialog open", asyn
 			onError={f.onError}
 		/>,
 	);
-	await screen.findByRole("button", { name: "note.txt" });
-	const trigger = screen.getByRole("button", {
-		name: "File actions: note.txt",
+	await treeRow("note.txt");
+	fireEvent.contextMenu(await treeRow("note.txt"), {
+		composed: true,
+		button: 2,
 	});
-	fireEvent.pointerDown(trigger, {
-		button: 0,
-		ctrlKey: false,
-		pointerType: "mouse",
-	});
-	fireEvent.mouseDown(trigger, { button: 0, ctrlKey: false });
 	const item = await screen.findByRole("menuitem", { name: "Copy" });
 	fireEvent.pointerDown(item, { button: 0, pointerType: "mouse" });
 	fireEvent.mouseDown(item, { button: 0 });
@@ -183,7 +194,7 @@ test("content search opens the selected remote file at the matched line", async 
 			onError={f.onError}
 		/>,
 	);
-	await screen.findByRole("button", { name: "note.txt" });
+	await treeRow("note.txt");
 	fireEvent.click(screen.getByRole("button", { name: "Search files" }));
 	fireEvent.click(screen.getByRole("button", { name: "Content" }));
 	fireEvent.change(screen.getByLabelText("Search files"), {
@@ -206,7 +217,7 @@ test("a backend without Git capability can browse files without issuing Git requ
 			onError={(error) => f.errors.push(error)}
 		/>,
 	);
-	await screen.findByRole("button", { name: "note.txt" });
+	await treeRow("note.txt");
 	expect(
 		(screen.getByRole("button", { name: "Changes" }) as HTMLButtonElement)
 			.disabled,
@@ -279,7 +290,7 @@ test("reads and saves the remote file with an optimistic revision instead of loc
 			onError={onError}
 		/>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	const editor = await fileEditor();
 	expect(contentOf(editor)).toBe("remote contents");
 	replaceContent(editor, "updated from A");
@@ -322,7 +333,7 @@ test("a concurrent remote edit preserves the user's draft without a blind retry"
 			onError={onError}
 		/>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	const editor = await fileEditor();
 	replaceContent(editor, "keep my draft");
 	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
@@ -351,7 +362,7 @@ test("a truncated read cannot overwrite the complete remote file", async () => {
 			onError={onError}
 		/>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	const editor = await fileEditor();
 	expect(
 		EditorView.findFromDOM(editor.querySelector(".cm-editor")!)!.state.facet(
@@ -384,7 +395,7 @@ test("invalid UTF-8 bytes cannot be saved through the text editor", async () => 
 			onError={onError}
 		/>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	await screen.findByText("Binary files cannot be edited here.");
 	expect(screen.queryByLabelText("File contents")).toBeNull();
 	expect(
@@ -409,7 +420,7 @@ test("editing a remote UTF-8 file retains its byte order mark", async () => {
 			onError={onError}
 		/>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	const editor = (await fileEditor()) as HTMLElement;
 	expect(contentOf(editor)).toBe("\uFEFFhello");
 	replaceContent(editor, `${contentOf(editor)}!`);
@@ -441,7 +452,7 @@ test("editing a remote CRLF file preserves its line endings", async () => {
 			onError={onError}
 		/>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	const editor = (await fileEditor()) as HTMLElement;
 	replaceContent(editor, "one\ntwo changed\n");
 	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
@@ -495,7 +506,7 @@ test("a file read completing after the workspace changed cannot install an old e
 			onError={onError}
 		/>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	await waitFor(() => expect(completeRead).toBeDefined());
 	view.rerender(
 		<RemoteFiles
@@ -544,7 +555,7 @@ test("focus autosave reuses the remote file revision and saves once without manu
 			/>
 		</WorkstationPreferencesContext>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	const element = await fileEditor();
 	replaceContent(element, "focus saved draft");
 	fireEvent.blur(element, {
@@ -602,7 +613,7 @@ test("an autosave conflict preserves the draft and blocks further automatic writ
 			/>
 		</WorkstationPreferencesContext>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	const element = await fileEditor();
 	replaceContent(element, "preserved draft");
 	fireEvent.blur(window);
@@ -654,7 +665,7 @@ test("a lost autosave reply does not retry the write on the next window blur", a
 			/>
 		</WorkstationPreferencesContext>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	const element = await fileEditor();
 	replaceContent(element, "unknown saved draft");
 	fireEvent.blur(window);
@@ -701,10 +712,10 @@ test("opening another file keeps both editable drafts and switching back does no
 			onError={f.onError}
 		/>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	const firstEditor = await fileEditor();
 	replaceContent(firstEditor, "first retained draft");
-	fireEvent.click(screen.getByRole("button", { name: "other.txt" }));
+	clickTreeRow(await treeRow("other.txt"));
 	await waitFor(() =>
 		expect(
 			screen
@@ -732,7 +743,7 @@ test("closing a dirty file tab requires confirmation and Cancel keeps its draft"
 			onError={f.onError}
 		/>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	const element = await fileEditor();
 	replaceContent(element, "retained until confirmation");
 	const tab = screen.getByRole("tab", { name: "note.txt" });
@@ -777,9 +788,9 @@ test("close all file tabs confirms all dirty drafts and closes them together", a
 			onError={f.onError}
 		/>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	replaceContent(await fileEditor(), "first draft");
-	fireEvent.click(screen.getByRole("button", { name: "other.txt" }));
+	clickTreeRow(await treeRow("other.txt"));
 	replaceContent(await fileEditor(), "second draft");
 	fireEvent.contextMenu(screen.getByRole("tab", { name: "other.txt" }));
 	fireEvent.click(await screen.findByRole("menuitem", { name: "Close All" }));
@@ -804,7 +815,7 @@ test("a shared document provider retains the first workspace draft while another
 			/>
 		</WorkstationFileDocumentsContext>,
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	replaceContent(await fileEditor(), "first workspace draft");
 	view.rerender(
 		<WorkstationFileDocumentsContext value={manager}>
@@ -819,7 +830,7 @@ test("a shared document provider retains the first workspace draft while another
 	await waitFor(() =>
 		expect(screen.queryByRole("region", { name: "File contents" })).toBeNull(),
 	);
-	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	clickTreeRow(await treeRow("note.txt"));
 	expect(contentOf(await fileEditor())).toBe("remote contents");
 	replaceContent(await fileEditor(), "second workspace draft");
 	view.rerender(
@@ -836,4 +847,29 @@ test("a shared document provider retains the first workspace draft while another
 	expect(
 		f.calls.filter((call) => call.path === "filesystem.readFile"),
 	).toHaveLength(2);
+});
+
+test("switching to Changes and back retains the original editor undo history", async () => {
+	const { undo } = await import("@codemirror/commands");
+	const f = fixture();
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={connection}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	clickTreeRow(await treeRow("note.txt"));
+	const editor = await fileEditor();
+	replaceContent(editor, "retained draft");
+	fireEvent.click(screen.getByRole("button", { name: "Changes" }));
+	fireEvent.click(screen.getByRole("button", { name: "Files" }));
+	const current = EditorView.findFromDOM(
+		(await fileEditor()).querySelector(".cm-editor")!,
+	)!;
+	act(() => {
+		expect(undo(current)).toBe(true);
+	});
+	expect(contentOf(await fileEditor())).toBe("remote contents");
 });
