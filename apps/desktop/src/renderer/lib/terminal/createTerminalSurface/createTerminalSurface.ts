@@ -8,9 +8,11 @@ import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { WebglAddon } from "@xterm/addon-webgl";
 import type { ITheme } from "@xterm/xterm";
 import { Terminal as XTerm } from "@xterm/xterm";
+import type { TerminalAppearance } from "renderer/lib/terminal/appearance";
 import { applyTerminalFontFamilyCssVariable } from "renderer/lib/terminal/appearance";
 import { Utf8Base64 } from "renderer/lib/terminal/clipboard-base64";
 import { FocusAwareClipboardProvider } from "renderer/lib/terminal/clipboard-provider";
+import { scheduleFontSettleRefit } from "renderer/lib/terminal/font-settle";
 import {
 	createParserIdleGate,
 	type ParserIdleGate,
@@ -35,6 +37,7 @@ export function createTerminalSurface(options: { initialTheme: ITheme }): {
 	wrapper: HTMLDivElement;
 	linkManager: TerminalLinkManager;
 	cleanup: () => void;
+	applyAppearance: (appearance: TerminalAppearance) => void;
 } {
 	const { initialTheme } = options;
 
@@ -73,11 +76,45 @@ export function createTerminalSurface(options: { initialTheme: ITheme }): {
 	xterm.loadAddon(unicode11Addon);
 	xterm.loadAddon(imageAddon);
 
-	try {
-		xterm.loadAddon(new LigaturesAddon());
-	} catch {
-		// Ligatures not supported by current font
-	}
+	let ligaturesAddon: LigaturesAddon | null = null;
+	const setLigatures = (enabled: boolean) => {
+		if (enabled === Boolean(ligaturesAddon)) return;
+		if (!enabled) {
+			ligaturesAddon?.dispose();
+			ligaturesAddon = null;
+			return;
+		}
+		try {
+			const addon = new LigaturesAddon();
+			xterm.loadAddon(addon);
+			ligaturesAddon = addon;
+		} catch {}
+	};
+	setLigatures(true);
+	const applyAppearance = (appearance: TerminalAppearance) => {
+		if (disposed) return;
+		xterm.options.theme = appearance.theme;
+		xterm.options.fontFamily = appearance.fontFamily;
+		xterm.options.fontSize = appearance.fontSize;
+		xterm.options.lineHeight = appearance.lineHeight;
+		xterm.options.letterSpacing = appearance.letterSpacing;
+		xterm.options.fontWeight = appearance.fontWeight;
+		xterm.options.minimumContrastRatio = appearance.minimumContrastRatio;
+		xterm.options.cursorStyle = appearance.cursorStyle;
+		xterm.options.cursorBlink = appearance.cursorBlink;
+		setLigatures(appearance.ligatures);
+		applyTerminalFontFamilyCssVariable(wrapper, appearance.fontFamily);
+		fitAddon.fit();
+		xterm.refresh(0, Math.max(0, xterm.rows - 1));
+		scheduleFontSettleRefit(
+			xterm,
+			() => !disposed && wrapper.isConnected,
+			() => {
+				fitAddon.fit();
+				xterm.refresh(0, Math.max(0, xterm.rows - 1));
+			},
+		);
+	};
 
 	// Defer WebGL to rAF to avoid racing xterm's post-open viewport sync.
 	const rafId = requestAnimationFrame(() => {
@@ -116,6 +153,7 @@ export function createTerminalSurface(options: { initialTheme: ITheme }): {
 		gate,
 		wrapper,
 		linkManager,
+		applyAppearance,
 		cleanup: () => {
 			disposed = true;
 			cancelAnimationFrame(rafId);

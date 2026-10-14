@@ -1,9 +1,9 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { darkTheme } from "@superset/shared/themes";
 import { Button } from "@superset/ui/button";
 import { TooltipProvider } from "@superset/ui/tooltip";
 import { FilePlus, FolderPlus } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { EMPTY_FONT_SETTINGS } from "renderer/lib/font-settings";
 import { FilesTabHeaderButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/components/FilesTab/components/FilesTabHeaderButton/FilesTabHeaderButton";
 import { StageToggleButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/hooks/useChangesTab/components/ChangesFileList/components/StageToggleButton/StageToggleButton";
 import { detectLanguage } from "shared/detect-language";
@@ -11,6 +11,7 @@ import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
+import { useWorkstationAppearance } from "../../providers/WorkstationPreferencesContext";
 import { FileActionMenu } from "./components/FileActionMenu/FileActionMenu";
 import {
 	type FileOperation,
@@ -108,6 +109,7 @@ export function RemoteFiles({
 	workspaceId: string;
 	onError(message: string): void;
 }) {
+	const appearance = useWorkstationAppearance();
 	const { t } = useLingui();
 	const [tab, setTab] = useState<"files" | "changes" | "search">("files");
 	const [root, setRoot] = useState("");
@@ -471,7 +473,11 @@ export function RemoteFiles({
 													key={editor.absolutePath}
 													value={editor.content}
 													language={detectLanguage(editor.absolutePath)}
-													theme={darkTheme}
+													theme={appearance.theme}
+													fontSettings={{
+														...EMPTY_FONT_SETTINGS,
+														...appearance.fontSettings,
+													}}
 													readOnly={busy || editor.truncated}
 													revealLine={editor.revealLine}
 													onChange={(content) =>

@@ -1,0 +1,70 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-preferences.test.ts:
+(pass) a new workstation uses the original file defaults and leaves native Agent input off [0.86ms]
+(pass) preference changes survive controller recreation and merge font patches without dropping other values [3.68ms]
+(pass) a stale preference editor cannot overwrite a newer revision [0.62ms]
+(pass) corrupt preferences disable experimental input without replacing the original bytes [0.56ms]
+(pass) unknown future settings and coercible flags cannot activate native input [1.03ms]
+
+src/renderer/components/RendererLayout/renderer-safety.test.ts:
+(pass) emergency UI has no transitive dependency on router, app providers, or UI libraries [33.85ms]
+(pass) production renderer roots cannot bypass RendererRouter [1479.24ms]
+(pass) every production failure boundary is included in the renderer audit [1130.16ms]
+(pass) settings and dashboard outlets retain their surrounding layout on render errors [2.94ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [253.67ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [124.49ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [65.93ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [78.89ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [104.55ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [76.46ms]
+(pass) opening a development server submits its port for forwarding on B [67.19ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [73.76ms]
+(pass) checking an empty operation journal shows a readable result [49.68ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [146.24ms]
+
+src/renderer/workstation/Workstation/Workstation.restore.test.tsx:
+(pass) offline startup keeps all three saved panes, ratios and focus without ordinary connection or mutations [105.03ms]
+(pass) the SSH window feature leaves local workspace opening on its existing path [68.47ms]
+(pass) a newly created SSH workspace opens its saved tab before the refreshed list has rendered [94.37ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkstationPreferences/preference-client.test.ts:
+(pass) a synchronous IPC failure can be retried with a new read [0.41ms]
+(pass) a stale refresh cannot replace an accepted newer preference revision [0.28ms]
+(pass) concurrent edits send one CAS update and retain the acknowledged values [0.16ms]
+(pass) a lost update reply triggers only a read, never another preference mutation [0.16ms]
+(pass) a disposed preference client cannot notify a replacement window [0.09ms]
+(pass) reconciliation after a lost reply reads again after an older refresh finishes [0.28ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [21.24ms]
+(pass) the original explorer action opens a create form using the current remote directory [27.65ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [54.29ms]
+(pass) content search opens the selected remote file at the matched line [457.32ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [35.80ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [80.64ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [72.31ms]
+(pass) a truncated read cannot overwrite the complete remote file [51.80ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [26.42ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [53.75ms]
+(pass) editing a remote CRLF file preserves its line endings [55.33ms]
+(pass) Git diffs use the remote status category and surface transport failures [32.73ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [25.29ms]
+
+src/renderer/workstation/Workstation/components/WorkstationSettings/WorkstationSettings.test.tsx:
+(pass) the original typography controls write only the selected preference field [209.37ms]
+(pass) unknown or unreadable preferences disable editing and offer an explicit reload [185.54ms]
+(pass) a pending preference save disables all typography mutations [119.82ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminal/RemoteTerminal.test.tsx:
+(pass) a mismatched attached identity permanently disables input on that transport [4.33ms]
+(pass) matching restored execution enables input only after attached and revokes it on exit [2.18ms]
+(pass) unmount closes terminal subscriptions and transports without disposing the remote process [2.08ms]
+(pass) live typography changes reconfigure the same emulator and keep its attached socket [3.96ms]
+
+ 48 pass
+ 0 fail
+ 180 expect() calls
+Ran 48 tests across 8 files. [6.61s]

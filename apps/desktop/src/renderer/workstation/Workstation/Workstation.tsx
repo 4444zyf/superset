@@ -1,6 +1,11 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { i18n, inferLocale, initI18nAsync } from "@superset/i18n";
-import { useEffect, useRef, useState } from "react";
+import { I18nProvider } from "@superset/i18n/react";
+import { darkTheme, getBuiltInTheme } from "@superset/shared/themes";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import {
+	applyUIColors,
+	updateThemeClass,
+} from "renderer/stores/theme/utils/css-variables";
 import { LocalDataPanel } from "./components/LocalDataPanel";
 import { MachineForm } from "./components/MachineForm/MachineForm";
 import { MachineManager } from "./components/MachineManager/MachineManager";
@@ -13,6 +18,8 @@ import { WorkstationDialog } from "./components/WorkstationDialog/WorkstationDia
 import { WorkstationShell } from "./components/WorkstationShell/WorkstationShell";
 import { useWorkspaceViews } from "./hooks/useWorkspaceViews/useWorkspaceViews";
 import { useWorkstation } from "./hooks/useWorkstation/useWorkstation";
+import { useWorkstationPreferences } from "./hooks/useWorkstationPreferences";
+import { WorkstationPreferencesContext } from "./providers/WorkstationPreferencesContext";
 import type {
 	DirectProfile,
 	DirectWorkstationApi,
@@ -21,6 +28,12 @@ import type {
 } from "./types";
 import "./workstation.css";
 
+const WorkstationSettings = lazy(() =>
+	import("./components/WorkstationSettings").then((module) => ({
+		default: module.WorkstationSettings,
+	})),
+);
+
 export function Workstation({
 	api = window.directWorkstation,
 }: {
@@ -28,13 +41,16 @@ export function Workstation({
 }) {
 	const { t } = useLingui();
 	const ui = useWorkstation(api);
+	const preferences = useWorkstationPreferences(api);
+	const [settingsOpen, setSettingsOpen] = useState(false);
+	const theme =
+		getBuiltInTheme(preferences.snapshot?.values.themeId ?? "dark") ??
+		darkTheme;
 	useEffect(() => {
-		void initI18nAsync(inferLocale())
-			.then(() => {
-				document.documentElement.lang = i18n.locale;
-			})
-			.catch((error) => ui.setError(String(error)));
-	}, [ui.setError]);
+		applyUIColors(theme.ui);
+		updateThemeClass(theme.type);
+		document.documentElement.style.colorScheme = theme.type;
+	}, [theme]);
 	const [page, setPage] = useState<"machines" | "workspaces">("machines");
 	const [selectedId, setSelectedId] = useState("");
 	const selectedRef = useRef("");
@@ -250,9 +266,14 @@ export function Workstation({
 			}
 		});
 	const disabled = ui.busy || api.platform === "win32";
-	return (
+	const content = (
 		<WorkstationShell
 			page={page}
+			onSettings={
+				api.getPreferences && api.updatePreferences
+					? () => setSettingsOpen(true)
+					: undefined
+			}
 			workspaceOpen={page === "workspaces" && !!savedTarget?.activeTabId}
 			settings={
 				views.enabled ? (
@@ -678,5 +699,25 @@ export function Workstation({
 				</WorkstationDialog>
 			)}
 		</WorkstationShell>
+	);
+	return (
+		<I18nProvider locale={preferences.snapshot?.values.language ?? undefined}>
+			<WorkstationPreferencesContext value={preferences.snapshot}>
+				{content}
+				{settingsOpen && (
+					<Suspense fallback={null}>
+						<WorkstationSettings
+							open={settingsOpen}
+							onOpenChange={setSettingsOpen}
+							snapshot={preferences.snapshot}
+							saving={preferences.saving}
+							error={preferences.error}
+							onUpdate={preferences.update}
+							onReload={preferences.reload}
+						/>
+					</Suspense>
+				)}
+			</WorkstationPreferencesContext>
+		</I18nProvider>
 	);
 }

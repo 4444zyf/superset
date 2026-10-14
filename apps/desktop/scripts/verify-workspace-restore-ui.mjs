@@ -3,6 +3,7 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { verifyWorkstationFileGitUi } from "./verify-workstation-file-git-ui.mjs";
+import { verifyWorkstationSettingsUi } from "./verify-workstation-settings-ui.mjs";
 
 export async function verifyWorkspaceRestoreUi({
 	getPage,
@@ -305,6 +306,14 @@ export async function verifyWorkspaceRestoreUi({
 	await verifyWorkstationFileGitUi({ getPage, click, screenshot, output });
 	await click("text:Terminal");
 	await ready();
+	await verifyWorkstationSettingsUi({
+		getPage,
+		click,
+		screenshot,
+		closeReopen,
+		ready,
+		output,
+	});
 	await until(
 		saved,
 		(value) =>

@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { cleanup, render, waitFor } from "@testing-library/react";
+import { act, cleanup, render, waitFor } from "@testing-library/react";
 import type {
 	DirectDescriptor,
 	DirectSocketEvent,
@@ -248,4 +248,99 @@ test("unmount closes terminal subscriptions and transports without disposing the
 	expect(unsubscribed).toBe(true);
 	expect(emulatorDisposed).toBe(true);
 	expect(sent).not.toContainEqual({ type: "dispose" });
+});
+
+test("live typography changes reconfigure the same emulator and keep its attached socket", async () => {
+	const { WorkstationPreferencesContext } = await import(
+		"../../providers/WorkstationPreferencesContext"
+	);
+	const calls: string[] = [];
+	const appearances: unknown[] = [];
+	let created = 0;
+	let listener!: (event: DirectSocketEvent) => void;
+	const api = {
+		onSocket: (cb: typeof listener) => {
+			listener = cb;
+			return () => {};
+		},
+		openSocket: async (_c: unknown, _p: unknown, id: string) => {
+			calls.push(id);
+		},
+		sendSocket: async () => {},
+		closeSocket: async () => {
+			calls.push("closed");
+		},
+	} as unknown as DirectWorkstationApi;
+	const emulator: TerminalEmulator = {
+		terminal: {
+			cols: 80,
+			rows: 24,
+			write() {},
+			writeln() {},
+			onData() {
+				return { dispose() {} };
+			},
+			onResize() {
+				return { dispose() {} };
+			},
+			dispose() {},
+		},
+		fit() {},
+		applyAppearance: (appearance) => appearances.push(appearance),
+	};
+	const createEmulator = () => {
+		created++;
+		return emulator;
+	};
+	const values = {
+		agentNativeInputEnabled: false,
+		language: null,
+		themeId: "dark",
+		fontSettings: {},
+		fileOpenMode: "split-pane" as const,
+		fileAutoSave: "off" as const,
+		confirmOnQuit: true,
+		terminalCopyOnSelect: false,
+	};
+	const props = {
+		api,
+		connection,
+		terminalId: "terminal",
+		onError: () => {},
+		createEmulator,
+	};
+	const view = render(
+		<WorkstationPreferencesContext
+			value={{ revision: 0, invalid: false, values }}
+		>
+			<RemoteTerminal {...props} />
+		</WorkstationPreferencesContext>,
+	);
+	await waitFor(() => expect(calls).toHaveLength(1));
+	act(() => listener({ socketId: calls[0], kind: "open" }));
+	view.rerender(
+		<WorkstationPreferencesContext
+			value={{
+				revision: 1,
+				invalid: false,
+				values: {
+					...values,
+					themeId: "light",
+					fontSettings: { terminalFontSize: 18 },
+				},
+			}}
+		>
+			<RemoteTerminal {...props} />
+		</WorkstationPreferencesContext>,
+	);
+	await waitFor(() =>
+		expect(appearances.at(-1)).toMatchObject({ fontSize: 18 }),
+	);
+	expect(created).toBe(1);
+	expect(calls).toHaveLength(1);
+	expect(
+		view.container
+			.querySelector("[data-restore-state]")
+			?.getAttribute("data-restore-state"),
+	).toBe("attached");
 });

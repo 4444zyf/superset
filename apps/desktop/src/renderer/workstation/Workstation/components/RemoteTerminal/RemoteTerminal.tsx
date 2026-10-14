@@ -3,13 +3,20 @@ import type { RestoreResourceRef } from "@superset/shared/workspace-restore";
 import type { SearchAddon } from "@xterm/addon-search";
 import type { Terminal } from "@xterm/xterm";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+	resolveTerminalAppearance,
+	type TerminalAppearance,
+} from "renderer/lib/terminal/appearance";
 import { createTerminalSurface } from "renderer/lib/terminal/createTerminalSurface";
+import { writeTerminalClipboard } from "renderer/lib/terminal/terminal-clipboard";
+import { installCopyOnSelect } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/TerminalPane/hooks/useCopyOnSelect/copyOnSelect";
 import { TerminalSearch } from "renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/Terminal/TerminalSearch";
 import { toXtermTheme } from "renderer/stores/theme/utils";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
+import { useWorkstationAppearance } from "../../providers/WorkstationPreferencesContext";
 
 export interface TerminalEmulator {
 	terminal: Pick<
@@ -19,6 +26,8 @@ export interface TerminalEmulator {
 	fit(): void;
 	searchAddon?: SearchAddon;
 	cleanup?(): void;
+	applyAppearance?(appearance: TerminalAppearance): void;
+	installCopyOnSelect?(writeText: (text: string) => Promise<void>): () => void;
 }
 
 function createXterm(element: HTMLDivElement): TerminalEmulator {
@@ -31,6 +40,9 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 		terminal: surface.xterm,
 		fit: () => surface.fitAddon.fit(),
 		searchAddon: surface.searchAddon,
+		applyAppearance: surface.applyAppearance,
+		installCopyOnSelect: (writeText) =>
+			installCopyOnSelect(surface.xterm, undefined, writeText),
 		cleanup: () => {
 			surface.cleanup();
 			surface.wrapper.remove();
@@ -63,6 +75,18 @@ export function RemoteTerminal({
 	onError(message: string): void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 }) {
+	const { theme, fontSettings, copyOnSelect } = useWorkstationAppearance();
+	const appearance = useMemo(
+		() =>
+			resolveTerminalAppearance(
+				toXtermTheme(getTerminalColors(theme)),
+				fontSettings,
+			),
+		[theme, fontSettings],
+	);
+	const emulatorRef = useRef<TerminalEmulator | null>(null);
+	const appearanceRef = useRef(appearance);
+	appearanceRef.current = appearance;
 	const workspaceId = restoreRef?.workspaceId;
 	const resourceId = restoreRef?.resourceId;
 	const executionId = restoreRef?.executionId;
@@ -85,9 +109,10 @@ export function RemoteTerminal({
 	useEffect(() => {
 		if (!element.current || !visible) return;
 		setState("pending");
-		const { terminal, fit, searchAddon, cleanup } = createEmulator(
-			element.current,
-		);
+		const emulator = createEmulator(element.current);
+		emulatorRef.current = emulator;
+		emulator.applyAppearance?.(appearanceRef.current);
+		const { terminal, fit, searchAddon, cleanup } = emulator;
 		setSearchAddon(searchAddon ?? null);
 		fit();
 		const socketId = crypto.randomUUID();
@@ -213,10 +238,32 @@ export function RemoteTerminal({
 			resize.dispose();
 			observer.disconnect();
 			void api.closeSocket(socketId).catch(() => {});
+			emulatorRef.current = null;
 			cleanup?.();
 			terminal.dispose();
 		};
 	}, [api, connection, terminalId, restoreTarget, visible, createEmulator]);
+	useEffect(() => {
+		emulatorRef.current?.applyAppearance?.(appearance);
+	}, [appearance]);
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reconnect replaces the emulator held in the ref
+	useEffect(() => {
+		if (!copyOnSelect || !visible) return;
+		return emulatorRef.current?.installCopyOnSelect?.((text) =>
+			writeTerminalClipboard(text, async (value) => {
+				if (!api.copyText) throw new Error("Native clipboard is unavailable");
+				await api.copyText(value);
+			}),
+		);
+	}, [
+		api,
+		connection,
+		terminalId,
+		restoreTarget,
+		visible,
+		createEmulator,
+		copyOnSelect,
+	]);
 	useEffect(() => {
 		focus.current = focused;
 		focusTerminal.current?.();

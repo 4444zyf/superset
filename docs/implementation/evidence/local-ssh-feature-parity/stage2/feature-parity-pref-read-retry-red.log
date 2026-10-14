@@ -1,0 +1,25 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkstationPreferences/preference-client.test.ts:
+ 5 |
+ 6 | const snapshot: WorkstationPreferenceSnapshot = { revision: 0, invalid: false, values: { agentNativeInputEnabled: false, language: null, themeId: "dark", fontSettings: {}, fileOpenMode: "split-pane", fileAutoSave: "off", confirmOnQuit: true, terminalCopyOnSelect: false } };
+ 7 |
+ 8 | test("a synchronous IPC failure can be retried with a new read", async () => {
+ 9 | 	let reads = 0;
+10 | 	const client = new PreferenceClient({ getPreferences: () => { if (++reads === 1) throw new Error("IPC not ready"); return Promise.resolve(snapshot); } } as DirectWorkstationApi);
+                                                                                                 ^
+error: IPC not ready
+      at getPreferences (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkstationPreferences/preference-client.test.ts:10:93)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkstationPreferences/preference-client.ts:33:37)
+      at load (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkstationPreferences/preference-client.ts:39:72)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkstationPreferences/preference-client.test.ts:11:22)
+(fail) a synchronous IPC failure can be retried with a new read [0.44ms]
+(pass) a stale refresh cannot replace an accepted newer preference revision [0.30ms]
+(pass) concurrent edits send one CAS update and retain the acknowledged values [0.19ms]
+(pass) a lost update reply triggers only a read, never another preference mutation [0.27ms]
+(pass) a disposed preference client cannot notify a replacement window [0.10ms]
+
+ 4 pass
+ 1 fail
+ 10 expect() calls
+Ran 5 tests across 1 file. [143.00ms]

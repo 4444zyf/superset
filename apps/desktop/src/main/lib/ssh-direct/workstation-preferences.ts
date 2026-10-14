@@ -18,6 +18,7 @@ import {
 	DEFAULT_TERMINAL_COPY_ON_SELECT,
 } from "shared/constants";
 import { z } from "zod";
+import type { WorkstationPreferenceSnapshot } from "../../../shared/workstation-preferences";
 
 const MAX_PREFERENCES_BYTES = 64 * 1024;
 const fields = {
@@ -34,11 +35,6 @@ const valuesSchema = z.strictObject(fields);
 const patchSchema = valuesSchema.partial();
 export type WorkstationPreferenceValues = z.infer<typeof valuesSchema>;
 export type WorkstationPreferencePatch = z.infer<typeof patchSchema>;
-export interface WorkstationPreferenceSnapshot {
-	revision: number;
-	invalid: boolean;
-	values: WorkstationPreferenceValues;
-}
 
 function defaults(): WorkstationPreferenceValues {
 	return {

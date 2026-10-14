@@ -1,5 +1,5 @@
-import { mkdirSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
+import { mkdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { msg } from "@lingui/core/macro";
@@ -26,19 +26,20 @@ import { restoreResourceRefSchema } from "@superset/shared/workspace-restore";
 import {
 	app,
 	BrowserWindow,
+	clipboard,
 	dialog,
 	ipcMain,
 	Menu,
-	shell,
 	screen,
+	shell,
 } from "electron";
 import { z } from "zod";
 import {
 	DIRECT_CHANNEL,
 	DIRECT_CONNECTION_CHANNEL,
+	DIRECT_RESTORE_CHANNEL,
 	DIRECT_SETUP_CHANNEL,
 	DIRECT_SOCKET_CHANNEL,
-	DIRECT_RESTORE_CHANNEL,
 	DIRECT_VIEW_FLUSH_CHANNEL,
 } from "../shared/direct-workstation";
 import { lockProductProfile } from "./lib/product-identity";
@@ -56,9 +57,10 @@ import { readSelectedAttachmentBytes } from "./lib/ssh-direct/selected-attachmen
 import { SetupProgress } from "./lib/ssh-direct/setup-progress";
 import { SocketBroker } from "./lib/ssh-direct/socket-broker";
 import { closeWindowTransports } from "./lib/ssh-direct/window-transports";
-import { WorkstationController } from "./lib/ssh-direct/workstation-controller";
-import { WorkspaceViewStore } from "./lib/ssh-direct/workspace-view-store";
 import { WorkspaceRestoreCoordinator } from "./lib/ssh-direct/workspace-restore-coordinator";
+import { WorkspaceViewStore } from "./lib/ssh-direct/workspace-view-store";
+import { WorkstationController } from "./lib/ssh-direct/workstation-controller";
+import { WorkstationPreferences } from "./lib/ssh-direct/workstation-preferences";
 
 const profileSchema = z
 	.object({
@@ -116,6 +118,13 @@ export async function startWorkstation(): Promise<void> {
 	const registry = new ConnectionRegistry(path.join(dataDir, "connections.db"));
 	const intents = new OperationIntents(
 		path.join(dataDir, "operation-intents.db"),
+	);
+	const preferences = new WorkstationPreferences(
+		path.join(dataDir, "preferences.db"),
+	);
+	await initI18nAsync(
+		preferences.read().values.language ??
+			resolveLocale(app.getPreferredSystemLanguages()),
 	);
 	const selectedReleases = new Map<string, string>();
 	const passwords = new Map<string, string>();
@@ -502,6 +511,34 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "copyText":
+					clipboard.writeText(
+						z
+							.string()
+							.max(8 * 1024 * 1024)
+							.parse(payload),
+					);
+					return;
+				case "getPreferences":
+					return preferences.read();
+				case "updatePreferences": {
+					const result = preferences.update(
+						z
+							.object({
+								expectedRevision: z.number().int().nonnegative(),
+								patch: z.record(z.string(), z.unknown()),
+							})
+							.strict()
+							.parse(payload) as Parameters<
+							WorkstationPreferences["update"]
+						>[0],
+					);
+					await initI18nAsync(
+						result.values.language ??
+							resolveLocale(app.getPreferredSystemLanguages()),
+					);
+					return result;
+				}
 				case "getWorkspaceView":
 					return (
 						views?.read() ?? {
@@ -1142,6 +1179,7 @@ export async function startWorkstation(): Promise<void> {
 		})().finally(() => {
 			registry.close();
 			intents.close();
+			preferences.close();
 			viewStore?.close();
 			ipcMain.removeHandler(DIRECT_CHANNEL);
 			app.quit();

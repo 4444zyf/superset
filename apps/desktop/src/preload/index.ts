@@ -2,9 +2,9 @@ import { contextBridge, ipcRenderer } from "electron";
 import {
 	DIRECT_CHANNEL,
 	DIRECT_CONNECTION_CHANNEL,
+	DIRECT_RESTORE_CHANNEL,
 	DIRECT_SETUP_CHANNEL,
 	DIRECT_SOCKET_CHANNEL,
-	DIRECT_RESTORE_CHANNEL,
 	DIRECT_VIEW_FLUSH_CHANNEL,
 	type DirectConnectionEvent,
 	type DirectSocketEvent,
@@ -20,6 +20,9 @@ declare global {
 const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
+	copyText: (text) => invoke("copyText", text),
+	getPreferences: () => invoke("getPreferences"),
+	updatePreferences: (input) => invoke("updatePreferences", input),
 	getWorkspaceView: () => invoke("getWorkspaceView"),
 	saveWorkspaceView: (input) => invoke("saveWorkspaceView", input),
 	beginWorkspaceRestore: (input) => invoke("beginWorkspaceRestore", input),

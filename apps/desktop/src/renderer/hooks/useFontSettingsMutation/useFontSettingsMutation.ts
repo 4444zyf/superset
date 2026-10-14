@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { electronTrpc } from "renderer/lib/electron-trpc";
 import {
+	EMPTY_FONT_SETTINGS,
 	FONT_SETTINGS_QUERY_KEY,
 	type FontSettings,
 } from "renderer/lib/font-settings";
@@ -12,23 +13,7 @@ import {
 import { terminalRuntimeRegistry } from "renderer/lib/terminal/terminal-runtime-registry";
 import { useTerminalTheme } from "renderer/stores/theme";
 
-export const EMPTY_FONT_SETTINGS: FontSettings = {
-	terminalFontFamily: null,
-	terminalFontSize: null,
-	terminalLineHeight: null,
-	terminalLetterSpacing: null,
-	terminalFontWeight: null,
-	terminalLigatures: null,
-	terminalMinimumContrast: null,
-	terminalCursorStyle: null,
-	terminalCursorBlink: null,
-	editorFontFamily: null,
-	editorFontSize: null,
-	editorLineHeight: null,
-	editorLetterSpacing: null,
-	editorFontWeight: null,
-	editorLigatures: null,
-};
+export { EMPTY_FONT_SETTINGS } from "renderer/lib/font-settings";
 
 /**
  * Persists font settings with an optimistic update of both query caches (the

@@ -22,6 +22,7 @@ import {
 	Info,
 	Laptop,
 	Monitor,
+	Settings,
 	ShieldCheck,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -38,6 +39,7 @@ export function WorkstationShell({
 	children,
 	settings,
 	workspaceOpen,
+	onSettings,
 	onNavigate,
 	onProject,
 }: {
@@ -46,6 +48,7 @@ export function WorkstationShell({
 	children: ReactNode;
 	settings?: ReactNode;
 	workspaceOpen?: boolean;
+	onSettings?(): void;
 	onNavigate(page: "machines" | "workspaces"): void;
 	onProject(id: string): void;
 }) {
@@ -149,6 +152,20 @@ export function WorkstationShell({
 									{settings}
 								</div>
 								<SidebarMenu>
+									{onSettings && (
+										<SidebarMenuItem>
+											<SidebarMenuButton
+												tooltip={t({ message: "Settings" })}
+												aria-label={t({ message: "Settings" })}
+												onClick={onSettings}
+											>
+												<Settings />
+												<span>
+													<Trans>Settings</Trans>
+												</span>
+											</SidebarMenuButton>
+										</SidebarMenuItem>
+									)}
 									<SidebarMenuItem>
 										<SidebarMenuButton
 											tooltip={t({ message: "Local Device" })}

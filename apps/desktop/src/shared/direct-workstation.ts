@@ -11,6 +11,10 @@ import type {
 	WorkspaceViewInput,
 	WorkspaceViewSnapshot,
 } from "./workspace-view";
+import type {
+	WorkstationPreferencePatch,
+	WorkstationPreferenceSnapshot,
+} from "./workstation-preferences";
 
 export interface ProductAboutInfo {
 	version: string;
@@ -143,6 +147,12 @@ export type DirectConnectionEvent =
 	  };
 
 export interface DirectWorkstationApi {
+	copyText?(text: string): Promise<void>;
+	getPreferences?(): Promise<WorkstationPreferenceSnapshot>;
+	updatePreferences?(input: {
+		expectedRevision: number;
+		patch: WorkstationPreferencePatch;
+	}): Promise<WorkstationPreferenceSnapshot>;
 	getWorkspaceView?(): Promise<{
 		revision: number;
 		snapshot: WorkspaceViewSnapshot | null;
