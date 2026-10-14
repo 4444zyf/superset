@@ -144,6 +144,8 @@ export async function verifyWorkstationMultipleFilesUi({
 	await screenshot("multiple-files-close-confirmation");
 	await click("text:Cancel");
 	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
+	await until(text, (value) => value === secondDraft);
+	await click('[role=tab][aria-label="feature-native.txt"]');
 	await until(text, (value) => value === firstDraft);
 	const save = "[role=tabpanel]:not([hidden]) button";
 	await show(save);
