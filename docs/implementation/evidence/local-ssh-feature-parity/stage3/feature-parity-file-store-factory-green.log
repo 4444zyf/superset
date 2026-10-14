@@ -1,0 +1,44 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileDocumentStore.test.ts:
+(pass) a failed host save preserves the dirty document across pane reopen and explicit retry [1.05ms]
+(pass) external reload preserves edits made while the disk read is pending [0.40ms]
+(pass) external reloads cannot complete out of order and restore stale disk content [0.09ms]
+(pass) watcher overflow reloads open files beneath the watched root and preserves dirty buffers [0.14ms]
+(pass) a stale reload error cannot replace edits made during the read [0.14ms]
+(pass) a reload started before a save cannot roll back the saved revision [0.12ms]
+(pass) a reload started before deletion cannot clear the orphaned state [0.12ms]
+(pass) a rename during initial load reads the new path instead of leaving the document loading [0.11ms]
+(pass) an older read failure cannot replace a newer successful reload [0.12ms]
+(pass) overflow in another workspace does not reload this document [0.13ms]
+(pass) comparing an external change reads disk without saving or discarding edits [0.28ms]
+(pass) an unreadable disk version leaves the dirty buffer intact for conflict review [0.10ms]
+(pass) a pending comparison cannot reopen a conflict after save [0.11ms]
+(pass) a pending comparison cannot reopen a conflict after reload [0.09ms]
+(pass) directory rename preserves a dirty descendant document [0.16ms]
+(pass) duplicate rename events do not reload the already-moved document [0.14ms]
+(pass) an atomic save renamed over an open clean document reloads it [0.08ms]
+(pass) an atomic save renamed over an open dirty document flags the external change [0.10ms]
+(pass) the watcher echo of a move keeps a dirty buffer free of external-change flags [0.11ms]
+(pass) a replacement arriving from the old path after a move is still detected [0.11ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileDocumentStore.factory.test.ts:
+(pass) separate backend document stores isolate identical workspace IDs and paths [0.28ms]
+(pass) a new store can use a bounded read without changing the original default [0.11ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileAutoSave/fileAutoSave.test.ts:
+(pass) document auto save > a stale released read cannot evict its replacement or detach auto save [1.16ms]
+(pass) document auto save > release keeps a pending write even if an edit temporarily returns to the saved content [0.38ms]
+(pass) document auto save > saves dirty documents after all panes release them and removes the clean unleased entry [0.22ms]
+(pass) document auto save > window blur saves dirty documents in different inactive workspaces [0.49ms]
+(pass) document auto save > debounces rapid edits and reschedules newer content after an in-flight save [0.43ms]
+(pass) document auto save > queues onFocusChange during an in-flight save [0.39ms]
+(pass) document auto save > queues onWindowChange during an in-flight save [0.10ms]
+(pass) document auto save > keeps auto save suspended after conflict Cancel, even after typing or switching modes [0.31ms]
+(pass) document auto save > does not retry failed saves after dismiss; explicit retry restores auto save [0.30ms]
+(pass) document auto save > Off cancels timers and orphaned documents are never automatically written [0.15ms]
+
+ 32 pass
+ 0 fail
+ 120 expect() calls
+Ran 32 tests across 3 files. [165.00ms]
