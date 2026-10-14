@@ -1,0 +1,80 @@
+apps/desktop/scripts/verify-workspace-restore-ui.mjs:298:4 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    296 │ 		writeFileSync(
+    297 │ 			join(output, "workspace-restore-ui.json"),
+  > 298 │ 			JSON.stringify(report, null, 2) + "\n",
+        │ 			^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    299 │ 		);
+    300 │ 	}
+
+  i Unsafe fix: Use a template literal.
+
+    296 296 │   		writeFileSync(
+    297 297 │   			join(output, "workspace-restore-ui.json"),
+    298     │ - → → → JSON.stringify(report,·null,·2)·+·"\n",
+        298 │ + → → → `${JSON.stringify(report,·null,·2)}\n`,
+    299 299 │   		);
+    300 300 │   	}
+
+
+apps/desktop/scripts/verify-workspace-restore-ui.mjs:539:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    537 │ 	writeFileSync(
+    538 │ 		join(output, "workspace-restore-ui.json"),
+  > 539 │ 		JSON.stringify(report, null, 2) + "\n",
+        │ 		^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    540 │ 	);
+    541 │ 	return report;
+
+  i Unsafe fix: Use a template literal.
+
+    537 537 │   	writeFileSync(
+    538 538 │   		join(output, "workspace-restore-ui.json"),
+    539     │ - → → JSON.stringify(report,·null,·2)·+·"\n",
+        539 │ + → → `${JSON.stringify(report,·null,·2)}\n`,
+    540 540 │   	);
+    541 541 │   	return report;
+
+
+apps/desktop/scripts/verify-workstation-git-diff-ui.mjs:115:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    113 │ 	writeFileSync(
+    114 │ 		join(output, "workstation-git-diff-ui.json"),
+  > 115 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 116 │ 			{
+         ...
+  > 128 │ 			2,
+  > 129 │ 		) + "\n",
+        │ 		^^^^^^^^
+    130 │ 	);
+    131 │ }
+
+  i Unsafe fix: Use a template literal.
+
+    113 113 │   	writeFileSync(
+    114 114 │   		join(output, "workstation-git-diff-ui.json"),
+    115     │ - → → JSON.stringify(
+        115 │ + → → `${JSON.stringify(
+    116 116 │   			{
+    117 117 │   				sourceRevision: process.env.GITHUB_SHA,
+    ······· │
+    127 127 │   			null,
+    128 128 │   			2,
+    129     │ - → → )·+·"\n",
+        129 │ + → → )}\n`,
+    130 130 │   	);
+    131 131 │   }
+
+
+Skipped 3 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 2 files in 28ms. Fixed 2 files.
+Found 3 infos.

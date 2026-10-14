@@ -42,6 +42,7 @@ import { RemoteFileTabs } from "./components/RemoteFileTabs";
 import type { FileTreeController } from "./components/RemoteFileTree/file-tree-controller";
 import { RemoteFileTree } from "./components/RemoteFileTree/RemoteFileTree";
 import { RemoteGitActions } from "./components/RemoteGitActions/RemoteGitActions";
+import { RemoteGitDiff } from "./components/RemoteGitDiff/RemoteGitDiff";
 
 interface ChangedFile {
 	path: string;
@@ -647,27 +648,12 @@ export function RemoteFiles({
 							))}
 						</div>
 						{diff && (
-							<div className="space-y-2">
-								<code className="text-xs break-all">{diff.path}</code>
-								<div className="grid grid-cols-2 gap-3">
-									<div>
-										<h3 className="text-sm">
-											<Trans>Before</Trans>
-										</h3>
-										<pre className="max-h-96 overflow-auto bg-zinc-900 p-2 text-xs">
-											{diff.oldFile.contents}
-										</pre>
-									</div>
-									<div>
-										<h3 className="text-sm">
-											<Trans>After</Trans>
-										</h3>
-										<pre className="max-h-96 overflow-auto bg-zinc-900 p-2 text-xs">
-											{diff.newFile.contents}
-										</pre>
-									</div>
-								</div>
-							</div>
+							<RemoteGitDiff
+								key={`${category}:${diff.path}`}
+								path={diff.path}
+								original={diff.oldFile.contents}
+								modified={diff.newFile.contents}
+							/>
 						)}
 					</>
 				)}

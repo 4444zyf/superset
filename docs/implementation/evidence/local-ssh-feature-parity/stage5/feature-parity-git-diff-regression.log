@@ -1,0 +1,93 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/components/RendererLayout/renderer-safety.test.ts:
+(pass) emergency UI has no transitive dependency on router, app providers, or UI libraries [34.82ms]
+(pass) production renderer roots cannot bypass RendererRouter [1325.14ms]
+(pass) every production failure boundary is included in the renderer audit [1084.90ms]
+(pass) settings and dashboard outlets retain their surrounding layout on render errors [3.27ms]
+
+src/renderer/lib/clickPolicy/tiers.test.ts:
+(pass) tierFor 4-tier > treats every modifier combination independently [0.67ms]
+(pass) tierFor 2-tier > collapses shift→plain and metaShift→meta [0.05ms]
+
+src/renderer/lib/clickPolicy/policies/changesSidebarFilePolicy.test.ts:
+(pass) changes sidebar file policy > keeps plain click on the diff [0.04ms]
+(pass) changes sidebar file policy > maps shift-click through the settings map [0.01ms]
+(pass) changes sidebar file policy > maps cmd/ctrl-click to the file when the settings action is pane [0.01ms]
+(pass) changes sidebar file policy > maps cmd/ctrl-shift-click to the external editor [0.01ms]
+(pass) changes sidebar file policy > returns null for unbound tiers [0.01ms]
+(pass) changes sidebar file policy > finds shortcuts for menu items from the same map [0.09ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [2.07ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.42ms]
+(pass) a different backend cannot receive a previous backend's draft [0.55ms]
+(pass) binary bytes remain read-only and never enter a text save [0.24ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.29ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.47ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.40ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.61ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [215.48ms]
+(pass) the original explorer action opens a create form using the current remote directory [119.48ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [125.28ms]
+(pass) content search opens the selected remote file at the matched line [481.82ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [72.93ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [153.40ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [166.17ms]
+(pass) a truncated read cannot overwrite the complete remote file [126.02ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [85.72ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [202.30ms]
+(pass) editing a remote CRLF file preserves its line endings [194.61ms]
+(pass) Git diffs use the remote status category and surface transport failures [88.45ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [111.03ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [168.66ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [255.92ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [230.54ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [389.30ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [497.46ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [402.87ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [449.44ms]
+(pass) switching to Changes and back retains the original editor undo history [541.37ms]
+(pass) Git changes reuse the original split and unified diff controls without account providers [651.17ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/FileOperationDialog/FileOperationDialog.test.tsx:
+(pass) new files are created in the selected remote directory without overwriting existing files [41.84ms]
+(pass) a destination outside the workspace is rejected before sending a move [33.88ms]
+(pass) an existing destination keeps the name for correction and never retries with overwrite [31.92ms]
+(pass) deleting requires explicit permanent-delete confirmation and includes the selected path [33.11ms]
+(pass) a late copy result cannot update the next workspace or copy twice [46.54ms]
+(pass) a successful directory delete closes once even when refresh selects the workspace root [49.25ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileSearch/RemoteFileSearch.test.tsx:
+(pass) file search uses a bounded query against the selected workspace and opens the returned path [57.38ms]
+(pass) content results retain their line and display preview as text [78.20ms]
+(pass) a reply from the old workspace cannot populate results in the next workspace [27.14ms]
+(pass) an older backend cannot issue search queries [21.03ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteGitActions/RemoteGitActions.test.tsx:
+(pass) an IME composition Enter cannot submit the commit shortcut [4.57ms]
+(pass) a missing Git identity is configured on the current repository before the commit is enabled [61.34ms]
+(pass) a new parent error callback does not refetch identity or erase its draft [5.56ms]
+(pass) an identity read finishing after an explicit save cannot disable the new valid identity [60.74ms]
+(pass) the original commit form commits only the staged snapshot on the selected backend [21.64ms]
+(pass) double submission locks one operation while a newer message remains editable [24.07ms]
+(pass) unknown delivery keeps the message without resubmitting a commit [24.39ms]
+(pass) an older backend and an empty staged selection cannot trigger a commit shortcut [2.85ms]
+(pass) a completed reply from the previous workspace cannot clear the current draft or refresh it [19.69ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/RemoteFileTree.test.tsx:
+(pass) original tree rows expand a remote folder and open its file without replacing siblings [186.06ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/file-tree-controller.test.ts:
+(pass) the original tree loads an expanded remote folder once and retains its siblings [1.47ms]
+(pass) a directory reply from a stopped tree cannot appear in its replacement [0.64ms]
+(pass) directory responses cannot install paths outside the queried folder [0.53ms]
+(pass) a bounded tree rejects an oversized batch without dropping the current paths [0.95ms]
+(pass) refresh removes a deleted expanded directory without querying its missing path [1.00ms]
+
+ 67 pass
+ 0 fail
+ 315 expect() calls
+Ran 67 tests across 10 files. [9.67s]

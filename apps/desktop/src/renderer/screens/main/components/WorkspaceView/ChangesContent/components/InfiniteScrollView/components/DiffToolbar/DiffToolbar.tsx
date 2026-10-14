@@ -16,12 +16,12 @@ import {
 } from "react-icons/lu";
 import {
 	TbFocus2,
-	TbFold,
 	TbLayoutSidebarRightFilled,
 	TbListDetails,
 } from "react-icons/tb";
 import type { ChangeCategory, DiffViewMode } from "shared/changes-types";
 import type { SectionInfo } from "../../hooks/useFocusMode";
+import { UnchangedRegionsButton } from "./components/UnchangedRegionsButton/UnchangedRegionsButton";
 
 interface DiffToolbarProps {
 	viewedCount: number;
@@ -224,31 +224,10 @@ export function DiffToolbar({
 							: "Switch to side by side diff"}
 					</TooltipContent>
 				</Tooltip>
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<button
-							type="button"
-							onClick={onToggleHideUnchangedRegions}
-							className={cn(
-								"rounded p-1 transition-colors hover:bg-accent",
-								hideUnchangedRegions
-									? "text-foreground"
-									: "text-muted-foreground/60 hover:text-muted-foreground",
-							)}
-							aria-label={
-								hideUnchangedRegions
-									? "Show all lines"
-									: "Hide unchanged regions"
-							}
-							aria-pressed={hideUnchangedRegions}
-						>
-							<TbFold className="size-4" />
-						</button>
-					</TooltipTrigger>
-					<TooltipContent side="bottom">
-						{hideUnchangedRegions ? "Show all lines" : "Hide unchanged regions"}
-					</TooltipContent>
-				</Tooltip>
+				<UnchangedRegionsButton
+					hideUnchangedRegions={hideUnchangedRegions}
+					onToggle={onToggleHideUnchangedRegions}
+				/>
 			</div>
 		</div>
 	);

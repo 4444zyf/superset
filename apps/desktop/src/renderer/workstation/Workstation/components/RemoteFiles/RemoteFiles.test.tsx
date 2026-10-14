@@ -873,3 +873,74 @@ test("switching to Changes and back retains the original editor undo history", a
 	});
 	expect(contentOf(await fileEditor())).toBe("remote contents");
 });
+
+test("Git changes reuse the original split and unified diff controls without account providers", async () => {
+	const { useSettings } = await import("renderer/stores/settings");
+	const previous = useSettings.getState();
+	const f = fixture();
+	try {
+		act(() => {
+			useSettings.getState().update("diffStyle", "split");
+			useSettings.getState().update("expandUnchanged", false);
+		});
+		render(
+			<RemoteFiles
+				api={f.api}
+				connection={connection}
+				workspaceId="workspace"
+				onError={f.onError}
+			/>,
+		);
+		fireEvent.click(screen.getByRole("button", { name: "Changes" }));
+		fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+		fireEvent.click(
+			await screen.findByRole("button", { name: "Unified view" }),
+		);
+		expect(useSettings.getState().diffStyle).toBe("unified");
+		expect(
+			screen
+				.getByRole("button", { name: "Unified view" })
+				.getAttribute("aria-pressed"),
+		).toBe("true");
+		fireEvent.click(screen.getByRole("button", { name: "Split view" }));
+		expect(useSettings.getState().diffStyle).toBe("split");
+		fireEvent.click(screen.getByRole("button", { name: "Show all lines" }));
+		expect(useSettings.getState().expandUnchanged).toBe(true);
+		fireEvent.click(
+			screen.getByRole("button", { name: "Hide unchanged regions" }),
+		);
+		expect(useSettings.getState().expandUnchanged).toBe(false);
+		fireEvent.click(screen.getByRole("button", { name: "Collapse all files" }));
+		expect(
+			screen.getByRole("button", { name: "Expand all files" }),
+		).not.toBeNull();
+		fireEvent.click(screen.getByRole("button", { name: "Expand all files" }));
+		await waitFor(() =>
+			expect(document.querySelector("diffs-container")).not.toBeNull(),
+		);
+		await waitFor(() => {
+			const root = document.querySelector("diffs-container")?.shadowRoot;
+			expect(
+				root
+					?.querySelector('[data-line][data-line-type="change-deletion"]')
+					?.textContent?.trim(),
+			).toBe("before");
+			expect(
+				root
+					?.querySelector('[data-line][data-line-type="change-addition"]')
+					?.textContent?.trim(),
+			).toBe("after");
+		});
+
+		expect(f.calls.filter((call) => call.path === "git.getDiff")).toHaveLength(
+			1,
+		);
+	} finally {
+		act(() => {
+			useSettings.getState().update("diffStyle", previous.diffStyle);
+			useSettings
+				.getState()
+				.update("expandUnchanged", previous.expandUnchanged);
+		});
+	}
+});

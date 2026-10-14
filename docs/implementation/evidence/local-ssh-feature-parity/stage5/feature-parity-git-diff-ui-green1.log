@@ -1,0 +1,22 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+886 |   fireEvent.click(screen.getByRole("button",{name:"Split view"}));
+887 |   expect(useSettings.getState().diffStyle).toBe("split");
+888 |   fireEvent.click(screen.getByRole("button",{name:"Collapse all files"}));
+889 |   expect(screen.getByRole("button",{name:"Expand all files"})).not.toBeNull();
+890 |   fireEvent.click(screen.getByRole("button",{name:"Expand all files"}));
+891 |   expect(document.querySelector('diffs-container')).not.toBeNull();
+                                                              ^
+error: expect(received).not.toBeNull()
+
+Received: null
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:891:57)
+(fail) Git changes reuse the original split and unified diff controls without account providers [239.87ms]
+
+ 0 pass
+ 21 filtered out
+ 1 fail
+ 5 expect() calls
+Ran 1 test across 1 file. [668.00ms]

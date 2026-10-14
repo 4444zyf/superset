@@ -1,13 +1,9 @@
-import { MultiFileDiff } from "@pierre/diffs/react";
-import { cn } from "@superset/ui/utils";
 import type { CSSProperties } from "react";
 import { electronTrpc } from "renderer/lib/electron-trpc";
-import {
-	getDiffsTheme,
-	getDiffViewerStyle,
-} from "renderer/screens/main/components/WorkspaceView/utils/code-theme";
 import { useResolvedTheme } from "renderer/stores/theme";
 import type { DiffViewMode, FileContents } from "shared/changes-types";
+
+import { LightDiffSurface } from "./components/LightDiffSurface/LightDiffSurface";
 
 interface LightDiffViewerProps {
 	contents: FileContents;
@@ -33,43 +29,16 @@ export function LightDiffViewer({
 			staleTime: 30_000,
 		},
 	);
-	const shikiTheme = getDiffsTheme(activeTheme);
-	const parsedEditorFontSize =
-		typeof fontSettings?.editorFontSize === "number"
-			? fontSettings.editorFontSize
-			: typeof fontSettings?.editorFontSize === "string"
-				? Number.parseFloat(fontSettings.editorFontSize)
-				: Number.NaN;
-	const diffStyle = getDiffViewerStyle(activeTheme, {
-		fontFamily: fontSettings?.editorFontFamily ?? undefined,
-		fontSize: Number.isFinite(parsedEditorFontSize)
-			? parsedEditorFontSize
-			: undefined,
-	});
-
 	return (
-		<MultiFileDiff
-			oldFile={{ name: filePath, contents: contents.original }}
-			newFile={{ name: filePath, contents: contents.modified }}
-			className={cn(className)}
-			style={{
-				...diffStyle,
-				...style,
-			}}
-			options={{
-				diffStyle: viewMode === "side-by-side" ? "split" : "unified",
-				expandUnchanged: !hideUnchangedRegions,
-				theme: shikiTheme,
-				themeType: activeTheme.type,
-				overflow: "wrap",
-				disableFileHeader: true,
-				unsafeCSS: `
-					* {
-						user-select: text;
-						-webkit-user-select: text;
-					}
-				`,
-			}}
+		<LightDiffSurface
+			contents={contents}
+			viewMode={viewMode}
+			hideUnchangedRegions={hideUnchangedRegions}
+			filePath={filePath}
+			className={className}
+			style={style}
+			theme={activeTheme}
+			fontSettings={fontSettings}
 		/>
 	);
 }
