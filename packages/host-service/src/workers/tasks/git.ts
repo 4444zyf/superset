@@ -18,6 +18,7 @@ import {
 } from "../../runtime/pull-requests/utils/workspace-refs.ts";
 import type { ChangedFile } from "../../trpc/router/git/types.ts";
 import type { BaseRefFetchTarget } from "../../trpc/router/git/utils/base-ref-freshness.ts";
+import { gitConfigWrite } from "../../trpc/router/git/utils/config-write.ts";
 import { buildDiffPatch } from "../../trpc/router/git/utils/diff-patch.ts";
 import {
 	type DiffSide,
@@ -53,6 +54,42 @@ const DIFF_BULK_CONCURRENCY = 8;
 export interface GitTaskEnv {
 	[key: string]: string;
 }
+
+export const gitUserIdentityTask = defineWorkerTask<
+	{
+		worktreePath: string;
+		gitEnv: GitTaskEnv;
+		patch?: { name: string; email: string };
+	},
+	{ name: string | null; email: string | null; configured: boolean }
+>({
+	type: "git/userIdentityV1",
+	handler: async ({ worktreePath, gitEnv, patch }) => {
+		const git = createUserSimpleGit(worktreePath, { env: gitEnv });
+		if (patch) {
+			await gitConfigWrite(git, [
+				"config",
+				"--local",
+				"--",
+				"user.name",
+				patch.name,
+			]);
+			await gitConfigWrite(git, [
+				"config",
+				"--local",
+				"--",
+				"user.email",
+				patch.email,
+			]);
+		}
+		const [name, emailSetting] = await Promise.all([
+			getGitAuthorName(git),
+			git.getConfig("user.email"),
+		]);
+		const email = emailSetting.value?.trim() || null;
+		return { name, email, configured: !!name && !!email };
+	},
+});
 
 export const gitStatusSnapshotTask = defineWorkerTask<
 	{ worktreePath: string; baseBranch?: string; gitEnv: GitTaskEnv },
@@ -724,6 +761,7 @@ export const gitRestoreWorktreeTask = defineWorkerTask<
 });
 
 export const gitTasks = [
+	gitUserIdentityTask,
 	gitStatusSnapshotTask,
 	gitStatusPartialTask,
 	gitFetchBaseRefTask,

@@ -146,6 +146,24 @@ export async function verifyWorkstationFileGitUi({
 	await click("text:Changes");
 	await until(() =>
 		evaluate(
+			"Boolean(document.querySelector('[data-workspace-files] input[type=email]'))",
+		),
+	);
+	await replace(
+		"[data-workspace-files] form input:not([type=email])",
+		"Workspace UI Tester",
+	);
+	await replace(
+		"[data-workspace-files] form input[type=email]",
+		"ui-fixture@example.invalid",
+	);
+	await click("[data-workspace-files] form button[type=submit]");
+	await until(
+		async () => (await query("git.getUserIdentityV1")).configured === true,
+	);
+	await screenshot("feature-git-repository-identity");
+	await until(() =>
+		evaluate(
 			'Boolean(document.querySelector(\'[data-git-path="feature-native.txt"] button[aria-label="Stage file"]\'))',
 		),
 	);

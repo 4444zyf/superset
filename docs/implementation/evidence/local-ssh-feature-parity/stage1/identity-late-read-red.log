@@ -1,0 +1,30 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteGitActions/RemoteGitActions.test.tsx:
+(pass) an IME composition Enter cannot submit the commit shortcut [35.00ms]
+(pass) a missing Git identity is configured on the current repository before the commit is enabled [40.86ms]
+(pass) a new parent error callback does not refetch identity or erase its draft [10.26ms]
+160 | 	fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Fixture Author" } });
+161 | 	fireEvent.change(screen.getByLabelText("Email"), { target: { value: "fixture@example.invalid" } });
+162 | 	fireEvent.click(screen.getByRole("button", { name: "Save" }));
+163 | 	await waitFor(() => expect((screen.getByRole("button", { name: "Commit" }) as HTMLButtonElement).disabled).toBe(false));
+164 | 	await act(async () => finish({ name: null, email: null, configured: false }));
+165 | 	expect((screen.getByRole("button", { name: "Commit" }) as HTMLButtonElement).disabled).toBe(false);
+                                                                                              ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteGitActions/RemoteGitActions.test.tsx:165:89)
+(fail) an identity read finishing after an explicit save cannot disable the new valid identity [18.44ms]
+(pass) the original commit form commits only the staged snapshot on the selected backend [7.12ms]
+(pass) double submission locks one operation while a newer message remains editable [5.43ms]
+(pass) unknown delivery keeps the message without resubmitting a commit [5.39ms]
+(pass) an older backend and an empty staged selection cannot trigger a commit shortcut [2.29ms]
+(pass) a completed reply from the previous workspace cannot clear the current draft or refresh it [4.37ms]
+
+ 8 pass
+ 1 fail
+ 27 expect() calls
+Ran 9 tests across 1 file. [372.00ms]

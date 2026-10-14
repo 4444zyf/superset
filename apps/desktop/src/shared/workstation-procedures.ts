@@ -1,9 +1,20 @@
 export interface WorkspaceProcedure {
 	type: "query" | "mutation";
-	capability: "workstationFilesV1" | "workstationGitV1";
+	capability:
+		| "workstationFilesV1"
+		| "workstationGitV1"
+		| "workstationGitIdentityV1";
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"git.getUserIdentityV1": {
+		type: "query",
+		capability: "workstationGitIdentityV1",
+	},
+	"git.setUserIdentityV1": {
+		type: "mutation",
+		capability: "workstationGitIdentityV1",
+	},
 	"filesystem.getMetadata": { type: "query", capability: "workstationFilesV1" },
 	"filesystem.searchFiles": { type: "query", capability: "workstationFilesV1" },
 	"filesystem.searchContent": {

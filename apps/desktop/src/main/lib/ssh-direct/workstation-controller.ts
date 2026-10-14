@@ -128,6 +128,7 @@ export class WorkstationController {
 				"workspaceViewRestoreV1",
 				"workstationFilesV1",
 				"workstationGitV1",
+				"workstationGitIdentityV1",
 			].map((key) => [key, metadata.capabilities?.[key] === true]),
 		);
 		const chatHarnesses = Array.isArray(metadata.chatHarnesses)

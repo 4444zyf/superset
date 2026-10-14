@@ -62,6 +62,140 @@ test("an IME composition Enter cannot submit the commit shortcut", () => {
 	expect(f.calls).toEqual([]);
 });
 
+test("a missing Git identity is configured on the current repository before the commit is enabled", async () => {
+	const f = fixture(async (request) =>
+		request.path === "git.getUserIdentityV1"
+			? { name: null, email: null, configured: false }
+			: {
+					name: "Fixture Author",
+					email: "fixture@example.invalid",
+					configured: true,
+				},
+	);
+	render(
+		<RemoteGitActions
+			{...f.props}
+			connection={{
+				...connection,
+				capabilities: {
+					...connection.capabilities,
+					workstationGitIdentityV1: true,
+				},
+			}}
+		/>,
+	);
+	await waitFor(() =>
+		expect(f.calls.some((call) => call.path === "git.getUserIdentityV1")).toBe(
+			true,
+		),
+	);
+	fireEvent.change(screen.getByPlaceholderText("Commit message"), {
+		target: { value: "commit" },
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Commit" }));
+	expect(f.calls.some((call) => call.path === "git.commit")).toBe(false);
+	fireEvent.change(screen.getByLabelText("Name"), {
+		target: { value: "Fixture Author" },
+	});
+	fireEvent.change(screen.getByLabelText("Email"), {
+		target: { value: "fixture@example.invalid" },
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Save" }));
+	await waitFor(() =>
+		expect(f.calls.some((call) => call.path === "git.setUserIdentityV1")).toBe(
+			true,
+		),
+	);
+	expect(
+		f.calls.find((call) => call.path === "git.setUserIdentityV1"),
+	).toMatchObject({
+		connectionId: "mini",
+		generation: 4,
+		input: {
+			workspaceId: "ws",
+			name: "Fixture Author",
+			email: "fixture@example.invalid",
+		},
+	});
+	await waitFor(() =>
+		expect(
+			(screen.getByRole("button", { name: "Commit" }) as HTMLButtonElement)
+				.disabled,
+		).toBe(false),
+	);
+});
+
+test("a new parent error callback does not refetch identity or erase its draft", async () => {
+	const f = fixture(async () => ({
+		name: null,
+		email: null,
+		configured: false,
+	}));
+	const target = {
+		...connection,
+		capabilities: {
+			...connection.capabilities,
+			workstationGitIdentityV1: true,
+		},
+	};
+	const view = render(<RemoteGitActions {...f.props} connection={target} />);
+	await waitFor(() => expect(f.calls).toHaveLength(1));
+	fireEvent.change(screen.getByLabelText("Name"), {
+		target: { value: "keep draft" },
+	});
+	view.rerender(
+		<RemoteGitActions {...f.props} connection={target} onError={() => {}} />,
+	);
+	expect(f.calls).toHaveLength(1);
+	expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe(
+		"keep draft",
+	);
+});
+
+test("an identity read finishing after an explicit save cannot disable the new valid identity", async () => {
+	let finish!: (value: unknown) => void;
+	const f = fixture(async (request) =>
+		request.path === "git.getUserIdentityV1"
+			? new Promise((resolve) => {
+					finish = resolve;
+				})
+			: { configured: true },
+	);
+	render(
+		<RemoteGitActions
+			{...f.props}
+			connection={{
+				...connection,
+				capabilities: {
+					...connection.capabilities,
+					workstationGitIdentityV1: true,
+				},
+			}}
+		/>,
+	);
+	fireEvent.change(screen.getByPlaceholderText("Commit message"), {
+		target: { value: "commit" },
+	});
+	fireEvent.change(screen.getByLabelText("Name"), {
+		target: { value: "Fixture Author" },
+	});
+	fireEvent.change(screen.getByLabelText("Email"), {
+		target: { value: "fixture@example.invalid" },
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Save" }));
+	await waitFor(() =>
+		expect(
+			(screen.getByRole("button", { name: "Commit" }) as HTMLButtonElement)
+				.disabled,
+		).toBe(false),
+	);
+	await act(async () => finish({ name: null, email: null, configured: false }));
+	expect(
+		(screen.getByRole("button", { name: "Commit" }) as HTMLButtonElement)
+			.disabled,
+	).toBe(false);
+});
+
 test("the original commit form commits only the staged snapshot on the selected backend", async () => {
 	const f = fixture();
 	render(<RemoteGitActions {...f.props} />);

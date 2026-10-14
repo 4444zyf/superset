@@ -1,4 +1,13 @@
+import type {
+	FILE_AUTO_SAVE_MODES,
+	FILE_OPEN_MODES,
+} from "@superset/shared/file-settings";
 import { z } from "zod";
+
+export {
+	FILE_AUTO_SAVE_MODES,
+	FILE_OPEN_MODES,
+} from "@superset/shared/file-settings";
 
 /**
  * Git status for a worktree
@@ -216,15 +225,6 @@ export {
 	type BranchPrefixMode,
 } from "@superset/shared/workspace-launch";
 
-export const FILE_OPEN_MODES = ["split-pane", "new-tab"] as const;
-
 export type FileOpenMode = (typeof FILE_OPEN_MODES)[number];
-
-export const FILE_AUTO_SAVE_MODES = [
-	"off",
-	"afterDelay",
-	"onFocusChange",
-	"onWindowChange",
-] as const;
 
 export type FileAutoSaveMode = (typeof FILE_AUTO_SAVE_MODES)[number];

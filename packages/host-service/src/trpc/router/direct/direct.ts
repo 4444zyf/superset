@@ -3,12 +3,12 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createResolveCwd } from "../../../chat-v3/resolveCwd";
 import { directChatHarnesses } from "../../../direct/chat-readiness";
-import { supportsWorkspaceRestore } from "../../../terminal/restore-resources";
 import {
 	beginDirectDrain,
 	directMaintenanceStatus,
 } from "../../../direct/maintenance";
 import { HOST_SERVICE_VERSION } from "../../../install-source";
+import { supportsWorkspaceRestore } from "../../../terminal/restore-resources";
 import type { DirectBackendIdentity, HostServiceContext } from "../../../types";
 import { protectedProcedure, router } from "../../index";
 
@@ -35,6 +35,7 @@ export function describeDirectBackend(
 			workspaceViewRestoreV1,
 			workstationFilesV1: true,
 			workstationGitV1: true,
+			workstationGitIdentityV1: true,
 			projects: true,
 			sessions: true,
 			terminals: true,

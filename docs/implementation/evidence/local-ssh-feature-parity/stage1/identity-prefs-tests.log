@@ -1,0 +1,81 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.74ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.13ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.12ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.39ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.14ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.63ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.07ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.11ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.14ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.64ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.70ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.55ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.56ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.54ms]
+(pass) attachment readiness requires an explicit backend capability [0.21ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.33ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.19ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.08ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.32ms]
+
+src/main/lib/ssh-direct/workstation-preferences.test.ts:
+(pass) a new workstation uses the original file defaults and leaves native Agent input off [0.38ms]
+(pass) preference changes survive controller recreation and merge font patches without dropping other values [3.37ms]
+(pass) a stale preference editor cannot overwrite a newer revision [0.47ms]
+(pass) corrupt preferences disable experimental input without replacing the original bytes [0.52ms]
+(pass) unknown future settings and coercible flags cannot activate native input [1.27ms]
+
+src/renderer/components/RendererLayout/renderer-safety.test.ts:
+(pass) emergency UI has no transitive dependency on router, app providers, or UI libraries [32.16ms]
+(pass) production renderer roots cannot bypass RendererRouter [1099.59ms]
+(pass) every production failure boundary is included in the renderer audit [894.86ms]
+(pass) settings and dashboard outlets retain their surrounding layout on render errors [2.51ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [92.68ms]
+(pass) the original explorer action opens a create form using the current remote directory [59.38ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [54.22ms]
+(pass) content search opens the selected remote file at the matched line [373.98ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [15.25ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [61.07ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [53.69ms]
+(pass) a truncated read cannot overwrite the complete remote file [39.74ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [21.16ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [77.35ms]
+(pass) editing a remote CRLF file preserves its line endings [60.09ms]
+(pass) Git diffs use the remote status category and surface transport failures [38.25ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [23.63ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/FileOperationDialog/FileOperationDialog.test.tsx:
+(pass) new files are created in the selected remote directory without overwriting existing files [17.86ms]
+(pass) a destination outside the workspace is rejected before sending a move [14.19ms]
+(pass) an existing destination keeps the name for correction and never retries with overwrite [23.52ms]
+(pass) deleting requires explicit permanent-delete confirmation and includes the selected path [15.45ms]
+(pass) a late copy result cannot update the next workspace or copy twice [18.41ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileSearch/RemoteFileSearch.test.tsx:
+(pass) file search uses a bounded query against the selected workspace and opens the returned path [16.17ms]
+(pass) content results retain their line and display preview as text [26.22ms]
+(pass) a reply from the old workspace cannot populate results in the next workspace [7.69ms]
+(pass) an older backend cannot issue search queries [5.09ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteGitActions/RemoteGitActions.test.tsx:
+(pass) an IME composition Enter cannot submit the commit shortcut [3.22ms]
+(pass) a missing Git identity is configured on the current repository before the commit is enabled [22.14ms]
+(pass) a new parent error callback does not refetch identity or erase its draft [4.16ms]
+(pass) an identity read finishing after an explicit save cannot disable the new valid identity [22.34ms]
+(pass) the original commit form commits only the staged snapshot on the selected backend [9.84ms]
+(pass) double submission locks one operation while a newer message remains editable [7.59ms]
+(pass) unknown delivery keeps the message without resubmitting a commit [7.43ms]
+(pass) an older backend and an empty staged selection cannot trigger a commit shortcut [1.99ms]
+(pass) a completed reply from the previous workspace cannot clear the current draft or refresh it [8.18ms]
+
+ 61 pass
+ 0 fail
+ 187 expect() calls
+Ran 61 tests across 7 files. [3.80s]

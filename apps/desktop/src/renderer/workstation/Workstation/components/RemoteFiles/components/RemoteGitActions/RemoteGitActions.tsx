@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Button } from "@superset/ui/button";
-import { type SetStateAction, useEffect, useRef, useState } from "react";
+import { Input } from "@superset/ui/input";
+import { type SetStateAction, useEffect, useId, useRef, useState } from "react";
 import { CommitForm } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/CommitForm/CommitForm";
 import type {
 	DirectDescriptor,
@@ -27,6 +28,18 @@ export function RemoteGitActions({
 	const { t } = useLingui();
 	const [message, setMessage] = useState("");
 	const [busy, setBusy] = useState(false);
+	const [identity, setIdentity] = useState<{ configured: boolean } | null>(
+		null,
+	);
+	const [identityName, setIdentityName] = useState("");
+	const [identityEmail, setIdentityEmail] = useState("");
+	const [identityDirty, setIdentityDirty] = useState(false);
+	const identityDraftVersion = useRef(0);
+	const identityRequestVersion = useRef(0);
+	const errorCallback = useRef(onError);
+	errorCallback.current = onError;
+	const nameId = useId();
+	const emailId = useId();
 	const messageRef = useRef("");
 	const busyRef = useRef(false);
 	const scope = JSON.stringify([
@@ -53,10 +66,109 @@ export function RemoteGitActions({
 		setBusy(false);
 	}, [operationScope]);
 	const available = connection.capabilities?.workstationGitV1 === true;
+	const identityAvailable =
+		connection.capabilities?.workstationGitIdentityV1 === true;
+	useEffect(() => {
+		setIdentity(null);
+		setIdentityName("");
+		setIdentityEmail("");
+		setIdentityDirty(false);
+		if (!identityAvailable) return;
+		const owner = operationScope;
+		const requestVersion = ++identityRequestVersion.current;
+		const draftVersion = identityDraftVersion.current;
+		let cancelled = false;
+		void api
+			.rpc<{ name: string | null; email: string | null; configured: boolean }>({
+				connectionId: connection.connectionId,
+				generation: connection.generation,
+				path: "git.getUserIdentityV1",
+				type: "query",
+				input: { workspaceId },
+			})
+			.then((result) => {
+				if (
+					cancelled ||
+					currentScope.current !== owner ||
+					identityRequestVersion.current !== requestVersion
+				)
+					return;
+				setIdentity({ configured: result.configured === true });
+				if (identityDraftVersion.current === draftVersion) {
+					setIdentityName(result.name ?? "");
+					setIdentityEmail(result.email ?? "");
+				}
+			})
+			.catch((error) => {
+				if (
+					!cancelled &&
+					currentScope.current === owner &&
+					identityRequestVersion.current === requestVersion
+				)
+					errorCallback.current(
+						error instanceof Error ? error.message : String(error),
+					);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [
+		api,
+		operationScope,
+		identityAvailable,
+		connection.connectionId,
+		connection.generation,
+		workspaceId,
+	]);
 	const canCommit =
 		available &&
 		connection.capabilities?.durableOperations === true &&
-		hasStagedChanges;
+		hasStagedChanges &&
+		(!identityAvailable || (identity?.configured === true && !identityDirty));
+	const saveIdentity = async () => {
+		if (
+			!identityAvailable ||
+			disabled ||
+			busyRef.current ||
+			!identityName.trim() ||
+			!identityEmail.trim()
+		)
+			return;
+		busyRef.current = true;
+		setBusy(true);
+		const owner = operationScope;
+		const requestVersion = ++identityRequestVersion.current;
+		const draftVersion = identityDraftVersion.current;
+		try {
+			const result = await api.rpc<{ configured: boolean }>({
+				connectionId: connection.connectionId,
+				generation: connection.generation,
+				path: "git.setUserIdentityV1",
+				type: "mutation",
+				input: {
+					workspaceId,
+					name: identityName.trim(),
+					email: identityEmail.trim(),
+				},
+			});
+			if (
+				currentScope.current !== owner ||
+				identityRequestVersion.current !== requestVersion
+			)
+				return;
+			setIdentity({ configured: result.configured === true });
+			if (identityDraftVersion.current === draftVersion)
+				setIdentityDirty(false);
+		} catch (error) {
+			if (currentScope.current === owner)
+				onError(error instanceof Error ? error.message : String(error));
+		} finally {
+			if (currentScope.current === owner) {
+				busyRef.current = false;
+				setBusy(false);
+			}
+		}
+	};
 	const changeMessage = (next: SetStateAction<string>) => {
 		const value = typeof next === "function" ? next(messageRef.current) : next;
 		messageRef.current = value;
@@ -109,6 +221,60 @@ export function RemoteGitActions({
 	};
 	return (
 		<section className="space-y-2" aria-label={t({ message: "Git" })}>
+			{identityAvailable && (
+				<form
+					className="space-y-2 rounded border border-border p-2"
+					onSubmit={(event) => {
+						event.preventDefault();
+						void saveIdentity();
+					}}
+				>
+					<p className="text-xs text-muted-foreground">
+						<Trans>Git identity</Trans> · <Trans>Repository</Trans>
+					</p>
+					<div className="flex gap-2">
+						<label htmlFor={nameId} className="flex-1 text-xs">
+							<Trans>Name</Trans>
+							<Input
+								id={nameId}
+								value={identityName}
+								maxLength={256}
+								disabled={busy}
+								onChange={(event) => {
+									identityDraftVersion.current++;
+									setIdentityName(event.target.value);
+									setIdentityDirty(true);
+								}}
+							/>
+						</label>
+						<label htmlFor={emailId} className="flex-1 text-xs">
+							<Trans>Email</Trans>
+							<Input
+								id={emailId}
+								type="email"
+								value={identityEmail}
+								maxLength={320}
+								disabled={busy}
+								onChange={(event) => {
+									identityDraftVersion.current++;
+									setIdentityEmail(event.target.value);
+									setIdentityDirty(true);
+								}}
+							/>
+						</label>
+					</div>
+					<Button
+						type="submit"
+						variant="outline"
+						size="sm"
+						disabled={
+							disabled || busy || !identityName.trim() || !identityEmail.trim()
+						}
+					>
+						<Trans>Save</Trans>
+					</Button>
+				</form>
+			)}
 			<div className="flex gap-2">
 				<Button
 					type="button"

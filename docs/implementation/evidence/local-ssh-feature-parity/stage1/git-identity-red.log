@@ -1,0 +1,50 @@
+bun test v1.4.2 (744846f84)
+
+test/integration/direct-git-identity.integration.test.ts:
+35 | 		const cause = _cause;
+36 | 		if (isTRPCClientError(cause)) {
+37 | 			if (opts.meta) cause.meta = (0, import_objectSpread2.default)((0, import_objectSpread2.default)({}, cause.meta), opts.meta);
+38 | 			return cause;
+39 | 		}
+40 | 		if (isTRPCErrorResponse(cause)) return new TRPCClientError(cause.error.message, (0, import_objectSpread2.default)((0, import_objectSpread2.default)({}, opts), {}, {
+                                              ^
+TRPCClientError: No procedure found on path "git.getUserIdentityV1"
+ cause: undefined,
+ shape: {
+  message: "No procedure found on path \"git.getUserIdentityV1\"",
+  code: -32004,
+  data: [Object ...],
+},
+  data: {
+  code: "NOT_FOUND",
+  httpStatus: 404,
+  stack: "TRPCError: No procedure found on path \"git.getUserIdentityV1\"\n    at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/resolveResponse-B0CCg8nq.cjs:1944:42)\n    at map (native:1:11)\n    at resolveResponse (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/resolveResponse-B0CCg8nq.cjs:1939:31)\n    at async fetchRequestHandler (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/adapters/fetch/index.cjs:27:39)\n    at processTicksAndRejections (native:7:39)",
+  path: "git.getUserIdentityV1",
+  teardownFailure: undefined,
+  projectNotSetup: undefined,
+  deleteInProgress: undefined,
+  i18nKey: null,
+  i18nParams: null,
+},
+  meta: {
+  response: Response (0 KB) {
+    ok: false,
+    url: "",
+    status: 404,
+    statusText: "",
+    headers: Headers [Object ...],
+    redirected: false,
+    bodyUsed: true
+  },
+  responseJSON: [
+    [Object ...]
+  ],
+},
+
+      at from (/workspace/superset/node_modules/.bun/@trpc+client@11.16.0+c3aa90de1aae0655/node_modules/@trpc/client/dist/TRPCClientError-apv8gw59.mjs:40:42)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+client@11.16.0+c3aa90de1aae0655/node_modules/@trpc/client/dist/httpBatchLink-CaWjh1oW.mjs:228:38)
+(fail) Git identity is configured in the selected repository without changing other Git settings or using an account API [337.53ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [978.00ms]

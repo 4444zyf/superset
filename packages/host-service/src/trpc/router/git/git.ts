@@ -19,6 +19,7 @@ import {
 	gitStagePathsTask,
 	gitStatusPartialTask,
 	gitStatusSnapshotTask,
+	gitUserIdentityTask,
 } from "../../../workers/tasks/git";
 import { getLocalWorkspace } from "../../../workspaces/local-workspace-store";
 import { cancelAndWaitWorkspaceTitleCommit } from "../../../workspaces/workspace-title-jobs";
@@ -248,6 +249,41 @@ function resolveStagingTargetPaths(
 }
 
 export const gitRouter = router({
+	getUserIdentityV1: queryProcedure
+		.input(z.object({ workspaceId: z.string().min(1) }))
+		.query(async ({ ctx, input }) => {
+			const worktreePath = resolveWorktreePath(ctx, input.workspaceId);
+			return getHostWorkerPool().run(gitUserIdentityTask, {
+				worktreePath,
+				gitEnv: await resolveGitTaskEnv(ctx, worktreePath),
+			});
+		}),
+	setUserIdentityV1: protectedProcedure
+		.input(
+			z.object({
+				workspaceId: z.string().min(1),
+				name: z
+					.string()
+					.trim()
+					.min(1)
+					.max(256)
+					.refine((value) => !/[\0\r\n]/.test(value)),
+				email: z
+					.string()
+					.trim()
+					.min(1)
+					.max(320)
+					.refine((value) => !/[\0\r\n]/.test(value)),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const worktreePath = resolveWorktreePath(ctx, input.workspaceId);
+			return getHostWorkerPool().run(gitUserIdentityTask, {
+				worktreePath,
+				gitEnv: await resolveGitTaskEnv(ctx, worktreePath),
+				patch: { name: input.name, email: input.email },
+			});
+		}),
 	listBranches: queryProcedure
 		.input(z.object({ workspaceId: z.string() }))
 		.query(async ({ ctx, input }) => {
