@@ -1,0 +1,41 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [90.05ms]
+(pass) the original explorer action opens a create form using the current remote directory [54.74ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [54.89ms]
+(pass) content search opens the selected remote file at the matched line [380.45ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [16.42ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [52.24ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [63.41ms]
+(pass) a truncated read cannot overwrite the complete remote file [44.60ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [21.66ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [66.05ms]
+(pass) editing a remote CRLF file preserves its line endings [82.68ms]
+(pass) Git diffs use the remote status category and surface transport failures [40.33ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [36.70ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [87.90ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [74.36ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [88.24ms]
+
+src/renderer/workstation/Workstation/components/WorkstationSettings/WorkstationSettings.test.tsx:
+(pass) the original typography controls write only the selected preference field [255.93ms]
+(pass) unknown or unreadable preferences disable editing and offer an explicit reload [134.22ms]
+(pass) a pending preference save disables all typography mutations [99.20ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileAutoSave/fileAutoSave.test.ts:
+(pass) document auto save > a stale released read cannot evict its replacement or detach auto save [2.01ms]
+(pass) document auto save > release keeps a pending write even if an edit temporarily returns to the saved content [0.33ms]
+(pass) document auto save > saves dirty documents after all panes release them and removes the clean unleased entry [0.28ms]
+(pass) document auto save > window blur saves dirty documents in different inactive workspaces [0.68ms]
+(pass) document auto save > debounces rapid edits and reschedules newer content after an in-flight save [0.35ms]
+(pass) document auto save > queues onFocusChange during an in-flight save [0.40ms]
+(pass) document auto save > queues onWindowChange during an in-flight save [0.20ms]
+(pass) document auto save > keeps auto save suspended after conflict Cancel, even after typing or switching modes [0.50ms]
+(pass) document auto save > does not retry failed saves after dismiss; explicit retry restores auto save [0.39ms]
+(pass) document auto save > Off cancels timers and orphaned documents are never automatically written [0.33ms]
+
+ 29 pass
+ 0 fail
+ 116 expect() calls
+Ran 29 tests across 3 files. [2.48s]

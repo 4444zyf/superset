@@ -1,5 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import type { FileAutoSaveMode, FileOpenMode } from "@superset/local-db";
+import type { FileOpenMode } from "@superset/local-db";
 import { Label } from "@superset/ui/label";
 import {
 	Select,
@@ -22,6 +22,8 @@ import {
 	type SettingItemId,
 } from "../../../utils/settings-search";
 import { FolderLinkTierMapper } from "../FolderLinkTierMapper";
+
+import { FileAutoSaveSetting } from "./components/FileAutoSaveSetting";
 
 interface FilesSettingsProps {
 	visibleItems?: SettingItemId[] | null;
@@ -139,44 +141,11 @@ export function FilesSettings({ visibleItems }: FilesSettingsProps) {
 						<h3 className="text-sm font-medium text-muted-foreground">
 							<Trans>Editing</Trans>
 						</h3>
-						<div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border px-4 py-3">
-							<div className="space-y-0.5">
-								<Label htmlFor="file-auto-save" className="text-sm font-medium">
-									<HighlightText
-										text={t({ message: "Auto Save" })}
-										query={searchQuery}
-									/>
-								</Label>
-								<p className="text-xs text-muted-foreground">
-									<Trans>Controls when manually edited files are saved</Trans>
-								</p>
-							</div>
-							<Select
-								value={fileAutoSave ?? "off"}
-								onValueChange={(value) =>
-									setFileAutoSave.mutate({ mode: value as FileAutoSaveMode })
-								}
-								disabled={isFileAutoSaveLoading || setFileAutoSave.isPending}
-							>
-								<SelectTrigger id="file-auto-save" className="w-[180px]">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="off">
-										<Trans>Off</Trans>
-									</SelectItem>
-									<SelectItem value="afterDelay">
-										<Trans>After delay (3s)</Trans>
-									</SelectItem>
-									<SelectItem value="onFocusChange">
-										<Trans>On focus change</Trans>
-									</SelectItem>
-									<SelectItem value="onWindowChange">
-										<Trans>On window change</Trans>
-									</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
+						<FileAutoSaveSetting
+							mode={fileAutoSave ?? "off"}
+							disabled={isFileAutoSaveLoading || setFileAutoSave.isPending}
+							onChange={(mode) => setFileAutoSave.mutate({ mode })}
+						/>
 					</section>
 				)}
 				{(showFileOpenMode || showSidebar || showFile) && (

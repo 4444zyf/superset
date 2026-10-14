@@ -515,3 +515,162 @@ test("a file read completing after the workspace changed cannot install an old e
 	);
 	expect(screen.queryByDisplayValue("stale draft")).toBeNull();
 });
+
+test("focus autosave reuses the remote file revision and saves once without manual Save", async () => {
+	const { WorkstationPreferencesContext } = await import(
+		"../../providers/WorkstationPreferencesContext"
+	);
+	const f = fixture();
+	const values = {
+		agentNativeInputEnabled: false,
+		language: null,
+		themeId: "dark",
+		fontSettings: {},
+		fileOpenMode: "split-pane" as const,
+		fileAutoSave: "onFocusChange" as const,
+		confirmOnQuit: true,
+		terminalCopyOnSelect: false,
+	};
+	render(
+		<WorkstationPreferencesContext
+			value={{ revision: 1, invalid: false, values }}
+		>
+			<RemoteFiles
+				api={f.api}
+				connection={connection}
+				workspaceId="workspace"
+				onError={f.onError}
+			/>
+		</WorkstationPreferencesContext>,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	const element = await fileEditor();
+	replaceContent(element, "focus saved draft");
+	fireEvent.blur(element, {
+		relatedTarget: screen.getByRole("button", {
+			name: "Refresh files and Git",
+		}),
+	});
+	await waitFor(() =>
+		expect(
+			f.calls.filter((call) => call.path === "filesystem.writeFile"),
+		).toHaveLength(1),
+	);
+	expect(
+		f.calls.find((call) => call.path === "filesystem.writeFile")?.input,
+	).toMatchObject({
+		workspaceId: "workspace",
+		absolutePath: "/Users/remote/repo/note.txt",
+		content: "focus saved draft",
+		precondition: { ifMatch: "r1" },
+		options: { create: false, overwrite: true },
+	});
+	fireEvent.blur(element);
+	await act(async () => {});
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(1);
+});
+
+test("an autosave conflict preserves the draft and blocks further automatic writes", async () => {
+	const { WorkstationPreferencesContext } = await import(
+		"../../providers/WorkstationPreferencesContext"
+	);
+	const f = fixture({
+		"filesystem.writeFile": () => ({ ok: false, reason: "conflict" }),
+	});
+	const values = {
+		agentNativeInputEnabled: false,
+		language: null,
+		themeId: "dark",
+		fontSettings: {},
+		fileOpenMode: "split-pane" as const,
+		fileAutoSave: "onWindowChange" as const,
+		confirmOnQuit: true,
+		terminalCopyOnSelect: false,
+	};
+	render(
+		<WorkstationPreferencesContext
+			value={{ revision: 1, invalid: false, values }}
+		>
+			<RemoteFiles
+				api={f.api}
+				connection={connection}
+				workspaceId="workspace"
+				onError={f.onError}
+			/>
+		</WorkstationPreferencesContext>,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	const element = await fileEditor();
+	replaceContent(element, "preserved draft");
+	fireEvent.blur(window);
+	await waitFor(() =>
+		expect(
+			f.calls.filter((call) => call.path === "filesystem.writeFile"),
+		).toHaveLength(1),
+	);
+	await waitFor(() => expect(f.errors.length).toBe(1));
+	replaceContent(element, "newer preserved draft");
+	fireEvent.blur(window);
+	await act(async () => {});
+	expect(contentOf(element)).toBe("newer preserved draft");
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(1);
+});
+
+test("a lost autosave reply does not retry the write on the next window blur", async () => {
+	const { WorkstationPreferencesContext } = await import(
+		"../../providers/WorkstationPreferencesContext"
+	);
+	let fail!: () => void;
+	const f = fixture({
+		"filesystem.writeFile": () =>
+			new Promise((_resolve, reject) => {
+				fail = () => reject(new Error("Reply lost"));
+			}),
+	});
+	const values = {
+		agentNativeInputEnabled: false,
+		language: null,
+		themeId: "dark",
+		fontSettings: {},
+		fileOpenMode: "split-pane" as const,
+		fileAutoSave: "onWindowChange" as const,
+		confirmOnQuit: true,
+		terminalCopyOnSelect: false,
+	};
+	render(
+		<WorkstationPreferencesContext
+			value={{ revision: 1, invalid: false, values }}
+		>
+			<RemoteFiles
+				api={f.api}
+				connection={connection}
+				workspaceId="workspace"
+				onError={f.onError}
+			/>
+		</WorkstationPreferencesContext>,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	const element = await fileEditor();
+	replaceContent(element, "unknown saved draft");
+	fireEvent.blur(window);
+	await waitFor(() =>
+		expect(
+			f.calls.filter((call) => call.path === "filesystem.writeFile"),
+		).toHaveLength(1),
+	);
+	await act(async () => {
+		fail();
+	});
+	await waitFor(() => expect(f.errors).toContain("Reply lost"));
+	replaceContent(element, "newer unknown draft");
+	fireEvent.blur(window);
+	await act(async () => {});
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(1);
+	expect(contentOf(element)).toBe("newer unknown draft");
+});

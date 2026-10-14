@@ -1,5 +1,18 @@
-import type { FileAutoSaveMode } from "@superset/local-db";
+import type { FileAutoSaveMode } from "@superset/shared/file-settings";
 import type { SharedFileDocument } from "../types";
+
+export type AutoSaveDocument = Pick<
+	SharedFileDocument,
+	| "id"
+	| "content"
+	| "dirty"
+	| "pendingSave"
+	| "saveError"
+	| "conflict"
+	| "orphaned"
+	| "hasExternalChange"
+	| "save"
+>;
 
 interface ScheduledSave {
 	content: string | null;
@@ -10,7 +23,7 @@ interface ScheduledSave {
 }
 
 interface DocumentSource {
-	getDocuments(): SharedFileDocument[];
+	getDocuments(): AutoSaveDocument[];
 	subscribeDocuments(listener: () => void): () => void;
 }
 
@@ -43,7 +56,7 @@ export class FileAutoSaveController {
 		this.reconcile();
 	}
 
-	onFocusChange(document: SharedFileDocument): void {
+	onFocusChange(document: AutoSaveDocument): void {
 		if (this.mode === "onFocusChange") this.request(document);
 	}
 
@@ -114,7 +127,7 @@ export class FileAutoSaveController {
 		}
 	}
 
-	private request(document: SharedFileDocument): void {
+	private request(document: AutoSaveDocument): void {
 		const state = this.scheduled.get(document.id);
 		if (
 			!this.running ||

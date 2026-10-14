@@ -1,0 +1,23 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [99.06ms]
+(pass) the original explorer action opens a create form using the current remote directory [76.34ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [63.19ms]
+(pass) content search opens the selected remote file at the matched line [397.67ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [19.10ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [72.42ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [59.35ms]
+(pass) a truncated read cannot overwrite the complete remote file [42.60ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [30.99ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [78.25ms]
+(pass) editing a remote CRLF file preserves its line endings [89.90ms]
+(pass) Git diffs use the remote status category and surface transport failures [38.71ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [32.84ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [100.43ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [99.82ms]
+
+ 15 pass
+ 0 fail
+ 59 expect() calls
+Ran 15 tests across 1 file. [1.65s]

@@ -6,6 +6,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { EMPTY_FONT_SETTINGS } from "renderer/lib/font-settings";
 import { FilesTabHeaderButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/components/FilesTab/components/FilesTabHeaderButton/FilesTabHeaderButton";
 import { StageToggleButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/hooks/useChangesTab/components/ChangesFileList/components/StageToggleButton/StageToggleButton";
+import type { SaveResult } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
 import { detectLanguage } from "shared/detect-language";
 import type {
 	DirectDescriptor,
@@ -19,6 +20,7 @@ import {
 } from "./components/FileOperationDialog/FileOperationDialog";
 import { RemoteFileSearch } from "./components/RemoteFileSearch/RemoteFileSearch";
 import { RemoteGitActions } from "./components/RemoteGitActions/RemoteGitActions";
+import { useRemoteFileAutoSave } from "./hooks/useRemoteFileAutoSave";
 
 const CodeEditorSurface = lazy(() =>
 	import(
@@ -120,6 +122,7 @@ export function RemoteFiles({
 	const [category, setCategory] = useState<Category>("unstaged");
 	const [diff, setDiff] = useState<(Diff & { path: string }) | null>(null);
 	const [busy, setBusy] = useState(false);
+	const [saveError, setSaveError] = useState<Error | null>(null);
 	const [fileOperation, setFileOperation] = useState<FileOperation | null>(
 		null,
 	);
@@ -149,7 +152,10 @@ export function RemoteFiles({
 		});
 	const report = (error: unknown) =>
 		onErrorRef.current(error instanceof Error ? error.message : String(error));
-	const run = async (execute: (version: number) => Promise<void>) => {
+	const run = async (
+		execute: (version: number) => Promise<void>,
+		onFailure?: (error: unknown) => void,
+	) => {
 		if (running.current) return;
 		running.current = true;
 		const version = epoch.current;
@@ -157,7 +163,10 @@ export function RemoteFiles({
 		try {
 			await execute(version);
 		} catch (error) {
-			if (version === epoch.current) report(error);
+			if (version === epoch.current) {
+				onFailure?.(error);
+				report(error);
+			}
 		} finally {
 			if (version === epoch.current) {
 				running.current = false;
@@ -191,6 +200,7 @@ export function RemoteFiles({
 		setDirectory("");
 		setEntries([]);
 		setEditor(null);
+		setSaveError(null);
 		setFileOperation(null);
 		setStatus(null);
 		setDiff(null);
@@ -243,42 +253,66 @@ export function RemoteFiles({
 			epoch.current++;
 		};
 	}, [api, connection.connectionId, connection.generation, workspaceId]);
-	const save = () =>
-		run(async (version) => {
-			if (!editor || editor.truncated || editor.binary || !dirty) return;
-			const content = editor.content;
-			const result = await rpc<
-				{ ok: true; revision: string } | { ok: false; reason: string }
-			>("filesystem.writeFile", "mutation", {
-				workspaceId,
-				absolutePath: editor.absolutePath,
-				content:
-					editor.lineEnding === "\r\n"
-						? content.replaceAll("\n", "\r\n")
-						: content,
-				options: { create: false, overwrite: true },
-				precondition: { ifMatch: editor.revision },
-			});
-			if (version !== epoch.current) return;
-			if (!result.ok)
-				throw new Error(
-					result.reason === "conflict"
-						? t({
-								message:
-									"This file changed on the remote machine. Your draft is preserved; reload before saving.",
-							})
-						: t({
-								message:
-									"The remote file could not be saved. Your draft is preserved.",
-							}),
+	const save = async (): Promise<SaveResult> => {
+		let saved: SaveResult = {
+			status: "error",
+			error: new Error("File is unavailable for saving"),
+		};
+		await run(
+			async (version) => {
+				if (!editor || editor.truncated || editor.binary || !dirty) return;
+				const content = editor.content;
+				const result = await rpc<
+					{ ok: true; revision: string } | { ok: false; reason: string }
+				>("filesystem.writeFile", "mutation", {
+					workspaceId,
+					absolutePath: editor.absolutePath,
+					content:
+						editor.lineEnding === "\r\n"
+							? content.replaceAll("\n", "\r\n")
+							: content,
+					options: { create: false, overwrite: true },
+					precondition: { ifMatch: editor.revision },
+				});
+				if (version !== epoch.current) return;
+				if (!result.ok) {
+					const error = new Error(
+						result.reason === "conflict"
+							? t({
+									message:
+										"This file changed on the remote machine. Your draft is preserved; reload before saving.",
+								})
+							: t({
+									message:
+										"The remote file could not be saved. Your draft is preserved.",
+								}),
+					);
+					setSaveError(error);
+					saved =
+						result.reason === "conflict"
+							? { status: "conflict", diskContent: null }
+							: { status: "error", error };
+					throw error;
+				}
+				setSaveError(null);
+				saved = { status: "saved", revision: result.revision };
+				setEditor((previous) =>
+					previous
+						? { ...previous, original: content, revision: result.revision }
+						: null,
 				);
-			setEditor((previous) =>
-				previous
-					? { ...previous, original: content, revision: result.revision }
-					: null,
-			);
-			await refreshGit(version);
-		});
+				await refreshGit(version);
+			},
+			(error) => {
+				const failure =
+					error instanceof Error ? error : new Error(String(error));
+				if (saved.status !== "saved") setSaveError(failure);
+				if (saved.status !== "conflict" && saved.status !== "saved")
+					saved = { status: "error", error: failure };
+			},
+		);
+		return saved;
+	};
 	const openFile = (absolutePath: string, revealLine?: number) =>
 		run(async (version) => {
 			const result = await rpc<ReadResult>("filesystem.readFile", "query", {
@@ -286,9 +320,36 @@ export function RemoteFiles({
 				absolutePath,
 				maxBytes: 1024 * 1024,
 			});
-			if (version === epoch.current)
+			if (version === epoch.current) {
+				setSaveError(null);
 				setEditor({ ...editorFromRead(absolutePath, result), revealLine });
+			}
 		});
+	const onEditorFocusChange = useRemoteFileAutoSave({
+		scope: operationOwner,
+		mode: appearance.fileAutoSave,
+		document: editor
+			? {
+					id: `${operationOwner}:${editor.absolutePath}`,
+					content:
+						editor.binary || editor.truncated
+							? { kind: "too-large" }
+							: {
+									kind: "text",
+									value: editor.content,
+									revision: editor.revision,
+								},
+					dirty,
+					pendingSave: busy,
+					saveError,
+					conflict: null,
+					orphaned: false,
+					hasExternalChange: saveError !== null,
+					save,
+				}
+			: null,
+	});
+
 	return (
 		<TooltipProvider>
 			<section
@@ -461,6 +522,14 @@ export function RemoteFiles({
 										<section
 											className="h-80 border border-border rounded-md overflow-hidden"
 											aria-label={t({ message: "File contents" })}
+											onBlur={(event) => {
+												if (
+													!event.currentTarget.contains(
+														event.relatedTarget as Node | null,
+													)
+												)
+													onEditorFocusChange();
+											}}
 										>
 											<Suspense
 												fallback={

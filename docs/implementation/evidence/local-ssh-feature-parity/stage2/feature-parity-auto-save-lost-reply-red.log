@@ -1,0 +1,37 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [88.96ms]
+(pass) the original explorer action opens a create form using the current remote directory [63.18ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [58.60ms]
+(pass) content search opens the selected remote file at the matched line [400.13ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [21.48ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [63.57ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [81.00ms]
+(pass) a truncated read cannot overwrite the complete remote file [46.90ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [27.28ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [65.31ms]
+(pass) editing a remote CRLF file preserves its line endings [66.80ms]
+(pass) Git diffs use the remote status category and surface transport failures [38.61ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [36.37ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [79.56ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [95.04ms]
+551 |  render(<WorkstationPreferencesContext value={{ revision: 1, invalid: false, values }}><RemoteFiles api={f.api} connection={connection} workspaceId="workspace" onError={f.onError} /></WorkstationPreferencesContext>);
+552 |  fireEvent.click(await screen.findByRole("button", { name: "note.txt" })); const element = await fileEditor(); replaceContent(element, "unknown saved draft");
+553 |  fireEvent.blur(window); await waitFor(() => expect(f.calls.filter(call => call.path === "filesystem.writeFile")).toHaveLength(1));
+554 |  await act(async () => { fail(); }); await waitFor(() => expect(f.errors).toContain("Reply lost"));
+555 |  replaceContent(element, "newer unknown draft"); fireEvent.blur(window); await act(async () => {});
+556 |  expect(f.calls.filter(call => call.path === "filesystem.writeFile")).toHaveLength(1); expect(contentOf(element)).toBe("newer unknown draft");
+                                                                            ^
+error: expect(received).toHaveLength(expected)
+
+Expected length: 1
+Received length: 2
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:556:71)
+(fail) a lost autosave reply does not retry the write on the next window blur [83.74ms]
+
+ 15 pass
+ 1 fail
+ 63 expect() calls
+Ran 16 tests across 1 file. [1.67s]

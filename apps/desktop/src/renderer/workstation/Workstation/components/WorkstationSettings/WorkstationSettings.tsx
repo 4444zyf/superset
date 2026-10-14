@@ -28,6 +28,7 @@ import { TypographySurfaceCardView } from "renderer/routes/_authenticated/settin
 import { useSystemFonts } from "renderer/routes/_authenticated/settings/appearance/components/AppearanceSettings/components/FontSettingSection/hooks/useSystemFonts";
 import { SettingsRow } from "renderer/routes/_authenticated/settings/components/SettingsRow";
 import { SettingsSection } from "renderer/routes/_authenticated/settings/components/SettingsSection";
+import { FileAutoSaveSetting } from "renderer/routes/_authenticated/settings/files/components/FilesSettings/components/FileAutoSaveSetting";
 import type {
 	WorkstationPreferencePatch,
 	WorkstationPreferenceSnapshot,
@@ -172,6 +173,14 @@ export function WorkstationSettings({
 						))}
 					</fieldset>
 				</SettingsSection>
+				<SettingsSection title={t({ message: "Files" })}>
+					<FileAutoSaveSetting
+						mode={values?.fileAutoSave ?? "off"}
+						disabled={disabled}
+						onChange={(fileAutoSave) => update({ fileAutoSave })}
+					/>
+				</SettingsSection>
+
 				<SettingsSection title={t({ message: "Terminal" })}>
 					<SettingsRow
 						htmlFor="workstation-copy-on-select"

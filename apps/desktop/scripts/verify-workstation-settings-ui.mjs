@@ -151,11 +151,73 @@ export async function verifyWorkstationSettingsUi({
 		(value) => value?.fontSize === "17px",
 	);
 	await screenshot("settings-live-editor-light");
+	const closeSettings = async () => {
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyDown",
+			key: "Escape",
+			code: "Escape",
+			windowsVirtualKeyCode: 27,
+		});
+		await until(() =>
+			evaluate("!document.querySelector('[data-workstation-settings]')"),
+		);
+	};
+	await click('button[aria-label="Settings"]');
+	await until(() =>
+		evaluate("Boolean(document.querySelector('[data-workstation-settings]'))"),
+	);
+	await select("#file-auto-save", "On focus change");
+	await until(
+		preferences,
+		(value) => value.values.fileAutoSave === "onFocusChange",
+	);
+	await closeSettings();
+	await click(".cm-content");
+	await getPage().call("Input.dispatchKeyEvent", {
+		type: "keyDown",
+		key: "a",
+		code: "KeyA",
+		windowsVirtualKeyCode: 65,
+		modifiers: process.platform === "darwin" ? 4 : 2,
+		commands: ["selectAll"],
+	});
+	const savedContent = "saved through original autosave controller";
+	await getPage().call("Input.insertText", { text: savedContent });
+	await click("[data-workspace-files] button[aria-pressed=true]");
+	const readAutoSaved = () =>
+		evaluate(
+			`(async () => {const job=await window.directWorkstation.getWorkspaceRestore(); const view=(await window.directWorkstation.getWorkspaceView()).snapshot; const target=view.targets.find(t=>t.connectionId===view.activeConnectionId);const workspace=target.workspaces.find(w=>w.tabId===target.activeTabId); const descriptor=job.descriptor;const input={connectionId:descriptor.connectionId,generation:descriptor.generation,type:'query',path:'workspace.get',input:{id:workspace.workspaceId}};const info=await window.directWorkstation.rpc(input);const file=await window.directWorkstation.rpc({...input,path:'filesystem.readFile',input:{workspaceId:workspace.workspaceId,absolutePath:info.worktreePath+'/feature-native.txt',maxBytes:1024}});return file.kind==='text'?file.content:atob(file.content);})()`,
+		);
+	await until(readAutoSaved, (value) => value === savedContent);
+	await until(() =>
+		evaluate(
+			"[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Save file')?.disabled",
+		),
+	);
+	await screenshot("settings-original-auto-save");
+	await click('button[aria-label="Settings"]');
+	await until(() =>
+		evaluate("Boolean(document.querySelector('[data-workstation-settings]'))"),
+	);
+	await select("#file-auto-save", "Off");
+	await until(preferences, (value) => value.values.fileAutoSave === "off");
+	await closeSettings();
+	const autoSave = {
+		mode: "onFocusChange",
+		savedContent,
+		noManualSave: true,
+		finalPreferences: await preferences(),
+	};
+
 	await click("text:Close file and discard draft");
 	await click("text:Terminal");
 	await ready();
+	await closeReopen();
+	await ready();
+	assert.deepEqual(await preferences(), autoSave.finalPreferences);
+	assert.deepEqual(await terminals(), before);
 	writeFileSync(
 		join(output, "workstation-settings-ui.json"),
-		`${JSON.stringify({ sourceRevision: process.env.GITHUB_SHA ?? null, sourceTest: process.argv.includes("--source-test"), physicalInput: true, preferences: saved, terminalsBefore: before, measurements, sameExecutionsAfterReopen: true, languageRoundTrip: ["zh-CN", "en"], editor }, null, 2)}\n`,
+		`${JSON.stringify({ sourceRevision: process.env.GITHUB_SHA ?? null, sourceTest: process.argv.includes("--source-test"), physicalInput: true, preferences: saved, terminalsBefore: before, measurements, sameExecutionsAfterReopen: true, languageRoundTrip: ["zh-CN", "en"], editor, autoSave, measurementKind: "DOM renderer computed font" }, null, 2)}\n`,
 	);
 }

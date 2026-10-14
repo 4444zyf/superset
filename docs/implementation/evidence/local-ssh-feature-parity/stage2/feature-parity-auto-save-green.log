@@ -1,0 +1,32 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+
+# Unhandled error between tests
+-------------------------------
+error: ENOENT reading "/workspace/superset/apps/desktop/src/resources/public/file-icons/manifest.json"
+-------------------------------
+
+
+src/renderer/workstation/Workstation/components/WorkstationSettings/WorkstationSettings.test.tsx:
+(pass) the original typography controls write only the selected preference field [390.89ms]
+(pass) unknown or unreadable preferences disable editing and offer an explicit reload [132.63ms]
+(pass) a pending preference save disables all typography mutations [76.08ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileAutoSave/fileAutoSave.test.ts:
+(pass) document auto save > a stale released read cannot evict its replacement or detach auto save [1.82ms]
+(pass) document auto save > release keeps a pending write even if an edit temporarily returns to the saved content [0.33ms]
+(pass) document auto save > saves dirty documents after all panes release them and removes the clean unleased entry [0.29ms]
+(pass) document auto save > window blur saves dirty documents in different inactive workspaces [0.60ms]
+(pass) document auto save > debounces rapid edits and reschedules newer content after an in-flight save [0.44ms]
+(pass) document auto save > queues onFocusChange during an in-flight save [0.39ms]
+(pass) document auto save > queues onWindowChange during an in-flight save [0.11ms]
+(pass) document auto save > keeps auto save suspended after conflict Cancel, even after typing or switching modes [0.38ms]
+(pass) document auto save > does not retry failed saves after dismiss; explicit retry restores auto save [0.31ms]
+(pass) document auto save > Off cancels timers and orphaned documents are never automatically written [0.28ms]
+
+ 13 pass
+ 1 fail
+ 1 error
+ 52 expect() calls
+Ran 14 tests across 3 files. [1461.00ms]

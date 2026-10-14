@@ -10,5 +10,6 @@ export function useWorkstationAppearance() {
 		theme: getBuiltInTheme(values?.themeId ?? "dark") ?? darkTheme,
 		fontSettings: values?.fontSettings,
 		copyOnSelect: values?.terminalCopyOnSelect ?? false,
+		fileAutoSave: values?.fileAutoSave ?? "off",
 	};
 }
