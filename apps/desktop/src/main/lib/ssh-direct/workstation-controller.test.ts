@@ -4,6 +4,172 @@ import type { SqliteDatabase } from "@superset/direct-connection";
 import { OperationIntents } from "./operation-intents";
 import { WorkstationController } from "./workstation-controller";
 
+test("workspace file search and Git staging reach the selected backend without cloud calls", async () => {
+	const f = fixture();
+	const requests: unknown[] = [];
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationFilesV1: true, workstationGitV1: true },
+		}),
+		invoke: async (id, request) => {
+			requests.push({ id, ...request });
+			return { success: true };
+		},
+	});
+	await controller.invoke({
+		connectionId: "machine",
+		generation: 1,
+		path: "filesystem.searchContent",
+		type: "query",
+		input: { workspaceId: "workspace", query: "needle", limit: 100 },
+	});
+	await controller.invoke({
+		connectionId: "machine",
+		generation: 1,
+		path: "git.stageFile",
+		type: "mutation",
+		input: { workspaceId: "workspace", filePath: "notes.txt" },
+	});
+	expect(requests).toEqual([
+		{
+			id: "machine",
+			path: "filesystem.searchContent",
+			type: "query",
+			input: { workspaceId: "workspace", query: "needle", limit: 100 },
+			connectionId: "machine",
+			generation: 1,
+		},
+		{
+			id: "machine",
+			path: "git.stageFile",
+			type: "mutation",
+			input: { workspaceId: "workspace", filePath: "notes.txt" },
+			connectionId: "machine",
+			generation: 1,
+		},
+	]);
+});
+
+test("new file and Git actions are unavailable on an older backend before any mutation", async () => {
+	const f = fixture();
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { files: true, git: true },
+		}),
+	});
+	await expect(
+		controller.invoke({
+			connectionId: "machine",
+			generation: 1,
+			path: "git.stageAll",
+			type: "mutation",
+			input: { workspaceId: "workspace" },
+		}),
+	).rejects.toThrow("capability");
+	expect(f.calls).toEqual([]);
+});
+
+test("new workspace actions reject a missing scope and wrong procedure type", async () => {
+	const f = fixture();
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationFilesV1: true },
+		}),
+	});
+	await expect(
+		controller.invoke({
+			connectionId: "machine",
+			generation: 1,
+			path: "filesystem.searchFiles",
+			type: "query",
+			input: { projectId: "elsewhere", query: "x" },
+		}),
+	).rejects.toThrow("workspace");
+	await expect(
+		controller.invoke({
+			connectionId: "machine",
+			generation: 1,
+			path: "filesystem.movePath",
+			type: "query",
+			input: { workspaceId: "workspace" },
+		}),
+	).rejects.toThrow("Unsupported");
+	expect(f.calls).toEqual([]);
+});
+
+test("a lost Git commit response remains journaled and prevents a second commit", async () => {
+	const db = new Database(":memory:");
+	const intents = new OperationIntents(db as unknown as SqliteDatabase);
+	const f = fixture();
+	const requests: unknown[] = [];
+	const controller = new WorkstationController(
+		{
+			...f.manager,
+			getVerifiedDescription: () => ({
+				capabilities: { workstationGitV1: true, durableOperations: true },
+			}),
+			invoke: async (_id, request) => {
+				requests.push(request);
+				throw new Error("Response lost");
+			},
+		},
+		intents,
+	);
+	const operationId = "1046dcad-c30b-4868-80e3-d61bf5ea64c8";
+	const input = {
+		workspaceId: "workspace",
+		message: "Commit selected changes",
+		stageAll: false,
+		operationId,
+	};
+	try {
+		await expect(
+			controller.invoke({
+				connectionId: "machine",
+				generation: 1,
+				path: "git.commit",
+				type: "mutation",
+				input,
+			}),
+		).rejects.toThrow("Response lost");
+		expect(intents.list("machine")).toMatchObject([
+			{ operationId, procedure: "git.commit" },
+		]);
+		await expect(
+			controller.invoke({
+				connectionId: "machine",
+				generation: 1,
+				path: "git.commit",
+				type: "mutation",
+				input: {
+					...input,
+					operationId: "b8e2eb57-173e-461a-84e9-ff8029795a27",
+				},
+			}),
+		).rejects.toThrow("pending");
+		expect(requests).toEqual([
+			{
+				path: "direct.execute",
+				type: "mutation",
+				input: {
+					operationId,
+					procedure: "git.commit",
+					input: {
+						workspaceId: "workspace",
+						message: "Commit selected changes",
+						stageAll: false,
+					},
+				},
+			},
+		]);
+	} finally {
+		db.close();
+	}
+});
+
 function fixture() {
 	const calls: string[] = [];
 	let generation = 1;

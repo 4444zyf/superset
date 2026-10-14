@@ -5,7 +5,6 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "@superset/ui/context-menu";
-import { cn } from "@superset/ui/utils";
 import {
 	LuClipboard,
 	LuCopy,
@@ -18,8 +17,7 @@ import {
 } from "react-icons/lu";
 import type { DirectoryEntry } from "shared/file-tree-types";
 import { useFileDrag, usePathActions } from "../../../ChangesView/hooks";
-import { SEARCH_RESULT_ROW_HEIGHT } from "../../constants";
-import { FileIcon } from "../../utils";
+import { FileSearchResultRow } from "./components/FileSearchResultRow/FileSearchResultRow";
 
 interface FileSearchResultItemProps {
 	entry: DirectoryEntry;
@@ -33,25 +31,6 @@ interface FileSearchResultItemProps {
 	onDelete: (entry: DirectoryEntry) => void;
 }
 
-const PATH_LABEL_MAX_CHARS = 48;
-
-function getFolderLabel(relativePath: string): string {
-	const normalized = relativePath.replace(/\\/g, "/");
-	const lastSlash = normalized.lastIndexOf("/");
-	if (lastSlash <= 0) {
-		return "root";
-	}
-	return normalized.slice(0, lastSlash);
-}
-
-function truncatePathStart(value: string, maxLength: number): string {
-	if (value.length <= maxLength) {
-		return value;
-	}
-	const sliceLength = Math.max(1, maxLength - 3);
-	return `...${value.slice(value.length - sliceLength)}`;
-}
-
 export function FileSearchResultItem({
 	entry,
 	worktreePath,
@@ -63,12 +42,6 @@ export function FileSearchResultItem({
 	onRename,
 	onDelete,
 }: FileSearchResultItemProps) {
-	const folderLabel = getFolderLabel(entry.relativePath);
-	const folderLabelDisplay = truncatePathStart(
-		folderLabel,
-		PATH_LABEL_MAX_CHARS,
-	);
-
 	const parentPath = entry.isDirectory
 		? entry.path
 		: entry.path.split("/").slice(0, -1).join("/") || worktreePath;
@@ -109,37 +82,13 @@ export function FileSearchResultItem({
 	};
 
 	const itemContent = (
-		<div
+		<FileSearchResultRow
+			entry={entry}
 			{...fileDragProps}
-			role="treeitem"
-			tabIndex={0}
-			style={{ height: SEARCH_RESULT_ROW_HEIGHT }}
-			className={cn(
-				"flex items-center gap-1 px-1 cursor-pointer select-none",
-				"hover:bg-accent/50 transition-colors",
-			)}
 			onClick={handleClick}
 			onDoubleClick={handleDoubleClick}
 			onKeyDown={handleKeyDown}
-		>
-			<span className="flex items-center justify-center w-4 h-4 shrink-0" />
-			<div className="flex flex-col min-w-0 flex-1 gap-0.5">
-				<span
-					className="text-[10px] text-muted-foreground truncate"
-					title={entry.relativePath}
-				>
-					{folderLabelDisplay}
-				</span>
-				<div className="flex items-center gap-1 min-w-0">
-					<FileIcon
-						fileName={entry.name}
-						isDirectory={entry.isDirectory}
-						className="size-4 shrink-0"
-					/>
-					<span className="flex-1 min-w-0 text-xs truncate">{entry.name}</span>
-				</div>
-			</div>
-		</div>
+		/>
 	);
 
 	return (

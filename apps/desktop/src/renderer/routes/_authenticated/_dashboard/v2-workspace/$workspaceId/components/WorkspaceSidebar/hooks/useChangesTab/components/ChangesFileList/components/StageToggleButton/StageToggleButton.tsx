@@ -5,9 +5,14 @@ import { Minus, Plus } from "lucide-react";
 interface StageToggleButtonProps {
 	action: "stage" | "unstage";
 	onClick: () => void;
+	disabled?: boolean;
 }
 
-export function StageToggleButton({ action, onClick }: StageToggleButtonProps) {
+export function StageToggleButton({
+	action,
+	onClick,
+	disabled = false,
+}: StageToggleButtonProps) {
 	const { t } = useLingui();
 	const label =
 		action === "stage"
@@ -19,6 +24,7 @@ export function StageToggleButton({ action, onClick }: StageToggleButtonProps) {
 			<TooltipTrigger asChild>
 				<button
 					type="button"
+					disabled={disabled}
 					aria-label={label}
 					className="flex size-5 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground"
 					onClick={(e) => {

@@ -1,0 +1,25 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [73.10ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [11.21ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [374.62ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [53.58ms]
+(pass) a truncated read cannot overwrite the complete remote file [117.12ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [23.07ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [77.52ms]
+(pass) editing a remote CRLF file preserves its line endings [70.30ms]
+(pass) Git diffs use the remote status category and surface transport failures [37.62ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [23.02ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteGitActions/RemoteGitActions.test.tsx:
+(pass) the original commit form commits only the staged snapshot on the selected backend [15.77ms]
+(pass) double submission locks one operation while a newer message remains editable [17.30ms]
+(pass) unknown delivery keeps the message without resubmitting a commit [12.67ms]
+(pass) an older backend and an empty staged selection cannot trigger a commit shortcut [4.03ms]
+(pass) a completed reply from the previous workspace cannot clear the current draft or refresh it [11.19ms]
+
+ 15 pass
+ 0 fail
+ 57 expect() calls
+Ran 15 tests across 2 files. [1247.00ms]

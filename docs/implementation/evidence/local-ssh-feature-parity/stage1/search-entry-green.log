@@ -1,0 +1,26 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [84.86ms]
+(pass) the original explorer action opens a create form using the current remote directory [63.94ms]
+(pass) content search opens the selected remote file at the matched line [395.60ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [35.56ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [71.40ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [66.82ms]
+(pass) a truncated read cannot overwrite the complete remote file [47.90ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [26.38ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [74.18ms]
+(pass) editing a remote CRLF file preserves its line endings [73.13ms]
+(pass) Git diffs use the remote status category and surface transport failures [33.64ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [31.78ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileSearch/RemoteFileSearch.test.tsx:
+(pass) file search uses a bounded query against the selected workspace and opens the returned path [21.74ms]
+(pass) content results retain their line and display preview as text [51.51ms]
+(pass) a reply from the old workspace cannot populate results in the next workspace [11.66ms]
+(pass) an older backend cannot issue search queries [7.89ms]
+
+ 16 pass
+ 0 fail
+ 53 expect() calls
+Ran 16 tests across 2 files. [1424.00ms]

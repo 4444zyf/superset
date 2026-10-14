@@ -1,12 +1,28 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { darkTheme } from "@superset/shared/themes";
 import { Button } from "@superset/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@superset/ui/dropdown-menu";
+import { TooltipProvider } from "@superset/ui/tooltip";
+import { FilePlus, FolderPlus, MoreVertical } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { FilesTabHeaderButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/components/FilesTab/components/FilesTabHeaderButton/FilesTabHeaderButton";
+import { StageToggleButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/hooks/useChangesTab/components/ChangesFileList/components/StageToggleButton/StageToggleButton";
 import { detectLanguage } from "shared/detect-language";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
+import {
+	type FileOperation,
+	FileOperationDialog,
+} from "./components/FileOperationDialog/FileOperationDialog";
+import { RemoteFileSearch } from "./components/RemoteFileSearch/RemoteFileSearch";
+import { RemoteGitActions } from "./components/RemoteGitActions/RemoteGitActions";
 
 const CodeEditorSurface = lazy(() =>
 	import(
@@ -33,6 +49,7 @@ interface Editor {
 	truncated: boolean;
 	binary: boolean;
 	lineEnding: "\n" | "\r\n";
+	revealLine?: number;
 }
 interface ChangedFile {
 	path: string;
@@ -97,7 +114,7 @@ export function RemoteFiles({
 	onError(message: string): void;
 }) {
 	const { t } = useLingui();
-	const [tab, setTab] = useState<"files" | "changes">("files");
+	const [tab, setTab] = useState<"files" | "changes" | "search">("files");
 	const [root, setRoot] = useState("");
 	const [directory, setDirectory] = useState("");
 	const [entries, setEntries] = useState<Entry[]>([]);
@@ -106,7 +123,11 @@ export function RemoteFiles({
 	const [category, setCategory] = useState<Category>("unstaged");
 	const [diff, setDiff] = useState<(Diff & { path: string }) | null>(null);
 	const [busy, setBusy] = useState(false);
+	const [fileOperation, setFileOperation] = useState<FileOperation | null>(
+		null,
+	);
 	const epoch = useRef(0);
+	const running = useRef(false);
 	const onErrorRef = useRef(onError);
 	onErrorRef.current = onError;
 	const gitAvailableRef = useRef(connection.capabilities?.git === true);
@@ -123,6 +144,8 @@ export function RemoteFiles({
 	const report = (error: unknown) =>
 		onErrorRef.current(error instanceof Error ? error.message : String(error));
 	const run = async (execute: (version: number) => Promise<void>) => {
+		if (running.current) return;
+		running.current = true;
 		const version = epoch.current;
 		setBusy(true);
 		try {
@@ -130,7 +153,10 @@ export function RemoteFiles({
 		} catch (error) {
 			if (version === epoch.current) report(error);
 		} finally {
-			if (version === epoch.current) setBusy(false);
+			if (version === epoch.current) {
+				running.current = false;
+				setBusy(false);
+			}
 		}
 	};
 	const browse = async (absolutePath: string, version: number) => {
@@ -154,10 +180,12 @@ export function RemoteFiles({
 	};
 	useEffect(() => {
 		const version = ++epoch.current;
+		running.current = false;
 		setRoot("");
 		setDirectory("");
 		setEntries([]);
 		setEditor(null);
+		setFileOperation(null);
 		setStatus(null);
 		setDiff(null);
 		setBusy(true);
@@ -245,7 +273,7 @@ export function RemoteFiles({
 			);
 			await refreshGit(version);
 		});
-	const openFile = (absolutePath: string) =>
+	const openFile = (absolutePath: string, revealLine?: number) =>
 		run(async (version) => {
 			const result = await rpc<ReadResult>("filesystem.readFile", "query", {
 				workspaceId,
@@ -253,264 +281,454 @@ export function RemoteFiles({
 				maxBytes: 1024 * 1024,
 			});
 			if (version === epoch.current)
-				setEditor(editorFromRead(absolutePath, result));
+				setEditor({ ...editorFromRead(absolutePath, result), revealLine });
 		});
 	return (
-		<section className="flex-1 min-h-0 overflow-auto p-3 space-y-3 bg-background text-foreground">
-			<div className="flex gap-2 flex-wrap">
-				<Button
-					variant="outline"
-					size="sm"
-					type="button"
-					className={button}
-					onClick={() => setTab("files")}
-					aria-pressed={tab === "files"}
-				>
-					<Trans>Files</Trans>
-				</Button>
-				<Button
-					variant="outline"
-					size="sm"
-					type="button"
-					className={button}
-					onClick={() => setTab("changes")}
-					disabled={!connection.capabilities?.git}
-					aria-pressed={tab === "changes"}
-				>
-					<Trans>Changes</Trans>
-				</Button>
-				<Button
-					variant="outline"
-					size="sm"
-					type="button"
-					className={button}
-					disabled={busy || !directory}
-					onClick={() =>
-						void run(async (version) => {
-							await Promise.all([
-								browse(directory, version),
-								refreshGit(version),
-							]);
-						})
-					}
-				>
-					<Trans>Refresh files and Git</Trans>
-				</Button>
-			</div>
-			{tab === "files" ? (
-				<>
-					<code className="block text-xs break-all">{directory}</code>
-					<div className="flex gap-2 flex-wrap">
-						{directory !== root && directory && (
-							<Button
-								variant="outline"
-								size="sm"
-								type="button"
-								className={button}
-								disabled={busy || dirty}
-								onClick={() =>
-									void run((version) =>
-										browse(
-											directory.slice(0, directory.lastIndexOf("/")) || "/",
-											version,
-										),
-									)
+		<TooltipProvider>
+			<section
+				data-workspace-files={workspaceId}
+				className="flex-1 min-h-0 overflow-auto p-3 space-y-3 bg-background text-foreground"
+			>
+				<div className="flex gap-2 flex-wrap">
+					<Button
+						variant="outline"
+						size="sm"
+						type="button"
+						className={button}
+						onClick={() => setTab("files")}
+						aria-pressed={tab === "files"}
+					>
+						<Trans>Files</Trans>
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						type="button"
+						className={button}
+						onClick={() => setTab("changes")}
+						disabled={!connection.capabilities?.git}
+						aria-pressed={tab === "changes"}
+					>
+						<Trans>Changes</Trans>
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						type="button"
+						disabled={!connection.capabilities?.workstationFilesV1}
+						aria-pressed={tab === "search"}
+						onClick={() => setTab("search")}
+					>
+						<Trans>Search files</Trans>
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						type="button"
+						className={button}
+						disabled={busy || !directory}
+						onClick={() =>
+							void run(async (version) => {
+								await Promise.all([
+									browse(directory, version),
+									refreshGit(version),
+								]);
+							})
+						}
+					>
+						<Trans>Refresh files and Git</Trans>
+					</Button>
+				</div>
+				{tab === "search" ? (
+					<RemoteFileSearch
+						api={api}
+						connection={connection}
+						workspaceId={workspaceId}
+						disabled={busy || dirty}
+						onError={report}
+						onOpen={(path, line) => {
+							if (!dirty && !busy) {
+								setTab("files");
+								void openFile(path, line);
+							}
+						}}
+					/>
+				) : tab === "files" ? (
+					<>
+						<code className="block text-xs break-all">{directory}</code>
+						<div className="flex gap-1">
+							<FilesTabHeaderButton
+								icon={FilePlus}
+								label={t({ message: "New File..." })}
+								disabled={
+									busy ||
+									dirty ||
+									!directory ||
+									!connection.capabilities?.workstationFilesV1
 								}
-							>
-								..
-							</Button>
-						)}
-						{entries.map((entry) => (
-							<Button
-								variant="outline"
-								size="sm"
-								type="button"
-								key={entry.absolutePath}
-								className={button}
-								disabled={busy || dirty || entry.kind === "other"}
-								onClick={() =>
-									void (entry.kind === "directory"
-										? run((version) => browse(entry.absolutePath, version))
-										: openFile(entry.absolutePath))
+								onClick={() => setFileOperation({ kind: "newFile" })}
+							/>
+							<FilesTabHeaderButton
+								icon={FolderPlus}
+								label={t({ message: "New Folder..." })}
+								disabled={
+									busy ||
+									dirty ||
+									!directory ||
+									!connection.capabilities?.workstationFilesV1
 								}
-							>
-								{entry.name}
-								{entry.kind === "directory" ? "/" : ""}
-							</Button>
-						))}
-					</div>
-					{editor && (
-						<div className="space-y-2">
-							<code className="block text-xs break-all">
-								{editor.absolutePath}
-							</code>
-							{editor.binary ? (
-								<p className="text-sm text-muted-foreground">
-									<Trans>Binary files cannot be edited here.</Trans>
-								</p>
-							) : (
-								<>
-									{editor.truncated && (
-										<p className="text-sm text-amber-300">
-											<Trans>
-												This preview is truncated. Saving is disabled.
-											</Trans>
-										</p>
-									)}
-									<section
-										className="h-80 border border-border rounded-md overflow-hidden"
-										aria-label={t({ message: "File contents" })}
-									>
-										<Suspense
-											fallback={
-												<div className="p-3 text-muted-foreground">
-													<Trans>Files</Trans>
-												</div>
-											}
-										>
-											<CodeEditorSurface
-												value={editor.content}
-												language={detectLanguage(editor.absolutePath)}
-												theme={darkTheme}
-												readOnly={busy || editor.truncated}
-												onChange={(content) =>
-													setEditor({ ...editor, content })
-												}
-												onSave={() => {
-													if (!busy && !editor.truncated && dirty) void save();
-												}}
-											/>
-										</Suspense>
-									</section>
-									<div className="flex gap-2">
-										<Button
-											variant="outline"
-											size="sm"
-											type="button"
-											className={button}
-											disabled={busy || editor.truncated || !dirty}
-											onClick={() => void save()}
-										>
-											<Trans>Save file</Trans>
-										</Button>
-										<Button
-											variant="outline"
-											size="sm"
-											type="button"
-											className={button}
-											disabled={busy}
-											onClick={() => {
-												setEditor(null);
-											}}
-										>
-											<Trans>Close file and discard draft</Trans>
-										</Button>
-									</div>
-								</>
-							)}
+								onClick={() => setFileOperation({ kind: "newFolder" })}
+							/>
 						</div>
-					)}
-				</>
-			) : (
-				<>
-					{status && <p className="text-sm">{status.currentBranch.name}</p>}
-					<div className="flex gap-2 flex-wrap">
-						<Button
-							variant="outline"
-							size="sm"
-							type="button"
-							className={button}
-							disabled={busy}
-							onClick={() => {
-								setCategory("unstaged");
-								setDiff(null);
-							}}
-							aria-pressed={category === "unstaged"}
-						>
-							<Trans>Unstaged</Trans>
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							type="button"
-							className={button}
-							disabled={busy}
-							onClick={() => {
-								setCategory("staged");
-								setDiff(null);
-							}}
-							aria-pressed={category === "staged"}
-						>
-							<Trans>Staged</Trans>
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							type="button"
-							className={button}
-							disabled={busy}
-							onClick={() => {
-								setCategory("against-base");
-								setDiff(null);
-							}}
-							aria-pressed={category === "against-base"}
-						>
-							<Trans>Against base</Trans>
-						</Button>
-					</div>
-					<div className="space-y-1">
-						{(category === "against-base"
-							? status?.againstBase
-							: status?.[category]
-						)?.map((file) => (
+						<div className="flex gap-2 flex-wrap">
+							{directory !== root && directory && (
+								<Button
+									variant="outline"
+									size="sm"
+									type="button"
+									className={button}
+									disabled={busy || dirty}
+									onClick={() =>
+										void run((version) =>
+											browse(
+												directory.slice(0, directory.lastIndexOf("/")) || "/",
+												version,
+											),
+										)
+									}
+								>
+									..
+								</Button>
+							)}
+							{entries.map((entry) => (
+								<div
+									key={entry.absolutePath}
+									className="flex items-center gap-1"
+								>
+									<Button
+										variant="outline"
+										size="sm"
+										type="button"
+										className={button}
+										disabled={busy || dirty || entry.kind === "other"}
+										onClick={() =>
+											void (entry.kind === "directory"
+												? run((version) => browse(entry.absolutePath, version))
+												: openFile(entry.absolutePath))
+										}
+									>
+										{entry.name}
+										{entry.kind === "directory" ? "/" : ""}
+									</Button>
+									{connection.capabilities?.workstationFilesV1 && (
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button
+													type="button"
+													size="icon"
+													variant="ghost"
+													disabled={busy || dirty || entry.kind === "other"}
+													aria-label={`${t({ message: "File actions" })}: ${entry.name}`}
+												>
+													<MoreVertical className="size-4" />
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent>
+												<DropdownMenuItem
+													data-file-action="rename"
+													onSelect={() =>
+														setFileOperation({
+															kind: "rename",
+															absolutePath: entry.absolutePath,
+														})
+													}
+												>
+													<Trans>Rename</Trans>
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													data-file-action="move"
+													onSelect={() =>
+														setFileOperation({
+															kind: "move",
+															absolutePath: entry.absolutePath,
+														})
+													}
+												>
+													<Trans>Move</Trans>
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													data-file-action="copy"
+													onSelect={() =>
+														setFileOperation({
+															kind: "copy",
+															absolutePath: entry.absolutePath,
+														})
+													}
+												>
+													<Trans>Copy</Trans>
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													data-file-action="delete"
+													variant="destructive"
+													onSelect={() =>
+														setFileOperation({
+															kind: "delete",
+															absolutePath: entry.absolutePath,
+														})
+													}
+												>
+													<Trans>Delete permanently</Trans>
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									)}
+								</div>
+							))}
+						</div>
+						{editor && (
+							<div className="space-y-2">
+								<code className="block text-xs break-all">
+									{editor.absolutePath}
+								</code>
+								{editor.binary ? (
+									<p className="text-sm text-muted-foreground">
+										<Trans>Binary files cannot be edited here.</Trans>
+									</p>
+								) : (
+									<>
+										{editor.truncated && (
+											<p className="text-sm text-amber-300">
+												<Trans>
+													This preview is truncated. Saving is disabled.
+												</Trans>
+											</p>
+										)}
+										<section
+											className="h-80 border border-border rounded-md overflow-hidden"
+											aria-label={t({ message: "File contents" })}
+										>
+											<Suspense
+												fallback={
+													<div className="p-3 text-muted-foreground">
+														<Trans>Files</Trans>
+													</div>
+												}
+											>
+												<CodeEditorSurface
+													key={editor.absolutePath}
+													value={editor.content}
+													language={detectLanguage(editor.absolutePath)}
+													theme={darkTheme}
+													readOnly={busy || editor.truncated}
+													revealLine={editor.revealLine}
+													onChange={(content) =>
+														setEditor({ ...editor, content })
+													}
+													onSave={() => {
+														if (!busy && !editor.truncated && dirty)
+															void save();
+													}}
+												/>
+											</Suspense>
+										</section>
+										<div className="flex gap-2">
+											<Button
+												variant="outline"
+												size="sm"
+												type="button"
+												className={button}
+												disabled={busy || editor.truncated || !dirty}
+												onClick={() => void save()}
+											>
+												<Trans>Save file</Trans>
+											</Button>
+											<Button
+												variant="outline"
+												size="sm"
+												type="button"
+												className={button}
+												disabled={busy}
+												onClick={() => {
+													setEditor(null);
+												}}
+											>
+												<Trans>Close file and discard draft</Trans>
+											</Button>
+										</div>
+									</>
+								)}
+							</div>
+						)}
+					</>
+				) : (
+					<>
+						{status && <p className="text-sm">{status.currentBranch.name}</p>}
+						<RemoteGitActions
+							api={api}
+							connection={connection}
+							workspaceId={workspaceId}
+							hasStagedChanges={!!status?.staged.length}
+							disabled={busy || dirty}
+							onError={report}
+							onRefresh={() =>
+								run(async (version) => {
+									await refreshGit(version);
+									if (version === epoch.current) setDiff(null);
+								})
+							}
+						/>
+						<div className="flex gap-2 flex-wrap">
 							<Button
 								variant="outline"
 								size="sm"
 								type="button"
-								key={file.path}
-								className={`${button} block`}
-								disabled={busy || file.isBinary}
-								onClick={() =>
-									void run(async (version) => {
-										const result = await rpc<Diff>("git.getDiff", "query", {
-											workspaceId,
-											path: file.path,
-											category,
-										});
-										if (version === epoch.current)
-											setDiff({ ...result, path: file.path });
-									})
-								}
+								className={button}
+								disabled={busy}
+								onClick={() => {
+									setCategory("unstaged");
+									setDiff(null);
+								}}
+								aria-pressed={category === "unstaged"}
 							>
-								{file.path}
+								<Trans>Unstaged</Trans>
 							</Button>
-						))}
-					</div>
-					{diff && (
-						<div className="space-y-2">
-							<code className="text-xs break-all">{diff.path}</code>
-							<div className="grid grid-cols-2 gap-3">
-								<div>
-									<h3 className="text-sm">
-										<Trans>Before</Trans>
-									</h3>
-									<pre className="max-h-96 overflow-auto bg-zinc-900 p-2 text-xs">
-										{diff.oldFile.contents}
-									</pre>
+							<Button
+								variant="outline"
+								size="sm"
+								type="button"
+								className={button}
+								disabled={busy}
+								onClick={() => {
+									setCategory("staged");
+									setDiff(null);
+								}}
+								aria-pressed={category === "staged"}
+							>
+								<Trans>Staged</Trans>
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								type="button"
+								className={button}
+								disabled={busy}
+								onClick={() => {
+									setCategory("against-base");
+									setDiff(null);
+								}}
+								aria-pressed={category === "against-base"}
+							>
+								<Trans>Against base</Trans>
+							</Button>
+						</div>
+						<div className="space-y-1">
+							{(category === "against-base"
+								? status?.againstBase
+								: status?.[category]
+							)?.map((file) => (
+								<div
+									key={file.path}
+									data-git-path={file.path}
+									className="flex items-center gap-2"
+								>
+									<Button
+										variant="outline"
+										size="sm"
+										type="button"
+										className={`${button} block`}
+										disabled={busy || file.isBinary}
+										onClick={() =>
+											void run(async (version) => {
+												const result = await rpc<Diff>("git.getDiff", "query", {
+													workspaceId,
+													path: file.path,
+													category,
+												});
+												if (version === epoch.current)
+													setDiff({ ...result, path: file.path });
+											})
+										}
+									>
+										{file.path}
+									</Button>
+									{category !== "against-base" &&
+										connection.capabilities?.workstationGitV1 && (
+											<StageToggleButton
+												action={category === "staged" ? "unstage" : "stage"}
+												disabled={busy || dirty}
+												onClick={() =>
+													void run(async (version) => {
+														await rpc(
+															category === "staged"
+																? "git.unstageFile"
+																: "git.stageFile",
+															"mutation",
+															{ workspaceId, filePath: file.path },
+														);
+														if (version === epoch.current) {
+															await refreshGit(version);
+															setDiff(null);
+														}
+													})
+												}
+											/>
+										)}
 								</div>
-								<div>
-									<h3 className="text-sm">
-										<Trans>After</Trans>
-									</h3>
-									<pre className="max-h-96 overflow-auto bg-zinc-900 p-2 text-xs">
-										{diff.newFile.contents}
-									</pre>
+							))}
+						</div>
+						{diff && (
+							<div className="space-y-2">
+								<code className="text-xs break-all">{diff.path}</code>
+								<div className="grid grid-cols-2 gap-3">
+									<div>
+										<h3 className="text-sm">
+											<Trans>Before</Trans>
+										</h3>
+										<pre className="max-h-96 overflow-auto bg-zinc-900 p-2 text-xs">
+											{diff.oldFile.contents}
+										</pre>
+									</div>
+									<div>
+										<h3 className="text-sm">
+											<Trans>After</Trans>
+										</h3>
+										<pre className="max-h-96 overflow-auto bg-zinc-900 p-2 text-xs">
+											{diff.newFile.contents}
+										</pre>
+									</div>
 								</div>
 							</div>
-						</div>
-					)}
-				</>
-			)}
-		</section>
+						)}
+					</>
+				)}
+				{fileOperation && (
+					<FileOperationDialog
+						api={api}
+						connection={connection}
+						workspaceId={workspaceId}
+						root={root}
+						directory={directory}
+						operation={fileOperation}
+						onClose={() => setFileOperation(null)}
+						onError={report}
+						onComplete={() =>
+							run(async (version) => {
+								await Promise.all([
+									browse(directory, version),
+									refreshGit(version),
+								]);
+								if (
+									version === epoch.current &&
+									"absolutePath" in fileOperation &&
+									editor?.absolutePath === fileOperation.absolutePath &&
+									fileOperation.kind !== "copy"
+								)
+									setEditor(null);
+							})
+						}
+					/>
+				)}
+			</section>
+		</TooltipProvider>
 	);
 }

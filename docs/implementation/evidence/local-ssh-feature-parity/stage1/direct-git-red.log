@@ -1,0 +1,69 @@
+bun test v1.4.2 (744846f84)
+
+test/integration/direct-git.integration.test.ts:
+35 | 		const cause = _cause;
+36 | 		if (isTRPCClientError(cause)) {
+37 | 			if (opts.meta) cause.meta = (0, import_objectSpread2.default)((0, import_objectSpread2.default)({}, cause.meta), opts.meta);
+38 | 			return cause;
+39 | 		}
+40 | 		if (isTRPCErrorResponse(cause)) return new TRPCClientError(cause.error.message, (0, import_objectSpread2.default)((0, import_objectSpread2.default)({}, opts), {}, {
+                                              ^
+TRPCClientError: [
+  {
+    "code": "invalid_value",
+    "values": [
+      "project.create",
+      "workspaceCreation.createSession",
+      "workspaces.createSession",
+      "workspaces.create",
+      "agents.run",
+      "terminal.createSession",
+      "terminal.launchSession",
+      "chat.createSession",
+      "chat.prompt"
+    ],
+    "path": [
+      "procedure"
+    ],
+    "message": "Invalid option: expected one of \"project.create\"|\"workspaceCreation.createSession\"|\"workspaces.createSession\"|\"workspaces.create\"|\"agents.run\"|\"terminal.createSession\"|\"terminal.launchSession\"|\"chat.createSession\"|\"chat.prompt\""
+  }
+]
+ cause: undefined,
+ shape: {
+  message: "[\n  {\n    \"code\": \"invalid_value\",\n    \"values\": [\n      \"project.create\",\n      \"workspaceCreation.createSession\",\n      \"workspaces.createSession\",\n      \"workspaces.create\",\n      \"agents.run\",\n      \"terminal.createSession\",\n      \"terminal.launchSession\",\n      \"chat.createSession\",\n      \"chat.prompt\"\n    ],\n    \"path\": [\n      \"procedure\"\n    ],\n    \"message\": \"Invalid option: expected one of \\\"project.create\\\"|\\\"workspaceCreation.createSession\\\"|\\\"workspaces.createSession\\\"|\\\"workspaces.create\\\"|\\\"agents.run\\\"|\\\"terminal.createSession\\\"|\\\"terminal.launchSession\\\"|\\\"chat.createSession\\\"|\\\"chat.prompt\\\"\"\n  }\n]",
+  code: -32600,
+  data: [Object ...],
+},
+  data: {
+  code: "BAD_REQUEST",
+  httpStatus: 400,
+  stack: "TRPCError: [\n  {\n    \"code\": \"invalid_value\",\n    \"values\": [\n      \"project.create\",\n      \"workspaceCreation.createSession\",\n      \"workspaces.createSession\",\n      \"workspaces.create\",\n      \"agents.run\",\n      \"terminal.createSession\",\n      \"terminal.launchSession\",\n      \"chat.createSession\",\n      \"chat.prompt\"\n    ],\n    \"path\": [\n      \"procedure\"\n    ],\n    \"message\": \"Invalid option: expected one of \\\"project.create\\\"|\\\"workspaceCreation.createSession\\\"|\\\"workspaces.createSession\\\"|\\\"workspaces.create\\\"|\\\"agents.run\\\"|\\\"terminal.createSession\\\"|\\\"terminal.launchSession\\\"|\\\"chat.createSession\\\"|\\\"chat.prompt\\\"\"\n  }\n]\n    at inputValidatorMiddleware (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:44:14)\n    at async callRecursive (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:256:24)\n    at processTicksAndRejections (native:7:39)",
+  path: "direct.execute",
+  teardownFailure: undefined,
+  projectNotSetup: undefined,
+  deleteInProgress: undefined,
+  i18nKey: null,
+  i18nParams: null,
+},
+  meta: {
+  response: Response (0 KB) {
+    ok: false,
+    url: "",
+    status: 400,
+    statusText: "",
+    headers: Headers [Object ...],
+    redirected: false,
+    bodyUsed: true
+  },
+  responseJSON: [
+    [Object ...]
+  ],
+},
+
+      at from (/workspace/superset/node_modules/.bun/@trpc+client@11.16.0+c3aa90de1aae0655/node_modules/@trpc/client/dist/TRPCClientError-apv8gw59.mjs:40:42)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+client@11.16.0+c3aa90de1aae0655/node_modules/@trpc/client/dist/httpBatchLink-CaWjh1oW.mjs:228:38)
+(fail) a durable direct commit preserves unstaged edits and reuses the same receipt without another commit [389.72ms]
+
+ 0 pass
+ 1 fail
+Ran 1 test across 1 file. [937.00ms]

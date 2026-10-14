@@ -1,0 +1,42 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.83ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.17ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.15ms]
+46 | 		invoke: async (_id, request) => { requests.push(request); throw new Error("Response lost"); },
+47 | 	}, intents);
+48 | 	const operationId = "1046dcad-c30b-4868-80e3-d61bf5ea64c8";
+49 | 	const input = { workspaceId: "workspace", message: "Commit selected changes", stageAll: false, operationId };
+50 | 	try {
+51 | 		await expect(controller.invoke({ connectionId: "machine", generation: 1, path: "git.commit", type: "mutation", input })).rejects.toThrow("Response lost");
+                                                                                                                                        ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Response lost"
+Received message: "Unsupported workstation procedure"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:51:132)
+(fail) a lost Git commit response remains journaled and prevents a second commit [0.87ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.11ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.77ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.06ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.14ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.11ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.13ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [1.71ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.61ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.52ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.47ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.57ms]
+(pass) attachment readiness requires an explicit backend capability [0.16ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.11ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.18ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.07ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.49ms]
+
+ 20 pass
+ 1 fail
+ 43 expect() calls
+Ran 21 tests across 1 file. [208.00ms]

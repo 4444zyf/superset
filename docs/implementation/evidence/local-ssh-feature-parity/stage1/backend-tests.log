@@ -1,0 +1,30 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/operations.test.ts:
+(pass) a completed direct command is returned after backend restart without repeating side effects [3.76ms]
+(pass) an operation ID cannot be reused for different inputs [0.89ms]
+(pass) accepted operations from a crashed backend are unresolved and never automatically replayed [0.82ms]
+(pass) concurrent retries share one accepted operation and its final result [0.77ms]
+(pass) an exception after a side effect remains unresolved and cannot be replayed [0.74ms]
+(pass) maintenance drain persists and blocks new work until its owner commits [1.12ms]
+(pass) freeze persists across restart and only its maintenance owner can release it [0.53ms]
+(pass) a failed freeze write cannot leave a partially persisted maintenance transition [0.51ms]
+
+test/integration/direct-mode.integration.test.ts:
+(pass) direct mode authenticates local clients without constructing a cloud API [50.90ms]
+(pass) direct project creation returns one stable project across response-loss retries [55.49ms]
+(pass) an explicit project ID cannot rebind an existing project to another repository [700.95ms]
+(pass) a drain blocks new requests across clients while reads and completed retries remain available [30.18ms]
+(pass) direct attachments download from the remote namespace over an authenticated request [16.74ms]
+(pass) a maintenance drain rejects the raw terminal creation route before it can launch work [15.54ms]
+(pass) a frozen backend blocks metadata, files, Git, and raw writes while maintenance remains available [22.90ms]
+(pass) direct cloud-only capabilities fail explicitly and never reach an official API [18.88ms]
+(pass) direct HTTP endpoints require a PSK and reject an untrusted browser origin [15.19ms]
+
+test/integration/direct-git.integration.test.ts:
+(pass) a durable direct commit preserves unstaged edits and reuses the same receipt without another commit [715.06ms]
+
+ 18 pass
+ 0 fail
+ 68 expect() calls
+Ran 18 tests across 3 files. [2.33s]

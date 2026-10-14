@@ -48,6 +48,117 @@ const connection: DirectDescriptor = {
 	capabilities: { files: true, git: true },
 };
 
+test("the original stage button stages a file and refreshes only the selected workspace", async () => {
+	const f = fixture({ "git.stageFile": () => ({ success: true }) });
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={{
+				...connection,
+				capabilities: {
+					files: true,
+					git: true,
+					workstationGitV1: true,
+					durableOperations: true,
+				},
+			}}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Changes" }));
+	fireEvent.click(await screen.findByRole("button", { name: "Stage file" }));
+	await waitFor(() =>
+		expect(f.calls.some((call) => call.path === "git.stageFile")).toBe(true),
+	);
+	expect(f.calls.find((call) => call.path === "git.stageFile")).toMatchObject({
+		connectionId: "mini",
+		generation: 3,
+		type: "mutation",
+		input: { workspaceId: "workspace", filePath: "note.txt" },
+	});
+});
+
+test("the original explorer action opens a create form using the current remote directory", async () => {
+	const f = fixture();
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={{
+				...connection,
+				capabilities: { files: true, git: true, workstationFilesV1: true },
+			}}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	await screen.findByRole("button", { name: "note.txt" });
+	fireEvent.click(screen.getByRole("button", { name: "New File..." }));
+	fireEvent.change(await screen.findByLabelText("Name"), {
+		target: { value: "added.txt" },
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Create" }));
+	await waitFor(() =>
+		expect(f.calls.some((call) => call.path === "filesystem.writeFile")).toBe(
+			true,
+		),
+	);
+	expect(
+		f.calls.find((call) => call.path === "filesystem.writeFile"),
+	).toMatchObject({
+		input: {
+			workspaceId: "workspace",
+			absolutePath: "/Users/remote/repo/added.txt",
+			content: "",
+			options: { create: true, overwrite: false },
+		},
+	});
+});
+
+test("content search opens the selected remote file at the matched line", async () => {
+	const f = fixture({
+		"filesystem.searchContent": () => ({
+			matches: [
+				{
+					absolutePath: "/Users/remote/repo/note.txt",
+					relativePath: "note.txt",
+					line: 3,
+					column: 1,
+					preview: "three",
+				},
+			],
+		}),
+		"filesystem.readFile": () => ({
+			kind: "text",
+			content: "one\ntwo\nthree\n",
+			exceededLimit: false,
+			revision: "r1",
+		}),
+	});
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={{
+				...connection,
+				capabilities: { files: true, git: true, workstationFilesV1: true },
+			}}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	await screen.findByRole("button", { name: "note.txt" });
+	fireEvent.click(screen.getByRole("button", { name: "Search files" }));
+	fireEvent.click(screen.getByRole("button", { name: "Content" }));
+	fireEvent.change(screen.getByLabelText("Search files"), {
+		target: { value: "three" },
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Search" }));
+	fireEvent.click(await screen.findByRole("button", { name: /note.txt:3/ }));
+	const element = await fileEditor();
+	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!)!;
+	await waitFor(() => expect(view.state.selection.main.head).toBe(8));
+});
+
 test("a backend without Git capability can browse files without issuing Git requests", async () => {
 	const f = fixture();
 	render(

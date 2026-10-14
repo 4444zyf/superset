@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { verifyWorkstationFileGitUi } from "./verify-workstation-file-git-ui.mjs";
 
 export async function verifyWorkspaceRestoreUi({
 	getPage,
@@ -101,6 +102,7 @@ export async function verifyWorkspaceRestoreUi({
 		),
 	);
 	await screenshot("upstream-remote-code-editor");
+	await verifyWorkstationFileGitUi({ getPage, click, screenshot, output });
 	await click("text:Terminal");
 	await ready();
 	await click("[data-terminal-id] .xterm-screen");

@@ -1,0 +1,26 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [73.77ms]
+(pass) the original explorer action opens a create form using the current remote directory [56.97ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [13.15ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [379.00ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [66.41ms]
+(pass) a truncated read cannot overwrite the complete remote file [41.24ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [26.74ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [74.93ms]
+(pass) editing a remote CRLF file preserves its line endings [63.86ms]
+(pass) Git diffs use the remote status category and surface transport failures [38.83ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [33.20ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/FileOperationDialog/FileOperationDialog.test.tsx:
+(pass) new files are created in the selected remote directory without overwriting existing files [26.78ms]
+(pass) a destination outside the workspace is rejected before sending a move [17.76ms]
+(pass) an existing destination keeps the name for correction and never retries with overwrite [18.81ms]
+(pass) deleting requires explicit permanent-delete confirmation and includes the selected path [25.94ms]
+(pass) a late copy result cannot update the next workspace or copy twice [41.38ms]
+
+ 16 pass
+ 0 fail
+ 60 expect() calls
+Ran 16 tests across 2 files. [1331.00ms]

@@ -33,6 +33,8 @@ export function describeDirectBackend(
 		chatHarnesses: directChatHarnesses(),
 		capabilities: {
 			workspaceViewRestoreV1,
+			workstationFilesV1: true,
+			workstationGitV1: true,
 			projects: true,
 			sessions: true,
 			terminals: true,
@@ -59,6 +61,8 @@ const directProcedures = z.enum([
 	"terminal.launchSession",
 	"chat.createSession",
 	"chat.prompt",
+	"git.commit",
+	"git.push",
 ]);
 
 async function dispatch(
@@ -96,6 +100,10 @@ async function dispatch(
 	const { appRouter } = await import("../router");
 	const caller = appRouter.createCaller(ctx);
 	switch (procedure) {
+		case "git.commit":
+			return caller.git.commit(input as never);
+		case "git.push":
+			return caller.git.push(input as never);
 		case "project.create":
 			return caller.project.create({
 				...input,
@@ -132,7 +140,11 @@ async function dispatch(
 
 export const directRouter = router({
 	describe: protectedProcedure.query(async ({ ctx }) =>
-		describeDirectBackend(ctx.direct, !!ctx.directOperations, await supportsWorkspaceRestore()),
+		describeDirectBackend(
+			ctx.direct,
+			!!ctx.directOperations,
+			await supportsWorkspaceRestore(),
+		),
 	),
 	execute: protectedProcedure
 		.input(

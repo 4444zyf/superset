@@ -4,6 +4,7 @@ import type {
 	DirectDescriptor,
 	DirectRpc,
 } from "../../../shared/direct-workstation";
+import { workspaceProcedures } from "../../../shared/workstation-procedures";
 import type { OperationIntents } from "./operation-intents";
 
 interface WorkstationManager {
@@ -125,6 +126,8 @@ export class WorkstationController {
 				"git",
 				"durableOperations",
 				"workspaceViewRestoreV1",
+				"workstationFilesV1",
+				"workstationGitV1",
 			].map((key) => [key, metadata.capabilities?.[key] === true]),
 		);
 		const chatHarnesses = Array.isArray(metadata.chatHarnesses)
@@ -148,8 +151,22 @@ export class WorkstationController {
 
 	async invoke(request: DirectRpc): Promise<unknown> {
 		this.assertGeneration(request.connectionId, request.generation);
-		if (procedures[request.path] !== request.type)
+		const workspaceProcedure = Object.hasOwn(workspaceProcedures, request.path)
+			? workspaceProcedures[request.path]
+			: undefined;
+		if ((workspaceProcedure?.type ?? procedures[request.path]) !== request.type)
 			throw new Error("Unsupported workstation procedure");
+		if (workspaceProcedure) {
+			const input = request.input as { workspaceId?: unknown } | undefined;
+			if (typeof input?.workspaceId !== "string" || !input.workspaceId.trim())
+				throw new Error("An explicit workspace is required");
+			const features = await this.features(request.connectionId);
+			this.assertGeneration(request.connectionId, request.generation);
+			if (!features.capabilities?.[workspaceProcedure.capability])
+				throw new Error(
+					"This backend does not support the required capability",
+				);
+		}
 		const durableProcedure = (
 			{
 				"workspaces.createSession": "workspaceCreation.createSession",
@@ -159,8 +176,16 @@ export class WorkstationController {
 				"terminal.launchSession": "terminal.createSession",
 				"chat.createSession": "chat.createSession",
 				"chat.prompt": "chat.prompt",
+				"git.commit": "git.commit",
+				"git.push": "git.push",
 			} as Record<string, string>
 		)[request.path];
+		if (request.path === "git.commit" || request.path === "git.push") {
+			const features = await this.features(request.connectionId);
+			this.assertGeneration(request.connectionId, request.generation);
+			if (!this.intents || !features.capabilities?.durableOperations)
+				throw new Error("Durable operation tracking is required");
+		}
 		if (request.type === "mutation" && durableProcedure && this.intents) {
 			const input = request.input as Record<string, unknown>;
 			if (

@@ -6,6 +6,7 @@ interface FilesTabHeaderButtonProps {
 	icon: React.ComponentType<{ className?: string }>;
 	label: string;
 	loading?: boolean;
+	disabled?: boolean;
 	onClick: () => void;
 }
 
@@ -14,6 +15,7 @@ export function FilesTabHeaderButton({
 	icon: Icon,
 	label,
 	loading,
+	disabled = false,
 	onClick,
 }: FilesTabHeaderButtonProps) {
 	return (
@@ -24,6 +26,7 @@ export function FilesTabHeaderButton({
 					size="icon"
 					className="size-7 text-muted-foreground hover:text-foreground"
 					onClick={onClick}
+					disabled={disabled}
 					aria-label={label}
 				>
 					{loading ? (

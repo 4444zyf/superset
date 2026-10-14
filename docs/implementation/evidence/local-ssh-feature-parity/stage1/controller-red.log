@@ -1,0 +1,64 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+147 | 	}
+148 | 
+149 | 	async invoke(request: DirectRpc): Promise<unknown> {
+150 | 		this.assertGeneration(request.connectionId, request.generation);
+151 | 		if (procedures[request.path] !== request.type)
+152 | 			throw new Error("Unsupported workstation procedure");
+                   ^
+error: Unsupported workstation procedure
+      at invoke (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.ts:152:14)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:15:19)
+(fail) workspace file search and Git staging reach the selected backend without cloud calls [0.58ms]
+21 | });
+22 | 
+23 | test("new file and Git actions are unavailable on an older backend before any mutation", async () => {
+24 | 	const f = fixture();
+25 | 	const controller = new WorkstationController({ ...f.manager, getVerifiedDescription: () => ({ capabilities: { files: true, git: true } }) });
+26 | 	await expect(controller.invoke({ connectionId: "machine", generation: 1, path: "git.stageAll", type: "mutation", input: { workspaceId: "workspace" } })).rejects.toThrow("capability");
+                                                                                                                                                                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "capability"
+Received message: "Unsupported workstation procedure"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:26:163)
+(fail) new file and Git actions are unavailable on an older backend before any mutation [0.16ms]
+28 | });
+29 | 
+30 | test("new workspace actions reject a missing scope and wrong procedure type", async () => {
+31 | 	const f = fixture();
+32 | 	const controller = new WorkstationController({ ...f.manager, getVerifiedDescription: () => ({ capabilities: { workstationFilesV1: true } }) });
+33 | 	await expect(controller.invoke({ connectionId: "machine", generation: 1, path: "filesystem.searchFiles", type: "query", input: { projectId: "elsewhere", query: "x" } })).rejects.toThrow("workspace");
+                                                                                                                                                                                        ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "workspace"
+Received message: "Unsupported workstation procedure"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:33:180)
+(fail) new workspace actions reject a missing scope and wrong procedure type [0.12ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.27ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [1.06ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.02ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.09ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.09ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.12ms]
+(pass) disconnect and app disposal only close client transports [0.10ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [1.40ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.66ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.49ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.54ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.54ms]
+(pass) attachment readiness requires an explicit backend capability [0.20ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.18ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.13ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.12ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.36ms]
+
+ 17 pass
+ 3 fail
+ 38 expect() calls
+Ran 20 tests across 1 file. [337.00ms]

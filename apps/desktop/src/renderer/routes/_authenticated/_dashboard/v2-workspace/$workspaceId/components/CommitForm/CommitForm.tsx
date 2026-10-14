@@ -4,10 +4,18 @@ import { VscLoading } from "react-icons/vsc";
 import type { ShipActions } from "../../hooks/useShipActions";
 
 interface CommitFormProps {
-	actions: ShipActions;
+	actions: Pick<
+		ShipActions,
+		| "commitMessage"
+		| "setCommitMessage"
+		| "defaultCommitMessage"
+		| "commit"
+		| "isCommitting"
+	>;
+	disabled?: boolean;
 }
 
-export function CommitForm({ actions }: CommitFormProps) {
+export function CommitForm({ actions, disabled = false }: CommitFormProps) {
 	return (
 		<div className="flex flex-col gap-2">
 			<Textarea
@@ -17,16 +25,20 @@ export function CommitForm({ actions }: CommitFormProps) {
 				placeholder={actions.defaultCommitMessage}
 				className="min-h-20 text-xs"
 				onKeyDown={(e) => {
-					if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+					if (
+						e.key === "Enter" &&
+						(e.metaKey || e.ctrlKey) &&
+						!e.nativeEvent.isComposing
+					) {
 						e.preventDefault();
-						actions.commit();
+						if (!disabled && !actions.isCommitting) actions.commit();
 					}
 				}}
 			/>
 			<button
 				type="button"
 				onClick={actions.commit}
-				disabled={actions.isCommitting}
+				disabled={disabled || actions.isCommitting}
 				className="flex h-7 items-center justify-center gap-1.5 rounded-md bg-primary px-2 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
 			>
 				{actions.isCommitting && (

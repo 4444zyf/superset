@@ -1,0 +1,43 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteGitActions/RemoteGitActions.test.tsx:
+57 | 	const f = fixture();
+58 | 	render(<RemoteGitActions {...f.props} />);
+59 | 	const input = screen.getByPlaceholderText("Commit message");
+60 | 	fireEvent.change(input, { target: { value: "draft" } });
+61 | 	fireEvent.keyDown(input, { key: "Enter", ctrlKey: true, isComposing: true });
+62 | 	expect(f.calls).toEqual([]);
+                      ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   {
++     "connectionId": "mini",
++     "generation": 4,
++     "input": {
++       "message": "draft",
++       "operationId": "065407a5-02ed-494f-9142-fe9604604131",
++       "stageAll": false,
++       "workspaceId": "ws",
++     },
++     "path": "git.commit",
++     "type": "mutation",
++   },
++ ]
+
+- Expected  - 1
++ Received  + 14
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteGitActions/RemoteGitActions.test.tsx:62:18)
+(fail) an IME composition Enter cannot submit the commit shortcut [38.85ms]
+(pass) the original commit form commits only the staged snapshot on the selected backend [21.09ms]
+(pass) double submission locks one operation while a newer message remains editable [8.92ms]
+(pass) unknown delivery keeps the message without resubmitting a commit [9.17ms]
+(pass) an older backend and an empty staged selection cannot trigger a commit shortcut [3.63ms]
+(pass) a completed reply from the previous workspace cannot clear the current draft or refresh it [7.76ms]
+
+ 5 pass
+ 1 fail
+ 16 expect() calls
+Ran 6 tests across 1 file. [299.00ms]
