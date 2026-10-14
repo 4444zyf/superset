@@ -73,11 +73,11 @@ export async function verifyWorkstationSettingsUi({
 		await click(selector);
 		await until(() =>
 			evaluate(
-				`[...document.querySelectorAll('[role=option]')].some(e=>e.textContent.trim()===${JSON.stringify(option)})`,
+				`[...document.querySelectorAll('[role=option]')].some(e=>e.textContent.trim().replace(/^Aa\\s*/,'')===${JSON.stringify(option)})`,
 			),
 		);
 		const index = await evaluate(
-			`[...document.querySelectorAll('[role=option]')].findIndex(e=>e.textContent.trim()===${JSON.stringify(option)})`,
+			`[...document.querySelectorAll('[role=option]')].findIndex(e=>e.textContent.trim().replace(/^Aa\\s*/,'')===${JSON.stringify(option)})`,
 		);
 		await click(`[role=option]:nth-of-type(${index + 1})`);
 	};
