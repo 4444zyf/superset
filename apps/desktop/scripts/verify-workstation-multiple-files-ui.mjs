@@ -111,10 +111,10 @@ export async function verifyWorkstationMultipleFilesUi({
 	await until(text, (value) => value === before.first);
 	await getPage().call("Input.dispatchKeyEvent", {
 		type: "keyDown",
-		key: "Z",
-		code: "KeyZ",
-		windowsVirtualKeyCode: 90,
-		modifiers: process.platform === "darwin" ? 5 : 3,
+		key: process.platform === "darwin" ? "Z" : "y",
+		code: process.platform === "darwin" ? "KeyZ" : "KeyY",
+		windowsVirtualKeyCode: process.platform === "darwin" ? 90 : 89,
+		modifiers: process.platform === "darwin" ? 5 : 2,
 	});
 	await until(text, (value) => value === firstDraft);
 	await click('[role=tab][aria-label="restore-ui.txt"]');
