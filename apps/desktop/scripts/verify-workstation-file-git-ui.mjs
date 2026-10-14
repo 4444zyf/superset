@@ -208,7 +208,7 @@ export async function verifyWorkstationFileGitUi({
 	assert.ok(!status.staged.some((file) => file.path === "feature-native.txt"));
 	await screenshot("feature-git-committed");
 	await click("text:Files");
-	await click("text:restore-ui.txt");
+	await click("tree:restore-ui.txt");
 	await until(() =>
 		evaluate(
 			"document.querySelector('.cm-content')?.textContent==='after upstream editor'",
