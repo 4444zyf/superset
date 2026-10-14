@@ -66,7 +66,7 @@ export function WorkstationSettings({
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent
-				className="max-h-[85vh] overflow-y-auto sm:max-w-3xl"
+				className="min-w-0 grid-cols-[minmax(0,1fr)] max-h-[85vh] overflow-y-auto sm:max-w-3xl [&>section]:min-w-0"
 				data-workstation-settings
 			>
 				<DialogHeader>
