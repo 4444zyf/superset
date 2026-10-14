@@ -263,6 +263,12 @@ function fixture(
 					};
 				case "filesystem.writeFile":
 					return { ok: true, revision: "r2" };
+				case "git.listBranches":
+					return { branches: [{ name: "main", isHead: true }] };
+				case "git.getBaseBranch":
+					return { baseBranch: null };
+				case "git.getBranchSyncStatus":
+					return { defaultBranch: "main", isDetached: false };
 				case "git.getStatus":
 					return status;
 				case "git.getDiff":
@@ -1001,4 +1007,128 @@ test("history opens the selected commit files and requests that commit's origina
 		f.calls.find((call) => call.path === "git.getCommitFiles"),
 	).toMatchObject({ input: { workspaceId: "workspace", commitHash: hash } });
 	expect(f.calls.some((call) => call.type === "mutation")).toBe(false);
+});
+
+test("the configured base branch reaches status and against-base diff queries", async () => {
+	let base: string | null = null;
+	const f = fixture({
+		"git.listBranches": () => ({
+			branches: [
+				{ name: "main", isHead: true },
+				{ name: "develop", isHead: false },
+			],
+		}),
+		"git.getBaseBranch": () => ({ baseBranch: base }),
+		"git.getBranchSyncStatus": () => ({
+			defaultBranch: "main",
+			isDetached: false,
+		}),
+		"git.setBaseBranch": (request) => {
+			base = (request.input as { baseBranch: string }).baseBranch;
+			return { baseBranch: base };
+		},
+		"git.getStatus": () => ({
+			...status,
+			againstBase: [{ path: "note.txt", status: "modified" }],
+		}),
+	});
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={{
+				...connection,
+				capabilities: { git: true, files: true, workstationGitV1: true },
+			}}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Changes" }));
+	fireEvent.click(await screen.findByRole("button", { name: "main" }));
+	fireEvent.click(
+		within(await screen.findByRole("dialog")).getByRole("button", {
+			name: "develop",
+		}),
+	);
+	await waitFor(() =>
+		expect(
+			f.calls.find(
+				(call) =>
+					call.path === "git.getStatus" &&
+					(call.input as { baseBranch?: string }).baseBranch === "develop",
+			),
+		).toBeDefined(),
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Against base" }));
+	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	await waitFor(() =>
+		expect(f.calls.find((call) => call.path === "git.getDiff")).toMatchObject({
+			input: {
+				workspaceId: "workspace",
+				category: "against-base",
+				baseBranch: "develop",
+				path: "note.txt",
+			},
+		}),
+	);
+});
+
+test("a late configured base invalidates an in-flight default-base diff and refreshes comparison status", async () => {
+	let finishBase!: (value: unknown) => void;
+	let finishDiff!: (value: unknown) => void;
+	const f = fixture({
+		"git.getBaseBranch": () =>
+			new Promise<unknown>((resolve) => {
+				finishBase = resolve;
+			}),
+		"git.getStatus": () => ({
+			...status,
+			againstBase: [{ path: "note.txt", status: "modified" }],
+		}),
+		"git.getDiff": () =>
+			new Promise<unknown>((resolve) => {
+				finishDiff = resolve;
+			}),
+	});
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={{
+				...connection,
+				capabilities: { git: true, files: true, workstationGitV1: true },
+			}}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Changes" }));
+	await waitFor(() =>
+		expect(
+			(
+				screen.getByRole("button", {
+					name: "Against base",
+				}) as HTMLButtonElement
+			).disabled,
+		).toBe(false),
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Against base" }));
+	fireEvent.click(await screen.findByRole("button", { name: "note.txt" }));
+	await waitFor(() => expect(finishDiff).toBeDefined());
+	await act(async () => finishBase({ baseBranch: "develop" }));
+	await act(async () =>
+		finishDiff({
+			oldFile: { contents: "outdated base" },
+			newFile: { contents: "new" },
+		}),
+	);
+	await waitFor(() =>
+		expect(
+			f.calls.some(
+				(call) =>
+					call.path === "git.getStatus" &&
+					(call.input as { baseBranch?: string }).baseBranch === "develop",
+			),
+		).toBe(true),
+	);
+	expect(document.querySelector("[data-remote-git-diff]")).toBeNull();
 });

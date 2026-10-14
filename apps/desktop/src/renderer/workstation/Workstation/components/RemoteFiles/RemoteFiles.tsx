@@ -36,6 +36,7 @@ import {
 	type FileOperation,
 	FileOperationDialog,
 } from "./components/FileOperationDialog/FileOperationDialog";
+import { RemoteBaseBranch } from "./components/RemoteBaseBranch/RemoteBaseBranch";
 import { RemoteDocumentEditor } from "./components/RemoteDocumentEditor";
 import { RemoteFileSearch } from "./components/RemoteFileSearch/RemoteFileSearch";
 import { RemoteFileTabs } from "./components/RemoteFileTabs";
@@ -116,6 +117,8 @@ export function RemoteFiles({
 			documentsManager.autoSave.setMode(appearance.fileAutoSave);
 	}, [sharedManager, documentsManager, appearance.fileAutoSave]);
 	const [status, setStatus] = useState<GitStatus | null>(null);
+	const baseBranchRef = useRef<string | undefined>(undefined);
+	const pendingBaseRefresh = useRef(false);
 	const [category, setCategory] = useState<Category>("unstaged");
 	const [diff, setDiff] = useState<(Diff & { path: string }) | null>(null);
 	const [selectedCommit, setSelectedCommit] = useState<{
@@ -172,6 +175,10 @@ export function RemoteFiles({
 			if (version === epoch.current) {
 				running.current = false;
 				setBusy(false);
+				if (pendingBaseRefresh.current) {
+					pendingBaseRefresh.current = false;
+					void run(refreshGit);
+				}
 			}
 		}
 	};
@@ -188,11 +195,14 @@ export function RemoteFiles({
 	};
 	const refreshGit = async (version: number) => {
 		if (!connection.capabilities?.git) return;
+		const requestedBase = baseBranchRef.current;
 		const result = await rpc<GitStatus>("git.getStatus", "query", {
 			workspaceId,
 			priority: "foreground",
+			...(requestedBase ? { baseBranch: requestedBase } : {}),
 		});
-		if (version === epoch.current) setStatus(result);
+		if (version === epoch.current && requestedBase === baseBranchRef.current)
+			setStatus(result);
 	};
 	useEffect(() => {
 		const version = ++epoch.current;
@@ -202,6 +212,8 @@ export function RemoteFiles({
 		pendingTreeOperation.current = null;
 		setFileOperation(null);
 		setStatus(null);
+		baseBranchRef.current = undefined;
+		pendingBaseRefresh.current = false;
 		setDiff(null);
 		setSelectedCommit(null);
 		setBusy(true);
@@ -219,14 +231,20 @@ export function RemoteFiles({
 		};
 		const readStatus = async () => {
 			if (!gitAvailableRef.current) return;
+			const requestedBase = baseBranchRef.current;
 			const result = await api.rpc<GitStatus>({
 				connectionId: connection.connectionId,
 				generation: connection.generation,
 				path: "git.getStatus",
 				type: "query",
-				input: { workspaceId, priority: "foreground" },
+				input: {
+					workspaceId,
+					priority: "foreground",
+					...(requestedBase ? { baseBranch: requestedBase } : {}),
+				},
 			});
-			if (version === epoch.current) setStatus(result);
+			if (version === epoch.current && requestedBase === baseBranchRef.current)
+				setStatus(result);
 		};
 		void Promise.allSettled([readRoot(), readStatus()]).then((results) => {
 			if (version !== epoch.current || ownerRef.current !== operationOwner)
@@ -582,6 +600,26 @@ export function RemoteFiles({
 				{tab === "changes" && (
 					<>
 						{status && <p className="text-sm">{status.currentBranch.name}</p>}
+						{connection.capabilities?.workstationGitV1 && (
+							<RemoteBaseBranch
+								key={operationOwner}
+								api={api}
+								connection={connection}
+								workspaceId={workspaceId}
+								disabled={busy}
+								onError={report}
+								onChange={(value) => {
+									if (value === baseBranchRef.current) return;
+									baseBranchRef.current = value;
+									pendingBaseRefresh.current = true;
+									if (category === "against-base") setDiff(null);
+									void run(async (version) => {
+										pendingBaseRefresh.current = false;
+										await refreshGit(version);
+									});
+								}}
+							/>
+						)}
 						{category === "commit" && selectedCommit && (
 							<code className="text-xs">
 								{selectedCommit.commit.shortHash} ·{" "}
@@ -666,15 +704,23 @@ export function RemoteFiles({
 										disabled={busy || file.isBinary}
 										onClick={() =>
 											void run(async (version) => {
+												const requestedBase = baseBranchRef.current;
 												const result = await rpc<Diff>("git.getDiff", "query", {
 													workspaceId,
 													path: file.path,
 													category,
+													...(category === "against-base" && requestedBase
+														? { baseBranch: requestedBase }
+														: {}),
 													...(category === "commit" && selectedCommit
 														? { commitHash: selectedCommit.commit.hash }
 														: {}),
 												});
-												if (version === epoch.current)
+												if (
+													version === epoch.current &&
+													(category !== "against-base" ||
+														requestedBase === baseBranchRef.current)
+												)
 													setDiff({ ...result, path: file.path });
 											})
 										}

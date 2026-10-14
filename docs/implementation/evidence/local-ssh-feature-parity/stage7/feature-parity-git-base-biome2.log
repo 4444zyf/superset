@@ -1,0 +1,199 @@
+Skipped 4 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 7 files in 75ms. Fixed 2 files.
+Found 9 warnings.
+Found 3 infos.
+apps/desktop/scripts/verify-workspace-restore-ui.mjs:300:4 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    298 │ 		writeFileSync(
+    299 │ 			join(output, "workspace-restore-ui.json"),
+  > 300 │ 			JSON.stringify(report, null, 2) + "\n",
+        │ 			^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    301 │ 		);
+    302 │ 	}
+
+  i Unsafe fix: Use a template literal.
+
+    298 298 │   		writeFileSync(
+    299 299 │   			join(output, "workspace-restore-ui.json"),
+    300     │ - → → → JSON.stringify(report,·null,·2)·+·"\n",
+        300 │ + → → → `${JSON.stringify(report,·null,·2)}\n`,
+    301 301 │   		);
+    302 302 │   	}
+
+
+apps/desktop/scripts/verify-workspace-restore-ui.mjs:543:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    541 │ 	writeFileSync(
+    542 │ 		join(output, "workspace-restore-ui.json"),
+  > 543 │ 		JSON.stringify(report, null, 2) + "\n",
+        │ 		^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    544 │ 	);
+    545 │ 	return report;
+
+  i Unsafe fix: Use a template literal.
+
+    541 541 │   	writeFileSync(
+    542 542 │   		join(output, "workspace-restore-ui.json"),
+    543     │ - → → JSON.stringify(report,·null,·2)·+·"\n",
+        543 │ + → → `${JSON.stringify(report,·null,·2)}\n`,
+    544 544 │   	);
+    545 545 │   	return report;
+
+
+apps/desktop/scripts/verify-workstation-git-base-ui.mjs:81:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    79 │ 	writeFileSync(
+    80 │ 		join(output, "workstation-git-base-ui.json"),
+  > 81 │ 		JSON.stringify(
+       │ 		^^^^^^^^^^^^^^^
+  > 82 │ 			{
+        ...
+  > 92 │ 			2,
+  > 93 │ 		) + "\n",
+       │ 		^^^^^^^^
+    94 │ 	);
+    95 │ }
+
+  i Unsafe fix: Use a template literal.
+
+    79 79 │   	writeFileSync(
+    80 80 │   		join(output, "workstation-git-base-ui.json"),
+    81    │ - → → JSON.stringify(
+       81 │ + → → `${JSON.stringify(
+    82 82 │   			{
+    83 83 │   				sourceRevision: process.env.GITHUB_SHA,
+    ····· │
+    91 91 │   			null,
+    92 92 │   			2,
+    93    │ - → → )·+·"\n",
+       93 │ + → → )}\n`,
+    94 94 │   	);
+    95 95 │   }
+
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:32:9 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    30 │ 		expect(row).not.toBeNull();
+    31 │ 	});
+  > 32 │ 	return row!;
+       │ 	       ^^^^
+    33 │ }
+    34 │ function clickTreeRow(row: HTMLElement) {
+
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:45:38 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    43 │ }
+    44 │ function contentOf(element: HTMLElement): string {
+  > 45 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!);
+       │ 	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    46 │ 	if (!view) throw new Error("Code editor did not mount");
+    47 │ 	return view.state.doc.toString();
+
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:50:38 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    48 │ }
+    49 │ function replaceContent(element: HTMLElement, value: string) {
+  > 50 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!);
+       │ 	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    51 │ 	if (!view) throw new Error("Code editor did not mount");
+    52 │ 	act(() =>
+
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:206:15 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    204 │ 	fireEvent.click(await screen.findByRole("button", { name: /note.txt:3/ }));
+    205 │ 	const element = await fileEditor();
+  > 206 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!)!;
+        │ 	             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    207 │ 	await waitFor(() => expect(view.state.selection.main.head).toBe(8));
+    208 │ });
+
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:206:38 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    204 │ 	fireEvent.click(await screen.findByRole("button", { name: /note.txt:3/ }));
+    205 │ 	const element = await fileEditor();
+  > 206 │ 	const view = EditorView.findFromDOM(element.querySelector(".cm-editor")!)!;
+        │ 	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    207 │ 	await waitFor(() => expect(view.state.selection.main.head).toBe(8));
+    208 │ });
+
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:374:3 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    372 │ 	const editor = await fileEditor();
+    373 │ 	expect(
+  > 374 │ 		EditorView.findFromDOM(editor.querySelector(".cm-editor")!)!.state.facet(
+        │ 		^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    375 │ 			EditorState.readOnly,
+    376 │ 		),
+
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+
+     372  372 │   	const editor = await fileEditor();
+     373  373 │   	expect(
+     374      │ - → → EditorView.findFromDOM(editor.querySelector(".cm-editor")!)!.state.facet(
+          374 │ + → → EditorView.findFromDOM(editor.querySelector(".cm-editor")!)?.state.facet(
+     375  375 │   			EditorState.readOnly,
+     376  376 │   		),
+
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:374:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    372 │ 	const editor = await fileEditor();
+    373 │ 	expect(
+  > 374 │ 		EditorView.findFromDOM(editor.querySelector(".cm-editor")!)!.state.facet(
+        │ 		                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    375 │ 			EditorState.readOnly,
+    376 │ 		),
+
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:874:18 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    872 │ 	fireEvent.click(screen.getByRole("button", { name: "Changes" }));
+    873 │ 	fireEvent.click(screen.getByRole("button", { name: "Files" }));
+  > 874 │ 	const current = EditorView.findFromDOM(
+        │ 	                ^^^^^^^^^^^^^^^^^^^^^^^
+  > 875 │ 		(await fileEditor()).querySelector(".cm-editor")!,
+  > 876 │ 	)!;
+        │ 	^^
+    877 │ 	act(() => {
+    878 │ 		expect(undo(current)).toBe(true);
+
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:875:3 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+
+    873 │ 	fireEvent.click(screen.getByRole("button", { name: "Files" }));
+    874 │ 	const current = EditorView.findFromDOM(
+  > 875 │ 		(await fileEditor()).querySelector(".cm-editor")!,
+        │ 		^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    876 │ 	)!;
+    877 │ 	act(() => {

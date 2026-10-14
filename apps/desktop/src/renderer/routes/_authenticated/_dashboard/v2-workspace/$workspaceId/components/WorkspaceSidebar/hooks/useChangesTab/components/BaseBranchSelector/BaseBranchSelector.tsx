@@ -13,12 +13,14 @@ interface BaseBranchSelectorProps {
 	branches: Branch[];
 	currentValue: string;
 	onChange: (branchName: string) => void;
+	disabled?: boolean;
 }
 
 export function BaseBranchSelector({
 	branches,
 	currentValue,
 	onChange,
+	disabled = false,
 }: BaseBranchSelectorProps) {
 	const { t } = useLingui();
 	const [open, setOpen] = useState(false);
@@ -37,6 +39,7 @@ export function BaseBranchSelector({
 				    between two equal paddings instead of hugging the branch. */}
 				<button
 					type="button"
+					disabled={disabled}
 					className="flex min-w-0 items-center gap-1 rounded px-1.5 py-0.5 font-medium text-foreground text-xs hover:bg-accent"
 				>
 					<span className="min-w-0 truncate" title={currentValue}>
@@ -65,6 +68,7 @@ export function BaseBranchSelector({
 							<button
 								key={branch.name}
 								type="button"
+								disabled={disabled}
 								className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
 								onClick={() => {
 									onChange(branch.name);
