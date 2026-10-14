@@ -25,10 +25,15 @@ export async function verifyWorkstationSettingsUi({
 	const reveal = async (selector) => {
 		for (let i = 0; i < 15; i++) {
 			const rect = await evaluate(
-				`(() => { const e=document.querySelector(${JSON.stringify(selector)}); if(!e) return null; const r=e.getBoundingClientRect(); const d=document.querySelector('[data-workstation-settings]').getBoundingClientRect(); return {top:r.top,bottom:r.bottom,dialogTop:d.top,dialogBottom:d.bottom,x:d.x+d.width/2,y:d.y+d.height/2}; })()`,
+				`(() => { const e=document.querySelector(${JSON.stringify(selector)}); if(!e) return null; const r=e.getBoundingClientRect(); const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2); const d=document.querySelector('[data-workstation-settings]').getBoundingClientRect(); return {left:r.left,right:r.right,hit:hit===e||e.contains(hit),width:innerWidth,top:r.top,bottom:r.bottom,dialogTop:d.top,dialogBottom:d.bottom,x:d.x+d.width/2,y:d.y+d.height/2}; })()`,
 			);
 			assert.ok(rect, `Missing settings control: ${selector}`);
+			assert.ok(
+				rect.left >= 0 && rect.right <= rect.width,
+				`Settings control overflows the window: ${selector}`,
+			);
 			if (
+				rect.hit &&
 				rect.top >= rect.dialogTop + 10 &&
 				rect.bottom <= rect.dialogBottom - 10
 			)

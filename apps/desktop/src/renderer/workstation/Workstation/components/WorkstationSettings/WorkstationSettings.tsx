@@ -156,7 +156,7 @@ export function WorkstationSettings({
 				<SettingsSection title={t({ message: "Typography" })}>
 					<fieldset
 						disabled={disabled}
-						className="rounded-lg border border-border divide-y divide-border"
+						className="min-w-0 rounded-lg border border-border divide-y divide-border"
 					>
 						{(["editor", "terminal"] as const).map((variant) => (
 							<TypographySurfaceCardView
