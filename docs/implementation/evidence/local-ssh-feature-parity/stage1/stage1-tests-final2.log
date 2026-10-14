@@ -1,0 +1,71 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [1.10ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.12ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.09ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.52ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.13ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.53ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.06ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.09ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.16ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.54ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.62ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.54ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.90ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.54ms]
+(pass) attachment readiness requires an explicit backend capability [0.27ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.15ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.18ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.12ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.45ms]
+
+src/renderer/components/RendererLayout/renderer-safety.test.ts:
+(pass) emergency UI has no transitive dependency on router, app providers, or UI libraries [27.47ms]
+(pass) production renderer roots cannot bypass RendererRouter [1298.84ms]
+(pass) every production failure boundary is included in the renderer audit [1668.95ms]
+(pass) settings and dashboard outlets retain their surrounding layout on render errors [13.81ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [106.11ms]
+(pass) the original explorer action opens a create form using the current remote directory [76.41ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [72.74ms]
+(pass) content search opens the selected remote file at the matched line [636.48ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [18.41ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [70.76ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [94.32ms]
+(pass) a truncated read cannot overwrite the complete remote file [53.96ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [30.47ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [84.23ms]
+(pass) editing a remote CRLF file preserves its line endings [99.97ms]
+(pass) Git diffs use the remote status category and surface transport failures [54.56ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [41.33ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/FileOperationDialog/FileOperationDialog.test.tsx:
+(pass) new files are created in the selected remote directory without overwriting existing files [24.29ms]
+(pass) a destination outside the workspace is rejected before sending a move [42.25ms]
+(pass) an existing destination keeps the name for correction and never retries with overwrite [35.37ms]
+(pass) deleting requires explicit permanent-delete confirmation and includes the selected path [19.63ms]
+(pass) a late copy result cannot update the next workspace or copy twice [26.74ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileSearch/RemoteFileSearch.test.tsx:
+(pass) file search uses a bounded query against the selected workspace and opens the returned path [23.45ms]
+(pass) content results retain their line and display preview as text [41.87ms]
+(pass) a reply from the old workspace cannot populate results in the next workspace [8.56ms]
+(pass) an older backend cannot issue search queries [8.40ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteGitActions/RemoteGitActions.test.tsx:
+(pass) an IME composition Enter cannot submit the commit shortcut [4.37ms]
+(pass) the original commit form commits only the staged snapshot on the selected backend [11.31ms]
+(pass) double submission locks one operation while a newer message remains editable [7.82ms]
+(pass) unknown delivery keeps the message without resubmitting a commit [7.48ms]
+(pass) an older backend and an empty staged selection cannot trigger a commit shortcut [1.95ms]
+(pass) a completed reply from the previous workspace cannot clear the current draft or refresh it [7.41ms]
+
+ 53 pass
+ 0 fail
+ 160 expect() calls
+Ran 53 tests across 6 files. [5.35s]

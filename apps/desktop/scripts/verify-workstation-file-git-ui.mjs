@@ -33,7 +33,7 @@ export async function verifyWorkstationFileGitUi({
 		await getPage().call("Input.insertText", { text });
 	};
 	const scope = await evaluate(
-		`(async () => { const job=await window.directWorkstation.getWorkspaceRestore(); const view=await window.directWorkstation.getWorkspaceView(); const target=view.targets.find(t=>t.connectionId===view.activeConnectionId); const workspace=target.workspaces.find(w=>w.tabId===target.activeTabId); return {descriptor:job.descriptor,workspaceId:workspace.workspaceId}; })()`,
+		`(async () => { const job=await window.directWorkstation.getWorkspaceRestore(); const view=(await window.directWorkstation.getWorkspaceView()).snapshot; const target=view.targets.find(t=>t.connectionId===view.activeConnectionId); const workspace=target.workspaces.find(w=>w.tabId===target.activeTabId); return {descriptor:job.descriptor,workspaceId:workspace.workspaceId}; })()`,
 	);
 	assert.equal(scope.descriptor.capabilities.workstationFilesV1, true);
 	assert.equal(scope.descriptor.capabilities.workstationGitV1, true);
@@ -60,7 +60,14 @@ export async function verifyWorkstationFileGitUi({
 		await click(
 			`button[aria-label=${JSON.stringify(`File actions: ${name}`)}]`,
 		);
-		await click(`[role=menuitem][data-file-action=${JSON.stringify(action)}]`);
+		const selector = `[role=menuitem][data-file-action=${JSON.stringify(action)}]`;
+		await until(() =>
+			evaluate(
+				`(() => { const e=document.querySelector(${JSON.stringify(selector)}); if(!e)return false; const r=e.getBoundingClientRect(); const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2); return r.width>0 && r.height>0 && hit?.closest('[role=menuitem]')===e; })()`,
+			),
+		);
+		await screenshot(`feature-menu-${action}`);
+		await click(selector);
 		await until(() =>
 			evaluate("Boolean(document.querySelector('[role=dialog]'))"),
 		);
@@ -89,6 +96,11 @@ export async function verifyWorkstationFileGitUi({
 	await click("text:Search files");
 	await click("text:Content");
 	await replace('input[aria-label="Search files"]', "feature search candidate");
+	await until(() =>
+		evaluate(
+			"document.querySelector('[data-workspace-files] form button[type=submit]')?.disabled===false",
+		),
+	);
 	await click("text:Search");
 	await until(() =>
 		evaluate("Boolean(document.querySelector('[data-search-line=\"2\"]'))"),
@@ -150,6 +162,11 @@ export async function verifyWorkstationFileGitUi({
 		"Feature parity commit",
 	);
 	await screenshot("feature-git-staged-commit");
+	await until(() =>
+		evaluate(
+			"[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Commit')?.disabled===false",
+		),
+	);
 	await click("text:Commit");
 	await until(() =>
 		evaluate(
@@ -157,12 +174,10 @@ export async function verifyWorkstationFileGitUi({
 		),
 	);
 	const status = await query("git.getStatus");
-	const commits = await query("git.listCommits", { baseBranch: "HEAD~1" });
-	assert.equal(
-		commits.commits.filter(
-			(commit) => commit.message === "Feature parity commit",
-		).length,
-		1,
+	const committed = await query("git.getCommitFiles", { commitHash: "HEAD" });
+	assert.deepEqual(
+		committed.files.map((file) => file.path),
+		["feature-native.txt"],
 	);
 	assert.ok(status.unstaged.some((file) => file.path === "restore-ui.txt"));
 	assert.ok(!status.staged.some((file) => file.path === "feature-native.txt"));
@@ -176,6 +191,6 @@ export async function verifyWorkstationFileGitUi({
 	);
 	writeFileSync(
 		join(output, "workstation-file-git-ui.json"),
-		`${JSON.stringify({ source: process.env.GITHUB_SHA, platform: process.platform, arch: process.arch, realInput: true, sourceTest: process.platform !== "darwin", selectedBackend: scope.descriptor.backendId, selectedNamespace: scope.descriptor.namespaceId, workspaceId: scope.workspaceId, create: true, edit: true, contentSearchLine: selection, copy: true, rename: true, move: true, confirmedPermanentDelete: true, stagedOnlyCommit: true, unstagedPreserved: true, commits: commits.commits.map((commit) => ({ hash: commit.hash, message: commit.message })) }, null, 2)}\n`,
+		`${JSON.stringify({ source: process.env.GITHUB_SHA, platform: process.platform, arch: process.arch, realInput: true, sourceTest: process.platform !== "darwin", selectedBackend: scope.descriptor.backendId, selectedNamespace: scope.descriptor.namespaceId, workspaceId: scope.workspaceId, create: true, edit: true, contentSearchLine: selection, copy: true, rename: true, move: true, confirmedPermanentDelete: true, stagedOnlyCommit: true, unstagedPreserved: true, committedFiles: committed.files.map((file) => file.path) }, null, 2)}\n`,
 	);
 }

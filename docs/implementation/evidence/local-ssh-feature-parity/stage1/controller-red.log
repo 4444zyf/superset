@@ -2,7 +2,7 @@ bun test v1.4.2 (744846f84)
 
 src/main/lib/ssh-direct/workstation-controller.test.ts:
 147 | 	}
-148 | 
+148 |
 149 | 	async invoke(request: DirectRpc): Promise<unknown> {
 150 | 		this.assertGeneration(request.connectionId, request.generation);
 151 | 		if (procedures[request.path] !== request.type)
@@ -13,7 +13,7 @@ error: Unsupported workstation procedure
       at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:15:19)
 (fail) workspace file search and Git staging reach the selected backend without cloud calls [0.58ms]
 21 | });
-22 | 
+22 |
 23 | test("new file and Git actions are unavailable on an older backend before any mutation", async () => {
 24 | 	const f = fixture();
 25 | 	const controller = new WorkstationController({ ...f.manager, getVerifiedDescription: () => ({ capabilities: { files: true, git: true } }) });
@@ -27,7 +27,7 @@ Received message: "Unsupported workstation procedure"
       at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:26:163)
 (fail) new file and Git actions are unavailable on an older backend before any mutation [0.16ms]
 28 | });
-29 | 
+29 |
 30 | test("new workspace actions reject a missing scope and wrong procedure type", async () => {
 31 | 	const f = fixture();
 32 | 	const controller = new WorkstationController({ ...f.manager, getVerifiedDescription: () => ({ capabilities: { workstationFilesV1: true } }) });

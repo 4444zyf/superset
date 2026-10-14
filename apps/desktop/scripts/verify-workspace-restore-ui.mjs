@@ -102,7 +102,6 @@ export async function verifyWorkspaceRestoreUi({
 		),
 	);
 	await screenshot("upstream-remote-code-editor");
-	await verifyWorkstationFileGitUi({ getPage, click, screenshot, output });
 	await click("text:Terminal");
 	await ready();
 	await click("[data-terminal-id] .xterm-screen");
@@ -295,6 +294,23 @@ export async function verifyWorkspaceRestoreUi({
 			JSON.stringify(report, null, 2) + "\n",
 		);
 	}
+	await click("text:Files");
+	await until(() =>
+		evaluate(
+			"[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='restore-ui.txt' && !b.disabled)",
+		),
+	);
+	await click("text:restore-ui.txt");
+	await until(() => evaluate("Boolean(document.querySelector('.cm-content'))"));
+	await verifyWorkstationFileGitUi({ getPage, click, screenshot, output });
+	await click("text:Terminal");
+	await ready();
+	await until(
+		saved,
+		(value) =>
+			JSON.stringify(value.snapshot.targets[0].workspaces) ===
+			JSON.stringify(before.workspaces),
+	);
 	await closeReopen();
 	await ready();
 	assert.deepEqual(

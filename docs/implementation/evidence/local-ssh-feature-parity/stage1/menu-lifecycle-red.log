@@ -1,0 +1,34 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [85.74ms]
+(pass) the original explorer action opens a create form using the current remote directory [47.28ms]
+125 | 	const item = await screen.findByRole("menuitem", { name: "Copy" });
+126 | 	fireEvent.pointerDown(item, { button: 0, pointerType: "mouse" });
+127 | 	fireEvent.mouseDown(item, { button: 0 });
+128 | 	fireEvent.mouseUp(item, { button: 0 });
+129 | 	fireEvent.click(item);
+130 | 	expect(screen.queryByRole("dialog") === null).toBe(true);
+                                                     ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:130:48)
+(fail) choosing Copy from the file menu leaves the destination dialog open [62.36ms]
+(pass) content search opens the selected remote file at the matched line [388.94ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [22.46ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [64.66ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [72.88ms]
+(pass) a truncated read cannot overwrite the complete remote file [42.08ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [21.51ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [75.91ms]
+(pass) editing a remote CRLF file preserves its line endings [68.71ms]
+(pass) Git diffs use the remote status category and surface transport failures [49.85ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [29.25ms]
+
+ 12 pass
+ 1 fail
+ 47 expect() calls
+Ran 13 tests across 1 file. [1362.00ms]

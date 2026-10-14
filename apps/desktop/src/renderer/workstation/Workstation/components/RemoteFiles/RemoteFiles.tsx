@@ -1,14 +1,8 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { darkTheme } from "@superset/shared/themes";
 import { Button } from "@superset/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@superset/ui/dropdown-menu";
 import { TooltipProvider } from "@superset/ui/tooltip";
-import { FilePlus, FolderPlus, MoreVertical } from "lucide-react";
+import { FilePlus, FolderPlus } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { FilesTabHeaderButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/components/FilesTab/components/FilesTabHeaderButton/FilesTabHeaderButton";
 import { StageToggleButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/hooks/useChangesTab/components/ChangesFileList/components/StageToggleButton/StageToggleButton";
@@ -17,6 +11,7 @@ import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
+import { FileActionMenu } from "./components/FileActionMenu/FileActionMenu";
 import {
 	type FileOperation,
 	FileOperationDialog,
@@ -126,6 +121,15 @@ export function RemoteFiles({
 	const [fileOperation, setFileOperation] = useState<FileOperation | null>(
 		null,
 	);
+	const operationOwner = JSON.stringify([
+		connection.connectionId,
+		connection.backendId,
+		connection.namespaceId,
+		connection.generation,
+		workspaceId,
+	]);
+	const ownerRef = useRef(operationOwner);
+	ownerRef.current = operationOwner;
 	const epoch = useRef(0);
 	const running = useRef(false);
 	const onErrorRef = useRef(onError);
@@ -421,66 +425,15 @@ export function RemoteFiles({
 										{entry.kind === "directory" ? "/" : ""}
 									</Button>
 									{connection.capabilities?.workstationFilesV1 && (
-										<DropdownMenu>
-											<DropdownMenuTrigger asChild>
-												<Button
-													type="button"
-													size="icon"
-													variant="ghost"
-													disabled={busy || dirty || entry.kind === "other"}
-													aria-label={`${t({ message: "File actions" })}: ${entry.name}`}
-												>
-													<MoreVertical className="size-4" />
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent>
-												<DropdownMenuItem
-													data-file-action="rename"
-													onSelect={() =>
-														setFileOperation({
-															kind: "rename",
-															absolutePath: entry.absolutePath,
-														})
-													}
-												>
-													<Trans>Rename</Trans>
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													data-file-action="move"
-													onSelect={() =>
-														setFileOperation({
-															kind: "move",
-															absolutePath: entry.absolutePath,
-														})
-													}
-												>
-													<Trans>Move</Trans>
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													data-file-action="copy"
-													onSelect={() =>
-														setFileOperation({
-															kind: "copy",
-															absolutePath: entry.absolutePath,
-														})
-													}
-												>
-													<Trans>Copy</Trans>
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													data-file-action="delete"
-													variant="destructive"
-													onSelect={() =>
-														setFileOperation({
-															kind: "delete",
-															absolutePath: entry.absolutePath,
-														})
-													}
-												>
-													<Trans>Delete permanently</Trans>
-												</DropdownMenuItem>
-											</DropdownMenuContent>
-										</DropdownMenu>
+										<FileActionMenu
+											name={entry.name}
+											absolutePath={entry.absolutePath}
+											disabled={busy || dirty || entry.kind === "other"}
+											onOperation={(operation) => {
+												if (ownerRef.current === operationOwner)
+													setFileOperation(operation);
+											}}
+										/>
 									)}
 								</div>
 							))}

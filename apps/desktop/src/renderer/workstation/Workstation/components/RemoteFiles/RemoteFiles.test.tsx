@@ -115,6 +115,42 @@ test("the original explorer action opens a create form using the current remote 
 	});
 });
 
+test("choosing Copy from the file menu leaves the destination dialog open", async () => {
+	const f = fixture();
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={{
+				...connection,
+				capabilities: { files: true, git: true, workstationFilesV1: true },
+			}}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	await screen.findByRole("button", { name: "note.txt" });
+	const trigger = screen.getByRole("button", {
+		name: "File actions: note.txt",
+	});
+	fireEvent.pointerDown(trigger, {
+		button: 0,
+		ctrlKey: false,
+		pointerType: "mouse",
+	});
+	fireEvent.mouseDown(trigger, { button: 0, ctrlKey: false });
+	const item = await screen.findByRole("menuitem", { name: "Copy" });
+	fireEvent.pointerDown(item, { button: 0, pointerType: "mouse" });
+	fireEvent.mouseDown(item, { button: 0 });
+	fireEvent.mouseUp(item, { button: 0 });
+	fireEvent.click(item);
+	expect(screen.queryByRole("dialog") === null).toBe(true);
+	expect(await screen.findByLabelText("Path")).not.toBeNull();
+	expect(screen.getByRole("dialog")).not.toBeNull();
+	expect(f.calls.some((call) => call.path === "filesystem.copyPath")).toBe(
+		false,
+	);
+});
+
 test("content search opens the selected remote file at the matched line", async () => {
 	const f = fixture({
 		"filesystem.searchContent": () => ({
