@@ -374,7 +374,9 @@ export function RemoteFiles({
 					>
 						<ResizablePanel defaultSize={30} minSize={18} maxSize={65}>
 							<div className="flex h-full min-h-0 flex-col gap-2 pr-2">
-								<code className="block text-xs break-all">{directory}</code>
+								<code className="block text-xs truncate" title={directory}>
+									{directory}
+								</code>
 								<div className="flex gap-1">
 									<FilesTabHeaderButton
 										icon={FilePlus}

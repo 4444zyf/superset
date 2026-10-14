@@ -34,6 +34,11 @@ export async function verifyWorkstationFileTreeUi({
 			"document.querySelector('button[aria-label=\"New Folder...\"]')?.disabled===false",
 		),
 	);
+	const creationButtonBounds = () =>
+		evaluate(
+			"(()=>{const e=document.querySelector('button[aria-label=\"New File...\"]');const r=e?.getBoundingClientRect();return r?{x:r.x,y:r.y,width:r.width,height:r.height}:null;})()",
+		);
+	const rootButtonBounds = await creationButtonBounds();
 	await click('button[aria-label="New Folder..."]');
 	await input("feature-tree-folder");
 	await click("[role=dialog] button[type=submit]");
@@ -52,6 +57,11 @@ export async function verifyWorkstationFileTreeUi({
 		evaluate(
 			"document.querySelector('button[aria-label=\"New File...\"]')?.disabled===false",
 		),
+	);
+	await until(
+		async () =>
+			JSON.stringify(await creationButtonBounds()) ===
+			JSON.stringify(rootButtonBounds),
 	);
 	await click('button[aria-label="New File..."]');
 	await input("nested.txt");
@@ -134,6 +144,7 @@ export async function verifyWorkstationFileTreeUi({
 				physicalInput: true,
 				workspaceId: scope.workspaceId,
 				originalTree: true,
+				creationToolbarStableAcrossDirectorySelection: true,
 				nestedCreation: true,
 				siblingsRetained: true,
 				collapseAndReopen: true,
