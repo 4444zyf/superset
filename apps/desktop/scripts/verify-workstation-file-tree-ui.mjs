@@ -20,11 +20,13 @@ export async function verifyWorkstationFileTreeUi({
 	const row = (path) =>
 		`document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path='+${JSON.stringify(JSON.stringify(path))}+']:not([data-file-tree-sticky-row])')`;
 	const input = async (value) => {
+ await until(()=>evaluate("Boolean(document.querySelector('[role=dialog] input[aria-label=Name]'))"));
 		await click("[role=dialog] input[aria-label=Name]");
 		await getPage().call("Input.insertText", { text: value });
 	};
 	await click("text:Files");
-	await click('button[aria-label="New Folder..."]');
+	await until(()=>evaluate("document.querySelector('button[aria-label=\"New Folder...\"]')?.disabled===false"));
+ await click('button[aria-label="New Folder..."]');
 	await input("feature-tree-folder");
 	await click("[role=dialog] button[type=submit]");
 	await until(() =>
@@ -38,7 +40,8 @@ export async function verifyWorkstationFileTreeUi({
 			`${row("feature-tree-folder/")}?.getAttribute('aria-expanded')==='true'`,
 		),
 	);
-	await click('button[aria-label="New File..."]');
+	await until(()=>evaluate("document.querySelector('button[aria-label=\"New File...\"]')?.disabled===false"));
+ await click('button[aria-label="New File..."]');
 	await input("nested.txt");
 	await click("[role=dialog] button[type=submit]");
 	await until(() =>
