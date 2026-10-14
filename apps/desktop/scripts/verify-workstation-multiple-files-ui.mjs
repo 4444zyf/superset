@@ -122,6 +122,19 @@ export async function verifyWorkstationMultipleFilesUi({
 	assert.equal(await read("feature-native.txt"), before.first);
 	assert.equal(await read("restore-ui.txt"), before.second);
 	await screenshot("multiple-files-retained-drafts");
+	const hover = await evaluate(
+		"(()=>{const r=document.querySelector('[role=tab][aria-label=\"feature-native.txt\"]').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()",
+	);
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mouseMoved",
+		...hover,
+	});
+	await until(() =>
+		evaluate(
+			'(()=>{const e=document.querySelector(\'[role=tab][aria-label="feature-native.txt"] button[aria-label="Close tab"]\');const r=e.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>0&&r.height>0&&(hit===e||e.contains(hit));})()',
+		),
+	);
+
 	await click(
 		'[role=tab][aria-label="feature-native.txt"] button[aria-label="Close tab"]',
 	);
