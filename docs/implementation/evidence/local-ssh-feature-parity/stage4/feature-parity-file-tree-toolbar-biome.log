@@ -1,0 +1,38 @@
+apps/desktop/scripts/verify-workstation-file-tree-ui.mjs:141:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    139 │ 	writeFileSync(
+    140 │ 		join(output, "workstation-file-tree-ui.json"),
+  > 141 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 142 │ 			{
+         ...
+  > 154 │ 			2,
+  > 155 │ 		) + "\n",
+        │ 		^^^^^^^^
+    156 │ 	);
+    157 │ }
+
+  i Unsafe fix: Use a template literal.
+
+    139 139 │   	writeFileSync(
+    140 140 │   		join(output, "workstation-file-tree-ui.json"),
+    141     │ - → → JSON.stringify(
+        141 │ + → → `${JSON.stringify(
+    142 142 │   			{
+    143 143 │   				sourceRevision: process.env.GITHUB_SHA,
+    ······· │
+    153 153 │   			null,
+    154 154 │   			2,
+    155     │ - → → )·+·"\n",
+        155 │ + → → )}\n`,
+    156 156 │   	);
+    157 157 │   }
+
+
+Skipped 1 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 2 files in 34ms. Fixed 2 files.
+Found 1 info.
