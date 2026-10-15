@@ -16,7 +16,10 @@ export async function verifyWorkstationProjectSettingsUi({
 			if (result) return result;
 			await delay(50);
 		}
-		throw new Error("Project settings UI acceptance did not complete");
+		await screenshot("project-settings-failure");
+		throw new Error(
+			`Project settings UI acceptance did not complete: ${JSON.stringify(await query())}; ${await evaluate("document.body.innerText.slice(-1800)")}`,
+		);
 	};
 	const scope = await evaluate(
 		`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const v=(await window.directWorkstation.getWorkspaceView()).snapshot;const target=v.targets.find(t=>t.connectionId===v.activeConnectionId);const workspaceId=target.workspaces.find(w=>w.tabId===target.activeTabId).workspaceId;const w=await window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:'workspace.get',type:'query',input:{id:workspaceId,workspaceId}});return {descriptor:d,projectId:w.projectId,worktreePath:w.worktreePath};})()`,
@@ -100,17 +103,24 @@ export async function verifyWorkstationProjectSettingsUi({
 			"[...document.querySelectorAll('[role=option]')].some(e=>e.textContent.trim()==='Custom prefix')",
 		),
 	);
-	const point = await evaluate(
-		"(()=>{const e=[...document.querySelectorAll('[role=option]')].find(e=>e.textContent.trim()==='Custom prefix');const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()",
-	);
-	for (const type of ["mousePressed", "mouseReleased"])
-		await getPage().call("Input.dispatchMouseEvent", {
-			type,
-			button: "left",
-			clickCount: 1,
-			...point,
+	await screenshot("project-settings-original-prefix-menu");
+	for (const [key, code] of [
+		["End", 35],
+		["Enter", 13],
+	]) {
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyDown",
+			key,
+			windowsVirtualKeyCode: code,
 		});
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyUp",
+			key,
+			windowsVirtualKeyCode: code,
+		});
+	}
 	await until(async () => (await query()).branchPrefixMode === "custom");
+	await until(() => evaluate("!document.querySelector('[role=listbox]')"));
 	await replace("[data-project-settings] input[placeholder=Prefix]", "remix");
 	await blur();
 	await until(async () => (await query()).branchPrefixCustom === "remix");
