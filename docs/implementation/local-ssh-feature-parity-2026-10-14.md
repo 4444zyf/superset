@@ -204,3 +204,9 @@ TDD先记录后端接口和菜单入口缺失，再以真实小型bare/发送端
 第31轮冻结源码`37acf22f3bb156c7b11dbd01388db7661c7b625a`通过。物理使用原Stage All/Commit/Push准备干净夹具；独立发送端只准备远端变更，物理Fetch确认落后1个提交且本地HEAD不动，物理Pull更新HEAD。保持第30轮同样立即打开新文件的交互，原CodeMirror正常显示remote one，修复后的回归已在真实窗口复现通过。随后物理新建并提交sync-local-ui.txt，发送端再更新sync-ui.txt；Fetch后push/pull计数各1，物理Sync完成变基与推送，独立bare远端与工作区HEAD一致，原已打开编辑器更新为remote two，两计数归0、工作树干净、持久待处理操作为0。截图已实际查看。[记录与截图](evidence/local-ssh-feature-parity/source-linux-git-sync)。
 
 文件/Git/设置/多文件/树/Diff/历史/基础分支/重命名/推送以及窗口关闭/重开、后台PTY和恢复生命周期回归通过。恢复采样仍为1次，Linux源码/真实SSH、Git远端为SSH后端上的独立本地bare仓库；实际窗口未覆盖Fetch & Pull第四菜单项（组件/共享命令已接入），冲突保留由真实Git仓库集成测试覆盖。本证据不替代GitHub认证、真实供应商Agent或macOS包验收；其他功能组继续进行。
+
+### Fetch & Pull第四菜单项真实源码窗口通过
+
+第32轮冻结源码`9994f1865c211c12815d6fcfb549ae573908d68a`通过；产品构建源仍为`37acf22f3`，中间只更改验收脚本与文档。再次完整通过第31轮Fetch/Pull与两边独立提交的Sync后，独立发送端第三次更新同一文件。物理点击原Fetch & Pull菜单，后端HEAD确认新SHA，原已经打开的CodeMirror显示remote three，主进程待处理操作0。截图已查看，原窗口关闭/重开与后台PTY、恢复生命周期回归通过。[第四菜单项实际记录](evidence/local-ssh-feature-parity/source-linux-git-sync-combined)。
+
+四个同步入口均已接入并有实际Linux源码/SSH窗口证据；变基冲突由真实Git集成测试验证保留，未将其冒称实际窗口冲突解决流程。恢复采样仍1次，Git远端为SSH后端上的独立本地bare仓库，不替代GitHub认证、供应商Agent或Mac发行物。Git撤销修改、完整变更列表、分支其他操作和PR，以及其他功能组仍需继续实施，完整目标未完成。
