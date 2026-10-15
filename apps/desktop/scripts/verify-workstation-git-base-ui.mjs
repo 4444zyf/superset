@@ -51,6 +51,11 @@ export async function verifyWorkstationGitBaseUi({
 		async () => (await query("git.getBaseBranch")).baseBranch === "main",
 	);
 	await screenshot("git-original-base-branch-selected");
+	await until(() =>
+		evaluate(
+			"[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Against base')?.disabled===false",
+		),
+	);
 	await click("text:Against base");
 	const file = '[data-git-path="feature-native.txt"] button';
 	await until(() =>
