@@ -15,6 +15,9 @@ export interface RemoteProject {
 	id: string;
 	name: string;
 	repoPath: string;
+	icon?: string | null;
+	color?: string | null;
+	repoOwner?: string | null;
 }
 export interface RemoteDirectory {
 	path: string;

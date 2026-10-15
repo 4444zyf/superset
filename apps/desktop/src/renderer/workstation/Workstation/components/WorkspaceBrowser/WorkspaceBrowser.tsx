@@ -5,6 +5,7 @@ import type {
 	RemoteProject,
 	RemoteWorkspace,
 } from "../../types";
+import { RemoteProjectThumbnail } from "../RemoteProjectThumbnail";
 
 export function WorkspaceBrowser({
 	profiles,
@@ -154,7 +155,10 @@ export function WorkspaceBrowser({
 								disabled={busy}
 							>
 								<span className="ws-card-project">
-									<Folder size={13} />
+									<RemoteProjectThumbnail
+										project={projects.find((p) => p.id === w.projectId)}
+										className="size-3.5 text-[9px]"
+									/>
 									{projects.find((p) => p.id === w.projectId)?.name ||
 										t({ message: "Session" })}
 								</span>

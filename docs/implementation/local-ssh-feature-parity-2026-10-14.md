@@ -311,3 +311,12 @@ TDD先记录共享字段不存在、工作站只失焦保存的失败，再验�
 
 
 第43轮冻结源码`9583af4e29dcbfc93a895f5ad6db4ebd00076e86`完整通过。命名说明和稀疏检出均在文本框保持焦点时自动保存，物理输入至后端只读确认分别约542ms和539ms，符合原默认500ms debounce；原Saved指示已验证，聚焦截图已实际查看。关闭/重开读回一致；统一目录、三个进程cwd及完整文件/Git/设置/多文件/树/Diff/历史/基础分支/分支操作/四同步菜单/恢复生命周期继续通过。[第43轮证据](evidence/local-ssh-feature-parity/source-linux-project-text-autosave)。源码Linux/隔离SSH夹具、恢复单采样的适用范围不变，尚无1.37.7发行物验证。
+
+
+## 阶段十三：复用项目图标与缩略图
+
+原IconUploadField的字形、颜色、PNG/JPEG/WebP选择、10MiB源文件上限、128px cover缩放、移除/恢复默认和Popover提取到共同ProjectIconPicker；原页面保留host URL适配包装，继续使用同一原组件。新工作站把回调接到原project.setIcon/setColor，增加前者的主进程过程注册，不改变后端API。侧栏、工作区卡片和设置头部复用原ProjectThumbnail及统一resolveProjectIconUrl，保留GitHub头像回退和none哨兵含义。
+
+图片解码到写入全程串行，防止重复点击；卸载后的字形解码不能写入旧项目。所选机器/generation/项目守卫、单次写入后读回、丢失回复只读确认、未知结果阻止后续操作仍由原项目设置适配器执行，显式Refresh重建图标与文本字段状态。原页面接口未变，无Superset登录Provider或新增云数据源。
+
+TDD先记录共享组件缺失、工作站缺少图标入口及主进程拒绝setIcon的失败，再接入。原包装SSR、统一图标解析、串行操作/卸载、正常与丢失回复下移除/恢复、项目设置、桥和无账号导入审计49项/885断言通过。最终desktop类型检查通过；17语言严格编译通过，删除仅供已禁用离线按钮使用的一条旧提示翻译。图片解码测试使用受控浏览器对象，不冒充真实canvas结果。实际窗口将验证原弹层鼠标命中、字形换色、移除/恢复、浏览器文件选择交付后128px上传、侧栏一致和关闭重开，结果待另记。[阶段十三日志](evidence/local-ssh-feature-parity/stage13)。

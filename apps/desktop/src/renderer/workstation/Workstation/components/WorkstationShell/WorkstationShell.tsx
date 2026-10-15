@@ -10,15 +10,14 @@ import {
 	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
+	SidebarMenuAction,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarMenuAction,
 	SidebarProvider,
 	SidebarTrigger,
 } from "@superset/ui/sidebar";
 import { TooltipProvider } from "@superset/ui/tooltip";
 import {
-	Folder,
 	Grid2X2,
 	Info,
 	Laptop,
@@ -33,6 +32,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { BrandMark } from "../../../../components/BrandMark";
 import type { RemoteProject } from "../../types";
 import { AboutDialog } from "../AboutDialog";
+import { RemoteProjectThumbnail } from "../RemoteProjectThumbnail";
 
 export function WorkstationShell({
 	page,
@@ -141,7 +141,10 @@ export function WorkstationShell({
 														tooltip={p.name}
 														onClick={() => onProject(p.id)}
 													>
-														<Folder />
+														<RemoteProjectThumbnail
+															project={p}
+															className="size-4 text-[10px]"
+														/>
 														<span>{p.name}</span>
 													</SidebarMenuButton>
 													{onProjectSettings && (

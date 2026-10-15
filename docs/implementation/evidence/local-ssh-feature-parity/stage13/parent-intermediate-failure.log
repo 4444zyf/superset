@@ -1,0 +1,246 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+45 | 			...request,
+46 | 			path,
+47 | 			type: "mutation",
+48 | 			input: { projectId: "project", ...input },
+49 | 		});
+50 | 	expect(requests).toHaveLength(6);
+                       ^
+error: expect(received).toHaveLength(expected)
+
+Expected length: 6
+Received length: 7
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:50:19)
+(fail) project settings require an explicit project and an advertised backend capability [1.45ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.23ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.12ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.10ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.40ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.10ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.50ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.09ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.23ms]
+(pass) disconnect and app disposal only close client transports [0.08ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.75ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.74ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.56ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.80ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [1.22ms]
+(pass) attachment readiness requires an explicit backend capability [0.52ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.17ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.23ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.09ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.51ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.33ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.79ms]
+
+src/renderer/components/ProjectIconPicker/ProjectIconPicker.test.tsx:
+An update to ProjectIconPicker inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+(pass) the original icon picker serializes removal and reset through the supplied data source [163.73ms]
+(pass) an unavailable data source disables the original picker [5.19ms]
+
+src/renderer/workstation/Workstation/components/RemoteProjectSettings/RemoteProjectSettings.test.tsx:
+(pass) Naming instructions saves while focused and preserves edits made during its request [92.83ms]
+(pass) Sparse checkout saves while focused and preserves edits made during its request [44.69ms]
+(pass) an old project write cannot install metadata after switching the target [69.97ms]
+(pass) project settings reuse original controls and write only the selected remote project [45.20ms]
+(pass) a lost metadata reply is read back once and never replays the mutation [64.11ms]
+(pass) an unconfirmed reply retains the field draft and blocks another blur write [42.85ms]
+(pass) a write finishing after the dialog closes cannot refresh the current target [38.10ms]
+(fail) icon removal reads back its single selected-project write (lost reply: %s) [15763.04ms]
+  ^ this test timed out after 5000ms.
+
+# Unhandled error between tests
+-------------------------------
+32 |   // throw errors w/ suggestions for better queries. Opt in so off by default.
+33 |   throwSuggestions: false,
+34 |   // called when getBy* queries fail. (message, container) => Error
+35 |   getElementError(message, container) {
+36 |     const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
+37 |     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+                           ^
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Reset to default"
+
+Here are the accessible roles:
+
+  dialog:
+
+  Name "Project Settings":
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"radix-_r_2q_"[39m
+    [33mclass[39m=[32m"workstation-dialog is-drawer ws-project-settings"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mid[39m=[32m"radix-_r_2p_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Project Settings":
+  [36m<h2[39m
+    [33mid[39m=[32m"radix-_r_2q_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Close":
+  [36m<button[39m
+    [33maria-label[39m=[32m"Close"[39m
+    [33mclass[39m=[32m"ws-icon-button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Refresh":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"sr-only"[39m
+    [33mid[39m=[32m"radix-_r_2r_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-scroll-locked[39m=[32m"1"[39m
+  [33mstyle[39m=[32m"pointer-events: none;"[39m
+[36m>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"workstation-overlay"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"radix-_r_2q_"[39m
+    [33mclass[39m=[32m"workstation-dialog is-drawer ws-project-settings"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mid[39m=[32m"radix-_r_2p_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"ws-dialog-head"[39m
+    [36m>[39m
+      [36m<h2[39m
+        [33mid[39m=[32m"radix-_r_2q_"[39m
+      [36m>[39m
+        [0mProject Settings[0m
+      [36m</h2>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Close"[39m
+        [33mclass[39m=[32m"ws-icon-button"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-x"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"18"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"18"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M18 6 6 18"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33md[39m=[32m"m6 6 12 12"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"ws-dialog-body min-w-0 min-h-0 flex-1 overflow-auto"[39m
+      [33mdata-project-settings[39m=[32m"project"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+        [33mdisabled[39m=[32m""[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mRefresh[0m
+      [36m</button>[39m
+    [36m</div>[39m
+    [36m<p[39m
+      [33mclass[39m=[32m"sr-only"[39m
+      [33mid[39m=[32m"radix-_r_2r_"[39m
+    [36m>[39m
+      [0mConnection settings are stored on this device.[0m
+    [36m</p>[39m
+  [36m</div>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+[36m</body>[39m
+      at getElementError (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:23)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteProjectSettings/RemoteProjectSettings.test.tsx:349:25)
+-------------------------------
+
+(fail) icon removal reads back its single selected-project write (lost reply: %s) [16405.54ms]
+  ^ this test timed out after 5000ms.
+
+3 tests failed:
+(fail) project settings require an explicit project and an advertised backend capability [1.45ms]
+(fail) icon removal reads back its single selected-project write (lost reply: %s) [15763.04ms]
+  ^ this test timed out after 5000ms.
+(fail) icon removal reads back its single selected-project write (lost reply: %s) [16405.54ms]
+  ^ this test timed out after 5000ms.
+
+ 32 pass
+ 3 fail
+ 1 error
+ 101 expect() calls
+Ran 35 tests across 3 files. [33.12s]

@@ -297,3 +297,59 @@ test("a write finishing after the dialog closes cannot refresh the current targe
 	expect(calls.filter((c) => c.type === "query")).toHaveLength(1);
 	expect(refreshes).toBe(0);
 });
+
+test.each([
+	false,
+	true,
+])("icon removal reads back its single selected-project write (lost reply: %s)", async (lostReply) => {
+	let actual = {
+		...project,
+		icon: "data:image/png;base64,AA==" as string | null,
+	};
+	const writes: DirectRpc[] = [];
+	const api = {
+		rpc: async (request: DirectRpc) => {
+			if (request.type === "mutation") {
+				writes.push(request);
+				actual = {
+					...actual,
+					icon: (request.input as { icon: string | null }).icon,
+				};
+				if (lostReply) throw new Error("Reply lost");
+			}
+			return { ...actual };
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteProjectSettings
+			api={api}
+			connection={connection}
+			projectId="project"
+			onClose={() => {}}
+			onChanged={() => {}}
+		/>,
+	);
+	fireEvent.click(
+		await screen.findByRole("button", {
+			name: "Change project icon and color",
+		}),
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Remove icon" }));
+	await waitFor(() => expect(actual.icon).toBe("none"));
+	await waitFor(() =>
+		expect((screen.getByLabelText("Name") as HTMLInputElement).disabled).toBe(
+			false,
+		),
+	);
+	expect(writes).toHaveLength(1);
+	expect(writes[0]).toMatchObject({
+		connectionId: "remote",
+		generation: 3,
+		path: "project.setIcon",
+		input: { projectId: "project", icon: "none" },
+	});
+	expect(screen.queryByAltText("Example icon")).toBeNull();
+	fireEvent.click(screen.getByRole("button", { name: "Reset to default" }));
+	await waitFor(() => expect(writes).toHaveLength(2));
+	expect(writes[1]?.input).toEqual({ projectId: "project", icon: null });
+});

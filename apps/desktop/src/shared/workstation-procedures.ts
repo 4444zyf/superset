@@ -21,6 +21,11 @@ export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
 		capability: "workstationProjectsV1",
 		identity: "projectId",
 	},
+	"project.setIcon": {
+		type: "mutation",
+		capability: "workstationProjectsV1",
+		identity: "projectId",
+	},
 	"project.setColor": {
 		type: "mutation",
 		capability: "workstationProjectsV1",

@@ -36,6 +36,7 @@ test("project settings require an explicit project and an advertised backend cap
 	for (const [path, input] of [
 		["project.update", { name: "Renamed" }],
 		["project.setColor", { color: "#aabbcc" }],
+		["project.setIcon", { icon: "none" }],
 		["project.setBranchPrefix", { mode: "custom", customPrefix: "feature" }],
 		["project.setNamingInstructions", { instructions: "Use task name" }],
 		["project.setSparseCheckoutPaths", { paths: ["packages/ui"] }],
@@ -46,7 +47,7 @@ test("project settings require an explicit project and an advertised backend cap
 			type: "mutation",
 			input: { projectId: "project", ...input },
 		});
-	expect(requests).toHaveLength(6);
+	expect(requests).toHaveLength(7);
 	expect(requests[0]).toMatchObject({
 		id: "machine",
 		path: "project.get",

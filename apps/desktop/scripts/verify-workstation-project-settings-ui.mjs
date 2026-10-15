@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
+import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
@@ -90,12 +90,105 @@ export async function verifyWorkstationProjectSettingsUi({
 	await blur();
 	await until(async () => (await query()).name === "Unified Renamed");
 	await enabled("#project-name");
+	const pickerTrigger =
+		'[data-project-settings] button[aria-label="Change project icon and color"]';
+	await enabled(pickerTrigger);
+	await click(pickerTrigger);
 	const color =
-		'[data-project-settings] button[aria-label="Set color to Blue"]';
-	await enabled(color);
-	await visible(color);
+		'[data-slot=popover-content] button[aria-label="Set color to Blue"]';
+	const hit = async (selector) =>
+		until(() =>
+			evaluate(
+				`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)return null;const r=e.getBoundingClientRect();return !e.disabled&&e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));})()`,
+			),
+		);
+	await hit(color);
+	await screenshot("project-settings-original-icon-picker");
 	await click(color);
-	await until(async () => Boolean((await query()).color));
+	await until(async () => (await query()).color === "#3b82f6");
+	const rocket = "[data-slot=popover-content] button[title=Rocket]";
+	await hit(rocket);
+	await click(rocket);
+	const glyphIcon = await until(async () => {
+		const icon = (await query()).icon;
+		return icon?.startsWith("data:image/png;base64,") ? icon : null;
+	});
+	const pngSize = (icon) => {
+		const bytes = Buffer.from(icon.split(",")[1], "base64");
+		assert.ok(bytes.length < 256 * 1024);
+		return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
+	};
+	assert.deepEqual(pngSize(glyphIcon), { width: 128, height: 128 });
+	const red =
+		'[data-slot=popover-content] button[aria-label="Set color to Red"]';
+	await hit(red);
+	await click(red);
+	const retintedIcon = await until(async () => {
+		const actual = await query();
+		return actual.color === "#ef4444" && actual.icon !== glyphIcon
+			? actual.icon
+			: null;
+	});
+	assert.deepEqual(pngSize(retintedIcon), { width: 128, height: 128 });
+	await hit(color);
+	await click(color);
+	await until(async () => {
+		const actual = await query();
+		return actual.color === "#3b82f6" && actual.icon !== retintedIcon;
+	});
+	await enabled(rocket);
+	await click("text:Remove icon");
+	await until(async () => (await query()).icon === "none");
+	await until(() =>
+		evaluate(
+			"[...document.querySelectorAll('[data-slot=popover-content] button')].some(e=>e.textContent.trim()==='Reset to default'&&!e.disabled)",
+		),
+	);
+	await click("text:Reset to default");
+	await until(async () => (await query()).icon === null);
+	await enabled(rocket);
+	const uploadSource = join(output, "project-icon-upload-source.png");
+	copyFileSync(
+		join(output, "project-settings-original-layout.png"),
+		uploadSource,
+	);
+	await getPage().call("Page.setInterceptFileChooserDialog", { enabled: true });
+	try {
+		await click("text:Upload image…");
+		const { root } = await getPage().call("DOM.getDocument");
+		const { nodeId } = await getPage().call("DOM.querySelector", {
+			nodeId: root.nodeId,
+			selector: "[data-project-settings] input[type=file]",
+		});
+		assert.ok(nodeId);
+		await getPage().call("DOM.setFileInputFiles", {
+			nodeId,
+			files: [uploadSource],
+		});
+	} finally {
+		await getPage().call("Page.setInterceptFileChooserDialog", {
+			enabled: false,
+		});
+	}
+	const uploadedIcon = await until(async () => {
+		const icon = (await query()).icon;
+		return icon?.startsWith("data:image/png;base64,") && icon !== glyphIcon
+			? icon
+			: null;
+	});
+	assert.deepEqual(pngSize(uploadedIcon), { width: 128, height: 128 });
+	assert.ok(readFileSync(uploadSource).readUInt32BE(16) > 128);
+	await enabled(rocket);
+	await screenshot("project-settings-uploaded-icon");
+	await click("[data-project-settings] h2");
+	await until(() =>
+		evaluate("!document.querySelector('[data-slot=popover-content]')"),
+	);
+	await until(() =>
+		evaluate(
+			`document.querySelector('[data-slot=sidebar-content] img[alt="Unified Renamed icon"]')?.getAttribute('src')===${JSON.stringify(uploadedIcon)}`,
+		),
+	);
 	const prefixMode = "[data-project-settings] button[role=combobox]";
 	await enabled(prefixMode);
 	await visible(prefixMode);
@@ -183,6 +276,12 @@ export async function verifyWorkstationProjectSettingsUi({
 		await evaluate("document.querySelector('#project-sparse-checkout').value"),
 		"packages/ui\napps/desktop",
 	);
+	assert.equal((await query()).icon, uploadedIcon);
+	await until(() =>
+		evaluate(
+			`document.querySelector('[data-project-settings] img[alt="Unified Renamed icon"]')?.naturalWidth === 128`,
+		),
+	);
 	await screenshot("project-settings-reopened");
 	await click("[role=dialog] button[aria-label=Close]");
 	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
@@ -194,6 +293,12 @@ export async function verifyWorkstationProjectSettingsUi({
 				physicalInput: true,
 				originalLayout: true,
 				originalColorSelector: true,
+				originalIconPicker: true,
+				glyph: pngSize(glyphIcon),
+				glyphRecolored: true,
+				removeAndReset: true,
+				imageUpload: { browserFileChooser: true, size: pngSize(uploadedIcon) },
+				sidebarIconMatches: true,
 				blurSave: true,
 				textAutoSaveWhileFocused: true,
 				originalDefaultDebounceMs: 500,

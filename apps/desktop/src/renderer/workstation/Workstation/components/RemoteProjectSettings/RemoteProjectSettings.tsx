@@ -6,14 +6,17 @@ import { Input } from "@superset/ui/input";
 import { Label } from "@superset/ui/label";
 import type { inferRouterOutputs } from "@trpc/server";
 import { useEffect, useRef, useState } from "react";
-import { ColorSelector } from "renderer/components/ColorSelector";
 import { NamingInstructionsField } from "renderer/components/NamingInstructionsField";
+import { ProjectIconPicker } from "renderer/components/ProjectIconPicker";
+import { ProjectSettingsLayout } from "renderer/components/ProjectSettingsLayout";
 import { SparseCheckoutField } from "renderer/components/SparseCheckoutField";
+import {
+	PROJECT_ICON_NONE,
+	resolveProjectIconUrl,
+} from "renderer/hooks/host-projects/resolveProjectIconUrl";
 import { BranchPrefixControl } from "renderer/routes/_authenticated/settings/components/BranchPrefixControl/BranchPrefixControl";
 import { SettingsRow } from "renderer/routes/_authenticated/settings/components/SettingsRow";
 import { SettingsSection } from "renderer/routes/_authenticated/settings/components/SettingsSection";
-import { ProjectSettingsLayout } from "renderer/components/ProjectSettingsLayout";
-import { PROJECT_COLOR_DEFAULT } from "shared/constants/project-colors";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -220,9 +223,7 @@ export function RemoteProjectSettings({
 					>
 						<ProjectSettingsLayout
 							projectName={project.name}
-							iconUrl={
-								project.icon?.startsWith("data:image/") ? project.icon : null
-							}
+							iconUrl={resolveProjectIconUrl(project)}
 							color={project.color}
 						>
 							<SettingsSection title={t({ message: "General" })}>
@@ -283,23 +284,37 @@ export function RemoteProjectSettings({
 										className="w-64 max-w-full font-mono text-xs"
 									/>
 								</SettingsRow>
-								<SettingsRow label={t({ message: "Color" })}>
-									<ColorSelector
-										includeDefault
-										selectedColor={draft.color}
-										className="max-w-64"
+								<SettingsRow
+									label={t({ message: "Icon" })}
+									hint={t({
+										message:
+											"Pick an icon and a color, or upload a custom image. Defaults to the linked GitHub owner's avatar.",
+									})}
+								>
+									<ProjectIconPicker
+										key={`${owner}:${fieldEpoch}`}
+										projectName={project.name}
+										iconUrl={resolveProjectIconUrl(project)}
+										hasCustomIcon={Boolean(
+											project.icon && project.icon !== PROJECT_ICON_NONE,
+										)}
+										isIconRemoved={project.icon === PROJECT_ICON_NONE}
+										color={project.color}
 										disabled={busy || blocked.current}
-										onSelectColor={(color) => {
-											const value =
-												color === PROJECT_COLOR_DEFAULT ? null : color;
-											change({ color: value });
-											if (value !== project.color)
-												void save(
-													"project.setColor",
-													{ color: value },
-													(actual) => actual.color === value,
-												);
-										}}
+										onSetIcon={(icon) =>
+											save(
+												"project.setIcon",
+												{ icon },
+												(actual) => actual.icon === icon,
+											)
+										}
+										onSetColor={(color) =>
+											save(
+												"project.setColor",
+												{ color },
+												(actual) => actual.color === color,
+											)
+										}
 									/>
 								</SettingsRow>
 							</SettingsSection>

@@ -1,0 +1,69 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.14ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.25ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.08ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.07ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.34ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.11ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.62ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.02ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.09ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.14ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.68ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.64ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.50ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.53ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.51ms]
+(pass) attachment readiness requires an explicit backend capability [0.25ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.21ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.16ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.09ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.33ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.24ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.71ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [277.52ms]
+
+src/renderer/components/ProjectIconPicker/ProjectIconPicker.test.tsx:
+(pass) the original icon picker serializes removal and reset through the supplied data source [175.07ms]
+(pass) an unavailable data source disables the original picker [17.54ms]
+(pass) a glyph decoded after its picker unmounts cannot write to the old project [42.74ms]
+
+src/renderer/hooks/host-projects/resolveProjectIconUrl/resolveProjectIconUrl.test.ts:
+(pass) resolveProjectIconUrl > custom icon wins over the GitHub avatar [0.04ms]
+(pass) resolveProjectIconUrl > falls back to the GitHub owner avatar when no custom icon [0.01ms]
+(pass) resolveProjectIconUrl > returns null when there is neither a custom icon nor a repo owner [0.01ms]
+(pass) resolveProjectIconUrl > the 'none' sentinel suppresses the GitHub avatar fallback [0.01ms]
+
+src/renderer/workstation/Workstation/components/RemoteProjectSettings/RemoteProjectSettings.test.tsx:
+(pass) Naming instructions saves while focused and preserves edits made during its request [92.99ms]
+(pass) Sparse checkout saves while focused and preserves edits made during its request [51.77ms]
+(pass) an old project write cannot install metadata after switching the target [90.58ms]
+(pass) project settings reuse original controls and write only the selected remote project [50.54ms]
+(pass) a lost metadata reply is read back once and never replays the mutation [44.13ms]
+(pass) an unconfirmed reply retains the field draft and blocks another blur write [42.85ms]
+(pass) a write finishing after the dialog closes cannot refresh the current target [27.43ms]
+(pass) icon removal reads back its single selected-project write (lost reply: %s) [101.22ms]
+(pass) icon removal reads back its single selected-project write (lost reply: %s) [115.83ms]
+
+src/renderer/screens/main/components/WorkspaceSidebar/ProjectSection/ProjectThumbnail/ProjectThumbnail.test.ts:
+(pass) shouldShowGitHubAvatar > hides avatar when hideImage is true [0.03ms]
+(pass) shouldShowGitHubAvatar > shows avatar when hideImage is false [0.01ms]
+(pass) shouldShowGitHubAvatar > shows avatar when hideImage is undefined [0.01ms]
+(pass) shouldShowGitHubAvatar > does not show avatar when owner is null
+(pass) shouldShowGitHubAvatar > does not show avatar when owner is undefined
+(pass) shouldShowGitHubAvatar > does not show avatar when the image has errored
+
+src/renderer/routes/_authenticated/settings/v2-project/$projectId/components/V2ProjectSettings/components/IconUploadField/IconUploadField.test.tsx:
+(pass) IconUploadField > offers the icon and color picker for a project on a reachable host [2.06ms]
+(pass) IconUploadField > disables the picker while the project's host cannot be reached [0.71ms]
+
+ 49 pass
+ 0 fail
+ 885 expect() calls
+Ran 49 tests across 7 files. [1.67s]
