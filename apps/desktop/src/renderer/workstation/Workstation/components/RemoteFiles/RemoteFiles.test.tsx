@@ -1193,3 +1193,37 @@ test("pull reloads a clean original editor from the changed worktree", async () 
 	await waitFor(() => expect(contentOf(editor)).toBe("pulled contents"));
 	expect(f.errors).toEqual([]);
 });
+
+test("opening a file during a Git refresh is not silently dropped", async () => {
+	let reads = 0;
+	let finish!: (value: unknown) => void;
+	const f = fixture({
+		"git.getStatus": () =>
+			++reads === 1
+				? status
+				: new Promise((resolve) => {
+						finish = resolve;
+					}),
+	});
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={connection}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	const refresh = screen.getByRole("button", { name: "Refresh files and Git" });
+	await waitFor(() =>
+		expect((refresh as HTMLButtonElement).disabled).toBe(false),
+	);
+	fireEvent.click(refresh);
+	await waitFor(() => expect(reads).toBe(2));
+	try {
+		clickTreeRow(await treeRow("note.txt"));
+		const editor = await fileEditor();
+		await waitFor(() => expect(contentOf(editor)).toBe("remote contents"));
+	} finally {
+		await act(async () => finish(status));
+	}
+});

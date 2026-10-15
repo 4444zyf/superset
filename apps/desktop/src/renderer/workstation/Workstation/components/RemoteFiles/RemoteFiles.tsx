@@ -301,9 +301,9 @@ export function RemoteFiles({
 		});
 		return result;
 	};
-	const openFile = (absolutePath: string, revealLine?: number) =>
-		run(async (version) => {
-			if (version !== epoch.current) return;
+	const openFile = (absolutePath: string, revealLine?: number) => {
+		if (ownerRef.current !== operationOwner) return;
+		try {
 			const existing = documentsManager
 				.getDocuments(connection, workspaceId)
 				.find((document) => document.absolutePath === absolutePath);
@@ -321,7 +321,10 @@ export function RemoteFiles({
 						}
 					: {}),
 			});
-		});
+		} catch (error) {
+			report(error);
+		}
+	};
 
 	return (
 		<TooltipProvider>
