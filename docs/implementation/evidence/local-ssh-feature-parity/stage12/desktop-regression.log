@@ -1,0 +1,69 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.15ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.36ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.26ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.10ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.60ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.15ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.48ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.04ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.09ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.13ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.78ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.68ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.80ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.65ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.77ms]
+(pass) attachment readiness requires an explicit backend capability [0.39ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.24ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.17ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.09ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.36ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.41ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.74ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [245.26ms]
+
+src/renderer/components/SparseCheckoutField/SparseCheckoutField.test.tsx:
+[sparse-checkout/save] failed, paused warn: Reply lost
+      at onSave (/workspace/superset/apps/desktop/src/renderer/components/SparseCheckoutField/SparseCheckoutField.test.tsx:22:15)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/components/SparseCheckoutField/SparseCheckoutField.tsx:136:11)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/components/SparseCheckoutField/SparseCheckoutField.tsx:231:10)
+
+(pass) sparse folders retain original debounce and do not automatically retry an uncertain write [38.25ms]
+(pass) reverting a sparse list during a pending save is not lost [11.23ms]
+
+src/renderer/components/NamingInstructionsField/NamingInstructionsField.test.tsx:
+(pass) the original naming editor debounces text and shows confirmed saved state [11.04ms]
+(pass) typing during a naming save retains and drains only the latest confirmed intent [9.34ms]
+[naming-instructions/save] failed warn: Reply lost
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/components/NamingInstructionsField/NamingInstructionsField.test.tsx:79:11)
+
+(pass) an uncertain naming save pauses without sending the queued or blurred draft again [10.40ms]
+(pass) unmounting a naming editor discards its pending queue and late status callback [5.07ms]
+
+src/renderer/workstation/Workstation/components/RemoteProjectSettings/RemoteProjectSettings.test.tsx:
+(pass) Naming instructions saves while focused and preserves edits made during its request [81.63ms]
+(pass) Sparse checkout saves while focused and preserves edits made during its request [51.96ms]
+(pass) an old project write cannot install metadata after switching the target [69.03ms]
+(pass) project settings reuse original controls and write only the selected remote project [58.70ms]
+(pass) a lost metadata reply is read back once and never replays the mutation [37.72ms]
+(pass) an unconfirmed reply retains the field draft and blocks another blur write [38.00ms]
+(pass) a write finishing after the dialog closes cannot refresh the current target [25.17ms]
+
+src/renderer/routes/_authenticated/settings/v2-project/$projectId/components/V2ProjectSettings/components/NamingInstructionsSection/NamingInstructionsSection.test.tsx:
+(pass) NamingInstructionsSection > opens on the host row's instructions [7.22ms]
+(pass) NamingInstructionsSection > opens empty on a host that has none [0.59ms]
+
+src/renderer/routes/_authenticated/settings/v2-project/$projectId/components/V2ProjectSettings/components/SparseCheckoutSection/SparseCheckoutSection.test.tsx:
+(pass) SparseCheckoutSection opens on the host row's folders, one per line [0.47ms]
+
+ 41 pass
+ 0 fail
+ 844 expect() calls
+Ran 41 tests across 7 files. [1239.00ms]

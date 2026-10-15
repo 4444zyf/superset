@@ -297,3 +297,14 @@ TDD先记录主进程未开放项目过程、界面组件缺失；补充未知�
 项目设置由原侧栏操作进入，实际改名为Unified Renamed、颜色#3b82f6、custom/remix、命名说明和两条稀疏路径均通过后端只读确认；关闭/重开后值一致。面板clientWidth/scrollWidth均899px，原仓库路径与正在运行的worktree路径未移动。完整文件/Git/设置/多文件/树/Diff/历史/基础分支/分支重命名/四同步菜单及原恢复生命周期回归通过。[第42轮实际记录和截图](evidence/local-ssh-feature-parity/source-linux-project-settings)。
 
 恢复采样仍1次，Linux源码/拥有的SSH与Git夹具不替代macOS发行物、GitHub或供应商Agent认证验证。项目图标、500ms文本保存与状态、脚本及危险操作等仍需继续接入；完整功能对齐目标未完成，新DMG尚未生成。
+
+
+## 阶段十二：复用原项目文本字段的自动保存控制器
+
+原NamingInstructionsSection/SparseCheckoutSection提取可注入onSave的NamingInstructionsField/SparseCheckoutField，放到共同renderer/components目录；原页面保留原QueryClient包装、接口、默认500ms调度、2000ms Saved指示和原稀疏检出重试策略。原项目设置容器也上移到同一共享层。新工作站直接使用这两个原控件，不依赖旧host URL客户端或登录Provider。
+
+直连包装启用pauseOnError：保存或只读确认失败时保留当前草稿，取消debounce和后续队列，不自动重复写入；显式Refresh读取状态并重建字段。正常保存确认后才提交期间更新的最新值，包括撤回到原值。每次只允许正在保存的文本字段继续编辑，其他元数据操作等待；该字段不会因为父表单busy而失去焦点或覆盖新输入。现有主进程/后端接口未更改。
+
+TDD先记录共享字段不存在、工作站只失焦保存的失败，再验证debounce、保存期间输入、撤回、未知结果停止、卸载取消队列/晚回调。原SSR展示和新控制器、工作站、桥与无账号导入审计合跑41项/844断言通过，desktop类型和17语言严格编译通过。[阶段十二日志](evidence/local-ssh-feature-parity/stage12)。测试用1ms注入延迟与可控Promise，不等待真实网络超时。保存状态增加polite状态语义，显示仍复用原Saving/Saved/错误文字。
+
+实际SSH脚本改为保持命名说明和稀疏检出文本框焦点，等待后台500ms自动保存及Saved指示，记录物理输入到只读确认的耗时；不点击保存或先失焦来替代自动保存。实际结果待另记。图标、项目脚本/危险操作和其余功能组仍需继续。

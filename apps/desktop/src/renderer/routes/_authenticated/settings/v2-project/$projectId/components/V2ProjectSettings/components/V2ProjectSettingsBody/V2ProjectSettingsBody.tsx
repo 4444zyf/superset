@@ -7,7 +7,7 @@ import {
 } from "renderer/hooks/host-projects/resolveProjectIconUrl";
 import type { HostProjectItem } from "renderer/hooks/host-projects/useHostProjects";
 import type { HostServiceClient } from "renderer/lib/host-service-client";
-import { ProjectSettingsLayout } from "./components/ProjectSettingsLayout/ProjectSettingsLayout";
+import { ProjectSettingsLayout } from "renderer/components/ProjectSettingsLayout";
 import {
 	HostSelect,
 	type HostSelectOption,

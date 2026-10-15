@@ -38,6 +38,77 @@ const project = {
 	sparseCheckoutPaths: [],
 };
 
+test.each([
+	{
+		label: "Naming instructions",
+		path: "project.setNamingInstructions",
+		field: "namingInstructions",
+		first: "First rule",
+		second: "Latest rule",
+	},
+	{
+		label: "Sparse checkout",
+		path: "project.setSparseCheckoutPaths",
+		field: "sparseCheckoutPaths",
+		first: "packages/one",
+		second: "packages/two",
+	},
+])("$label saves while focused and preserves edits made during its request", async ({
+	label,
+	path,
+	field,
+	first,
+	second,
+}) => {
+	const actual = { ...project };
+	const writes: unknown[] = [];
+	let finish!: () => void;
+	const api = {
+		rpc: async (request: DirectRpc) => {
+			if (request.path === path) {
+				const input = request.input as {
+					instructions?: string;
+					paths?: string[];
+				};
+				const value =
+					path === "project.setNamingInstructions"
+						? input.instructions
+						: input.paths;
+				writes.push(value);
+				if (writes.length === 1)
+					await new Promise<void>((resolve) => {
+						finish = resolve;
+					});
+				Object.assign(actual, { [field]: value });
+			}
+			return { ...actual };
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteProjectSettings
+			api={api}
+			connection={connection}
+			projectId="project"
+			textDebounceMs={1}
+			onClose={() => {}}
+			onChanged={() => {}}
+		/>,
+	);
+	const input = (await screen.findByLabelText(label)) as HTMLTextAreaElement;
+	input.focus();
+	fireEvent.change(input, { target: { value: first } });
+	await waitFor(() => expect(writes).toHaveLength(1));
+	expect(input.disabled || input.closest("fieldset")?.disabled).toBe(false);
+	fireEvent.change(input, { target: { value: second } });
+	fireEvent.blur(input);
+	finish();
+	await waitFor(() => expect(writes).toHaveLength(2));
+	expect(writes[1]).toEqual(
+		path === "project.setNamingInstructions" ? second : [second],
+	);
+	expect(input.value).toBe(second);
+});
+
 test("an old project write cannot install metadata after switching the target", async () => {
 	let finish!: () => void;
 	const calls: DirectRpc[] = [];

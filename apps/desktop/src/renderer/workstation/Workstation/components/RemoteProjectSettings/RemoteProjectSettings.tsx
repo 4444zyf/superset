@@ -4,14 +4,15 @@ import { errorMessage } from "@superset/i18n/errors";
 import { Button } from "@superset/ui/button";
 import { Input } from "@superset/ui/input";
 import { Label } from "@superset/ui/label";
-import { Textarea } from "@superset/ui/textarea";
 import type { inferRouterOutputs } from "@trpc/server";
 import { useEffect, useRef, useState } from "react";
 import { ColorSelector } from "renderer/components/ColorSelector";
+import { NamingInstructionsField } from "renderer/components/NamingInstructionsField";
+import { SparseCheckoutField } from "renderer/components/SparseCheckoutField";
 import { BranchPrefixControl } from "renderer/routes/_authenticated/settings/components/BranchPrefixControl/BranchPrefixControl";
 import { SettingsRow } from "renderer/routes/_authenticated/settings/components/SettingsRow";
 import { SettingsSection } from "renderer/routes/_authenticated/settings/components/SettingsSection";
-import { ProjectSettingsLayout } from "renderer/routes/_authenticated/settings/v2-project/$projectId/components/V2ProjectSettings/components/V2ProjectSettingsBody/components/ProjectSettingsLayout/ProjectSettingsLayout";
+import { ProjectSettingsLayout } from "renderer/components/ProjectSettingsLayout";
 import { PROJECT_COLOR_DEFAULT } from "shared/constants/project-colors";
 import type {
 	DirectDescriptor,
@@ -20,12 +21,8 @@ import type {
 import { WorkstationDialog } from "../WorkstationDialog/WorkstationDialog";
 
 type Project = NonNullable<inferRouterOutputs<AppRouter>["project"]["get"]>;
-type Draft = Project & { namingText: string; sparseText: string };
-const toDraft = (project: Project): Draft => ({
-	...project,
-	namingText: project.namingInstructions ?? "",
-	sparseText: project.sparseCheckoutPaths.join("\n"),
-});
+type Draft = Project;
+const toDraft = (project: Project): Draft => ({ ...project });
 
 export function RemoteProjectSettings({
 	api,
@@ -33,12 +30,14 @@ export function RemoteProjectSettings({
 	projectId,
 	onClose,
 	onChanged,
+	textDebounceMs,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor;
 	projectId: string;
 	onClose(): void;
 	onChanged(): void;
+	textDebounceMs?: number;
 }) {
 	const { t } = useLingui();
 	const owner = JSON.stringify([
@@ -56,6 +55,8 @@ export function RemoteProjectSettings({
 	const [project, setProject] = useState<Project | null>(null);
 	const [draft, setDraft] = useState<Draft | null>(null);
 	const [busy, setBusy] = useState(true);
+	const [writingField, setWritingField] = useState<string | null>(null);
+	const [fieldEpoch, setFieldEpoch] = useState(0);
 	const [error, setError] = useState<string | null>(null);
 	const running = useRef(false);
 	const blocked = useRef(false);
@@ -82,6 +83,7 @@ export function RemoteProjectSettings({
 		ownerRef.current === owner && mountedOwner.current === owner;
 	useEffect(() => {
 		mountedOwner.current = owner;
+		setWritingField(null);
 		let cancelled = false;
 		running.current = false;
 		blocked.current = false;
@@ -121,9 +123,10 @@ export function RemoteProjectSettings({
 		confirms: (actual: Project) => boolean,
 	) => {
 		if (running.current || blocked.current || !capable || !project || !owned())
-			return;
+			return false;
 		running.current = true;
 		setBusy(true);
+		setWritingField(path);
 		setError(null);
 		try {
 			await api.rpc({
@@ -133,30 +136,34 @@ export function RemoteProjectSettings({
 				type: "mutation",
 				input: { projectId, ...input },
 			});
-			if (!owned()) return;
+			if (!owned()) return false;
 			const actual = await read();
-			if (!owned()) return;
+			if (!owned()) return false;
 			if (!actual) throw new Error(t({ message: "Project not found." }));
 			install(actual);
 			onChanged();
+			return true;
 		} catch (err) {
-			if (!owned()) return;
+			if (!owned()) return false;
 			let actual: Project | null = null;
 			try {
 				actual = await read();
 			} catch {}
-			if (!owned()) return;
+			if (!owned()) return false;
 			if (actual && confirms(actual)) {
 				install(actual);
 				onChanged();
+				return true;
 			} else {
 				blocked.current = true;
 				setError(errorMessage(err));
+				return false;
 			}
 		} finally {
 			if (owned()) {
 				running.current = false;
 				setBusy(false);
+				setWritingField(null);
 			}
 		}
 	};
@@ -169,6 +176,7 @@ export function RemoteProjectSettings({
 			if (!owned()) return;
 			if (actual) {
 				install(actual);
+				setFieldEpoch((epoch) => epoch + 1);
 				blocked.current = false;
 				setError(null);
 			}
@@ -202,7 +210,14 @@ export function RemoteProjectSettings({
 					<Trans>Refresh</Trans>
 				</Button>
 				{loadedOwner === owner && project && draft && (
-					<fieldset disabled={busy || blocked.current}>
+					<fieldset
+						disabled={
+							blocked.current ||
+							(busy &&
+								writingField !== "project.setNamingInstructions" &&
+								writingField !== "project.setSparseCheckoutPaths")
+						}
+					>
 						<ProjectSettingsLayout
 							projectName={project.name}
 							iconUrl={
@@ -217,6 +232,7 @@ export function RemoteProjectSettings({
 								>
 									<Input
 										id="project-name"
+										disabled={busy}
 										value={draft.name}
 										maxLength={200}
 										className="w-64 max-w-full"
@@ -325,34 +341,26 @@ export function RemoteProjectSettings({
 										}}
 									/>
 								</SettingsRow>
-								<div className="pt-4">
-									<Label htmlFor="project-naming-instructions">
-										<Trans>Naming instructions</Trans>
-									</Label>
-									<p className="text-xs text-muted-foreground mt-0.5 mb-3">
-										<Trans>
-											Guides AI-generated workspace and branch names for this
-											project. Empty uses the default naming.
-										</Trans>
-									</p>
-									<Textarea
-										id="project-naming-instructions"
-										rows={3}
-										maxLength={2000}
-										value={draft.namingText}
-										onChange={(e) => change({ namingText: e.target.value })}
-										onBlur={() => {
-											const instructions = draft.namingText.trim() || null;
-											if (instructions !== project.namingInstructions)
-												void save(
-													"project.setNamingInstructions",
-													{ instructions },
-													(actual) =>
-														actual.namingInstructions === instructions,
-												);
-										}}
-									/>
-								</div>
+								<NamingInstructionsField
+									key={fieldEpoch}
+									instructions={project.namingInstructions}
+									maxLength={2000}
+									pauseOnError
+									debounceMs={textDebounceMs}
+									disabled={
+										busy && writingField !== "project.setNamingInstructions"
+									}
+									onSave={async (next) => {
+										const instructions = next.trim() || null;
+										const confirmed = await save(
+											"project.setNamingInstructions",
+											{ instructions },
+											(actual) => actual.namingInstructions === instructions,
+										);
+										if (!confirmed)
+											throw new Error(t({ message: "Couldn't save" }));
+									}}
+								/>
 							</SettingsSection>
 							<SettingsSection
 								title={t({ message: "Location & checkout" })}
@@ -386,30 +394,25 @@ export function RemoteProjectSettings({
 											included. Empty checks out everything.
 										</Trans>
 									</p>
-									<Textarea
-										id="project-sparse-checkout"
-										rows={3}
-										spellCheck={false}
+									<SparseCheckoutField
+										key={fieldEpoch}
+										paths={project.sparseCheckoutPaths}
 										maxLength={128 * 1024}
-										className="font-mono text-sm resize-y min-h-[calc(3lh+1.125rem)]"
-										value={draft.sparseText}
-										onChange={(e) => change({ sparseText: e.target.value })}
-										onBlur={() => {
-											const paths = draft.sparseText
-												.split(/\r?\n/)
-												.map((p) => p.trim())
-												.filter(Boolean);
-											if (
-												JSON.stringify(paths) !==
-												JSON.stringify(project.sparseCheckoutPaths)
-											)
-												void save(
-													"project.setSparseCheckoutPaths",
-													{ paths },
-													(actual) =>
-														JSON.stringify(actual.sparseCheckoutPaths) ===
-														JSON.stringify(paths),
-												);
+										pauseOnError
+										debounceMs={textDebounceMs}
+										disabled={
+											busy && writingField !== "project.setSparseCheckoutPaths"
+										}
+										onSave={async (paths) => {
+											const confirmed = await save(
+												"project.setSparseCheckoutPaths",
+												{ paths },
+												(actual) =>
+													JSON.stringify(actual.sparseCheckoutPaths) ===
+													JSON.stringify(paths),
+											);
+											if (!confirmed)
+												throw new Error(t({ message: "Couldn't save" }));
 										}}
 									/>
 								</div>

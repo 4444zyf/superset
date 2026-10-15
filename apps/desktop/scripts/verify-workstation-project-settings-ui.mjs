@@ -65,7 +65,9 @@ export async function verifyWorkstationProjectSettingsUi({
 			modifiers: process.platform === "darwin" ? 4 : 2,
 			commands: ["selectAll"],
 		});
+		const started = await evaluate("performance.now()");
 		await getPage().call("Input.insertText", { text: value });
+		return started;
 	};
 	const blur = async () => {
 		await visible("[data-project-settings] h2");
@@ -121,19 +123,46 @@ export async function verifyWorkstationProjectSettingsUi({
 	await replace("[data-project-settings] input[placeholder=Prefix]", "remix");
 	await blur();
 	await until(async () => (await query()).branchPrefixCustom === "remix");
-	await replace("#project-naming-instructions", "Use feature/ for changes");
-	await blur();
+	const namingStarted = await replace(
+		"#project-naming-instructions",
+		"Use feature/ for changes",
+	);
 	await until(
 		async () =>
 			(await query()).namingInstructions === "Use feature/ for changes",
 	);
-	await replace("#project-sparse-checkout", "packages/ui\napps/desktop");
-	await blur();
+	const namingSaveMs = (await evaluate("performance.now()")) - namingStarted;
+	assert.ok(namingSaveMs >= 400);
+	assert.equal(
+		await evaluate("document.activeElement?.id"),
+		"project-naming-instructions",
+	);
+	await until(() =>
+		evaluate(
+			"document.querySelector('[data-project-text-field=naming] [role=status]')?.textContent.trim()==='Saved'",
+		),
+	);
+	await screenshot("project-settings-naming-auto-saved-focused");
+	const sparseStarted = await replace(
+		"#project-sparse-checkout",
+		"packages/ui\napps/desktop",
+	);
 	const saved = await until(async () => {
 		const actual = await query();
 		return actual.sparseCheckoutPaths.length === 2 ? actual : null;
 	});
 	assert.deepEqual(saved.sparseCheckoutPaths, ["packages/ui", "apps/desktop"]);
+	const sparseSaveMs = (await evaluate("performance.now()")) - sparseStarted;
+	assert.ok(sparseSaveMs >= 400);
+	assert.equal(
+		await evaluate("document.activeElement?.id"),
+		"project-sparse-checkout",
+	);
+	await until(() =>
+		evaluate(
+			"document.querySelector('[data-project-text-field=sparse] [role=status]')?.textContent.trim()==='Saved'",
+		),
+	);
 	await enabled("#project-name");
 	await visible("#project-sparse-checkout");
 	await screenshot("project-settings-sparse-checkout");
@@ -166,6 +195,11 @@ export async function verifyWorkstationProjectSettingsUi({
 				originalLayout: true,
 				originalColorSelector: true,
 				blurSave: true,
+				textAutoSaveWhileFocused: true,
+				originalDefaultDebounceMs: 500,
+				savedIndicators: true,
+				namingSaveMs,
+				sparseSaveMs,
 				reopened: true,
 				before,
 				saved,

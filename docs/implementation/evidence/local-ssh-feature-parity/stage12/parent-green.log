@@ -1,0 +1,31 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/components/SparseCheckoutField/SparseCheckoutField.test.tsx:
+[sparse-checkout/save] failed, paused warn: Reply lost
+      at onSave (/workspace/superset/apps/desktop/src/renderer/components/SparseCheckoutField/SparseCheckoutField.test.tsx:16:15)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/components/SparseCheckoutField/SparseCheckoutField.tsx:136:11)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/components/SparseCheckoutField/SparseCheckoutField.tsx:231:10)
+
+(pass) sparse folders retain original debounce and do not automatically retry an uncertain write [40.08ms]
+
+src/renderer/components/NamingInstructionsField/NamingInstructionsField.test.tsx:
+(pass) the original naming editor debounces text and shows confirmed saved state [14.94ms]
+(pass) typing during a naming save retains and drains only the latest confirmed intent [12.03ms]
+[naming-instructions/save] failed warn: Reply lost
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/components/NamingInstructionsField/NamingInstructionsField.test.tsx:79:11)
+
+(pass) an uncertain naming save pauses without sending the queued or blurred draft again [11.44ms]
+
+src/renderer/workstation/Workstation/components/RemoteProjectSettings/RemoteProjectSettings.test.tsx:
+(pass) Naming instructions saves while focused and preserves edits made during its request [102.25ms]
+(pass) Sparse checkout saves while focused and preserves edits made during its request [58.17ms]
+(pass) an old project write cannot install metadata after switching the target [79.77ms]
+(pass) project settings reuse original controls and write only the selected remote project [64.05ms]
+(pass) a lost metadata reply is read back once and never replays the mutation [52.24ms]
+(pass) an unconfirmed reply retains the field draft and blocks another blur write [42.10ms]
+(pass) a write finishing after the dialog closes cannot refresh the current target [25.32ms]
+
+ 11 pass
+ 0 fail
+ 35 expect() calls
+Ran 11 tests across 3 files. [819.00ms]

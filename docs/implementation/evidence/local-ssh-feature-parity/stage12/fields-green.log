@@ -1,0 +1,22 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/components/SparseCheckoutField/SparseCheckoutField.test.tsx:
+[sparse-checkout/save] failed, retrying warn: Reply lost
+      at onSave (/workspace/superset/apps/desktop/src/renderer/components/SparseCheckoutField/SparseCheckoutField.test.tsx:16:15)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/components/SparseCheckoutField/SparseCheckoutField.tsx:136:11)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/components/SparseCheckoutField/SparseCheckoutField.tsx:226:10)
+
+(pass) sparse folders retain original debounce and do not automatically retry an uncertain write [67.82ms]
+
+src/renderer/components/NamingInstructionsField/NamingInstructionsField.test.tsx:
+(pass) the original naming editor debounces text and shows confirmed saved state [21.97ms]
+(pass) typing during a naming save retains and drains only the latest confirmed intent [18.33ms]
+[naming-instructions/save] failed warn: Reply lost
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/components/NamingInstructionsField/NamingInstructionsField.test.tsx:79:11)
+
+(pass) an uncertain naming save pauses without sending the queued or blurred draft again [15.92ms]
+
+ 4 pass
+ 0 fail
+ 9 expect() calls
+Ran 4 tests across 2 files. [426.00ms]
