@@ -171,7 +171,7 @@ export async function verifyWorkstationFileGitUi({
 	await screenshot("feature-git-repository-identity");
 	await until(() =>
 		evaluate(
-			'Boolean(document.querySelector(\'[data-git-path="feature-native.txt"] button[aria-label="Stage file"]\'))',
+			'document.querySelector(\'[data-git-path="feature-native.txt"] button[aria-label="Stage file"]\')?.disabled===false',
 		),
 	);
 	await click(

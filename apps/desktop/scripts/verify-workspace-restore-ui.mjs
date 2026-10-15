@@ -112,6 +112,27 @@ export async function verifyWorkspaceRestoreUi({
 	await click('button[aria-label="Split vertically"]');
 	const original = await ready();
 	controls?.trackOriginals(original);
+	if (controls?.verifyWorktreeLocation) {
+		const worktreePath = await evaluate(
+			`(async()=>{const {descriptor:d}=await window.directWorkstation.getWorkspaceRestore();const {snapshot:v}=await window.directWorkstation.getWorkspaceView();const target=v.targets.find(t=>t.connectionId===v.activeConnectionId);const workspaceId=target.workspaces.find(w=>w.tabId===target.activeTabId).workspaceId;const workspace=await window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:'workspace.get',type:'query',input:{id:workspaceId,workspaceId}});return workspace.worktreePath;})()`,
+		);
+		const location = await controls.verifyWorktreeLocation(worktreePath);
+		writeFileSync(
+			join(output, "workstation-worktree-location-ui.json"),
+			JSON.stringify(
+				{
+					sourceRevision: process.env.GITHUB_SHA,
+					physicalCreation: true,
+					originalCheckoutPicker: true,
+					heartbeatPtyOnly: true,
+					vendorAgentLaunchVerified: false,
+					...location,
+				},
+				null,
+				2,
+			) + "\n",
+		);
+	}
 	await click("[data-terminal-id] .xterm-screen");
 	await getPage().call("Input.insertText", {
 		text: "printf 'before\\r\\n' > restore-ui.txt",
