@@ -238,4 +238,6 @@ TDD 首先记录三个失败：worktree 仍位于后端私有目录、主机设�
 最终后端回归41项/136断言通过，包含同名跨命名空间项目的真实 Git 创建。统一目录新增可选能力标志 workstationManagedWorktreesV1，主进程仅转发已验证后端的声明；旧后端仍按既有 Local 行为工作，不显示统一目录承诺。含旧后端缺少标志情形、原恢复、项目创建、主进程桥与无账号启动审计的桌面回归42项/809断言通过。该标志是可选输出字段，没有新建或收紧原过程输入，也不提高旧主机最低版本。
 
 
-第34轮冻结源码`576cc4a0652275ec50cb56575ea94cb62996a795`通过实际创建项目、原 Worktree 选择器、新工作区三个终端及正常退出/重开；后续文件/Git脚本在保存Git身份时只等configured为真，原有全局身份已经满足，随后点击了刷新期间禁用的Stage file。截图确认按钮禁用；改为等该原按钮disabled=false后进行物理点击，不增加等待次数、不重复写入、不更改产品。统一目录核对前移到三终端实际创建完成后，单独记录工作树路径和三个进程cwd；之后的Git流程继续复核同一目录。[第34轮失败记录](evidence/local-ssh-feature-parity/source-linux-worktree-location-failures)。
+第34轮冻结源码`576cc4a0652275ec50cb56575ea94cb62996a795`通过实际创建项目、原 Worktree 选择器、新工作区三个终端及正常退出/重开；后续文件/Git脚本在保存Git身份时只等configured为真，原有全局身份已经满足，随后点击了刷新期间禁用的Stage file。截图确认按钮禁用；改为等该原按钮disabled=false后进行物理点击，不增加等待次数、不重复写入、不更改产品。统一目录核对前移到三个终端正常退出/重开后、其余文件/Git回归前，单独记录工作树路径和三个进程cwd；之后的Git流程继续复核同一目录。[第34轮失败记录](evidence/local-ssh-feature-parity/source-linux-worktree-location-failures)。
+
+第35轮是验收脚本提前读取尚不存在的恢复任务：新建连接并非恢复，getWorkspaceRestore 此时为null。移到原有正常退出/重开完成后读取，不调用内部创建接口或更改产品状态，失败日志继续保留。产品构建源仍为576cc4a06。
