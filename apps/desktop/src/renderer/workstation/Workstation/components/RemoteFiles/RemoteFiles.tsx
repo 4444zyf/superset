@@ -37,6 +37,7 @@ import {
 	FileOperationDialog,
 } from "./components/FileOperationDialog/FileOperationDialog";
 import { RemoteBaseBranch } from "./components/RemoteBaseBranch/RemoteBaseBranch";
+import { RemoteBranchActions } from "./components/RemoteBranchActions/RemoteBranchActions";
 import { RemoteDocumentEditor } from "./components/RemoteDocumentEditor";
 import { RemoteFileSearch } from "./components/RemoteFileSearch/RemoteFileSearch";
 import { RemoteFileTabs } from "./components/RemoteFileTabs";
@@ -599,10 +600,24 @@ export function RemoteFiles({
 				</div>
 				{tab === "changes" && (
 					<>
-						{status && <p className="text-sm">{status.currentBranch.name}</p>}
+						<RemoteBranchActions
+							key={operationOwner}
+							api={api}
+							connection={connection}
+							workspaceId={workspaceId}
+							revision={status}
+							disabled={busy}
+							onError={report}
+							onRefresh={() =>
+								run(async (version) => {
+									await refreshGit(version);
+									if (version === epoch.current) setDiff(null);
+								})
+							}
+						/>
 						{connection.capabilities?.workstationGitV1 && (
 							<RemoteBaseBranch
-								key={operationOwner}
+								key={`${operationOwner}:${status?.currentBranch.name ?? ""}`}
 								api={api}
 								connection={connection}
 								workspaceId={workspaceId}

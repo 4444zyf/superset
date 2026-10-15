@@ -5,6 +5,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { verifyWorkstationFileGitUi } from "./verify-workstation-file-git-ui.mjs";
 import { verifyWorkstationFileTreeUi } from "./verify-workstation-file-tree-ui.mjs";
 import { verifyWorkstationGitBaseUi } from "./verify-workstation-git-base-ui.mjs";
+import { verifyWorkstationGitBranchUi } from "./verify-workstation-git-branch-ui.mjs";
 import { verifyWorkstationGitDiffUi } from "./verify-workstation-git-diff-ui.mjs";
 import { verifyWorkstationGitHistoryUi } from "./verify-workstation-git-history-ui.mjs";
 import { verifyWorkstationMultipleFilesUi } from "./verify-workstation-multiple-files-ui.mjs";
@@ -336,6 +337,14 @@ export async function verifyWorkspaceRestoreUi({
 	});
 	await verifyWorkstationGitHistoryUi({ getPage, click, screenshot, output });
 	await verifyWorkstationGitBaseUi({ getPage, click, screenshot, output });
+	if (controls?.prepareGitRemote)
+		await verifyWorkstationGitBranchUi({
+			getPage,
+			click,
+			screenshot,
+			output,
+			controls,
+		});
 	await ready();
 
 	await until(

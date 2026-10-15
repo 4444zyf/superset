@@ -1,0 +1,28 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteBranchActions/RemoteBranchActions.test.tsx:
+(pass) original rename dialog submits once, excludes IME Enter, and refreshes the selected workspace [89.63ms]
+(pass) a lost rename reply is confirmed by a read without another mutation [30.32ms]
+(pass) unknown rename outcome retains its draft and requires a read before another write [47.27ms]
+(pass) push uses one durable operation and does not resubmit after a lost reply [8.17ms]
+(pass) upstream branches cannot be renamed and push needs durable capability and a remote [7.64ms]
+(pass) an old rename reply cannot close or refresh the next workspace [36.98ms]
+258 |   return sync;
+259 |  });
+260 |  render(<RemoteBranchActions {...f.props} />);
+261 |  fireEvent.change(await openRename(), { target: { value: "renamed" } });
+262 |  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Rename" })); });
+263 |  expect(f.refreshes()).toBe(1);
+                             ^
+error: expect(received).toBe(expected)
+
+Expected: 1
+Received: 0
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteBranchActions/RemoteBranchActions.test.tsx:263:24)
+(fail) a confirmed rename still refreshes its workspace when the following status read fails [19.42ms]
+
+ 6 pass
+ 1 fail
+ 33 expect() calls
+Ran 7 tests across 1 file. [503.00ms]

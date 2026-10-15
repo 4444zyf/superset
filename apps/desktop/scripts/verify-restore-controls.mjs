@@ -1,15 +1,17 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { lstatSync, readFileSync, readlinkSync } from "node:fs";
-import { join, resolve } from "node:path";
-import { tmpdir } from "node:os";
 import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { startPrivateSocketProxy } from "../../../packages/direct-connection/src/local-socket.ts";
 import {
 	connectAndHello,
 	payloadOf,
 } from "../../../packages/pty-daemon/test/helpers/client.ts";
-import { startPrivateSocketProxy } from "../../../packages/direct-connection/src/local-socket.ts";
+
 const WebSocket = createRequire(
 	new URL("../../../packages/direct-connection/package.json", import.meta.url),
 )("ws");
@@ -30,6 +32,25 @@ export function ownedRestoreControls(home, fixture) {
 	);
 	let originals = [];
 	return {
+		prepareGitRemote(worktreePath) {
+			assert.ok(worktreePath.startsWith(fixture.homeDir + "/"));
+			assert.equal(lstatSync(worktreePath).uid, process.getuid());
+			const remote = join(fixture.root, "push-remote.git");
+			execFileSync("git", ["init", "--bare", remote], { stdio: "pipe" });
+			execFileSync("git", ["remote", "add", "origin", remote], {
+				cwd: worktreePath,
+				stdio: "pipe",
+			});
+			return {
+				readHead(branch) {
+					return execFileSync(
+						"git",
+						["--git-dir", remote, "rev-parse", "refs/heads/" + branch],
+						{ encoding: "utf8" },
+					).trim();
+				},
+			};
+		},
 		trackOriginals(refs) {
 			originals = refs;
 		},

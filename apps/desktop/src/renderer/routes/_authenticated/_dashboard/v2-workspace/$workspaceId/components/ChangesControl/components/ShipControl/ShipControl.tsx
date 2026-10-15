@@ -20,6 +20,8 @@ import type { BranchSyncStatus } from "../../../../utils/getPRFlowState";
 import { CommitForm } from "../../../CommitForm";
 import { CreatePrForm } from "../../../CreatePrForm";
 
+import { PushButton } from "./components/PushButton/PushButton";
+
 interface ShipControlProps {
 	workspaceId: string;
 	sync: BranchSyncStatus;
@@ -208,19 +210,11 @@ export function ShipControl({
 									<Trans>Create PR</Trans>
 								</button>
 							) : (
-								<button
-									type="button"
+								<PushButton
 									className={mainButtonClass}
-									disabled={actions.isPushing}
+									isPushing={actions.isPushing}
 									onClick={actions.push}
-								>
-									{actions.isPushing ? (
-										<VscLoading className="size-3.5 animate-spin" />
-									) : (
-										<VscRepoPush className="size-3.5" />
-									)}
-									<Trans>Push</Trans>
-								</button>
+								/>
 							)}
 							{needsPush && (needsCommit || showCreatePr) && (
 								<>

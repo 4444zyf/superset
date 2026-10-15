@@ -35,8 +35,12 @@ test("default main, preload and renderer cannot import the legacy cloud bootstra
 			expect(forbidden.test(specifier), `${file} imports ${specifier}`).toBe(
 				false,
 			);
-			if (!specifier.startsWith(".")) continue;
-			const target = resolve(dirname(file), specifier);
+			const target = specifier.startsWith(".")
+				? resolve(dirname(file), specifier)
+				: /^(main|renderer|shared|lib)\//.test(specifier)
+					? resolve(src, specifier)
+					: null;
+			if (!target) continue;
 			const resolved = [
 				target,
 				`${target}.ts`,
