@@ -1,0 +1,41 @@
+bun test v1.4.2 (744846f84)
+
+test/integration/direct-git.integration.test.ts:
+ 9 | 		const { host, repo, worktreePath, featureWorkspaceId: workspaceId } = scenario;
+10 | 		writeFileSync(join(worktreePath, "local-feature.txt"), "local feature\n");
+11 | 		await repo.git.cwd(worktreePath).add("local-feature.txt");
+12 | 		await repo.git.commit("Local feature");
+13 | 		const status = await host.trpc.git.getStatus.query({ workspaceId, baseBranch: "main" });
+14 | 		expect(status.againstBase.map((f) => f.path)).toEqual(["local-feature.txt"]);
+                                                     ^
+error: expect(received).toEqual(expected)
+
+- [
+-   "local-feature.txt",
+- ]
++ []
+
+- Expected  - 3
++ Received  + 1
+
+      at <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-git.integration.test.ts:14:49)
+(fail) a direct worktree compares its committed files with a local base without an origin remote [706.92ms]
+[host-service:git] Background base-ref fetch failed {
+  worktreePath: "/tmp/host-service-test-repo-lw1tyf/.worktrees/feature-cleanup",
+  remote: "origin",
+  branch: "main",
+  error: warn: Cannot use simple-git on a directory that does not exist
+ code: undefined,
+
+      at wo (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:2872:15)
+      at createUserSimpleGit (/workspace/superset/packages/host-service/src/runtime/git/simple-git.ts:22:24)
+      at /workspace/superset/packages/host-service/src/workers/tasks/git.ts:191:15
+      at /workspace/superset/packages/host-service/src/workers/host-worker.ts:71:29
+,
+}
+(pass) a durable direct commit preserves unstaged edits and reuses the same receipt without another commit [361.31ms]
+
+ 1 pass
+ 1 fail
+ 8 expect() calls
+Ran 2 tests across 1 file. [1.67s]

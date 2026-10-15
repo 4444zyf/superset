@@ -139,14 +139,17 @@ function invalidateStatus(workspaceId: string): void {
 
 function runStatusSnapshot(
 	ctx: Parameters<typeof resolveWorktreePath>[0] &
-		Pick<HostServiceContext, "credentials">,
+		Pick<HostServiceContext, "credentials" | "direct">,
 	input: {
 		workspaceId: string;
 		baseBranch?: string;
 		priority?: "foreground" | "background";
 	},
 ) {
-	const requestKey = JSON.stringify({ baseBranch: input.baseBranch ?? null });
+	const requestKey = JSON.stringify({
+		baseBranch: input.baseBranch ?? null,
+		allowLocalBase: !!ctx.direct,
+	});
 	return gitStatusRefreshLimiter.run({
 		workspaceId: input.workspaceId,
 		requestKey,
@@ -159,7 +162,12 @@ function runStatusSnapshot(
 			const computeFull = async () => {
 				const result = await workerPool.run(
 					gitStatusSnapshotTask,
-					{ worktreePath, baseBranch: input.baseBranch, gitEnv },
+					{
+						worktreePath,
+						baseBranch: input.baseBranch,
+						allowLocalBase: !!ctx.direct,
+						gitEnv,
+					},
 					{ timeoutMs: 15_000 },
 				);
 				if (result.baseRefFetchTarget) {
@@ -832,7 +840,10 @@ export const gitRouter = router({
 			assertSafeRelativePath(input.path);
 			const worktreePath = resolveWorktreePath(ctx, input.workspaceId);
 			const git = await ctx.git(worktreePath);
-			const refs = await resolveDiffCategoryRefs(git, input.category, input);
+			const refs = await resolveDiffCategoryRefs(git, input.category, {
+				...input,
+				allowLocalBase: !!ctx.direct,
+			});
 			return loadFileDiffContent(
 				git,
 				worktreePath,
@@ -880,6 +891,7 @@ export const gitRouter = router({
 					path: input.path,
 					maxBytes: input.maxBytes ?? DIFF_SIDE_FILE_MAX_BYTES,
 					baseBranch: input.baseBranch,
+					allowLocalBase: !!ctx.direct,
 					commitHash: input.commitHash,
 					fromHash: input.fromHash,
 					gitEnv,
@@ -920,6 +932,7 @@ export const gitRouter = router({
 					paths: input.paths,
 					category: input.category,
 					baseBranch: input.baseBranch,
+					allowLocalBase: !!ctx.direct,
 					commitHash: input.commitHash,
 					fromHash: input.fromHash,
 					gitEnv,
@@ -960,6 +973,7 @@ export const gitRouter = router({
 						paths: input.paths,
 						untrackedPaths: input.untrackedPaths,
 						baseBranch: input.baseBranch,
+						allowLocalBase: !!ctx.direct,
 						commitHash: input.commitHash,
 						fromHash: input.fromHash,
 						gitEnv,

@@ -45,15 +45,17 @@ export async function getGitStatusSnapshot({
 	git,
 	worktreePath,
 	baseBranch,
+	allowLocalBase,
 }: {
 	git: SimpleGit;
 	worktreePath: string;
 	baseBranch?: string;
+	allowLocalBase?: boolean;
 }): Promise<GitStatusSnapshotComputation> {
 	const currentBranchName = (
 		await git.revparse(["--abbrev-ref", "HEAD"]).catch(() => "")
 	).trim();
-	const base = await resolveBaseComparison(git, baseBranch);
+	const base = await resolveBaseComparison(git, baseBranch, allowLocalBase);
 	const defaultBranchName = base?.branchName ?? null;
 	const baseRef = base?.baseRef ?? "HEAD";
 

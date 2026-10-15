@@ -1,7 +1,71 @@
 import { expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createBasicScenario } from "../helpers/scenarios";
+import {
+	createBasicScenario,
+	createFeatureWorktreeScenario,
+} from "../helpers/scenarios";
+
+test("a direct worktree compares its committed files with a local base without an origin remote", async () => {
+	const scenario = await createFeatureWorktreeScenario({
+		hostOptions: { runtimeMode: "direct" },
+	});
+	try {
+		const {
+			host,
+			repo,
+			worktreePath,
+			featureWorkspaceId: workspaceId,
+		} = scenario;
+		writeFileSync(join(worktreePath, "local-feature.txt"), "local feature\n");
+		await repo.git.cwd(worktreePath).add("local-feature.txt");
+		await repo.git.commit("Local feature");
+		const status = await host.trpc.git.getStatus.query({
+			workspaceId,
+			baseBranch: "main",
+		});
+		expect(status.againstBase.map((f) => f.path)).toEqual([
+			"local-feature.txt",
+		]);
+		const diff = await host.trpc.git.getDiff.query({
+			workspaceId,
+			baseBranch: "main",
+			category: "against-base",
+			path: "local-feature.txt",
+		});
+		expect(diff.oldFile.contents).toBe("");
+		expect(diff.newFile.contents).toBe("local feature\n");
+		const [bulk, patch, side] = await Promise.all([
+			host.trpc.git.getDiffBulk.query({
+				workspaceId,
+				baseBranch: "main",
+				category: "against-base",
+				paths: ["local-feature.txt"],
+			}),
+			host.trpc.git.getDiffPatch.query({
+				workspaceId,
+				baseBranch: "main",
+				category: "against-base",
+				paths: ["local-feature.txt"],
+			}),
+			host.trpc.git.readDiffSideFile.query({
+				workspaceId,
+				baseBranch: "main",
+				category: "against-base",
+				path: "local-feature.txt",
+				side: "new",
+			}),
+		]);
+		expect(bulk.diffs[0]?.newFile.contents).toBe("local feature\n");
+		expect(patch.patch).toContain("+local feature");
+		expect(side).toMatchObject({
+			kind: "bytes",
+			content: Buffer.from("local feature\n").toString("base64"),
+		});
+	} finally {
+		await scenario.dispose();
+	}
+});
 
 test("a durable direct commit preserves unstaged edits and reuses the same receipt without another commit", async () => {
 	const scenario = await createBasicScenario({

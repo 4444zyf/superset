@@ -244,3 +244,12 @@ TDD 首先记录三个失败：worktree 仍位于后端私有目录、主机设�
 
 
 第36轮冻结源码395cf9265实际通过统一路径与三个进程cwd、正常退出/重开、文件暂存提交、设置、多文件、树、Diff和历史。后续基础分支过程已只读确认main写入，但脚本在父界面Git刷新尚未完成时点击禁用的Against base，没有切换分类。保留原等待次数，先核对原按钮disabled=false，再物理点击；这是另一处旧独立会话夹具没有暴露的交互时序假设，未修改产品。统一目录与cwd的该轮结果单独保留，整轮不计完整回归通过。
+
+
+### 项目 worktree 暴露无 origin 的基础分支差异缺口
+
+第37轮补齐点击条件后仍未显示基础分支文件。真实 Git 回归先复现：无origin的项目main已有初始提交，worktree分支新增并提交文件，getStatus(baseBranch:main).againstBase却为空。原引用解析器默认使用origin/main，缺失引用的diff被折叠为空；这不是按钮等待可以解决的问题。
+
+保持原API输入、输出和非 direct 行为，通过后端内部 allowLocalBase 参数补齐直连模式：已配置upstream或存在origin跟踪引用时复用原解析；仅缺少该远端引用且本地分支实际存在时比较refs/heads/<branch>，不创建假远端、不写Git跟踪设置、不安排不存在的origin抓取。状态、单文件Diff、批量Diff、patch和二进制side使用同一规则，后台任务参数仍为可选。
+
+新真实worktree回归先红后绿，并核对列表、单文件内容、bulk、patch和side一致；包含原分叉上游、远端默认分支和bulk/patch视图的40项/101断言通过，host和desktop类型检查通过。产品构建与实际SSH复测另记。第33–37轮失败记录保留，前述把第36轮仅判断为点击时序的结论由此修正。

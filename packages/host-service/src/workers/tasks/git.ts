@@ -157,13 +157,23 @@ export const gitUserIdentityTask = defineWorkerTask<
 });
 
 export const gitStatusSnapshotTask = defineWorkerTask<
-	{ worktreePath: string; baseBranch?: string; gitEnv: GitTaskEnv },
+	{
+		worktreePath: string;
+		baseBranch?: string;
+		allowLocalBase?: boolean;
+		gitEnv: GitTaskEnv;
+	},
 	GitStatusSnapshotComputation
 >({
 	type: "git/getStatusSnapshot",
-	handler: async ({ worktreePath, baseBranch, gitEnv }) => {
+	handler: async ({ worktreePath, baseBranch, allowLocalBase, gitEnv }) => {
 		const git = createUserSimpleGit(worktreePath, { env: gitEnv });
-		return getGitStatusSnapshot({ git, worktreePath, baseBranch });
+		return getGitStatusSnapshot({
+			git,
+			worktreePath,
+			baseBranch,
+			allowLocalBase,
+		});
 	},
 });
 
@@ -220,6 +230,7 @@ export const gitDiffBulkTask = defineWorkerTask<
 		paths: string[];
 		category: DiffCategory;
 		baseBranch?: string;
+		allowLocalBase?: boolean;
 		commitHash?: string;
 		fromHash?: string;
 		gitEnv: GitTaskEnv;
@@ -238,6 +249,7 @@ export const gitDiffBulkTask = defineWorkerTask<
 		paths,
 		category,
 		baseBranch,
+		allowLocalBase,
 		commitHash,
 		fromHash,
 		gitEnv,
@@ -245,7 +257,7 @@ export const gitDiffBulkTask = defineWorkerTask<
 		const refs = await resolveDiffCategoryRefs(
 			createUserSimpleGit(worktreePath, { env: gitEnv }),
 			category,
-			{ baseBranch, commitHash, fromHash },
+			{ baseBranch, commitHash, fromHash, allowLocalBase },
 		);
 
 		const diffs = await mapWithConcurrency(
@@ -279,6 +291,7 @@ export const gitDiffPatchTask = defineWorkerTask<
 		paths?: string[];
 		untrackedPaths?: string[];
 		baseBranch?: string;
+		allowLocalBase?: boolean;
 		commitHash?: string;
 		fromHash?: string;
 		gitEnv: GitTaskEnv;
@@ -292,6 +305,7 @@ export const gitDiffPatchTask = defineWorkerTask<
 		paths,
 		untrackedPaths,
 		baseBranch,
+		allowLocalBase,
 		commitHash,
 		fromHash,
 		gitEnv,
@@ -299,6 +313,7 @@ export const gitDiffPatchTask = defineWorkerTask<
 		const git = createUserSimpleGit(worktreePath, { env: gitEnv });
 		const refs = await resolveDiffCategoryRefs(git, category, {
 			baseBranch,
+			allowLocalBase,
 			commitHash,
 			fromHash,
 		});
@@ -332,6 +347,7 @@ export const gitDiffSideBlobTask = defineWorkerTask<
 		path: string;
 		maxBytes: number;
 		baseBranch?: string;
+		allowLocalBase?: boolean;
 		commitHash?: string;
 		fromHash?: string;
 		gitEnv: GitTaskEnv;
@@ -346,6 +362,7 @@ export const gitDiffSideBlobTask = defineWorkerTask<
 		path,
 		maxBytes,
 		baseBranch,
+		allowLocalBase,
 		commitHash,
 		fromHash,
 		gitEnv,
@@ -353,6 +370,7 @@ export const gitDiffSideBlobTask = defineWorkerTask<
 		const git = createUserSimpleGit(worktreePath, { env: gitEnv });
 		const refs = await resolveDiffCategoryRefs(git, category, {
 			baseBranch,
+			allowLocalBase,
 			commitHash,
 			fromHash,
 		});

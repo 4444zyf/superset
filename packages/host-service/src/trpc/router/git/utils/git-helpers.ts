@@ -171,6 +171,7 @@ export async function getDefaultBranchName(
 export async function resolveBaseComparison(
 	git: SimpleGit,
 	explicitBranch?: string,
+	allowLocalBase = false,
 ): Promise<{
 	branchName: string;
 	baseRef: string;
@@ -195,6 +196,23 @@ export async function resolveBaseComparison(
 						branch: upstream.remoteBranch,
 					},
 				};
+	}
+	if (allowLocalBase) {
+		const hasRef = (ref: string) =>
+			git.raw(["rev-parse", "--verify", "--end-of-options", ref]).then(
+				() => true,
+				() => false,
+			);
+		const [hasLocal, hasRemote] = await Promise.all([
+			hasRef(`refs/heads/${branchName}`),
+			hasRef(`refs/remotes/origin/${branchName}`),
+		]);
+		if (hasLocal && !hasRemote)
+			return {
+				branchName,
+				baseRef: `refs/heads/${branchName}`,
+				fetchTarget: null,
+			};
 	}
 	return {
 		branchName,
@@ -529,10 +547,19 @@ export interface DiffCategoryRefs {
 export async function resolveDiffCategoryRefs(
 	git: SimpleGit,
 	category: DiffCategory,
-	opts: { baseBranch?: string; commitHash?: string; fromHash?: string },
+	opts: {
+		baseBranch?: string;
+		commitHash?: string;
+		fromHash?: string;
+		allowLocalBase?: boolean;
+	},
 ): Promise<DiffCategoryRefs> {
 	if (category === "against-base") {
-		const base = await resolveBaseComparison(git, opts.baseBranch);
+		const base = await resolveBaseComparison(
+			git,
+			opts.baseBranch,
+			opts.allowLocalBase,
+		);
 		const baseRef = base?.baseRef ?? "HEAD";
 		// Use the merge base so the diff excludes unrelated changes landed on
 		// the base branch after we forked — matches what the file list

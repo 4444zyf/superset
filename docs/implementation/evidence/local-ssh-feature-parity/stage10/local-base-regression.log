@@ -1,0 +1,86 @@
+bun test v1.4.2 (744846f84)
+
+test/integration/direct-worktree-location.integration.test.ts:
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "82cf975d-8a19-4137-a040-a7c366371453",
+  worktreePath: "/tmp/remix-project-isolation-Nq8Y0q/Superset Remix/worktrees/Example-952d9604-4626-40eb-95c4-020ff9da5440/feature/same",
+  error: WorkerTaskAbortedError: Worker runner disposed
+ kind: "disposed",
+
+      at dispose (/workspace/superset/packages/host-service/src/workers/WorkerTaskRunner.ts:238:6)
+      at map (1:11)
+      at dispose (/workspace/superset/packages/host-service/src/workers/host-worker-pool.ts:310:29)
+      at <anonymous> (/workspace/superset/packages/host-service/src/app.ts:660:30)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/createTestHost.ts:183:17)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/scenarios.ts:126:15)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:47:15)
+,
+}
+(pass) same-named projects in separate direct namespaces cannot share a worktree directory [1070.85ms]
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "0a3a4696-8249-4963-9c2d-736b3dff477d",
+  worktreePath: "/tmp/remix-machine-home-TXW6z5/Superset Remix/worktrees/My Project-68110e9c-2900-41b5-996c-faa7ec42c1be/feature/central",
+  error: WorkerTaskAbortedError: Worker runner disposed
+ kind: "disposed",
+
+      at dispose (/workspace/superset/packages/host-service/src/workers/WorkerTaskRunner.ts:238:6)
+      at map (1:11)
+      at dispose (/workspace/superset/packages/host-service/src/workers/host-worker-pool.ts:310:29)
+      at <anonymous> (/workspace/superset/packages/host-service/src/app.ts:660:30)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/createTestHost.ts:183:17)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/scenarios.ts:126:15)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:106:18)
+,
+}
+(pass) direct worktrees create and clean up under the machine-wide Remix folder despite stored overrides [548.64ms]
+(pass) direct location settings cannot redirect worktrees to an Agent folder [246.07ms]
+
+test/integration/direct-git.integration.test.ts:
+(pass) a direct worktree compares its committed files with a local base without an origin remote [1288.11ms]
+(pass) a durable direct commit preserves unstaged edits and reuses the same receipt without another commit [646.20ms]
+
+src/trpc/router/git/get-diff-bulk.test.ts:
+(pass) gitRouter.getDiffBulk — large changeset > returns every file's diff in one call, and stays fast [2402.78ms]
+(pass) gitRouter.getDiffBulk — large changeset > matches per-file getDiff output for every file [1089.86ms]
+(pass) gitRouter.getDiffBulk — large changeset > rejects a path-traversal path instead of reading outside the worktree [573.50ms]
+
+src/trpc/router/git/v2-diff-surfaces.integration.test.ts:
+(pass) Surface A — new workspace creation > stale local main: new branch starts at origin/main tip [571.27ms]
+(pass) Surface A — new workspace creation > fork workflow: local main tracks upstream/main, not origin/main [605.49ms]
+(pass) Surface A — new workspace creation > no upstream configured: falls back to local ref (no regression) [336.87ms]
+(pass) Surfaces B/C — sidebar badge + Changes tab counts > count is stable as main advances after you forked [425.48ms]
+(pass) Surfaces B/C — sidebar badge + Changes tab counts > fork workflow: counts compare against upstream/main, not origin/main [699.30ms]
+(pass) Surfaces B/C — sidebar badge + Changes tab counts > non-ASCII filename reports correct additions (was +0 -0 before fix) [448.22ms]
+(pass) Surfaces B/C — sidebar badge + Changes tab counts > three buckets (againstBase, staged, unstaged) stay distinct [492.22ms]
+(pass) Surface D — per-file diff uses merge-base > unrelated base-side edit to same file is hidden from per-file diff [428.91ms]
+(pass) Surface F — ahead/behind counts > counts are correct against a base ref [690.47ms]
+(pass) Surface F — ahead/behind counts > feature branch not yet behind main reports behind=0 [542.28ms]
+(pass) Rename files — line counts > rename with in-file edits shows non-zero additions/deletions [446.05ms]
+(pass) Rename files — line counts > pure rename shows 0/0 [338.27ms]
+
+src/trpc/router/git/utils/git-helpers.integration.test.ts:
+(pass) resolveUpstream (integration) > returns null when no upstream configured [336.80ms]
+(pass) resolveUpstream (integration) > returns origin/<branch> when tracking origin [430.11ms]
+(pass) resolveUpstream (integration) > returns upstream/<branch> for fork workflow [396.46ms]
+(pass) resolveUpstream (integration) > handles local-tracking (remote = '.') [400.96ms]
+(pass) resolveUpstream (integration) > handles tracking a differently-named remote branch [405.48ms]
+(pass) resolveUpstream (integration) > returns null for nonexistent branch [340.31ms]
+(pass) resolveBaseComparison (integration) > falls back to origin/<default> when no upstream configured [514.07ms]
+(pass) resolveBaseComparison (integration) > honors configured upstream remote (fork workflow) [649.46ms]
+(pass) resolveBaseComparison (integration) > local-tracking branch resolves to bare branch name (not ./name) [640.39ms]
+(pass) resolveBaseComparison (integration) > explicit branch with upstream uses upstream remote [656.60ms]
+(pass) resolveBaseComparison (integration) > returns null when no default branch can be resolved [807.38ms]
+(pass) getDefaultBranchName (integration) > returns null when origin/HEAD not set [339.70ms]
+(pass) getDefaultBranchName (integration) > returns 'main' when origin/HEAD points at origin/main [484.34ms]
+(pass) getDefaultBranchName (integration) > returns 'master' when origin/HEAD points at origin/master [560.05ms]
+(pass) getChangedFilesForDiff (integration) > returns adds/modifies/deletes correctly [484.35ms]
+(pass) getChangedFilesForDiff (integration) > rename with line changes reports correct additions/deletions [386.36ms]
+(pass) getChangedFilesForDiff (integration) > pure rename (no edits) reports 0/0 correctly [332.00ms]
+(pass) getChangedFilesForDiff (integration) > non-ASCII filename reports correct additions/deletions [337.86ms]
+(pass) getChangedFilesForDiff (integration) > binary file reports 0/0 [346.71ms]
+(pass) getChangedFilesForDiff (integration) > 3-dot diff excludes changes on base after divergence [402.79ms]
+
+ 40 pass
+ 0 fail
+ 101 expect() calls
+Ran 40 tests across 5 files. [23.71s]
