@@ -68,7 +68,7 @@ export async function verifyWorkspaceRestoreUi({
 	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
 	await until(() =>
 		evaluate(
-			"[...document.querySelectorAll('[data-slot=sidebar-content] button')].some(b=>b.textContent.trim()==='Unified Project')",
+			"[...document.querySelectorAll('[data-slot=sidebar-content] button')].some(b=>b.getAttribute('aria-label')==='Unified Project')",
 		),
 	);
 	await click(".ws-heading-actions .primary");

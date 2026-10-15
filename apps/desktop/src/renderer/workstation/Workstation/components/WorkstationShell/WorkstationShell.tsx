@@ -139,6 +139,7 @@ export function WorkstationShell({
 												<SidebarMenuItem key={p.id}>
 													<SidebarMenuButton
 														tooltip={p.name}
+														aria-label={p.name}
 														onClick={() => onProject(p.id)}
 													>
 														<RemoteProjectThumbnail
