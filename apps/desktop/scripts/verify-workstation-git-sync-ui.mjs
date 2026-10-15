@@ -151,6 +151,21 @@ export async function verifyWorkstationGitSyncUi({
 	await click("tree:sync-ui.txt");
 	await until(async () => (await contents()) === "remote two");
 	await screenshot("git-synced-divergent-original-editor");
+	step = "fetch and pull combined action";
+	const combinedHead = remote.advanceRemote(
+		"feature-renamed",
+		"remote three\n",
+	);
+	await click("text:Changes");
+	await menu("fetch-pull");
+	await until(async () => (await head()) === combinedHead);
+	assert.equal(await readText(), "remote three\n");
+	await click("text:Files");
+	await until(() => treeReady("sync-ui.txt"));
+	await click("tree:sync-ui.txt");
+	await until(async () => (await contents()) === "remote three");
+	await screenshot("git-fetch-and-pull-original-editor");
+
 	const pending = await evaluate(
 		`window.directWorkstation.listPending(${JSON.stringify(scope.descriptor.connectionId)})`,
 	);
@@ -169,6 +184,7 @@ export async function verifyWorkstationGitSyncUi({
 				localBeforeSync: localBefore,
 				remoteBeforeSync: remoteBefore,
 				synchronizedHead: after,
+				fetchAndPullHead: combinedHead,
 				synchronized,
 				pendingOperations: pending.length,
 				transport: "owned local bare repository on SSH backend",
