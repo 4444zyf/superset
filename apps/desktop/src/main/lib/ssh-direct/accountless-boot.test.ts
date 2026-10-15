@@ -7,7 +7,7 @@ test("default main, preload and renderer cannot import the legacy cloud bootstra
 	const src = resolve(import.meta.dir, "../../..");
 	const visited = new Set<string>();
 	const forbidden =
-		/legacy-cloud|cloud-router|routeTree\.gen|auth-client|\/posthog|\/sentry|host-service-coordinator|@superset\/(auth|cloud-client)/;
+		/legacy-cloud|cloud-router|cloud-trpc|routeTree\.gen|auth-client|\/posthog|\/sentry|host-service-coordinator|@superset\/(auth|cloud-client)/;
 	function visit(file: string) {
 		if (visited.has(file)) return;
 		visited.add(file);
@@ -17,21 +17,38 @@ test("default main, preload and renderer cannot import the legacy cloud bootstra
 			ts.ScriptTarget.Latest,
 			true,
 		);
-		for (const statement of ast.statements) {
+		const references: string[] = [];
+		function collect(node: ts.Node) {
 			if (
-				!ts.isImportDeclaration(statement) ||
-				!ts.isStringLiteral(statement.moduleSpecifier) ||
-				statement.importClause?.isTypeOnly
-			)
-				continue;
-			const bindings = statement.importClause?.namedBindings;
+				(ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+				node.moduleSpecifier &&
+				ts.isStringLiteral(node.moduleSpecifier)
+			) {
+				if (ts.isImportDeclaration(node)) {
+					if (node.importClause?.isTypeOnly) return;
+					const bindings = node.importClause?.namedBindings;
+					if (
+						!node.importClause?.name &&
+						bindings &&
+						ts.isNamedImports(bindings) &&
+						bindings.elements.every((binding) => binding.isTypeOnly)
+					)
+						return;
+				} else if (node.isTypeOnly) return;
+				references.push(node.moduleSpecifier.text);
+			}
 			if (
-				bindings &&
-				ts.isNamedImports(bindings) &&
-				bindings.elements.every((binding) => binding.isTypeOnly)
-			)
-				continue;
-			const specifier = statement.moduleSpecifier.text;
+				ts.isCallExpression(node) &&
+				node.expression.kind === ts.SyntaxKind.ImportKeyword
+			) {
+				const argument = node.arguments[0];
+				if (argument && ts.isStringLiteral(argument))
+					references.push(argument.text);
+			}
+			ts.forEachChild(node, collect);
+		}
+		collect(ast);
+		for (const specifier of references) {
 			expect(forbidden.test(specifier), `${file} imports ${specifier}`).toBe(
 				false,
 			);
