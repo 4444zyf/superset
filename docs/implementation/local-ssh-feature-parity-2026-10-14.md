@@ -285,3 +285,6 @@ TDD先记录主进程未开放项目过程、界面组件缺失；补充未知�
 第40轮冻结源码ee65aa624的键盘操作与完整原流程通过：元数据读回为Unified Renamed、#3b82f6、custom/remix、命名说明和两条稀疏路径，重开一致；面板clientWidth/scrollWidth均899px，原worktree路径保持。文件/Git/同步/恢复完整回归通过。但是实际查看前缀菜单截图时发现原Select的portal位于弹窗下方，键盘可以操作隐藏菜单，不能把该轮当成鼠标交互通过。
 
 对照原组件确认：工作站自定义overlay/dialog的z-index为80/81，原Select、DropdownMenu、Dialog均为50。新建会话的原CheckoutPicker也受同一层级影响。新增实际elementFromPoint命中判据再进行鼠标选择，先保留旧样式下的失败，再把工作站弹窗与原版组件的层级规则统一。第40轮[键盘数据与截图](evidence/local-ssh-feature-parity/source-linux-project-settings-keyboard)独立记录，不替代鼠标验收。
+
+
+第41轮冻结源码711295dd9在实际elementFromPoint命中条件先失败：Custom prefix节点存在，但鼠标中心命中的是弹窗内容，菜单始终在弹窗下。实际基线截图与后端元数据（prefix仍null）保留。修复仅把工作站overlay/content改为与原Dialog/Select/DropdownMenu相同的z-index50，由portal DOM顺序保证菜单在上；不改原Select业务逻辑，不抬高所有菜单的全局层级。新增新建会话菜单的物理Local→Worktree切换与实际命中判据，验证同一修复覆盖另一处原版组件。实际复测待记录。

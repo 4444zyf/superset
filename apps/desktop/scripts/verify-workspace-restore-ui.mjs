@@ -95,6 +95,31 @@ export async function verifyWorkspaceRestoreUi({
 		),
 	);
 	await screenshot("worktree-original-checkout-picker");
+	for (const [current, next] of [
+		["Worktree", "Local"],
+		["Local", "Worktree"],
+	]) {
+		await click(`[role=dialog] button[aria-label="Checkout: ${current}"]`);
+		const point = await until(() =>
+			evaluate(
+				`(()=>{const e=[...document.querySelectorAll('[role=menuitem]')].find(e=>e.textContent.trim().startsWith(${JSON.stringify(next)}));if(!e)return null;const r=e.getBoundingClientRect();const x=r.x+r.width/2,y=r.y+r.height/2;return e.contains(document.elementFromPoint(x,y))?{x,y}:null;})()`,
+			),
+		);
+		for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
+			await getPage().call("Input.dispatchMouseEvent", {
+				type,
+				button: type === "mouseMoved" ? "none" : "left",
+				clickCount: type === "mouseMoved" ? 0 : 1,
+				...point,
+			});
+		await until(() =>
+			evaluate(
+				`Boolean(document.querySelector('[role=dialog] button[aria-label="Checkout: ${next}"]'))`,
+			),
+		);
+		await until(() => evaluate("!document.querySelector('[role=menu]')"));
+	}
+	await screenshot("worktree-original-checkout-mouse-selection");
 	await click('[role="dialog"] button[type="submit"]');
 	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
 	await until(() =>
