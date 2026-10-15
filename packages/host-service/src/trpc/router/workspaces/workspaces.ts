@@ -47,7 +47,7 @@ import {
 	DEFAULT_LOCAL_WORKSPACE_NAME,
 	listLiveLocalWorkspaces,
 } from "../project/utils/create-local-workspace";
-import { getHostWorktreeBaseDir } from "../settings/worktree-location";
+import { getProjectWorktreeBaseDir } from "../settings/worktree-location";
 import { claimWorkspaceRestore } from "../workspace-cleanup";
 import { createSession } from "../workspace-creation/procedures/create-session";
 import {
@@ -718,8 +718,7 @@ export const workspacesRouter = router({
 
 			const git = await ctx.git(repoPath);
 			const fetchBaseRefOffLoop = createWorkerBaseRefFetcher(ctx, repoPath);
-			const worktreeBaseDir =
-				localProject.worktreeBaseDir ?? getHostWorktreeBaseDir(ctx);
+			const worktreeBaseDir = getProjectWorktreeBaseDir(ctx, localProject);
 			const worktreesFolder = getProjectWorktreesFolder(ctx, localProject);
 			// Empty means a full checkout. Only applies to worktrees we create —
 			// adopted ones keep whatever checkout they already have.

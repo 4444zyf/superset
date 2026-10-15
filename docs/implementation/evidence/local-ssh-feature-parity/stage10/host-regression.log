@@ -1,0 +1,198 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/managed-paths.test.ts:
+(pass) direct worktrees use the machine home while sessions keep the private backend home [0.29ms]
+
+test/integration/workspace-create-delete.integration.test.ts:
+[workspaces.create] failed to report workspace creation for 4cc95a0b-9147-47de-933f-0c284063c407: warn: [fake-api] unmocked procedure: v2Workspace.trackCreated.mutate. Register via createFakeApiClient({ "v2Workspace.trackCreated.mutate": (input) => ... }) or .set(...)
+      at <anonymous> (/workspace/superset/packages/host-service/test/helpers/fakes.ts:99:18)
+      at registerLocalWorkspace (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:510:4)
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:1273:29)
+      at async resolveMiddleware (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:221:23)
+      at async callRecursive (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:256:24)
+
+(pass) workspace.create + workspace.delete integration > create() adds a worktree, calls cloud, and persists workspace row [552.71ms]
+[workspaces.create] failed to report workspace creation for ea2704bc-e631-4ada-b36d-5991e03d2623: warn: [fake-api] unmocked procedure: v2Workspace.trackCreated.mutate. Register via createFakeApiClient({ "v2Workspace.trackCreated.mutate": (input) => ... }) or .set(...)
+      at <anonymous> (/workspace/superset/packages/host-service/test/helpers/fakes.ts:99:18)
+      at registerLocalWorkspace (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:510:4)
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:1273:29)
+      at async resolveMiddleware (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:221:23)
+      at async callRecursive (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:256:24)
+
+(pass) workspace.create + workspace.delete integration > create() uses the configured host worktree location [535.72ms]
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "ea2704bc-e631-4ada-b36d-5991e03d2623",
+  worktreePath: "/tmp/host-service-worktrees-PewD7i/e0847af7-fb37-4e9c-b98f-fc94ff78f895/feature/custom-root",
+  error: warn: Cannot use simple-git on a directory that does not exist
+ code: undefined,
+
+      at wo (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:2872:15)
+      at createUserSimpleGit (/workspace/superset/packages/host-service/src/runtime/git/simple-git.ts:22:24)
+      at handler (/workspace/superset/packages/host-service/src/workers/tasks/git.ts:378:15)
+      at /workspace/superset/packages/host-service/src/workers/host-worker.ts:71:29
+,
+}
+[workspaces.create] failed to report workspace creation for ef912625-e258-4c0e-bc29-d15e6a97a0e9: warn: [fake-api] unmocked procedure: v2Workspace.trackCreated.mutate. Register via createFakeApiClient({ "v2Workspace.trackCreated.mutate": (input) => ... }) or .set(...)
+      at <anonymous> (/workspace/superset/packages/host-service/test/helpers/fakes.ts:99:18)
+      at registerLocalWorkspace (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:510:4)
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:1273:29)
+      at async resolveMiddleware (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:221:23)
+      at async callRecursive (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:256:24)
+
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "ef912625-e258-4c0e-bc29-d15e6a97a0e9",
+  worktreePath: "/tmp/host-service-worktrees-legacy-fUDYkw/e66114e9-38d4-43af-a93f-9e43f3e3feab/feature/legacy-root",
+  error: WorkerTaskAbortedError: Worker runner disposed
+ kind: "disposed",
+
+      at dispose (/workspace/superset/packages/host-service/src/workers/WorkerTaskRunner.ts:238:6)
+      at map (1:11)
+      at dispose (/workspace/superset/packages/host-service/src/workers/host-worker-pool.ts:310:29)
+      at <anonymous> (/workspace/superset/packages/host-service/src/app.ts:660:30)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/createTestHost.ts:183:17)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/scenarios.ts:126:15)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/integration/workspace-create-delete.integration.test.ts:31:10)
+,
+}
+(pass) workspace.create + workspace.delete integration > create() seeds the host location from the legacy desktop setting [789.13ms]
+[workspaces.create] failed to report workspace creation for eb2fbc6b-773d-45e7-b31a-fa345a786c7c: warn: [fake-api] unmocked procedure: v2Workspace.trackCreated.mutate. Register via createFakeApiClient({ "v2Workspace.trackCreated.mutate": (input) => ... }) or .set(...)
+      at <anonymous> (/workspace/superset/packages/host-service/test/helpers/fakes.ts:99:18)
+      at registerLocalWorkspace (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:510:4)
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:1273:29)
+      at async resolveMiddleware (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:221:23)
+      at async callRecursive (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:256:24)
+
+(pass) workspace.create + workspace.delete integration > create() lets a project override the host worktree location [681.95ms]
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "eb2fbc6b-773d-45e7-b31a-fa345a786c7c",
+  worktreePath: "/tmp/host-service-worktrees-project-JWm44g/10c76120-4dc2-46eb-8243-9744cb0ef3ed/feature/project-root",
+  error: warn: Cannot use simple-git on a directory that does not exist
+ code: undefined,
+
+      at wo (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:2872:15)
+      at createUserSimpleGit (/workspace/superset/packages/host-service/src/runtime/git/simple-git.ts:22:24)
+      at handler (/workspace/superset/packages/host-service/src/workers/tasks/git.ts:378:15)
+      at /workspace/superset/packages/host-service/src/workers/host-worker.ts:71:29
+,
+}
+(pass) workspace.create + workspace.delete integration > create() adopts an existing worktree at a non-canonical path instead of failing on `git worktree add` [362.12ms]
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "ea5763fb-f7f3-405a-aada-e57f69a6cae3",
+  worktreePath: "/tmp/host-service-test-repo-K454Jx/.worktrees/glorious-ground",
+  error: warn: Cannot use simple-git on a directory that does not exist
+ code: undefined,
+
+      at wo (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:2872:15)
+      at createUserSimpleGit (/workspace/superset/packages/host-service/src/runtime/git/simple-git.ts:22:24)
+      at handler (/workspace/superset/packages/host-service/src/workers/tasks/git.ts:378:15)
+      at /workspace/superset/packages/host-service/src/workers/host-worker.ts:71:29
+,
+}
+(pass) workspace.create + workspace.delete integration > create() adopts a worktree created by another tool (e.g. `.watt-worktrees/`) instead of bubbling git's `is already used by worktree` fatal [442.77ms]
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "cf52d951-cd02-4f45-b8f4-8c4d98b4fd81",
+  worktreePath: "/tmp/host-service-test-repo-fG5Ufb/.watt-worktrees/Roshvan/mcp-1013-trust-wattdata-xyz",
+  error: warn: Cannot use simple-git on a directory that does not exist
+ code: undefined,
+
+      at wo (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:2872:15)
+      at createUserSimpleGit (/workspace/superset/packages/host-service/src/runtime/git/simple-git.ts:22:24)
+      at handler (/workspace/superset/packages/host-service/src/workers/tasks/git.ts:378:15)
+      at /workspace/superset/packages/host-service/src/workers/host-worker.ts:71:29
+,
+}
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "93d6cba3-b6de-4cb6-9ba5-0d99bb57112c",
+  worktreePath: "/tmp/host-service-test-repo-hQgQDm/.worktrees/smoke-ui-stale-original",
+  error: WorkerTaskAbortedError: Worker runner disposed
+ kind: "disposed",
+
+      at dispose (/workspace/superset/packages/host-service/src/workers/WorkerTaskRunner.ts:238:6)
+      at map (1:11)
+      at dispose (/workspace/superset/packages/host-service/src/workers/host-worker-pool.ts:310:29)
+      at <anonymous> (/workspace/superset/packages/host-service/src/app.ts:660:30)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/createTestHost.ts:183:17)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/scenarios.ts:126:15)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/integration/workspace-create-delete.integration.test.ts:31:10)
+,
+}
+(pass) workspace.create + workspace.delete integration > create() with explicit worktreePath reads the current branch from git when the UI branch label is stale [473.65ms]
+[workspaces.create] failed to report workspace creation for 9291113d-b40a-419e-b90c-c573cf134d37: warn: [fake-api] unmocked procedure: v2Workspace.trackCreated.mutate. Register via createFakeApiClient({ "v2Workspace.trackCreated.mutate": (input) => ... }) or .set(...)
+      at <anonymous> (/workspace/superset/packages/host-service/test/helpers/fakes.ts:99:18)
+      at registerLocalWorkspace (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:510:4)
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:1273:29)
+      at async resolveMiddleware (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:221:23)
+      at async callRecursive (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:256:24)
+
+(pass) workspace.create + workspace.delete integration > create() prunes a stale worktree (rm-ed dir) before adding a new one [420.92ms]
+[workspaces.create] failed to report workspace creation for 11711ac0-a00b-4a57-afbb-1ea51fa7dac8: warn: [fake-api] unmocked procedure: v2Workspace.trackCreated.mutate. Register via createFakeApiClient({ "v2Workspace.trackCreated.mutate": (input) => ... }) or .set(...)
+      at <anonymous> (/workspace/superset/packages/host-service/test/helpers/fakes.ts:99:18)
+      at registerLocalWorkspace (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:510:4)
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:1273:29)
+      at async resolveMiddleware (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:221:23)
+      at async callRecursive (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:256:24)
+
+(pass) workspace.create + workspace.delete integration > create() succeeds locally when cloud v2Workspace.create fails (offline-first) [723.59ms]
+(pass) workspace.create + workspace.delete integration > create() classifies a project directory missing from disk as NOT_FOUND [366.21ms]
+(pass) workspace.create + workspace.delete integration > create() does not classify a permission-walled project directory as NOT_FOUND [405.62ms]
+(pass) workspace.create + workspace.delete integration > delete() of a workspace on the project checkout retires the record and keeps the repo [320.55ms]
+(pass) workspace.create + workspace.delete integration > delete() removes the worktree and archives the local row on success [534.97ms]
+[workspaces.create] failed to report workspace creation for f35daa2b-a2b7-4bd2-bdce-20dd6db29f7c: warn: [fake-api] unmocked procedure: v2Workspace.trackCreated.mutate. Register via createFakeApiClient({ "v2Workspace.trackCreated.mutate": (input) => ... }) or .set(...)
+      at <anonymous> (/workspace/superset/packages/host-service/test/helpers/fakes.ts:99:18)
+      at registerLocalWorkspace (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:510:4)
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:1273:29)
+      at async resolveMiddleware (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:221:23)
+      at async callRecursive (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:256:24)
+
+(pass) workspace.create + workspace.delete integration > create() after delete() on the same branch creates a fresh workspace instead of reusing the tombstone [612.60ms]
+(pass) workspace.create + workspace.delete integration > delete() requires authentication [263.96ms]
+
+test/integration/direct-mode.integration.test.ts:
+(pass) direct mode authenticates local clients without constructing a cloud API [51.25ms]
+(pass) direct project creation returns one stable project across response-loss retries [44.37ms]
+(pass) an explicit project ID cannot rebind an existing project to another repository [682.50ms]
+(pass) a drain blocks new requests across clients while reads and completed retries remain available [29.58ms]
+(pass) direct attachments download from the remote namespace over an authenticated request [18.96ms]
+(pass) a maintenance drain rejects the raw terminal creation route before it can launch work [18.03ms]
+(pass) a frozen backend blocks metadata, files, Git, and raw writes while maintenance remains available [27.85ms]
+(pass) direct cloud-only capabilities fail explicitly and never reach an official API [13.97ms]
+(pass) direct HTTP endpoints require a PSK and reject an untrusted browser origin [17.56ms]
+
+test/integration/direct-worktree-location.integration.test.ts:
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "bfc5b180-118b-4df4-95ba-9a039ce83514",
+  worktreePath: "/tmp/remix-machine-home-Vfqw0t/Superset Remix/worktrees/My Project/feature/central",
+  error: WorkerTaskAbortedError: Worker runner disposed
+ kind: "disposed",
+
+      at dispose (/workspace/superset/packages/host-service/src/workers/WorkerTaskRunner.ts:238:6)
+      at map (1:11)
+      at dispose (/workspace/superset/packages/host-service/src/workers/host-worker-pool.ts:310:29)
+      at <anonymous> (/workspace/superset/packages/host-service/src/app.ts:660:30)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/createTestHost.ts:183:17)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/scenarios.ts:126:15)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:63:18)
+,
+}
+(pass) direct worktrees create and clean up under the machine-wide Remix folder despite stored overrides [534.53ms]
+(pass) direct location settings cannot redirect worktrees to an Agent folder [251.43ms]
+
+src/trpc/router/workspace-creation/shared/worktree-paths.test.ts:
+(pass) resolveProjectWorktreesFolder > names the folder after the project, not its id [0.07ms]
+(pass) resolveProjectWorktreesFolder > falls back to the id when the name yields no folder [0.08ms]
+(pass) resolveProjectWorktreesFolder > suffixes a name another project on the host already uses [0.03ms]
+(pass) resolveProjectWorktreesFolder > keeps path separators and reserved characters out of the folder [5.73ms]
+(pass) resolveProjectWorktreesFolder > steers clear of Windows device names [0.11ms]
+(pass) safeResolveWorktreePath > places a prefixed branch at <base>/<project name>/<prefix>/<branch> [0.11ms]
+(pass) safeResolveWorktreePath > rejects a branch that escapes the project folder [0.05ms]
+(pass) isInsideProjectWorktreesRoot > accepts a worktree beneath <base>/<projectId> [0.22ms]
+(pass) isInsideProjectWorktreesRoot > rejects the project root itself, siblings, and paths outside the base [0.16ms]
+(pass) isInsideProjectWorktreesRoot > accepts a dangling symlink leaf under a base that itself sits behind a symlink [0.08ms]
+(pass) isInsideProjectWorktreesRoot > accepts the name folder, its suffixed form, and the legacy id folder [0.24ms]
+(pass) isInsideProjectWorktreesRoot > rejects a leaf symlink that points out of the base [0.10ms]
+(pass) isInsideProjectWorktreesRoot > rejects a worktree under a project root that is a symlink out of the base [0.08ms]
+
+ 40 pass
+ 0 fail
+ 133 expect() calls
+Ran 40 tests across 5 files. [9.69s]

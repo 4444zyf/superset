@@ -64,6 +64,9 @@ export async function verifyWorkstationGitBranchUi({
 	);
 	await screenshot("git-renamed-branch-confirmed");
 	const workspace = await query("workspace.get", { id: scope.workspaceId });
+	const worktreeLocation = await controls.verifyWorktreeLocation(
+		workspace.worktreePath,
+	);
 	const remote = controls.prepareGitRemote(workspace.worktreePath);
 	await click("text:Terminal");
 	await click("text:Files");
@@ -97,6 +100,7 @@ export async function verifyWorkstationGitBranchUi({
 				physicalInput: true,
 				originalRenameDialog: true,
 				originalPushButton: true,
+				worktreeLocation,
 				before,
 				renamed,
 				pushed,

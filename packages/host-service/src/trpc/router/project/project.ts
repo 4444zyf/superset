@@ -35,7 +35,7 @@ import {
 	parseSparseCheckoutPaths,
 	serializeSparseCheckoutPaths,
 } from "../workspace-creation/shared/sparse-checkout";
-import { normalizeWorktreeBaseDir } from "../workspace-creation/shared/worktree-paths";
+import { normalizeHostWorktreeBaseDir } from "../settings/worktree-location";
 import {
 	createFromClone,
 	createFromEmpty,
@@ -310,7 +310,7 @@ export const projectRouter = router({
 			}),
 		)
 		.mutation(({ ctx, input }) => {
-			const worktreeBaseDir = normalizeWorktreeBaseDir(input.path);
+			const worktreeBaseDir = normalizeHostWorktreeBaseDir(ctx, input.path);
 			ctx.db
 				.update(projects)
 				.set({ worktreeBaseDir })

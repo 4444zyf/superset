@@ -18,7 +18,7 @@
 | 分屏、焦点、拖拽、比例、窗格菜单 | `@superset/panes` | 已接入 | 使用原引擎，完整布局恢复 |
 | 侧栏分组、固定、搜索和排序 | 原 sidebar/workspace stores、tagFolders | 部分 | 目标端元数据与本地视图分别存储 |
 | 项目导入、创建、克隆、打开 | project/workspaceCreation | 部分 | 所选机器执行，不误用本机路径 |
-| Git worktree、分支与工作区归档/删除 | workspaces/workspaceCleanup | 部分 | 原生命周期与脚本，先展示删除影响 |
+| Git worktree、分支与工作区归档/删除 | workspaces/workspaceCleanup | 部分 | 新建 worktree 统一到运行机器的 `~/Superset Remix/worktrees/<项目>/<分支>`；原生命周期与脚本，先展示删除影响 |
 | 项目设置、颜色、命名、稀疏检出 | project/settings | 待接入 | 复用表单，使用所选后端 |
 | 项目 setup/run/teardown 脚本 | config、runtime/setup | 待接入 | 明确运行、原终端显示输出 |
 | 终端渲染、搜索、图像、Unicode、剪贴板 | 原 terminal surface/Search | 已接入核心 | 接齐主题、字体、链接与全部设置 |

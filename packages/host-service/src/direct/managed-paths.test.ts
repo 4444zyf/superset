@@ -8,10 +8,15 @@ import { configureManagedWorkspaceHome } from "./managed-paths";
 
 afterEach(() => configureManagedWorkspaceHome(null));
 
-test("direct sessions and worktrees stay in the isolated backend home", () => {
-	configureManagedWorkspaceHome("/tmp/isolated-direct-home");
+test("direct worktrees use the machine home while sessions keep the private backend home", () => {
+	configureManagedWorkspaceHome(
+		"/tmp/isolated-direct-home",
+		"/tmp/machine home",
+	);
 	expect(defaultSessionsRoot()).toBe("/tmp/isolated-direct-home/sessions");
-	expect(defaultWorktreesRoot()).toBe("/tmp/isolated-direct-home/worktrees");
+	expect(defaultWorktreesRoot()).toBe(
+		"/tmp/machine home/Superset Remix/worktrees",
+	);
 	expect(safeResolveSessionPath("example")).toBe(
 		"/tmp/isolated-direct-home/sessions/example",
 	);

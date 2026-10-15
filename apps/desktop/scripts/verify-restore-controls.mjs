@@ -38,8 +38,46 @@ export function ownedRestoreControls(home, fixture) {
 	);
 	let originals = [];
 	return {
+		async verifyWorktreeLocation(worktreePath) {
+			const worktreesRoot = join(
+				fixture.homeDir,
+				"Superset Remix",
+				"worktrees",
+			);
+			assert.ok(worktreePath.startsWith(worktreesRoot + "/"));
+			const client = await connectAndHello(socket);
+			try {
+				client.send({ type: "list" });
+				const list = await client.waitFor((m) => m.type === "list-reply");
+				assert.equal(originals.length, 3);
+				const terminals = originals.map((ref) => {
+					const row = list.sessions.find((s) => s.id === ref.id);
+					assert.equal(row?.executionId, ref.executionId);
+					assert.equal(row?.alive, true);
+					let cwd = null;
+					if (process.platform === "linux") {
+						assert.equal(lstatSync(`/proc/${row.pid}`).uid, process.getuid());
+						cwd = readlinkSync(`/proc/${row.pid}/cwd`);
+						assert.equal(cwd, worktreePath);
+					}
+					return {
+						id: row.id,
+						executionId: row.executionId,
+						pid: row.pid,
+						cwd,
+					};
+				});
+				return { worktreesRoot, worktreePath, terminals };
+			} finally {
+				await client.close();
+			}
+		},
 		prepareGitRemote(worktreePath) {
-			assert.ok(worktreePath.startsWith(fixture.homeDir + "/"));
+			assert.ok(
+				worktreePath.startsWith(
+					join(fixture.homeDir, "Superset Remix", "worktrees") + "/",
+				),
+			);
 			assert.equal(lstatSync(worktreePath).uid, process.getuid());
 			const remote = join(fixture.root, "push-remote.git");
 			execFileSync("git", ["init", "--bare", remote], { stdio: "pipe" });

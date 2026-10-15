@@ -1,0 +1,28 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/managed-paths.test.ts:
+(pass) direct worktrees use the machine home while sessions keep the private backend home [0.32ms]
+
+test/integration/direct-worktree-location.integration.test.ts:
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "3897bd12-b142-4352-b1df-d761e189a8f8",
+  worktreePath: "/tmp/remix-machine-home-4rJA4H/Superset Remix/worktrees/My Project/feature/central",
+  error: WorkerTaskAbortedError: Worker runner disposed
+ kind: "disposed",
+
+      at dispose (/workspace/superset/packages/host-service/src/workers/WorkerTaskRunner.ts:238:6)
+      at map (1:11)
+      at dispose (/workspace/superset/packages/host-service/src/workers/host-worker-pool.ts:310:29)
+      at <anonymous> (/workspace/superset/packages/host-service/src/app.ts:660:30)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/createTestHost.ts:183:17)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/scenarios.ts:126:15)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:31:18)
+,
+}
+(pass) direct worktrees create and clean up under the machine-wide Remix folder despite stored overrides [623.29ms]
+(pass) direct location settings cannot redirect worktrees to an Agent folder [261.13ms]
+
+ 3 pass
+ 0 fail
+ 15 expect() calls
+Ran 3 tests across 2 files. [1415.00ms]

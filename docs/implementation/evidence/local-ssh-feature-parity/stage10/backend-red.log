@@ -1,0 +1,59 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/managed-paths.test.ts:
+ 9 | afterEach(() => configureManagedWorkspaceHome(null));
+10 |
+11 | test("direct worktrees use the machine home while sessions keep the private backend home", () => {
+12 | 	configureManagedWorkspaceHome("/tmp/isolated-direct-home", "/tmp/machine home");
+13 | 	expect(defaultSessionsRoot()).toBe("/tmp/isolated-direct-home/sessions");
+14 | 	expect(defaultWorktreesRoot()).toBe("/tmp/machine home/Superset Remix/worktrees");
+                                     ^
+error: expect(received).toBe(expected)
+
+Expected: "/tmp/machine home/Superset Remix/worktrees"
+Received: "/tmp/isolated-direct-home/worktrees"
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/managed-paths.test.ts:14:33)
+(fail) direct worktrees use the machine home while sessions keep the private backend home [0.45ms]
+
+test/integration/direct-worktree-location.integration.test.ts:
+13 | 	const scenario = await createProjectScenario({ hostOptions: { runtimeMode: "direct" } });
+14 | 	try {
+15 | 		const { host, projectId, repo } = scenario;
+16 | 		host.db.insert(hostSettings).values({ id: 1, worktreeBaseDir: join(machineHome, "old-host") }).run();
+17 | 		host.db.update(projects).set({ name: "My Project", worktreeBaseDir: join(machineHome, "old-agent") }).where(eq(projects.id, projectId)).run();
+18 | 		expect(await host.trpc.settings.worktreeLocation.get.query()).toEqual({ worktreeBaseDir: null, defaultWorktreeBaseDir: join(machineHome, "Superset Remix/worktrees") });
+                                                                     ^
+error: expect(received).toEqual(expected)
+
+  {
+-   "defaultWorktreeBaseDir": "/tmp/remix-machine-home-0FSYiz/Superset Remix/worktrees",
+-   "worktreeBaseDir": null,
++   "defaultWorktreeBaseDir": "/tmp/remix-machine-home-0FSYiz/.private-backend/worktrees",
++   "worktreeBaseDir": "/tmp/remix-machine-home-0FSYiz/old-host",
+  }
+
+- Expected  - 2
++ Received  + 2
+
+      at <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:18:65)
+(fail) direct worktrees create and clean up under the machine-wide Remix folder despite stored overrides [281.84ms]
+38 | 	const machineHome = mkdtempSync(join(tmpdir(), "remix-machine-settings-"));
+39 | 	configureManagedWorkspaceHome(join(machineHome, ".private-backend"), machineHome);
+40 | 	const scenario = await createProjectScenario({ hostOptions: { runtimeMode: "direct" } });
+41 | 	try {
+42 | 		const { host, projectId } = scenario;
+43 | 		await expect(host.trpc.settings.worktreeLocation.set.mutate({ path: join(machineHome, ".claude/worktrees") })).rejects.toMatchObject({ data: { code: "BAD_REQUEST" } });
+                                                                                                                              ^
+error: expect(received).rejects.toMatchObject(expected)
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:43:122)
+(fail) direct location settings cannot redirect worktrees to an Agent folder [250.33ms]
+
+ 0 pass
+ 3 fail
+ 3 expect() calls
+Ran 3 tests across 2 files. [1165.00ms]

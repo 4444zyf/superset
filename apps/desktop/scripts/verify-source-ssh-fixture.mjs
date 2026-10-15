@@ -37,6 +37,7 @@ export async function sourceSshFixture(root) {
 			"apps/desktop/dist/resources/chat-migrations",
 		),
 		environment: {
+			HOME: fixture.homeDir,
 			GIT_CONFIG_GLOBAL: join(fixture.root, "gitconfig"),
 			PATH: process.env.PATH,
 			LANG: "en_US.UTF-8",

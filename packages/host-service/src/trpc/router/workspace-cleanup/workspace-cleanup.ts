@@ -26,7 +26,7 @@ import type {
 	TeardownFailureCause,
 } from "../../error-types";
 import { protectedProcedure, router } from "../../index";
-import { getHostWorktreeBaseDir } from "../settings/worktree-location";
+import { getProjectWorktreeBaseDir } from "../settings/worktree-location";
 import { isInsideSessionsRoot } from "../workspace-creation/shared/session-paths";
 import { isInsideProjectWorktreesRoot } from "../workspace-creation/shared/worktree-paths";
 import { cleanupGitOps, isIndeterminateGitTaskFailure } from "./git-ops";
@@ -535,8 +535,7 @@ async function runDestroyPhases(
 			// Delete the folder directly under the same root guard the
 			// sessions branch uses — anything outside the project's managed
 			// worktrees root is left on disk (warned) while the delete proceeds.
-			const worktreeBaseDir =
-				project.worktreeBaseDir ?? getHostWorktreeBaseDir(ctx);
+			const worktreeBaseDir = getProjectWorktreeBaseDir(ctx, project);
 			if (
 				!isInsideProjectWorktreesRoot(
 					local.worktreePath,
@@ -615,8 +614,7 @@ async function runDestroyPhases(
 				// it, and a retry reports success without touching it (#6730).
 				// Fall back to the same guarded direct removal the other
 				// branches use.
-				const worktreeBaseDir =
-					project.worktreeBaseDir ?? getHostWorktreeBaseDir(ctx);
+				const worktreeBaseDir = getProjectWorktreeBaseDir(ctx, project);
 				if (
 					!isInsideProjectWorktreesRoot(
 						local.worktreePath,

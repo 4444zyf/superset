@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { hostSettings } from "../../../db/schema";
@@ -29,8 +30,9 @@ function toOutput(
 }
 
 export function getHostWorktreeBaseDir(
-	ctx: Pick<HostServiceContext, "db">,
+	ctx: Pick<HostServiceContext, "db" | "direct">,
 ): string | null {
+	if (ctx.direct) return null;
 	const existing = ctx.db
 		.select({ worktreeBaseDir: hostSettings.worktreeBaseDir })
 		.from(hostSettings)
@@ -53,6 +55,30 @@ export function getHostWorktreeBaseDir(
 	return legacy;
 }
 
+export function getProjectWorktreeBaseDir(
+	ctx: Pick<HostServiceContext, "db" | "direct">,
+	project: { worktreeBaseDir: string | null },
+): string | null {
+	return ctx.direct
+		? defaultWorktreesRoot()
+		: (project.worktreeBaseDir ?? getHostWorktreeBaseDir(ctx));
+}
+
+export function normalizeHostWorktreeBaseDir(
+	ctx: Pick<HostServiceContext, "direct">,
+	path: string | null,
+): string | null {
+	const normalized = normalizeWorktreeBaseDir(path);
+	if (!ctx.direct) return normalized;
+	if (normalized !== null && normalized !== defaultWorktreesRoot()) {
+		throw new TRPCError({
+			code: "BAD_REQUEST",
+			message: `Worktrees are managed in ${defaultWorktreesRoot()}`,
+		});
+	}
+	return null;
+}
+
 export const worktreeLocationRouter = router({
 	get: protectedProcedure.query(({ ctx }) =>
 		toOutput(getHostWorktreeBaseDir(ctx)),
@@ -61,7 +87,7 @@ export const worktreeLocationRouter = router({
 	set: protectedProcedure
 		.input(z.object({ path: z.string().nullable() }))
 		.mutation(({ ctx, input }) => {
-			const worktreeBaseDir = normalizeWorktreeBaseDir(input.path);
+			const worktreeBaseDir = normalizeHostWorktreeBaseDir(ctx, input.path);
 			ctx.db
 				.insert(hostSettings)
 				.values({ id: HOST_SETTINGS_ID, worktreeBaseDir })
