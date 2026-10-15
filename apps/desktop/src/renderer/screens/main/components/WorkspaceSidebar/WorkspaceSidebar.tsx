@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo } from "react";
 import {
 	SidebarCardSlot,
 	useHiringCard,
-	usePaymentFailedCard,
 	useStarNagCard,
 } from "renderer/components/SidebarCardSlot";
 import { useWorkspaceShortcuts } from "renderer/hooks/useWorkspaceShortcuts";
@@ -29,9 +28,6 @@ export function WorkspaceSidebar({
 	const { groups } = useWorkspaceShortcuts();
 	const clearSelection = useWorkspaceSelectionStore((s) => s.clearSelection);
 
-	// Ordered by priority for the single card slot below — blocking first,
-	// then actionable, then nags.
-	const paymentFailedCard = usePaymentFailedCard({ surface: "v1" });
 	const setupScriptCard = useSetupScriptCard({
 		projectId: activeProjectId,
 		projectName: activeProjectName,
@@ -127,7 +123,7 @@ export function WorkspaceSidebar({
 
 			<SidebarCardSlot
 				isCollapsed={isCollapsed}
-				entries={[paymentFailedCard, setupScriptCard, starNagCard, hiringCard]}
+				entries={[setupScriptCard, starNagCard, hiringCard]}
 			/>
 
 			<WorkspaceSidebarFooter isCollapsed={isCollapsed} />

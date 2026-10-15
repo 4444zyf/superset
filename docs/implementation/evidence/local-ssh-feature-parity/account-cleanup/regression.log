@@ -1,0 +1,44 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [165.56ms]
+
+src/renderer/lib/persisted-keys/persisted-keys.test.ts:
+(pass) sweepDeadPersistedKeys > removes exact and prefix dead keys, keeps everything else [0.67ms]
+(pass) sweepDeadPersistedKeys > an exact dead key does not match keys it merely prefixes [0.04ms]
+(pass) sweepDeadPersistedKeys > reports storage failures without breaking renderer boot [0.39ms]
+(pass) sweepDeadPersistedKeys > no dead key shadows a registered live key [1.13ms]
+(pass) isPersistedKeyWriter > ignores sessionStorage writes [0.40ms]
+(pass) isPersistedKeyWriter > detects localStorage writes in files that also use sessionStorage [0.05ms]
+(pass) isPersistedKeyWriter > ignores setItem calls on non-storage objects [0.03ms]
+(pass) isPersistedKeyWriter > ignores localStorage hints in trailing comments [0.04ms]
+(pass) isPersistedKeyWriter > does not mistake URLs in strings for comments [0.15ms]
+(pass) isPersistedKeyWriter > detects typed zustand persist calls [0.06ms]
+(pass) isPersistedKeyWriter > detects SDK localStorage persistence configuration [0.02ms]
+(pass) persisted-key registry > every localStorage writer is registered, and no entry is stale [235.09ms]
+
+src/renderer/routes/_authenticated/_dashboard/components/DashboardSidebar/components/GettingStartedCard/useGettingStartedCard.test.tsx:
+(pass) Pro checklist with isolated module mocks [208.92ms]
+
+src/renderer/routes/_authenticated/_dashboard/components/DashboardSidebar/hooks/useDashboardSidebarData/buildDashboardSidebarProjects.test.ts:
+(pass) buildDashboardSidebarProjects > places a workspace inside the section it belongs to [0.60ms]
+(pass) buildDashboardSidebarProjects > renders an orphaned-section workspace at top level instead of dropping it [0.21ms]
+(pass) buildDashboardSidebarProjects > orders sections by tabOrder and places each workspace in its section [0.15ms]
+(pass) buildDashboardSidebarProjects > keeps an ungrouped workspace top-level below a section instead of absorbing it [0.13ms]
+(pass) buildDashboardSidebarProjects > orders multiple orphaned workspaces by tabOrder above the sections [0.13ms]
+(pass) partitionSidebarWorkspacesByPinned > splits pinned rows out and sorts them by pin time ascending [3.20ms]
+(pass) buildDashboardSidebarPinnedWorkspaces > decorates pinned rows with project identity and drops project-less rows [0.13ms]
+(pass) sessions (null projectId) > never places a session row inside a project group [0.06ms]
+(pass) sessions (null projectId) > orders the Sessions section by tabOrder with no repo affordances [0.24ms]
+(pass) sessions (null projectId) > files sessions into Sessions-scoped tag folders, untagged rows above the folders [0.43ms]
+(pass) sessions (null projectId) > keeps a pinned session in the Pinned section with null project identity [0.04ms]
+(pass) buildDashboardSidebarProjects with tag-derived folders > a folder exists and holds members because workspaces carry the tag — no local row anywhere [0.13ms]
+(pass) buildDashboardSidebarProjects with tag-derived folders > tags beat a stale sectionId pointer at a tag-backed folder [0.09ms]
+(pass) buildDashboardSidebarProjects with tag-derived folders > a legacy folder keeps owning members via sectionId when no tags resolve [0.07ms]
+(pass) buildDashboardSidebarProjects with tag-derived folders > a workspace row with the tags field ABSENT renders exactly like an untagged one [0.12ms]
+(pass) buildDashboardSidebarProjects with tag-derived folders > a customised stored row wins over deriving a duplicate folder for the same tag [0.14ms]
+
+ 30 pass
+ 0 fail
+ 2097 expect() calls
+Ran 30 tests across 4 files. [1089.00ms]

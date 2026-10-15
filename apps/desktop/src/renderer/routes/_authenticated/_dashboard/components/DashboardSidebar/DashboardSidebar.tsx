@@ -14,7 +14,6 @@ import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import {
 	SidebarCardSlot,
 	useHiringCard,
-	usePaymentFailedCard,
 	useStarNagCard,
 } from "renderer/components/SidebarCardSlot";
 import { UpdatesPill } from "renderer/components/UpdatesPill";
@@ -399,9 +398,6 @@ export function DashboardSidebar({
 		return null;
 	}, [groups, pinnedWorkspaces, activeV2WorkspaceId]);
 
-	// Ordered by priority for the single card slot below — blocking first,
-	// then actionable, then nags.
-	const paymentFailedCard = usePaymentFailedCard({ surface: "v2" });
 	const setupScriptCard = useV2SetupScriptCard({
 		hostUrl: activeHostUrl,
 		projectId: activeV2Project?.id ?? null,
@@ -527,7 +523,6 @@ export function DashboardSidebar({
 									<SidebarCardSlot
 										isCollapsed={isCollapsed}
 										entries={[
-											paymentFailedCard,
 											setupScriptCard,
 											gettingStartedCard,
 											starNagCard,
