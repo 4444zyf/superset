@@ -198,3 +198,9 @@ TDD先记录后端接口和菜单入口缺失，再以真实小型bare/发送端
 第29轮在同步前提交说明输入处遇到脚本未定义action，修正并等待暂存完成后重跑。第30轮由物理Fetch确认pullCount=1且HEAD不动，物理Pull后HEAD与远端一致，filesystem只读确认新内容；但紧接着点击新文件未打开编辑器。组件回归固定一条未完成的Git状态读取，点击原树文件先失败，确认openFile错误地走了会丢弃忙时请求的mutating run锁。打开/选中文档改为归属检查后直接复用原文档存储（后台读取仍由其隔离），异常按原report上报；不重发任何Git操作。桌面回归81项、1015断言通过，实际复测待记录。
 
 第30轮脚本实际为0013dceda、产品构建为ac4e851b9，但运行环境误填了不存在的sourceRevision标签；该轮只保留为失败诊断，不作为冻结源码验收。后续运行从git rev-parse HEAD自动取得标签。[第29–30轮失败记录](evidence/local-ssh-feature-parity/source-linux-git-sync-failures)。
+
+### 原版同步菜单与编辑器刷新真实源码窗口通过
+
+第31轮冻结源码`37acf22f3bb156c7b11dbd01388db7661c7b625a`通过。物理使用原Stage All/Commit/Push准备干净夹具；独立发送端只准备远端变更，物理Fetch确认落后1个提交且本地HEAD不动，物理Pull更新HEAD。保持第30轮同样立即打开新文件的交互，原CodeMirror正常显示remote one，修复后的回归已在真实窗口复现通过。随后物理新建并提交sync-local-ui.txt，发送端再更新sync-ui.txt；Fetch后push/pull计数各1，物理Sync完成变基与推送，独立bare远端与工作区HEAD一致，原已打开编辑器更新为remote two，两计数归0、工作树干净、持久待处理操作为0。截图已实际查看。[记录与截图](evidence/local-ssh-feature-parity/source-linux-git-sync)。
+
+文件/Git/设置/多文件/树/Diff/历史/基础分支/重命名/推送以及窗口关闭/重开、后台PTY和恢复生命周期回归通过。恢复采样仍为1次，Linux源码/真实SSH、Git远端为SSH后端上的独立本地bare仓库；实际窗口未覆盖Fetch & Pull第四菜单项（组件/共享命令已接入），冲突保留由真实Git仓库集成测试覆盖。本证据不替代GitHub认证、真实供应商Agent或macOS包验收；其他功能组继续进行。
