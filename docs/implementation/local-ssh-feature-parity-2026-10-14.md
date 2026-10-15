@@ -288,3 +288,12 @@ TDD先记录主进程未开放项目过程、界面组件缺失；补充未知�
 
 
 第41轮冻结源码711295dd9在实际elementFromPoint命中条件先失败：Custom prefix节点存在，但鼠标中心命中的是弹窗内容，菜单始终在弹窗下。实际基线截图与后端元数据（prefix仍null）保留。修复仅把工作站overlay/content改为与原Dialog/Select/DropdownMenu相同的z-index50，由portal DOM顺序保证菜单在上；不改原Select业务逻辑，不抬高所有菜单的全局层级。新增新建会话菜单的物理Local→Worktree切换与实际命中判据，验证同一修复覆盖另一处原版组件。实际复测待记录。
+
+
+### 项目设置与原菜单鼠标交互真实源码窗口通过
+
+第42轮冻结源码`b5d5ced23bd34db38dbf77e6a7b440695d2bb0cf`完整通过。原前缀菜单现在实际显示于设置弹窗之上；同样的elementFromPoint判据命中Custom prefix后，以物理鼠标选择并保存remix。新建会话的原菜单以物理鼠标切到Local，再切回Worktree，之后正常创建统一目录工作区。截图已实际查看，对照第40/41轮可见菜单层级修复生效。
+
+项目设置由原侧栏操作进入，实际改名为Unified Renamed、颜色#3b82f6、custom/remix、命名说明和两条稀疏路径均通过后端只读确认；关闭/重开后值一致。面板clientWidth/scrollWidth均899px，原仓库路径与正在运行的worktree路径未移动。完整文件/Git/设置/多文件/树/Diff/历史/基础分支/分支重命名/四同步菜单及原恢复生命周期回归通过。[第42轮实际记录和截图](evidence/local-ssh-feature-parity/source-linux-project-settings)。
+
+恢复采样仍1次，Linux源码/拥有的SSH与Git夹具不替代macOS发行物、GitHub或供应商Agent认证验证。项目图标、500ms文本保存与状态、脚本及危险操作等仍需继续接入；完整功能对齐目标未完成，新DMG尚未生成。
