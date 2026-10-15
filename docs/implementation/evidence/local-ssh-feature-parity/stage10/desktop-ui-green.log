@@ -1,0 +1,22 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project worktree forwards the chosen checkout to the selected backend [247.03ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [96.48ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [80.84ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [48.49ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [82.67ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [87.12ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [70.52ms]
+(pass) opening a development server submits its port for forwarding on B [65.53ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [76.85ms]
+(pass) checking an empty operation journal shows a readable result [78.14ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [72.29ms]
+
+src/renderer/workstation/Workstation/components/SessionDialog/SessionDialog.test.tsx:
+(pass) project workspaces use the original checkout picker and default to their own worktree [61.96ms]
+
+ 12 pass
+ 0 fail
+ 40 expect() calls
+Ran 12 tests across 2 files. [1.55s]

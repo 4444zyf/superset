@@ -214,10 +214,25 @@ TDD先记录后端接口和菜单入口缺失，再以真实小型bare/发送端
 
 ## 阶段十：每台机器统一管理 Remix worktree
 
-用户确认默认目录为每台运行机器上的 `~/Superset Remix/worktrees/`，继续复用原项目名称消毒、同名项目后缀和分支子目录规则。本地后端使用本机 home，SSH 后端使用远端 home；后端私有数据库目录与 sessions 不随 worktree 目录改变。新建 worktree 的普通分支与 PR 路径复用同一解析器，清理的两个受保护删除分支使用同一路径策略。已有主机/项目覆盖设置在 direct 模式不影响创建或删除，设置接口拒绝将目录改到其他位置，允许清除或提交统一目录；原非 direct 模式的设置和 API 形状保持原样。
+用户确认默认目录为每台运行机器上的 `~/Superset Remix/worktrees/`，继续复用原项目名称消毒和分支子目录规则；项目文件夹使用项目名加完整项目ID。本地后端使用本机 home，SSH 后端使用远端 home；后端私有数据库目录与 sessions 不随 worktree 目录改变。新建 worktree 的普通分支与 PR 路径复用同一解析器，清理的两个受保护删除分支使用同一路径策略。已有主机/项目覆盖设置在 direct 模式不影响创建或删除，设置接口拒绝将目录改到其他位置，允许清除或提交统一目录；原非 direct 模式的设置和 API 形状保持原样。
 
 按全新数据实现，不迁移或删除现有目录，不移动项目原始仓库。显式导入现有 worktree 继续复用原导入能力，导入不会自动移动它；这条目录策略约束应用新建的 worktree，不约束用户或第三方 Agent 自行执行的任意 shell 命令。应用的 Agent 启动继续复用原工作区 cwd，未添加供应商私有 worktree 参数。第三方认证与会话目录也不混入此工作区目录。
 
 TDD 首先记录三个失败：worktree 仍位于后端私有目录、主机设置暴露旧覆盖、Agent 私有目录覆盖可写。实现后定向测试3项/15断言通过；真实 Git 创建与主仓库移走后的受保护清理均验证统一路径，且没有云 API 请求。包含原非 direct 自定义主机/项目目录与路径越界、符号链接保护的40项/133断言回归通过，host-service 类型检查通过。首次绿测试将旧删除接口参数误写成 workspaceId，改为原接口的 id 后通过，没有改变发布 API。[红绿与回归日志](evidence/local-ssh-feature-parity/stage10)。
 
 源码 SSH 界面验收增加统一路径断言及三个现有终端进程的 cwd 只读核对；夹具为隔离远端 home 显式设置后台进程 HOME，避免误用验收机器的真实 home。实际窗口结果待独立记录。完整功能对齐与 macOS 安装包验收仍未完成。
+
+
+### 接通原版 Worktree／Local 选择器
+
+第33轮冻结源码`e9771bfa2bc0e9e717756b4146d1823e346d00b0`在统一路径断言失败：既有恢复脚本创建的是无项目的 standalone session，按设计仍位于后端私有 sessions 目录；不能拿这个结果证明项目 worktree 的实际路径。检查同时确认旧工作站项目会话入口把 checkout 固定为 local，未提供新 worktree 选择。该轮失败保留，不计为统一目录通过。[失败日志与截图](evidence/local-ssh-feature-parity/source-linux-worktree-location-failures)。
+
+补接原 DashboardNewWorkspaceModal 的 CheckoutPickerPill 与其 FormPickerTrigger，直接使用原 Worktree／Local 图标、说明、菜单与翻译，无新登录依赖；选择项目默认 worktree，用户可以明确切换 Local，standalone session 继续独立。创建请求继续通过原持久操作桥与 workspaces.create，使用后端原命名、分支和路径规则，不在渲染器拼接实际远端路径。原 runSetup:false 保持，不隐式运行项目脚本。
+
+组件 TDD 先验证原选择器缺失，再接入；请求转发测试验证选定机器收到 checkout:worktree。首次测试的 New session 选择器命中两个原按钮、原 Radix 菜单需要 pointerDown，修正测试交互后12项/40断言通过，相关恢复、项目创建与无账号启动链回归18项/748断言通过。17语言提取与严格编译通过，没有新增文案或翻译。实际验收脚本改为物理创建项目、选择项目、保留原 Worktree 默认值，再创建工作区；后续核对统一路径与真实终端 cwd，结果待另记。
+
+
+统一根目录还会被同一机器上的多个独立后端命名空间共用。真实双仓库测试先复现两个独立数据库中同名项目、同名分支抢占同一目录的CONFLICT；direct 项目分组改为`<消毒项目名>-<完整项目ID>`，不依赖另一个数据库中的项目清单，清理守卫同时认识这个分组。原非 direct 命名不变，不迁移已有工作树。该回归及最终检查结果随日志记录。
+
+
+最终后端回归41项/136断言通过，包含同名跨命名空间项目的真实 Git 创建。统一目录新增可选能力标志 workstationManagedWorktreesV1，主进程仅转发已验证后端的声明；旧后端仍按既有 Local 行为工作，不显示统一目录承诺。含旧后端缺少标志情形、原恢复、项目创建、主进程桥与无账号启动审计的桌面回归42项/809断言通过。该标志是可选输出字段，没有新建或收紧原过程输入，也不提高旧主机最低版本。

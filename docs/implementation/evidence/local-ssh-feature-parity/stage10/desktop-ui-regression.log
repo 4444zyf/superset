@@ -1,0 +1,34 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [261.83ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project worktree forwards the chosen checkout to the selected backend [324.62ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [174.37ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [97.07ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [81.12ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [117.71ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [127.12ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [101.87ms]
+(pass) opening a development server submits its port for forwarding on B [72.68ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [105.47ms]
+(pass) checking an empty operation journal shows a readable result [103.86ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [75.81ms]
+
+src/renderer/workstation/Workstation/Workstation.restore.test.tsx:
+(pass) offline startup keeps all three saved panes, ratios and focus without ordinary connection or mutations [69.58ms]
+(pass) the SSH window feature leaves local workspace opening on its existing path [64.02ms]
+(pass) a newly created SSH workspace opens its saved tab before the refreshed list has rendered [102.24ms]
+
+src/renderer/workstation/Workstation/components/SessionDialog/SessionDialog.test.tsx:
+(pass) project workspaces use the original checkout picker and default to their own worktree [66.78ms]
+
+src/renderer/workstation/Workstation/components/RemoteProjectCreator/RemoteProjectCreator.test.tsx:
+(pass) clone and empty project requests use the directory selected on B and stable operation IDs [5.80ms]
+(pass) missing durable backend capability disables all repository creation actions [4.06ms]
+
+ 18 pass
+ 0 fail
+ 748 expect() calls
+Ran 18 tests across 5 files. [2.77s]

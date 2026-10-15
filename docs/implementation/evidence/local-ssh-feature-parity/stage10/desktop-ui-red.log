@@ -1,0 +1,518 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Found multiple elements with the role "button" and name "New session"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"ws-button primary"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-plus"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"15"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"15"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M5 12h14"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M12 5v14"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mNew session[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"ws-button"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-plus"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"15"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"15"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M5 12h14"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M12 5v14"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mNew session[0m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"ssh-workstation"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"ws-titlebar"[39m
+      [36m>[39m
+        [36m<span>[39m
+          [0mSuperset Remix[0m
+        [36m</span>[39m
+        [36m<span>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-shield-check"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"12"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"12"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m9 12 2 2 4-4"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [0mDirect SSH[0m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full ws-shell"[39m
+        [33mdata-slot[39m=[32m"sidebar-wrapper"[39m
+        [33mstyle[39m=[32m"--sidebar-width: 16rem; --sidebar-width-icon: 3rem; min-height: 0;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"group peer text-sidebar-foreground hidden md:block"[39m
+          [33mdata-collapsible[39m=[32m""[39m
+          [33mdata-side[39m=[32m"left"[39m
+          [33mdata-slot[39m=[32m"sidebar"[39m
+          [33mdata-state[39m=[32m"expanded"[39m
+          [33mdata-variant[39m=[32m"sidebar"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear group-data-[collapsible=offcanvas]:w-0 group-data-[side=right]:rotate-180 group-data-[collapsible=icon]:w-(--sidebar-width-icon)"[39m
+            [33mdata-slot[39m=[32m"sidebar-gap"[39m
+          [36m/>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l ws-native-sidebar"[39m
+            [33mdata-slot[39m=[32m"sidebar-container"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"[39m
+              [33mdata-sidebar[39m=[32m"sidebar"[39m
+              [33mdata-slot[39m=[32m"sidebar-inner"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex flex-col gap-2 p-2"[39m
+                [33mdata-sidebar[39m=[32m"header"[39m
+                [33mdata-slot[39m=[32m"sidebar-header"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ws-native-brand flex h-9 items-center gap-2 overflow-hidden px-2 text-sm font-medium"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"currentColor"[39m
+                    [33mviewBox[39m=[32m"0 0 32 32"[39m
+                  [36m>[39m
+                    [36m<defs>[39m
+                      [36m<mask[39m
+                        [33mheight[39m=[32m"32"[39m
+                        [33mid[39m=[32m"brand-_r_0_"[39m
+                        [33mmaskUnits[39m=[32m"userSpaceOnUse"[39m
+                        [33mstyle[39m=[32m"mask-type: luminance;"[39m
+                        [33mwidth[39m=[32m"32"[39m
+                        [33mx[39m=[32m"0"[39m
+                        [33my[39m=[32m"0"[39m
+                      [36m>[39m
+                        [36m<image[39m
+                          [33mheight[39m=[32m"32"[39m
+                          [33mhref[39m=[32m"data:image/png;base64,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...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"ssh-workstation"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"ws-titlebar"[39m
+      [36m>[39m
+        [36m<span>[39m
+          [0mSuperset Remix[0m
+        [36m</span>[39m
+        [36m<span>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-shield-check"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"12"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"12"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m9 12 2 2 4-4"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [0mDirect SSH[0m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full ws-shell"[39m
+        [33mdata-slot[39m=[32m"sidebar-wrapper"[39m
+        [33mstyle[39m=[32m"--sidebar-width: 16rem; --sidebar-width-icon: 3rem; min-height: 0;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"group peer text-sidebar-foreground hidden md:block"[39m
+          [33mdata-collapsible[39m=[32m""[39m
+          [33mdata-side[39m=[32m"left"[39m
+          [33mdata-slot[39m=[32m"sidebar"[39m
+          [33mdata-state[39m=[32m"expanded"[39m
+          [33mdata-variant[39m=[32m"sidebar"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear group-data-[collapsible=offcanvas]:w-0 group-data-[side=right]:rotate-180 group-data-[collapsible=icon]:w-(--sidebar-width-icon)"[39m
+            [33mdata-slot[39m=[32m"sidebar-gap"[39m
+          [36m/>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l ws-native-sidebar"[39m
+            [33mdata-slot[39m=[32m"sidebar-container"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"[39m
+              [33mdata-sidebar[39m=[32m"sidebar"[39m
+              [33mdata-slot[39m=[32m"sidebar-inner"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex flex-col gap-2 p-2"[39m
+                [33mdata-sidebar[39m=[32m"header"[39m
+                [33mdata-slot[39m=[32m"sidebar-header"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ws-native-brand flex h-9 items-center gap-2 overflow-hidden px-2 text-sm font-medium"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"currentColor"[39m
+                    [33mviewBox[39m=[32m"0 0 32 32"[39m
+                  [36m>[39m
+                    [36m<defs>[39m
+                      [36m<mask[39m
+                        [33mheight[39m=[32m"32"[39m
+                        [33mid[39m=[32m"brand-_r_0_"[39m
+                        [33mmaskUnits[39m=[32m"userSpaceOnUse"[39m
+                        [33mstyle[39m=[32m"mask-type: luminance;"[39m
+                        [33mwidth[39m=[32m"32"[39m
+                        [33mx[39m=[32m"0"[39m
+                        [33my[39m=[32m"0"[39m
+                      [36m>[39m
+                        [36m<image[39m
+                          [33mheight[39m=[32m"32"[39m
+                          [33mhref[39m=[32m"data:image/png;base64,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...
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/Workstation.test.tsx:39:31
+(fail) creating a project worktree forwards the chosen checkout to the selected backend [1129.88ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [105.82ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [64.72ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [59.26ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [84.02ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [92.24ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [68.92ms]
+(pass) opening a development server submits its port for forwarding on B [62.71ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [65.16ms]
+(pass) checking an empty operation journal shows a readable result [72.72ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [81.84ms]
+
+src/renderer/workstation/Workstation/components/SessionDialog/SessionDialog.test.tsx:
+71 | // if an empty list of elements is returned
+72 | function makeGetAllQuery(allQuery, getMissingError) {
+73 |   return (container, ...args) => {
+74 |     const els = allQuery(container, ...args);
+75 |     if (!els.length) {
+76 |       throw (0, _config.getConfig)().getElementError(getMissingError(container, ...args), container);
+                                                                                                        ^
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Checkout: Worktree"
+
+Here are the accessible roles:
+
+  dialog:
+
+  Name "New session":
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"radix-_r_31_"[39m
+    [33mclass[39m=[32m"workstation-dialog "[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mid[39m=[32m"radix-_r_30_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "New session":
+  [36m<h2[39m
+    [33mid[39m=[32m"radix-_r_31_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Close":
+  [36m<button[39m
+    [33maria-label[39m=[32m"Close"[39m
+    [33mclass[39m=[32m"ws-icon-button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Cancel":
+  [36m<button[39m
+    [33mclass[39m=[32m"ws-button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Create":
+  [36m<button[39m
+    [33mclass[39m=[32m"ws-button primary"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Name":
+  [36m<input[39m
+    [33mmaxlength[39m=[32m"100"[39m
+    [33mrequired[39m=[32m""[39m
+    [33mvalue[39m=[32m"Feature"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  combobox:
+
+  Name "Run on":
+  [36m<select />[39m
+
+  Name "Project":
+  [36m<select />[39m
+
+  --------------------------------------------------
+  option:
+
+  Name "Standalone session":
+  [36m<option[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Example":
+  [36m<option[39m
+    [33mvalue[39m=[32m"project"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"ws-description"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"sr-only"[39m
+    [33mid[39m=[32m"radix-_r_32_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-scroll-locked[39m=[32m"1"[39m
+  [33mstyle[39m=[32m"pointer-events: none;"[39m
+[36m>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"workstation-overlay"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"radix-_r_31_"[39m
+    [33mclass[39m=[32m"workstation-dialog "[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mid[39m=[32m"radix-_r_30_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"ws-dialog-head"[39m
+    [36m>[39m
+      [36m<h2[39m
+        [33mid[39m=[32m"radix-_r_31_"[39m
+      [36m>[39m
+        [0mNew session[0m
+      [36m</h2>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Close"[39m
+        [33mclass[39m=[32m"ws-icon-button"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-x"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"18"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"18"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M18 6 6 18"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33md[39m=[32m"m6 6 12 12"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+    [36m<form>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"ws-dialog-body"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"ws-field"[39m
+        [36m>[39m
+          [0mName[0m
+          [36m<input[39m
+            [33mmaxlength[39m=[32m"100"[39m
+            [33mrequired[39m=[32m""[39m
+            [33mvalue[39m=[32m"Feature"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"ws-field"[39m
+        [36m>[39m
+          [0mRun on[0m
+          [36m<select />[39m
+        [36m</label>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"ws-field"[39m
+        [36m>[39m
+          [0mProject[0m
+          [36m<select>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m""[39m
+            [36m>[39m
+              [0mStandalone session[0m
+            [36m</option>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"project"[39m
+            [36m>[39m
+              [0mExample[0m
+            [36m</option>[39m
+          [36m</select>[39m
+        [36m</label>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"ws-description"[39m
+        [36m>[39m
+          [0mChoose where your projects and sessions run.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"ws-dialog-footer"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"ws-button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mCancel[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"ws-button primary"[39m
+          [33mtype[39m=[32m"submit"[39m
+        [36m>[39m
+          [0mCreate[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</form>[39m
+    [36m<p[39m
+      [33mclass[39m=[32m"sr-only"[39m
+      [33mid[39m=[32m"radix-_r_32_"[39m
+    [36m>[39m
+      [0mConnection settings are stored on this device.[0m
+    [36m</p>[39m
+  [36m</div>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+[36m</body>[39m
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:100)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/SessionDialog/SessionDialog.test.tsx:12:16)
+(fail) project workspaces use the original checkout picker and default to their own worktree [25.77ms]
+
+ 10 pass
+ 2 fail
+ 34 expect() calls
+Ran 12 tests across 2 files. [2.48s]

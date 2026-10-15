@@ -1,0 +1,60 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.80ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.13ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.10ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.35ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.14ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.63ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.07ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.17ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.13ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.59ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.66ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.52ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.50ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.51ms]
+(pass) attachment readiness requires an explicit backend capability [0.19ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.14ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.18ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.08ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.38ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.23ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.78ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [199.57ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [222.96ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [81.49ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [95.23ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [55.56ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [42.61ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [62.55ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [79.70ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [75.73ms]
+(pass) opening a development server submits its port for forwarding on B [54.31ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [73.22ms]
+(pass) checking an empty operation journal shows a readable result [43.56ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [73.60ms]
+
+src/renderer/workstation/Workstation/Workstation.restore.test.tsx:
+(pass) offline startup keeps all three saved panes, ratios and focus without ordinary connection or mutations [60.37ms]
+(pass) the SSH window feature leaves local workspace opening on its existing path [56.43ms]
+(pass) a newly created SSH workspace opens its saved tab before the refreshed list has rendered [65.52ms]
+
+src/renderer/workstation/Workstation/components/SessionDialog/SessionDialog.test.tsx:
+(pass) project workspaces use the original checkout picker and default to their own worktree [49.35ms]
+
+src/renderer/workstation/Workstation/components/RemoteProjectCreator/RemoteProjectCreator.test.tsx:
+(pass) clone and empty project requests use the directory selected on B and stable operation IDs [6.39ms]
+(pass) missing durable backend capability disables all repository creation actions [2.62ms]
+
+ 42 pass
+ 0 fail
+ 809 expect() calls
+Ran 42 tests across 6 files. [2.09s]

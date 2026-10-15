@@ -4,7 +4,10 @@ import { and, eq, isNull, ne } from "drizzle-orm";
 import { projects } from "../../../../db/schema";
 import type { HostServiceContext } from "../../../../types";
 import { projectNotSetupError } from "./project-helpers";
-import { resolveProjectWorktreesFolder } from "./worktree-paths";
+import {
+	resolveProjectWorktreesFolder,
+	resolveRemixProjectWorktreesFolder,
+} from "./worktree-paths";
 
 export type LocalProject = typeof projects.$inferSelect;
 
@@ -34,6 +37,7 @@ export function getProjectWorktreesFolder(
 	ctx: HostServiceContext,
 	localProject: Pick<LocalProject, "id" | "name">,
 ): string {
+	if (ctx.direct) return resolveRemixProjectWorktreesFolder(localProject);
 	const otherProjects = ctx.db
 		.select({ name: projects.name })
 		.from(projects)

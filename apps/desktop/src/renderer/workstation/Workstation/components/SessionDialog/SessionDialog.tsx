@@ -1,5 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
+import { CheckoutPickerPill } from "renderer/routes/_authenticated/components/DashboardNewWorkspaceModal/components/DashboardNewWorkspaceForm/PromptGroup/components/CheckoutPickerPill";
 import type { DirectProfile, RemoteProject } from "../../types";
 import { WorkstationDialog } from "../WorkstationDialog/WorkstationDialog";
 
@@ -13,6 +14,7 @@ export function SessionDialog({
 	onCreate,
 	onClose,
 	serverError,
+	canCreateWorktree = false,
 }: {
 	profiles: DirectProfile[];
 	selectedId: string;
@@ -20,13 +22,19 @@ export function SessionDialog({
 	connected: boolean;
 	busy: boolean;
 	onTarget(id: string): void;
-	onCreate(name: string, projectId: string): void;
+	onCreate(
+		name: string,
+		projectId: string,
+		checkout: "worktree" | "local",
+	): void;
 	onClose(): void;
 	serverError?: string | null;
+	canCreateWorktree?: boolean;
 }) {
 	const { t } = useLingui();
 	const [name, setName] = useState("");
 	const [project, setProject] = useState("");
+	const [checkout, setCheckout] = useState<"worktree" | "local">("worktree");
 	return (
 		<WorkstationDialog
 			title={t({ message: "New session" })}
@@ -41,7 +49,11 @@ export function SessionDialog({
 						!busy &&
 						(!project || projects.some((p) => p.id === project))
 					)
-						onCreate(name.trim(), project);
+						onCreate(
+							name.trim(),
+							project,
+							canCreateWorktree ? checkout : "local",
+						);
 				}}
 			>
 				<div className="ws-dialog-body">
@@ -89,6 +101,21 @@ export function SessionDialog({
 								))}
 						</select>
 					</label>
+					{project && canCreateWorktree && (
+						<div className="grid gap-2">
+							<CheckoutPickerPill
+								checkout={checkout}
+								onSelectCheckout={setCheckout}
+								disabled={busy || !connected}
+							/>
+							{checkout === "worktree" && (
+								<p className="ws-description">
+									<Trans>Worktree location</Trans>{" "}
+									<code>~/Superset Remix/worktrees/</code>
+								</p>
+							)}
+						</div>
+					)}
 					<p className="ws-description">
 						{connected ? (
 							<Trans>Choose where your projects and sessions run.</Trans>

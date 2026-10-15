@@ -38,6 +38,10 @@ export function ownedRestoreControls(home, fixture) {
 	);
 	let originals = [];
 	return {
+		verifyProjectParent(path) {
+			assert.equal(path, fixture.homeDir);
+			assert.equal(lstatSync(path).uid, process.getuid());
+		},
 		async verifyWorktreeLocation(worktreePath) {
 			const worktreesRoot = join(
 				fixture.homeDir,

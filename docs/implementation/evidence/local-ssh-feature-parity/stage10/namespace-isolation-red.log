@@ -1,0 +1,70 @@
+bun test v1.4.2 (744846f84)
+
+test/integration/direct-worktree-location.integration.test.ts:
+35 | 		const cause = _cause;
+36 | 		if (isTRPCClientError(cause)) {
+37 | 			if (opts.meta) cause.meta = (0, import_objectSpread2.default)((0, import_objectSpread2.default)({}, cause.meta), opts.meta);
+38 | 			return cause;
+39 | 		}
+40 | 		if (isTRPCErrorResponse(cause)) return new TRPCClientError(cause.error.message, (0, import_objectSpread2.default)((0, import_objectSpread2.default)({}, opts), {}, {
+                                              ^
+TRPCClientError: Preparing worktree (new branch 'feature/same')
+fatal: '/tmp/remix-project-isolation-adfDUo/Superset Remix/worktrees/Example/feature/same' already exists
+
+ cause: undefined,
+ shape: {
+  message: "Preparing worktree (new branch 'feature/same')\nfatal: '/tmp/remix-project-isolation-adfDUo/Superset Remix/worktrees/Example/feature/same' already exists\n",
+  code: -32009,
+  data: [Object ...],
+},
+  data: {
+  code: "CONFLICT",
+  httpStatus: 409,
+  stack: "TRPCError: Preparing worktree (new branch 'feature/same')\nfatal: '/tmp/remix-project-isolation-adfDUo/Superset Remix/worktrees/Example/feature/same' already exists\n\n    at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspaces/workspaces.ts:1238:19)\n    at async resolveMiddleware (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:221:23)\n    at async callRecursive (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/initTRPC-B1ggxyJl.mjs:256:24)\n    at processTicksAndRejections (native:7:39)",
+  path: "workspaces.create",
+  teardownFailure: undefined,
+  projectNotSetup: undefined,
+  deleteInProgress: undefined,
+  i18nKey: null,
+  i18nParams: null,
+},
+  meta: {
+  response: Response (0 KB) {
+    ok: false,
+    url: "",
+    status: 409,
+    statusText: "",
+    headers: Headers [Object ...],
+    redirected: false,
+    bodyUsed: true
+  },
+  responseJSON: [
+    [Object ...]
+  ],
+},
+
+      at from (/workspace/superset/node_modules/.bun/@trpc+client@11.16.0+c3aa90de1aae0655/node_modules/@trpc/client/dist/TRPCClientError-apv8gw59.mjs:40:42)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+client@11.16.0+c3aa90de1aae0655/node_modules/@trpc/client/dist/httpBatchLink-CaWjh1oW.mjs:228:38)
+(fail) same-named projects in separate direct namespaces cannot share a worktree directory [898.35ms]
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "974d84d0-da55-4768-9a9f-7367a31fd98c",
+  worktreePath: "/tmp/remix-machine-home-ZF5obQ/Superset Remix/worktrees/My Project/feature/central",
+  error: WorkerTaskAbortedError: Worker runner disposed
+ kind: "disposed",
+
+      at dispose (/workspace/superset/packages/host-service/src/workers/WorkerTaskRunner.ts:238:6)
+      at map (1:11)
+      at dispose (/workspace/superset/packages/host-service/src/workers/host-worker-pool.ts:310:29)
+      at <anonymous> (/workspace/superset/packages/host-service/src/app.ts:660:30)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/createTestHost.ts:183:17)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/scenarios.ts:126:15)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:86:18)
+,
+}
+(pass) direct worktrees create and clean up under the machine-wide Remix folder despite stored overrides [530.26ms]
+(pass) direct location settings cannot redirect worktrees to an Agent folder [246.43ms]
+
+ 2 pass
+ 1 fail
+ 12 expect() calls
+Ran 3 tests across 1 file. [2.32s]

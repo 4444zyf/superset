@@ -85,6 +85,13 @@ export function resolveProjectWorktreesFolder(
 	return taken ? disambiguatedFolderName(folderName, project.id) : folderName;
 }
 
+export function resolveRemixProjectWorktreesFolder(
+	project: WorktreeFolderProject,
+): string {
+	const folderName = toFolderName(project.name);
+	return folderName ? `${folderName}-${project.id}` : project.id;
+}
+
 /**
  * Every folder a project's worktrees may live under: its current name-based
  * folder, the suffixed form, and the bare project id older releases used.
@@ -96,7 +103,12 @@ function projectWorktreesFolderCandidates(
 ): string[] {
 	const folderName = toFolderName(project.name);
 	return folderName
-		? [folderName, disambiguatedFolderName(folderName, project.id), project.id]
+		? [
+				folderName,
+				disambiguatedFolderName(folderName, project.id),
+				resolveRemixProjectWorktreesFolder(project),
+				project.id,
+			]
 		: [project.id];
 }
 

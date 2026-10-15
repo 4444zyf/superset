@@ -19,6 +19,74 @@ import { Workstation } from "./Workstation";
 
 afterEach(cleanup);
 
+test.each([
+	true,
+	false,
+])("creating a project workspace respects the selected backend's managed worktree capability (%s)", async (managedWorktrees) => {
+	const mutations: { path: string; input: unknown }[] = [];
+	const descriptor = {
+		connectionId: "machine",
+		generation: 1,
+		backendId: "backend",
+		namespaceId: "namespace",
+		instanceId: "instance",
+		capabilities: {
+			projects: true,
+			sessions: true,
+			durableOperations: true,
+			workstationManagedWorktreesV1: managedWorktrees,
+		},
+	};
+	const api = {
+		list: async () => [
+			{ id: "machine", kind: "ssh", name: "Remote", host: "test.invalid" },
+		],
+		connect: async () => descriptor,
+		listPending: async () => [],
+		rpc: async (request: { path: string; type: string; input: unknown }) => {
+			if (request.type === "mutation") mutations.push(request);
+			if (request.path === "project.list")
+				return [
+					{ id: "project", name: "Example", repoPath: "/remote/example" },
+				];
+			if (request.path === "workspaces.create")
+				return {
+					workspace: {
+						id: "new-workspace",
+						name: "Feature",
+						worktreePath: "/remote/Superset Remix/worktrees/Example/Feature",
+					},
+				};
+			if (request.path === "terminal.list") return { sessions: [] };
+			return [];
+		},
+	} as unknown as DirectWorkstationApi;
+	render(<Workstation api={api} />);
+	fireEvent.click(await screen.findByRole("button", { name: "Connect" }));
+	fireEvent.click(
+		(await screen.findAllByRole("button", { name: "New session" }))[0],
+	);
+	fireEvent.change(screen.getByLabelText("Name"), {
+		target: { value: "Feature" },
+	});
+	fireEvent.change(screen.getByLabelText("Project"), {
+		target: { value: "project" },
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Create" }));
+	await waitFor(() => expect(mutations).toHaveLength(1));
+	expect(mutations[0]).toMatchObject({
+		connectionId: "machine",
+		generation: 1,
+		path: "workspaces.create",
+		input: {
+			name: "Feature",
+			projectId: "project",
+			checkout: managedWorktrees ? "worktree" : "local",
+			runSetup: false,
+		},
+	});
+});
+
 test("selecting another local namespace clears the old workspace without reconnecting or stopping workloads", async () => {
 	let selected = "old";
 	let connects = 0;

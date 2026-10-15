@@ -48,8 +48,52 @@ export async function verifyWorkspaceRestoreUi({
 			(rows) => rows.length === 3 && rows.every((r) => r.state === "attached"),
 		);
 	await click('[data-slot=sidebar-content] button[aria-label="Workspaces"]');
+	await click("text:Add project");
+	await until(() =>
+		evaluate(
+			"Boolean(document.querySelector('[role=dialog] .border-t label:first-child input'))",
+		),
+	);
+	controls?.verifyProjectParent(
+		await evaluate(
+			"document.querySelector('[role=dialog] input[name=path]')?.value",
+		),
+	);
+	await type(
+		"[role=dialog] .border-t label:first-child input",
+		"Unified Project",
+	);
+	await click("text:Create project");
+	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
+	await until(() =>
+		evaluate(
+			"[...document.querySelectorAll('[data-slot=sidebar-content] button')].some(b=>b.textContent.trim()==='Unified Project')",
+		),
+	);
 	await click(".ws-heading-actions .primary");
 	await type('[role="dialog"] input', "Restore lifecycle");
+	await click("[role=dialog] label:nth-of-type(3) select");
+	for (const [key, code] of [
+		["ArrowDown", 40],
+		["Enter", 13],
+	]) {
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyDown",
+			key,
+			windowsVirtualKeyCode: code,
+		});
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyUp",
+			key,
+			windowsVirtualKeyCode: code,
+		});
+	}
+	await until(() =>
+		evaluate(
+			"Boolean(document.querySelector('[role=dialog] button[aria-label=\"Checkout: Worktree\"]'))",
+		),
+	);
+	await screenshot("worktree-original-checkout-picker");
 	await click('[role="dialog"] button[type="submit"]');
 	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
 	await until(() =>

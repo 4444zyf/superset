@@ -184,7 +184,11 @@ export function Workstation({
 			);
 			await ui.refresh(target);
 		});
-	const createSession = (name: string, chosenProject: string) =>
+	const createSession = (
+		name: string,
+		chosenProject: string,
+		checkout: "worktree" | "local",
+	) =>
 		void ui.operation(async () => {
 			const target = ui.active.current;
 			if (
@@ -209,7 +213,7 @@ export function Workstation({
 					? {
 							...input,
 							projectId: chosenProject,
-							checkout: "local",
+							checkout,
 							runSetup: false,
 						}
 					: input,
@@ -627,6 +631,9 @@ export function Workstation({
 			)}
 			{create === "session" && (
 				<SessionDialog
+					canCreateWorktree={Boolean(
+						ui.connection?.capabilities?.workstationManagedWorktreesV1,
+					)}
 					serverError={ui.error}
 					profiles={ui.profiles}
 					selectedId={selectedId}
