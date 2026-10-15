@@ -259,6 +259,91 @@ export async function verifyWorkstationProjectSettingsUi({
 	await enabled("#project-name");
 	await visible("#project-sparse-checkout");
 	await screenshot("project-settings-sparse-checkout");
+	const queryScripts = () =>
+		evaluate(
+			`window.directWorkstation.rpc(${JSON.stringify({ connectionId: scope.descriptor.connectionId, generation: scope.descriptor.generation, path: "config.getProjectScriptsV1", type: "query", input: { projectId: scope.projectId } })})`,
+		);
+	assert.equal(
+		scope.descriptor.capabilities?.workstationProjectScriptsV1,
+		true,
+	);
+	const scriptTimings = {};
+	const scriptValues = {
+		Setup: "echo remix-setup\npwd",
+		Teardown: "echo remix-teardown",
+		Run: "echo remix-run",
+	};
+	for (const [field, text] of Object.entries(scriptValues)) {
+		const tab = `[data-remote-project-scripts] [role=tab][data-state]`;
+		await visible(tab);
+		const point = await until(() =>
+			evaluate(
+				`(()=>{const e=[...document.querySelectorAll('[data-remote-project-scripts] [role=tab]')].find(e=>e.textContent.trim()===${JSON.stringify(field)});if(!e)return null;const r=e.getBoundingClientRect();const x=r.x+r.width/2,y=r.y+r.height/2;return e.contains(document.elementFromPoint(x,y))?{x,y}:null;})()`,
+			),
+		);
+		for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
+			await getPage().call("Input.dispatchMouseEvent", {
+				type,
+				button: type === "mouseMoved" ? "none" : "left",
+				clickCount: type === "mouseMoved" ? 0 : 1,
+				...point,
+			});
+		const selector = `[data-remote-project-scripts] textarea[aria-label="${field}"]`;
+		const started = await replace(selector, text);
+		await until(
+			async () =>
+				JSON.stringify((await queryScripts()).scripts[field.toLowerCase()]) ===
+				JSON.stringify(text.split("\n")),
+		);
+		scriptTimings[field] = (await evaluate("performance.now()")) - started;
+		assert.ok(scriptTimings[field] >= 400);
+		assert.equal(
+			await evaluate("document.activeElement?.getAttribute('aria-label')"),
+			field,
+		);
+		await until(() =>
+			evaluate(
+				"document.querySelector('[data-project-scripts] [role=status]')?.textContent.trim()==='Saved'",
+			),
+		);
+	}
+	await screenshot("project-scripts-original-tabs-auto-saved");
+	const importFile = join(output, "project-run-import.sh");
+	const importedCommands = ["echo remix-run-imported", "pwd"];
+	writeFileSync(importFile, importedCommands.join("\n") + "\n");
+	await getPage().call("Page.setInterceptFileChooserDialog", { enabled: true });
+	try {
+		await click(
+			'[data-remote-project-scripts] button[title="Import from file"]',
+		);
+		const { root } = await getPage().call("DOM.getDocument");
+		const { nodeId } = await getPage().call("DOM.querySelector", {
+			nodeId: root.nodeId,
+			selector: "[data-remote-project-scripts] input[type=file]",
+		});
+		assert.ok(nodeId);
+		await getPage().call("DOM.setFileInputFiles", {
+			nodeId,
+			files: [importFile],
+		});
+	} finally {
+		await getPage().call("Page.setInterceptFileChooserDialog", {
+			enabled: false,
+		});
+	}
+	const scriptsSaved = await until(async () => {
+		const actual = await queryScripts();
+		return JSON.stringify(actual.scripts.run) ===
+			JSON.stringify(importedCommands)
+			? actual
+			: null;
+	});
+	await until(() =>
+		evaluate(
+			"document.querySelector('[data-project-scripts] [role=status]')?.textContent.trim()==='Saved'",
+		),
+	);
+	await screenshot("project-scripts-imported-run");
 	await click("[role=dialog] button[aria-label=Close]");
 	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
 	await open();
@@ -283,6 +368,15 @@ export async function verifyWorkstationProjectSettingsUi({
 		),
 	);
 	await screenshot("project-settings-reopened");
+	await visible("[data-remote-project-scripts] textarea[aria-label=Setup]");
+	assert.equal(
+		await evaluate(
+			`document.querySelector('[data-remote-project-scripts] textarea[aria-label=Setup]').value`,
+		),
+		scriptValues.Setup,
+	);
+	assert.deepEqual((await queryScripts()).scripts, scriptsSaved.scripts);
+	await screenshot("project-scripts-reopened-setup");
 	await click("[role=dialog] button[aria-label=Close]");
 	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
 	writeFileSync(
@@ -299,6 +393,15 @@ export async function verifyWorkstationProjectSettingsUi({
 				removeAndReset: true,
 				imageUpload: { browserFileChooser: true, size: pngSize(uploadedIcon) },
 				sidebarIconMatches: true,
+				projectScripts: {
+					originalTabs: true,
+					autoSaveWhileFocused: true,
+					browserFileImport: true,
+					scriptTimings,
+					saved: scriptsSaved.scripts,
+					reopened: true,
+					executed: false,
+				},
 				blurSave: true,
 				textAutoSaveWhileFocused: true,
 				originalDefaultDebounceMs: 500,

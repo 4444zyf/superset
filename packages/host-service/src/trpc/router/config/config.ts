@@ -15,6 +15,8 @@ import {
 import type { HostServiceContext } from "../../../types";
 import { protectedProcedure, router } from "../../index";
 
+import { readProjectScripts, writeProjectScripts } from "./project-scripts";
+
 const projectIdInput = z.object({ projectId: z.string().uuid() });
 
 const stringArray = z.array(z.string());
@@ -36,6 +38,24 @@ function requireProject(
 }
 
 export const configRouter = router({
+	getProjectScriptsV1: protectedProcedure
+		.input(projectIdInput)
+		.query(({ ctx, input }) =>
+			readProjectScripts(requireProject(ctx, input.projectId).repoPath),
+		),
+	setProjectScriptsV1: protectedProcedure
+		.input(
+			z.object({
+				projectId: z.string().uuid(),
+				expectedRevision: z.string().min(1).max(512).nullable(),
+				setup: z.array(z.string().max(64 * 1024)).max(1024),
+				teardown: z.array(z.string().max(64 * 1024)).max(1024),
+				run: z.array(z.string().max(64 * 1024)).max(1024),
+			}),
+		)
+		.mutation(({ ctx, input }) =>
+			writeProjectScripts(requireProject(ctx, input.projectId).repoPath, input),
+		),
 	/**
 	 * Decide whether the v2 sidebar setup-script CTA should show for a project.
 	 * Returns true only when no source (main repo, user override, local overlay)

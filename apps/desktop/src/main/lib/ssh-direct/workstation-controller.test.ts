@@ -741,3 +741,47 @@ test("branch synchronization needs its optional capability and journals a lost r
 		db.close();
 	}
 });
+
+test("project script procedures require their own capability and an explicit project", async () => {
+	const f = fixture();
+	let capable = false;
+	const requests: unknown[] = [];
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationProjectScriptsV1: capable },
+		}),
+		invoke: async (id, request) => {
+			requests.push({ id, ...request });
+			return { success: true };
+		},
+	});
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "config.getProjectScriptsV1",
+		type: "query" as const,
+		input: { projectId: "project" },
+	};
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"required capability",
+	);
+	capable = true;
+	await expect(controller.invoke({ ...request, input: {} })).rejects.toThrow(
+		"explicit project",
+	);
+	await controller.invoke(request);
+	await controller.invoke({
+		...request,
+		path: "config.setProjectScriptsV1",
+		type: "mutation",
+		input: {
+			projectId: "project",
+			expectedRevision: null,
+			setup: [],
+			teardown: [],
+			run: [],
+		},
+	});
+	expect(requests).toHaveLength(2);
+});

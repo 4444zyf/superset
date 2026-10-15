@@ -1,10 +1,14 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Textarea } from "@superset/ui/textarea";
+import { toast } from "@superset/ui/sonner";
 import { cn } from "@superset/ui/utils";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { HiDocumentArrowUp } from "react-icons/hi2";
 
 interface ScriptFieldProps {
+	label?: string;
+	disabled?: boolean;
+	maxLength?: number;
 	placeholder: string;
 	value: string;
 	onChange: (value: string) => void;
@@ -13,6 +17,9 @@ interface ScriptFieldProps {
 }
 
 export function ScriptField({
+	label,
+	disabled,
+	maxLength,
 	placeholder,
 	value,
 	onChange,
@@ -22,20 +29,36 @@ export function ScriptField({
 	const { t } = useLingui();
 	const [isDragOver, setIsDragOver] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const mountedRef = useRef(true);
+	useEffect(() => {
+		mountedRef.current = true;
+		return () => {
+			mountedRef.current = false;
+		};
+	}, []);
 
 	const importFirstFile = useCallback(
 		async (files: File[]) => {
 			const scriptFile = files.find((file) =>
 				file.name.match(/\.(sh|bash|zsh|command)$/i),
 			);
-			if (!scriptFile) return;
+			if (!scriptFile || disabled) return;
+			if (maxLength !== undefined && scriptFile.size > maxLength) {
+				toast.error(
+					t({
+						message: "Some files exceed the maximum size and were not added.",
+					}),
+				);
+				return;
+			}
 			try {
-				onChange(await scriptFile.text());
+				const content = await scriptFile.text();
+				if (mountedRef.current) onChange(content);
 			} catch (error) {
 				console.error("[v2-scripts/import] failed to read file", error);
 			}
 		},
-		[onChange],
+		[onChange, disabled, maxLength, t],
 	);
 
 	return (
@@ -70,6 +93,9 @@ export function ScriptField({
 				}}
 			>
 				<Textarea
+					aria-label={label}
+					disabled={disabled}
+					maxLength={maxLength}
 					value={value}
 					onChange={(e) => onChange(e.target.value)}
 					onFocus={onFocus}
@@ -81,6 +107,7 @@ export function ScriptField({
 				<button
 					type="button"
 					onClick={() => fileInputRef.current?.click()}
+					disabled={disabled}
 					title={t({
 						message: "Import from file",
 					})}

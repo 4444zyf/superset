@@ -55,6 +55,27 @@ describe("configRouter", () => {
 		sandbox.cleanup();
 	});
 
+	it("versioned script procedures read and update the registered project's original config", async () => {
+		const caller = createCaller(sandbox.repoPath);
+		const before = await caller.getProjectScriptsV1({ projectId: PROJECT_ID });
+		expect(before.revision).toBeNull();
+		const saved = await caller.setProjectScriptsV1({
+			projectId: PROJECT_ID,
+			expectedRevision: before.revision,
+			setup: ["echo setup"],
+			teardown: [],
+			run: ["echo run"],
+		});
+		expect(saved.scripts).toEqual({
+			setup: ["echo setup"],
+			teardown: [],
+			run: ["echo run"],
+		});
+		expect(await caller.getConfigContent({ projectId: PROJECT_ID })).toEqual({
+			exists: true,
+			content: saved.content,
+		});
+	});
 	describe("getConfigContent", () => {
 		it("returns null content when config.json doesn't exist", async () => {
 			const caller = createCaller(sandbox.repoPath);

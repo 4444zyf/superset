@@ -1,0 +1,57 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [2.02ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.23ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.21ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.09ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.92ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.11ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.50ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.02ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.10ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.17ms]
+(pass) disconnect and app disposal only close client transports [0.06ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.72ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.71ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.49ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.69ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.58ms]
+(pass) attachment readiness requires an explicit backend capability [0.73ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.19ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.16ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.13ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.34ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.96ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.91ms]
+(pass) project script procedures require their own capability and an explicit project [0.25ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [248.40ms]
+
+src/renderer/components/ProjectScriptsEditor/ProjectScriptsEditor.test.tsx:
+(pass) original script debounce queues a revert made during a pending save [85.57ms]
+(pass) unknown script save results keep the latest draft and stop queued or blur replay [33.44ms]
+(pass) closing a script editor drops its pending queue and ignores a late confirmation [26.98ms]
+
+src/renderer/workstation/Workstation/components/RemoteProjectSettings/RemoteProjectSettings.test.tsx:
+(pass) Naming instructions saves while focused and preserves edits made during its request [124.79ms]
+(pass) Sparse checkout saves while focused and preserves edits made during its request [49.18ms]
+(pass) an old project write cannot install metadata after switching the target [75.43ms]
+(pass) project settings reuse original controls and write only the selected remote project [60.57ms]
+(pass) a lost metadata reply is read back once and never replays the mutation [52.28ms]
+(pass) an unconfirmed reply retains the field draft and blocks another blur write [39.78ms]
+(pass) a write finishing after the dialog closes cannot refresh the current target [28.68ms]
+(pass) icon removal reads back its single selected-project write (lost reply: %s) [125.18ms]
+(pass) icon removal reads back its single selected-project write (lost reply: %s) [173.13ms]
+
+src/renderer/workstation/Workstation/components/RemoteProjectScripts/RemoteProjectScripts.test.tsx:
+(pass) a lost script-save reply is confirmed once against the selected project's snapshot [15.15ms]
+(pass) an unconfirmed script-save keeps its buffer and requires an explicit read before further writes [24.52ms]
+(pass) an older backend without script capability receives no script RPC [1.10ms]
+
+ 41 pass
+ 0 fail
+ 911 expect() calls
+Ran 41 tests across 5 files. [1.80s]

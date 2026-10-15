@@ -7,10 +7,21 @@ export interface WorkspaceProcedure {
 		| "workstationGitIdentityV1"
 		| "workstationGitHistoryV1"
 		| "workstationGitSyncV1"
-		| "workstationProjectsV1";
+		| "workstationProjectsV1"
+		| "workstationProjectScriptsV1";
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"config.getProjectScriptsV1": {
+		type: "query",
+		capability: "workstationProjectScriptsV1",
+		identity: "projectId",
+	},
+	"config.setProjectScriptsV1": {
+		type: "mutation",
+		capability: "workstationProjectScriptsV1",
+		identity: "projectId",
+	},
 	"project.get": {
 		type: "query",
 		capability: "workstationProjectsV1",

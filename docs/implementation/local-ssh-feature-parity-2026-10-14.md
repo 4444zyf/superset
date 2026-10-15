@@ -330,3 +330,12 @@ TDD先记录共享组件缺失、工作站缺少图标入口及主进程拒绝se
 第45轮冻结源码`1f32926a1f7e99d474c5cd6d26ee6c84a3fa1ab5`完整通过。原Popover真实显示并通过鼠标命中检查；物理选择蓝色、Rocket字形，再选红色确认已保存PNG重新着色，恢复蓝色后移除/恢复默认均经只读API核对。物理点击原Upload image按钮，CDP浏览器文件选择交付已有1200px截图作为测试源（不冒称OS原生文件窗口手工操作）；实际浏览器canvas生成并保存128×128 PNG，约10.5KiB数据URI，低于原256KiB上限。侧栏、头部、控件预览的图标一致，关闭/重开后图像自然宽度128px，截图已实际查看。[第45轮数据和截图](evidence/local-ssh-feature-parity/source-linux-project-icons)。
 
 同轮保持原500ms文本保存，命名/稀疏约547ms/557ms；统一worktree目录和三个PTY cwd、文件/Git/设置/多文件/树/Diff/历史/基础分支/分支操作/四同步菜单/关闭重开/离线/后端重启/部分结束/多工作区/daemon丢失检查完整通过。最终构建成功，初始renderer入口4,562.59kB（约4.563MB，较上一阶段约增加9kB），图标选择器位于已有项目设置lazy chunk。该轮为Linux源码、拥有的隔离SSH与Git夹具及单恢复采样，不替代macOS发行物、GitHub或供应商Agent认证。项目脚本、危险操作等功能仍待接入；新DMG尚未生成。
+
+
+## 阶段十四：原项目脚本编辑器与有版本的配置保存
+
+原V2ScriptsEditor提取为共享ProjectScriptsEditor，移动其唯一使用的ScriptField；原页面保留QueryClient/host URL包装，继续调用原config.getConfigContent/updateConfig。三个原Tabs、文本区、导入按钮、文件拖放控件、500ms调度与Saved状态均复用。新工作站启用pauseOnError，未知回复保留草稿并取消后续保存；关闭字段取消队列，晚到的文件导入不再写入卸载组件。保存期间仍可输入，撤回到原值会作为最新意图保存。新入口字段/脚本文件导入有128KiB边界。
+
+原配置更新会覆盖损坏JSON且失败重试，因此新增config.getProjectScriptsV1/setProjectScriptsV1与可选workstationProjectScriptsV1能力；旧两个API完全保留。新过程仍使用原getProjectConfigPath和原JSON的setup/teardown/run数组，保留cwd/start与未知字段，复用workspace-fs的有界读取、revision、创建不覆盖、带版本预条件的路径锁和原子写入。整个配置最大512KiB；损坏内容、非数组脚本、链接目录/文件及过大配置拒绝编辑，外部版本变化返回CONFLICT。未新增迁移、环境变量或提高旧主机最低版本；旧后端没有新脚本编辑入口。
+
+TDD先记录新读写工具、共享编辑器、远程适配器缺失，再实现。新存储和原配置合同24项/41断言通过；桌面编辑器/未知回复/关闭队列/旧后端/项目设置/主进程桥/无账号导入审计41项/911断言通过。host类型通过，17语言严格编译通过，无新增翻译条目。脚本配置编辑本身不会执行命令；Setup触发、Run按钮及Teardown生命周期的工作站入口仍待接通，不能把本阶段当作整个生命周期功能完成。实际Linux/SSH窗口与最终构建结果待记录。

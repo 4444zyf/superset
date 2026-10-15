@@ -1,0 +1,34 @@
+bun test v1.4.2 (744846f84)
+
+src/trpc/router/config/config.test.ts:
+(pass) configRouter > versioned script procedures read and update the registered project's original config [37.36ms]
+(pass) configRouter > getConfigContent > returns null content when config.json doesn't exist [15.10ms]
+(pass) configRouter > getConfigContent > returns raw content when config.json exists [15.35ms]
+(pass) configRouter > getConfigContent > throws NOT_FOUND when project isn't registered locally [13.08ms]
+(pass) configRouter > updateConfig > creates .superset/config.json on first save [10.51ms]
+(pass) configRouter > updateConfig > preserves the existing run array on subsequent saves [10.19ms]
+(pass) configRouter > updateConfig > updates run when provided and preserves setup/teardown when omitted [10.33ms]
+(pass) configRouter > updateConfig > preserves unrelated top-level keys (forward compatibility) [10.07ms]
+(pass) configRouter > updateConfig > overwrites a malformed config.json with a fresh shape [15.47ms]
+(pass) configRouter > shouldShowSetupCard > returns true when no config exists [13.99ms]
+(pass) configRouter > shouldShowSetupCard > returns false once setup is non-empty [15.15ms]
+(pass) configRouter > shouldShowSetupCard > returns true when config exists but all arrays are empty [14.02ms]
+(pass) configRouter > shouldShowSetupCard > returns false when only teardown is defined (setup key absent) [13.76ms]
+(pass) configRouter > shouldShowSetupCard > returns false when only the run key is set [13.87ms]
+(pass) configRouter > getWorkspaceRunDefinition > returns null when run is not configured [14.40ms]
+(pass) configRouter > getWorkspaceRunDefinition > returns non-empty run commands from resolved config [14.54ms]
+(pass) configRouter > getWorkspaceRunDefinition > preserves cwd from resolved config [12.62ms]
+
+src/trpc/router/config/project-scripts.test.ts:
+(pass) the new script snapshot writes the original config path and preserves unrelated keys [3.99ms]
+(pass) an external edit or create rejects a stale save without overwriting it [1.35ms]
+(pass) malformed existing config cannot become an empty editable form: {bad json [0.61ms]
+(pass) malformed existing config cannot become an empty editable form: {"setup":"not an array"} [0.38ms]
+(pass) malformed existing config cannot become an empty editable form: [] [0.43ms]
+(pass) malformed existing config cannot become an empty editable form: null [0.35ms]
+(pass) oversized config and a linked config directory remain untouched [1.18ms]
+
+ 24 pass
+ 0 fail
+ 41 expect() calls
+Ran 24 tests across 2 files. [518.00ms]

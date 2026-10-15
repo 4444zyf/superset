@@ -21,6 +21,7 @@ import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
+import { RemoteProjectScripts } from "../RemoteProjectScripts";
 import { WorkstationDialog } from "../WorkstationDialog/WorkstationDialog";
 
 type Project = NonNullable<inferRouterOutputs<AppRouter>["project"]["get"]>;
@@ -432,6 +433,24 @@ export function RemoteProjectSettings({
 									/>
 								</div>
 							</SettingsSection>
+							{connection.capabilities?.workstationProjectScriptsV1 ===
+								true && (
+								<SettingsSection
+									title={t({ message: "Project lifecycle scripts" })}
+									description={t({
+										message:
+											"Commands run for workspace setup, teardown, and the Run button.",
+									})}
+								>
+									<RemoteProjectScripts
+										api={api}
+										connection={connection}
+										projectId={projectId}
+										disabled={busy || blocked.current}
+										debounceMs={textDebounceMs}
+									/>
+								</SettingsSection>
+							)}
 						</ProjectSettingsLayout>
 					</fieldset>
 				)}

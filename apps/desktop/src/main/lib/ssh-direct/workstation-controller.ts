@@ -133,6 +133,7 @@ export class WorkstationController {
 				"workstationGitSyncV1",
 				"workstationManagedWorktreesV1",
 				"workstationProjectsV1",
+				"workstationProjectScriptsV1",
 			].map((key) => [key, metadata.capabilities?.[key] === true]),
 		);
 		const chatHarnesses = Array.isArray(metadata.chatHarnesses)
