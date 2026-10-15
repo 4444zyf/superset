@@ -253,3 +253,12 @@ TDD 首先记录三个失败：worktree 仍位于后端私有目录、主机设�
 保持原API输入、输出和非 direct 行为，通过后端内部 allowLocalBase 参数补齐直连模式：已配置upstream或存在origin跟踪引用时复用原解析；仅缺少该远端引用且本地分支实际存在时比较refs/heads/<branch>，不创建假远端、不写Git跟踪设置、不安排不存在的origin抓取。状态、单文件Diff、批量Diff、patch和二进制side使用同一规则，后台任务参数仍为可选。
 
 新真实worktree回归先红后绿，并核对列表、单文件内容、bulk、patch和side一致；包含原分叉上游、远端默认分支和bulk/patch视图的40项/101断言通过，host和desktop类型检查通过。产品构建与实际SSH复测另记。第33–37轮失败记录保留，前述把第36轮仅判断为点击时序的结论由此修正。
+
+
+### 统一 worktree 与本地基础分支真实源码窗口通过
+
+第38轮冻结源码`7bab123cca13b3187476403895143c1f4ffa0d4b`完整通过。使用全新配置及隔离home的真实SSH，物理创建Unified Project、原CheckoutPickerPill选择Worktree、创建restore-lifecycle工作区。后端只读结果位于`~/Superset Remix/worktrees/Unified Project-<完整项目ID>/restore-lifecycle`；通过拥有的PTY daemon获取三个实际PID，逐个核对Linux /proc/PID/cwd，均为同一worktree。正常退出/重开保持原execution，客户端关闭时三进程都有新输出；这三个是心跳PTY，不冒称已认证供应商Agent。
+
+同一轮通过文件/Git身份/单文件暂存提交、原设置、多文件、树、Diff、历史，以及无origin项目选择本地main后的真实基础分支Diff和Auto恢复。原分支重命名、Push、Fetch/Pull/Sync/Fetch & Pull全部通过，远端与工作区HEAD一致、已打开原CodeMirror更新、待处理操作0。原窗口关闭/重开、断线恢复、离线、后端重启、部分终端结束、三工作区标签及daemon丢失不自动重建的生命周期检查通过。截图已实际查看。[第38轮数据与截图](evidence/local-ssh-feature-parity/source-linux-worktree-location)。
+
+该feature已具备源码、TDD、真实Git与真实Linux/SSH窗口证据。恢复采样为1次，SSH/Git均使用拥有的隔离夹具，Git远端为同一SSH后端上的独立bare仓库；不替代GitHub/供应商认证或macOS安装包验收。新1.37.7 DMG尚未生成，其余功能对齐清单继续进行。
