@@ -1,0 +1,53 @@
+bun test v1.4.2 (744846f84)
+
+src/workers/tasks/git-task-registry.test.ts:
+(pass) gitTasks registry > registers every exported worker task [0.13ms]
+(pass) gitTasks registry > has no duplicate task types [0.02ms]
+
+src/trpc/router/git/branch-sync.test.ts:
+(pass) fetch updates tracking without changing worktree; pull rebases from the selected repository [723.04ms]
+2587 |   return {
+2588 |     type: "spawn.args",
+2589 |     action(e, { env: n }) {
+2590 |       for (const r of Oe(e, n))
+2591 |         if (t[r.category] !== !0)
+2592 |           throw new A(void 0, "unsafe", r.message);
+                       ^
+error: Use of --git-dir is not permitted without enabling allowUnsafeConfigPaths
+   task: {
+  commands: [ "--git-dir", "/tmp/superset-branch-sync-8bscVe/remote.git", "rev-parse", "main" ],
+  format: "utf-8",
+  parser: [Function: parser],
+},
+ plugin: "unsafe",
+
+      at action (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:2592:17)
+      at exec (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:2777:30)
+      at attemptRemoteTask (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:697:106)
+      at attemptTask (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:685:64)
+(fail) sync rebases divergent local commits and pushes the result with both sides retained [688.88ms]
+2587 |   return {
+2588 |     type: "spawn.args",
+2589 |     action(e, { env: n }) {
+2590 |       for (const r of Oe(e, n))
+2591 |         if (t[r.category] !== !0)
+2592 |           throw new A(void 0, "unsafe", r.message);
+                       ^
+error: Use of --git-dir is not permitted without enabling allowUnsafeConfigPaths
+   task: {
+  commands: [ "--git-dir", "/tmp/superset-branch-sync-gbGpj1/remote.git", "rev-parse", "main" ],
+  format: "utf-8",
+  parser: [Function: parser],
+},
+ plugin: "unsafe",
+
+      at action (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:2592:17)
+      at exec (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:2777:30)
+      at attemptRemoteTask (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:697:106)
+      at attemptTask (/workspace/superset/node_modules/.bun/simple-git@4.0.2+759ce506b1ed1a42/node_modules/simple-git/dist/index.mjs:685:64)
+(fail) a conflicting sync leaves the real rebase for resolution and never pushes or discards it [670.25ms]
+
+ 3 pass
+ 2 fail
+ 13 expect() calls
+Ran 5 tests across 2 files. [2.34s]

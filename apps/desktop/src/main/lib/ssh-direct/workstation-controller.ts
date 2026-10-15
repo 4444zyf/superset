@@ -130,6 +130,7 @@ export class WorkstationController {
 				"workstationGitV1",
 				"workstationGitIdentityV1",
 				"workstationGitHistoryV1",
+				"workstationGitSyncV1",
 			].map((key) => [key, metadata.capabilities?.[key] === true]),
 		);
 		const chatHarnesses = Array.isArray(metadata.chatHarnesses)
@@ -180,9 +181,14 @@ export class WorkstationController {
 				"chat.prompt": "chat.prompt",
 				"git.commit": "git.commit",
 				"git.push": "git.push",
+				"git.syncBranchV1": "git.syncBranchV1",
 			} as Record<string, string>
 		)[request.path];
-		if (request.path === "git.commit" || request.path === "git.push") {
+		if (
+			request.path === "git.commit" ||
+			request.path === "git.push" ||
+			request.path === "git.syncBranchV1"
+		) {
 			const features = await this.features(request.connectionId);
 			this.assertGeneration(request.connectionId, request.generation);
 			if (!this.intents || !features.capabilities?.durableOperations)

@@ -20,11 +20,11 @@ import {
 	VscCheck,
 	VscChevronDown,
 	VscLinkExternal,
-	VscRefresh,
 	VscSync,
 } from "react-icons/vsc";
 import { electronTrpc } from "renderer/lib/electron-trpc";
 import { useCreateOrOpenPR } from "renderer/screens/main/hooks";
+import { GitSyncMenuItems } from "./components/GitSyncMenuItems";
 import { getPrimaryAction } from "./utils/getPrimaryAction";
 import { getPushActionCopy } from "./utils/getPushActionCopy";
 
@@ -310,35 +310,14 @@ export function CommitInput({
 								</span>
 							)}
 						</DropdownMenuItem>
-						<DropdownMenuItem
-							onClick={handlePull}
-							disabled={pullCount === 0}
-							className="text-xs"
-						>
-							<VscArrowDown className="size-3.5" />
-							<span className="flex-1">Pull</span>
-							{pullCount > 0 && (
-								<span className="text-[10px] text-muted-foreground">
-									{pullCount}
-								</span>
-							)}
-						</DropdownMenuItem>
-						<DropdownMenuItem
-							onClick={handleSync}
-							disabled={pushCount === 0 && pullCount === 0}
-							className="text-xs"
-						>
-							<VscSync className="size-3.5" />
-							Sync
-						</DropdownMenuItem>
-						<DropdownMenuItem onClick={handleFetch} className="text-xs">
-							<VscRefresh className="size-3.5" />
-							Fetch
-						</DropdownMenuItem>
-						<DropdownMenuItem onClick={handleFetchAndPull} className="text-xs">
-							<VscRefresh className="size-3.5" />
-							Fetch & Pull
-						</DropdownMenuItem>
+						<GitSyncMenuItems
+							onPull={handlePull}
+							onSync={handleSync}
+							onFetch={handleFetch}
+							onFetchAndPull={handleFetchAndPull}
+							pullCount={pullCount}
+							pushCount={pushCount}
+						/>
 
 						<DropdownMenuSeparator />
 

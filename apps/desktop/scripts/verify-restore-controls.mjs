@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { lstatSync, readFileSync, readlinkSync } from "node:fs";
+import {
+	existsSync,
+	lstatSync,
+	readFileSync,
+	readlinkSync,
+	writeFileSync,
+} from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -42,6 +48,34 @@ export function ownedRestoreControls(home, fixture) {
 				stdio: "pipe",
 			});
 			return {
+				advanceRemote(branch, content) {
+					const sender = join(fixture.root, "sync-sender");
+					if (!existsSync(sender))
+						execFileSync("git", ["clone", "--branch", branch, remote, sender], {
+							stdio: "pipe",
+						});
+					const git = (args) =>
+						execFileSync("git", args, { cwd: sender, stdio: "pipe" });
+					git(["pull", "--rebase"]);
+					writeFileSync(join(sender, "sync-ui.txt"), content);
+					git(["add", "sync-ui.txt"]);
+					git([
+						"-c",
+						"user.name=Sync Fixture",
+						"-c",
+						"user.email=sync@example.invalid",
+						"-c",
+						"commit.gpgsign=false",
+						"commit",
+						"-m",
+						"Remote sync fixture update",
+					]);
+					git(["push"]);
+					return execFileSync("git", ["rev-parse", "HEAD"], {
+						cwd: sender,
+						encoding: "utf8",
+					}).trim();
+				},
 				readHead(branch) {
 					return execFileSync(
 						"git",

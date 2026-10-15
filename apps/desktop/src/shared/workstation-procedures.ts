@@ -4,10 +4,12 @@ export interface WorkspaceProcedure {
 		| "workstationFilesV1"
 		| "workstationGitV1"
 		| "workstationGitIdentityV1"
-		| "workstationGitHistoryV1";
+		| "workstationGitHistoryV1"
+		| "workstationGitSyncV1";
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"git.syncBranchV1": { type: "mutation", capability: "workstationGitSyncV1" },
 	"git.listRepositoryCommitsV1": {
 		type: "query",
 		capability: "workstationGitHistoryV1",

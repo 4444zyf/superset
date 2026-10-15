@@ -1,10 +1,16 @@
-import { Trans } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import type { AppRouter } from "@superset/host-service";
 import { Button } from "@superset/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+} from "@superset/ui/dropdown-menu";
 import type { inferRouterOutputs } from "@trpc/server";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PushButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/ChangesControl/components/ShipControl/components/PushButton/PushButton";
 import { RenameBranchDialogSurface } from "renderer/screens/main/components/WorkspaceSidebar/WorkspaceListItem/components/RenameBranchDialog/components/RenameBranchDialogSurface/RenameBranchDialogSurface";
+import { GitSyncMenuItems } from "renderer/screens/main/components/WorkspaceView/RightSidebar/ChangesView/components/CommitInput/components/GitSyncMenuItems";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -16,6 +22,8 @@ export function RemoteBranchActions({
 	connection,
 	workspaceId,
 	revision,
+	hasDirtyDocuments = false,
+	onWorktreeChange,
 	disabled = false,
 	onRefresh,
 	onError,
@@ -24,10 +32,13 @@ export function RemoteBranchActions({
 	connection: DirectDescriptor;
 	workspaceId: string;
 	revision?: unknown;
+	hasDirtyDocuments?: boolean;
+	onWorktreeChange?(): void;
 	disabled?: boolean;
 	onRefresh(): void | Promise<void>;
 	onError(message: string): void;
 }) {
+	const { t } = useLingui();
 	const [sync, setSync] = useState<Sync | null>(null);
 	const [open, setOpen] = useState(false);
 	const [value, setValue] = useState("");
@@ -50,8 +61,8 @@ export function RemoteBranchActions({
 	currentOwner.current = owner;
 	const latestRevision = useRef(revision);
 	latestRevision.current = revision;
-	const callbacks = useRef({ onRefresh, onError });
-	callbacks.current = { onRefresh, onError };
+	const callbacks = useRef({ onRefresh, onError, onWorktreeChange });
+	callbacks.current = { onRefresh, onError, onWorktreeChange };
 	const available = connection.capabilities?.workstationGitV1 === true;
 	const request = useCallback(
 		<T,>(path: string, type: "query" | "mutation", input: unknown) =>
@@ -137,6 +148,62 @@ export function RemoteBranchActions({
 		!!sync?.hasRepo &&
 		!sync.isDetached &&
 		(!sync.hasUpstream || sync.pushCount > 0);
+	const syncAvailable =
+		available &&
+		connection.capabilities?.workstationGitSyncV1 === true &&
+		connection.capabilities?.durableOperations === true &&
+		!!sync?.hasRepo;
+	const synchronize = async (
+		action: "fetch" | "pull" | "sync" | "fetch-pull",
+	) => {
+		if (
+			lock.current ||
+			busy ||
+			loading ||
+			disabled ||
+			uncertain ||
+			!syncAvailable ||
+			(action !== "fetch" && (hasDirtyDocuments || sync?.isDetached)) ||
+			((action === "pull" || action === "fetch-pull") && !sync?.hasUpstream)
+		)
+			return;
+		lock.current = true;
+		setBusy(true);
+		readVersion.current++;
+		const version = epoch.current;
+		const expectedOwner = owner;
+		try {
+			await request("git.syncBranchV1", "mutation", {
+				workspaceId,
+				action,
+				operationId: crypto.randomUUID(),
+			});
+		} catch (error) {
+			if (valid(version, expectedOwner))
+				callbacks.current.onError(
+					error instanceof Error ? error.message : String(error),
+				);
+		} finally {
+			if (valid(version, expectedOwner)) {
+				try {
+					if (action !== "fetch") callbacks.current.onWorktreeChange?.();
+					await load();
+					if (valid(version, expectedOwner))
+						await callbacks.current.onRefresh();
+				} catch (error) {
+					if (valid(version, expectedOwner))
+						callbacks.current.onError(
+							error instanceof Error ? error.message : String(error),
+						);
+				} finally {
+					if (valid(version, expectedOwner)) {
+						lock.current = false;
+						setBusy(false);
+					}
+				}
+			}
+		}
+	};
 	const mutate = async (path: "git.renameBranch" | "git.push") => {
 		if (
 			lock.current ||
@@ -255,6 +322,41 @@ export function RemoteBranchActions({
 				disabled={disabled || busy || loading || uncertain || !canPush}
 				onClick={() => void mutate("git.push")}
 			/>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button
+						type="button"
+						size="sm"
+						variant="ghost"
+						aria-label={t({ message: "More actions" })}
+						disabled={
+							disabled || busy || loading || uncertain || !syncAvailable
+						}
+					>
+						<Trans>More actions</Trans>
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
+					<GitSyncMenuItems
+						onPull={() => void synchronize("pull")}
+						onSync={() => void synchronize("sync")}
+						onFetch={() => void synchronize("fetch")}
+						onFetchAndPull={() => void synchronize("fetch-pull")}
+						pullCount={sync?.pullCount ?? 0}
+						pushCount={sync?.pushCount ?? 0}
+						disabled={busy || disabled}
+						canFetch={syncAvailable}
+						canPull={
+							syncAvailable &&
+							!!sync?.hasUpstream &&
+							!sync.isDetached &&
+							!hasDirtyDocuments
+						}
+						canSync={syncAvailable && !sync?.isDetached && !hasDirtyDocuments}
+					/>
+				</DropdownMenuContent>
+			</DropdownMenu>
+
 			{uncertain && !open && (
 				<Button
 					type="button"

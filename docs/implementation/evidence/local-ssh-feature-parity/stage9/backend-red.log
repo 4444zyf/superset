@@ -1,0 +1,55 @@
+bun test v1.4.2 (744846f84)
+
+src/trpc/router/git/branch-sync.test.ts:
+297 | 				const fullPath = path.join(".");
+298 | 				if (path.length === 1 && path[0] === "_def") return _def;
+299 | 				const procedure = await getProcedureAtPath(router, fullPath);
+300 | 				let ctx = void 0;
+301 | 				try {
+302 | 					if (!procedure) throw new TRPCError({
+                                 ^
+TRPCError: No procedure found on path "syncBranchV1"
+ cause: undefined,
+  code: "NOT_FOUND"
+
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/tracked-DiE3uR1B.mjs:302:28)
+      at async <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/git/branch-sync.test.ts:28:18)
+(fail) fetch updates tracking without changing worktree; pull rebases from the selected repository [596.98ms]
+297 | 				const fullPath = path.join(".");
+298 | 				if (path.length === 1 && path[0] === "_def") return _def;
+299 | 				const procedure = await getProcedureAtPath(router, fullPath);
+300 | 				let ctx = void 0;
+301 | 				try {
+302 | 					if (!procedure) throw new TRPCError({
+                                 ^
+TRPCError: No procedure found on path "syncBranchV1"
+ cause: undefined,
+  code: "NOT_FOUND"
+
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/tracked-DiE3uR1B.mjs:302:28)
+      at async <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/git/branch-sync.test.ts:41:18)
+(fail) sync rebases divergent local commits and pushes the result with both sides retained [637.99ms]
+48 |  const f=await repository(); try {
+49 |   writeFileSync(join(f.sender,"base.txt"),"remote\n");await f.git.add("base.txt");await f.git.commit("remote change");await f.git.push();const remoteHead=await f.git.revparse("HEAD");
+50 |   writeFileSync(join(f.receiver,"base.txt"),"local\n");await f.local.add("base.txt");await f.local.commit("local change");
+51 |   let error:unknown;
+52 |   try {await f.caller.syncBranchV1({workspaceId:"workspace",action:"sync"});}catch(result){error=result;}
+53 |   expect(error).toMatchObject({code:"PRECONDITION_FAILED"});
+                     ^
+error: expect(received).toMatchObject(expected)
+
+- {
+-   "code": "PRECONDITION_FAILED",
+- }
++ [TRPCError: No procedure found on path "syncBranchV1"]
+
+- Expected  - 3
++ Received  + 1
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/git/branch-sync.test.ts:53:17)
+(fail) a conflicting sync leaves the real rebase for resolution and never pushes or discards it [637.01ms]
+
+ 0 pass
+ 3 fail
+ 1 expect() calls
+Ran 3 tests across 1 file. [2.12s]

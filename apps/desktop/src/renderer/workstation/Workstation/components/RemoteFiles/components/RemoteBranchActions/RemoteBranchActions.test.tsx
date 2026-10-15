@@ -264,3 +264,107 @@ test("a confirmed rename still refreshes its workspace when the following status
 	expect(screen.queryByRole("dialog")).toBeNull();
 	expect(f.calls.filter((call) => call.type === "mutation")).toHaveLength(1);
 });
+
+test("original Fetch action is capability gated and uses a single durable request", async () => {
+	const f = fixture();
+	const target = {
+		...connection,
+		capabilities: { ...connection.capabilities, workstationGitSyncV1: true },
+	};
+	render(<RemoteBranchActions {...f.props} connection={target} />);
+	const menu = await screen.findByRole("button", { name: "More actions" });
+	await waitFor(() => expect((menu as HTMLButtonElement).disabled).toBe(false));
+	fireEvent.pointerDown(menu, {
+		button: 0,
+		ctrlKey: false,
+		pointerType: "mouse",
+	});
+	fireEvent.click(screen.getByRole("menuitem", { name: /^Fetch$/ }));
+	await waitFor(() =>
+		expect(f.calls.filter((call) => call.type === "mutation")).toHaveLength(1),
+	);
+	expect(f.calls.find((call) => call.type === "mutation")).toMatchObject({
+		path: "git.syncBranchV1",
+		input: {
+			workspaceId: "workspace",
+			action: "fetch",
+			operationId: expect.stringMatching(/^[a-f0-9-]{36}$/),
+		},
+	});
+});
+test("pull reconciles the worktree after a conflict without retrying the mutation", async () => {
+	let changes = 0;
+	const f = fixture(async (request) => {
+		if (request.type === "query")
+			return { ...sync, hasUpstream: true, pullCount: 1 };
+		throw new Error("Rebase conflict");
+	});
+	render(
+		<RemoteBranchActions
+			{...f.props}
+			connection={{
+				...connection,
+				capabilities: {
+					...connection.capabilities,
+					workstationGitSyncV1: true,
+				},
+			}}
+			onWorktreeChange={() => {
+				changes++;
+			}}
+		/>,
+	);
+	const menu = await screen.findByRole("button", { name: "More actions" });
+	await waitFor(() => expect((menu as HTMLButtonElement).disabled).toBe(false));
+	fireEvent.pointerDown(menu, {
+		button: 0,
+		ctrlKey: false,
+		pointerType: "mouse",
+	});
+	await act(async () =>
+		fireEvent.click(screen.getByRole("menuitem", { name: "Pull 1" })),
+	);
+	expect(changes).toBe(1);
+	expect(f.calls.filter((call) => call.type === "mutation")).toHaveLength(1);
+	expect(f.errors).toEqual(["Rebase conflict"]);
+});
+test("an unsaved editor draft blocks Pull and Sync but still allows Fetch", async () => {
+	const f = fixture(async () => ({ ...sync, hasUpstream: true, pullCount: 1 }));
+	render(
+		<RemoteBranchActions
+			{...f.props}
+			connection={{
+				...connection,
+				capabilities: {
+					...connection.capabilities,
+					workstationGitSyncV1: true,
+				},
+			}}
+			hasDirtyDocuments
+		/>,
+	);
+	const menu = await screen.findByRole("button", { name: "More actions" });
+	await waitFor(() => expect((menu as HTMLButtonElement).disabled).toBe(false));
+	fireEvent.pointerDown(menu, {
+		button: 0,
+		ctrlKey: false,
+		pointerType: "mouse",
+	});
+	expect(
+		screen
+			.getByRole("menuitem", { name: "Pull 1" })
+			.getAttribute("data-disabled"),
+	).not.toBeNull();
+	expect(
+		screen
+			.getByRole("menuitem", { name: "Sync" })
+			.getAttribute("data-disabled"),
+	).not.toBeNull();
+	fireEvent.click(screen.getByRole("menuitem", { name: /^Fetch$/ }));
+	await waitFor(() =>
+		expect(f.calls.filter((call) => call.type === "mutation")).toHaveLength(1),
+	);
+	expect(f.calls.find((call) => call.type === "mutation")?.input).toMatchObject(
+		{ action: "fetch" },
+	);
+});

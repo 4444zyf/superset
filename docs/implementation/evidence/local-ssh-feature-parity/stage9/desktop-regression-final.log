@@ -1,0 +1,96 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.88ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.14ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.09ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.86ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.17ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.80ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.04ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.11ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.15ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.24ms]
+(pass) disconnect and app disposal only close client transports [0.11ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.86ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.80ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.62ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.68ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.50ms]
+(pass) attachment readiness requires an explicit backend capability [0.23ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.16ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.17ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.13ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.33ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.30ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.96ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [201.13ms]
+
+src/lib/trpc/routers/changes/git-operations.test.ts:
+(pass) git-operations error handling > isUpstreamMissingError > detects upstream deleted errors [0.11ms]
+(pass) git-operations error handling > isUpstreamMissingError > does not falsely detect other errors as upstream deleted [0.02ms]
+(pass) git-operations error handling > isMergeConflictError > detects rebase/merge conflict errors [0.02ms]
+(pass) git-operations error handling > isMergeConflictError > does not falsely detect other errors as merge conflicts [0.01ms]
+(pass) git-operations error handling > error message patterns > detects no-pull-request gh messages case-insensitively [0.02ms]
+(pass) git-operations error handling > error message patterns > commit with no staged changes
+(pass) git-operations error handling > error message patterns > push rejected - needs pull first
+(pass) git-operations error handling > error message patterns > push rejected - no permission
+(pass) git-operations error handling > error message patterns > merge conflict during pull
+(pass) git-operations error handling > error message patterns > detached HEAD state
+(pass) git-operations error handling > error message patterns > no remote configured
+(pass) sync operation logic > should push with set-upstream when pull fails due to deleted upstream [0.02ms]
+(pass) sync operation logic > should re-throw other pull errors
+(pass) existing PR push target resolution > uses the fallback remote for same-repo PRs [0.05ms]
+(pass) existing PR push target resolution > matches the existing fork remote for cross-repo PRs [0.16ms]
+(pass) existing PR push target resolution > returns null when a cross-repo PR remote cannot be found [0.02ms]
+(pass) existing PR push target resolution > builds the PR head repo url for cross-repo PRs
+(pass) existing PR push target resolution > retargets push when the tracked branch differs from the linked PR head [0.02ms]
+(pass) existing PR push target resolution > retargets push when the tracked remote differs from the linked PR head repo
+(pass) existing PR push target resolution > keeps plain push when tracking already matches the linked PR head
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [211.18ms]
+(pass) the original explorer action opens a create form using the current remote directory [113.23ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [117.19ms]
+(pass) content search opens the selected remote file at the matched line [456.63ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [78.84ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [143.77ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [193.67ms]
+(pass) a truncated read cannot overwrite the complete remote file [113.28ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [79.30ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [158.33ms]
+(pass) editing a remote CRLF file preserves its line endings [145.92ms]
+(pass) Git diffs use the remote status category and surface transport failures [93.25ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [104.89ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [255.98ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [172.49ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [154.16ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [299.91ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [334.73ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [381.23ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [334.48ms]
+(pass) switching to Changes and back retains the original editor undo history [390.18ms]
+(pass) Git changes reuse the original split and unified diff controls without account providers [673.97ms]
+(pass) history opens the selected commit files and requests that commit's original diff [320.21ms]
+(pass) the configured base branch reaches status and against-base diff queries [493.08ms]
+(pass) a late configured base invalidates an in-flight default-base diff and refreshes comparison status [351.72ms]
+(pass) pull reloads a clean original editor from the changed worktree [551.92ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteBranchActions/RemoteBranchActions.test.tsx:
+(pass) original rename dialog submits once, excludes IME Enter, and refreshes the selected workspace [116.00ms]
+(pass) a lost rename reply is confirmed by a read without another mutation [78.45ms]
+(pass) unknown rename outcome retains its draft and requires a read before another write [166.78ms]
+(pass) push uses one durable operation and does not resubmit after a lost reply [23.08ms]
+(pass) upstream branches cannot be renamed and push needs durable capability and a remote [38.84ms]
+(pass) an old rename reply cannot close or refresh the next workspace [127.02ms]
+(pass) a confirmed rename still refreshes its workspace when the following status read fails [85.51ms]
+(pass) original Fetch action is capability gated and uses a single durable request [76.04ms]
+(pass) pull reconciles the worktree after a conflict without retrying the mutation [80.20ms]
+(pass) an unsaved editor draft blocks Pull and Sync but still allows Fetch [78.01ms]
+
+ 80 pass
+ 0 fail
+ 1009 expect() calls
+Ran 80 tests across 5 files. [8.39s]

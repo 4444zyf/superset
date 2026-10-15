@@ -1,0 +1,362 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteBranchActions/RemoteBranchActions.test.tsx:
+(pass) original rename dialog submits once, excludes IME Enter, and refreshes the selected workspace [136.13ms]
+(pass) a lost rename reply is confirmed by a read without another mutation [48.48ms]
+(pass) unknown rename outcome retains its draft and requires a read before another write [76.70ms]
+(pass) push uses one durable operation and does not resubmit after a lost reply [12.30ms]
+(pass) upstream branches cannot be renamed and push needs durable capability and a remote [15.33ms]
+(pass) an old rename reply cannot close or refresh the next workspace [53.84ms]
+(pass) a confirmed rename still refreshes its workspace when the following status read fails [30.19ms]
+32 |   // throw errors w/ suggestions for better queries. Opt in so off by default.
+33 |   throwSuggestions: false,
+34 |   // called when getBy* queries fail. (message, container) => Error
+35 |   getElementError(message, container) {
+36 |     const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
+37 |     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+                           ^
+TestingLibraryElementError: Unable to find an accessible element with the role "menuitem" and name `/^Fetch$/`
+
+Here are the accessible roles:
+
+  code:
+
+  Name "":
+  [36m<code[39m
+    [33mclass[39m=[32m"truncate"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Rename branch":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Push":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex h-full items-center gap-1.5 rounded border border-border px-2 text-xs font-medium enabled:hover:bg-accent/60 disabled:opacity-50"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "More actions":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-label[39m=[32m"More actions"[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+    [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mid[39m=[32m"radix-_r_1a_"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"flex h-7 items-center gap-2 text-xs"[39m
+      [33mdata-branch-actions[39m=[32m"workspace"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"truncate"[39m
+      [36m>[39m
+        [0mfeature[0m
+      [36m</code>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+      [36m>[39m
+        [0mRename branch[0m
+      [36m</button>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"flex h-full items-center gap-1.5 rounded border border-border px-2 text-xs font-medium enabled:hover:bg-accent/60 disabled:opacity-50"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33mclass[39m=[32m"size-3.5"[39m
+          [33mfill[39m=[32m"currentColor"[39m
+          [33mheight[39m=[32m"1em"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-width[39m=[32m"0"[39m
+          [33mviewBox[39m=[32m"0 0 16 16"[39m
+          [33mwidth[39m=[32m"1em"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33mclip-rule[39m=[32m"evenodd"[39m
+            [33md[39m=[32m"M8.00016 2.56066V8H9.00016V2.56066L12.6466 6.2071L13.3537 5.5L8.85371 0.999996H8.14661L3.64661 5.5L4.35371 6.2071L8.00016 2.56066Z"[39m
+            [33mfill-rule[39m=[32m"evenodd"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33mclip-rule[39m=[32m"evenodd"[39m
+            [33md[39m=[32m"M5.03544 12H2V13H5.03544C5.27806 14.6961 6.73676 16 8.5 16C10.2632 16 11.7219 14.6961 11.9646 13H15.0001V12H11.9646C11.7219 10.3039 10.2632 9 8.5 9C6.73676 9 5.27806 10.3039 5.03544 12ZM11 12.5C11 13.8807 9.88071 15 8.5 15C7.11929 15 6 13.8807 6 12.5C6 11.1193 7.11929 10 8.5 10C9.88071 10 11 11.1193 11 12.5Z"[39m
+            [33mfill-rule[39m=[32m"evenodd"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+        [0mPush[0m
+      [36m</button>[39m
+      [36m<button[39m
+        [33maria-expanded[39m=[32m"false"[39m
+        [33maria-haspopup[39m=[32m"menu"[39m
+        [33maria-label[39m=[32m"More actions"[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+        [33mdata-state[39m=[32m"closed"[39m
+        [33mid[39m=[32m"radix-_r_1a_"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mMore actions[0m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at getElementError (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:23)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteBranchActions/RemoteBranchActions.test.tsx:275:25)
+(fail) original Fetch action is capability gated and uses a single durable request [10.81ms]
+32 |   // throw errors w/ suggestions for better queries. Opt in so off by default.
+33 |   throwSuggestions: false,
+34 |   // called when getBy* queries fail. (message, container) => Error
+35 |   getElementError(message, container) {
+36 |     const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
+37 |     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+                           ^
+TestingLibraryElementError: Unable to find an accessible element with the role "menuitem" and name "Pull 1"
+
+Here are the accessible roles:
+
+  code:
+
+  Name "":
+  [36m<code[39m
+    [33mclass[39m=[32m"truncate"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Rename branch":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdisabled[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Push":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex h-full items-center gap-1.5 rounded border border-border px-2 text-xs font-medium enabled:hover:bg-accent/60 disabled:opacity-50"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "More actions":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-label[39m=[32m"More actions"[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+    [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mid[39m=[32m"radix-_r_1g_"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"flex h-7 items-center gap-2 text-xs"[39m
+      [33mdata-branch-actions[39m=[32m"workspace"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"truncate"[39m
+      [36m>[39m
+        [0mfeature[0m
+      [36m</code>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+        [33mdisabled[39m=[32m""[39m
+      [36m>[39m
+        [0mRename branch[0m
+      [36m</button>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"flex h-full items-center gap-1.5 rounded border border-border px-2 text-xs font-medium enabled:hover:bg-accent/60 disabled:opacity-50"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33mclass[39m=[32m"size-3.5"[39m
+          [33mfill[39m=[32m"currentColor"[39m
+          [33mheight[39m=[32m"1em"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-width[39m=[32m"0"[39m
+          [33mviewBox[39m=[32m"0 0 16 16"[39m
+          [33mwidth[39m=[32m"1em"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33mclip-rule[39m=[32m"evenodd"[39m
+            [33md[39m=[32m"M8.00016 2.56066V8H9.00016V2.56066L12.6466 6.2071L13.3537 5.5L8.85371 0.999996H8.14661L3.64661 5.5L4.35371 6.2071L8.00016 2.56066Z"[39m
+            [33mfill-rule[39m=[32m"evenodd"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33mclip-rule[39m=[32m"evenodd"[39m
+            [33md[39m=[32m"M5.03544 12H2V13H5.03544C5.27806 14.6961 6.73676 16 8.5 16C10.2632 16 11.7219 14.6961 11.9646 13H15.0001V12H11.9646C11.7219 10.3039 10.2632 9 8.5 9C6.73676 9 5.27806 10.3039 5.03544 12ZM11 12.5C11 13.8807 9.88071 15 8.5 15C7.11929 15 6 13.8807 6 12.5C6 11.1193 7.11929 10 8.5 10C9.88071 10 11 11.1193 11 12.5Z"[39m
+            [33mfill-rule[39m=[32m"evenodd"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+        [0mPush[0m
+      [36m</button>[39m
+      [36m<button[39m
+        [33maria-expanded[39m=[32m"false"[39m
+        [33maria-haspopup[39m=[32m"menu"[39m
+        [33maria-label[39m=[32m"More actions"[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+        [33mdata-state[39m=[32m"closed"[39m
+        [33mid[39m=[32m"radix-_r_1g_"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mMore actions[0m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at getElementError (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:23)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteBranchActions/RemoteBranchActions.test.tsx:289:44)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:48:24)
+      at <anonymous> (/workspace/superset/node_modules/.bun/react@19.2.3/node_modules/react/cjs/react.development.js:814:22)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:47:25)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteBranchActions/RemoteBranchActions.test.tsx:289:8)
+(fail) pull reconciles the worktree after a conflict without retrying the mutation [10.57ms]
+32 |   // throw errors w/ suggestions for better queries. Opt in so off by default.
+33 |   throwSuggestions: false,
+34 |   // called when getBy* queries fail. (message, container) => Error
+35 |   getElementError(message, container) {
+36 |     const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
+37 |     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+                           ^
+TestingLibraryElementError: Unable to find an accessible element with the role "menuitem" and name "Pull 1"
+
+Here are the accessible roles:
+
+  code:
+
+  Name "":
+  [36m<code[39m
+    [33mclass[39m=[32m"truncate"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Rename branch":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdisabled[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Push":
+  [36m<button[39m
+    [33mclass[39m=[32m"flex h-full items-center gap-1.5 rounded border border-border px-2 text-xs font-medium enabled:hover:bg-accent/60 disabled:opacity-50"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "More actions":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-label[39m=[32m"More actions"[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+    [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mid[39m=[32m"radix-_r_1m_"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"flex h-7 items-center gap-2 text-xs"[39m
+      [33mdata-branch-actions[39m=[32m"workspace"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"truncate"[39m
+      [36m>[39m
+        [0mfeature[0m
+      [36m</code>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+        [33mdisabled[39m=[32m""[39m
+      [36m>[39m
+        [0mRename branch[0m
+      [36m</button>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"flex h-full items-center gap-1.5 rounded border border-border px-2 text-xs font-medium enabled:hover:bg-accent/60 disabled:opacity-50"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33mclass[39m=[32m"size-3.5"[39m
+          [33mfill[39m=[32m"currentColor"[39m
+          [33mheight[39m=[32m"1em"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-width[39m=[32m"0"[39m
+          [33mviewBox[39m=[32m"0 0 16 16"[39m
+          [33mwidth[39m=[32m"1em"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33mclip-rule[39m=[32m"evenodd"[39m
+            [33md[39m=[32m"M8.00016 2.56066V8H9.00016V2.56066L12.6466 6.2071L13.3537 5.5L8.85371 0.999996H8.14661L3.64661 5.5L4.35371 6.2071L8.00016 2.56066Z"[39m
+            [33mfill-rule[39m=[32m"evenodd"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33mclip-rule[39m=[32m"evenodd"[39m
+            [33md[39m=[32m"M5.03544 12H2V13H5.03544C5.27806 14.6961 6.73676 16 8.5 16C10.2632 16 11.7219 14.6961 11.9646 13H15.0001V12H11.9646C11.7219 10.3039 10.2632 9 8.5 9C6.73676 9 5.27806 10.3039 5.03544 12ZM11 12.5C11 13.8807 9.88071 15 8.5 15C7.11929 15 6 13.8807 6 12.5C6 11.1193 7.11929 10 8.5 10C9.88071 10 11 11.1193 11 12.5Z"[39m
+            [33mfill-rule[39m=[32m"evenodd"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+        [0mPush[0m
+      [36m</button>[39m
+      [36m<button[39m
+        [33maria-expanded[39m=[32m"false"[39m
+        [33maria-haspopup[39m=[32m"menu"[39m
+        [33maria-label[39m=[32m"More actions"[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+        [33mdata-state[39m=[32m"closed"[39m
+        [33mid[39m=[32m"radix-_r_1m_"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mMore actions[0m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at getElementError (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:23)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteBranchActions/RemoteBranchActions.test.tsx:298:16)
+(fail) an unsaved editor draft blocks Pull and Sync but still allows Fetch [18.15ms]
+
+ 7 pass
+ 3 fail
+ 38 expect() calls
+Ran 10 tests across 1 file. [763.00ms]

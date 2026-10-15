@@ -1,0 +1,8 @@
+$ bun run generate:icons && bun run generate:routes
+$ bun run scripts/generate-file-icons.ts
+Generated file icons: 1067 SVGs copied, 2046 file names, 1152 extensions, 4528 folder names
+$ tsr generate
+$ tsc --noEmit
+../../packages/host-service/src/trpc/router/git/git.ts(293,56): error TS2739: Type 'WorkerTaskDefinition<{ worktreePath: string; gitEnv: GitTaskEnv; linkedPrHeadBranch: string | null; action: GitSyncAction; }, { success: true; }>' is missing the following properties from type '{ worktreePath: string; gitEnv: GitTaskEnv; patch?: { name: string; email: string; } | undefined; }': worktreePath, gitEnv
+../../packages/host-service/src/trpc/router/git/git.ts(318,56): error TS2739: Type 'WorkerTaskDefinition<{ worktreePath: string; gitEnv: GitTaskEnv; linkedPrHeadBranch: string | null; action: GitSyncAction; }, { success: true; }>' is missing the following properties from type '{ worktreePath: string; gitEnv: GitTaskEnv; patch?: { name: string; email: string; } | undefined; }': worktreePath, gitEnv
+error: script "typecheck" exited with code 1

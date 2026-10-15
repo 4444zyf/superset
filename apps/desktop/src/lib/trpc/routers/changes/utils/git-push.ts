@@ -1,3 +1,4 @@
+import { fetchTrackingBranch } from "@superset/host-service/git";
 import { TRPCError } from "@trpc/server";
 import type { RemoteWithRefs, SimpleGit } from "simple-git";
 import { getCurrentBranch } from "../../workspaces/utils/git";
@@ -61,35 +62,11 @@ export async function fetchCurrentBranch(
 ): Promise<void> {
 	const localBranch = await getCurrentBranch(worktreePath);
 	const trackingRef = await getTrackingRef(git);
-	const branch = trackingRef?.branchName ?? localBranch;
-	if (!branch) {
-		return;
-	}
-	const remote = trackingRef?.remoteName ?? resolveTrackingRemoteName(null);
-	try {
-		await git.fetch([remote, branch]);
-	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		if (isUpstreamMissingError(message)) {
-			try {
-				await git.fetch([remote]);
-			} catch (fallbackError) {
-				const fallbackMessage =
-					fallbackError instanceof Error
-						? fallbackError.message
-						: String(fallbackError);
-				if (!isUpstreamMissingError(fallbackMessage)) {
-					console.error(
-						`[git/fetch] failed fallback fetch for branch ${branch}:`,
-						fallbackError,
-					);
-					throw fallbackError;
-				}
-			}
-			return;
-		}
-		throw error;
-	}
+	await fetchTrackingBranch(
+		git,
+		trackingRef?.remoteName ?? resolveTrackingRemoteName(null),
+		trackingRef?.branchName ?? localBranch,
+	);
 }
 
 async function pushWithSetUpstream({

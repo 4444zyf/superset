@@ -619,3 +619,73 @@ test("repository history needs its own optional capability and reaches only the 
 	).rejects.toThrow("explicit workspace");
 	expect(requests).toHaveLength(1);
 });
+
+test("branch synchronization needs its optional capability and journals a lost reply", async () => {
+	const f = fixture();
+	const requests: unknown[] = [];
+	let enabled = false;
+	const db = new Database(":memory:");
+	const intents = new OperationIntents(db as unknown as SqliteDatabase);
+	const controller = new WorkstationController(
+		{
+			...f.manager,
+			getVerifiedDescription: () => ({
+				capabilities: {
+					workstationGitV1: true,
+					workstationGitSyncV1: enabled,
+					durableOperations: true,
+				},
+			}),
+			invoke: async (_id, request) => {
+				requests.push(request);
+				throw new Error("Reply lost");
+			},
+		},
+		intents,
+	);
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "git.syncBranchV1",
+		type: "mutation" as const,
+		input: {
+			workspaceId: "workspace",
+			action: "sync",
+			operationId: "1046dcad-c30b-4868-80e3-d61bf5ea64c8",
+		},
+	};
+	try {
+		await expect(controller.invoke(request)).rejects.toThrow(
+			"required capability",
+		);
+		expect(requests).toEqual([]);
+		enabled = true;
+		await expect(controller.invoke(request)).rejects.toThrow("Reply lost");
+		expect(requests).toEqual([
+			{
+				path: "direct.execute",
+				type: "mutation",
+				input: {
+					operationId: request.input.operationId,
+					procedure: "git.syncBranchV1",
+					input: { workspaceId: "workspace", action: "sync" },
+				},
+			},
+		]);
+		expect(intents.list("machine")).toMatchObject([
+			{ operationId: request.input.operationId, procedure: "git.syncBranchV1" },
+		]);
+		await expect(
+			controller.invoke({
+				...request,
+				input: {
+					...request.input,
+					operationId: "b8e2eb57-173e-461a-84e9-ff8029795a27",
+				},
+			}),
+		).rejects.toThrow("pending");
+		expect(requests).toHaveLength(1);
+	} finally {
+		db.close();
+	}
+});

@@ -110,4 +110,5 @@ export async function verifyWorkstationGitBranchUi({
 			2,
 		) + "\n",
 	);
+	return { remote, scope };
 }

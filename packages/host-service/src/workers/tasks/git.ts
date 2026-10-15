@@ -6,6 +6,10 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import {
+	fetchTrackingBranch,
+	isUpstreamMissingError,
+} from "../../runtime/git/branch-sync.ts";
+import {
 	getGitAuthorName,
 	type ResolvedGitInfo,
 	readGitIdentity,
@@ -821,7 +825,80 @@ export const gitRestoreWorktreeTask = defineWorkerTask<
 	},
 });
 
+export type GitSyncAction = "fetch" | "pull" | "sync" | "fetch-pull";
+export const gitSyncBranchTask = defineWorkerTask<
+	{
+		worktreePath: string;
+		gitEnv: GitTaskEnv;
+		linkedPrHeadBranch: string | null;
+		action: GitSyncAction;
+	},
+	{ success: true }
+>({
+	type: "git/syncBranchV1",
+	handler: async (input, reportPhase) => {
+		const git = createUserSimpleGit(input.worktreePath, { env: input.gitEnv });
+		const fetch = async () => {
+			reportPhase?.("fetch-current-branch");
+			const branch = (
+				await git.revparse(["--abbrev-ref", "HEAD"]).catch(() => "")
+			).trim();
+			const upstream = (
+				await git
+					.raw(["rev-parse", "--abbrev-ref", "@{upstream}"])
+					.catch(() => "")
+			).trim();
+			const separator = upstream.indexOf("/");
+			await fetchTrackingBranch(
+				git,
+				separator > 0 ? upstream.slice(0, separator) : "origin",
+				separator > 0
+					? upstream.slice(separator + 1)
+					: branch === "HEAD"
+						? null
+						: branch,
+			);
+		};
+		const push = async () => {
+			reportPhase?.("push-current-branch");
+			const result = await gitPushTask.handler(input, reportPhase);
+			if (!result.ok)
+				throw new Error(
+					result.reason === "detached-head"
+						? "Cannot synchronize a detached HEAD"
+						: "No git remote to push to",
+				);
+		};
+		if (input.action === "fetch") {
+			await fetch();
+			return { success: true };
+		}
+		if (input.action === "fetch-pull") await fetch();
+		reportPhase?.("pull-rebase");
+		try {
+			await git.pull(["--rebase"]);
+		} catch (error) {
+			if (
+				input.action !== "sync" ||
+				!isUpstreamMissingError(
+					error instanceof Error ? error.message : String(error),
+				)
+			)
+				throw error;
+			await push();
+			await fetch();
+			return { success: true };
+		}
+		if (input.action === "sync") {
+			await push();
+			await fetch();
+		}
+		return { success: true };
+	},
+});
+
 export const gitTasks = [
+	gitSyncBranchTask,
 	gitRepositoryHistoryTask,
 	gitUserIdentityTask,
 	gitStatusSnapshotTask,

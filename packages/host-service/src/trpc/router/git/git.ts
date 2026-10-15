@@ -5,6 +5,10 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { pullRequests, workspaces } from "../../../db/schema";
 import { createGitEnvResolver } from "../../../runtime/git";
+import {
+	isMergeConflictError,
+	isUpstreamMissingError,
+} from "../../../runtime/git/branch-sync";
 import { createUserSimpleGit } from "../../../runtime/git/simple-git";
 import type { HostServiceContext } from "../../../types";
 import { getHostWorkerPool } from "../../../workers/host-worker-pool";
@@ -20,6 +24,7 @@ import {
 	gitStagePathsTask,
 	gitStatusPartialTask,
 	gitStatusSnapshotTask,
+	gitSyncBranchTask,
 	gitUserIdentityTask,
 } from "../../../workers/tasks/git";
 import { getLocalWorkspace } from "../../../workspaces/local-workspace-store";
@@ -965,6 +970,53 @@ export const gitRouter = router({
 					rethrowEnvironmentalGitError(error);
 					throw error;
 				});
+		}),
+
+	syncBranchV1: protectedProcedure
+		.meta({ timeoutMs: 120_000 })
+		.input(
+			z.object({
+				workspaceId: z.string().min(1),
+				action: z.enum(["fetch", "pull", "sync", "fetch-pull"]),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const worktreePath = resolveWorktreePath(ctx, input.workspaceId);
+			const workspace = ctx.db.query.workspaces
+				.findFirst({ where: eq(workspaces.id, input.workspaceId) })
+				.sync();
+			const linkedPr = workspace?.pullRequestId
+				? ctx.db.query.pullRequests
+						.findFirst({ where: eq(pullRequests.id, workspace.pullRequestId) })
+						.sync()
+				: null;
+			const gitEnv = await resolveGitTaskEnv(ctx, worktreePath);
+			try {
+				return await getHostWorkerPool().run(
+					gitSyncBranchTask,
+					{
+						worktreePath,
+						gitEnv,
+						linkedPrHeadBranch: linkedPr?.headBranch ?? null,
+						action: input.action,
+					},
+					{ timeoutMs: 120_000 },
+				);
+			} catch (error) {
+				rethrowEnvironmentalGitError(error);
+				const message = error instanceof Error ? error.message : String(error);
+				if (isMergeConflictError(message) || isUpstreamMissingError(message))
+					throw new TRPCError({
+						code: "PRECONDITION_FAILED",
+						message: isUpstreamMissingError(message)
+							? "No upstream branch to pull from. The remote branch may have been deleted."
+							: message,
+						cause: error,
+					});
+				throw error;
+			} finally {
+				invalidateStatus(input.workspaceId);
+			}
 		}),
 
 	getBranchSyncStatus: queryProcedure

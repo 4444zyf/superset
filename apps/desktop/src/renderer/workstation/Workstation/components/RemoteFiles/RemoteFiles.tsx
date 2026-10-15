@@ -607,6 +607,16 @@ export function RemoteFiles({
 							workspaceId={workspaceId}
 							revision={status}
 							disabled={busy}
+							hasDirtyDocuments={documents.some(
+								(document) => document.dirty || document.pendingSave,
+							)}
+							onWorktreeChange={() => {
+								documentsManager.dispatchFsEvent(connection, workspaceId, {
+									kind: "overflow",
+									absolutePath: root,
+								});
+								setTreeRefresh((value) => value + 1);
+							}}
 							onError={report}
 							onRefresh={() =>
 								run(async (version) => {

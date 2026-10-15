@@ -1,0 +1,29 @@
+bun test v1.4.2 (744846f84)
+
+src/workers/tasks/git-task-registry.test.ts:
+(pass) gitTasks registry > registers every exported worker task [0.12ms]
+(pass) gitTasks registry > has no duplicate task types [0.02ms]
+
+src/trpc/router/git/commit-push.test.ts:
+(pass) gitRouter.commit > stages everything and commits by default [641.81ms]
+(pass) gitRouter.commit > stageAll=false commits only what is already staged [498.60ms]
+(pass) gitRouter.commit > throws BAD_REQUEST when there is nothing to commit [483.41ms]
+(pass) gitRouter.push > sets upstream on first push, plain-pushes after [813.34ms]
+(pass) gitRouter.push > upstream on the base branch pushes under the branch's own name [717.58ms]
+(pass) gitRouter.push > pushes to the linked PR head when the upstream deliberately differs [746.40ms]
+(pass) gitRouter.push > throws BAD_REQUEST on a detached HEAD [390.43ms]
+(pass) gitRouter.push > throws BAD_REQUEST when no remote exists [568.78ms]
+
+src/trpc/router/git/staging-status.test.ts:
+(pass) stageFile refreshes cached status before any watcher notification [828.28ms]
+(pass) unstageFile refreshes cached status before any watcher notification [793.98ms]
+
+src/trpc/router/git/branch-sync.test.ts:
+(pass) fetch updates tracking without changing worktree; pull rebases from the selected repository [664.93ms]
+(pass) sync rebases divergent local commits and pushes the result with both sides retained [714.06ms]
+(pass) a conflicting sync leaves the real rebase for resolution and never pushes or discards it [728.95ms]
+
+ 15 pass
+ 0 fail
+ 39 expect() calls
+Ran 15 tests across 4 files. [8.83s]

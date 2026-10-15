@@ -1132,3 +1132,64 @@ test("a late configured base invalidates an in-flight default-base diff and refr
 	);
 	expect(document.querySelector("[data-remote-git-diff]")).toBeNull();
 });
+
+test("pull reloads a clean original editor from the changed worktree", async () => {
+	let pulled = false;
+	const f = fixture({
+		"filesystem.readFile": () => ({
+			kind: "bytes",
+			content: btoa(pulled ? "pulled contents" : "remote contents"),
+			revision: pulled ? "r2" : "r1",
+			exceededLimit: false,
+		}),
+		"git.getBranchSyncStatus": () => ({
+			currentBranch: "main",
+			defaultBranch: "main",
+			isDetached: false,
+			hasRepo: true,
+			hasUpstream: true,
+			pullCount: pulled ? 0 : 1,
+			pushCount: 0,
+		}),
+		"git.syncBranchV1": () => {
+			pulled = true;
+			return { success: true };
+		},
+	});
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={{
+				...connection,
+				capabilities: {
+					...connection.capabilities,
+					workstationGitV1: true,
+					workstationGitSyncV1: true,
+					durableOperations: true,
+				},
+			}}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	clickTreeRow(await treeRow("note.txt"));
+	const editor = await fileEditor();
+	await waitFor(() => expect(contentOf(editor)).toBe("remote contents"));
+	fireEvent.click(screen.getByRole("button", { name: "Changes" }));
+	const menu = await screen.findByRole("button", { name: "More actions" });
+	await waitFor(() => expect((menu as HTMLButtonElement).disabled).toBe(false));
+	fireEvent.pointerDown(menu, {
+		button: 0,
+		ctrlKey: false,
+		pointerType: "mouse",
+	});
+	await act(async () =>
+		fireEvent.click(screen.getByRole("menuitem", { name: "Pull 1" })),
+	);
+	await waitFor(() =>
+		expect(f.calls.some((call) => call.path === "git.syncBranchV1")).toBe(true),
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Files" }));
+	await waitFor(() => expect(contentOf(editor)).toBe("pulled contents"));
+	expect(f.errors).toEqual([]);
+});

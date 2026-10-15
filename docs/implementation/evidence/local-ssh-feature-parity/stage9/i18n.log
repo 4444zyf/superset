@@ -1,0 +1,49 @@
+$ bun run --cwd packages/i18n check
+$ bun run extract && bun run compile
+$ bun x --bun lingui extract --clean --overwrite --workers 1
+✔ Done in 15s
+Catalog statistics for locales/{locale}/messages:
+┌─────────────┬─────────────┬─────────┐
+│[32m Language    [39m│[32m Total count [39m│[32m Missing [39m│
+├─────────────┼─────────────┼─────────┤
+│ en (source) │    6493     │    -    │
+│ cs          │    6493     │    0    │
+│ de          │    6493     │    0    │
+│ es          │    6493     │    0    │
+│ fr          │    6493     │    0    │
+│ id          │    6493     │    0    │
+│ it          │    6493     │    0    │
+│ ja          │    6493     │    0    │
+│ ko          │    6493     │    0    │
+│ nl          │    6493     │    0    │
+│ pl          │    6493     │    0    │
+│ pt-BR       │    6493     │    0    │
+│ ru          │    6493     │    0    │
+│ tr          │    6493     │    0    │
+│ vi          │    6493     │    0    │
+│ zh-CN       │    6493     │    0    │
+│ zh-TW       │    6493     │    0    │
+└─────────────┴─────────────┴─────────┘
+
+(Use "npm run extract" to update catalogs with new messages.)
+(Use "npm run compile" to compile catalogs for production. Alternatively, use bundler plugins: https://lingui.dev/ref/cli#compiling-catalogs-in-ci)
+$ bun x --bun lingui compile --strict --verbose --workers 1
+Compiling message catalogs…
+en ⇒ locales/en/messages.ts
+ja ⇒ locales/ja/messages.ts
+zh-CN ⇒ locales/zh-CN/messages.ts
+fr ⇒ locales/fr/messages.ts
+ko ⇒ locales/ko/messages.ts
+zh-TW ⇒ locales/zh-TW/messages.ts
+es ⇒ locales/es/messages.ts
+de ⇒ locales/de/messages.ts
+pt-BR ⇒ locales/pt-BR/messages.ts
+it ⇒ locales/it/messages.ts
+ru ⇒ locales/ru/messages.ts
+tr ⇒ locales/tr/messages.ts
+pl ⇒ locales/pl/messages.ts
+nl ⇒ locales/nl/messages.ts
+id ⇒ locales/id/messages.ts
+cs ⇒ locales/cs/messages.ts
+vi ⇒ locales/vi/messages.ts
+Done in 2s

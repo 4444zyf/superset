@@ -37,6 +37,7 @@ export function describeDirectBackend(
 			workstationGitV1: true,
 			workstationGitIdentityV1: true,
 			workstationGitHistoryV1: true,
+			workstationGitSyncV1: true,
 			projects: true,
 			sessions: true,
 			terminals: true,
@@ -65,6 +66,7 @@ const directProcedures = z.enum([
 	"chat.prompt",
 	"git.commit",
 	"git.push",
+	"git.syncBranchV1",
 ]);
 
 async function dispatch(
@@ -102,6 +104,8 @@ async function dispatch(
 	const { appRouter } = await import("../router");
 	const caller = appRouter.createCaller(ctx);
 	switch (procedure) {
+		case "git.syncBranchV1":
+			return caller.git.syncBranchV1(input as never);
 		case "git.commit":
 			return caller.git.commit(input as never);
 		case "git.push":

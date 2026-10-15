@@ -1,0 +1,197 @@
+apps/desktop/scripts/verify-restore-controls.mjs:42:38 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    40 │ 	return {
+    41 │ 		prepareGitRemote(worktreePath) {
+  > 42 │ 			assert.ok(worktreePath.startsWith(fixture.homeDir + "/"));
+       │ 			                                  ^^^^^^^^^^^^^^^^^^^^^
+    43 │ 			assert.equal(lstatSync(worktreePath).uid, process.getuid());
+    44 │ 			const remote = join(fixture.root, "push-remote.git");
+
+  i Unsafe fix: Use a template literal.
+
+     40  40 │   	return {
+     41  41 │   		prepareGitRemote(worktreePath) {
+     42     │ - → → → assert.ok(worktreePath.startsWith(fixture.homeDir·+·"/"));
+         42 │ + → → → assert.ok(worktreePath.startsWith(`${fixture.homeDir}/`));
+     43  43 │   			assert.equal(lstatSync(worktreePath).uid, process.getuid());
+     44  44 │   			const remote = join(fixture.root, "push-remote.git");
+
+
+apps/desktop/scripts/verify-restore-controls.mjs:82:42 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    80 │ 					return execFileSync(
+    81 │ 						"git",
+  > 82 │ 						["--git-dir", remote, "rev-parse", "refs/heads/" + branch],
+       │ 						                                   ^^^^^^^^^^^^^^^^^^^^^^
+    83 │ 						{ encoding: "utf8" },
+    84 │ 					).trim();
+
+  i Unsafe fix: Use a template literal.
+
+     80  80 │   					return execFileSync(
+     81  81 │   						"git",
+     82     │ - → → → → → → ["--git-dir",·remote,·"rev-parse",·"refs/heads/"·+·branch],
+         82 │ + → → → → → → ["--git-dir",·remote,·"rev-parse",·`refs/heads/${branch}`],
+     83  83 │   						{ encoding: "utf8" },
+     84  84 │   					).trim();
+
+
+apps/desktop/scripts/verify-restore-controls.mjs:140:8 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    138 │ 					(
+    139 │ 						await fetch(
+  > 140 │ 							proxy.url + path + "&token=" + encodeURIComponent(secret),
+        │ 							^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    141 │ 						)
+    142 │ 					).status,
+
+  i Unsafe fix: Use a template literal.
+
+    138 138 │   					(
+    139 139 │   						await fetch(
+    140     │ - → → → → → → → proxy.url·+·path·+·"&token="·+·encodeURIComponent(secret),
+        140 │ + → → → → → → → `${proxy.url·+·path}&token=${encodeURIComponent(secret)}`,
+    141 141 │   						)
+    142 142 │   					).status,
+
+
+apps/desktop/scripts/verify-workspace-restore-ui.mjs:302:4 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    300 │ 		writeFileSync(
+    301 │ 			join(output, "workspace-restore-ui.json"),
+  > 302 │ 			JSON.stringify(report, null, 2) + "\n",
+        │ 			^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    303 │ 		);
+    304 │ 	}
+
+  i Unsafe fix: Use a template literal.
+
+    300 300 │   		writeFileSync(
+    301 301 │   			join(output, "workspace-restore-ui.json"),
+    302     │ - → → → JSON.stringify(report,·null,·2)·+·"\n",
+        302 │ + → → → `${JSON.stringify(report,·null,·2)}\n`,
+    303 303 │   		);
+    304 304 │   	}
+
+
+apps/desktop/scripts/verify-workspace-restore-ui.mjs:561:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    559 │ 	writeFileSync(
+    560 │ 		join(output, "workspace-restore-ui.json"),
+  > 561 │ 		JSON.stringify(report, null, 2) + "\n",
+        │ 		^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    562 │ 	);
+    563 │ 	return report;
+
+  i Unsafe fix: Use a template literal.
+
+    559 559 │   	writeFileSync(
+    560 560 │   		join(output, "workspace-restore-ui.json"),
+    561     │ - → → JSON.stringify(report,·null,·2)·+·"\n",
+        561 │ + → → `${JSON.stringify(report,·null,·2)}\n`,
+    562 562 │   	);
+    563 563 │   	return report;
+
+
+apps/desktop/scripts/verify-workstation-git-branch-ui.mjs:94:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+     92 │ 	writeFileSync(
+     93 │ 		join(output, "workstation-git-branch-ui.json"),
+   > 94 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+   > 95 │ 			{
+         ...
+  > 110 │ 			2,
+  > 111 │ 		) + "\n",
+        │ 		^^^^^^^^
+    112 │ 	);
+    113 │ 	return { remote, scope };
+
+  i Unsafe fix: Use a template literal.
+
+     92  92 │   	writeFileSync(
+     93  93 │   		join(output, "workstation-git-branch-ui.json"),
+     94     │ - → → JSON.stringify(
+         94 │ + → → `${JSON.stringify(
+     95  95 │   			{
+     96  96 │   				sourceRevision: process.env.GITHUB_SHA,
+    ······· │
+    109 109 │   			null,
+    110 110 │   			2,
+    111     │ - → → )·+·"\n",
+        111 │ + → → )}\n`,
+    112 112 │   	);
+    113 113 │   	return { remote, scope };
+
+
+apps/desktop/scripts/verify-workstation-git-sync-ui.mjs:94:18 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    92 │ 	const readText = async () => {
+    93 │ 		const result = await query("filesystem.readFile", {
+  > 94 │ 			absolutePath: workspace.worktreePath + "/sync-ui.txt",
+       │ 			              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    95 │ 			maxBytes: 1024,
+    96 │ 		});
+
+  i Unsafe fix: Use a template literal.
+
+     92  92 │   	const readText = async () => {
+     93  93 │   		const result = await query("filesystem.readFile", {
+     94     │ - → → → absolutePath:·workspace.worktreePath·+·"/sync-ui.txt",
+         94 │ + → → → absolutePath:·`${workspace.worktreePath}/sync-ui.txt`,
+     95  95 │   			maxBytes: 1024,
+     96  96 │   		});
+
+
+apps/desktop/scripts/verify-workstation-git-sync-ui.mjs:157:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+
+    155 │ 	writeFileSync(
+    156 │ 		join(output, "workstation-git-sync-ui.json"),
+  > 157 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 158 │ 			{
+         ...
+  > 174 │ 			2,
+  > 175 │ 		) + "\n",
+        │ 		^^^^^^^^
+    176 │ 	);
+    177 │ }
+
+  i Unsafe fix: Use a template literal.
+
+    155 155 │   	writeFileSync(
+    156 156 │   		join(output, "workstation-git-sync-ui.json"),
+    157     │ - → → JSON.stringify(
+        157 │ + → → `${JSON.stringify(
+    158 158 │   			{
+    159 159 │   				sourceRevision: process.env.GITHUB_SHA,
+    ······· │
+    173 173 │   			null,
+    174 174 │   			2,
+    175     │ - → → )·+·"\n",
+        175 │ + → → )}\n`,
+    176 176 │   	);
+    177 177 │   }
+
+
+Skipped 8 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 4 files in 37ms. Fixed 3 files.
+Found 8 infos.

@@ -8,6 +8,7 @@ import { verifyWorkstationGitBaseUi } from "./verify-workstation-git-base-ui.mjs
 import { verifyWorkstationGitBranchUi } from "./verify-workstation-git-branch-ui.mjs";
 import { verifyWorkstationGitDiffUi } from "./verify-workstation-git-diff-ui.mjs";
 import { verifyWorkstationGitHistoryUi } from "./verify-workstation-git-history-ui.mjs";
+import { verifyWorkstationGitSyncUi } from "./verify-workstation-git-sync-ui.mjs";
 import { verifyWorkstationMultipleFilesUi } from "./verify-workstation-multiple-files-ui.mjs";
 import { verifyWorkstationSettingsUi } from "./verify-workstation-settings-ui.mjs";
 
@@ -337,14 +338,22 @@ export async function verifyWorkspaceRestoreUi({
 	});
 	await verifyWorkstationGitHistoryUi({ getPage, click, screenshot, output });
 	await verifyWorkstationGitBaseUi({ getPage, click, screenshot, output });
-	if (controls?.prepareGitRemote)
-		await verifyWorkstationGitBranchUi({
+	if (controls?.prepareGitRemote) {
+		const branch = await verifyWorkstationGitBranchUi({
 			getPage,
 			click,
 			screenshot,
 			output,
 			controls,
 		});
+		await verifyWorkstationGitSyncUi({
+			getPage,
+			click,
+			screenshot,
+			output,
+			...branch,
+		});
+	}
 	await ready();
 
 	await until(

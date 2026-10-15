@@ -1,0 +1,15 @@
+bun test v1.4.2 (744846f84)
+
+src/workers/tasks/git-task-registry.test.ts:
+(pass) gitTasks registry > registers every exported worker task [0.13ms]
+(pass) gitTasks registry > has no duplicate task types [0.02ms]
+
+src/trpc/router/git/branch-sync.test.ts:
+(pass) fetch updates tracking without changing worktree; pull rebases from the selected repository [719.50ms]
+(pass) sync rebases divergent local commits and pushes the result with both sides retained [692.65ms]
+(pass) a conflicting sync leaves the real rebase for resolution and never pushes or discards it [675.72ms]
+
+ 5 pass
+ 0 fail
+ 15 expect() calls
+Ran 5 tests across 2 files. [2.33s]

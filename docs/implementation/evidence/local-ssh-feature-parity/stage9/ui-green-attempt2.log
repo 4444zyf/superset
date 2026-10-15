@@ -1,0 +1,43 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.80ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.13ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.10ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.26ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.13ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [5.70ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.07ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.14ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.74ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.66ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.47ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.55ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.65ms]
+(pass) attachment readiness requires an explicit backend capability [0.25ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.13ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.18ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.10ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.44ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.22ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.76ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteBranchActions/RemoteBranchActions.test.tsx:
+(pass) original rename dialog submits once, excludes IME Enter, and refreshes the selected workspace [115.03ms]
+(pass) a lost rename reply is confirmed by a read without another mutation [38.24ms]
+(pass) unknown rename outcome retains its draft and requires a read before another write [55.81ms]
+(pass) push uses one durable operation and does not resubmit after a lost reply [10.44ms]
+(pass) upstream branches cannot be renamed and push needs durable capability and a remote [9.55ms]
+(pass) an old rename reply cannot close or refresh the next workspace [39.65ms]
+(pass) a confirmed rename still refreshes its workspace when the following status read fails [23.32ms]
+(pass) original Fetch action is capability gated and uses a single durable request [40.72ms]
+(pass) pull reconciles the worktree after a conflict without retrying the mutation [24.90ms]
+(pass) an unsaved editor draft blocks Pull and Sync but still allows Fetch [27.52ms]
+
+ 33 pass
+ 0 fail
+ 106 expect() calls
+Ran 33 tests across 2 files. [745.00ms]

@@ -1,3 +1,8 @@
+export {
+	fetchTrackingBranch,
+	isMergeConflictError,
+	isUpstreamMissingError,
+} from "./branch-sync";
 export { createGitEnvResolver, createGitFactory } from "./git";
 export { listGitIgnoredDirs } from "./ignored-dirs";
 export type { ResolvedRef, ResolveRefOptions } from "./refs";
