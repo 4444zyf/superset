@@ -1,0 +1,61 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.03ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.21ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.11ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.08ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.58ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.11ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.62ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.08ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.14ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.36ms]
+(pass) disconnect and app disposal only close client transports [0.06ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.74ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.60ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.86ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.55ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.62ms]
+(pass) attachment readiness requires an explicit backend capability [0.28ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.96ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.17ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.10ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.34ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.28ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [1.46ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [255.82ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [274.83ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [102.67ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [98.83ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [72.16ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [64.77ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [95.71ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [81.11ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [49.21ms]
+(pass) opening a development server submits its port for forwarding on B [43.72ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [64.70ms]
+(pass) checking an empty operation journal shows a readable result [47.25ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [55.85ms]
+
+src/renderer/workstation/Workstation/Workstation.restore.test.tsx:
+(pass) offline startup keeps all three saved panes, ratios and focus without ordinary connection or mutations [61.76ms]
+(pass) the SSH window feature leaves local workspace opening on its existing path [91.36ms]
+(pass) a newly created SSH workspace opens its saved tab before the refreshed list has rendered [66.76ms]
+
+src/renderer/workstation/Workstation/components/RemoteProjectSettings/RemoteProjectSettings.test.tsx:
+(pass) an old project write cannot install metadata after switching the target [48.69ms]
+(pass) project settings reuse original controls and write only the selected remote project [29.73ms]
+(pass) a lost metadata reply is read back once and never replays the mutation [32.89ms]
+(pass) an unconfirmed reply retains the field draft and blocks another blur write [26.52ms]
+(pass) a write finishing after the dialog closes cannot refresh the current target [23.79ms]
+
+ 45 pass
+ 0 fail
+ 849 expect() calls
+Ran 45 tests across 5 files. [2.42s]

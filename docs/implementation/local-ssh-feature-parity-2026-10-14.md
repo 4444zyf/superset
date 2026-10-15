@@ -262,3 +262,18 @@ TDD 首先记录三个失败：worktree 仍位于后端私有目录、主机设�
 同一轮通过文件/Git身份/单文件暂存提交、原设置、多文件、树、Diff、历史，以及无origin项目选择本地main后的真实基础分支Diff和Auto恢复。原分支重命名、Push、Fetch/Pull/Sync/Fetch & Pull全部通过，远端与工作区HEAD一致、已打开原CodeMirror更新、待处理操作0。原窗口关闭/重开、断线恢复、离线、后端重启、部分终端结束、三工作区标签及daemon丢失不自动重建的生命周期检查通过。截图已实际查看。[第38轮数据与截图](evidence/local-ssh-feature-parity/source-linux-worktree-location)。
 
 该feature已具备源码、TDD、真实Git与真实Linux/SSH窗口证据。恢复采样为1次，SSH/Git均使用拥有的隔离夹具，Git远端为同一SSH后端上的独立bare仓库；不替代GitHub/供应商认证或macOS安装包验收。新1.37.7 DMG尚未生成，其余功能对齐清单继续进行。
+
+
+## 阶段十一：目标机器上的项目设置基础
+
+新增可选workstationProjectsV1能力；工作站主进程的原过程注册表允许显式projectId作用域，复用原project.get/update/setColor/setBranchPrefix/setNamingInstructions/setSparseCheckoutPaths。不改变这些API的输入、输出、类型或已有错误合同。未声明能力的旧后端没有项目设置入口，所有请求仍检查当前连接generation。
+
+原V2ProjectSettingsBody提取纯ProjectSettingsLayout头部和容器，旧页面继续使用同一布局、原控制器与所有插槽。新工作站侧栏复用SidebarMenuAction，设置面板复用该布局、SettingsSection/SettingsRow、ColorSelector、BranchPrefixControl及原Input/Textarea。布局单独使用最大900px侧面板，入口按需加载，避免项目设置代码增加首屏载入。设置包含名称、颜色、分支前缀、命名说明和稀疏检出；仓库地址与位置只读，worktree显示既定统一目录，没有任意覆盖入口。
+
+元数据字段以失去焦点或明确选择提交；只在单个写入完成后读回所选项目的规范结果。回复丢失只读回查，字段一致时确认状态，不重发写入；未确认时保留草稿并阻止后续blur写入，用户可显式Refresh读取当前状态。切换connection/backend/namespace/generation/project、关闭弹窗或能力改变后旧结果不能安装或刷新新目标。名称支持IME保护、Enter失焦和Escape取消当前编辑。
+
+TDD先记录主进程未开放项目过程、界面组件缺失；补充未知回复草稿保留、回复丢失不重放、关闭后的晚回复与切换目标后旧写入隔离。桌面相关45项/849断言通过，包含原恢复、主进程桥与完整无账号启动导入审计。首次测试预期漏掉旧桥既有connectionId/generation字段、误将同一仓库路径的两个展示节点当作唯一，修正测试后通过。17语言提取与严格编译、desktop与host类型通过。[阶段十一红绿日志](evidence/local-ssh-feature-parity/stage11)。
+
+项目改名后不移动运行中的工作树。真实Git回归先复现主仓库移走后，清理守卫不认识旧名称-完整项目ID目录；现按完整UUID确认原分组，仍拒绝分组根本身、其他完整UUID、越界和符号链接逃逸。相关后端17项/41断言通过。
+
+项目设置组尚未全面完成：图标上传与选择、原500ms文本自动保存调度、保存状态呈现、项目脚本和危险操作仍需接入；当前不是完整原版设置页替代。实际Linux/SSH窗口验收增加物理打开、改名/颜色/前缀/命名说明/稀疏检出、读回和重开，结果另记。

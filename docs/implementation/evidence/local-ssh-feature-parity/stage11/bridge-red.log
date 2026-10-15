@@ -1,0 +1,48 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+12 | 		...f.manager,
+13 | 		getVerifiedDescription: () => ({ capabilities: { workstationProjectsV1: enabled } }),
+14 | 		invoke: async (id, request) => { requests.push({ id, ...request }); return { success: true }; },
+15 | 	});
+16 | 	const request = { connectionId: "machine", generation: 1, path: "project.get", type: "query" as const, input: { projectId: "project" } };
+17 | 	await expect(controller.invoke(request)).rejects.toThrow("required capability");
+                                                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "required capability"
+Received message: "Unsupported workstation procedure"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:17:51)
+(fail) project settings require an explicit project and an advertised backend capability [1.36ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.42ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.21ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.19ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [3.27ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.26ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.64ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.02ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.07ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.11ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.25ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.78ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.82ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.75ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.82ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.68ms]
+(pass) attachment readiness requires an explicit backend capability [0.27ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.30ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.19ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.08ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.42ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.29ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [1.19ms]
+
+1 tests failed:
+(fail) project settings require an explicit project and an advertised backend capability [1.36ms]
+
+ 23 pass
+ 1 fail
+ 60 expect() calls
+Ran 24 tests across 1 file. [204.00ms]

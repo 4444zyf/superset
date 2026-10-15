@@ -12,6 +12,7 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarMenuAction,
 	SidebarProvider,
 	SidebarTrigger,
 } from "@superset/ui/sidebar";
@@ -42,6 +43,7 @@ export function WorkstationShell({
 	onSettings,
 	onNavigate,
 	onProject,
+	onProjectSettings,
 }: {
 	page: "machines" | "workspaces";
 	projects: RemoteProject[];
@@ -51,6 +53,7 @@ export function WorkstationShell({
 	onSettings?(): void;
 	onNavigate(page: "machines" | "workspaces"): void;
 	onProject(id: string): void;
+	onProjectSettings?(id: string): void;
 }) {
 	const { t } = useLingui();
 	const [aboutOpen, setAboutOpen] = useState(false);
@@ -141,6 +144,15 @@ export function WorkstationShell({
 														<Folder />
 														<span>{p.name}</span>
 													</SidebarMenuButton>
+													{onProjectSettings && (
+														<SidebarMenuAction
+															aria-label={t({ message: "Project Settings" })}
+															title={p.name}
+															onClick={() => onProjectSettings(p.id)}
+														>
+															<Settings />
+														</SidebarMenuAction>
+													)}
 												</SidebarMenuItem>
 											))}
 										</SidebarMenu>

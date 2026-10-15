@@ -132,6 +132,7 @@ export class WorkstationController {
 				"workstationGitHistoryV1",
 				"workstationGitSyncV1",
 				"workstationManagedWorktreesV1",
+				"workstationProjectsV1",
 			].map((key) => [key, metadata.capabilities?.[key] === true]),
 		);
 		const chatHarnesses = Array.isArray(metadata.chatHarnesses)
@@ -161,9 +162,14 @@ export class WorkstationController {
 		if ((workspaceProcedure?.type ?? procedures[request.path]) !== request.type)
 			throw new Error("Unsupported workstation procedure");
 		if (workspaceProcedure) {
-			const input = request.input as { workspaceId?: unknown } | undefined;
-			if (typeof input?.workspaceId !== "string" || !input.workspaceId.trim())
-				throw new Error("An explicit workspace is required");
+			const identity = workspaceProcedure.identity ?? "workspaceId";
+			const input = request.input as Record<string, unknown> | undefined;
+			if (typeof input?.[identity] !== "string" || !input[identity].trim())
+				throw new Error(
+					identity === "projectId"
+						? "An explicit project is required"
+						: "An explicit workspace is required",
+				);
 			const features = await this.features(request.connectionId);
 			this.assertGeneration(request.connectionId, request.generation);
 			if (!features.capabilities?.[workspaceProcedure.capability])

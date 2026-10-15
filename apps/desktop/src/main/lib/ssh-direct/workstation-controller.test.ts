@@ -4,6 +4,57 @@ import type { SqliteDatabase } from "@superset/direct-connection";
 import { OperationIntents } from "./operation-intents";
 import { WorkstationController } from "./workstation-controller";
 
+test("project settings require an explicit project and an advertised backend capability", async () => {
+	const f = fixture();
+	const requests: unknown[] = [];
+	let enabled = false;
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationProjectsV1: enabled },
+		}),
+		invoke: async (id, request) => {
+			requests.push({ id, ...request });
+			return { success: true };
+		},
+	});
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "project.get",
+		type: "query" as const,
+		input: { projectId: "project" },
+	};
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"required capability",
+	);
+	enabled = true;
+	await expect(controller.invoke({ ...request, input: {} })).rejects.toThrow(
+		"explicit project",
+	);
+	await controller.invoke(request);
+	for (const [path, input] of [
+		["project.update", { name: "Renamed" }],
+		["project.setColor", { color: "#aabbcc" }],
+		["project.setBranchPrefix", { mode: "custom", customPrefix: "feature" }],
+		["project.setNamingInstructions", { instructions: "Use task name" }],
+		["project.setSparseCheckoutPaths", { paths: ["packages/ui"] }],
+	] as const)
+		await controller.invoke({
+			...request,
+			path,
+			type: "mutation",
+			input: { projectId: "project", ...input },
+		});
+	expect(requests).toHaveLength(6);
+	expect(requests[0]).toMatchObject({
+		id: "machine",
+		path: "project.get",
+		type: "query",
+		input: { projectId: "project" },
+	});
+});
+
 test("workspace file search and Git staging reach the selected backend without cloud calls", async () => {
 	const f = fixture();
 	const requests: unknown[] = [];

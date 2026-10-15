@@ -37,6 +37,11 @@ const WorkstationSettings = lazy(() =>
 		default: module.WorkstationSettings,
 	})),
 );
+const RemoteProjectSettings = lazy(() =>
+	import("./components/RemoteProjectSettings/RemoteProjectSettings").then(
+		(module) => ({ default: module.RemoteProjectSettings }),
+	),
+);
 
 export function Workstation({
 	api = window.directWorkstation,
@@ -72,8 +77,17 @@ export function Workstation({
 	const selectedRef = useRef("");
 	const navigationRevision = useRef(0);
 	const [projectId, setProjectId] = useState<string | null>(null);
+	const [projectSettings, setProjectSettings] = useState<{
+		id: string;
+		connectionId: string;
+		backendId: string;
+		namespaceId: string;
+	} | null>(null);
 	const [form, setForm] = useState<"add" | DirectProfile | null>(null);
 	const [create, setCreate] = useState<"project" | "session" | null>(null);
+	useEffect(() => {
+		setProjectSettings(null);
+	}, [selectedId, ui.connection?.backendId, ui.connection?.namespaceId]);
 	const createRef = useRef(create);
 	createRef.current = create;
 	const [remove, setRemove] = useState<DirectProfile | null>(null);
@@ -288,6 +302,20 @@ export function Workstation({
 	const disabled = ui.busy || api.platform === "win32";
 	const content = (
 		<WorkstationShell
+			onProjectSettings={
+				ui.connection?.capabilities?.workstationProjectsV1
+					? (id) => {
+							const target = ui.connection;
+							if (target)
+								setProjectSettings({
+									id,
+									connectionId: target.connectionId,
+									backendId: target.backendId,
+									namespaceId: target.namespaceId,
+								});
+						}
+					: undefined
+			}
 			page={page}
 			onSettings={
 				api.getPreferences && api.updatePreferences
@@ -651,6 +679,30 @@ export function Workstation({
 					onClose={closeCreate}
 				/>
 			)}
+			{projectSettings &&
+				ui.connection &&
+				projectSettings.connectionId === ui.connection.connectionId &&
+				projectSettings.backendId === ui.connection.backendId &&
+				projectSettings.namespaceId === ui.connection.namespaceId && (
+					<Suspense fallback={null}>
+						<RemoteProjectSettings
+							key={`${projectSettings.connectionId}:${projectSettings.id}:${ui.connection.generation}`}
+							api={api}
+							connection={ui.connection}
+							projectId={projectSettings.id}
+							onClose={() => setProjectSettings(null)}
+							onChanged={() => {
+								const target = ui.active.current;
+								if (
+									target?.connectionId === projectSettings.connectionId &&
+									target.backendId === projectSettings.backendId &&
+									target.namespaceId === projectSettings.namespaceId
+								)
+									void ui.operation(() => ui.refresh(target));
+							}}
+						/>
+					</Suspense>
+				)}
 			{create === "project" && (
 				<ProjectDialog
 					serverError={ui.error}

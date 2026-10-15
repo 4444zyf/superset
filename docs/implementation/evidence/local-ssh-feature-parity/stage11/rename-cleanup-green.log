@@ -1,0 +1,57 @@
+bun test v1.4.2 (744846f84)
+
+test/integration/direct-worktree-location.integration.test.ts:
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "09ff54f8-e5f5-4cc3-85a1-8e75b8cf12fa",
+  worktreePath: "/tmp/remix-project-isolation-14oFv3/Superset Remix/worktrees/Example-3c000fbe-58fa-45ef-9329-6546d23288c9/feature/same",
+  error: WorkerTaskAbortedError: Worker runner disposed
+ kind: "disposed",
+
+      at dispose (/workspace/superset/packages/host-service/src/workers/WorkerTaskRunner.ts:238:6)
+      at map (1:11)
+      at dispose (/workspace/superset/packages/host-service/src/workers/host-worker-pool.ts:310:29)
+      at <anonymous> (/workspace/superset/packages/host-service/src/app.ts:660:30)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/createTestHost.ts:183:17)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/scenarios.ts:126:15)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:47:15)
+,
+}
+(pass) same-named projects in separate direct namespaces cannot share a worktree directory [1120.61ms]
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "3269f570-61fe-4377-b59b-3f7073b00b67",
+  worktreePath: "/tmp/remix-machine-home-8zb9jD/Superset Remix/worktrees/My Project-37cfcbe6-a037-41dc-9e6e-2ada1cfbca17/feature/central",
+  error: WorkerTaskAbortedError: Worker runner disposed
+ kind: "disposed",
+
+      at dispose (/workspace/superset/packages/host-service/src/workers/WorkerTaskRunner.ts:238:6)
+      at map (1:11)
+      at dispose (/workspace/superset/packages/host-service/src/workers/host-worker-pool.ts:310:29)
+      at <anonymous> (/workspace/superset/packages/host-service/src/app.ts:660:30)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/createTestHost.ts:183:17)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/scenarios.ts:126:15)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:110:18)
+,
+}
+(pass) direct worktrees create and clean up under the machine-wide Remix folder despite stored overrides [563.10ms]
+(pass) direct location settings cannot redirect worktrees to an Agent folder [259.55ms]
+
+src/trpc/router/workspace-creation/shared/worktree-paths.test.ts:
+(pass) resolveProjectWorktreesFolder > names the folder after the project, not its id [0.15ms]
+(pass) resolveProjectWorktreesFolder > falls back to the id when the name yields no folder [0.12ms]
+(pass) resolveProjectWorktreesFolder > suffixes a name another project on the host already uses [0.07ms]
+(pass) resolveProjectWorktreesFolder > keeps path separators and reserved characters out of the folder [0.04ms]
+(pass) resolveProjectWorktreesFolder > steers clear of Windows device names [0.09ms]
+(pass) safeResolveWorktreePath > places a prefixed branch at <base>/<project name>/<prefix>/<branch> [0.08ms]
+(pass) safeResolveWorktreePath > rejects a branch that escapes the project folder [0.07ms]
+(pass) isInsideProjectWorktreesRoot > accepts a worktree beneath <base>/<projectId> [0.28ms]
+(pass) isInsideProjectWorktreesRoot > rejects the project root itself, siblings, and paths outside the base [0.25ms]
+(pass) isInsideProjectWorktreesRoot > a renamed project keeps only its own full-ID worktree folder [0.43ms]
+(pass) isInsideProjectWorktreesRoot > accepts a dangling symlink leaf under a base that itself sits behind a symlink [0.16ms]
+(pass) isInsideProjectWorktreesRoot > accepts the name folder, its suffixed form, and the legacy id folder [1.14ms]
+(pass) isInsideProjectWorktreesRoot > rejects a leaf symlink that points out of the base [0.17ms]
+(pass) isInsideProjectWorktreesRoot > rejects a worktree under a project root that is a symlink out of the base [0.15ms]
+
+ 17 pass
+ 0 fail
+ 41 expect() calls
+Ran 17 tests across 2 files. [2.57s]

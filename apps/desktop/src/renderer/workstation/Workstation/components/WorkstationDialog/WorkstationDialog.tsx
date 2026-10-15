@@ -9,12 +9,14 @@ export function WorkstationDialog({
 	children,
 	onClose,
 	error,
+	className,
 }: {
 	title: string;
 	drawer?: boolean;
 	children: ReactNode;
 	onClose(): void;
 	error?: string | null;
+	className?: string;
 }) {
 	const { t } = useLingui();
 	return (
@@ -27,7 +29,7 @@ export function WorkstationDialog({
 			<Dialog.Portal>
 				<Dialog.Overlay className="workstation-overlay" />
 				<Dialog.Content
-					className={`workstation-dialog ${drawer ? "is-drawer" : ""}`}
+					className={`workstation-dialog ${drawer ? "is-drawer" : ""} ${className ?? ""}`}
 					aria-describedby={undefined}
 					onInteractOutside={(event) => event.preventDefault()}
 				>

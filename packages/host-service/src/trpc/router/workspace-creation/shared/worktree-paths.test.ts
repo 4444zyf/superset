@@ -111,6 +111,30 @@ describe("isInsideProjectWorktreesRoot", () => {
 		).toBe(false);
 	});
 
+	test("a renamed project keeps only its own full-ID worktree folder", () => {
+		const base = tmp("wt-renamed-");
+		const project = { id: PROJECT_ID, name: "New Name" };
+		const originalFolder = join(base, `Old Name-${PROJECT_ID}`);
+		mkdirSync(join(originalFolder, "feature"), { recursive: true });
+		expect(
+			isInsideProjectWorktreesRoot(
+				join(originalFolder, "feature"),
+				project,
+				base,
+			),
+		).toBe(true);
+		expect(isInsideProjectWorktreesRoot(originalFolder, project, base)).toBe(
+			false,
+		);
+		expect(
+			isInsideProjectWorktreesRoot(
+				join(base, "Old Name-1c99c8eb-1b31-4f04-9ac4-61a2760c74b7", "feature"),
+				project,
+				base,
+			),
+		).toBe(false);
+	});
+
 	test("accepts a dangling symlink leaf under a base that itself sits behind a symlink", () => {
 		// tmpdir() on macOS is /var/..., a symlink to /private/var/...: the
 		// base canonicalises to /private/var while an unresolvable leaf used

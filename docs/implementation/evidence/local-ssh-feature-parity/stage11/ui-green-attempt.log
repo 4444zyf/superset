@@ -1,0 +1,211 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.32ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.36ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.17ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.09ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.37ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.11ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [1.08ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.18ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.11ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.13ms]
+(pass) disconnect and app disposal only close client transports [0.06ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.76ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.79ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.53ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.68ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.97ms]
+(pass) attachment readiness requires an explicit backend capability [0.23ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.21ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.17ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.20ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.40ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.24ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [1.03ms]
+
+src/renderer/workstation/Workstation/components/RemoteProjectSettings/RemoteProjectSettings.test.tsx:
+32 |   // throw errors w/ suggestions for better queries. Opt in so off by default.
+33 |   throwSuggestions: false,
+34 |   // called when getBy* queries fail. (message, container) => Error
+35 |   getElementError(message, container) {
+36 |     const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
+37 |     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+                           ^
+TestingLibraryElementError: Found multiple elements with the text: /remote/example
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<code[39m
+  [33mclass[39m=[32m"break-all text-xs"[39m
+[36m>[39m
+  [0m/remote/example[0m
+[36m</code>[39m
+
+Ignored nodes: comments, script, style
+[36m<code[39m
+  [33mclass[39m=[32m"break-all text-xs"[39m
+[36m>[39m
+  [0m/remote/example[0m
+[36m</code>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-scroll-locked[39m=[32m"1"[39m
+  [33mstyle[39m=[32m"pointer-events: none;"[39m
+[36m>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"workstation-overlay"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"radix-_r_1_"[39m
+    [33mclass[39m=[32m"workstation-dialog is-drawer"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mid[39m=[32m"radix-_r_0_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"ws-dialog-head"[39m
+    [36m>[39m
+      [36m<h2[39m
+        [33mid[39m=[32m"radix-_r_1_"[39m
+      [36m>[39m
+        [0mProject settings[0m
+      [36m</h2>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Close"[39m
+        [33mclass[39m=[32m"ws-icon-button"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-x"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"18"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"18"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M18 6 6 18"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33md[39m=[32m"m6 6 12 12"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"ws-dialog-body min-w-0 overflow-auto"[39m
+      [33mdata-project-settings[39m=[32m"project"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mRefresh[0m
+      [36m</button>[39m
+      [36m<fieldset>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"p-6 max-w-4xl w-full min-w-0 mx-auto select-text"[39m
+        [36m>[39m
+          [36m<header[39m
+            [33mclass[39m=[32m"mb-8 flex items-center justify-between gap-4"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex min-w-0 items-center gap-3"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"size-6 rounded-sm flex items-center justify-center flex-shrink-0 text-xs font-medium border bg-muted text-muted-foreground border-foreground/10"[39m
+              [36m>[39m
+                [0mR[0m
+              [36m</div>[39m
+              [36m<h2[39m
+                [33mclass[39m=[32m"truncate text-xl font-semibold"[39m
+              [36m>[39m
+                [0mRenamed[0m
+              [36m</h2>[39m
+            [36m</div>[39m
+          [36m</header>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-10"[39m
+          [36m>[39m
+            [36m<section[39m
+              [33mclass[39m=[32m"space-y-3"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex items-start justify-between gap-4"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"min-w-0"[39m
+                [36m>[39m
+                  [36m<h3[39m
+                    [33mclass[39m=[32m"flex items-center gap-2 text-base font-semibold"[39m
+                  [36m>[39m
+                    [0mGeneral[0m
+                  [36m</h3>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex items-center justify-between gap-8 py-2.5"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"min-w-0 flex-1"[39m
+                [36m>[39m
+                  [36m<label[39m
+                    [33mclass[39m=[32m"flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-sm font-medium"[39m
+                    [33mdata-slot[39m=[32m"label"[39m
+                    [33mfor[39m=[32m"project-name"[39m
+                  [36m>[39m
+                    [0mName[0m
+                  [36m</label>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"shrink-0"[39m
+                [36m>[39m
+                  [36m<input[39m
+                    [33mclass[39m=[32m"file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-64 max-w-full"[39m
+                    [33mdata-slot[39m=[32m"input"[39m
+                    [33mid[39m=[32m"project-name"[39m
+                    [33mmaxlength[39m=[32m"200"[39...
+      at getElementError (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:23)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:55:13)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteProjectSettings/RemoteProjectSettings.test.tsx:26:16)
+(fail) project settings reuse original controls and write only the selected remote project [183.56ms]
+(pass) a lost metadata reply is read back once and never replays the mutation [71.00ms]
+
+1 tests failed:
+(fail) project settings reuse original controls and write only the selected remote project [183.56ms]
+
+ 25 pass
+ 1 fail
+ 67 expect() calls
+Ran 26 tests across 2 files. [654.00ms]

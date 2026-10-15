@@ -7,6 +7,7 @@ import {
 	join,
 	normalize,
 	resolve,
+	relative,
 	sep,
 } from "node:path";
 import { TRPCError } from "@trpc/server";
@@ -135,7 +136,16 @@ export function isInsideProjectWorktreesRoot(
 	// symlink out of the base would otherwise let a path beneath it pass.
 	const base = normalizePath(worktreeBaseDir ?? defaultWorktreesRoot());
 	const resolved = normalizePath(path);
-	return projectWorktreesFolderCandidates(project).some((folder) => {
+	const folders = projectWorktreesFolderCandidates(project);
+	const actualFolder = relative(base, resolved).split(sep)[0];
+	if (
+		/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+			project.id,
+		) &&
+		actualFolder?.endsWith(`-${project.id}`)
+	)
+		folders.push(actualFolder);
+	return folders.some((folder) => {
 		const root = normalizePath(projectWorktreesRoot(folder, worktreeBaseDir));
 		return (
 			root !== base &&

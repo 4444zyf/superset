@@ -1,14 +1,46 @@
 export interface WorkspaceProcedure {
 	type: "query" | "mutation";
+	identity?: "projectId";
 	capability:
 		| "workstationFilesV1"
 		| "workstationGitV1"
 		| "workstationGitIdentityV1"
 		| "workstationGitHistoryV1"
-		| "workstationGitSyncV1";
+		| "workstationGitSyncV1"
+		| "workstationProjectsV1";
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"project.get": {
+		type: "query",
+		capability: "workstationProjectsV1",
+		identity: "projectId",
+	},
+	"project.update": {
+		type: "mutation",
+		capability: "workstationProjectsV1",
+		identity: "projectId",
+	},
+	"project.setColor": {
+		type: "mutation",
+		capability: "workstationProjectsV1",
+		identity: "projectId",
+	},
+	"project.setBranchPrefix": {
+		type: "mutation",
+		capability: "workstationProjectsV1",
+		identity: "projectId",
+	},
+	"project.setNamingInstructions": {
+		type: "mutation",
+		capability: "workstationProjectsV1",
+		identity: "projectId",
+	},
+	"project.setSparseCheckoutPaths": {
+		type: "mutation",
+		capability: "workstationProjectsV1",
+		identity: "projectId",
+	},
 	"git.syncBranchV1": { type: "mutation", capability: "workstationGitSyncV1" },
 	"git.listRepositoryCommitsV1": {
 		type: "query",

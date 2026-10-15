@@ -97,6 +97,10 @@ test("direct worktrees create and clean up under the machine-wide Remix folder d
 		expect(await repo.git.raw(["worktree", "list", "--porcelain"])).toContain(
 			expectedPath,
 		);
+		await host.trpc.project.update.mutate({
+			projectId,
+			name: "Renamed Project",
+		});
 		renameSync(repo.repoPath, join(machineHome, "moved-repo"));
 		await host.trpc.workspace.delete.mutate({ id: created.workspace.id });
 		expect(existsSync(expectedPath)).toBe(false);

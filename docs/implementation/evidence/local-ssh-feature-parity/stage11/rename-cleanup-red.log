@@ -1,0 +1,54 @@
+bun test v1.4.2 (744846f84)
+
+test/integration/direct-worktree-location.integration.test.ts:
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "91e84d46-de48-4252-abaf-a987ae775441",
+  worktreePath: "/tmp/remix-project-isolation-g85JnL/Superset Remix/worktrees/Example-6a262a99-0915-4a73-afc3-44d542aa9e75/feature/same",
+  error: WorkerTaskAbortedError: Worker runner disposed
+ kind: "disposed",
+
+      at dispose (/workspace/superset/packages/host-service/src/workers/WorkerTaskRunner.ts:238:6)
+      at map (1:11)
+      at dispose (/workspace/superset/packages/host-service/src/workers/host-worker-pool.ts:310:29)
+      at <anonymous> (/workspace/superset/packages/host-service/src/app.ts:660:30)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/createTestHost.ts:183:17)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/scenarios.ts:126:15)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:47:15)
+,
+}
+(pass) same-named projects in separate direct namespaces cannot share a worktree directory [1058.50ms]
+[host-service:pull-request-runtime] Failed to sync workspace branch {
+  workspaceId: "4fb87ebd-9401-4efe-bafc-c16ce30cb8a6",
+  worktreePath: "/tmp/remix-machine-home-3V9skW/Superset Remix/worktrees/My Project-979011a4-b543-42fc-830d-c42e574decad/feature/central",
+  error: WorkerTaskAbortedError: Worker runner disposed
+ kind: "disposed",
+
+      at dispose (/workspace/superset/packages/host-service/src/workers/WorkerTaskRunner.ts:238:6)
+      at map (1:11)
+      at dispose (/workspace/superset/packages/host-service/src/workers/host-worker-pool.ts:310:29)
+      at <anonymous> (/workspace/superset/packages/host-service/src/app.ts:660:30)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/createTestHost.ts:183:17)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/helpers/scenarios.ts:126:15)
+      at async <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:107:18)
+,
+}
+ 98 | 			expectedPath,
+ 99 | 		);
+100 | 		await host.trpc.project.update.mutate({ projectId, name: "Renamed Project" });
+101 | 		renameSync(repo.repoPath, join(machineHome, "moved-repo"));
+102 | 		await host.trpc.workspace.delete.mutate({ id: created.workspace.id });
+103 | 		expect(existsSync(expectedPath)).toBe(false);
+                                         ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/packages/host-service/test/integration/direct-worktree-location.integration.test.ts:103:36)
+(fail) direct worktrees create and clean up under the machine-wide Remix folder despite stored overrides [526.68ms]
+(pass) direct location settings cannot redirect worktrees to an Agent folder [245.36ms]
+
+ 2 pass
+ 1 fail
+ 12 expect() calls
+Ran 3 tests across 1 file. [2.39s]
