@@ -30,7 +30,11 @@ export async function verifyWorkstationGitSyncUi({
 			`(()=>{const e=[...document.querySelectorAll('button')].find(e=>e.textContent.trim()===${JSON.stringify(text)});return e?.disabled===false;})()`,
 		);
 	const replace = async (selector, text) => {
-		await screenshot(`git-original-sync-action-${action}`);
+		await until(() =>
+			evaluate(
+				`(()=>{const e=document.querySelector(${JSON.stringify(selector)});return e && !e.disabled && e.getBoundingClientRect().height>0;})()`,
+			),
+		);
 		await click(selector);
 		await getPage().call("Input.dispatchKeyEvent", {
 			type: "keyDown",
