@@ -104,21 +104,18 @@ export async function verifyWorkstationProjectSettingsUi({
 		),
 	);
 	await screenshot("project-settings-original-prefix-menu");
-	for (const [key, code] of [
-		["End", 35],
-		["Enter", 13],
-	]) {
-		await getPage().call("Input.dispatchKeyEvent", {
-			type: "keyDown",
-			key,
-			windowsVirtualKeyCode: code,
+	const point = await until(() =>
+		evaluate(
+			"(()=>{const e=[...document.querySelectorAll('[role=option]')].find(e=>e.textContent.trim()==='Custom prefix');if(!e)return null;const r=e.getBoundingClientRect();const x=r.x+r.width/2,y=r.y+r.height/2;return e.contains(document.elementFromPoint(x,y))?{x,y}:null;})()",
+		),
+	);
+	for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
+		await getPage().call("Input.dispatchMouseEvent", {
+			type,
+			button: type === "mouseMoved" ? "none" : "left",
+			clickCount: type === "mouseMoved" ? 0 : 1,
+			...point,
 		});
-		await getPage().call("Input.dispatchKeyEvent", {
-			type: "keyUp",
-			key,
-			windowsVirtualKeyCode: code,
-		});
-	}
 	await until(async () => (await query()).branchPrefixMode === "custom");
 	await until(() => evaluate("!document.querySelector('[role=listbox]')"));
 	await replace("[data-project-settings] input[placeholder=Prefix]", "remix");
