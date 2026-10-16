@@ -156,10 +156,16 @@ export function ownedRestoreControls(home, fixture) {
 							.map((m) => Buffer.from(payloadOf(m) ?? [])),
 					).toString("utf8");
 				}
+				let cwd = null;
+				if (row.alive && process.platform === "linux") {
+					assert.equal(lstatSync(`/proc/${row.pid}`).uid, process.getuid());
+					cwd = readlinkSync(`/proc/${row.pid}/cwd`);
+				}
 				return {
 					id: row.id,
 					executionId: row.executionId,
 					pid: row.pid,
+					cwd,
 					alive: row.alive,
 					processExists:
 						process.platform === "linux"

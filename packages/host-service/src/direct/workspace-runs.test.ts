@@ -133,3 +133,26 @@ test("a status read during launch cannot prevent its confirmed execution becomin
 	finish();
 	expect((await pending).state).toBe("active");
 });
+
+test("the next confirmed run retains the preceding terminal identity for pane reuse", async () => {
+	const store = new WorkspaceRunStore(
+		new Database(":memory:") as unknown as OperationDatabase,
+	);
+	const manager = new WorkspaceRunManager(store, {
+		launch: async () => {},
+		probe: async () => ({
+			state: "live" as const,
+			executionId: "execution",
+			foreground: true,
+		}),
+		signal: async () => {},
+	});
+	const first = await manager.start(run);
+	store.update(first, { state: "ended" });
+	const second = await manager.start({
+		...run,
+		operationId: "next",
+		terminalId: "next-terminal",
+	});
+	expect(second.previousTerminalId).toBe("terminal");
+});

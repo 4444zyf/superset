@@ -1,0 +1,27 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [1.85ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [0.53ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [0.88ms]
+(pass) a changed execution is never signalled by a stale stop request [0.52ms]
+(pass) a status read during launch cannot prevent its confirmed execution becoming active [0.51ms]
+137 | test("the next confirmed run retains the preceding terminal identity for pane reuse",async()=>{
+138 |  const store=new WorkspaceRunStore(new Database(":memory:") as unknown as OperationDatabase);
+139 |  const manager=new WorkspaceRunManager(store,{launch:async()=>{},probe:async()=>({state:"live" as const,executionId:"execution",foreground:true}),signal:async()=>{}});
+140 |  const first=await manager.start(run);store.update(first,{state:"ended"});
+141 |  const second=await manager.start({...run,operationId:"next",terminalId:"next-terminal"});
+142 |  expect(second.previousTerminalId).toBe("terminal");
+                                         ^
+error: expect(received).toBe(expected)
+
+Expected: "terminal"
+Received: undefined
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/workspace-runs.test.ts:142:36)
+(fail) the next confirmed run retains the preceding terminal identity for pane reuse [0.70ms]
+
+ 5 pass
+ 1 fail
+ 15 expect() calls
+Ran 6 tests across 1 file. [22.00ms]

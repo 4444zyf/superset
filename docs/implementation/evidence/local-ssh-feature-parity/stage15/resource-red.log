@@ -1,0 +1,195 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/components/PaneGrid/PaneGrid.test.tsx:
+42 |   computedStyleSupportsPseudoElements: false
+43 | };
+44 | function runWithExpensiveErrorDiagnosticsDisabled(callback) {
+45 |   try {
+46 |     config._disableExpensiveErrorDiagnostics = true;
+47 |     return callback();
+                ^
+error: expect(received).toHaveLength(expected)
+
+Expected length: 2
+Received length: 1
+
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"ws-pane-grid"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"ws-pane-layout"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"isolate flex h-full w-full min-h-0 min-w-0 flex-1 overflow-auto"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"@container/pane-header relative flex h-full w-full min-h-[160px] min-w-[260px] flex-col overflow-hidden border-2 transition-colors duration-150 border-transparent"[39m
+              [33mdata-slot[39m=[32m"context-menu-trigger"[39m
+              [33mdata-state[39m=[32m"closed"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex h-7 shrink-0 cursor-grab items-center border-b border-border/20 bg-muted/30 transition-opacity duration-150"[39m
+                [33mdraggable[39m=[32m"true"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex h-full w-full min-w-0 items-center gap-2 px-3"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"flex min-w-0 flex-1 items-center gap-2 overflow-hidden font-medium"[39m
+                  [36m>[39m
+                    [36m<input[39m
+                      [33maria-label[39m=[32m"Title"[39m
+                      [33mclass[39m=[32m"min-w-0 w-full bg-transparent text-xs outline-none"[39m
+                      [33mdata-pane-title-id[39m=[32m"console"[39m
+                      [33mmaxlength[39m=[32m"128"[39m
+                    [36m/>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"flex min-w-0 items-center justify-end gap-0.5 overflow-hidden"[39m
+                  [36m>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex shrink-0 items-center gap-1"[39m
+                    [36m>[39m
+                      [36m<button[39m
+                        [33maria-label[39m=[32m"Split horizontally"[39m
+                        [33mclass[39m=[32m"rounded p-1 text-muted-foreground/60 transition-colors hover:text-muted-foreground"[39m
+                        [33mdata-slot[39m=[32m"tooltip-trigger"[39m
+                        [33mdata-state[39m=[32m"closed"[39m
+                        [33mtype[39m=[32m"button"[39m
+                      [36m>[39m
+                        [36m<svg[39m
+                          [33maria-hidden[39m=[32m"true"[39m
+                          [33mclass[39m=[32m"lucide lucide-columns2 lucide-columns-2"[39m
+                          [33mfill[39m=[32m"none"[39m
+                          [33mheight[39m=[32m"12"[39m
+                          [33mstroke[39m=[32m"currentColor"[39m
+                          [33mstroke-linecap[39m=[32m"round"[39m
+                          [33mstroke-linejoin[39m=[32m"round"[39m
+                          [33mstroke-width[39m=[32m"2"[39m
+                          [33mviewBox[39m=[32m"0 0 24 24"[39m
+                          [33mwidth[39m=[32m"12"[39m
+                          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                        [36m>[39m
+                          [36m<rect[39m
+                            [33mheight[39m=[32m"18"[39m
+                            [33mrx[39m=[32m"2"[39m
+                            [33mwidth[39m=[32m"18"[39m
+                            [33mx[39m=[32m"3"[39m
+                            [33my[39m=[32m"3"[39m
+                          [36m/>[39m
+                          [36m<path[39m
+                            [33md[39m=[32m"M12 3v18"[39m
+                          [36m/>[39m
+                        [36m</svg>[39m
+                      [36m</button>[39m
+                      [36m<button[39m
+                        [33maria-label[39m=[32m"Split vertically"[39m
+                        [33mclass[39m=[32m"rounded p-1 text-muted-foreground/60 transition-colors hover:text-muted-foreground"[39m
+                        [33mdata-slot[39m=[32m"tooltip-trigger"[39m
+                        [33mdata-state[39m=[32m"closed"[39m
+                        [33mtype[39m=[32m"button"[39m
+                      [36m>[39m
+                        [36m<svg[39m
+                          [33maria-hidden[39m=[32m"true"[39m
+                          [33mclass[39m=[32m"lucide lucide-rows2 lucide-rows-2"[39m
+                          [33mfill[39m=[32m"none"[39m
+                          [33mheight[39m=[32m"12"[39m
+                          [33mstroke[39m=[32m"currentColor"[39m
+                          [33mstroke-linecap[39m=[32m"round"[39m
+                          [33mstroke-linejoin[39m=[32m"round"[39m
+                          [33mstroke-width[39m=[32m"2"[39m
+                          [33mviewBox[39m=[32m"0 0 24 24"[39m
+                          [33mwidth[39m=[32m"12"[39m
+                          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                        [36m>[39m
+                          [36m<rect[39m
+                            [33mheight[39m=[32m"18"[39m
+                            [33mrx[39m=[32m"2"[39m
+                            [33mwidth[39m=[32m"18"[39m
+                            [33mx[39m=[32m"3"[39m
+                            [33my[39m=[32m"3"[39m
+                          [36m/>[39m
+                          [36m<path[39m
+                            [33md[39m=[32m"M3 12h18"[39m
+                          [36m/>[39m
+                        [36m</svg>[39m
+                      [36m</button>[39m
+                      [36m<button[39m
+                        [33maria-label[39m=[32m"Close pane"[39m
+                        [33mclass[39m=[32m"rounded p-1 text-muted-foreground/60 transition-colors hover:text-muted-foreground"[39m
+                        [33mdata-slot[39m=[32m"tooltip-trigger"[39m
+                        [33mdata-state[39m=[32m"closed"[39m
+                        [33mtype[39m=[32m"button"[39m
+                      [36m>[39m
+                        [36m<svg[39m
+                          [33maria-hidden[39m=[32m"true"[39m
+                          [33mclass[39m=[32m"lucide lucide-x"[39m
+                          [33mfill[39m=[32m"none"[39m
+                          [33mheight[39m=[32m"12"[39m
+                          [33mstroke[39m=[32m"currentColor"[39m
+                          [33mstroke-linecap[39m=[32m"round"[39m
+                          [33mstroke-linejoin[39m=[32m"round"[39m
+                          [33mstroke-width[39m=[32m"2"[39m
+                          [33mviewBox[39m=[32m"0 0 24 24"[39m
+                          [33mwidth[39m=[32m"12"[39m
+                          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                        [36m>[39m
+                          [36m<path[39m
+                            [33md[39m=[32m"M18 6 6 18"[39m
+                          [36m/>[39m
+                          [36m<path[39m
+                            [33md[39m=[32m"m6 6 12 12"[39m
+                          [36m/>[39m
+                        [36m</svg>[39m
+                      [36m</button>[39m
+                    [36m</div>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex min-h-0 min-w-0 flex-1 overflow-hidden"[39m
+              [36m>[39m
+                [36m<section[39m
+                  [33mclass[39m=[32m"ws-workspace-pane"[39m
+                  [33mdata-active[39m=[32m"true"[39m
+                  [33mdata-pane-id[39m=[32m"console"[39m
+                  [33mdata-resource-state[39m=[32m"unknown"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"ws-pane-content"[39m
+                  [36m>[39m
+                    [36m<output[39m
+                      [33mclass[39m=[32m"ws-pane-placeholder"[39m
+                    [36m>[39m
+                      [0mSession status unavailable.[0m
+                      [36m<button[39m
+                        [33mclass[39m=[32m"ws-button small"[39m
+                        [33mtype[39m=[32m"button"[39m
+                      [36m>[39m
+                        [0mRetry[0m
+                      [36m</button>[39m
+                    [36m</output>[39m
+                  [36m</div>[39m
+                [36m</section>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+      at runWithExpensiveErrorDiagnosticsDisabled (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:36)
+(fail) replacing a failed run resource in the same pane resets failure without creating a terminal [1090.42ms]
+
+ 0 pass
+ 1 fail
+ 22 expect() calls
+Ran 1 test across 1 file. [1.62s]

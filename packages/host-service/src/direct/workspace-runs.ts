@@ -10,6 +10,7 @@ export interface WorkspaceRunInput {
 	startedAt: number;
 }
 export interface WorkspaceRun extends WorkspaceRunInput {
+	previousTerminalId?: string;
 	state: "starting" | "active" | "stop-requested" | "ended" | "unknown";
 	executionId?: string;
 	foregroundSeen: boolean;
@@ -69,14 +70,21 @@ export class WorkspaceRunStore {
 				});
 			const run: WorkspaceRun = {
 				...input,
+				...(previous ? { previousTerminalId: previous.terminalId } : {}),
 				state: "starting",
 				foregroundSeen: false,
 			};
+			const json = JSON.stringify(run);
+			if (Buffer.byteLength(json) > 256 * 1024)
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "The workspace run metadata exceeds 256 KiB.",
+				});
 			this.db
 				.prepare(
 					"INSERT INTO direct_workspace_runs (workspace_id,operation_id,record_json) VALUES (?,?,?) ON CONFLICT(workspace_id) DO UPDATE SET operation_id=excluded.operation_id,record_json=excluded.record_json",
 				)
-				.run(input.workspaceId, input.operationId, JSON.stringify(run));
+				.run(input.workspaceId, input.operationId, json);
 			this.db.exec("COMMIT");
 			return run;
 		} catch (error) {

@@ -1,0 +1,53 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/utils/pane-layout/pane-layout.test.ts:
+(pass) splitting and closing a pane preserve unrelated axis, order and ratio [0.12ms]
+(pass) separator updates clamp finite values and change only the addressed split [0.14ms]
+(pass) empty layouts and balanced trees preserve the exact pane order [0.04ms]
+56 | });
+57 |
+58 | test("a root run console preserves the existing pane arrangement and restores it when closed",()=>{
+59 |  const original:PaneTree={type:"split",axis:"horizontal",ratio:0.375,first:{type:"pane",paneId:"left"},second:{type:"pane",paneId:"right"}};
+60 |  const console=splitPane(original,null,"run","vertical",0.65);
+61 |  expect(console).toEqual({type:"split",axis:"vertical",ratio:0.65,first:original,second:{type:"pane",paneId:"run"}});
+                      ^
+error: expect(received).toEqual(expected)
+
+  {
+-   "axis": "vertical",
++   "axis": "horizontal",
+    "first": {
+-     "axis": "horizontal",
+-     "first": {
+-       "paneId": "left",
+-       "type": "pane",
+-     },
+-     "ratio": 0.375,
+-     "second": {
+-       "paneId": "right",
+-       "type": "pane",
+-     },
+-     "type": "split",
++     "paneId": "left",
++     "type": "pane",
+    },
+-   "ratio": 0.65,
++   "ratio": 0.375,
+    "second": {
+-     "paneId": "run",
++     "paneId": "right",
+      "type": "pane",
+    },
+    "type": "split",
+  }
+
+- Expected  - 14
++ Received  + 5
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/utils/pane-layout/pane-layout.test.ts:61:18)
+(fail) a root run console preserves the existing pane arrangement and restores it when closed [0.26ms]
+
+ 3 pass
+ 1 fail
+ 9 expect() calls
+Ran 4 tests across 1 file. [188.00ms]

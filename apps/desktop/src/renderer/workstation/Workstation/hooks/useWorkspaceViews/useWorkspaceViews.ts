@@ -451,26 +451,39 @@ export function useWorkspaceViews(
 			workspaceId: string,
 			pane: WorkspacePane,
 			axis: "horizontal" | "vertical",
-			expectedConnection?: DirectDescriptor,
+			options?: {
+				connection: DirectDescriptor;
+				placement?: "active" | "root";
+				replaceResourceId?: string;
+			},
 		) =>
 			changeWorkspace(workspaceId, (workspace) => {
-				if (expectedConnection && connectionRef.current !== expectedConnection)
+				if (options?.connection && connectionRef.current !== options.connection)
 					return;
 
 				workspace.activeTool = pane.kind;
 				const existing = workspace.panes.find(
-					(p) => p.kind === pane.kind && p.resourceId === pane.resourceId,
+					(p) =>
+						p.kind === pane.kind &&
+						(p.resourceId === pane.resourceId ||
+							(!!options?.replaceResourceId &&
+								p.resourceId === options.replaceResourceId)),
 				);
 				if (existing) {
+					existing.resourceId = pane.resourceId;
+					existing.executionId = pane.executionId;
 					workspace.activePaneId = existing.paneId;
 					return;
 				}
 				if (workspace.panes.length >= 64) return;
 				workspace.layout = splitPane(
 					workspace.layout,
-					workspace.activePaneId ?? workspace.panes[0]?.paneId ?? null,
+					options?.placement === "root"
+						? null
+						: (workspace.activePaneId ?? workspace.panes[0]?.paneId ?? null),
 					pane.paneId,
 					axis,
+					options?.placement === "root" ? 0.65 : 0.5,
 				);
 				workspace.panes.push(pane);
 				workspace.activePaneId = pane.paneId;

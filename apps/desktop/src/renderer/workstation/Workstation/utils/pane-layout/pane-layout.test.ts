@@ -1,3 +1,4 @@
+import type { PaneTree } from "../../../../../shared/workspace-view";
 import { expect, test } from "bun:test";
 import {
 	buildPaneTree,
@@ -53,4 +54,23 @@ test("empty layouts and balanced trees preserve the exact pane order", () => {
 			second: { paneId: "omp" },
 		},
 	});
+});
+
+test("a root run console preserves the existing pane arrangement and restores it when closed", () => {
+	const original: PaneTree = {
+		type: "split",
+		axis: "horizontal",
+		ratio: 0.375,
+		first: { type: "pane", paneId: "left" },
+		second: { type: "pane", paneId: "right" },
+	};
+	const console = splitPane(original, null, "run", "vertical", 0.65);
+	expect(console).toEqual({
+		type: "split",
+		axis: "vertical",
+		ratio: 0.65,
+		first: original,
+		second: { type: "pane", paneId: "run" },
+	});
+	expect(removePane(console, "run")).toEqual(original);
 });

@@ -1,0 +1,81 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/utils/pane-layout/pane-layout.test.ts:
+(pass) splitting and closing a pane preserve unrelated axis, order and ratio [0.10ms]
+(pass) separator updates clamp finite values and change only the addressed split [0.28ms]
+(pass) empty layouts and balanced trees preserve the exact pane order [0.03ms]
+56 | });
+57 |
+58 | test("a root run console preserves the existing pane arrangement and restores it when closed",()=>{
+59 |  const original:PaneTree={type:"split",axis:"horizontal",ratio:0.375,first:{type:"pane",paneId:"left"},second:{type:"pane",paneId:"right"}};
+60 |  const console=splitPane(original,null,"run","vertical",0.65);
+61 |  expect(console).toEqual({type:"split",axis:"vertical",ratio:0.65,first:original,second:{type:"pane",paneId:"run"}});
+                      ^
+error: expect(received).toEqual(expected)
+
+  {
+-   "axis": "vertical",
++   "axis": "horizontal",
+    "first": {
+-     "axis": "horizontal",
+-     "first": {
+-       "paneId": "left",
+-       "type": "pane",
+-     },
+-     "ratio": 0.375,
+-     "second": {
+-       "paneId": "right",
+-       "type": "pane",
+-     },
+-     "type": "split",
++     "paneId": "left",
++     "type": "pane",
+    },
+-   "ratio": 0.65,
++   "ratio": 0.375,
+    "second": {
+-     "paneId": "run",
++     "paneId": "right",
+      "type": "pane",
+    },
+    "type": "split",
+  }
+
+- Expected  - 14
++ Received  + 5
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/utils/pane-layout/pane-layout.test.ts:61:18)
+(fail) a root run console preserves the existing pane arrangement and restores it when closed [0.15ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:
+(pass) successful manual restore reloads the main process auto-connect decision [120.82ms]
+(pass) upstream tab reorder and rename persist without changing execution ownership [54.87ms]
+187 |  const api={getWorkspaceView:async()=>({snapshot:structuredClone(backing),revision:backing.revision,invalid:false,navigationRevision:0}),saveWorkspaceView:async(input:{view:WorkspaceViewSnapshot})=>{backing={...input.view,schemaVersion:1,revision:backing.revision+1,updatedAt:2};return structuredClone(backing);},beginWorkspaceRestore:async()=>{throw new Error("must not restore automatically");}} as unknown as DirectWorkstationApi;
+188 |  const hook=renderHook(()=>useWorkspaceViews(api,connection,{onSkeleton:()=>{},onForget:()=>{},onDescriptor:async()=>{},onError:()=>{}}));
+189 |  await waitFor(()=>expect(hook.result.current.view?.revision).toBe(1));
+190 |  await act(async()=>{await hook.result.current.addPane("workspace",{paneId:"new-pane",kind:"terminal",resourceId:"new-run",executionId:"new-execution",label:"Run"},"vertical",{connection,placement:"root",replaceResourceId:"old-run"});});
+191 |  const workspace=backing.targets[0]!.workspaces[0]!;
+192 |  expect(workspace.panes).toHaveLength(2);expect(workspace.panes[1]).toMatchObject({paneId:"console",resourceId:"new-run",executionId:"new-execution",label:"My server"});expect(workspace.layout).toEqual(layout);expect(workspace.activeTool).toBe("terminal");expect(workspace.activePaneId).toBe("console");
+                                                                          ^
+error: expect(received).toMatchObject(expected)
+
+  {
+-   "executionId": "new-execution",
++   "executionId": "old-execution",
++   "kind": "terminal",
+    "label": "My server",
+    "paneId": "console",
+-   "resourceId": "new-run",
++   "resourceId": "old-run",
+  }
+
+- Expected  - 2
++ Received  + 3
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:192:69)
+(fail) rerunning a command reuses its pane and preserves its saved layout and title [53.96ms]
+
+ 5 pass
+ 2 fail
+ 28 expect() calls
+Ran 7 tests across 2 files. [464.00ms]

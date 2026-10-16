@@ -21,22 +21,33 @@ export function splitPane(
 	paneId: string | null,
 	added: string,
 	axis: "horizontal" | "vertical",
+	ratio = 0.5,
 ): PaneTree {
+	if (!Number.isFinite(ratio) || ratio < 0.1 || ratio > 0.9)
+		throw new Error("Invalid split ratio");
 	if (!tree) return { type: "pane", paneId: added };
+	if (paneId === null)
+		return {
+			type: "split",
+			axis,
+			ratio,
+			first: tree,
+			second: { type: "pane", paneId: added },
+		};
 	if (tree.type === "pane")
 		return tree.paneId === paneId
 			? {
 					type: "split",
 					axis,
-					ratio: 0.5,
+					ratio,
 					first: tree,
 					second: { type: "pane", paneId: added },
 				}
 			: tree;
 	return {
 		...tree,
-		first: splitPane(tree.first, paneId, added, axis),
-		second: splitPane(tree.second, paneId, added, axis),
+		first: splitPane(tree.first, paneId, added, axis, ratio),
+		second: splitPane(tree.second, paneId, added, axis, ratio),
 	};
 }
 export function removePane(

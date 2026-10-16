@@ -208,8 +208,12 @@ export function WorkspaceWindow({
 											executionId: run.executionId,
 											label: t({ message: "Run" }),
 										},
-										"horizontal",
-										connection,
+										"vertical",
+										{
+											connection,
+											placement: "root",
+											replaceResourceId: run.previousTerminalId,
+										},
 									);
 								}}
 							/>

@@ -179,3 +179,116 @@ test("upstream tab reorder and rename persist without changing execution ownersh
 		expect(w.panes).toEqual(original.find((o) => o.tabId === w.tabId)!.panes);
 	}
 });
+
+test("rerunning a command reuses its pane and preserves its saved layout and title", async () => {
+	const connection = {
+		connectionId: "remote",
+		backendId: "backend",
+		namespaceId: "namespace",
+		instanceId: "instance",
+		generation: 1,
+	};
+	const layout = {
+		type: "split" as const,
+		axis: "vertical" as const,
+		ratio: 0.65,
+		first: { type: "pane" as const, paneId: "editor" },
+		second: { type: "pane" as const, paneId: "console" },
+	};
+	let backing: WorkspaceViewSnapshot = {
+		schemaVersion: 1,
+		revision: 1,
+		updatedAt: 1,
+		restoreOnLaunch: false,
+		activeConnectionId: "remote",
+		window: { x: 0, y: 0, width: 1200, height: 900, maximized: false },
+		targets: [
+			{
+				connectionId: "remote",
+				backendId: "backend",
+				namespaceId: "namespace",
+				targetRevision: 1,
+				serviceUid: 1000,
+				autoConnect: true,
+				activeTabId: "tab",
+				workspaces: [
+					{
+						tabId: "tab",
+						workspaceId: "workspace",
+						activeTool: "files",
+						activePaneId: "editor",
+						panes: [
+							{
+								paneId: "editor",
+								kind: "terminal",
+								resourceId: "editor-terminal",
+							},
+							{
+								paneId: "console",
+								kind: "terminal",
+								resourceId: "old-run",
+								executionId: "old-execution",
+								label: "My server",
+							},
+						],
+						layout,
+					},
+				],
+			},
+		],
+	};
+	const api = {
+		getWorkspaceView: async () => ({
+			snapshot: structuredClone(backing),
+			revision: backing.revision,
+			invalid: false,
+			navigationRevision: 0,
+		}),
+		saveWorkspaceView: async (input: { view: WorkspaceViewSnapshot }) => {
+			backing = {
+				...input.view,
+				schemaVersion: 1,
+				revision: backing.revision + 1,
+				updatedAt: 2,
+			};
+			return structuredClone(backing);
+		},
+		beginWorkspaceRestore: async () => {
+			throw new Error("must not restore automatically");
+		},
+	} as unknown as DirectWorkstationApi;
+	const hook = renderHook(() =>
+		useWorkspaceViews(api, connection, {
+			onSkeleton: () => {},
+			onForget: () => {},
+			onDescriptor: async () => {},
+			onError: () => {},
+		}),
+	);
+	await waitFor(() => expect(hook.result.current.view?.revision).toBe(1));
+	await act(async () => {
+		await hook.result.current.addPane(
+			"workspace",
+			{
+				paneId: "new-pane",
+				kind: "terminal",
+				resourceId: "new-run",
+				executionId: "new-execution",
+				label: "Run",
+			},
+			"vertical",
+			{ connection, placement: "root", replaceResourceId: "old-run" },
+		);
+	});
+	const workspace = backing.targets[0]!.workspaces[0]!;
+	expect(workspace.panes).toHaveLength(2);
+	expect(workspace.panes[1]).toMatchObject({
+		paneId: "console",
+		resourceId: "new-run",
+		executionId: "new-execution",
+		label: "My server",
+	});
+	expect(workspace.layout).toEqual(layout);
+	expect(workspace.activeTool).toBe("terminal");
+	expect(workspace.activePaneId).toBe("console");
+});

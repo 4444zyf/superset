@@ -41,8 +41,8 @@ export function PaneGrid({
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 }) {
 	const { t } = useLingui();
-	const current = useRef({ workspace, actions });
-	current.current = { workspace, actions };
+	const current = useRef({ workspace, actions, connection });
+	current.current = { workspace, actions, connection };
 	const paneScope = workspace.tabId;
 	const store = useMemo(() => {
 		const store = createWorkspaceStore<WorkspacePane>({
@@ -150,11 +150,43 @@ export function PaneGrid({
 			!attached.includes(p.paneId) &&
 			!failed.includes(p.paneId),
 	);
-	const visibleKey = JSON.stringify(visible.map((p) => p.paneId));
+	const visibleKey = JSON.stringify(
+		visible.map((p) => [
+			p.paneId,
+			p.kind,
+			p.resourceId,
+			p.executionId,
+			connection?.connectionId,
+			connection?.backendId,
+			connection?.namespaceId,
+			connection?.generation,
+		]),
+	);
+	const previousVisible = useRef(new Map<string, string>());
 	useLayoutEffect(() => {
-		const ids = new Set(JSON.parse(visibleKey));
-		setAttached((old) => old.filter((id) => ids.has(id)));
-		setFailed((old) => old.filter((id) => ids.has(id)));
+		const next = new Map(
+			(JSON.parse(visibleKey) as [string, ...unknown[]][]).map(
+				([id, ...identity]) => [id, JSON.stringify(identity)],
+			),
+		);
+		const retained = new Set(
+			[...next.keys()].filter(
+				(id) => previousVisible.current.get(id) === next.get(id),
+			),
+		);
+		previousVisible.current = next;
+		setAttached((old) => old.filter((id) => retained.has(id)));
+		setFailed((old) => old.filter((id) => retained.has(id)));
+		setOverrides((old) =>
+			Object.fromEntries(
+				Object.entries(old).filter(([id]) => retained.has(id)),
+			),
+		);
+		setAttempts((old) =>
+			Object.fromEntries(
+				Object.entries(old).filter(([id]) => retained.has(id)),
+			),
+		);
 	}, [visibleKey]);
 	const allowed = new Set([
 		...attached,
@@ -167,6 +199,19 @@ export function PaneGrid({
 		}
 		const pane = workspace.panes.find((p) => p.paneId === paneId);
 		if (!pane) return;
+
+		const stillCurrent = () => {
+			const latest = current.current.workspace.panes.find(
+				(p) => p.paneId === paneId,
+			);
+			return (
+				current.current.connection === connection &&
+				current.current.workspace.workspaceId === workspace.workspaceId &&
+				latest?.kind === pane.kind &&
+				latest.resourceId === pane.resourceId &&
+				latest.executionId === pane.executionId
+			);
+		};
 		const ref = {
 			workspaceId: workspace.workspaceId,
 			resourceId: pane.resourceId,
@@ -181,7 +226,7 @@ export function PaneGrid({
 				type: "query",
 				input: { refs: [ref] },
 			});
-			if (!mounted.current) return;
+			if (!mounted.current || !stillCurrent()) return;
 			setOverrides((old) => ({
 				...old,
 				[paneId]: checked[0] ?? { ...ref, state: "unknown" },
@@ -190,7 +235,7 @@ export function PaneGrid({
 			setFailed((old) => old.filter((id) => id !== paneId));
 			setAttempts((old) => ({ ...old, [paneId]: (old[paneId] ?? 0) + 1 }));
 		} catch {
-			if (mounted.current)
+			if (mounted.current && stillCurrent())
 				setOverrides((old) => ({
 					...old,
 					[paneId]: { ...ref, state: "unknown" },
@@ -202,7 +247,7 @@ export function PaneGrid({
 		if (!pane) return null;
 		return (
 			<WorkspacePaneView
-				key={`${id}:${attempts[id] ?? 0}`}
+				key={`${connection?.connectionId}:${connection?.backendId}:${connection?.namespaceId}:${connection?.generation}:${id}:${pane.kind}:${pane.resourceId}:${pane.executionId}:${attempts[id] ?? 0}`}
 				api={api}
 				connection={connection}
 				workspaceId={workspace.workspaceId}
