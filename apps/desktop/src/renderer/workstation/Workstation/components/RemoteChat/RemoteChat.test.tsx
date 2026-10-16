@@ -501,3 +501,92 @@ test("an uploaded attachment is referenced once by opaque id in the selected cha
 	});
 	expect(screen.queryByRole("button", { name: "selected.txt" })).toBeNull();
 });
+
+test("pasted images upload to the selected chat without sending a prompt", async () => {
+	const uploads: unknown[] = [];
+	const mutations: unknown[] = [];
+	const api = {
+		rpc: async (r: { type: string }) => {
+			if (r.type === "mutation") mutations.push(r);
+			return [];
+		},
+		onSocket: () => () => {},
+		openSocket: async () => {},
+		closeSocket: async () => {},
+		uploadAttachment: async (c: unknown, f: unknown) => {
+			uploads.push({ c, f });
+			return {
+				attachmentId: "pasted",
+				originalFilename: "image.png",
+				mediaType: "image/png",
+				sizeBytes: 3,
+			};
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteChat
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			selectedSessionId="saved"
+			onError={() => {}}
+		/>,
+	);
+	const area = await screen.findByRole("textbox", { name: "Message" });
+	fireEvent.paste(area, {
+		clipboardData: {
+			files: [
+				new File([new Uint8Array([1, 2, 3])], "image.png", {
+					type: "image/png",
+				}),
+			],
+			getData: () => "",
+		},
+	});
+	await waitFor(() => expect(uploads).toHaveLength(1));
+	expect(screen.getByRole("button", { name: "image.png" })).toBeTruthy();
+	expect(mutations).toEqual([]);
+});
+
+test("a pasted image completing after switching chats is not attached or sent", async () => {
+	let finish!: (value: unknown) => void;
+	let started = 0;
+	const errors: string[] = [];
+	const api = {
+		rpc: async () => [],
+		onSocket: () => () => {},
+		openSocket: async () => {},
+		closeSocket: async () => {},
+		uploadAttachment: () => {
+			started++;
+			return new Promise((resolve) => {
+				finish = resolve;
+			});
+		},
+	} as unknown as DirectWorkstationApi;
+	const props = {
+		api,
+		connection,
+		workspaceId: "workspace",
+		onError: (e: string) => errors.push(e),
+	};
+	const view = render(<RemoteChat {...props} selectedSessionId="old" />);
+	fireEvent.paste(await screen.findByRole("textbox", { name: "Message" }), {
+		clipboardData: {
+			files: [new File(["abc"], "image.png", { type: "image/png" })],
+			getData: () => "",
+		},
+	});
+	await waitFor(() => expect(started).toBe(1));
+	view.rerender(<RemoteChat {...props} selectedSessionId="new" />);
+	await act(async () =>
+		finish({
+			attachmentId: "old-image",
+			originalFilename: "image.png",
+			mediaType: "image/png",
+			sizeBytes: 3,
+		}),
+	);
+	expect(screen.queryByRole("button", { name: "image.png" })).toBeNull();
+	expect(errors).toEqual([]);
+});

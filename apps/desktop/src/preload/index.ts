@@ -100,6 +100,12 @@ const directWorkstation: DirectWorkstationApi = {
 			generation: connection.generation,
 			operationId,
 		}),
+	uploadAttachment: (connection, file) =>
+		invoke("uploadAttachment", {
+			connectionId: connection.connectionId,
+			generation: connection.generation,
+			...file,
+		}),
 	chooseAttachment: (connection) =>
 		invoke("chooseAttachment", {
 			connectionId: connection.connectionId,

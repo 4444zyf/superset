@@ -207,6 +207,14 @@ export interface DirectWorkstationApi {
 		connection: DirectDescriptor,
 		operationId: string,
 	): Promise<boolean>;
+	uploadAttachment?(
+		connection: DirectDescriptor,
+		file: {
+			bytes: Uint8Array;
+			fileName: string;
+			mimeType: string;
+		},
+	): ReturnType<DirectWorkstationApi["chooseAttachment"]>;
 	chooseAttachment(connection: DirectDescriptor): Promise<{
 		attachmentId: string;
 		originalFilename?: string;

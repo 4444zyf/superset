@@ -13,6 +13,7 @@ import {
 } from "@superset/chat/protocol";
 import { Button } from "@superset/ui/button";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { validateClipboardFiles } from "renderer/lib/terminal/clipboard-files";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -111,6 +112,7 @@ export function RemoteChat({
 			epoch: currentScope.current.epoch + 1,
 		};
 	const operationSequence = useRef(0);
+	const operationBusy = useRef<number | null>(null);
 	const sessionListVersion = useRef(0);
 	const scopeEpoch = currentScope.current.epoch;
 	const previousBusyEpoch = useRef(scopeEpoch);
@@ -130,6 +132,8 @@ export function RemoteChat({
 		});
 	const run = async (execute: (isCurrent: () => boolean) => Promise<void>) => {
 		const epoch = currentScope.current.epoch;
+		if (operationBusy.current === epoch) return;
+		operationBusy.current = epoch;
 		const sequence = ++operationSequence.current;
 		const isCurrent = () =>
 			mounted.current &&
@@ -141,6 +145,7 @@ export function RemoteChat({
 		} catch (error) {
 			if (isCurrent()) callbacks.current.onError(String(error));
 		} finally {
+			if (operationBusy.current === epoch) operationBusy.current = null;
 			if (isCurrent()) setBusy(false);
 		}
 	};
@@ -490,6 +495,31 @@ export function RemoteChat({
 							className="flex-1 bg-muted rounded p-2 text-sm"
 							readOnly={busy}
 							value={prompt}
+							onPaste={(event) => {
+								const files = Array.from(event.clipboardData.files);
+								if (!files.length) return;
+								event.preventDefault();
+								if (busy) return;
+								void run(async (isCurrent) => {
+									validateClipboardFiles(files, 16 - attachments.length);
+									if (!attachmentsAvailable || !api.uploadAttachment)
+										throw new Error(
+											"This backend does not support the required capability",
+										);
+									for (const file of files) {
+										const bytes = new Uint8Array(await file.arrayBuffer());
+										if (!isCurrent()) return;
+										const attachment = await api.uploadAttachment(connection, {
+											bytes,
+											fileName: file.name || "image.png",
+											mimeType: file.type || "application/octet-stream",
+										});
+										if (!isCurrent()) return;
+										if (attachment)
+											setAttachments((previous) => [...previous, attachment]);
+									}
+								});
+							}}
 							onChange={(event) => setPrompt(event.target.value)}
 						/>
 						<Button

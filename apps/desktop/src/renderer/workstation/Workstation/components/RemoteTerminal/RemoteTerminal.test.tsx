@@ -344,3 +344,131 @@ test("live typography changes reconfigure the same emulator and keep its attache
 			?.getAttribute("data-restore-state"),
 	).toBe("attached");
 });
+
+test.each([
+	false,
+	true,
+])("a pasted image is bound to its original terminal execution (switch=%s)", async (switched) => {
+	const requests: { path: string; input: Record<string, unknown> }[] = [];
+	const pasted: string[] = [];
+	let complete!: () => void;
+	const written = new Promise<void>((resolve) => {
+		complete = resolve;
+	});
+	let listener!: (e: DirectSocketEvent) => void;
+	let sid = "";
+	const api = {
+		onSocket: (cb: typeof listener) => {
+			listener = cb;
+			return () => {};
+		},
+		openRestoredTerminal: async (_c: unknown, _r: unknown, id: string) => {
+			sid = id;
+		},
+		sendSocket: async () => {},
+		closeSocket: async () => {},
+		rpc: async (r: { path: string; input: Record<string, unknown> }) => {
+			requests.push(r);
+			if (
+				r.path === "filesystem.writeFile" &&
+				typeof r.input.content === "object"
+			)
+				await written;
+			return r.path === "workspace.get"
+				? { worktreePath: "/remote/Superset Remix/worktrees/project/branch" }
+				: { ok: true };
+		},
+	} as unknown as DirectWorkstationApi;
+	const emulator: TerminalEmulator = {
+		terminal: {
+			cols: 80,
+			rows: 24,
+			write() {},
+			writeln() {},
+			onData() {
+				return { dispose() {} };
+			},
+			onResize() {
+				return { dispose() {} };
+			},
+			dispose() {},
+			input() {},
+			paste(text: string) {
+				pasted.push(text);
+			},
+		},
+		fit() {},
+	};
+	const view = render(
+		<RemoteTerminal
+			api={api}
+			connection={{ ...connection, capabilities: { workstationFilesV1: true } }}
+			terminalId="terminal"
+			restoreRef={{
+				workspaceId: "workspace",
+				resourceId: "terminal",
+				kind: "terminal",
+				executionId: "exec",
+			}}
+			onError={(error) => {
+				throw new Error(error);
+			}}
+			createEmulator={() => emulator}
+		/>,
+	);
+	await waitFor(() => expect(sid).not.toBe(""));
+	act(() =>
+		listener({
+			socketId: sid,
+			kind: "message",
+			data: JSON.stringify({
+				type: "attached",
+				terminalId: "terminal",
+				workspaceId: "workspace",
+				executionId: "exec",
+			}),
+		}),
+	);
+	const event = new Event("paste", { bubbles: true, cancelable: true });
+	Object.defineProperty(event, "clipboardData", {
+		value: {
+			files: [
+				new File([new Uint8Array([1, 2, 3])], "image.png", {
+					type: "image/png",
+				}),
+			],
+			getData: () => "",
+		},
+	});
+	act(() =>
+		view.container.querySelector("[data-terminal-id]")!.dispatchEvent(event),
+	);
+	await waitFor(() =>
+		expect(
+			requests.some(
+				(r) =>
+					r.path === "filesystem.writeFile" &&
+					typeof r.input.content === "object",
+			),
+		).toBe(true),
+	);
+	if (switched) {
+		view.unmount();
+		await act(async () => complete());
+		expect(pasted).toEqual([]);
+		return;
+	}
+	await act(async () => complete());
+	await waitFor(() => expect(pasted).toHaveLength(1));
+	await waitFor(() => expect(view.queryByText("Sending…")).toBeNull());
+	expect(pasted[0]).toContain("image.png");
+	expect(pasted[0]).toContain("/remote/");
+	expect(event.defaultPrevented).toBe(true);
+	expect(
+		requests.filter((r) => r.path === "filesystem.writeFile").at(-1)?.input,
+	).toMatchObject({
+		workspaceId: "workspace",
+		content: { kind: "base64", data: "AQID" },
+		options: { create: true, overwrite: false },
+	});
+});

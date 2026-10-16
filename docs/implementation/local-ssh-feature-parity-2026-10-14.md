@@ -393,3 +393,15 @@ TDD先记录共享控件、运行存储、远程入口缺失，另以并发状�
 第54轮冻结源码`918c1a9ed`完整通过，进程退出码0。物理编辑原Run脚本后从Files点击Run，940×199.34px控制台实际显示独立输出行，实际PTY cwd等于所选统一worktree路径。正常Stop结束前台命令并保留原PTY；下一次Run复用同一paneId、标题及布局并附着新execution。窗口关闭重开和host-service重启后，运行operationId、executionId及Linux PID均保持一致。原菜单Force Stop后daemon移除运行且捕获PID的/proc目录消失；第三次Run仍复用已结束窗格并成功附着新execution，结束并关闭后原布局完全保持。截图已实际查看。
 
 同轮项目设置/图标/脚本、文件/Git/设置/多标签/树/Diff/历史/基础分支/分支重命名/四同步及关闭重开/离线/后端重启/部分结束/多工作区/daemon丢失完整回归通过。[第54轮数据和截图](evidence/local-ssh-feature-parity/source-linux-workspace-run)。恢复仅1采样，仍为Linux源码与拥有的隔离SSH/Git夹具；不是macOS发行物或供应商Agent认证结果。尚无1.37.7 DMG。完整终端预设、Setup/Teardown触发、瞬时命令的可靠自然结束判据仍需继续接入；当前长前台命令的验证不覆盖瞬时命令。用户新增客户端粘贴图片/文件/文字到SSH的验收要求，下一步优先核对并复用原附件上传与输入路径。
+
+
+## 阶段十六：复用终端远程文件粘贴与聊天附件上传
+
+新增失败测试确认当前工作站终端/聊天没有接上剪贴板图片上传。RemoteTerminal复用原installImagePasteFallback和uploadPastedFiles：文件写入所选机器当前工作区的原.superset/attachments约定目录，保留原清理文件名、create-only冲突命名与自忽略规则；确认上传后通过原xterm.paste粘贴转义的远端绝对路径，不发送Enter。不改变普通文本/富文本与混合文本优先的原终端粘贴规则。发送中显示原Sending…文字；视图、连接或execution结束后的晚上传不再粘贴，后续写入前也检查归属。
+
+聊天输入增加文件粘贴，复用已有uploadSelectedAttachment和后端attachments.upload；不新增后端API或云依赖。新的主进程IPC方法只接受实际Uint8Array、文件名/MIME与连接generation，前后验证generation。附件只进入所选聊天草稿，仍由明确Send操作发送；跨聊天/工作区/generation的晚回复不能加入新草稿。所有聊天动作加入同步防重入锁，原关闭/重连不重发prompt行为保留。剪贴板批次最多16个文件，单文件及批次字节均最大25MiB，空文件和超量在读取前拒绝；聊天还遵守现有16附件总数。未知上传回复不自动重试。
+
+TDD保留缺少主进程方法、终端和聊天图片粘贴不上传的红日志，以及发送状态未清除的红日志。最终相关7文件47项/954断言通过；desktop类型、17语言严格检查与构建通过，初始renderer入口4,623.10kB。原fallback、附件传输及无账号启动审计一并回归。此处均为组件/传输测试，不能替代真实系统剪贴板、macOS或供应商Agent读取验证；实际窗口结果待记录。[阶段十六日志](evidence/local-ssh-feature-parity/stage16)。
+
+
+第55轮首次实际剪贴板验收在远端附件出现前失败：截图显示新终端只有窄可见区域，旧中心坐标落到邻接Codex窗格，wc与粘贴没有进入新终端。截图已查看。本轮尚不能证明图片功能通过；验收改为终端screen与窗格/窗口可见矩形求交、elementFromPoint确认命中，再物理移动/点击并核对浏览器实际焦点，不调整布局来便利坐标。该轮原冻结8d9fc4d0e尚未推送，阶段提交整理时仅将67MiB递归DOM红日志截为首尾各90行并保留原始hash/字节/行数，避免把无界诊断提交进仓库。修复后的完整实际结果待记录。

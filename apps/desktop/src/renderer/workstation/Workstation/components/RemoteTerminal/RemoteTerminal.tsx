@@ -1,3 +1,4 @@
+import { Trans } from "@lingui/react/macro";
 import { darkTheme, getTerminalColors } from "@superset/shared/themes";
 import type { RestoreResourceRef } from "@superset/shared/workspace-restore";
 import type { SearchAddon } from "@xterm/addon-search";
@@ -8,6 +9,10 @@ import {
 	type TerminalAppearance,
 } from "renderer/lib/terminal/appearance";
 import { createTerminalSurface } from "renderer/lib/terminal/createTerminalSurface";
+import { validateClipboardFiles } from "renderer/lib/terminal/clipboard-files";
+import { installImagePasteFallback } from "renderer/lib/terminal/terminal-image-paste-fallback";
+import { uploadPastedFiles } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/utils/uploadPastedFiles";
+import { shellEscapePaths } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/TerminalPane/utils";
 import { writeTerminalClipboard } from "renderer/lib/terminal/terminal-clipboard";
 import { installCopyOnSelect } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/TerminalPane/hooks/useCopyOnSelect/copyOnSelect";
 import { TerminalSearch } from "renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/Terminal/TerminalSearch";
@@ -22,7 +27,7 @@ export interface TerminalEmulator {
 	terminal: Pick<
 		Terminal,
 		"cols" | "rows" | "write" | "writeln" | "onData" | "onResize" | "dispose"
-	> & { focus?(): void };
+	> & { focus?(): void } & Partial<Pick<Terminal, "input" | "paste">>;
 	fit(): void;
 	searchAddon?: SearchAddon;
 	cleanup?(): void;
@@ -103,12 +108,14 @@ export function RemoteTerminal({
 	const focusTerminal = useRef<(() => void) | null>(null);
 	const [state, setState] = useState("pending");
 	const [searchOpen, setSearchOpen] = useState(false);
+	const [pasteBusy, setPasteBusy] = useState(false);
 	const [searchAddon, setSearchAddon] = useState<SearchAddon | null>(null);
 	const callbacks = useRef({ onError, onAttached, onExited });
 	callbacks.current = { onError, onAttached, onExited };
 	useEffect(() => {
 		if (!element.current || !visible) return;
 		setState("pending");
+		setPasteBusy(false);
 		const emulator = createEmulator(element.current);
 		emulatorRef.current = emulator;
 		emulator.applyAppearance?.(appearanceRef.current);
@@ -197,6 +204,77 @@ export function RemoteTerminal({
 					callbacks.current.onError("RESTORE_UNAVAILABLE");
 			}
 		});
+		let uploading = false;
+		const removePaste = terminal.input
+			? installImagePasteFallback(
+					{ input: terminal.input.bind(terminal) },
+					element.current,
+					() => (files) => {
+						if (!ready || closed || ended || !focus.current || uploading)
+							return;
+						uploading = true;
+						setPasteBusy(true);
+						const current = () => ready && !closed && !ended && focus.current;
+						void (async () => {
+							validateClipboardFiles(files);
+							if (
+								!workspaceId ||
+								!connection.capabilities?.workstationFilesV1 ||
+								!terminal.paste
+							)
+								throw new Error(
+									"This backend does not support the required capability",
+								);
+							const workspace = await api.rpc<{ worktreePath: string }>({
+								connectionId: connection.connectionId,
+								generation: connection.generation,
+								path: "workspace.get",
+								type: "query",
+								input: { id: workspaceId },
+							});
+							if (!current()) return;
+							const rpc = <T,>(path: string, input: unknown) => {
+								if (!current())
+									return Promise.reject(
+										new Error(
+											"Connection changed; reconnect before continuing",
+										),
+									);
+								return api.rpc<T>({
+									connectionId: connection.connectionId,
+									generation: connection.generation,
+									path,
+									type: "mutation",
+									input,
+								});
+							};
+							const paths = await uploadPastedFiles({
+								workspaceId,
+								worktreePath: workspace.worktreePath,
+								files,
+								deps: {
+									createDirectory: (input) =>
+										rpc("filesystem.createDirectory", input),
+									writeFile: (input) => rpc("filesystem.writeFile", input),
+								},
+							});
+							if (current())
+								terminal.paste(
+									shellEscapePaths(
+										paths.map((path) => `${workspace.worktreePath}/${path}`),
+									),
+								);
+						})()
+							.catch((error) => {
+								if (current()) callbacks.current.onError(String(error));
+							})
+							.finally(() => {
+								uploading = false;
+								if (!closed) setPasteBusy(false);
+							});
+					},
+				)
+			: undefined;
 		const input = terminal.onData((data) => {
 			if (focus.current) send({ type: "input", data });
 		});
@@ -234,6 +312,7 @@ export function RemoteTerminal({
 			clearTimeout(attachTimer);
 			focusTerminal.current = null;
 			off();
+			removePaste?.();
 			input.dispose();
 			resize.dispose();
 			observer.disconnect();
@@ -294,6 +373,14 @@ export function RemoteTerminal({
 						: "h-[360px] border border-zinc-700 rounded p-2"
 				}
 			/>
+			{pasteBusy && (
+				<output
+					className="absolute right-2 top-2 rounded bg-muted px-2 py-1 text-xs"
+					aria-live="polite"
+				>
+					<Trans>Sending…</Trans>
+				</output>
+			)}
 			<TerminalSearch
 				searchAddon={searchAddon}
 				isOpen={searchOpen}

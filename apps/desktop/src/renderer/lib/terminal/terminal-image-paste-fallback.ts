@@ -38,7 +38,7 @@ export function isNonTextPaste(event: ClipboardEvent): boolean {
 
 export function handleImagePasteFallback(
 	event: ClipboardEvent,
-	terminal: XTerm,
+	terminal: Pick<XTerm, "input">,
 	getOverride?: () => ImagePasteOverride | null,
 ): void {
 	if (!isNonTextPaste(event)) return;
@@ -54,7 +54,7 @@ export function handleImagePasteFallback(
 }
 
 export function installImagePasteFallback(
-	terminal: XTerm,
+	terminal: Pick<XTerm, "input">,
 	wrapper: HTMLElement,
 	getOverride?: () => ImagePasteOverride | null,
 ): () => void {

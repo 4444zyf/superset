@@ -1,0 +1,181 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteTerminal/RemoteTerminal.test.tsx:
+An update to RemoteTerminal inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+(pass) a mismatched attached identity permanently disables input on that transport [20.09ms]
+An update to RemoteTerminal inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to RemoteTerminal inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+(pass) matching restored execution enables input only after attached and revokes it on exit [3.64ms]
+An update to RemoteTerminal inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+(pass) unmount closes terminal subscriptions and transports without disposing the remote process [3.18ms]
+(pass) live typography changes reconfigure the same emulator and keep its attached socket [9.15ms]
+42 |   computedStyleSupportsPseudoElements: false
+43 | };
+44 | function runWithExpensiveErrorDiagnosticsDisabled(callback) {
+45 |   try {
+46 |     config._disableExpensiveErrorDiagnostics = true;
+47 |     return callback();
+                ^
+error: expect(received).toBeNull()
+
+Received: HTMLOutputElement {
+  [Symbol(listeners)]: {
+    capturing: Map {},
+    bubbling: Map {},
+  },
+  [Symbol(listenerOptions)]: {
+    capturing: Map {},
+    bubbling: Map {},
+  },
+  [Symbol(isConnected)]: true,
+  [Symbol(parentNode)]: HTMLDivElement {
+    [Symbol(listeners)]: {
+      capturing: Map {},
+      bubbling: Map {},
+    },
+    [Symbol(listenerOptions)]: {
+      capturing: Map {},
+      bubbling: Map {},
+    },
+    [Symbol(isConnected)]: true,
+    [Symbol(parentNode)]: HTMLDivElement {
+      [Symbol(listeners)]: {
+        capturing: Map(85) {
+          "abort": [
+            [Function: dispatchEvent]
+          ],
+          "auxclick": [
+            [Function: dispatchDiscreteEvent]
+          ],
+          "beforetoggle": [
+            [Function: dispatchDiscreteEvent]
+          ],
+          "cancel": [
+            [Function: dispatchDiscreteEvent]
+[omitted 1332904 lines of recursive DOM diagnostics; raw SHA-256 retained in manifest]
+  removeAttributeNode: [Function: removeAttributeNode],
+  scroll: [Function: scroll],
+  scrollTo: [Function: scrollTo],
+  scrollBy: [Function: scrollBy],
+  scrollIntoView: [Function: scrollIntoView],
+  checkVisibility: [Function: checkVisibility],
+  [Symbol(appendChild)]: [Function],
+  [Symbol(removeChild)]: [Function],
+  [Symbol(insertBefore)]: [Function],
+  isConnected: [Getter],
+  ownerDocument: [Getter],
+  parentNode: [Getter],
+  nodeType: [Getter],
+  childNodes: [Getter],
+  nodeValue: [Getter/Setter],
+  previousSibling: [Getter],
+  nextSibling: [Getter],
+  firstChild: [Getter],
+  lastChild: [Getter],
+  parentElement: [Getter],
+  baseURI: [Getter],
+  hasChildNodes: [Function: hasChildNodes],
+  contains: [Function: contains],
+  getRootNode: [Function: getRootNode],
+  cloneNode: [Function: cloneNode],
+  appendChild: [Function: appendChild],
+  removeChild: [Function: removeChild],
+  insertBefore: [Function: insertBefore],
+  replaceChild: [Function: replaceChild],
+  isEqualNode: [Function: isEqualNode],
+  compareDocumentPosition: [Function: compareDocumentPosition],
+  normalize: [Function: normalize],
+  isSameNode: [Function: isSameNode],
+  ELEMENT_NODE: 1,
+  ATTRIBUTE_NODE: 2,
+  TEXT_NODE: 3,
+  CDATA_SECTION_NODE: 4,
+  COMMENT_NODE: 8,
+  DOCUMENT_NODE: 9,
+  DOCUMENT_TYPE_NODE: 10,
+  DOCUMENT_FRAGMENT_NODE: 11,
+  PROCESSING_INSTRUCTION_NODE: 7,
+  DOCUMENT_POSITION_CONTAINED_BY: 16,
+  DOCUMENT_POSITION_CONTAINS: 8,
+  DOCUMENT_POSITION_DISCONNECTED: 1,
+  DOCUMENT_POSITION_FOLLOWING: 4,
+  DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC: 32,
+  DOCUMENT_POSITION_PRECEDING: 2,
+  [Symbol(replaceChild)]: [Function],
+  [Symbol(observeMutations)]: [Function],
+  [Symbol(unobserveMutations)]: [Function],
+  [Symbol(reportMutation)]: [Function],
+  [Symbol(clearCache)]: [Function],
+  [Symbol(connectedToNode)]: [Function],
+  [Symbol(disconnectedFromNode)]: [Function],
+}
+
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"relative h-full min-h-0"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"h-[360px] border border-zinc-700 rounded p-2"[39m
+          [33mdata-execution-id[39m=[32m"exec"[39m
+          [33mdata-restore-state[39m=[32m"attached"[39m
+          [33mdata-terminal-id[39m=[32m"terminal"[39m
+        [36m/>[39m
+        [36m<output[39m
+          [33maria-live[39m=[32m"polite"[39m
+          [33mclass[39m=[32m"absolute right-2 top-2 rounded bg-muted px-2 py-1 text-xs"[39m
+        [36m>[39m
+          [0mSending…[0m
+        [36m</output>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+      at runWithExpensiveErrorDiagnosticsDisabled (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:36)
+(fail) a pasted image is uploaded to the captured workspace before its remote path is pasted [1939.88ms]
+
+ 4 pass
+ 1 fail
+ 26 expect() calls
+Ran 5 tests across 1 file. [2.42s]

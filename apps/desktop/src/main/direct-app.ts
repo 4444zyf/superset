@@ -34,6 +34,7 @@ import {
 	shell,
 } from "electron";
 import { z } from "zod";
+import { uploadClipboardAttachment } from "./lib/ssh-direct/clipboard-attachment";
 import {
 	DIRECT_CHANNEL,
 	DIRECT_CONNECTION_CHANNEL,
@@ -1008,6 +1009,8 @@ export async function startWorkstation(): Promise<void> {
 				}
 				case "closePort":
 					return forwards.close(uuid(payload));
+				case "uploadAttachment":
+					return uploadClipboardAttachment(controller, manager, payload);
 				case "chooseAttachment": {
 					const input = z
 						.object({
