@@ -1,3 +1,4 @@
+import { pasteOnOwnedX11Window } from "./verify-native-paste-input.mjs";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -403,6 +404,15 @@ try {
 		const verifyRestore = (controls) =>
 			verifyWorkspaceRestoreUi({
 				controls,
+				pasteClipboard:
+					process.platform === "linux"
+						? async () => {
+								const id = await main.evaluate(
+									`${electron}.BrowserWindow.getAllWindows()[0].getNativeWindowHandle().readUInt32LE()`,
+								);
+								pasteOnOwnedX11Window(id);
+							}
+						: undefined,
 				setClipboard: async (value) =>
 					main.evaluate(
 						`(()=>{const e=${electron};e.clipboard.clear();${value.imageBase64 ? `e.clipboard.writeImage(e.nativeImage.createFromBuffer(Buffer.from(${JSON.stringify(value.imageBase64)},'base64')));` : `e.clipboard.writeText(${JSON.stringify(value.text)});`}const image=e.clipboard.readImage();return {formats:e.clipboard.availableFormats(),image:image.isEmpty()?null:{size:image.getSize(),pixelSha256:process.getBuiltinModule('crypto').createHash('sha256').update(image.toBitmap()).digest('hex')}};})()`,

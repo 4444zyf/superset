@@ -10,6 +10,7 @@ export async function verifyWorkstationClipboardUi({
 	click,
 	screenshot,
 	setClipboard,
+	pasteClipboard,
 	inspectClipboardImage,
 	controls,
 	output,
@@ -43,7 +44,10 @@ export async function verifyWorkstationClipboardUi({
 	const text = async (value) =>
 		getPage().call("Input.insertText", { text: value });
 	const enter = () => key("Enter", 13);
-	const paste = () => key("v", 86, process.platform === "darwin" ? 4 : 2);
+	const paste = () =>
+		pasteClipboard
+			? pasteClipboard()
+			: key("v", 86, process.platform === "darwin" ? 4 : 2);
 	const rows = () =>
 		evaluate(
 			`[...document.querySelectorAll('[data-terminal-id]')].map(e=>({terminalId:e.dataset.terminalId,executionId:e.dataset.executionId,state:e.dataset.restoreState,paneId:e.closest('[data-pane-id]')?.dataset.paneId}))`,
@@ -87,8 +91,16 @@ export async function verifyWorkstationClipboardUi({
 		join(output, "clipboard-native-source.json"),
 		JSON.stringify(expected, null, 2) + "\n",
 	);
+	await evaluate(
+		`(()=>{window.clipboardProbe=[];document.addEventListener('paste',e=>{window.clipboardProbe.push({types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,type:f.type,size:f.size})),textLength:e.clipboardData.getData('text/plain').length});},{capture:true});return true;})()`,
+	);
 	await text("wc -c < ");
 	await paste();
+	await until(() => evaluate("window.clipboardProbe.length>0"));
+	writeFileSync(
+		join(output, "clipboard-observed-paste.json"),
+		JSON.stringify(await evaluate("window.clipboardProbe"), null, 2) + "\n",
+	);
 	const directory = `${scope.root}/.superset/attachments`;
 	const image = await until(async () => {
 		try {
