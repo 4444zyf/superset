@@ -126,7 +126,23 @@ export async function verifyWorkspaceRestoreUi({
 	await until(() =>
 		evaluate("Boolean(document.querySelector('.ws-workspace-window'))"),
 	);
-	await click("text:New terminal");
+	const firstTerminalInput = await until(() =>
+		evaluate(
+			`(()=>{const e=[...document.querySelectorAll('button')].find(e=>e.textContent.trim()==='New terminal');if(!e||e.disabled)return null;const r=e.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;const hit=document.elementFromPoint(x,y);return e.contains(hit)?{x,y,label:e.textContent.trim()}:null;})()`,
+		),
+	);
+	writeFileSync(
+		join(output, "first-terminal-input.json"),
+		JSON.stringify(firstTerminalInput, null, 2) + "\n",
+	);
+	for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
+		await getPage().call("Input.dispatchMouseEvent", {
+			type,
+			button: type === "mouseMoved" ? "none" : "left",
+			clickCount: type === "mouseMoved" ? 0 : 1,
+			x: firstTerminalInput.x,
+			y: firstTerminalInput.y,
+		});
 	await until(
 		terminals,
 		(rows) => rows.length === 1 && rows[0].state === "attached",
