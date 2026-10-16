@@ -423,3 +423,9 @@ TDD保留缺少主进程方法、终端和聊天图片粘贴不上传的红日�
 
 
 原键盘模块的barrel还会引入旧keyboardLayoutStore并在导入时订阅未注册的legacy IPC。新增启动审计红测试后，将同一键盘算法提取到纯core，旧模块保留原全局hotkey解析包装，工作站只调用core；不会启动旧IPC订阅。最终11文件64项/1030断言、desktop类型和构建通过，初始renderer入口4,628.01kB。真实X11键盘验收等待服务器处理按键后再关闭测试连接，并保存键事件/paste元数据，仍不以合成ClipboardEvent作为真实验证。
+
+
+第60轮真实X11 Control+Shift+V已触发浏览器paste事件，但types/files为空；原Linux快捷键经Chromium的Paste and Match Style仅接受文本，系统剪贴板PNG没有进入页面。保留按键和事件诊断。新增红测试后，纯键盘core增加默认关闭的linuxCtrlVPaste选项，仅直连入口启用Ctrl+V的标准浏览器粘贴，避免将Ctrl+V发往远端TUI读取远端系统剪贴板；旧页面的默认键盘语义保持，macOS仍为Cmd+V。重新用真实X11 Control+V验证图片，不能以空paste事件当作上传成功。
+
+
+Linux标准粘贴选项修复后，11文件65项/1033断言、desktop类型和最终构建通过，初始renderer入口4,628.21kB。旧调用默认仍传递Ctrl+V到终端；直连显式选择标准剪贴板入口，macOS/Windows已有对应平台行为不变。真实图片/中文验证继续。

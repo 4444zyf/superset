@@ -41,7 +41,9 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 	const surface = createTerminalSurface({
 		initialTheme: toXtermTheme(getTerminalColors(darkTheme)),
 	});
-	const removeKeys = installTerminalKeyEventHandler(surface.xterm);
+	const removeKeys = installTerminalKeyEventHandler(surface.xterm, {
+		linuxCtrlVPaste: true,
+	});
 	element.appendChild(surface.wrapper);
 	if (surface.xterm.element) surface.xterm.element.style.padding = "8px";
 	return {

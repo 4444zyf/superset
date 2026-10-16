@@ -20,7 +20,7 @@ x.XSync.argtypes=[ctypes.c_void_p,ctypes.c_int];x.XFlush.argtypes=[ctypes.c_void
 t.XTestFakeKeyEvent.argtypes=[ctypes.c_void_p,ctypes.c_uint,ctypes.c_int,ctypes.c_ulong]
 x.XSetInputFocus(d,int(sys.argv[1]),2,0)
 c=x.XKeysymToKeycode(d,x.XStringToKeysym(b'Control_L'));v=x.XKeysymToKeycode(d,x.XStringToKeysym(b'v'));s=x.XKeysymToKeycode(d,x.XStringToKeysym(b'Shift_L'))
-for key,pressed in [(c,1),(s,1),(v,1),(v,0),(s,0),(c,0)]: t.XTestFakeKeyEvent(d,key,pressed,10)
+for key,pressed in [(c,1),(v,1),(v,0),(c,0)]: t.XTestFakeKeyEvent(d,key,pressed,10)
 x.XSync(d,0);x.XCloseDisplay(d)
 `,
 			String(windowId),

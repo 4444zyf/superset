@@ -30,3 +30,27 @@ test.each([
 	expect(event.defaultPrevented).toBe(false);
 	expect(inputs).toEqual([]);
 });
+
+test("a direct Linux terminal can use Ctrl+V for the standard image clipboard pipeline", () => {
+	const terminal = {
+		input() {},
+		hasSelection: () => false,
+		selectAll() {},
+	} as unknown as Terminal;
+	const event = new KeyboardEvent("keydown", {
+		key: "v",
+		code: "KeyV",
+		ctrlKey: true,
+		cancelable: true,
+	});
+	expect(
+		createTerminalKeyEventHandler(terminal, { platform: "linux" })(event),
+	).toBe(true);
+	expect(
+		createTerminalKeyEventHandler(terminal, {
+			platform: "linux",
+			linuxCtrlVPaste: true,
+		})(event),
+	).toBe(false);
+	expect(event.defaultPrevented).toBe(false);
+});

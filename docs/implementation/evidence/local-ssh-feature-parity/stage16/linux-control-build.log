@@ -1,0 +1,567 @@
+vite v7.3.5 building ssr environment for production...
+transforming...
+../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+"readlinkSync", "fchmodSync", "fstatSync", "ftruncateSync", "renameSync", "unlinkSync" and "writeFileSync" are imported from external module "fs" but never used in "../../node_modules/.bun/@anthropic-ai+claude-agent-sdk@0.3.286+708e55e190287106/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs".
+✓ 2289 modules transformed.
+rendering chunks...
+[plugin vite:reporter]
+(!) /workspace/superset/packages/host-service/src/trpc/router/router.ts is dynamically imported by /workspace/superset/packages/host-service/src/trpc/router/direct/direct.ts but also statically imported by /workspace/superset/packages/host-service/src/trpc/router/index.ts, dynamic import will not move module into another chunk.
+
+dist/main/chunks/_commonjsHelpers-Bc2YnDe1.js           0.50 kB │ map:     0.12 kB
+dist/main/chunks/index-BgjHiyD6.js                      0.57 kB │ map:     1.12 kB
+dist/main/chunks/direct-backend-socket-DkMZYnH0.js      0.64 kB │ map:     1.26 kB
+dist/main/chunks/opencode-db-DXMWHaXz.js                1.24 kB │ map:     1.88 kB
+dist/main/chunks/constants-7zSfgG_o.js                  1.81 kB │ map:     6.51 kB
+dist/main/chunks/paths-BvRpQFCu.js                      1.82 kB │ map:     4.46 kB
+dist/main/chunks/shell-ready-scanner-CE3vRceU.js        1.95 kB │ map:     5.40 kB
+dist/main/chunks/index-CaTEVz26.js                      3.42 kB │ map:     5.58 kB
+dist/main/chunks/pty-subprocess-ipc-BfiERt0u.js         3.89 kB │ map:     6.64 kB
+dist/main/host-worker.js                                4.58 kB │ map:    10.71 kB
+dist/main/chunks/index-DzOXdPAt.js                      5.91 kB │ map:    11.14 kB
+dist/main/chunks/import-lock-DjsGGv6W.js                7.72 kB │ map:    14.98 kB
+dist/main/chunks/process-tree-DqE_SQbs.js               8.07 kB │ map:    18.49 kB
+dist/main/pty-subprocess.js                            11.35 kB │ map:    22.61 kB
+dist/main/chunks/TerminalModes-xm82McrG.js             16.37 kB │ map:    39.76 kB
+dist/main/direct-supervisor.js                         29.48 kB │ map:    57.41 kB
+dist/main/chunks/lifecycle-vjxMYAX9.js                 37.55 kB │ map:    67.74 kB
+dist/main/chunks/index-AzD7sLsK.js                     46.66 kB │ map:     0.58 kB
+dist/main/pty-daemon.js                                59.47 kB │ map:   138.00 kB
+dist/main/direct-backend.js                            81.08 kB │ map:   153.47 kB
+dist/main/git-task-worker.js                           89.65 kB │ map:   226.95 kB
+dist/main/chunks/media-files-BDJLkyvk.js              112.23 kB │ map:   229.05 kB
+dist/main/chunks/workspace-restore-C_KnecPA.js        159.64 kB │ map:   284.37 kB
+dist/main/chunks/schemas-C7Sa2l85.js                  192.12 kB │ map:   530.04 kB
+dist/main/chunks/usage-Dqe41u4Z.js                    220.64 kB │ map:   578.86 kB
+dist/main/chunks/messages-xPiHSCUe.js                 294.27 kB │ map:   386.13 kB
+dist/main/chunks/messages-Bpmbpj01.js                 297.50 kB │ map:   389.39 kB
+dist/main/chunks/messages-C_ZkZDXk.js                 316.77 kB │ map:   408.79 kB
+dist/main/chunks/messages-CnVkmbf4.js                 327.35 kB │ map:   419.47 kB
+dist/main/chunks/messages-CdHcLKxg.js                 338.65 kB │ map:   430.91 kB
+dist/main/chunks/messages-DpGvf2d4.js                 339.24 kB │ map:   431.59 kB
+dist/main/terminal-host.js                            339.99 kB │ map:   578.46 kB
+dist/main/chunks/messages-C1YotSzF.js                 340.91 kB │ map:   432.75 kB
+dist/main/chunks/messages-BH57FKoz.js                 347.37 kB │ map:   439.49 kB
+dist/main/chunks/messages-DDRJM5qR.js                 348.06 kB │ map:   440.31 kB
+dist/main/chunks/messages-t6jqqdU_.js                 349.04 kB │ map:   445.93 kB
+dist/main/chunks/messages-loRDrBy2.js                 350.83 kB │ map:   447.69 kB
+dist/main/chunks/messages-ChlIGoF9.js                 362.41 kB │ map:   454.04 kB
+dist/main/chunks/messages-CO4nhg62.js                 369.34 kB │ map:   461.48 kB
+dist/main/chunks/messages-VGxbQbTj.js                 370.00 kB │ map:   462.60 kB
+dist/main/chunks/messages-V1Wa9nPm.js                 411.80 kB │ map:   503.05 kB
+dist/main/chunks/messages-BRGwTlIg.js                 514.94 kB │ map:   611.68 kB
+dist/main/index.js                                    734.35 kB │ map: 1,318.00 kB
+dist/main/host-service.js                           1,071.55 kB │ map: 2,502.73 kB
+dist/main/chunks/PskHostAuthProvider-svWZBZwy.js    3,735.30 kB │ map: 7,482.34 kB
+✓ built in 10.48s
+vite v7.3.5 building ssr environment for production...
+transforming...
+✓ 2 modules transformed.
+rendering chunks...
+dist/preload/index.js  5.65 kB
+✓ built in 19ms
+vite v7.3.5 building client environment for production...
+transforming...
+
+superset-font://fonts/SF-Mono-Regular.otf referenced in superset-font://fonts/SF-Mono-Regular.otf didn't resolve at build time, it will remain unchanged to be resolved at runtime
+
+superset-font://fonts/SF-Mono-Bold.otf referenced in superset-font://fonts/SF-Mono-Bold.otf didn't resolve at build time, it will remain unchanged to be resolved at runtime
+
+superset-font://fonts/SF-Mono-RegularItalic.otf referenced in superset-font://fonts/SF-Mono-RegularItalic.otf didn't resolve at build time, it will remain unchanged to be resolved at runtime
+
+superset-font://fonts/SF-Mono-BoldItalic.otf referenced in superset-font://fonts/SF-Mono-BoldItalic.otf didn't resolve at build time, it will remain unchanged to be resolved at runtime
+Found 4 warnings while optimizing generated CSS:
+
+Issue #1:
+[2m│     -webkit-app-region: no-drag;[22m
+[2m│   }[22m
+[2m│[22m   ::highlight(markdown-search-matches) {
+[2m┆[22m               [33m[2m^--[22m 'highlight' is not recognized as a valid pseudo-element. Did you mean ':highlight' (pseudo-class) or is this a typo?[39m
+[2m┆[22m
+[2m│     background-color: var(--highlight-match);[22m
+[2m│   }[22m
+
+Issue #2:
+[2m│     background-color: var(--highlight-match);[22m
+[2m│   }[22m
+[2m│[22m   ::highlight(markdown-search-active) {
+[2m┆[22m               [33m[2m^--[22m 'highlight' is not recognized as a valid pseudo-element. Did you mean ':highlight' (pseudo-class) or is this a typo?[39m
+[2m┆[22m
+[2m│     background-color: var(--highlight-active);[22m
+[2m│   }[22m
+
+Issue #3:
+[2m│     background-color: var(--highlight-active);[22m
+[2m│   }[22m
+[2m│[22m   ::highlight(chat-search-matches) {
+[2m┆[22m               [33m[2m^--[22m 'highlight' is not recognized as a valid pseudo-element. Did you mean ':highlight' (pseudo-class) or is this a typo?[39m
+[2m┆[22m
+[2m│     background-color: var(--highlight-match);[22m
+[2m│   }[22m
+
+Issue #4:
+[2m│     background-color: var(--highlight-match);[22m
+[2m│   }[22m
+[2m│[22m   ::highlight(chat-search-active) {
+[2m┆[22m               [33m[2m^--[22m 'highlight' is not recognized as a valid pseudo-element. Did you mean ':highlight' (pseudo-class) or is this a typo?[39m
+[2m┆[22m
+[2m│     background-color: var(--highlight-active);[22m
+[2m│   }[22m
+
+../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 4727 modules transformed.
+rendering chunks...
+../../dist/renderer/index.html                                                   0.62 kB
+../../dist/renderer/assets/index-BbpDB3b6.css                                  386.32 kB
+../../dist/renderer/assets/editor-typography-DacxJZ6Y.js                         0.44 kB │ map:      0.94 kB
+../../dist/renderer/assets/codeowners-CDTn3OBl.js                                0.67 kB │ map:      1.11 kB
+../../dist/renderer/assets/tsv-CViX5ixN.js                                       0.84 kB │ map:      1.40 kB
+../../dist/renderer/assets/shellsession-CVKsG8Fz.js                              0.87 kB │ map:      1.33 kB
+../../dist/renderer/assets/highlighted-body-OFNGDK62-D9FQtvL3.js                 0.88 kB │ map:      1.39 kB
+../../dist/renderer/assets/html-derivative-C-CZjC6P.js                           1.05 kB │ map:      1.44 kB
+../../dist/renderer/assets/qmldir-2fe-nmPt.js                                    1.11 kB │ map:      1.76 kB
+../../dist/renderer/assets/git-rebase-CD_HxzpU.js                                1.13 kB │ map:      1.69 kB
+../../dist/renderer/assets/csv-L0lLhFcm.js                                       1.25 kB │ map:      2.02 kB
+../../dist/renderer/assets/git-commit-DLvvpGPJ.js                                1.36 kB │ map:      2.04 kB
+../../dist/renderer/assets/xsl-tGN52Syz.js                                       1.50 kB │ map:      2.20 kB
+../../dist/renderer/assets/index-CKi3yYa9.js                                     1.51 kB │ map:      7.44 kB
+../../dist/renderer/assets/constants-DYt458Nm.js                                 1.53 kB │ map:      3.12 kB
+../../dist/renderer/assets/dotenv-BvDV5785.js                                    1.53 kB │ map:      2.36 kB
+../../dist/renderer/assets/sparql-C90tSiAY.js                                    1.61 kB │ map:      2.12 kB
+../../dist/renderer/assets/ini-BvvNY3AG.js                                       1.63 kB │ map:      2.50 kB
+../../dist/renderer/assets/fortran-fixed-form-Tg6ZE9og.js                        1.85 kB │ map:      2.71 kB
+../../dist/renderer/assets/docker-bL46oR5w.js                                    1.85 kB │ map:      2.67 kB
+../../dist/renderer/assets/hxml-2xGc9J5m.js                                      1.86 kB │ map:      2.49 kB
+../../dist/renderer/assets/desktop-BGOdnRp0.js                                   1.95 kB │ map:      2.78 kB
+../../dist/renderer/assets/toml-C3kDihkz.js                                      2.18 kB │ map:      4.18 kB
+../../dist/renderer/assets/wenyan-DuEJgZ9w.js                                    2.27 kB │ map:      3.21 kB
+../../dist/renderer/assets/jssm-BrMffP1i.js                                      2.34 kB │ map:      3.42 kB
+../../dist/renderer/assets/reg-CmJKXQ8p.js                                       2.45 kB │ map:      3.54 kB
+../../dist/renderer/assets/edge-1oQVYXPR.js                                      2.54 kB │ map:      3.55 kB
+../../dist/renderer/assets/diff-Chn23gcs.js                                      2.67 kB │ map:      3.89 kB
+../../dist/renderer/assets/gleam-DMTLsKhk.js                                     2.69 kB │ map:      4.02 kB
+../../dist/renderer/assets/hy-hjrNG9Jw.js                                        2.75 kB │ map:      3.72 kB
+../../dist/renderer/assets/erb-F8PEL8am.js                                       2.77 kB │ map:      3.33 kB
+../../dist/renderer/assets/index-CmDsrLxP.js                                     2.82 kB │ map:      5.44 kB
+../../dist/renderer/assets/json-DcOftun5.js                                      2.93 kB │ map:      4.35 kB
+../../dist/renderer/assets/openscad-DZnmV71h.js                                  2.94 kB │ map:      4.25 kB
+../../dist/renderer/assets/log--LpjZTMx.js                                       2.95 kB │ map:      4.38 kB
+../../dist/renderer/assets/cairo-l_JDnYPZ.js                                     3.06 kB │ map:      4.55 kB
+../../dist/renderer/assets/berry-B_Wd1IGR.js                                     3.11 kB │ map:      4.87 kB
+../../dist/renderer/assets/jsonl-bmI6Y1g5.js                                     3.12 kB │ map:      4.53 kB
+../../dist/renderer/assets/jsonc--7fvdTWZ.js                                     3.22 kB │ map:      4.63 kB
+../../dist/renderer/assets/logo-CFg1PgLL.js                                      3.23 kB │ map:      3.84 kB
+../../dist/renderer/assets/po-BLvdrCuQ.js                                        3.34 kB │ map:      5.11 kB
+../../dist/renderer/assets/json5-CjKft1Xa.js                                     3.36 kB │ map:      4.98 kB
+../../dist/renderer/assets/mipsasm-mhThADkK.js                                   3.37 kB │ map:      4.70 kB
+../../dist/renderer/assets/tasl-flr_J5Rp.js                                      3.39 kB │ map:      5.15 kB
+../../dist/renderer/assets/genie-B-8Xd8qZ.js                                     3.46 kB │ map:      4.89 kB
+../../dist/renderer/assets/rel-B3q7EJvD.js                                       3.47 kB │ map:      4.90 kB
+../../dist/renderer/assets/vala-Gi5sjZpG.js                                      3.48 kB │ map:      4.92 kB
+../../dist/renderer/assets/splunk-ZXQNpTsY.js                                    3.55 kB │ map:      4.47 kB
+../../dist/renderer/assets/fluent-BX9hqYR5.js                                    3.72 kB │ map:      5.23 kB
+../../dist/renderer/assets/kdl-BGX2LSqq.js                                       3.73 kB │ map:      5.54 kB
+../../dist/renderer/assets/jsonnet-CBFHzLym.js                                   3.73 kB │ map:      5.44 kB
+../../dist/renderer/assets/ssh-config-BwUw6ExS.js                                3.74 kB │ map:      4.51 kB
+../../dist/renderer/assets/glsl-BOSSHDbB.js                                      3.74 kB │ map:      4.40 kB
+../../dist/renderer/assets/narrat-BeqkeXsk.js                                    3.78 kB │ map:      5.45 kB
+../../dist/renderer/assets/hurl-6ZCdSbRL.js                                      3.80 kB │ map:      5.43 kB
+../../dist/renderer/assets/turtle-CSV3rob2.js                                    3.81 kB │ map:      5.52 kB
+../../dist/renderer/assets/ron-Dl0pmh8t.js                                       4.02 kB │ map:      6.05 kB
+../../dist/renderer/assets/zenscript-BPa5lRF-.js                                 4.03 kB │ map:      5.78 kB
+../../dist/renderer/assets/gn-BJFXBgDR.js                                        4.10 kB │ map:      5.30 kB
+../../dist/renderer/assets/pascal-B0EYmnuY.js                                    4.26 kB │ map:      5.56 kB
+../../dist/renderer/assets/tcl-DtuFPmcZ.js                                       4.53 kB │ map:      6.51 kB
+../../dist/renderer/assets/rosmsg-DP4eQ9g2.js                                    4.63 kB │ map:      6.78 kB
+../../dist/renderer/assets/nextflow-DgRYCSPs.js                                  4.66 kB │ map:      6.83 kB
+../../dist/renderer/assets/shell-BavYrexG.js                                     4.70 kB │ map:      9.17 kB
+../../dist/renderer/assets/http-DLP41s_f.js                                      4.73 kB │ map:      6.70 kB
+../../dist/renderer/assets/polar-3NVwLgOt.js                                     4.78 kB │ map:      7.28 kB
+../../dist/renderer/assets/sdbl-DfiUKRDB.js                                      4.81 kB │ map:      5.92 kB
+../../dist/renderer/assets/fennel-DY_okMdn.js                                    4.88 kB │ map:      6.45 kB
+../../dist/renderer/assets/bibtex-D1IYrRu8.js                                    4.91 kB │ map:      7.05 kB
+../../dist/renderer/assets/llvm-FFPUiFWV.js                                      5.16 kB │ map:      6.70 kB
+../../dist/renderer/assets/wgsl-D5AAm3sv.js                                      5.25 kB │ map:      7.53 kB
+../../dist/renderer/assets/zig-BnQsESCW.js                                       5.44 kB │ map:      7.90 kB
+../../dist/renderer/assets/gdresource-B4dCyjnu.js                                5.45 kB │ map:      7.75 kB
+../../dist/renderer/assets/qml-uOV99QbG.js                                       5.46 kB │ map:      8.14 kB
+../../dist/renderer/assets/dax-FoEfUkjr.js                                       5.47 kB │ map:      6.79 kB
+../../dist/renderer/assets/bicep-DnTchqh7.js                                     5.49 kB │ map:      7.94 kB
+../../dist/renderer/assets/xml-CGeC2_Gb.js                                       5.50 kB │ map:      7.86 kB
+../../dist/renderer/assets/awk-D1JxfCZi.js                                       5.56 kB │ map:      8.02 kB
+../../dist/renderer/assets/coq-BwIyBwIK.js                                       5.63 kB │ map:      7.54 kB
+../../dist/renderer/assets/jinja-B0w3yoaS.js                                     5.86 kB │ map:      8.53 kB
+../../dist/renderer/assets/lean-DVJc5YTQ.js                                      5.89 kB │ map:      7.90 kB
+../../dist/renderer/assets/moonbit-Bn2q9D8t.js                                   6.01 kB │ map:      8.69 kB
+../../dist/renderer/assets/powerquery-CnpurUpW.js                                6.03 kB │ map:      8.54 kB
+../../dist/renderer/assets/verilog-LdW_blMr.js                                   6.05 kB │ map:      8.05 kB
+../../dist/renderer/assets/shaderlab-DcEFy5LF.js                                 6.05 kB │ map:      7.71 kB
+../../dist/renderer/assets/cypher-CwnbGnH7.js                                    6.07 kB │ map:      8.46 kB
+../../dist/renderer/assets/vb-Bo8Fx60B.js                                        6.19 kB │ map:      8.07 kB
+../../dist/renderer/assets/red-BRcmkvWK.js                                       6.35 kB │ map:      8.89 kB
+../../dist/renderer/assets/red-D31Pqc_o.js                                       6.35 kB │ map:      8.89 kB
+../../dist/renderer/assets/min-dark-DYWp4z2-.js                                  6.39 kB │ map:      8.63 kB
+../../dist/renderer/assets/min-dark-CM4cyBWP.js                                  6.39 kB │ map:      8.63 kB
+../../dist/renderer/assets/prisma-Cb2IIz4C.js                                    6.44 kB │ map:      9.30 kB
+../../dist/renderer/assets/gdshader-wDANqYyI.js                                  6.44 kB │ map:      9.21 kB
+../../dist/renderer/assets/ara-BvTlPGb3.js                                       6.46 kB │ map:      9.28 kB
+../../dist/renderer/assets/clojure-h2QW7Z1W.js                                   6.53 kB │ map:      9.31 kB
+../../dist/renderer/assets/postcss-Dz0FVxV5.js                                   6.53 kB │ map:      9.14 kB
+../../dist/renderer/assets/toml-AMdABewa.js                                      6.53 kB │ map:      9.50 kB
+../../dist/renderer/assets/solarized-light-BMuCudxs.js                           6.60 kB │ map:      9.24 kB
+../../dist/renderer/assets/solarized-light-DV-68VsY.js                           6.60 kB │ map:      9.24 kB
+../../dist/renderer/assets/r-BDCwwI6h.js                                         6.64 kB │ map:     10.16 kB
+../../dist/renderer/assets/proto-DVwwXMk5.js                                     6.66 kB │ map:      9.93 kB
+../../dist/renderer/assets/smalltalk-DwkxpTZ8.js                                 6.71 kB │ map:      9.27 kB
+../../dist/renderer/assets/index.dom-tpnDOEg3.js                                 6.84 kB │ map:     20.43 kB
+../../dist/renderer/assets/swift-Cdc78Hz8.js                                     6.84 kB │ map:     12.50 kB
+../../dist/renderer/assets/talonscript-DGvKMBl1.js                               6.88 kB │ map:     10.10 kB
+../../dist/renderer/assets/solarized-dark-DzSHEuBz.js                            6.96 kB │ map:      9.70 kB
+../../dist/renderer/assets/solarized-dark-BQa_HMk2.js                            6.96 kB │ map:      9.70 kB
+../../dist/renderer/assets/riscv-vGI0kxKW.js                                     7.02 kB │ map:      9.62 kB
+../../dist/renderer/assets/min-light-B4Gdpsve.js                                 7.07 kB │ map:      9.55 kB
+../../dist/renderer/assets/min-light-CEyOLlCN.js                                 7.07 kB │ map:      9.55 kB
+../../dist/renderer/assets/soy-DRgHWI5g.js                                       7.10 kB │ map:     10.73 kB
+../../dist/renderer/assets/scheme-CyVz3CVm.js                                    7.28 kB │ map:      9.82 kB
+../../dist/renderer/assets/hlsl-C5XNj7EW.js                                      7.37 kB │ map:      9.27 kB
+../../dist/renderer/assets/qss-BCB0juTi.js                                       7.57 kB │ map:      9.43 kB
+../../dist/renderer/assets/dart-BEWXDTuR.js                                      7.92 kB │ map:     11.55 kB
+../../dist/renderer/assets/monokai-BjGMJfxL.js                                   7.98 kB │ map:     11.11 kB
+../../dist/renderer/assets/monokai-DjcUjMOf.js                                   7.98 kB │ map:     11.12 kB
+../../dist/renderer/assets/systemd-jZpa1Zrf.js                                   7.98 kB │ map:     10.66 kB
+../../dist/renderer/assets/regexp-DaS_cmy0.js                                    8.10 kB │ map:     11.22 kB
+../../dist/renderer/assets/dockerfile-B5V456SK.js                                8.17 kB │ map:     15.56 kB
+../../dist/renderer/assets/haml-CfJ3JU9E.js                                      8.40 kB │ map:     12.38 kB
+../../dist/renderer/assets/typst-DnDIlVDn.js                                     8.50 kB │ map:     12.33 kB
+../../dist/renderer/assets/vue-html-EZQjzM8e.js                                  8.61 kB │ map:     11.99 kB
+../../dist/renderer/assets/plsql-CPWALglB.js                                     8.62 kB │ map:     10.92 kB
+../../dist/renderer/assets/horizon-DxwdamBg.js                                   8.88 kB │ map:     12.09 kB
+../../dist/renderer/assets/horizon-C1zuRj61.js                                   8.88 kB │ map:     12.09 kB
+../../dist/renderer/assets/kotlin-C47XarpW.js                                    8.90 kB │ map:     12.81 kB
+../../dist/renderer/assets/horizon-bright-CouyZEGf.js                            8.90 kB │ map:     12.14 kB
+../../dist/renderer/assets/horizon-bright-D5fbGy8P.js                            8.90 kB │ map:     12.14 kB
+../../dist/renderer/assets/make-WgcjFCuo.js                                      9.07 kB │ map:     12.89 kB
+../../dist/renderer/assets/andromeeda-DeKizUSQ.js                                9.12 kB │ map:     11.97 kB
+../../dist/renderer/assets/andromeeda-BgqVI8Dn.js                                9.12 kB │ map:     11.97 kB
+../../dist/renderer/assets/sas-RXGVpI7B.js                                       9.17 kB │ map:     11.13 kB
+../../dist/renderer/assets/dark-plus-C9J41JUh.js                                 9.20 kB │ map:     12.44 kB
+../../dist/renderer/assets/dark-plus-C0BNBm89.js                                 9.20 kB │ map:     12.44 kB
+../../dist/renderer/assets/slack-dark-DBNv3IhL.js                                9.22 kB │ map:     12.53 kB
+../../dist/renderer/assets/slack-dark-Cma9GqIf.js                                9.22 kB │ map:     12.53 kB
+../../dist/renderer/assets/plastic-CDoRytJj.js                                   9.39 kB │ map:     12.50 kB
+../../dist/renderer/assets/plastic-Bgm2uxJU.js                                   9.39 kB │ map:     12.50 kB
+../../dist/renderer/assets/sass-Bccr8gry.js                                      9.39 kB │ map:     13.44 kB
+../../dist/renderer/assets/ts-tags-BbDNi2by.js                                   9.50 kB │ map:     14.54 kB
+../../dist/renderer/assets/slack-ochin-BiAGbHOB.js                               9.54 kB │ map:     13.12 kB
+../../dist/renderer/assets/slack-ochin-DrkS2r9n.js                               9.54 kB │ map:     13.12 kB
+../../dist/renderer/assets/ruby-BLGDUbpr.js                                      9.59 kB │ map:     17.87 kB
+../../dist/renderer/assets/tex-CjGy9ihN.js                                       9.78 kB │ map:     12.44 kB
+../../dist/renderer/assets/jison-DJKc2kEY.js                                     9.82 kB │ map:     14.11 kB
+../../dist/renderer/assets/cmake-CZSzHgxO.js                                     9.96 kB │ map:     11.29 kB
+../../dist/renderer/assets/light-plus-D5RA5m_d.js                               10.04 kB │ map:     13.43 kB
+../../dist/renderer/assets/light-plus-CQTr0-u-.js                               10.04 kB │ map:     13.43 kB
+../../dist/renderer/assets/hcl-QPJQqEw2.js                                      10.16 kB │ map:     14.82 kB
+../../dist/renderer/assets/pkl-BwPJVczj.js                                      10.47 kB │ map:     15.50 kB
+../../dist/renderer/assets/beancount-CE8JOoXI.js                                10.49 kB │ map:     15.07 kB
+../../dist/renderer/assets/nextflow-groovy-DgKcGjlI.js                          10.54 kB │ map:     15.23 kB
+../../dist/renderer/assets/raku-BvsarfXe.js                                     10.58 kB │ map:     12.94 kB
+../../dist/renderer/assets/dream-maker-DhxyDzZw.js                              10.59 kB │ map:     15.14 kB
+../../dist/renderer/assets/yaml-CjVYHuXV.js                                     10.61 kB │ map:     14.93 kB
+../../dist/renderer/assets/rst-D1biW7Wf.js                                      10.94 kB │ map:     15.56 kB
+../../dist/renderer/assets/elm-Bi_A7-rc.js                                      11.08 kB │ map:     16.05 kB
+../../dist/renderer/assets/github-light-D_9ZsCGD.js                             11.29 kB │ map:     15.43 kB
+../../dist/renderer/assets/github-light-BEUvgrKG.js                             11.29 kB │ map:     15.43 kB
+../../dist/renderer/assets/just-DXsFgB95.js                                     11.41 kB │ map:     15.25 kB
+../../dist/renderer/assets/prolog-BAT3qKSc.js                                   11.47 kB │ map:     13.33 kB
+../../dist/renderer/assets/terraform-qaGqpwhi.js                                11.51 kB │ map:     16.25 kB
+../../dist/renderer/assets/github-dark-B1p6AG-B.js                              11.51 kB │ map:     15.70 kB
+../../dist/renderer/assets/github-dark-D2NzZkRa.js                              11.51 kB │ map:     15.70 kB
+../../dist/renderer/assets/puppet-B_bcGEQF.js                                   11.55 kB │ map:     16.35 kB
+../../dist/renderer/assets/laserwave-B0iJlRLT.js                                11.60 kB │ map:     14.72 kB
+../../dist/renderer/assets/laserwave-Boe6jhdv.js                                11.60 kB │ map:     14.72 kB
+../../dist/renderer/assets/gherkin-C-XLUSzV.js                                  12.06 kB │ map:     13.15 kB
+../../dist/renderer/assets/wasm-Y8fbXx8m.js                                     12.11 kB │ map:     16.87 kB
+../../dist/renderer/assets/hjson-DsciJLgY.js                                    12.16 kB │ map:     17.32 kB
+../../dist/renderer/assets/handlebars-Cy9IKfjy.js                               12.33 kB │ map:     17.38 kB
+../../dist/renderer/assets/apache-B_9D1bgV.js                                   12.57 kB │ map:     15.98 kB
+../../dist/renderer/assets/vesper-DovTI6-p.js                                   12.78 kB │ map:     16.18 kB
+../../dist/renderer/assets/vesper-CjMhx7OP.js                                   12.83 kB │ map:     16.24 kB
+../../dist/renderer/assets/bat-BqD-ONPl.js                                      12.99 kB │ map:     17.42 kB
+../../dist/renderer/assets/fish-LTcCFCUv.js                                     13.14 kB │ map:     16.89 kB
+../../dist/renderer/assets/v-CIlW0vhi.js                                        13.31 kB │ map:     19.30 kB
+../../dist/renderer/assets/vitesse-light-DNVyGKDe.js                            13.73 kB │ map:     18.56 kB
+../../dist/renderer/assets/vitesse-light-DYd5tfv1.js                            13.73 kB │ map:     18.56 kB
+../../dist/renderer/assets/aurora-x-D2jgISmA.js                                 13.76 kB │ map:     17.59 kB
+../../dist/renderer/assets/aurora-x-dVYqJ6yY.js                                 13.76 kB │ map:     17.59 kB
+../../dist/renderer/assets/vitesse-black-BefLuscB.js                            13.79 kB │ map:     18.65 kB
+../../dist/renderer/assets/vitesse-black-BYIaFehd.js                            13.79 kB │ map:     18.65 kB
+../../dist/renderer/assets/vitesse-dark-qIlbzkwL.js                             13.87 kB │ map:     18.73 kB
+../../dist/renderer/assets/vitesse-dark-BzCd3qsw.js                             13.87 kB │ map:     18.73 kB
+../../dist/renderer/assets/pug-BK2St45a.js                                      13.99 kB │ map:     20.51 kB
+../../dist/renderer/assets/luau-CKGjEWcA.js                                     14.07 kB │ map:     19.66 kB
+../../dist/renderer/assets/synthwave-84-BD5V8Mnk.js                             14.14 kB │ map:     19.11 kB
+../../dist/renderer/assets/synthwave-84-067Fxdii.js                             14.14 kB │ map:     19.11 kB
+../../dist/renderer/assets/github-light-default--YppwDB6.js                     14.29 kB │ map:     19.29 kB
+../../dist/renderer/assets/github-light-default-DrP09Zth.js                     14.29 kB │ map:     19.29 kB
+../../dist/renderer/assets/clarity-D0FEFKrx.js                                  14.39 kB │ map:     19.97 kB
+../../dist/renderer/assets/github-light-high-contrast-J227DosW.js               14.42 kB │ map:     19.46 kB
+../../dist/renderer/assets/github-light-high-contrast-BGVsDric.js               14.42 kB │ map:     19.46 kB
+../../dist/renderer/assets/github-dark-dimmed-95cAEnaz.js                       14.56 kB │ map:     19.66 kB
+../../dist/renderer/assets/github-dark-dimmed-_N4iKOBR.js                       14.56 kB │ map:     19.66 kB
+../../dist/renderer/assets/github-dark-default-BFo95vkm.js                      14.56 kB │ map:     19.66 kB
+../../dist/renderer/assets/github-dark-default-B8Dqxrwy.js                      14.56 kB │ map:     19.67 kB
+../../dist/renderer/assets/github-dark-high-contrast-CQq-5Yhx.js                14.74 kB │ map:     19.89 kB
+../../dist/renderer/assets/github-dark-high-contrast-wPAOKdq8.js                14.74 kB │ map:     19.89 kB
+../../dist/renderer/assets/gnuplot-Dzfpt8PQ.js                                  14.90 kB │ map:     20.85 kB
+../../dist/renderer/assets/rust-IcmnH8Sp.js                                     15.17 kB │ map:     21.49 kB
+../../dist/renderer/assets/kusto-BFuWAzhv.js                                    15.28 kB │ map:     19.65 kB
+../../dist/renderer/assets/actionscript-3-C5V5ydw9.js                           15.34 kB │ map:     21.48 kB
+../../dist/renderer/assets/lua-CTNWTZaw.js                                      15.64 kB │ map:     22.14 kB
+../../dist/renderer/assets/nix-yNqfol3S.js                                      15.67 kB │ map:     22.93 kB
+../../dist/renderer/assets/abap-3y8SEMEc.js                                     15.96 kB │ map:     18.87 kB
+../../dist/renderer/assets/index-Cm3u1PU8.js                                    15.96 kB │ map:    104.05 kB
+../../dist/renderer/assets/solidity-CXgbxO_r.js                                 16.19 kB │ map:     23.48 kB
+../../dist/renderer/assets/matlab-DzSBZOUt.js                                   16.20 kB │ map:     23.39 kB
+../../dist/renderer/assets/cue-DQN3HtjD.js                                      16.31 kB │ map:     23.82 kB
+../../dist/renderer/assets/elixir-DxdV0sxM.js                                   16.45 kB │ map:     23.16 kB
+../../dist/renderer/assets/odin-rynMThXM.js                                     16.62 kB │ map:     23.82 kB
+../../dist/renderer/assets/bird2-DeZezha5.js                                    17.08 kB │ map:     23.26 kB
+../../dist/renderer/assets/kanagawa-wave-D26cx_DA.js                            17.23 kB │ map:     22.29 kB
+../../dist/renderer/assets/kanagawa-wave-B0qsiMVb.js                            17.23 kB │ map:     22.29 kB
+../../dist/renderer/assets/kanagawa-lotus-fw60K4Xl.js                           17.24 kB │ map:     22.29 kB
+../../dist/renderer/assets/kanagawa-lotus-DKWfIooa.js                           17.24 kB │ map:     22.30 kB
+../../dist/renderer/assets/kanagawa-dragon-CxzeGsIq.js                          17.24 kB │ map:     22.30 kB
+../../dist/renderer/assets/kanagawa-dragon-BQ7cUnRd.js                          17.24 kB │ map:     22.30 kB
+../../dist/renderer/assets/move-VwgqeIV0.js                                     17.61 kB │ map:     26.30 kB
+../../dist/renderer/assets/graphql-D4iIFOu1.js                                  18.18 kB │ map:     25.46 kB
+../../dist/renderer/assets/liquid-5Bzo4mgo.js                                   18.25 kB │ map:     25.23 kB
+../../dist/renderer/assets/svelte-7or4sJje.js                                   18.43 kB │ map:     25.73 kB
+../../dist/renderer/assets/index-CwT3zmn3.js                                    18.51 kB │ map:     32.56 kB
+../../dist/renderer/assets/material-theme-CM06Ts-9.js                           18.73 kB │ map:     24.13 kB
+../../dist/renderer/assets/material-theme-BXZB6Vc4.js                           18.73 kB │ map:     24.13 kB
+../../dist/renderer/assets/material-theme-ocean-PCwKKPiF.js                     18.76 kB │ map:     24.16 kB
+../../dist/renderer/assets/material-theme-ocean-C6ammf5x.js                     18.76 kB │ map:     24.16 kB
+../../dist/renderer/assets/material-theme-darker-Dt4amzfX.js                    18.76 kB │ map:     24.17 kB
+../../dist/renderer/assets/material-theme-darker-DqG16MxV.js                    18.76 kB │ map:     24.17 kB
+../../dist/renderer/assets/material-theme-lighter-BxnrYNzY.js                   18.77 kB │ map:     24.17 kB
+../../dist/renderer/assets/material-theme-lighter-BMDv1uog.js                   18.77 kB │ map:     24.18 kB
+../../dist/renderer/assets/material-theme-palenight-BFffuj6x.js                 18.78 kB │ map:     24.18 kB
+../../dist/renderer/assets/material-theme-palenight-CcoRzfRw.js                 18.78 kB │ map:     24.18 kB
+../../dist/renderer/assets/gdscript-BH3P734S.js                                 19.11 kB │ map:     26.28 kB
+../../dist/renderer/assets/groovy-CXbFCzOu.js                                   19.29 kB │ map:     27.55 kB
+../../dist/renderer/assets/mdc-TY3_yzmL.js                                      19.80 kB │ map:     23.09 kB
+../../dist/renderer/assets/ayu-dark-SqpPkgXt.js                                 20.18 kB │ map:     27.06 kB
+../../dist/renderer/assets/ayu-dark-DazA_EMO.js                                 20.18 kB │ map:     27.06 kB
+../../dist/renderer/assets/ayu-mirage-Bvcaynne.js                               20.19 kB │ map:     27.07 kB
+../../dist/renderer/assets/ayu-mirage-CJmQsaCT.js                               20.19 kB │ map:     27.07 kB
+../../dist/renderer/assets/ayu-light-B_6Cvm5U.js                                20.25 kB │ map:     27.13 kB
+../../dist/renderer/assets/ayu-light-DTzmDIO1.js                                20.25 kB │ map:     27.14 kB
+../../dist/renderer/assets/glimmer-js-Cs1SKalW.js                               20.26 kB │ map:     28.60 kB
+../../dist/renderer/assets/glimmer-ts-D_z0qgn8.js                               20.26 kB │ map:     28.60 kB
+../../dist/renderer/assets/powershell-LeUr-LdN.js                               20.27 kB │ map:     26.62 kB
+../../dist/renderer/assets/viml-qpwpdyWT.js                                     20.47 kB │ map:     23.53 kB
+../../dist/renderer/assets/nushell-CHnvu2cT.js                                  20.53 kB │ map:     27.69 kB
+../../dist/renderer/assets/snazzy-light-D-LJ22qe.js                             20.88 kB │ map:     28.02 kB
+../../dist/renderer/assets/snazzy-light-CEBOzdWV.js                             20.88 kB │ map:     28.02 kB
+../../dist/renderer/assets/dracula-CttyiFMD.js                                  21.16 kB │ map:     27.51 kB
+../../dist/renderer/assets/dracula-BNaNBwPY.js                                  21.16 kB │ map:     27.51 kB
+../../dist/renderer/assets/dracula-soft-D9vw-US0.js                             21.18 kB │ map:     27.53 kB
+../../dist/renderer/assets/dracula-soft-CuG5Dh0V.js                             21.18 kB │ map:     27.53 kB
+../../dist/renderer/assets/wit-ByUA4b7E.js                                      21.57 kB │ map:     30.13 kB
+../../dist/renderer/assets/twig-BDX1m5jj.js                                     21.58 kB │ map:     29.24 kB
+../../dist/renderer/assets/rose-pine-C1tXkQDy.js                                21.84 kB │ map:     28.78 kB
+../../dist/renderer/assets/rose-pine-BsrsgakK.js                                21.84 kB │ map:     28.78 kB
+../../dist/renderer/assets/rose-pine-moon-CFvXBN06.js                           21.87 kB │ map:     28.80 kB
+../../dist/renderer/assets/rose-pine-moon-D39TFKbF.js                           21.87 kB │ map:     28.81 kB
+../../dist/renderer/assets/rose-pine-dawn-Bb_pw-LL.js                           21.87 kB │ map:     28.81 kB
+../../dist/renderer/assets/rose-pine-dawn-BRMAX6Sf.js                           21.87 kB │ map:     28.81 kB
+../../dist/renderer/assets/index-BN21b_r1.js                                    22.23 kB │ map:     36.51 kB
+../../dist/renderer/assets/nim-BeC_iGsj.js                                      22.65 kB │ map:     32.75 kB
+../../dist/renderer/assets/common-lisp-SM1Y4Dhp.js                              22.71 kB │ map:     26.71 kB
+../../dist/renderer/assets/surrealql-BwVHxPPg.js                                22.73 kB │ map:     32.47 kB
+../../dist/renderer/assets/gruvbox-dark-hard-Zr6Y0JcQ.js                        22.75 kB │ map:     30.58 kB
+../../dist/renderer/assets/gruvbox-dark-soft-D-ag2E9I.js                        22.75 kB │ map:     30.58 kB
+../../dist/renderer/assets/gruvbox-dark-hard-BEMc80Jr.js                        22.75 kB │ map:     30.58 kB
+../../dist/renderer/assets/gruvbox-dark-soft-DBr7Dp6H.js                        22.75 kB │ map:     30.58 kB
+../../dist/renderer/assets/gruvbox-light-hard-DsFukUSg.js                       22.76 kB │ map:     30.58 kB
+../../dist/renderer/assets/gruvbox-light-soft-CKT_6AFD.js                       22.76 kB │ map:     30.58 kB
+../../dist/renderer/assets/gruvbox-light-hard-Cmf1hyuF.js                       22.76 kB │ map:     30.58 kB
+../../dist/renderer/assets/gruvbox-light-soft-DUgzQAEY.js                       22.76 kB │ map:     30.58 kB
+../../dist/renderer/assets/gruvbox-dark-medium-B_Q_8OpS.js                      22.76 kB │ map:     30.59 kB
+../../dist/renderer/assets/gruvbox-dark-medium-UBQGbxc7.js                      22.76 kB │ map:     30.59 kB
+../../dist/renderer/assets/gruvbox-light-medium-B6PHfPhP.js                     22.77 kB │ map:     30.59 kB
+../../dist/renderer/assets/gruvbox-light-medium-7f6oGKCo.js                     22.77 kB │ map:     30.59 kB
+../../dist/renderer/assets/sql-B1wRmrYe.js                                      23.51 kB │ map:     27.94 kB
+../../dist/renderer/assets/cadence-Dx1Edzs_.js                                  23.78 kB │ map:     33.61 kB
+../../dist/renderer/assets/typespec-B8V-Lgf1.js                                 24.14 kB │ map:     33.47 kB
+../../dist/renderer/assets/apl-DKR9-XmS.js                                      24.21 kB │ map:     33.34 kB
+../../dist/renderer/assets/astro-Dvvln8Fv.js                                    24.21 kB │ map:     29.13 kB
+../../dist/renderer/assets/templ-Bwg7bO1e.js                                    24.21 kB │ map:     30.90 kB
+../../dist/renderer/assets/vhdl-DrshbaI8.js                                     24.37 kB │ map:     33.40 kB
+../../dist/renderer/assets/index-DWxh0Tv5.js                                    24.80 kB │ map:     70.07 kB
+../../dist/renderer/assets/purescript-C1AvW2mD.js                               24.81 kB │ map:     34.91 kB
+../../dist/renderer/assets/angular-html-CuWmNf_Z.js                             24.97 kB │ map:     35.59 kB
+../../dist/renderer/assets/vue-CLk87sLE.js                                      24.99 kB │ map:     36.70 kB
+../../dist/renderer/assets/one-light-CgV0SUHk.js                                25.40 kB │ map:     33.81 kB
+../../dist/renderer/assets/one-light-D9hE0FDI.js                                25.40 kB │ map:     33.81 kB
+../../dist/renderer/assets/fsharp-D4rtdjyM.js                                   25.44 kB │ map:     35.88 kB
+../../dist/renderer/assets/marko-RF_4H-K8.js                                    25.64 kB │ map:     35.84 kB
+../../dist/renderer/assets/c3-BU69-9Wo.js                                       25.73 kB │ map:     37.21 kB
+../../dist/renderer/assets/night-owl-light-B-ceegqO.js                          26.02 kB │ map:     35.16 kB
+../../dist/renderer/assets/night-owl-light-BrbCqaXB.js                          26.02 kB │ map:     35.16 kB
+../../dist/renderer/assets/system-verilog-ChXK5kzU.js                           26.34 kB │ map:     36.29 kB
+../../dist/renderer/assets/nord-DaEvLJej.js                                     26.81 kB │ map:     35.36 kB
+../../dist/renderer/assets/nord-iaTb8Aai.js                                     26.81 kB │ map:     35.36 kB
+../../dist/renderer/assets/codeql-DXkKUS-z.js                                   26.99 kB │ map:     36.04 kB
+../../dist/renderer/assets/scss-Bk3Bm0TG.js                                     27.32 kB │ map:     38.35 kB
+../../dist/renderer/assets/java-DzdmiE1A.js                                     27.32 kB │ map:     38.66 kB
+../../dist/renderer/assets/coffee-D9k2_9iN.js                                   27.56 kB │ map:     36.09 kB
+../../dist/renderer/assets/razor-B1ubMQMe.js                                    27.65 kB │ map:     38.31 kB
+../../dist/renderer/assets/scala-DrgcAbr5.js                                    28.99 kB │ map:     40.14 kB
+../../dist/renderer/assets/night-owl-BUutiR2d.js                                29.01 kB │ map:     39.06 kB
+../../dist/renderer/assets/night-owl-BH9YMVmA.js                                29.01 kB │ map:     39.06 kB
+../../dist/renderer/assets/crystal-BL6cd2-P.js                                  29.58 kB │ map:     41.17 kB
+../../dist/renderer/assets/mermaid-BQlXwDnk.js                                  29.63 kB │ map:     44.14 kB
+../../dist/renderer/assets/applescript-CqWKVzg3.js                              29.70 kB │ map:     39.37 kB
+../../dist/renderer/assets/pierre-dark-DAUNw0qk.js                              30.65 kB │ map:     34.24 kB
+../../dist/renderer/assets/pierre-light-D_TYC3O8.js                             30.66 kB │ map:     34.24 kB
+../../dist/renderer/assets/pierre-dark-soft-Bj3GAKCq.js                         30.68 kB │ map:     34.26 kB
+../../dist/renderer/assets/pierre-light-soft-De6IVg1o.js                        30.68 kB │ map:     34.26 kB
+../../dist/renderer/assets/pierre-dark-tritanopia-CJUtmSZA.js                   30.71 kB │ map:     34.28 kB
+../../dist/renderer/assets/pierre-light-tritanopia-Ld4CW0i5.js                  30.71 kB │ map:     34.29 kB
+../../dist/renderer/assets/pierre-dark-protanopia-deuteranopia-cbmCNouh.js      30.77 kB │ map:     34.33 kB
+../../dist/renderer/assets/pierre-light-protanopia-deuteranopia-C2Zo8pka.js     30.78 kB │ map:     34.34 kB
+../../dist/renderer/assets/stylus-Bj0w8Mc1.js                                   31.19 kB │ map:     38.90 kB
+../../dist/renderer/assets/julia-BDUdxI4u.js                                    31.24 kB │ map:     40.55 kB
+../../dist/renderer/assets/index-CwYUfOYZ.js                                    31.25 kB │ map:     60.25 kB
+../../dist/renderer/assets/poimandres-BxpLBKW3.js                               33.60 kB │ map:     43.07 kB
+../../dist/renderer/assets/poimandres-Cw5tXQ0M.js                               33.60 kB │ map:     43.07 kB
+../../dist/renderer/assets/one-dark-pro-QBfY2luk.js                             33.89 kB │ map:     44.50 kB
+../../dist/renderer/assets/one-dark-pro-ZBrk_Gln.js                             33.89 kB │ map:     44.51 kB
+../../dist/renderer/assets/bsl-ZVXDA2fD.js                                      33.98 kB │ map:     37.62 kB
+../../dist/renderer/assets/clike-BRSCctti.js                                    35.15 kB │ map:     59.50 kB
+../../dist/renderer/assets/haxe-DgDxT2IR.js                                     35.27 kB │ map:     49.54 kB
+../../dist/renderer/assets/nginx-JyYtkEGP.js                                    35.49 kB │ map:     48.49 kB
+../../dist/renderer/assets/houston-BuOuSAr1.js                                  35.52 kB │ map:     46.40 kB
+../../dist/renderer/assets/houston-BVRv0egb.js                                  35.52 kB │ map:     46.40 kB
+../../dist/renderer/assets/index-DPLDVSns.js                                    35.53 kB │ map:    144.09 kB
+../../dist/renderer/assets/index-sAdjpSSr.js                                    35.64 kB │ map:     45.13 kB
+../../dist/renderer/assets/tokyo-night-Bf6i9LWZ.js                              35.77 kB │ map:     45.35 kB
+../../dist/renderer/assets/tokyo-night-CVKHXWku.js                              35.77 kB │ map:     45.35 kB
+../../dist/renderer/assets/index-BwQkxZjW.js                                    35.99 kB │ map:     54.05 kB
+../../dist/renderer/assets/erlang-D_IZxGNp.js                                   37.61 kB │ map:     51.56 kB
+../../dist/renderer/assets/cobol-tDL3loFQ.js                                    39.28 kB │ map:     47.38 kB
+../../dist/renderer/assets/asm-DPD9ZMay.js                                      40.82 kB │ map:     53.02 kB
+../../dist/renderer/assets/haskell-BUh09gvj.js                                  41.60 kB │ map:     57.87 kB
+../../dist/renderer/assets/shellscript-BlV1DcMk.js                              41.61 kB │ map:     56.55 kB
+../../dist/renderer/assets/index-E1eE7kIx.js                                    41.85 kB │ map:     45.78 kB
+../../dist/renderer/assets/perl-N2Z1CtbX.js                                     43.32 kB │ map:     60.75 kB
+../../dist/renderer/assets/d-BbMGxAXd.js                                        43.89 kB │ map:     62.71 kB
+../../dist/renderer/assets/index-B_2Osblm.js                                    44.04 kB │ map:     76.05 kB
+../../dist/renderer/assets/pierre-dark-vibrant-Bl7ZQYOu.js                      44.89 kB │ map:     48.46 kB
+../../dist/renderer/assets/pierre-light-vibrant-C3ibml1o.js                     44.89 kB │ map:     48.47 kB
+../../dist/renderer/assets/ruby-BMeHOFff.js                                     46.22 kB │ map:     65.28 kB
+../../dist/renderer/assets/go-HK7n78F7.js                                       46.91 kB │ map:     66.61 kB
+../../dist/renderer/assets/apex-wTaOCs53.js                                     47.09 kB │ map:     65.74 kB
+../../dist/renderer/assets/catppuccin-mocha-C-6VQqP5.js                         47.38 kB │ map:     62.02 kB
+../../dist/renderer/assets/catppuccin-mocha-DNqnxnnu.js                         47.38 kB │ map:     62.02 kB
+../../dist/renderer/assets/catppuccin-latte-CzWaZUBv.js                         47.38 kB │ map:     62.02 kB
+../../dist/renderer/assets/catppuccin-latte-RQVTsO9m.js                         47.38 kB │ map:     62.03 kB
+../../dist/renderer/assets/catppuccin-frappe-B01bRBRP.js                        47.38 kB │ map:     62.03 kB
+../../dist/renderer/assets/catppuccin-frappe-DmtqoJuM.js                        47.38 kB │ map:     62.03 kB
+../../dist/renderer/assets/catppuccin-macchiato-C9wyW-O1.js                     47.40 kB │ map:     62.04 kB
+../../dist/renderer/assets/catppuccin-macchiato-O7rfFmFk.js                     47.40 kB │ map:     62.04 kB
+../../dist/renderer/assets/ada-B0g4fghS.js                                      48.18 kB │ map:     70.98 kB
+../../dist/renderer/assets/css-CCnmVQFj.js                                      49.13 kB │ map:     60.65 kB
+../../dist/renderer/assets/imba--d5D5-Lz.js                                     50.04 kB │ map:     68.11 kB
+../../dist/renderer/assets/everforest-dark-Bp72tx6c.js                          53.86 kB │ map:     68.27 kB
+../../dist/renderer/assets/everforest-dark-C0DP057i.js                          53.86 kB │ map:     68.27 kB
+../../dist/renderer/assets/everforest-light-BZlHajIF.js                         53.87 kB │ map:     68.28 kB
+../../dist/renderer/assets/everforest-light-D36uX_tC.js                         53.87 kB │ map:     68.28 kB
+../../dist/renderer/assets/index-DKQywxZ6.js                                    55.01 kB │ map:    112.36 kB
+../../dist/renderer/assets/index-DHbEvgnB.js                                    55.99 kB │ map:     75.07 kB
+../../dist/renderer/assets/wikitext-CW4P5IVY.js                                 56.00 kB │ map:     77.66 kB
+../../dist/renderer/assets/stata-r6PlmqVx.js                                    57.11 kB │ map:     74.18 kB
+../../dist/renderer/assets/html-CdOcoP4U.js                                     57.38 kB │ map:     73.00 kB
+../../dist/renderer/assets/ballerina-BB0ATmmH.js                                58.81 kB │ map:     81.55 kB
+../../dist/renderer/assets/markdown-Bu9f4VYQ.js                                 59.45 kB │ map:     82.35 kB
+../../dist/renderer/assets/ocaml-BxlNYwZv.js                                    62.56 kB │ map:     81.13 kB
+../../dist/renderer/assets/mojo-DmkHKpCQ.js                                     69.90 kB │ map:     94.96 kB
+../../dist/renderer/assets/python-0-7hYjZL.js                                   70.06 kB │ map:     95.26 kB
+../../dist/renderer/assets/c-EfvRG6NT.js                                        72.21 kB │ map:     95.41 kB
+../../dist/renderer/assets/latex-DFRm4GtY.js                                    72.76 kB │ map:    100.59 kB
+../../dist/renderer/assets/vyper-U7FjHR8V.js                                    74.76 kB │ map:    100.73 kB
+../../dist/renderer/assets/hack-BOviLFVs.js                                     80.37 kB │ map:     97.31 kB
+../../dist/renderer/assets/index-CqKilrxo.js                                    86.71 kB │ map:     92.96 kB
+../../dist/renderer/assets/swift-BtTCo_Dp.js                                    86.80 kB │ map:    114.53 kB
+../../dist/renderer/assets/index-Btl7SdQS.js                                    86.80 kB │ map:    176.50 kB
+../../dist/renderer/assets/index-DdRVpnLc.js                                    87.90 kB │ map:    182.97 kB
+../../dist/renderer/assets/fortran-free-form-BxAiMBup.js                        89.11 kB │ map:    124.07 kB
+../../dist/renderer/assets/csharp-DQjHndof.js                                   89.80 kB │ map:    125.70 kB
+../../dist/renderer/assets/racket-C4_1M9uC.js                                   92.50 kB │ map:    106.21 kB
+../../dist/renderer/assets/index-C_vO7_Xu.js                                    93.01 kB │ map:    117.30 kB
+../../dist/renderer/assets/less-ilFHwV8h.js                                     97.74 kB │ map:    131.88 kB
+../../dist/renderer/assets/index-Dck-qe00.js                                   103.41 kB │ map:    114.00 kB
+../../dist/renderer/assets/blade-CZVmVsaW.js                                   105.20 kB │ map:    130.94 kB
+../../dist/renderer/assets/objective-c-BF76fPVe.js                             105.54 kB │ map:    129.67 kB
+../../dist/renderer/assets/index-4K9gLDvq.js                                   106.94 kB │ map:    114.02 kB
+../../dist/renderer/assets/php-fvPLUndE.js                                     111.23 kB │ map:    139.37 kB
+../../dist/renderer/assets/trpc-client-ViycK1Xo.js                             130.26 kB │ map:    286.75 kB
+../../dist/renderer/assets/asciidoc-Dc9w3Snl.js                                131.64 kB │ map:    189.13 kB
+../../dist/renderer/assets/mdx-DH-_DJpX.js                                     136.22 kB │ map:    176.75 kB
+../../dist/renderer/assets/SettingsSection-B1qNqUKU.js                         163.65 kB │ map:    398.87 kB
+../../dist/renderer/assets/objective-cpp-Bvbhopf_.js                           172.10 kB │ map:    218.55 kB
+../../dist/renderer/assets/javascript-BrdqXJ5T.js                              174.95 kB │ map:    236.09 kB
+../../dist/renderer/assets/tsx-QB0PK7JZ.js                                     175.64 kB │ map:    236.76 kB
+../../dist/renderer/assets/jsx-DZHirr_S.js                                     177.89 kB │ map:    239.01 kB
+../../dist/renderer/assets/typescript-sFaIrMqU.js                              181.20 kB │ map:    244.43 kB
+../../dist/renderer/assets/angular-ts-CfzNJPPp.js                              184.33 kB │ map:    249.33 kB
+../../dist/renderer/assets/vue-vine-ddBjxzm0.js                                190.25 kB │ map:    255.14 kB
+../../dist/renderer/assets/wolfram-DwPmTEM0.js                                 262.51 kB │ map:    279.68 kB
+../../dist/renderer/assets/messages-BXyz5g1N.js                                294.21 kB │ map:    386.16 kB
+../../dist/renderer/assets/messages-w8sBWNxz.js                                297.44 kB │ map:    389.41 kB
+../../dist/renderer/assets/messages-CuM2rMqo.js                                316.71 kB │ map:    408.82 kB
+../../dist/renderer/assets/messages-BzChQhIx.js                                327.29 kB │ map:    419.49 kB
+../../dist/renderer/assets/messages-B4-Gxt4j.js                                338.59 kB │ map:    430.94 kB
+../../dist/renderer/assets/messages-DMlqIJke.js                                339.18 kB │ map:    431.61 kB
+../../dist/renderer/assets/messages-egwCzTgK.js                                340.85 kB │ map:    432.78 kB
+../../dist/renderer/assets/messages--G5ZFnbq.js                                347.31 kB │ map:    439.52 kB
+../../dist/renderer/assets/messages-DoJS1XCv.js                                348.00 kB │ map:    440.34 kB
+../../dist/renderer/assets/messages-qB1GDbmI.js                                348.97 kB │ map:    445.95 kB
+../../dist/renderer/assets/messages-Bt1KtI0T.js                                350.77 kB │ map:    447.72 kB
+../../dist/renderer/assets/messages-D3YhVPIm.js                                362.35 kB │ map:    454.06 kB
+../../dist/renderer/assets/messages-Byzw9lyc.js                                369.28 kB │ map:    461.51 kB
+../../dist/renderer/assets/messages-dXcmGN0q.js                                369.94 kB │ map:    462.63 kB
+../../dist/renderer/assets/messages-df5gkMCZ.js                                411.73 kB │ map:    503.08 kB
+../../dist/renderer/assets/messages-BRyVxBUa.js                                514.88 kB │ map:    611.71 kB
+../../dist/renderer/assets/wasm-DwFw0iK9.js                                    622.52 kB │ map:    622.90 kB
+../../dist/renderer/assets/cpp-DYzvIW5h.js                                     626.29 kB │ map:    816.17 kB
+../../dist/renderer/assets/RemoteProjectSettings-DGfRTLpS.js                   633.02 kB │ map:  1,008.36 kB
+../../dist/renderer/assets/index-54wBemrK.js                                   678.39 kB │ map:  1,449.20 kB
+../../dist/renderer/assets/mermaid-GHXKKRXX-B2FFIkGN.js                        762.83 kB │ map:  1,721.01 kB
+../../dist/renderer/assets/emacs-lisp-BqLG4s_i.js                              779.98 kB │ map:    789.83 kB
+../../dist/renderer/assets/LightDiffSurface-D83frkwA.js                        890.36 kB │ map:  1,606.00 kB
+../../dist/renderer/assets/index-D8VE28tR.js                                 1,087.95 kB │ map:  1,774.16 kB
+../../dist/renderer/assets/index-D72Z2bsE.js                                 4,628.21 kB │ map: 20,260.70 kB
+✓ built in 37.16s

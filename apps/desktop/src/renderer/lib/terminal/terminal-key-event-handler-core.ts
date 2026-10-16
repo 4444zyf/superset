@@ -7,6 +7,7 @@ import { translateLineEditChord } from "./line-edit-translations";
 
 export interface TerminalKeyEventHandlerOptions {
 	platform?: string;
+	linuxCtrlVPaste?: boolean;
 	resolveHotkey?: (event: KeyboardEvent) => unknown | null;
 }
 
@@ -47,6 +48,17 @@ export function createTerminalKeyEventHandler(
 	return (event: KeyboardEvent): boolean => {
 		if ((options.resolveHotkey?.(event) ?? null) !== null) return false;
 
+		if (
+			options.linuxCtrlVPaste &&
+			!isMac &&
+			!isWindows &&
+			event.code === "KeyV" &&
+			event.ctrlKey &&
+			!event.metaKey &&
+			!event.altKey &&
+			!event.shiftKey
+		)
+			return false;
 		const translation = translateLineEditChord(event, { isMac, isWindows });
 		if (translation !== null) {
 			if (event.type === "keydown") {

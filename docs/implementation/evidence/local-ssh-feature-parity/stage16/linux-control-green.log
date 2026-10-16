@@ -1,0 +1,133 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/remote-files.test.ts:
+(pass) selected attachment bytes upload to B through the existing attachment procedure [1.52ms]
+(pass) oversized selected uploads fail before contacting the backend [7.92ms]
+(pass) attachment uploads surface backend errors without retrying [0.40ms]
+(pass) attachment reads accept opaque ids rather than remote paths [1.28ms]
+(pass) a dishonest download cannot allocate beyond the attachment size limit [3.58ms]
+
+src/main/lib/ssh-direct/clipboard-attachment.test.ts:
+(pass) clipboard bytes use the selected generation and the existing attachment upload [3.95ms]
+(pass) invalid clipboard size never contacts a backend [2.49ms]
+(pass) an upload reply from an old generation is rejected without retry [0.82ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [214.41ms]
+
+src/renderer/lib/terminal/clipboard-shortcuts.test.ts:
+(pass) shouldBubbleClipboardShortcut > bubbles every Mac Cmd chord, Ghostty-style [0.16ms]
+(pass) shouldBubbleClipboardShortcut > does not bubble non-Cmd chords on Mac [0.04ms]
+(pass) shouldBubbleClipboardShortcut > matches standard Windows / Linux clipboard bindings [0.08ms]
+(pass) shouldSelectAllShortcut > matches only the VS Code macOS terminal select-all binding [0.04ms]
+
+src/renderer/lib/terminal/terminal-image-paste-fallback.test.ts:
+(pass) isNonTextPaste > returns true when files are present (screenshot, copied file, web image) [0.10ms]
+(pass) isNonTextPaste > returns false when text/plain has content [0.02ms]
+(pass) isNonTextPaste > returns false when text/plain has content alongside image [0.02ms]
+(pass) isNonTextPaste > returns false when only text/plain is present but empty [0.02ms]
+(pass) isNonTextPaste > returns false for text/html-only rich text (no file payload) [0.02ms]
+(pass) isNonTextPaste > returns false when types lists image but no File entry exists [0.01ms]
+(pass) isNonTextPaste > returns false when clipboard is empty [0.01ms]
+(pass) handleImagePasteFallback > forwards Ctrl+V (\x16) when clipboard has files but no text [0.12ms]
+(pass) handleImagePasteFallback > does not call terminal.input for text paste — xterm's built-in handles it [0.04ms]
+(pass) handleImagePasteFallback > does not call terminal.input for mixed text+image paste [0.03ms]
+(pass) handleImagePasteFallback > routes the clipboard files to the override instead of forwarding ^V [0.17ms]
+(pass) handleImagePasteFallback > forwards ^V when the override getter returns null [0.04ms]
+(pass) handleImagePasteFallback > does not consult the override for text paste [0.03ms]
+(pass) installImagePasteFallback > registers a capture-phase paste listener on the wrapper [0.06ms]
+(pass) installImagePasteFallback > dispose removes the listener with matching capture option [0.08ms]
+(pass) installImagePasteFallback > registered handler forwards Ctrl+V on file paste [0.08ms]
+(pass) installImagePasteFallback > registered handler ignores text paste [0.03ms]
+(pass) remote file preference uploads clipboard files even when a copied local path is also present [0.04ms]
+
+src/renderer/lib/terminal/clipboard-files.test.ts:
+(pass) clipboard limits reject oversized batches before reading files [0.21ms]
+
+src/renderer/lib/terminal/terminal-key-event-handler.test.ts:
+(pass) native paste bypasses terminal key encoding on darwin [0.37ms]
+(pass) native paste bypasses terminal key encoding on win32 [0.02ms]
+(pass) native paste bypasses terminal key encoding on linux [0.01ms]
+(pass) a direct Linux terminal can use Ctrl+V for the standard image clipboard pipeline [0.06ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminal/RemoteTerminal.test.tsx:
+An update to RemoteTerminal inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+(pass) a mismatched attached identity permanently disables input on that transport [19.38ms]
+An update to RemoteTerminal inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to RemoteTerminal inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+(pass) matching restored execution enables input only after attached and revokes it on exit [3.73ms]
+An update to RemoteTerminal inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+(pass) unmount closes terminal subscriptions and transports without disposing the remote process [3.63ms]
+(pass) live typography changes reconfigure the same emulator and keep its attached socket [8.59ms]
+(pass) a pasted image is bound to its original terminal execution (switch=%s) [67.70ms]
+(pass) a pasted image is bound to its original terminal execution (switch=%s) [56.31ms]
+(pass) a rejected clipboard file reports an error without failing its attached terminal [12.08ms]
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.test.tsx:
+(pass) loading Run state does not insert an action before New terminal [79.45ms]
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:
+(pass) a double click creates one durable run and attaches its returned execution [73.60ms]
+(pass) remounting an existing run reads and attaches it without launching again [8.45ms]
+(pass) an older backend without run capability receives no run request [0.92ms]
+(pass) a lost start reply is read back without replay and requires journal reconciliation [24.27ms]
+(pass) a launch reply from the previous backend cannot attach or unlock a new backend's launch [122.68ms]
+(pass) Run reads a just-saved definition before submitting its single start [9.26ms]
+
+src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:
+(pass) changing pane callbacks does not reopen a restored chat stream [9.17ms]
+(pass) restoring a controlled chat selection never selects the first session or sends a prompt [5.49ms]
+(pass) closing the chat view closes only its stream, without cancelling or closing B's chat [105.66ms]
+(pass) an attachment replayed from chat history remains downloadable after reconnect [67.00ms]
+(pass) reconnecting keeps the selected remote chat and never repeats a prompt [10.94ms]
+(pass) switching chats clears unsent message and attachment drafts [16.08ms]
+(pass) an upload completed after switching chats cannot attach to the new chat [8.72ms]
+(pass) returning to a chat cannot revive an old upload or clear a newer upload's busy state [13.65ms]
+(pass) an older session list cannot erase a newly created chat [5.31ms]
+(pass) a download completed after changing workspace cannot save stale attachment bytes [10.55ms]
+(pass) attachment controls require the backend's attachment capability [5.07ms]
+(pass) an uploaded attachment is referenced once by opaque id in the selected chat prompt [13.45ms]
+(pass) pasted images upload to the selected chat without sending a prompt [8.13ms]
+(pass) a pasted image completing after switching chats is not attached or sent [58.36ms]
+(pass) a rejected pasted attachment leaves the chat and message draft available [7.85ms]
+
+ 65 pass
+ 0 fail
+ 1033 expect() calls
+Ran 65 tests across 11 files. [1.77s]

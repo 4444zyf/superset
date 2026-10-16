@@ -1,0 +1,25 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/lib/terminal/terminal-key-event-handler.test.ts:
+(pass) native paste bypasses terminal key encoding on darwin [0.37ms]
+(pass) native paste bypasses terminal key encoding on win32 [0.02ms]
+(pass) native paste bypasses terminal key encoding on linux [0.01ms]
+33 |
+34 | test("a direct Linux terminal can use Ctrl+V for the standard image clipboard pipeline",()=>{
+35 |  const terminal={input(){},hasSelection:()=>false,selectAll(){}} as unknown as Terminal;
+36 |  const event=new KeyboardEvent('keydown',{key:'v',code:'KeyV',ctrlKey:true,cancelable:true});
+37 |  expect(createTerminalKeyEventHandler(terminal,{platform:'linux'})(event)).toBe(true);
+38 |  expect(createTerminalKeyEventHandler(terminal,{platform:'linux',linuxCtrlVPaste:true})(event)).toBe(false);
+                                                                                                     ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/lib/terminal/terminal-key-event-handler.test.ts:38:97)
+(fail) a direct Linux terminal can use Ctrl+V for the standard image clipboard pipeline [0.17ms]
+
+ 3 pass
+ 1 fail
+ 11 expect() calls
+Ran 4 tests across 1 file. [152.00ms]
