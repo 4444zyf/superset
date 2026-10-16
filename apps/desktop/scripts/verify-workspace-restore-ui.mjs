@@ -425,6 +425,9 @@ export async function verifyWorkspaceRestoreUi({
 		screenshot,
 		output,
 	});
+	await verifyWorkstationFileGitUi({ getPage, click, screenshot, output });
+	await click("text:Terminal");
+	await ready();
 	await verifyWorkstationRunUi({
 		getPage,
 		click,
@@ -433,9 +436,6 @@ export async function verifyWorkspaceRestoreUi({
 		controls,
 		output,
 	});
-	await verifyWorkstationFileGitUi({ getPage, click, screenshot, output });
-	await click("text:Terminal");
-	await ready();
 	await verifyWorkstationSettingsUi({
 		getPage,
 		click,
