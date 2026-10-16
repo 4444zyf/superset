@@ -22,6 +22,16 @@ export async function verifyWorkstationClipboardUi({
 			if (value) return value;
 			await delay(50);
 		}
+		writeFileSync(
+			join(output, "clipboard-failure-diagnostic.json"),
+			JSON.stringify(
+				await evaluate(
+					`({keys:window.clipboardKeyProbe,pastes:window.clipboardProbe,activeTerminal:document.activeElement?.closest('[data-terminal-id]')?.dataset.terminalId,alerts:[...document.querySelectorAll('[role=alert]')].map(e=>e.textContent.slice(0,2000))})`,
+				),
+				null,
+				2,
+			) + "\n",
+		);
 		throw new Error("Clipboard acceptance did not become ready");
 	};
 	const scope = await evaluate(
@@ -92,7 +102,7 @@ export async function verifyWorkstationClipboardUi({
 		JSON.stringify(expected, null, 2) + "\n",
 	);
 	await evaluate(
-		`(()=>{window.clipboardProbe=[];document.addEventListener('paste',e=>{window.clipboardProbe.push({types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,type:f.type,size:f.size})),textLength:e.clipboardData.getData('text/plain').length});},{capture:true});return true;})()`,
+		`(()=>{window.clipboardKeyProbe=[];document.addEventListener("keydown",e=>{if(window.clipboardKeyProbe.length<32)window.clipboardKeyProbe.push({code:e.code,key:e.key,ctrl:e.ctrlKey,shift:e.shiftKey,meta:e.metaKey,terminal:e.target.closest?.("[data-terminal-id]")?.dataset.terminalId});},true);window.clipboardProbe=[];document.addEventListener('paste',e=>{window.clipboardProbe.push({types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,type:f.type,size:f.size})),textLength:e.clipboardData.getData('text/plain').length});},{capture:true});return true;})()`,
 	);
 	await text("wc -c < ");
 	await paste();

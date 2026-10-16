@@ -7,7 +7,7 @@ test("default main, preload and renderer cannot import the legacy cloud bootstra
 	const src = resolve(import.meta.dir, "../../..");
 	const visited = new Set<string>();
 	const forbidden =
-		/legacy-cloud|cloud-router|cloud-trpc|routeTree\.gen|auth-client|\/posthog|\/sentry|host-service-coordinator|@superset\/(auth|cloud-client)/;
+		/keyboardLayoutStore|legacy-cloud|cloud-router|cloud-trpc|routeTree\.gen|auth-client|\/posthog|\/sentry|host-service-coordinator|@superset\/(auth|cloud-client)/;
 	function visit(file: string) {
 		if (visited.has(file)) return;
 		visited.add(file);

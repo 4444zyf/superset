@@ -10,6 +10,7 @@ import {
 	type TerminalAppearance,
 } from "renderer/lib/terminal/appearance";
 import { createTerminalSurface } from "renderer/lib/terminal/createTerminalSurface";
+import { installTerminalKeyEventHandler } from "renderer/lib/terminal/terminal-key-event-handler-core";
 import { validateClipboardFiles } from "renderer/lib/terminal/clipboard-files";
 import { installImagePasteFallback } from "renderer/lib/terminal/terminal-image-paste-fallback";
 import { uploadPastedFiles } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/utils/uploadPastedFiles";
@@ -40,6 +41,7 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 	const surface = createTerminalSurface({
 		initialTheme: toXtermTheme(getTerminalColors(darkTheme)),
 	});
+	const removeKeys = installTerminalKeyEventHandler(surface.xterm);
 	element.appendChild(surface.wrapper);
 	if (surface.xterm.element) surface.xterm.element.style.padding = "8px";
 	return {
@@ -50,6 +52,7 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 		installCopyOnSelect: (writeText) =>
 			installCopyOnSelect(surface.xterm, undefined, writeText),
 		cleanup: () => {
+			removeKeys();
 			surface.cleanup();
 			surface.wrapper.remove();
 		},

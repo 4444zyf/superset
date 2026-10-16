@@ -417,3 +417,9 @@ TDD保留缺少主进程方法、终端和聊天图片粘贴不上传的红日�
 
 
 第58轮在进入剪贴板步骤之前复现工具栏真实位移：测得可用New terminal在x313，Run异步读回后插在它前面，点击原坐标打开Set Run设置。新增组件红测试确认加载前后首个操作从New terminal变为Set Run；将原Run控件移到固定工具操作之后，保留其功能/样式，原按钮位置不再因Run加载改变。聊天粘贴错误同样通过红测试改为可恢复提示，保留会话和输入草稿。相关9文件57项/996断言、类型及构建通过，初始renderer入口4,624.50kB。读取图片的验收使用原filesystem.readFile的bytes/base64合同；实际仍待复测。
+
+
+第59轮已通过稳定工具栏并进入正确终端，但真实Control+V没有触发paste事件。源码核对发现工作站没有复用原installTerminalKeyEventHandler；它专门负责让macOS Cmd、Windows Ctrl+V及Linux Ctrl+Shift+V绕过xterm/Kitty编码而进入系统剪贴板。工作站复用该安装器及原行编辑规则，暂时注入空全局hotkey解析器，避免吞掉尚未接入工作站的全局动作；旧调用仍使用原解析器。X11验收改为原Linux约定Control+Shift+V。新增三平台纯键盘测试确认不向PTY发按键、不preventDefault，让原系统粘贴链路处理。无账号导入审计仍通过，真实结果待复测。
+
+
+原键盘模块的barrel还会引入旧keyboardLayoutStore并在导入时订阅未注册的legacy IPC。新增启动审计红测试后，将同一键盘算法提取到纯core，旧模块保留原全局hotkey解析包装，工作站只调用core；不会启动旧IPC订阅。最终11文件64项/1030断言、desktop类型和构建通过，初始renderer入口4,628.01kB。真实X11键盘验收等待服务器处理按键后再关闭测试连接，并保存键事件/paste元数据，仍不以合成ClipboardEvent作为真实验证。
