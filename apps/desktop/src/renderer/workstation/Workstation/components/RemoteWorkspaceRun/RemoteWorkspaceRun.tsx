@@ -1,6 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import type { AppRouter } from "@superset/host-service";
-import { errorMessage } from "@superset/i18n/errors";
+import { errorMessage, rawErrorMessage } from "@superset/i18n/errors";
 import { Button } from "@superset/ui/button";
 import type { inferRouterOutputs } from "@trpc/server";
 import { useEffect, useRef, useState } from "react";
@@ -9,6 +9,15 @@ import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
+
+function displayRunError(error: unknown): string {
+	const raw = rawErrorMessage(error);
+	const message = raw.replace(
+		/^Error invoking remote method '[^']+': (?:Error:\s*)?/,
+		"",
+	);
+	return errorMessage(message !== raw ? new Error(message) : error);
+}
 
 type Snapshot = inferRouterOutputs<AppRouter>["workspaceRun"]["getStateV1"];
 export type RemoteRun = NonNullable<Snapshot["run"]>;
@@ -86,7 +95,7 @@ export function RemoteWorkspaceRun({
 			const value = await query();
 			if (owned() && captured === fence.current) await install(value);
 		} catch (err) {
-			if (owned() && captured === fence.current) setError(errorMessage(err));
+			if (owned() && captured === fence.current) setError(displayRunError(err));
 		} finally {
 			if (owned()) reading.current = false;
 		}
@@ -125,7 +134,18 @@ export function RemoteWorkspaceRun({
 		setError(null);
 		fence.current++;
 		const operationId = crypto.randomUUID();
+		let attempted = false;
+		let selected = data;
 		try {
+			if (!stopping) {
+				const fresh = await query();
+				if (!owned()) return;
+				await install(fresh);
+				if (fresh.run && fresh.run.state !== "ended") return;
+				if (!fresh.definitionVersion) return;
+				selected = fresh;
+			}
+			attempted = true;
 			const result = await api.rpc<RemoteRun>({
 				connectionId: connection.connectionId,
 				generation: connection.generation,
@@ -142,18 +162,19 @@ export function RemoteWorkspaceRun({
 					: {
 							workspaceId,
 							operationId,
-							definitionVersion: data.definitionVersion,
+							definitionVersion: selected.definitionVersion,
 						},
 			});
 			if (!owned()) return;
-			await install({ ...data, run: result });
+			await install({ ...selected, run: result });
 		} catch (err) {
 			if (!owned()) return;
-			setBlocked(true);
-			setError(errorMessage(err));
-			try {
-				await install(await query());
-			} catch {}
+			setBlocked(attempted);
+			setError(displayRunError(err));
+			if (attempted)
+				try {
+					await install(await query());
+				} catch {}
 		} finally {
 			if (owned()) {
 				pendingRef.current = false;
@@ -176,7 +197,7 @@ export function RemoteWorkspaceRun({
 			setBlocked(pendingActions.length > 0);
 			if (!pendingActions.length) setError(null);
 		} catch (err) {
-			if (owned()) setError(errorMessage(err));
+			if (owned()) setError(displayRunError(err));
 		} finally {
 			if (owned()) {
 				pendingRef.current = false;

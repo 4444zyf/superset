@@ -1,0 +1,34 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:
+(pass) a double click creates one durable run and attaches its returned execution [54.69ms]
+(pass) remounting an existing run reads and attaches it without launching again [10.96ms]
+(pass) an older backend without run capability receives no run request [1.09ms]
+(pass) a lost start reply is read back without replay and requires journal reconciliation [26.02ms]
+(pass) a launch reply from the previous backend cannot attach or unlock a new backend's launch [21.10ms]
+287 | 	);
+288 | 	fireEvent.click(
+289 | 		await screen.findByRole("button", { name: "Run workspace command" }),
+290 | 	);
+291 | 	await waitFor(() => expect(writes).toHaveLength(1));
+292 | 	expect(writes[0]?.input).toMatchObject({ definitionVersion: "just-saved" });
+                                ^
+error: expect(received).toMatchObject(expected)
+
+  {
+-   "definitionVersion": "just-saved",
++   "definitionVersion": "old",
++   "operationId": "8d8a2d59-1173-4d9e-a3ac-6dda0dbcb069",
++   "workspaceId": "workspace",
+  }
+
+- Expected  - 1
++ Received  + 3
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:292:27)
+(fail) Run reads a just-saved definition before submitting its single start [10.07ms]
+
+ 5 pass
+ 1 fail
+ 19 expect() calls
+Ran 6 tests across 1 file. [411.00ms]

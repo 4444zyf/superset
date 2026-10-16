@@ -73,7 +73,9 @@ test("a double click creates one durable run and attaches its returned execution
 	});
 	fireEvent.click(button);
 	fireEvent.click(button);
-	expect(calls.filter((r) => r.type === "mutation")).toHaveLength(1);
+	await waitFor(() =>
+		expect(calls.filter((r) => r.type === "mutation")).toHaveLength(1),
+	);
 	await act(async () => finish());
 	await waitFor(() => expect(attached).toEqual(["execution"]));
 	expect(calls.find((r) => r.type === "mutation")).toMatchObject({
@@ -161,7 +163,9 @@ test("a lost start reply is read back without replay and requires journal reconc
 					startedAt: 1,
 				},
 			};
-			throw new Error("Reply lost");
+			throw new Error(
+				"Error invoking remote method 'direct-workstation': Error: Reply lost",
+			);
 		},
 		reconcile: async () => {
 			checks++;
@@ -185,6 +189,7 @@ test("a lost start reply is read back without replay and requires journal reconc
 		name: "Stop workspace run command",
 	})) as HTMLButtonElement;
 	expect(stop.disabled).toBe(true);
+	expect(screen.getByRole("alert").textContent).toBe("Reply lost");
 	fireEvent.click(stop);
 	expect(writes).toBe(1);
 	fireEvent.click(screen.getByRole("button", { name: "Check pending action" }));
@@ -218,6 +223,7 @@ test("a launch reply from the previous backend cannot attach or unlock a new bac
 	fireEvent.click(
 		await screen.findByRole("button", { name: "Run workspace command" }),
 	);
+	await waitFor(() => expect(finishes).toHaveLength(1));
 	view.rerender(
 		<RemoteWorkspaceRun
 			{...props}
@@ -233,7 +239,7 @@ test("a launch reply from the previous backend cannot attach or unlock a new bac
 		name: "Run workspace command",
 	})) as HTMLButtonElement;
 	fireEvent.click(next);
-	expect(finishes).toHaveLength(2);
+	await waitFor(() => expect(finishes).toHaveLength(2));
 	const value = (terminalId: string) => ({
 		workspaceId: "workspace",
 		operationId: terminalId,
@@ -249,4 +255,45 @@ test("a launch reply from the previous backend cannot attach or unlock a new bac
 	expect(next.disabled).toBe(true);
 	await act(async () => finishes[1]?.(value("new")));
 	expect(attached).toEqual(["new"]);
+});
+
+test("Run reads a just-saved definition before submitting its single start", async () => {
+	let reads = 0;
+	const writes: DirectRpc[] = [];
+	const api = {
+		rpc: async (request: DirectRpc) => {
+			if (request.type === "query") {
+				reads++;
+				return {
+					...base,
+					definitionVersion: reads === 1 ? "old" : "just-saved",
+				};
+			}
+			writes.push(request);
+			return {
+				workspaceId: "workspace",
+				operationId: "operation",
+				terminalId: "terminal",
+				executionId: "execution",
+				state: "active",
+				foregroundSeen: true,
+				commands: ["echo run"],
+				startedAt: 1,
+			};
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspaceRun
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			onConfigure={() => {}}
+			onAttach={async () => {}}
+		/>,
+	);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Run workspace command" }),
+	);
+	await waitFor(() => expect(writes).toHaveLength(1));
+	expect(writes[0]?.input).toMatchObject({ definitionVersion: "just-saved" });
 });

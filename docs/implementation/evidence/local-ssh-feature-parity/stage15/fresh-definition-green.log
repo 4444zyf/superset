@@ -1,0 +1,71 @@
+bun test v1.4.2 (744846f84)
+
+src/shared/workspace-run-definition.test.ts:
+(pass) selectWorkspaceRunDefinition > prefers a project-targeted workspace-run preset over config [0.29ms]
+(pass) selectWorkspaceRunDefinition > uses config before a global workspace-run preset [0.05ms]
+(pass) selectWorkspaceRunDefinition > preserves config cwd [0.04ms]
+(pass) selectWorkspaceRunDefinition > falls back to a global workspace-run preset when config is empty [0.03ms]
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.22ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.33ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.10ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.07ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.43ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.14ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.65ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.07ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.13ms]
+(pass) disconnect and app disposal only close client transports [0.06ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [1.51ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.81ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.49ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.71ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.60ms]
+(pass) attachment readiness requires an explicit backend capability [0.23ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.30ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.22ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.22ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.32ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.24ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.88ms]
+(pass) project script procedures require their own capability and an explicit project [0.31ms]
+(pass) a lost workspace-run response remains journaled and blocks a second start [0.92ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [275.75ms]
+
+src/renderer/components/WorkspaceRunControl/WorkspaceRunControl.test.tsx:
+(pass) the original empty Run control opens configuration without starting a process [35.18ms]
+(pass) pending launches disable both original Run actions [6.37ms]
+(pass) a running command keeps the original Stop and Force Stop actions [47.43ms]
+
+src/renderer/lib/terminal/launch-command.test.ts:
+(pass) launchCommandInPane > creates a terminal session and writes the command with a newline [0.31ms]
+(pass) launchCommandInPane > forwards cwd when launching a command into a new terminal session [0.09ms]
+(pass) launchCommandInPane > does not append a second newline when command already has one [0.15ms]
+(pass) launchCommandInPane > waits for the mounted session before writing when requested [0.20ms]
+(pass) launchCommandInPane > propagates mounted-session readiness failures [0.12ms]
+(pass) buildTerminalCommand > joins commands with shell separators [0.02ms]
+(pass) buildTerminalCommand > returns null for empty commands [0.01ms]
+(pass) writeCommandsInPane > writes joined command with newline [0.10ms]
+(pass) writeCommandsInPane > does not write when commands are empty [0.04ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:
+(pass) successful manual restore reloads the main process auto-connect decision [107.06ms]
+(pass) upstream tab reorder and rename persist without changing execution ownership [60.17ms]
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:
+(pass) a double click creates one durable run and attaches its returned execution [70.43ms]
+(pass) remounting an existing run reads and attaches it without launching again [8.33ms]
+(pass) an older backend without run capability receives no run request [0.79ms]
+(pass) a lost start reply is read back without replay and requires journal reconciliation [23.45ms]
+(pass) a launch reply from the previous backend cannot attach or unlock a new backend's launch [121.51ms]
+(pass) Run reads a just-saved definition before submitting its single start [8.53ms]
+
+ 51 pass
+ 0 fail
+ 932 expect() calls
+Ran 51 tests across 7 files. [1296.00ms]
