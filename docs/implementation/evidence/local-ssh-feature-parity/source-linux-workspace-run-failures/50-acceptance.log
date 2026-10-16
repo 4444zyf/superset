@@ -1,0 +1,21 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: undefined == true
+    at Object.inspectRunExecution (file:///workspace/superset/apps/desktop/scripts/verify-restore-controls.mjs:139:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async file:///workspace/superset/apps/desktop/scripts/verify-workstation-run-ui.mjs:252:17
+    at async until (file:///workspace/superset/apps/desktop/scripts/verify-workstation-run-ui.mjs:18:18)
+    at async verifyWorkstationRunUi (file:///workspace/superset/apps/desktop/scripts/verify-workstation-run-ui.mjs:251:17)
+    at async verifyWorkspaceRestoreUi (file:///workspace/superset/apps/desktop/scripts/verify-workspace-restore-ui.mjs:428:2)
+    at async <anonymous> (/workspace/superset/apps/desktop/scripts/verify-brand-ui.mjs:484:4) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

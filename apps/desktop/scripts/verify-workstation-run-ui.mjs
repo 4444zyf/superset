@@ -249,7 +249,7 @@ export async function verifyWorkstationRunUi({
 	await forceCurrent();
 	await until(async () => (await query()).run?.state === "ended");
 	const forced = await until(async () => {
-		const value = await controls.inspectRunExecution(second);
+		const value = await controls.inspectRunExecution(second, before.pid);
 		return !value.alive && !value.processExists ? value : null;
 	});
 	await screenshot("workspace-run-force-stopped");
@@ -284,7 +284,7 @@ export async function verifyWorkstationRunUi({
 	await forceCurrent();
 	await until(async () => (await query()).run?.state === "ended");
 	await until(async () => {
-		const value = await controls.inspectRunExecution(third);
+		const value = await controls.inspectRunExecution(third, thirdProcess.pid);
 		return !value.alive && !value.processExists;
 	});
 	await closePane(third);

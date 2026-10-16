@@ -130,14 +130,28 @@ export function ownedRestoreControls(home, fixture) {
 		trackOriginals(refs) {
 			originals = refs;
 		},
-		async inspectRunExecution(run) {
+		async inspectRunExecution(run, expectedPid) {
 			const client = await connectAndHello(socket);
 			try {
 				client.send({ type: "list" });
 				const list = await client.waitFor((m) => m.type === "list-reply");
 				const row = list.sessions.find((s) => s.id === run.terminalId);
-				assert.ok(row);
+				if (!row) {
+					assert.ok(Number.isSafeInteger(expectedPid) && expectedPid > 0);
+					assert.equal(process.platform, "linux");
+					return {
+						id: run.terminalId,
+						executionId: run.executionId,
+						pid: expectedPid,
+						cwd: null,
+						alive: false,
+						removed: true,
+						processExists: existsSync(`/proc/${expectedPid}`),
+						output: "",
+					};
+				}
 				assert.equal(row.executionId, run.executionId);
+				if (expectedPid !== undefined) assert.equal(row.pid, expectedPid);
 				let output = "";
 				if (row.alive) {
 					client.send({
