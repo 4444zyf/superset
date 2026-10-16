@@ -292,3 +292,105 @@ test("rerunning a command reuses its pane and preserves its saved layout and tit
 	expect(workspace.activeTool).toBe("terminal");
 	expect(workspace.activePaneId).toBe("console");
 });
+
+test("creation titles label existing setup resources without reopening or creating terminals", async () => {
+	const connection = {
+		connectionId: "remote",
+		generation: 1,
+		backendId: "backend",
+		namespaceId: "namespace",
+		instanceId: "instance",
+		capabilities: { workspaceViewRestoreV1: true },
+	};
+	let backing: WorkspaceViewSnapshot = {
+		schemaVersion: 1,
+		revision: 1,
+		updatedAt: 1,
+		restoreOnLaunch: false,
+		activeConnectionId: "remote",
+		window: { x: 0, y: 0, width: 1200, height: 900, maximized: false },
+		targets: [
+			{
+				connectionId: "remote",
+				targetRevision: 1,
+				backendId: "backend",
+				namespaceId: "namespace",
+				serviceUid: 1000,
+				autoConnect: true,
+				activeTabId: null,
+				workspaces: [],
+			},
+		],
+	};
+	const calls: string[] = [];
+	const api = {
+		getWorkspaceView: async () => ({
+			snapshot: structuredClone(backing),
+			revision: backing.revision,
+			invalid: false,
+			navigationRevision: 0,
+		}),
+		saveWorkspaceView: async ({ view }: { view: WorkspaceViewSnapshot }) => {
+			backing = {
+				...view,
+				schemaVersion: 1,
+				revision: backing.revision + 1,
+				updatedAt: 2,
+			};
+			return structuredClone(backing);
+		},
+		beginWorkspaceRestore: async () => {
+			throw new Error("must not restore");
+		},
+		rpc: async (r: { path: string; type: string }) => {
+			calls.push(r.path);
+			expect(r.type).toBe("query");
+			if (r.path === "workspace.restoreResources") return [];
+			return {
+				sessions: [
+					{ terminalId: "setup", title: "shell" },
+					{ terminalId: "other", title: "My terminal" },
+				],
+			};
+		},
+	} as unknown as DirectWorkstationApi;
+	const hook = renderHook(() =>
+		useWorkspaceViews(api, connection, {
+			onSkeleton() {},
+			onForget() {},
+			onDescriptor: async () => {},
+			onError(e) {
+				throw new Error(e);
+			},
+		}),
+	);
+	await waitFor(() => expect(hook.result.current.view?.revision).toBe(1));
+	await act(async () => {
+		await hook.result.current.openWorkspace(
+			{ id: "workspace", name: "Example", worktreePath: "/remote/project" },
+			[
+				{ terminalId: "setup", label: "Setup" },
+				{ terminalId: "not-listed", label: "Stale" },
+			],
+		);
+	});
+	expect(backing.targets[0]!.workspaces[0]!.panes.map((p) => p.label)).toEqual([
+		"Setup",
+		"My terminal",
+	]);
+	await act(async () => {
+		await hook.result.current.openWorkspace(
+			{ id: "workspace", name: "Example", worktreePath: "/remote/project" },
+			[{ terminalId: "setup", label: "Do not replace" }],
+		);
+	});
+	expect(backing.targets[0]!.workspaces[0]!.panes[0]!.label).toBe("Setup");
+	expect(calls.filter((path) => path === "terminal.list")).toEqual([
+		"terminal.list",
+	]);
+	expect(
+		calls.every((path) =>
+			["terminal.list", "workspace.restoreResources"].includes(path),
+		),
+	).toBe(true);
+});

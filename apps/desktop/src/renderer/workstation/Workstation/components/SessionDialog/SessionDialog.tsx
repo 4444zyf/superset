@@ -1,5 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useState } from "react";
+import { RunSetupScriptOption } from "renderer/components/RunSetupScriptOption";
 import { CheckoutPickerPill } from "renderer/routes/_authenticated/components/DashboardNewWorkspaceModal/components/DashboardNewWorkspaceForm/PromptGroup/components/CheckoutPickerPill";
 import type { DirectProfile, RemoteProject } from "../../types";
 import { WorkstationDialog } from "../WorkstationDialog/WorkstationDialog";
@@ -26,6 +27,7 @@ export function SessionDialog({
 		name: string,
 		projectId: string,
 		checkout: "worktree" | "local",
+		runSetup: boolean,
 	): void;
 	onClose(): void;
 	serverError?: string | null;
@@ -35,6 +37,7 @@ export function SessionDialog({
 	const [name, setName] = useState("");
 	const [project, setProject] = useState("");
 	const [checkout, setCheckout] = useState<"worktree" | "local">("worktree");
+	const [runSetup, setRunSetup] = useState(true);
 	return (
 		<WorkstationDialog
 			title={t({ message: "New session" })}
@@ -53,6 +56,10 @@ export function SessionDialog({
 							name.trim(),
 							project,
 							canCreateWorktree ? checkout : "local",
+							Boolean(project) &&
+								canCreateWorktree &&
+								checkout === "worktree" &&
+								runSetup,
 						);
 				}}
 			>
@@ -115,6 +122,13 @@ export function SessionDialog({
 								</p>
 							)}
 						</div>
+					)}
+					{project && canCreateWorktree && checkout === "worktree" && (
+						<RunSetupScriptOption
+							checked={runSetup}
+							onCheckedChange={setRunSetup}
+							disabled={busy || !connected}
+						/>
 					)}
 					<p className="ws-description">
 						{connected ? (

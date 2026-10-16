@@ -169,10 +169,14 @@ export function Workstation({
 		}
 		if (createRef.current === "project") await browse();
 	};
-	const openWorkspace = async (id: string, created?: RemoteWorkspace) => {
+	const openWorkspace = async (
+		id: string,
+		created?: RemoteWorkspace,
+		terminals: { terminalId: string; label?: string }[] = [],
+	) => {
 		const workspace = created ?? ui.workspaces.find((w) => w.id === id);
 		if (managesViews && workspace) {
-			if (await views.openWorkspace(workspace))
+			if (await views.openWorkspace(workspace, terminals))
 				ui.restoreWorkspaceSelection(id);
 		} else await ui.selectWorkspace(id);
 	};
@@ -202,6 +206,7 @@ export function Workstation({
 		name: string,
 		chosenProject: string,
 		checkout: "worktree" | "local",
+		runSetup: boolean,
 	) =>
 		void ui.operation(async () => {
 			const target = ui.active.current;
@@ -220,7 +225,10 @@ export function Workstation({
 				operationId: crypto.randomUUID(),
 				name,
 			};
-			const result = await ui.rpc<{ workspace: RemoteWorkspace }>(
+			const result = await ui.rpc<{
+				workspace: RemoteWorkspace;
+				terminals?: { terminalId: string; label?: string }[];
+			}>(
 				chosenProject ? "workspaces.create" : "workspaces.createSession",
 				"mutation",
 				chosenProject
@@ -228,7 +236,7 @@ export function Workstation({
 							...input,
 							projectId: chosenProject,
 							checkout,
-							runSetup: false,
+							runSetup: runSetup && checkout === "worktree",
 						}
 					: input,
 				target,
@@ -240,7 +248,17 @@ export function Workstation({
 				return;
 			setCreate(null);
 			await ui.refresh(target);
-			await openWorkspace(result.workspace.id, result.workspace);
+			await openWorkspace(
+				result.workspace.id,
+				result.workspace,
+				result.terminals?.map((terminal) => ({
+					...terminal,
+					label:
+						terminal.label === "Workspace Setup"
+							? t({ message: "Setup" })
+							: terminal.label,
+				})),
+			);
 		});
 	const projectMutation = (input: unknown) =>
 		ui.operation(async () => {

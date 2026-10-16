@@ -13,9 +13,8 @@ import {
 	CommandList,
 } from "@superset/ui/command";
 import { Input } from "@superset/ui/input";
-import { Label } from "@superset/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@superset/ui/popover";
-import { Switch } from "@superset/ui/switch";
+import { RunSetupScriptOption } from "renderer/components/RunSetupScriptOption";
 import { GoGitBranch } from "react-icons/go";
 import {
 	HiCheck,
@@ -211,19 +210,11 @@ export function PromptGroupAdvancedOptions({
 				)}
 
 				{!hideSetupScript && (
-					<div className="flex items-center justify-between">
-						<Label
-							htmlFor="run-setup-script"
-							className="text-xs text-muted-foreground"
-						>
-							<Trans>Run setup script</Trans>
-						</Label>
-						<Switch
-							id="run-setup-script"
-							checked={runSetupScript}
-							onCheckedChange={onRunSetupScriptChange}
-						/>
-					</div>
+					<RunSetupScriptOption
+						id="run-setup-script"
+						checked={runSetupScript}
+						onCheckedChange={onRunSetupScriptChange}
+					/>
 				)}
 			</CollapsibleContent>
 		</Collapsible>

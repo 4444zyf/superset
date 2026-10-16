@@ -1,0 +1,67 @@
+bun test v1.4.2 (744846f84)
+
+src/runtime/setup/config.test.ts:
+(pass) loadSetupConfig > returns null when no config sources exist [0.39ms]
+(pass) loadSetupConfig > returns repo config.json when only that source exists [0.39ms]
+Failed to read JSON at /tmp/setup-config-test-sGvn3T/repo/.superset/config.json: JSON Parse error: Expected '}'
+(pass) loadSetupConfig > returns null when repo config.json is malformed JSON [0.13ms]
+Invalid setup config at /tmp/setup-config-test-sgL8rx/repo/.superset/config.json: 'setup' must be an array of strings
+(pass) loadSetupConfig > rejects mixed-type arrays and treats config as missing [0.12ms]
+(pass) loadSetupConfig > rejects when config root is an array (not an object) [0.07ms]
+Invalid setup config at /tmp/setup-config-test-MQi2JB/repo/.superset/config.json: 'cwd' must be a non-empty string
+(pass) loadSetupConfig > rejects blank cwd values [0.09ms]
+(pass) loadSetupConfig > normalizes configured cwd [0.08ms]
+(pass) loadSetupConfig > worktree config overrides the repo config per key [0.12ms]
+(pass) loadSetupConfig > user override still beats the worktree config [0.33ms]
+(pass) loadSetupConfig > prefers the worktree's config.local.json overlay when present [0.27ms]
+(pass) loadSetupConfig > resolves the user override by repo path [0.17ms]
+(pass) loadSetupConfig > path-keyed user override wins over the legacy id-keyed one [0.14ms]
+(pass) loadSetupConfig > user override only sets keys it explicitly defines [0.10ms]
+(pass) loadSetupConfig > ignores user override path when projectId contains a slash [0.08ms]
+(pass) loadSetupConfig > local overlay 'before' prepends to base [0.08ms]
+(pass) loadSetupConfig > local overlay 'after' appends to base [0.08ms]
+(pass) loadSetupConfig > local overlay before+after wraps the base [0.10ms]
+(pass) loadSetupConfig > local overlay as a plain array replaces the base entirely [0.19ms]
+(pass) loadSetupConfig > local overlay only takes effect when there is a base config [0.08ms]
+Invalid local config at /tmp/setup-config-test-4PSdvq/repo/.superset/config.local.json: 'setup.before' must be an array of strings
+(pass) loadSetupConfig > local overlay with invalid before type is rejected silently [0.11ms]
+(pass) loadSetupConfig > stacks repo + user override + local overlay in the right order [0.17ms]
+(pass) loadSetupConfig > user override with explicit empty array clears base setup [0.25ms]
+(pass) loadSetupConfig > returns the config when only some keys are defined [0.11ms]
+(pass) loadSetupConfig > does not consult any worktree-level config [0.11ms]
+(pass) hasConfiguredScripts > returns false for null [0.04ms]
+(pass) hasConfiguredScripts > returns false when all arrays are empty [0.06ms]
+(pass) hasConfiguredScripts > returns false when arrays contain only whitespace strings [0.02ms]
+(pass) hasConfiguredScripts > returns true when setup has any non-empty command [0.04ms]
+(pass) hasConfiguredScripts > returns true when only teardown is set [0.02ms]
+(pass) hasConfiguredScripts > returns true when only run is set (so the card hides for run-only) [0.01ms]
+(pass) resolveScript > returns null when no config and no fallback script exist [0.17ms]
+(pass) resolveScript > returns configured commands, filtering empty entries [0.29ms]
+(pass) resolveScript > only resolves the requested key [0.14ms]
+(pass) resolveScript > falls back to <repoPath>/.superset/<key>.sh per key [0.22ms]
+(pass) resolveScript > prefers the worktree script when worktreePath is in scope [0.15ms]
+(pass) resolveScript > falls back to the main repo script when the worktree has none [0.09ms]
+(pass) resolveScript > worktree config commands override the main repo's [0.13ms]
+(pass) resolveScript > configured commands win over the fallback script [0.09ms]
+(pass) resolveScript > carries cwd on both command and script resolutions [0.21ms]
+(pass) shellSingleQuote > escapes embedded single quotes [0.04ms]
+(pass) getProjectConfigPath > appends .superset/config.json to the repoPath
+
+src/trpc/router/workspace-creation/shared/setup-terminal.test.ts:
+(pass) resolveInitialCommand > returns null when no config and no fallback script exist [0.34ms]
+(pass) resolveInitialCommand > joins multi-line setup commands with ' && ' [0.18ms]
+(pass) resolveInitialCommand > returns the single command when setup has only one line [0.08ms]
+(pass) resolveInitialCommand > falls back to bash <repoPath>/.superset/setup.sh when config is empty [0.32ms]
+(pass) resolveInitialCommand > falls back to setup.sh when no config.json exists at all [0.09ms]
+(pass) resolveInitialCommand > config setup wins over the fallback script [0.13ms]
+(pass) resolveInitialCommand > carries config cwd for the terminal session [0.10ms]
+(pass) resolveInitialCommand > ignores teardown when resolving the setup command [0.09ms]
+(pass) resolveInitialCommand > filters whitespace-only setup entries [0.10ms]
+(pass) resolveInitialCommand > escapes single quotes in fallback path [0.12ms]
+(pass) resolveInitialCommand > worktree config wins over the main repo's when in scope [0.12ms]
+(pass) resolveInitialCommand > falls back to the worktree setup.sh before the main repo's [0.11ms]
+
+ 53 pass
+ 0 fail
+ 64 expect() calls
+Ran 53 tests across 2 files. [113.00ms]

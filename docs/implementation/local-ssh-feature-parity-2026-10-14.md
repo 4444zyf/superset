@@ -444,3 +444,12 @@ Linux标准粘贴选项修复后，11文件65项/1033断言、desktop类型和�
 实际系统剪贴板还粘贴中文、emoji及129个换行到远端cat，文件3474字节、与源内容逐字节一致，SHA-256 c8e7925a786ecb3fe0aa82a044d156040598219e64605c91b8455ccb53edc577。等待只读确认完整内容后再明确EOF，保留原raw字节/PTY诊断。原窗格右键Close pane菜单通过实际鼠标命中操作关闭测试视图，并恢复原焦点与布局。图片路径、真实读取输出、文本与原菜单截图均已实际查看。[第63轮记录和截图](evidence/local-ssh-feature-parity/source-linux-clipboard)。
 
 同轮Run生命周期、统一worktree目录/三个原PTY cwd、项目设置/脚本/图标、文件/Git/设置/多标签/树/Diff/历史/基础分支/分支操作/四同步，以及关闭重开、缩放/拖拽、断线手动恢复、离线、host重启、部分结束、多工作区和daemon丢失完整回归通过。相关65项/1033断言、desktop类型、17语言严格检查和最终构建通过。恢复仍单采样，实际客户端为Linux源码，SSH/Git/系统剪贴板均为拥有的隔离夹具。聊天图片/文件粘贴及晚回复/错误保留草稿已过组件和传输测试，但聊天原生系统粘贴、真实Claude/Codex读取图片、macOS安装包仍待实际验收；不能把远端shell读图当成供应商Agent识图。没有新1.37.7 DMG。窄窗格最小尺寸/裁切的原布局适配仍需继续，完整功能对齐目标未完成。
+
+
+## 阶段十七：复用创建工作区的 Setup 选择与原终端输出
+
+原PromptGroupAdvancedOptions的Run setup script Label/Switch提取到共同RunSetupScriptOption，旧包装保留原id、默认值、文案及回调。新建项目Worktree显示同一个开关，默认遵循原版开启，可明确关闭；Local检出、旧后端Local回退与独立会话不展示无效选项并提交runSetup=false。工作站不再固定关闭Setup，直接将选择传给原workspaces.create，复用原resolveScript/startSetupTerminalIfPresent和已存在的持久创建收据，没有新增后端API、云依赖或创建时的第二次脚本写入。
+
+创建结果已有Setup终端描述，界面现在用它标注原terminal.list已经存在的资源，Setup标题复用已有翻译。标题只能应用于本次查询返回的工作区资源，不会凭描述创建窗格或终端；重开已有标签不覆盖用户标题、不重发创建。原普通终端、Run与项目脚本编辑器保持复用。
+
+TDD先记录原UI没有开关、固定runSetup=false，以及创建的Setup终端丢失描述标题的失败，再接入。相关6文件23项/911断言通过，原Setup配置/命令解析器53项/64断言通过；desktop类型、17语言严格检查及构建通过。初始renderer入口4,635.16kB。原setup命令/sh文件/cwd解析规则保持，没有改动服务端合同。实际SSH新建执行/跳过、输出、统一目录cwd和窗口恢复不重复执行仍待冻结版本验证；Setup失败状态、Teardown与完整项目生命周期仍需继续。[阶段十七日志](evidence/local-ssh-feature-parity/stage17)。

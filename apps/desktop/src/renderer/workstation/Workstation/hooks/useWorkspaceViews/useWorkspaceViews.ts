@@ -368,7 +368,10 @@ export function useWorkspaceViews(
 			void refreshResources();
 	}, [enabled, connection, resourceKey, refreshResources, navigationEpoch]);
 	const openWorkspace = useCallback(
-		async (workspace: RemoteWorkspace) => {
+		async (
+			workspace: RemoteWorkspace,
+			initialTerminals: { terminalId: string; label?: string }[] = [],
+		) => {
 			const descriptor = connectionRef.current;
 			if (!descriptor?.capabilities?.workspaceViewRestoreV1) return false;
 			const id = descriptor.connectionId;
@@ -403,6 +406,9 @@ export function useWorkspaceViews(
 					kind: "terminal",
 					resourceId: session.terminalId,
 					label: (
+						initialTerminals.find(
+							(terminal) => terminal.terminalId === session.terminalId,
+						)?.label ??
 						session.title ??
 						`${labelsRef.current.terminal} ${formatNumber(index + 1)}`
 					).slice(0, 128),

@@ -1,0 +1,31 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:
+(pass) successful manual restore reloads the main process auto-connect decision [115.87ms]
+(pass) upstream tab reorder and rename persist without changing execution ownership [55.49ms]
+(pass) rerunning a command reuses its pane and preserves its saved layout and title [61.60ms]
+299 |  const calls:string[]=[];
+300 |  const api={getWorkspaceView:async()=>({snapshot:structuredClone(backing),revision:backing.revision,invalid:false,navigationRevision:0}),saveWorkspaceView:async({view}:{view:WorkspaceViewSnapshot})=>{backing={...view,schemaVersion:1,revision:backing.revision+1,updatedAt:2};return structuredClone(backing);},beginWorkspaceRestore:async()=>{throw new Error('must not restore');},rpc:async(r:{path:string,type:string})=>{calls.push(r.path);expect(r.type).toBe('query');return {sessions:[{terminalId:'setup',title:'shell'},{terminalId:'other',title:'My terminal'}]};}} as unknown as DirectWorkstationApi;
+301 |  const hook=renderHook(()=>useWorkspaceViews(api,connection,{onSkeleton(){},onForget(){},onDescriptor:async()=>{},onError(e){throw new Error(e);}}));
+302 |  await waitFor(()=>expect(hook.result.current.view?.revision).toBe(1));
+303 |  await act(async()=>{await hook.result.current.openWorkspace({id:'workspace',name:'Example',worktreePath:'/remote/project'},[{terminalId:'setup',label:'Setup'},{terminalId:'not-listed',label:'Stale'}]);});
+304 |  expect(backing.targets[0]!.workspaces[0]!.panes.map(p=>p.label)).toEqual(['Setup','My terminal']);
+                                                                        ^
+error: expect(received).toEqual(expected)
+
+  [
+-   "Setup",
++   "shell",
+    "My terminal",
+  ]
+
+- Expected  - 1
++ Received  + 1
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:304:67)
+(fail) creation titles label existing setup resources without reopening or creating terminals [56.01ms]
+
+ 3 pass
+ 1 fail
+ 27 expect() calls
+Ran 4 tests across 1 file. [527.00ms]

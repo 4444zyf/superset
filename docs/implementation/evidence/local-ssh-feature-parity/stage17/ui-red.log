@@ -1,0 +1,760 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+72 | 	fireEvent.change(screen.getByLabelText("Project"), {
+73 | 		target: { value: "project" },
+74 | 	});
+75 | 	fireEvent.click(screen.getByRole("button", { name: "Create" }));
+76 | 	await waitFor(() => expect(mutations).toHaveLength(1));
+77 | 	expect(mutations[0]).toMatchObject({
+                           ^
+error: expect(received).toMatchObject(expected)
+
+  {
+    "connectionId": "machine",
+    "generation": 1,
+    "input": {
+      "checkout": "worktree",
++     "id": "6ad19cf4-119b-4ef9-b30c-4287421ea9ea",
+      "name": "Feature",
++     "operationId": "b7d4569b-a8fe-40e2-9a7b-504098579b63",
+      "projectId": "project",
+-     "runSetup": true,
++     "runSetup": false,
+    },
+    "path": "workspaces.create",
++   "type": "mutation",
+  }
+
+- Expected  - 1
++ Received  + 4
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/Workstation.test.tsx:77:23)
+(fail) creating a project workspace respects the selected backend's managed worktree capability (%s) [216.95ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [86.23ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [105.32ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [57.64ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [61.13ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [68.52ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [68.66ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [66.28ms]
+(pass) opening a development server submits its port for forwarding on B [52.48ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [71.32ms]
+(pass) checking an empty operation journal shows a readable result [52.32ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [53.36ms]
+
+src/renderer/workstation/Workstation/components/SessionDialog/SessionDialog.test.tsx:
+32 |   // throw errors w/ suggestions for better queries. Opt in so off by default.
+33 |   throwSuggestions: false,
+34 |   // called when getBy* queries fail. (message, container) => Error
+35 |   getElementError(message, container) {
+36 |     const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
+37 |     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+                           ^
+TestingLibraryElementError: Unable to find an accessible element with the role "switch" and name "Run setup script"
+
+Here are the accessible roles:
+
+  dialog:
+
+  Name "New session":
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"radix-_r_3i_"[39m
+    [33mclass[39m=[32m"workstation-dialog  "[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mid[39m=[32m"radix-_r_3h_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "New session":
+  [36m<h2[39m
+    [33mid[39m=[32m"radix-_r_3i_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Close":
+  [36m<button[39m
+    [33maria-label[39m=[32m"Close"[39m
+    [33mclass[39m=[32m"ws-icon-button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Checkout: Worktree":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-label[39m=[32m"Checkout: Worktree"[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-1 h-[22px] text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 min-w-0"[39m
+    [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mid[39m=[32m"radix-_r_3k_"[39m
+    [33mtitle[39m=[32m"Worktree"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Cancel":
+  [36m<button[39m
+    [33mclass[39m=[32m"ws-button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Create":
+  [36m<button[39m
+    [33mclass[39m=[32m"ws-button primary"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Name":
+  [36m<input[39m
+    [33mmaxlength[39m=[32m"100"[39m
+    [33mrequired[39m=[32m""[39m
+    [33mvalue[39m=[32m"Feature"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  combobox:
+
+  Name "Run on":
+  [36m<select />[39m
+
+  Name "Project":
+  [36m<select />[39m
+
+  --------------------------------------------------
+  option:
+
+  Name "Standalone session":
+  [36m<option[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Example":
+  [36m<option[39m
+    [33mvalue[39m=[32m"project"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"ws-description"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"ws-description"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"sr-only"[39m
+    [33mid[39m=[32m"radix-_r_3j_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  code:
+
+  Name "":
+  [36m<code />[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-scroll-locked[39m=[32m"1"[39m
+  [33mstyle[39m=[32m"pointer-events: none;"[39m
+[36m>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"workstation-overlay"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"radix-_r_3i_"[39m
+    [33mclass[39m=[32m"workstation-dialog  "[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mid[39m=[32m"radix-_r_3h_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"ws-dialog-head"[39m
+    [36m>[39m
+      [36m<h2[39m
+        [33mid[39m=[32m"radix-_r_3i_"[39m
+      [36m>[39m
+        [0mNew session[0m
+      [36m</h2>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Close"[39m
+        [33mclass[39m=[32m"ws-icon-button"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-x"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"18"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"18"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M18 6 6 18"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33md[39m=[32m"m6 6 12 12"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+    [36m<form>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"ws-dialog-body"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"ws-field"[39m
+        [36m>[39m
+          [0mName[0m
+          [36m<input[39m
+            [33mmaxlength[39m=[32m"100"[39m
+            [33mrequired[39m=[32m""[39m
+            [33mvalue[39m=[32m"Feature"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"ws-field"[39m
+        [36m>[39m
+          [0mRun on[0m
+          [36m<select />[39m
+        [36m</label>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"ws-field"[39m
+        [36m>[39m
+          [0mProject[0m
+          [36m<select>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m""[39m
+            [36m>[39m
+              [0mStandalone session[0m
+            [36m</option>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"project"[39m
+            [36m>[39m
+              [0mExample[0m
+            [36m</option>[39m
+          [36m</select>[39m
+        [36m</label>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33maria-haspopup[39m=[32m"menu"[39m
+            [33maria-label[39m=[32m"Checkout: Worktree"[39m
+            [33mclass[39m=[32m"inline-flex items-center gap-1 h-[22px] text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 min-w-0"[39m
+            [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+            [33mdata-state[39m=[32m"closed"[39m
+            [33mid[39m=[32m"radix-_r_3k_"[39m
+            [33mtitle[39m=[32m"Worktree"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"size-3 shrink-0"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"12"[39m
+                [33mcy[39m=[32m"18"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"6"[39m
+                [33mcy[39m=[32m"6"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"18"[39m
+                [33mcy[39m=[32m"6"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 12v3"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"truncate"[39m
+            [36m>[39m
+              [0mWorktree[0m
+            [36m</span>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"size-3 shrink-0"[39m
+              [33mfill[39m=[32m"currentColor"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-width[39m=[32m"0"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M11.47 4.72a.75.75 0 0 1 1.06 0l3.75 3.75a.75.75 0 0 1-1.06 1.06L12 6.31 8.78 9.53a.75.75 0 0 1-1.06-1.06l3.75-3.75Zm-3.75 9.75a.75.75 0 0 1 1.06 0L12 17.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-3.75 3.75a.75.75 0 0 1-1.06 0l-3.75-3.75a.75.75 0 0 1 0-1.06Z"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</button>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"ws-description"[39m
+          [36m>[39m
+            [0mWorktree location[0m
+            [0m [0m
+            [36m<code>[39m
+              [0m~/Superset Remix/worktrees/[0m
+            [36m</code>[39m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"ws-description"[39m
+        [36m>[39m
+          [0mChoose where your projects and sessions run.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"ws-dialog-footer"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"ws-button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mCancel[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"ws-button primary"[39m
+          [33mtype[39m=[32m"submit"[39m
+        [36m>[39m
+          [0mCreate[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</form>[39m
+    [36m<p[39m
+      [33mclass[39m=[32m"sr-only"[39m
+      [33mid[39m=[32m"radix-_r_3j_"[39m
+    [36m>[39m
+      [0mConnection settings are stored on this device.[0m
+    [36m</p>[39m
+  [36m</div>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+[36m</body>[39m
+      at getElementError (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:23)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/SessionDialog/SessionDialog.test.tsx:34:16)
+(fail) project workspaces use the original checkout picker and default to their own worktree [21.75ms]
+71 | // if an empty list of elements is returned
+72 | function makeGetAllQuery(allQuery, getMissingError) {
+73 |   return (container, ...args) => {
+74 |     const els = allQuery(container, ...args);
+75 |     if (!els.length) {
+76 |       throw (0, _config.getConfig)().getElementError(getMissingError(container, ...args), container);
+                                                                                                        ^
+TestingLibraryElementError: Unable to find an accessible element with the role "switch" and name "Run setup script"
+
+Here are the accessible roles:
+
+  dialog:
+
+  Name "New session":
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"radix-_r_3n_"[39m
+    [33mclass[39m=[32m"workstation-dialog  "[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mid[39m=[32m"radix-_r_3m_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "New session":
+  [36m<h2[39m
+    [33mid[39m=[32m"radix-_r_3n_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Close":
+  [36m<button[39m
+    [33maria-label[39m=[32m"Close"[39m
+    [33mclass[39m=[32m"ws-icon-button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Checkout: Worktree":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-label[39m=[32m"Checkout: Worktree"[39m
+    [33mclass[39m=[32m"inline-flex items-center gap-1 h-[22px] text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 min-w-0"[39m
+    [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+    [33mdata-state[39m=[32m"closed"[39m
+    [33mid[39m=[32m"radix-_r_3p_"[39m
+    [33mtitle[39m=[32m"Worktree"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Cancel":
+  [36m<button[39m
+    [33mclass[39m=[32m"ws-button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Create":
+  [36m<button[39m
+    [33mclass[39m=[32m"ws-button primary"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Name":
+  [36m<input[39m
+    [33mmaxlength[39m=[32m"100"[39m
+    [33mrequired[39m=[32m""[39m
+    [33mvalue[39m=[32m"Feature"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  combobox:
+
+  Name "Run on":
+  [36m<select />[39m
+
+  Name "Project":
+  [36m<select />[39m
+
+  --------------------------------------------------
+  option:
+
+  Name "Standalone session":
+  [36m<option[39m
+    [33mvalue[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "Example":
+  [36m<option[39m
+    [33mvalue[39m=[32m"project"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"ws-description"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"ws-description"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"sr-only"[39m
+    [33mid[39m=[32m"radix-_r_3o_"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  code:
+
+  Name "":
+  [36m<code />[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-scroll-locked[39m=[32m"1"[39m
+  [33mstyle[39m=[32m"pointer-events: none;"[39m
+[36m>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"workstation-overlay"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-labelledby[39m=[32m"radix-_r_3n_"[39m
+    [33mclass[39m=[32m"workstation-dialog  "[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mid[39m=[32m"radix-_r_3m_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"ws-dialog-head"[39m
+    [36m>[39m
+      [36m<h2[39m
+        [33mid[39m=[32m"radix-_r_3n_"[39m
+      [36m>[39m
+        [0mNew session[0m
+      [36m</h2>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Close"[39m
+        [33mclass[39m=[32m"ws-icon-button"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-x"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"18"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"18"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M18 6 6 18"[39m
+          [36m/>[39m
+          [36m<path[39m
+            [33md[39m=[32m"m6 6 12 12"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+    [36m<form>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"ws-dialog-body"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"ws-field"[39m
+        [36m>[39m
+          [0mName[0m
+          [36m<input[39m
+            [33mmaxlength[39m=[32m"100"[39m
+            [33mrequired[39m=[32m""[39m
+            [33mvalue[39m=[32m"Feature"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"ws-field"[39m
+        [36m>[39m
+          [0mRun on[0m
+          [36m<select />[39m
+        [36m</label>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"ws-field"[39m
+        [36m>[39m
+          [0mProject[0m
+          [36m<select>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m""[39m
+            [36m>[39m
+              [0mStandalone session[0m
+            [36m</option>[39m
+            [36m<option[39m
+              [33mvalue[39m=[32m"project"[39m
+            [36m>[39m
+              [0mExample[0m
+            [36m</option>[39m
+          [36m</select>[39m
+        [36m</label>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid gap-2"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33maria-haspopup[39m=[32m"menu"[39m
+            [33maria-label[39m=[32m"Checkout: Worktree"[39m
+            [33mclass[39m=[32m"inline-flex items-center gap-1 h-[22px] text-[11px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 min-w-0"[39m
+            [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+            [33mdata-state[39m=[32m"closed"[39m
+            [33mid[39m=[32m"radix-_r_3p_"[39m
+            [33mtitle[39m=[32m"Worktree"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"size-3 shrink-0"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"12"[39m
+                [33mcy[39m=[32m"18"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"6"[39m
+                [33mcy[39m=[32m"6"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"18"[39m
+                [33mcy[39m=[32m"6"[39m
+                [33mr[39m=[32m"3"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 12v3"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"truncate"[39m
+            [36m>[39m
+              [0mWorktree[0m
+            [36m</span>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"size-3 shrink-0"[39m
+              [33mfill[39m=[32m"currentColor"[39m
+              [33mheight[39m=[32m"1em"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-width[39m=[32m"0"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"1em"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33mclip-rule[39m=[32m"evenodd"[39m
+                [33md[39m=[32m"M11.47 4.72a.75.75 0 0 1 1.06 0l3.75 3.75a.75.75 0 0 1-1.06 1.06L12 6.31 8.78 9.53a.75.75 0 0 1-1.06-1.06l3.75-3.75Zm-3.75 9.75a.75.75 0 0 1 1.06 0L12 17.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-3.75 3.75a.75.75 0 0 1-1.06 0l-3.75-3.75a.75.75 0 0 1 0-1.06Z"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</button>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"ws-description"[39m
+          [36m>[39m
+            [0mWorktree location[0m
+            [0m [0m
+            [36m<code>[39m
+              [0m~/Superset Remix/worktrees/[0m
+            [36m</code>[39m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"ws-description"[39m
+        [36m>[39m
+          [0mChoose where your projects and sessions run.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"ws-dialog-footer"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"ws-button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mCancel[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"ws-button primary"[39m
+          [33mtype[39m=[32m"submit"[39m
+        [36m>[39m
+          [0mCreate[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</form>[39m
+    [36m<p[39m
+      [33mclass[39m=[32m"sr-only"[39m
+      [33mid[39m=[32m"radix-_r_3o_"[39m
+    [36m>[39m
+      [0mConnection settings are stored on this device.[0m
+    [36m</p>[39m
+  [36m</div>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+[36m</body>[39m
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:100)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/SessionDialog/SessionDialog.test.tsx:55:25)
+(fail) setup can be explicitly skipped and is unavailable for standalone sessions [16.83ms]
+
+ 11 pass
+ 3 fail
+ 41 expect() calls
+Ran 14 tests across 2 files. [1.54s]

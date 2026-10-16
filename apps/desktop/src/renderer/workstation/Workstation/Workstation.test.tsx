@@ -82,7 +82,7 @@ test.each([
 			name: "Feature",
 			projectId: "project",
 			checkout: managedWorktrees ? "worktree" : "local",
-			runSetup: false,
+			runSetup: managedWorktrees,
 		},
 	});
 });

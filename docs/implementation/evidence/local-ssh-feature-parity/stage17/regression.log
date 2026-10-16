@@ -1,0 +1,41 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [232.00ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [280.02ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [103.55ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [92.98ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [59.13ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [47.31ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [83.96ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [91.42ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [72.85ms]
+(pass) opening a development server submits its port for forwarding on B [49.21ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [78.23ms]
+(pass) checking an empty operation journal shows a readable result [50.42ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [68.74ms]
+
+src/renderer/workstation/Workstation/Workstation.restore.test.tsx:
+(pass) offline startup keeps all three saved panes, ratios and focus without ordinary connection or mutations [67.62ms]
+(pass) the SSH window feature leaves local workspace opening on its existing path [65.44ms]
+(pass) a newly created SSH workspace opens its saved tab before the refreshed list has rendered [77.09ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:
+(pass) successful manual restore reloads the main process auto-connect decision [105.35ms]
+(pass) upstream tab reorder and rename persist without changing execution ownership [54.13ms]
+(pass) rerunning a command reuses its pane and preserves its saved layout and title [54.26ms]
+(pass) creation titles label existing setup resources without reopening or creating terminals [53.86ms]
+
+src/renderer/workstation/Workstation/components/SessionDialog/SessionDialog.test.tsx:
+(pass) project workspaces use the original checkout picker and default to their own worktree [47.32ms]
+(pass) setup can be explicitly skipped and is unavailable for standalone sessions [17.85ms]
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.test.tsx:
+(pass) loading Run state does not insert an action before New terminal [10.18ms]
+
+ 23 pass
+ 0 fail
+ 911 expect() calls
+Ran 23 tests across 6 files. [2.53s]

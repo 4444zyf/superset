@@ -1,3 +1,4 @@
+import { verifyWorkstationSetupUi } from "./verify-workstation-setup-ui.mjs";
 import { verifyWorkstationClipboardUi } from "./verify-workstation-clipboard-ui.mjs";
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
@@ -447,6 +448,14 @@ export async function verifyWorkspaceRestoreUi({
 		setClipboard,
 		pasteClipboard,
 		inspectClipboardImage,
+		controls,
+		output,
+	});
+	await verifyWorkstationSetupUi({
+		getPage,
+		click,
+		screenshot,
+		closeReopen,
 		controls,
 		output,
 	});
