@@ -456,3 +456,12 @@ TDD先记录原UI没有开关、固定runSetup=false，以及创建的Setup终�
 
 
 第64轮冻结4a97e577c实际创建并附着了Setup标题的原终端，但在脚本完成检查前失败于目录断言：先前项目设置已把项目改名并将分支前缀设为remix，实际新路径为统一根目录下的新项目名-完整ID/remix/setup-enabled。旧断言错误要求旧显示名的父目录。截图已查看；验收改为核对同一已验证的Superset Remix/worktrees根目录、完整项目ID后缀及实际进程cwd，允许原项目改名和合法分支前缀。不移动旧工作区，不改服务端命名规则；实际执行与整轮仍待验证。
+
+
+### 新建项目 Worktree 的 Setup 实际源码窗口通过
+
+第65轮冻结`cd4735b674121dca9c65b61a0de7a6ca3f6f93fa`完整通过，进程退出码0。通过原项目脚本编辑器实际配置Setup，物理选择项目/Worktree并保留原Run setup script开启后，后台创建一个已标为Setup的原终端；可见独立输出SETUP_ACTUAL_OUTPUT，标记文件精确once\n。该PID的实际cwd为当前机器Superset Remix/worktrees/<改名后的项目>-<完整ID>/remix/setup-enabled，正确保留项目改名与原分支前缀；未移动已运行工作区。关闭重开后同一terminalId/executionId/PID保持，标记仍一条，终端总数仍1，确认没有因恢复而重新执行。
+
+再新建相同项目Worktree，物理关闭同一个开关，后台既没有Setup终端也没有标记文件。之后通过原编辑器恢复原Setup配置，通过原标签关闭动作移除两个测试视图，原工作区焦点/布局保持。开关开启/关闭、原终端输出/重开和跳过后的窗口截图已实际查看。保存的编辑器截图对应恢复后的原配置，配置新脚本的物理输入与读回断言保留在冻结脚本及实际终端命令/输出中。[第65轮实际数据和截图](evidence/local-ssh-feature-parity/source-linux-workspace-setup)。
+
+同轮系统剪贴板图片/中文、原Run生命周期、文件/Git/设置/树/多标签/Diff/历史/基础分支/分支与四同步、关闭重开/缩放/手动断线/离线/host重启/部分结束/多工作区/daemon丢失回归通过。此轮仍为Linux源码、拥有的隔离SSH/Git与单恢复采样，不替代macOS发行物或供应商Agent认证。Setup启动失败/脚本失败状态、Teardown、完整预设和其余功能组仍需继续，新DMG尚未生成。
