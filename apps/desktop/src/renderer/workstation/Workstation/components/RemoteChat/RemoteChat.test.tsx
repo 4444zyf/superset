@@ -590,3 +590,36 @@ test("a pasted image completing after switching chats is not attached or sent", 
 	expect(screen.queryByRole("button", { name: "image.png" })).toBeNull();
 	expect(errors).toEqual([]);
 });
+
+test("a rejected pasted attachment leaves the chat and message draft available", async () => {
+	const errors: string[] = [];
+	const api = {
+		rpc: async () => [],
+		onSocket: () => () => {},
+		openSocket: async () => {},
+		closeSocket: async () => {},
+		uploadAttachment: async () => {
+			throw new Error("should not upload");
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteChat
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			selectedSessionId="saved"
+			onError={(e) => errors.push(e)}
+		/>,
+	);
+	const area = await screen.findByRole("textbox", { name: "Message" });
+	fireEvent.change(area, { target: { value: "keep this 中文" } });
+	fireEvent.paste(area, {
+		clipboardData: {
+			files: [new File([], "empty.png", { type: "image/png" })],
+			getData: () => "",
+		},
+	});
+	await waitFor(() => expect(screen.queryByRole("alert") !== null).toBe(true));
+	expect(errors).toEqual([]);
+	expect((area as HTMLTextAreaElement).value).toBe("keep this 中文");
+});

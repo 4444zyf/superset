@@ -121,7 +121,7 @@ export async function verifyWorkstationClipboardUi({
 		absolutePath: `${directory}/${image.name}`,
 		maxBytes: 1024 * 1024,
 	});
-	assert.equal(imageFile.kind, "binary");
+	assert.equal(imageFile.kind, "bytes");
 	const decoded = await inspectClipboardImage(imageFile.content);
 	assert.deepEqual(decoded, expected.image);
 	await screenshot("clipboard-remote-image-path-before-enter");

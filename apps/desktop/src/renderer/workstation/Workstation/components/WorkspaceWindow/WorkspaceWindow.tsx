@@ -182,43 +182,6 @@ export function WorkspaceWindow({
 			{workspace && (
 				<>
 					<div className="ws-window-toolbar">
-						{connection?.capabilities?.workstationWorkspaceRunV1 && (
-							<RemoteWorkspaceRun
-								key={`${connection.connectionId}:${connection.generation}:${workspace.workspaceId}`}
-								api={api}
-								connection={connection}
-								workspaceId={workspace.workspaceId}
-								canStart={workspace.panes.length < 64}
-								onConfigure={onProjectSettings}
-								onAttach={async (run) => {
-									if (
-										workspace.panes.some(
-											(p) =>
-												p.kind === "terminal" &&
-												p.resourceId === run.terminalId,
-										)
-									)
-										return;
-									await actions.addPane(
-										workspace.workspaceId,
-										{
-											paneId: crypto.randomUUID(),
-											kind: "terminal",
-											resourceId: run.terminalId,
-											executionId: run.executionId,
-											label: t({ message: "Run" }),
-										},
-										"vertical",
-										{
-											connection,
-											placement: "root",
-											replaceResourceId: run.previousTerminalId,
-										},
-									);
-								}}
-							/>
-						)}
-
 						<Button
 							type="button"
 							variant="ghost"
@@ -327,6 +290,42 @@ export function WorkspaceWindow({
 									<Trans>Files</Trans>
 								)}
 							</Button>
+						)}
+						{connection?.capabilities?.workstationWorkspaceRunV1 && (
+							<RemoteWorkspaceRun
+								key={`${connection.connectionId}:${connection.generation}:${workspace.workspaceId}`}
+								api={api}
+								connection={connection}
+								workspaceId={workspace.workspaceId}
+								canStart={workspace.panes.length < 64}
+								onConfigure={onProjectSettings}
+								onAttach={async (run) => {
+									if (
+										workspace.panes.some(
+											(p) =>
+												p.kind === "terminal" &&
+												p.resourceId === run.terminalId,
+										)
+									)
+										return;
+									await actions.addPane(
+										workspace.workspaceId,
+										{
+											paneId: crypto.randomUUID(),
+											kind: "terminal",
+											resourceId: run.terminalId,
+											executionId: run.executionId,
+											label: t({ message: "Run" }),
+										},
+										"vertical",
+										{
+											connection,
+											placement: "root",
+											replaceResourceId: run.previousTerminalId,
+										},
+									);
+								}}
+							/>
 						)}
 					</div>
 					{workspace.activeTool === "files" && connection ? (

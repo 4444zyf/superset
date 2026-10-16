@@ -1,3 +1,4 @@
+import { errorMessage } from "@superset/i18n/errors";
 import { Trans, useLingui } from "@lingui/react/macro";
 import {
 	displayText,
@@ -88,6 +89,7 @@ export function RemoteChat({
 	const [snapshot, setSnapshot] = useState(emptySnapshot);
 	const [prompt, setPrompt] = useState("");
 	const [busy, setBusy] = useState(false);
+	const [attachmentError, setAttachmentError] = useState<string | null>(null);
 	const [attachments, setAttachments] = useState<
 		{
 			attachmentId: string;
@@ -130,7 +132,10 @@ export function RemoteChat({
 			type,
 			input,
 		});
-	const run = async (execute: (isCurrent: () => boolean) => Promise<void>) => {
+	const run = async (
+		execute: (isCurrent: () => boolean) => Promise<void>,
+		recoverable = false,
+	) => {
 		const epoch = currentScope.current.epoch;
 		if (operationBusy.current === epoch) return;
 		operationBusy.current = epoch;
@@ -143,7 +148,10 @@ export function RemoteChat({
 		try {
 			await execute(isCurrent);
 		} catch (error) {
-			if (isCurrent()) callbacks.current.onError(String(error));
+			if (isCurrent()) {
+				if (recoverable) setAttachmentError(errorMessage(error));
+				else callbacks.current.onError(String(error));
+			}
 		} finally {
 			if (operationBusy.current === epoch) operationBusy.current = null;
 			if (isCurrent()) setBusy(false);
@@ -165,6 +173,7 @@ export function RemoteChat({
 		previousDraftScope.current = draftScope;
 		setPrompt("");
 		setAttachments([]);
+		setAttachmentError(null);
 	}, [draftScope]);
 	useEffect(() => {
 		if (previousNamespaceScope.current === namespaceScope) return;
@@ -462,6 +471,18 @@ export function RemoteChat({
 							</Button>
 						))}
 					</div>
+					{attachmentError && (
+						<output role="alert" className="text-xs text-destructive">
+							{attachmentError}
+							<button
+								type="button"
+								className="ml-2 underline"
+								onClick={() => setAttachmentError(null)}
+							>
+								<Trans>Close</Trans>
+							</button>
+						</output>
+					)}
 					<form
 						className="flex gap-2"
 						onSubmit={(event) => {
@@ -500,6 +521,7 @@ export function RemoteChat({
 								if (!files.length) return;
 								event.preventDefault();
 								if (busy) return;
+								setAttachmentError(null);
 								void run(async (isCurrent) => {
 									validateClipboardFiles(files, 16 - attachments.length);
 									if (!attachmentsAvailable || !api.uploadAttachment)
@@ -518,7 +540,7 @@ export function RemoteChat({
 										if (attachment)
 											setAttachments((previous) => [...previous, attachment]);
 									}
-								});
+								}, true);
 							}}
 							onChange={(event) => setPrompt(event.target.value)}
 						/>
