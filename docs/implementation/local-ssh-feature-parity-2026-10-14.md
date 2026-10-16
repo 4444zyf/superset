@@ -386,3 +386,10 @@ TDD先记录共享控件、运行存储、远程入口缺失，另以并发状�
 
 
 第52轮虚拟显示服务中断导致Page.captureScreenshot超时和X connection error，不作为产品通过记录。恢复显示服务后，第53轮同源码的Run、文件/Git、设置、树/Diff/历史/分支/四同步子流程均通过，最终整视图对比失败：关闭Run窗格按原closePane语义选择首个窗格，而老恢复基线包含之前的焦点。新Run验收在结束时通过物理点击回到开始前的窗格，并等待保存；保留完整视图恢复对比，新增期望/实际快照诊断，不略过activePaneId。没有更改产品关闭行为，后续完整结果待记录。
+
+
+### 原 Run 控件及运行恢复实际源码窗口通过
+
+第54轮冻结源码`918c1a9ed`完整通过，进程退出码0。物理编辑原Run脚本后从Files点击Run，940×199.34px控制台实际显示独立输出行，实际PTY cwd等于所选统一worktree路径。正常Stop结束前台命令并保留原PTY；下一次Run复用同一paneId、标题及布局并附着新execution。窗口关闭重开和host-service重启后，运行operationId、executionId及Linux PID均保持一致。原菜单Force Stop后daemon移除运行且捕获PID的/proc目录消失；第三次Run仍复用已结束窗格并成功附着新execution，结束并关闭后原布局完全保持。截图已实际查看。
+
+同轮项目设置/图标/脚本、文件/Git/设置/多标签/树/Diff/历史/基础分支/分支重命名/四同步及关闭重开/离线/后端重启/部分结束/多工作区/daemon丢失完整回归通过。[第54轮数据和截图](evidence/local-ssh-feature-parity/source-linux-workspace-run)。恢复仅1采样，仍为Linux源码与拥有的隔离SSH/Git夹具；不是macOS发行物或供应商Agent认证结果。尚无1.37.7 DMG。完整终端预设、Setup/Teardown触发、瞬时命令的可靠自然结束判据仍需继续接入；当前长前台命令的验证不覆盖瞬时命令。用户新增客户端粘贴图片/文件/文字到SSH的验收要求，下一步优先核对并复用原附件上传与输入路径。
