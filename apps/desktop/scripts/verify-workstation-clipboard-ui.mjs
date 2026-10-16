@@ -163,6 +163,20 @@ export async function verifyWorkstationClipboardUi({
 		return result.entries.filter((e) => e.name.endsWith(".png")).length === 2;
 	});
 	assert.equal(second, true);
+	writeFileSync(
+		join(output, "clipboard-image-checkpoint.json"),
+		JSON.stringify(
+			{
+				imagePixels: decoded,
+				expected: expected.image,
+				encodedBytes: Buffer.from(imageFile.content, "base64").byteLength,
+				remoteShellRead: true,
+				duplicatePasteDidNotOverwrite: true,
+			},
+			null,
+			2,
+		) + "\n",
+	);
 	await until(() =>
 		evaluate(
 			`!document.querySelector('[data-terminal-id="${terminal.terminalId}"]').parentElement.querySelector('output')`,
@@ -172,20 +186,50 @@ export async function verifyWorkstationClipboardUi({
 	const plain = "中文消息 🙂\n" + "multiline clipboard 你好\n".repeat(128);
 	await text(`cat > .superset/attachments/clipboard-text.txt`);
 	await enter();
-	await setClipboard({ text: plain });
-	await paste();
-	await key("d", 68, 2);
 	await until(async () => {
 		try {
-			const read = await query("filesystem.readFile", {
-				absolutePath: `${directory}/clipboard-text.txt`,
-				maxBytes: 32 * 1024,
-			});
-			return read.content === plain;
+			return (
+				(
+					await query("filesystem.getMetadata", {
+						absolutePath: `${directory}/clipboard-text.txt`,
+					})
+				)?.kind === "file"
+			);
 		} catch {
-			return null;
+			return false;
 		}
 	});
+	await setClipboard({ text: plain });
+	await paste();
+	let lastText = null;
+	try {
+		await until(async () => {
+			try {
+				const read = await query("filesystem.readFile", {
+					absolutePath: `${directory}/clipboard-text.txt`,
+					maxBytes: 32 * 1024,
+				});
+				lastText = read;
+				return read.kind === "text" && read.content === plain;
+			} catch {
+				return null;
+			}
+		});
+	} finally {
+		writeFileSync(
+			join(output, "clipboard-text-diagnostic.json"),
+			JSON.stringify(
+				{
+					expected: plain,
+					actual: lastText,
+					terminal: await controls.inspectRunExecution(terminal),
+				},
+				null,
+				2,
+			) + "\n",
+		);
+	}
+	await key("d", 68, 2);
 	await screenshot("clipboard-remote-multiline-text");
 	await click(
 		`[data-pane-id="${terminal.paneId}"] button[aria-label="Close pane"]`,
