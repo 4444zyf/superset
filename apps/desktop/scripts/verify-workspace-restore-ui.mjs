@@ -479,6 +479,17 @@ export async function verifyWorkspaceRestoreUi({
 	}
 	await ready();
 
+	writeFileSync(
+		join(output, "before-restoration-comparison.json"),
+		JSON.stringify(
+			{
+				expected: before.workspaces,
+				actual: (await saved()).snapshot.targets[0].workspaces,
+			},
+			null,
+			2,
+		) + "\n",
+	);
 	await until(
 		saved,
 		(value) =>

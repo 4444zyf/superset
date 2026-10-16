@@ -25,7 +25,7 @@ export async function verifyWorkstationRunUi({
 		);
 	};
 	const scope = await evaluate(
-		`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const v=(await window.directWorkstation.getWorkspaceView()).snapshot;const target=v.targets.find(t=>t.connectionId===d.connectionId);const workspace=target.workspaces.find(w=>w.tabId===target.activeTabId);const row=await window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:"workspace.get",type:"query",input:{id:workspace.workspaceId}});return {workspaceId:workspace.workspaceId,connectionId:d.connectionId,layout:workspace.layout,worktreePath:row.worktreePath};})()`,
+		`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const v=(await window.directWorkstation.getWorkspaceView()).snapshot;const target=v.targets.find(t=>t.connectionId===d.connectionId);const workspace=target.workspaces.find(w=>w.tabId===target.activeTabId);const row=await window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:"workspace.get",type:"query",input:{id:workspace.workspaceId}});return {workspaceId:workspace.workspaceId,connectionId:d.connectionId,layout:workspace.layout,activePaneId:workspace.activePaneId,worktreePath:row.worktreePath};})()`,
 	);
 	const query = () =>
 		evaluate(
@@ -295,6 +295,14 @@ export async function verifyWorkstationRunUi({
 		`(async()=>{const v=(await window.directWorkstation.getWorkspaceView()).snapshot;return v.targets.flatMap(t=>t.workspaces).find(w=>w.workspaceId===${JSON.stringify(scope.workspaceId)}).layout;})()`,
 	);
 	assert.deepEqual(restoredLayout, scope.layout);
+	if (scope.activePaneId) {
+		await click(`[data-pane-id="${scope.activePaneId}"] .xterm-screen`);
+		await until(() =>
+			evaluate(
+				`(async()=>{const v=(await window.directWorkstation.getWorkspaceView()).snapshot;return v.targets.flatMap(t=>t.workspaces).find(w=>w.workspaceId===${JSON.stringify(scope.workspaceId)}).activePaneId===${JSON.stringify(scope.activePaneId)};})()`,
+			),
+		);
+	}
 	writeFileSync(
 		join(output, "workstation-run-ui.json"),
 		JSON.stringify(
@@ -308,6 +316,7 @@ export async function verifyWorkstationRunUi({
 				consoleSize,
 				consoleReused: true,
 				layoutRestored: true,
+				focusRestoredViaPhysicalInput: true,
 				endedResourceReused: true,
 				restartedAfterForceStop: {
 					operationId: third.operationId,
