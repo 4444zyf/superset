@@ -210,7 +210,14 @@ export async function verifyWorkstationClipboardUi({
 					maxBytes: 32 * 1024,
 				});
 				lastText = read;
-				return read.kind === "text" && read.content === plain;
+				return (
+					!read.exceededLimit &&
+					read.byteLength === Buffer.byteLength(plain) &&
+					Buffer.from(
+						read.content,
+						read.kind === "text" ? "utf8" : "base64",
+					).equals(Buffer.from(plain))
+				);
 			} catch {
 				return null;
 			}
@@ -231,9 +238,27 @@ export async function verifyWorkstationClipboardUi({
 	}
 	await key("d", 68, 2);
 	await screenshot("clipboard-remote-multiline-text");
-	await click(
-		`[data-pane-id="${terminal.paneId}"] button[aria-label="Close pane"]`,
+	for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
+		await getPage().call("Input.dispatchMouseEvent", {
+			type,
+			button: type === "mouseMoved" ? "none" : "right",
+			clickCount: type === "mouseMoved" ? 0 : 1,
+			x: point.x,
+			y: point.y,
+		});
+	const closePoint = await until(() =>
+		evaluate(
+			`(()=>{const e=[...document.querySelectorAll('[role=menuitem]')].find(e=>e.textContent.trim()==='Close pane');if(!e)return null;const r=e.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;return e.contains(document.elementFromPoint(x,y))?{x,y}:null;})()`,
+		),
 	);
+	await screenshot("clipboard-original-close-menu");
+	for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
+		await getPage().call("Input.dispatchMouseEvent", {
+			type,
+			button: type === "mouseMoved" ? "none" : "left",
+			clickCount: type === "mouseMoved" ? 0 : 1,
+			...closePoint,
+		});
 	await until(async () => (await rows()).length === scope.w.panes.length);
 	if (scope.w.activePaneId)
 		await click(`[data-pane-id="${scope.w.activePaneId}"] .xterm-screen`);
