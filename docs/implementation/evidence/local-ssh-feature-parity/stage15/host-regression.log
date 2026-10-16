@@ -1,0 +1,31 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [2.09ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [0.57ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [0.85ms]
+(pass) a changed execution is never signalled by a stale stop request [0.50ms]
+(pass) a status read during launch cannot prevent its confirmed execution becoming active [0.50ms]
+
+src/direct/operations.test.ts:
+(pass) a completed direct command is returned after backend restart without repeating side effects [2.69ms]
+(pass) an operation ID cannot be reused for different inputs [0.57ms]
+(pass) accepted operations from a crashed backend are unresolved and never automatically replayed [0.52ms]
+(pass) concurrent retries share one accepted operation and its final result [0.62ms]
+(pass) an exception after a side effect remains unresolved and cannot be replayed [0.59ms]
+(pass) maintenance drain persists and blocks new work until its owner commits [0.68ms]
+(pass) freeze persists across restart and only its maintenance owner can release it [0.63ms]
+(pass) a failed freeze write cannot leave a partially persisted maintenance transition [0.78ms]
+
+src/terminal/DaemonClient/DaemonClient.control.test.ts:
+(pass) conditional terminal close forwards its execution only when advertised (%s) [7.71ms]
+(pass) conditional terminal close forwards its execution only when advertised (%s) [0.99ms]
+
+src/trpc/router/workspace-run/workspace-run.test.ts:
+(pass) run preview reuses original worktree-over-project resolution and rejects a stale definition before launch [26.99ms]
+(pass) invalid oversized run configuration does not make run status unavailable [15.43ms]
+
+ 17 pass
+ 0 fail
+ 47 expect() calls
+Ran 17 tests across 4 files. [343.00ms]

@@ -1,0 +1,26 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [1.46ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [0.75ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [0.99ms]
+(pass) a changed execution is never signalled by a stale stop request [0.64ms]
+112 | test("a status read during launch cannot prevent its confirmed execution becoming active",async()=>{
+113 |  const store=new WorkspaceRunStore(new Database(":memory:") as unknown as OperationDatabase);let finish!:()=>void;
+114 |  const manager=new WorkspaceRunManager(store,{launch:async()=>new Promise<void>(resolve=>{finish=resolve;}),probe:async()=>({state:"live" as const,executionId:"execution",foreground:true}),signal:async()=>{}});
+115 |  const pending=manager.start(run);await Promise.resolve();await Promise.resolve();
+116 |  expect((await manager.read("workspace"))?.state).toBe("unknown");finish();
+117 |  expect((await pending).state).toBe("active");
+                                     ^
+error: expect(received).toBe(expected)
+
+Expected: "active"
+Received: "unknown"
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/workspace-runs.test.ts:117:32)
+(fail) a status read during launch cannot prevent its confirmed execution becoming active [0.86ms]
+
+ 4 pass
+ 1 fail
+ 14 expect() calls
+Ran 5 tests across 1 file. [20.00ms]

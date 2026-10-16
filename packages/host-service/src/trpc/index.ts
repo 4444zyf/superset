@@ -131,7 +131,7 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next, path, ty
 	)) {
 		throw new TRPCError({ code: "PRECONDITION_FAILED", message: "This capability is unavailable on a direct backend" });
 	}
-	if (ctx.direct && ctx.directOperations && type === "mutation" && ["project.create", "workspaces.create", "workspaces.createSession", "agents.run", "terminal.createSession", "terminal.launchSession"].includes(path)) {
+	if (ctx.direct && ctx.directOperations && type === "mutation" && ["project.create", "workspaces.create", "workspaces.createSession", "agents.run", "terminal.createSession", "terminal.launchSession", "workspaceRun.startV1"].includes(path)) {
 		return ctx.directOperations.runCreateOperation(() => next({ ctx }));
 	}
 	return next({ ctx });

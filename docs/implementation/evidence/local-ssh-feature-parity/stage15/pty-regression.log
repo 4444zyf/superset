@@ -1,0 +1,34 @@
+bun test v1.4.2 (744846f84)
+
+src/process-tree.test.ts:
+(pass) parseProcessTable > preserves decimal and opaque hexadecimal OS session identities [0.43ms]
+(pass) parseProcessTable > parses pid/ppid/pgid/tty columns [0.05ms]
+(pass) parseProcessTable > normalizes no-tty markers to null [0.03ms]
+(pass) parseProcessTable > drops zombie rows [0.02ms]
+(pass) parseProcessTable > drops malformed rows [0.02ms]
+(pass) collectProcessSignalTargets — caller-ancestry protection > TTY expansion stays inside the root's proven OS session [0.26ms]
+(pass) collectProcessSignalTargets — caller-ancestry protection > never signals a group the caller's ancestor chain belongs to [0.09ms]
+(pass) collectProcessSignalTargets — caller-ancestry protection > tty straggler matching never adds the caller's ancestors [0.04ms]
+(pass) foreground inspection preserves unavailable state for run-stop confirmation [0.15ms]
+
+src/handlers/handlers.test.ts:
+(pass) strict subscription rejects a replacement execution before replay or registration [8.83ms]
+(pass) input, resize and close bound to an old execution never affect the replacement [0.49ms]
+(pass) handlers > mode checkpoint follows replay even when the mode-setting bytes were evicted [0.89ms]
+(pass) handlers > empty replay still receives its completion checkpoint [0.16ms]
+(pass) handlers > open: spawns a session and replies open-ok [0.12ms]
+(pass) handlers > open: rejects duplicate ids [0.10ms]
+(pass) handlers > input writes bytes to the pty [0.17ms]
+(pass) handlers > input on missing session returns error [0.02ms]
+(pass) handlers > resize updates dims [0.14ms]
+(pass) handlers > close kills and disposes the pty before replying closed [0.15ms]
+(pass) handlers > open disposes a spawned pty when session wiring fails [9.02ms]
+(pass) handlers > list returns all sessions [0.44ms]
+(pass) handlers > subscribe with replay sends buffered output [0.26ms]
+(pass) handlers > subscribe without replay does not send buffered output [0.16ms]
+(pass) handlers > unsubscribe removes from conn.subscriptions [0.03ms]
+
+ 24 pass
+ 0 fail
+ 68 expect() calls
+Ran 24 tests across 2 files. [138.00ms]

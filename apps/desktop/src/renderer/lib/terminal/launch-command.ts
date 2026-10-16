@@ -1,3 +1,5 @@
+import { buildTerminalCommand } from "@superset/shared/terminal-command";
+export { buildTerminalCommand } from "@superset/shared/terminal-command";
 import { waitForTerminalSessionReady } from "./session-readiness";
 
 interface TerminalCreateOrAttachInput {
@@ -45,13 +47,6 @@ interface WriteCommandsInPaneOptions {
 	paneId: string;
 	commands: string[] | null | undefined;
 	write: (input: TerminalWriteInput) => Promise<unknown>;
-}
-
-export function buildTerminalCommand(
-	commands: string[] | null | undefined,
-): string | null {
-	if (!Array.isArray(commands) || commands.length === 0) return null;
-	return commands.join(" && ");
 }
 
 export async function writeCommandInPane({

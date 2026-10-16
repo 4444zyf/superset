@@ -130,6 +130,47 @@ export function ownedRestoreControls(home, fixture) {
 		trackOriginals(refs) {
 			originals = refs;
 		},
+		async inspectRunExecution(run) {
+			const client = await connectAndHello(socket);
+			try {
+				client.send({ type: "list" });
+				const list = await client.waitFor((m) => m.type === "list-reply");
+				const row = list.sessions.find((s) => s.id === run.terminalId);
+				assert.ok(row);
+				assert.equal(row.executionId, run.executionId);
+				let output = "";
+				if (row.alive) {
+					client.send({
+						type: "subscribe",
+						id: row.id,
+						executionId: row.executionId,
+						replay: true,
+						modeSnapshot: true,
+					});
+					await client.waitFor(
+						(m) => m.type === "replay-complete" && m.id === row.id,
+					);
+					output = Buffer.concat(
+						client.messages
+							.filter((m) => m.type === "output" && m.id === row.id)
+							.map((m) => Buffer.from(payloadOf(m) ?? [])),
+					).toString("utf8");
+				}
+				return {
+					id: row.id,
+					executionId: row.executionId,
+					pid: row.pid,
+					alive: row.alive,
+					processExists:
+						process.platform === "linux"
+							? existsSync(`/proc/${row.pid}`)
+							: row.alive,
+					output,
+				};
+			} finally {
+				await client.close();
+			}
+		},
 		async observeWhileClientClosed() {
 			return Promise.all(
 				originals.map(async (ref) => {

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import superjson from "superjson";
+import { WorkspaceRunStore } from "./workspace-runs";
 
 export interface OperationDatabase {
 	exec(sql: string): unknown;
@@ -51,12 +52,14 @@ export class DirectOperationStore {
 	private readonly pending = new Map<string, Promise<DirectOperationReceipt>>();
 	private readonly pendingCommands = new Map<string, unknown>();
 	private activeCreates = 0;
+	readonly workspaceRuns: WorkspaceRunStore;
 
 	constructor(
 		private readonly db: OperationDatabase,
 		private readonly instanceId: string,
 		private readonly capacity = 100_000,
 	) {
+		this.workspaceRuns = new WorkspaceRunStore(db);
 		db.exec(
 			"CREATE TABLE IF NOT EXISTS direct_operations (operation_id TEXT PRIMARY KEY, procedure TEXT NOT NULL, input_hash TEXT NOT NULL, instance_id TEXT NOT NULL, status TEXT NOT NULL, result_json TEXT, error_json TEXT, accepted_at INTEGER NOT NULL)",
 		);

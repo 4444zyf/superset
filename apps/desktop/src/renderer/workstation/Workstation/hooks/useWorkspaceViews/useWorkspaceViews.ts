@@ -451,8 +451,13 @@ export function useWorkspaceViews(
 			workspaceId: string,
 			pane: WorkspacePane,
 			axis: "horizontal" | "vertical",
+			expectedConnection?: DirectDescriptor,
 		) =>
 			changeWorkspace(workspaceId, (workspace) => {
+				if (expectedConnection && connectionRef.current !== expectedConnection)
+					return;
+
+				workspace.activeTool = pane.kind;
 				const existing = workspace.panes.find(
 					(p) => p.kind === pane.kind && p.resourceId === pane.resourceId,
 				);
@@ -460,6 +465,7 @@ export function useWorkspaceViews(
 					workspace.activePaneId = existing.paneId;
 					return;
 				}
+				if (workspace.panes.length >= 64) return;
 				workspace.layout = splitPane(
 					workspace.layout,
 					workspace.activePaneId ?? workspace.panes[0]?.paneId ?? null,

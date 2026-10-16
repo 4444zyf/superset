@@ -302,20 +302,27 @@ function normalizeTtyName(raw: string | undefined): string | null {
  * suspended or background jobs. Fails closed (returns false) on any ps error.
  */
 export function hasRunningForegroundProcess(shellPid: number): boolean {
-	if (!isPositiveInteger(shellPid)) return false;
+	return readForegroundProcessState(shellPid) ?? false;
+}
 
-	const result = spawnSync(
-		"ps",
-		["-o", "tpgid=", "-o", "pgid=", "-p", String(shellPid)],
-		{ encoding: "utf8" },
-	);
-	if (result.error || result.status !== 0) return false;
-
+export function readForegroundProcessState(
+	shellPid: number,
+	probe: (pid: number) => {
+		error?: unknown;
+		status: number | null;
+		stdout: string;
+	} = (pid) =>
+		spawnSync("ps", ["-o", "tpgid=", "-o", "pgid=", "-p", String(pid)], {
+			encoding: "utf8",
+		}),
+): boolean | null {
+	if (!isPositiveInteger(shellPid)) return null;
+	const result = probe(shellPid);
+	if (result.error || result.status !== 0) return null;
 	const [tpgidText, pgidText] = result.stdout.trim().split(/\s+/);
-	const tpgid = Number(tpgidText);
-	const pgid = Number(pgidText);
-	if (!isPositiveInteger(tpgid) || !isPositiveInteger(pgid)) return false;
-
+	const tpgid = Number(tpgidText),
+		pgid = Number(pgidText);
+	if (!isPositiveInteger(tpgid) || !isPositiveInteger(pgid)) return null;
 	return tpgid !== pgid;
 }
 

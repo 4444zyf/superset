@@ -21,6 +21,7 @@ import type {
 } from "../../../../../shared/workspace-view";
 import type { WorkspaceViewActions } from "../../hooks/useWorkspaceViews/useWorkspaceViews";
 import { RemoteChat } from "../RemoteChat/RemoteChat";
+import { RemoteWorkspaceRun } from "../RemoteWorkspaceRun";
 import { RemoteFiles } from "../RemoteFiles/RemoteFiles";
 import { WorkspacePortControls } from "../WorkspacePortControls";
 import { WorkstationDialog } from "../WorkstationDialog/WorkstationDialog";
@@ -40,6 +41,7 @@ export function WorkspaceWindow({
 	onNewSession,
 	onRefresh,
 	onPending,
+	onProjectSettings,
 	ports,
 }: {
 	api: DirectWorkstationApi;
@@ -52,6 +54,7 @@ export function WorkspaceWindow({
 	onNewSession(): void;
 	onRefresh(): void;
 	onPending(): void;
+	onProjectSettings(projectId: string): void;
 	ports: {
 		busy: boolean;
 		forward: { id: string; url: string } | null;
@@ -179,6 +182,39 @@ export function WorkspaceWindow({
 			{workspace && (
 				<>
 					<div className="ws-window-toolbar">
+						{connection?.capabilities?.workstationWorkspaceRunV1 && (
+							<RemoteWorkspaceRun
+								key={`${connection.connectionId}:${connection.generation}:${workspace.workspaceId}`}
+								api={api}
+								connection={connection}
+								workspaceId={workspace.workspaceId}
+								canStart={workspace.panes.length < 64}
+								onConfigure={onProjectSettings}
+								onAttach={async (run) => {
+									if (
+										workspace.panes.some(
+											(p) =>
+												p.kind === "terminal" &&
+												p.resourceId === run.terminalId,
+										)
+									)
+										return;
+									await actions.addPane(
+										workspace.workspaceId,
+										{
+											paneId: crypto.randomUUID(),
+											kind: "terminal",
+											resourceId: run.terminalId,
+											executionId: run.executionId,
+											label: t({ message: "Run" }),
+										},
+										"horizontal",
+										connection,
+									);
+								}}
+							/>
+						)}
+
 						<Button
 							type="button"
 							variant="ghost"

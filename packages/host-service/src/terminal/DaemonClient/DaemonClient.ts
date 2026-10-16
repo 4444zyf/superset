@@ -187,6 +187,23 @@ export class DaemonClient {
 		throw new Error(`close ${id}: unexpected reply ${reply.type}`);
 	}
 
+	async closeExisting(
+		id: string,
+		executionId: string,
+		signal: Signal = "SIGHUP",
+	): Promise<void> {
+		if (!this.conditionalSubscribe)
+			throw new Error("Strict terminal control is unsupported");
+		const reply = await this.requestSession(
+			id,
+			{ type: "close", id, executionId, signal },
+			CLOSE_TIMEOUT_MS,
+		);
+		if (reply.type === "closed") return;
+		if (reply.type === "error")
+			throw new Error(`close ${id}: ${reply.message}`);
+		throw new Error(`close ${id}: unexpected reply ${reply.type}`);
+	}
 	async list(): Promise<SessionInfo[]> {
 		const reply = await this.requestNonSession(
 			{ type: "list" },
@@ -414,7 +431,7 @@ export class DaemonClient {
 		id: string,
 		req:
 			| { type: "open"; id: string; meta: SessionMeta }
-			| { type: "close"; id: string; signal: Signal }
+			| { type: "close"; id: string; executionId?: string; signal: Signal }
 			| {
 					type: "subscribe";
 					id: string;

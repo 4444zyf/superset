@@ -464,6 +464,21 @@ export function Workstation({
 				>
 					{views.enabled && savedTarget?.activeTabId ? (
 						<WorkspaceWindow
+							onProjectSettings={(id) => {
+								const target = ui.active.current;
+								if (
+									target !== ui.connection ||
+									target?.connectionId !== savedTarget.connectionId
+								)
+									return;
+								if (target?.capabilities?.workstationProjectsV1)
+									setProjectSettings({
+										id,
+										connectionId: target.connectionId,
+										backendId: target.backendId,
+										namespaceId: target.namespaceId,
+									});
+							}}
 							onNewSession={() => {
 								ui.setError(null);
 								setCreate("session");

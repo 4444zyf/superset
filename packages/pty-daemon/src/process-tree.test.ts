@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	collectProcessSignalTargets,
+	readForegroundProcessState,
 	parseProcessTable,
 } from "./process-tree.ts";
 
@@ -134,4 +135,19 @@ describe("collectProcessSignalTargets — caller-ancestry protection", () => {
 		expect(pids).not.toContain(4000);
 		expect(pids).not.toContain(process.pid);
 	});
+});
+
+test("foreground inspection preserves unavailable state for run-stop confirmation", () => {
+	expect(
+		readForegroundProcessState(100, () => ({ status: 1, stdout: "" })),
+	).toBeNull();
+	expect(
+		readForegroundProcessState(100, () => ({ status: 0, stdout: "?? 100" })),
+	).toBeNull();
+	expect(
+		readForegroundProcessState(100, () => ({ status: 0, stdout: "200 100" })),
+	).toBe(true);
+	expect(
+		readForegroundProcessState(100, () => ({ status: 0, stdout: "100 100" })),
+	).toBe(false);
 });

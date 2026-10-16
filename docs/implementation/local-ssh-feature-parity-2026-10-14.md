@@ -346,3 +346,16 @@ TDD先记录新读写工具、共享编辑器、远程适配器缺失，再实�
 第46轮冻结源码`c00739d12f55e33ecf04cc52bfa6d933d43759c2`完整通过。以物理鼠标切换原Setup/Teardown/Run标签，保持对应文本区焦点时原500ms自动保存触发，输入到后端只读确认分别约532ms、552ms、553ms，并显示Saved。物理点击原Import按钮，通过浏览器文件选择交付本地.sh文件，真实读取并保存到所选SSH项目的run数组，关闭/重开内容保持，截图已实际查看。该文件交付没有手工操作OS原生文件窗口，未验证拖放。保存并未执行任何脚本，不能据此声称Run或生命周期执行已验收。[第46轮数据与截图](evidence/local-ssh-feature-parity/source-linux-project-scripts)。
 
 同一轮的项目图标/颜色/前缀/文本、统一worktree和三个PTY cwd、文件/Git/设置/多文件/树/Diff/历史/基础分支/分支操作/四同步菜单，以及关闭重开/离线/后端重启/部分结束/多工作区/daemon丢失完整通过。desktop最终类型与构建通过，初始renderer入口4,563.49kB，脚本编辑器在项目设置lazy chunk内。恢复仅1次，仍是Linux源码与拥有的隔离SSH/Git夹具，不替代macOS发行物及第三方认证验证；整体验收与新DMG尚未完成。
+
+
+## 阶段十五：原 Run 控件与目标端运行记录
+
+原V2WorkspaceRunButton提取共享WorkspaceRunControl，旧页面继续保留原快捷键和设置导航包装，新工作站注入本地/SSH设置回调。原buildTerminalCommand上移@superset/shared并保留原路径导出，命令仍按原规则以&&组合；服务端使用原resolveScript（含worktree/main repo/用户覆盖及run.sh规则）与createTerminalSessionInternal。新增窗格仍为原terminal类型，使用原Pane引擎与条件附着，不增加新持久窗格类型。原窗格图标动作补充已有tooltip的可访问名称。
+
+新增可选workstationWorkspaceRunV1，仅在严格终端恢复可用时声明；新workspaceRun.getStateV1/startV1/stopV1要求所选workspace作用域。启动/停止进入既有主进程持久意图和direct.execute收据，不更改原过程合同或旧主机最低版本。新入口只支持项目配置来源，完整终端预设优先级接入仍待补齐。
+
+后端在已有私有operations.db保留每工作区一条当前运行记录，最大4096条、每条256KiB；容量满时拒绝新记录，不静默遗忘运行。记录包含不可变命令快照、启动operationId/terminalId和实际executionId。活动、正在停止或未知的记录阻止第二个启动；读取、连接恢复和页面重开不会调用启动。结束记录保留作当前状态，未知运行不自动清除或重发。主进程待处理收据通过已有显式核对操作处理。
+
+正常Stop在已观察到前台命令后向原execution发送Ctrl-C；尚未观察到前台命令时关闭该execution并发SIGINT，避免只取消启动前的空提示符而遗漏随后排队的命令。Force Stop以SIGKILL关闭原execution；条件关闭复用原daemon协议。前台进程探测增加三态导出，原bool调用保留原错误默认值；新运行逻辑在探测失败时保留未知，停止请求不会因ps失败被误标结束。旧execution被替换时拒绝信号。异常配置不会遮蔽已存运行的状态与停止入口。
+
+TDD先记录共享控件、运行存储、远程入口缺失，另以并发状态读取先复现已确认启动卡在Unknown，再修复为按当前记录确认。后端17项/47断言、相关daemon进程/条件帧24项/68断言通过；桌面双击、未知回复核对、跨机器晚回复、恢复附着、原命令构造/定义、桥和无账号导入审计50项/924断言通过。host/desktop类型、17语言严格编译和最终构建通过，初始renderer入口4,598.72kB。实际窗口结果待记录；Setup/Teardown触发与完整预设仍不算本阶段完成。

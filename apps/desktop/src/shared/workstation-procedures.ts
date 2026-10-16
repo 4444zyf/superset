@@ -8,10 +8,23 @@ export interface WorkspaceProcedure {
 		| "workstationGitHistoryV1"
 		| "workstationGitSyncV1"
 		| "workstationProjectsV1"
-		| "workstationProjectScriptsV1";
+		| "workstationProjectScriptsV1"
+		| "workstationWorkspaceRunV1";
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"workspaceRun.getStateV1": {
+		type: "query",
+		capability: "workstationWorkspaceRunV1",
+	},
+	"workspaceRun.startV1": {
+		type: "mutation",
+		capability: "workstationWorkspaceRunV1",
+	},
+	"workspaceRun.stopV1": {
+		type: "mutation",
+		capability: "workstationWorkspaceRunV1",
+	},
 	"config.getProjectScriptsV1": {
 		type: "query",
 		capability: "workstationProjectScriptsV1",

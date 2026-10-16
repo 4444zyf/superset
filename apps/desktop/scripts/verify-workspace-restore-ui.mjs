@@ -11,6 +11,7 @@ import { verifyWorkstationGitHistoryUi } from "./verify-workstation-git-history-
 import { verifyWorkstationGitSyncUi } from "./verify-workstation-git-sync-ui.mjs";
 import { verifyWorkstationMultipleFilesUi } from "./verify-workstation-multiple-files-ui.mjs";
 import { verifyWorkstationSettingsUi } from "./verify-workstation-settings-ui.mjs";
+import { verifyWorkstationRunUi } from "./verify-workstation-run-ui.mjs";
 import { verifyWorkstationProjectSettingsUi } from "./verify-workstation-project-settings-ui.mjs";
 
 export async function verifyWorkspaceRestoreUi({
@@ -406,6 +407,14 @@ export async function verifyWorkspaceRestoreUi({
 		getPage,
 		click,
 		screenshot,
+		output,
+	});
+	await verifyWorkstationRunUi({
+		getPage,
+		click,
+		screenshot,
+		closeReopen,
+		controls,
 		output,
 	});
 	await verifyWorkstationFileGitUi({ getPage, click, screenshot, output });

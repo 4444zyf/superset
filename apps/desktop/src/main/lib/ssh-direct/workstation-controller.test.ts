@@ -785,3 +785,55 @@ test("project script procedures require their own capability and an explicit pro
 	});
 	expect(requests).toHaveLength(2);
 });
+
+test("a lost workspace-run response remains journaled and blocks a second start", async () => {
+	const db = new Database(":memory:"),
+		intents = new OperationIntents(db as unknown as SqliteDatabase),
+		f = fixture();
+	const requests: unknown[] = [];
+	const controller = new WorkstationController(
+		{
+			...f.manager,
+			getVerifiedDescription: () => ({
+				capabilities: {
+					workstationWorkspaceRunV1: true,
+					durableOperations: true,
+				},
+			}),
+			invoke: async (_id, request) => {
+				requests.push(request);
+				throw new Error("Response lost");
+			},
+		},
+		intents,
+	);
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "workspaceRun.startV1",
+		type: "mutation" as const,
+		input: {
+			workspaceId: "workspace",
+			operationId: crypto.randomUUID(),
+			definitionVersion: "a".repeat(64),
+		},
+	};
+	try {
+		await expect(controller.invoke(request)).rejects.toThrow("Response lost");
+		await expect(
+			controller.invoke({
+				...request,
+				input: { ...request.input, operationId: crypto.randomUUID() },
+			}),
+		).rejects.toThrow("pending");
+		expect(requests).toHaveLength(1);
+		expect(intents.list("machine")).toMatchObject([
+			{
+				procedure: "workspaceRun.startV1",
+				operationId: request.input.operationId,
+			},
+		]);
+	} finally {
+		db.close();
+	}
+});

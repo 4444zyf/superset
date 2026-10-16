@@ -24,6 +24,7 @@ export function PaneHeaderActions<TData>({
 				const button = (
 					<button
 						type="button"
+						aria-label={typeof tooltip === "string" ? tooltip : undefined}
 						onClick={() => action.onClick(context)}
 						className="rounded p-1 text-muted-foreground/60 transition-colors hover:text-muted-foreground"
 					>

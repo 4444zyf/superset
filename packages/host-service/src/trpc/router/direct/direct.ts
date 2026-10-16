@@ -41,6 +41,7 @@ export function describeDirectBackend(
 			workstationManagedWorktreesV1: true,
 			workstationProjectsV1: true,
 			workstationProjectScriptsV1: true,
+			workstationWorkspaceRunV1: workspaceViewRestoreV1,
 			projects: true,
 			sessions: true,
 			terminals: true,
@@ -58,6 +59,8 @@ export function describeDirectBackend(
 }
 
 const directProcedures = z.enum([
+	"workspaceRun.startV1",
+	"workspaceRun.stopV1",
 	"project.create",
 	"workspaceCreation.createSession",
 	"workspaces.createSession",
@@ -107,6 +110,10 @@ async function dispatch(
 	const { appRouter } = await import("../router");
 	const caller = appRouter.createCaller(ctx);
 	switch (procedure) {
+		case "workspaceRun.startV1":
+			return caller.workspaceRun.startV1({ ...input, operationId } as never);
+		case "workspaceRun.stopV1":
+			return caller.workspaceRun.stopV1({ ...input, operationId } as never);
 		case "git.syncBranchV1":
 			return caller.git.syncBranchV1(input as never);
 		case "git.commit":
