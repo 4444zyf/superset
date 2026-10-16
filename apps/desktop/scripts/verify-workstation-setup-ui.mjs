@@ -186,10 +186,25 @@ export async function verifyWorkstationSetupUi({
 	assert.equal(enabled.panes.length, 1);
 	assert.equal(enabled.panes[0].label, "Setup");
 	const row = await query("workspace.get", { id: enabled.workspaceId });
-	assert.ok(
-		row.worktreePath.startsWith(
-			scope.worktreePath.slice(0, scope.worktreePath.lastIndexOf("/")) + "/",
-		),
+	const rootMarker = "/Superset Remix/worktrees/";
+	const rootIndex = scope.worktreePath.lastIndexOf(rootMarker);
+	assert.ok(rootIndex >= 0);
+	const managedRoot = scope.worktreePath.slice(
+		0,
+		rootIndex + rootMarker.length,
+	);
+	assert.ok(row.worktreePath.startsWith(managedRoot));
+	const projectFolder = row.worktreePath
+		.slice(managedRoot.length)
+		.split("/")[0];
+	assert.ok(projectFolder.endsWith(`-${scope.projectId}`));
+	writeFileSync(
+		join(output, "setup-created-workspace.json"),
+		JSON.stringify(
+			{ workspace: row, managedRoot, projectFolder, terminal: setup },
+			null,
+			2,
+		) + "\n",
 	);
 	const marker = async () => {
 		const result = await query("filesystem.readFile", {
