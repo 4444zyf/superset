@@ -40,8 +40,13 @@ export function handleImagePasteFallback(
 	event: ClipboardEvent,
 	terminal: Pick<XTerm, "input">,
 	getOverride?: () => ImagePasteOverride | null,
+	options?: { preferFiles?: boolean },
 ): void {
-	if (!isNonTextPaste(event)) return;
+	if (
+		!isNonTextPaste(event) &&
+		!(options?.preferFiles && event.clipboardData?.files.length)
+	)
+		return;
 	event.preventDefault();
 	event.stopImmediatePropagation();
 	const override = getOverride?.() ?? null;
@@ -57,9 +62,10 @@ export function installImagePasteFallback(
 	terminal: Pick<XTerm, "input">,
 	wrapper: HTMLElement,
 	getOverride?: () => ImagePasteOverride | null,
+	options?: { preferFiles?: boolean },
 ): () => void {
 	const handler = (event: ClipboardEvent) => {
-		handleImagePasteFallback(event, terminal, getOverride);
+		handleImagePasteFallback(event, terminal, getOverride, options);
 	};
 
 	wrapper.addEventListener("paste", handler, { capture: true });

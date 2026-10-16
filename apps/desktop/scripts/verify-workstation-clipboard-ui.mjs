@@ -57,7 +57,7 @@ export async function verifyWorkstationClipboardUi({
 	});
 	const point = await until(() =>
 		evaluate(
-			`(()=>{const e=document.querySelector('[data-terminal-id="${terminal.terminalId}"] .xterm-screen');if(!e)return null;const p=e.closest('[data-pane-id]'),r=e.getBoundingClientRect(),b=p.getBoundingClientRect();const left=Math.max(r.left,b.left,0),right=Math.min(r.right,b.right,innerWidth),top=Math.max(r.top,b.top,0),bottom=Math.min(r.bottom,b.bottom,innerHeight);if(right<=left||bottom<=top)return null;const x=(left+right)/2,y=(top+bottom)/2;return e.contains(document.elementFromPoint(x,y))?{x,y,visibleWidth:right-left,visibleHeight:bottom-top}:null;})()`,
+			`(()=>{const e=document.querySelector('[data-terminal-id="${terminal.terminalId}"] .xterm-screen');if(!e)return null;const r=e.getBoundingClientRect();let left=Math.max(r.left,0),right=Math.min(r.right,innerWidth),top=Math.max(r.top,0),bottom=Math.min(r.bottom,innerHeight);for(let p=e.parentElement;p;p=p.parentElement){const s=getComputedStyle(p),b=p.getBoundingClientRect();if(/hidden|clip|scroll|auto/.test(s.overflowX)){left=Math.max(left,b.left);right=Math.min(right,b.right);}if(/hidden|clip|scroll|auto/.test(s.overflowY)){top=Math.max(top,b.top);bottom=Math.min(bottom,b.bottom);}}if(right<=left||bottom<=top)return null;const x=(left+right)/2,y=(top+bottom)/2;return e.contains(document.elementFromPoint(x,y))?{x,y,visibleWidth:right-left,visibleHeight:bottom-top}:null;})()`,
 		),
 	);
 	for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])

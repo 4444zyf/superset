@@ -460,7 +460,7 @@ test.each([
 	}
 	await act(async () => complete());
 	await waitFor(() => expect(pasted).toHaveLength(1));
-	await waitFor(() => expect(view.queryByText("Sending…")).toBeNull());
+	await waitFor(() => expect(view.queryByText("Sending…") === null).toBe(true));
 	expect(pasted[0]).toContain("image.png");
 	expect(pasted[0]).toContain("/remote/");
 	expect(event.defaultPrevented).toBe(true);
@@ -471,4 +471,84 @@ test.each([
 		content: { kind: "base64", data: "AQID" },
 		options: { create: true, overwrite: false },
 	});
+});
+
+test("a rejected clipboard file reports an error without failing its attached terminal", async () => {
+	let listener!: (e: DirectSocketEvent) => void;
+	let sid = "";
+	const failures: string[] = [];
+	const api = {
+		onSocket: (cb: typeof listener) => {
+			listener = cb;
+			return () => {};
+		},
+		openRestoredTerminal: async (_c: unknown, _r: unknown, id: string) => {
+			sid = id;
+		},
+		sendSocket: async () => {},
+		closeSocket: async () => {},
+	} as unknown as DirectWorkstationApi;
+	const emulator: TerminalEmulator = {
+		terminal: {
+			cols: 80,
+			rows: 24,
+			write() {},
+			writeln() {},
+			onData() {
+				return { dispose() {} };
+			},
+			onResize() {
+				return { dispose() {} };
+			},
+			dispose() {},
+			input() {},
+			paste() {},
+		},
+		fit() {},
+	};
+	const view = render(
+		<RemoteTerminal
+			api={api}
+			connection={connection}
+			terminalId="terminal"
+			restoreRef={{
+				workspaceId: "workspace",
+				resourceId: "terminal",
+				kind: "terminal",
+				executionId: "exec",
+			}}
+			onError={(e) => failures.push(e)}
+			createEmulator={() => emulator}
+		/>,
+	);
+	await waitFor(() => expect(sid !== "").toBe(true));
+	act(() =>
+		listener({
+			socketId: sid,
+			kind: "message",
+			data: JSON.stringify({
+				type: "attached",
+				terminalId: "terminal",
+				workspaceId: "workspace",
+				executionId: "exec",
+			}),
+		}),
+	);
+	const event = new Event("paste", { bubbles: true, cancelable: true });
+	Object.defineProperty(event, "clipboardData", {
+		value: {
+			files: [new File([], "empty.png", { type: "image/png" })],
+			getData: () => "",
+		},
+	});
+	act(() =>
+		view.container.querySelector("[data-terminal-id]")!.dispatchEvent(event),
+	);
+	await waitFor(() => expect(view.queryByRole("alert") !== null).toBe(true));
+	expect(failures).toEqual([]);
+	expect(
+		view.container
+			.querySelector("[data-terminal-id]")
+			?.getAttribute("data-restore-state"),
+	).toBe("attached");
 });

@@ -1,0 +1,46 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/lib/terminal/terminal-image-paste-fallback.test.ts:
+(pass) isNonTextPaste > returns true when files are present (screenshot, copied file, web image) [0.06ms]
+(pass) isNonTextPaste > returns false when text/plain has content [0.02ms]
+(pass) isNonTextPaste > returns false when text/plain has content alongside image [0.02ms]
+(pass) isNonTextPaste > returns false when only text/plain is present but empty [0.02ms]
+(pass) isNonTextPaste > returns false for text/html-only rich text (no file payload) [0.01ms]
+(pass) isNonTextPaste > returns false when types lists image but no File entry exists [0.01ms]
+(pass) isNonTextPaste > returns false when clipboard is empty [0.02ms]
+(pass) handleImagePasteFallback > forwards Ctrl+V (\x16) when clipboard has files but no text [0.12ms]
+(pass) handleImagePasteFallback > does not call terminal.input for text paste — xterm's built-in handles it [0.04ms]
+(pass) handleImagePasteFallback > does not call terminal.input for mixed text+image paste [0.03ms]
+(pass) handleImagePasteFallback > routes the clipboard files to the override instead of forwarding ^V [0.16ms]
+(pass) handleImagePasteFallback > forwards ^V when the override getter returns null [0.03ms]
+(pass) handleImagePasteFallback > does not consult the override for text paste [0.03ms]
+(pass) installImagePasteFallback > registers a capture-phase paste listener on the wrapper [0.07ms]
+(pass) installImagePasteFallback > dispose removes the listener with matching capture option [0.25ms]
+(pass) installImagePasteFallback > registered handler forwards Ctrl+V on file paste [0.06ms]
+(pass) installImagePasteFallback > registered handler ignores text paste [0.03ms]
+292 |
+293 | it("remote file preference uploads clipboard files even when a copied local path is also present",()=>{
+294 |  const file={name:'image.png'};const {event,flags}=clipboardEvent({types:['Files','text/plain'],getData:()=>'/client/image.png',files:[file]});
+295 |  const {terminal,input}=makeFakeTerminal();let received:unknown;
+296 |  handleImagePasteFallback(event,terminal,()=>files=>{received=files;},{preferFiles:true});
+297 |  expect(received).toEqual([file]);expect(input).not.toHaveBeenCalled();expect(flags.defaultPrevented).toBe(true);
+                        ^
+error: expect(received).toEqual(expected)
+
+- [
+-   {
+-     "name": "image.png",
+-   },
+- ]
++ undefined
+
+- Expected  - 5
++ Received  + 1
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/lib/terminal/terminal-image-paste-fallback.test.ts:297:19)
+(fail) remote file preference uploads clipboard files even when a copied local path is also present [0.18ms]
+
+ 17 pass
+ 1 fail
+ 33 expect() calls
+Ran 18 tests across 1 file. [488.00ms]

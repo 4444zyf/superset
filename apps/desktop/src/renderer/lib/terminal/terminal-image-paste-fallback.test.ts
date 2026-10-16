@@ -289,3 +289,25 @@ describe("installImagePasteFallback", () => {
 		expect(input).not.toHaveBeenCalled();
 	});
 });
+
+it("remote file preference uploads clipboard files even when a copied local path is also present", () => {
+	const file = { name: "image.png" };
+	const { event, flags } = clipboardEvent({
+		types: ["Files", "text/plain"],
+		getData: () => "/client/image.png",
+		files: [file],
+	});
+	const { terminal, input } = makeFakeTerminal();
+	let received: unknown;
+	handleImagePasteFallback(
+		event,
+		terminal,
+		() => (files) => {
+			received = files;
+		},
+		{ preferFiles: true },
+	);
+	expect(received).toEqual([file]);
+	expect(input).not.toHaveBeenCalled();
+	expect(flags.defaultPrevented).toBe(true);
+});

@@ -1,3 +1,4 @@
+import { errorMessage } from "@superset/i18n/errors";
 import { Trans } from "@lingui/react/macro";
 import { darkTheme, getTerminalColors } from "@superset/shared/themes";
 import type { RestoreResourceRef } from "@superset/shared/workspace-restore";
@@ -109,6 +110,7 @@ export function RemoteTerminal({
 	const [state, setState] = useState("pending");
 	const [searchOpen, setSearchOpen] = useState(false);
 	const [pasteBusy, setPasteBusy] = useState(false);
+	const [pasteError, setPasteError] = useState<string | null>(null);
 	const [searchAddon, setSearchAddon] = useState<SearchAddon | null>(null);
 	const callbacks = useRef({ onError, onAttached, onExited });
 	callbacks.current = { onError, onAttached, onExited };
@@ -116,6 +118,7 @@ export function RemoteTerminal({
 		if (!element.current || !visible) return;
 		setState("pending");
 		setPasteBusy(false);
+		setPasteError(null);
 		const emulator = createEmulator(element.current);
 		emulatorRef.current = emulator;
 		emulator.applyAppearance?.(appearanceRef.current);
@@ -214,6 +217,7 @@ export function RemoteTerminal({
 							return;
 						uploading = true;
 						setPasteBusy(true);
+						setPasteError(null);
 						const current = () => ready && !closed && !ended && focus.current;
 						void (async () => {
 							validateClipboardFiles(files);
@@ -266,13 +270,14 @@ export function RemoteTerminal({
 								);
 						})()
 							.catch((error) => {
-								if (current()) callbacks.current.onError(String(error));
+								if (current()) setPasteError(errorMessage(error));
 							})
 							.finally(() => {
 								uploading = false;
 								if (!closed) setPasteBusy(false);
 							});
 					},
+					{ preferFiles: true },
 				)
 			: undefined;
 		const input = terminal.onData((data) => {
@@ -373,6 +378,24 @@ export function RemoteTerminal({
 						: "h-[360px] border border-zinc-700 rounded p-2"
 				}
 			/>
+			{pasteError && (
+				<output
+					role="alert"
+					className="absolute left-2 right-2 top-2 rounded bg-destructive/10 p-2 text-xs text-destructive"
+				>
+					{pasteError}
+					<button
+						type="button"
+						className="ml-2 underline"
+						onClick={() => {
+							setPasteError(null);
+							focusTerminal.current?.();
+						}}
+					>
+						<Trans>Close</Trans>
+					</button>
+				</output>
+			)}
 			{pasteBusy && (
 				<output
 					className="absolute right-2 top-2 rounded bg-muted px-2 py-1 text-xs"
