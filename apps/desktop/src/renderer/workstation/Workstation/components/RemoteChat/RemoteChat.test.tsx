@@ -425,7 +425,7 @@ function attachmentFixture() {
 	return { api, calls };
 }
 
-test("switching chats clears unsent message and attachment drafts", async () => {
+test("switching chats isolates unsent drafts and returning restores the original text and attachment references", async () => {
 	const { api } = attachmentFixture();
 	render(
 		<RemoteChat
@@ -445,6 +445,11 @@ test("switching chats clears unsent message and attachment drafts", async () => 
 		"",
 	);
 	expect(screen.queryByRole("button", { name: "selected.txt" })).toBeNull();
+	fireEvent.click(screen.getByRole("button", { name: "codex #1" }));
+	expect((screen.getByLabelText("Message") as HTMLTextAreaElement).value).toBe(
+		"only for the first chat",
+	);
+	expect(screen.queryByRole("button", { name: "selected.txt" })).not.toBeNull();
 });
 
 test("an upload completed after switching chats cannot attach to the new chat", async () => {

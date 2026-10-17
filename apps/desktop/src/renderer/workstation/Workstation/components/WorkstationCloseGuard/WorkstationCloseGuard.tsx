@@ -3,13 +3,16 @@ import { errorMessage } from "@superset/i18n/errors";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { UnsavedChangesDialog } from "renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/TabView/FileViewerPane/UnsavedChangesDialog";
 import type { DirectWorkstationApi } from "../../../../../shared/direct-workstation";
+import type { WorkstationChatDraftStore } from "../../providers/WorkstationChatDrafts/workstation-chat-drafts";
 import type { WorkstationFileDocuments } from "../../providers/WorkstationFileDocuments";
 export function WorkstationCloseGuard({
 	api,
 	documents,
+	chatDrafts,
 }: {
 	api: DirectWorkstationApi;
 	documents: WorkstationFileDocuments;
+	chatDrafts?: Pick<WorkstationChatDraftStore, "flush">;
 }) {
 	const { t } = useLingui();
 	useSyncExternalStore(
@@ -32,27 +35,36 @@ export function WorkstationCloseGuard({
 		request.resolve(allow);
 	};
 	useEffect(() => {
-		const stop = api.onWindowCloseRequest?.(() => {
+		let current = true;
+		const stop = api.onWindowCloseRequest?.(async () => {
+			let draftError = "";
+			try {
+				await chatDrafts?.flush();
+			} catch (error) {
+				draftError = errorMessage(error);
+			}
+			if (!current) return false;
 			if (pending.current) return pending.current.promise;
-			if (documents.getUnsavedDocuments().length === 0)
+			if (!draftError && documents.getUnsavedDocuments().length === 0)
 				return Promise.resolve(true);
 			let resolve!: (value: boolean) => void;
 			const promise = new Promise<boolean>((done) => {
 				resolve = done;
 			});
 			pending.current = { resolve, promise };
-			setSaveError("");
+			setSaveError(draftError);
 			setSaving(false);
 			setOpen(true);
 			return promise;
 		});
 		return () => {
+			current = false;
 			const request = pending.current;
 			pending.current = null;
 			request?.resolve(false);
 			stop?.();
 		};
-	}, [api, documents]);
+	}, [api, documents, chatDrafts]);
 	const unsaved = documents.getUnsavedDocuments();
 	const busy = saving || unsaved.some((document) => document.pendingSave);
 	const save = async () => {
@@ -61,6 +73,8 @@ export function WorkstationCloseGuard({
 		setSaving(true);
 		setSaveError("");
 		try {
+			await chatDrafts?.flush();
+			if (pending.current !== request) return;
 			for (const document of documents.getUnsavedDocuments()) {
 				if (document.pendingSave) return;
 				if (!document.dirty) continue;

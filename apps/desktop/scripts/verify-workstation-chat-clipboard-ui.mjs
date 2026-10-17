@@ -41,7 +41,10 @@ export async function verifyWorkstationChatClipboardUi({
 	const originalTerminals = await controls.verifyWorktreeLocation(
 		workspace.worktreePath,
 	);
-	const selectedSession = () => evaluate(`(async()=>{const {snapshot}=await window.directWorkstation.getWorkspaceView();const target=snapshot.targets.find(t=>t.connectionId===${JSON.stringify(scope.connectionId)});const workspace=target.workspaces.find(w=>w.workspaceId===${JSON.stringify(scope.workspaceId)});return workspace.panes.find(p=>p.paneId===workspace.activePaneId)?.resourceId;})()`);
+	const selectedSession = () =>
+		evaluate(
+			`(async()=>{const {snapshot}=await window.directWorkstation.getWorkspaceView();const target=snapshot.targets.find(t=>t.connectionId===${JSON.stringify(scope.connectionId)});const workspace=target.workspaces.find(w=>w.workspaceId===${JSON.stringify(scope.workspaceId)});return workspace.panes.find(p=>p.paneId===workspace.activePaneId)?.resourceId;})()`,
+		);
 	const expectedPrompts = new Map();
 	const noPrompt = async () => {
 		for (const session of await sessions()) {
@@ -234,7 +237,9 @@ export async function verifyWorkstationChatClipboardUi({
 		);
 		const second = images.find((a) => a.attachmentId !== image.attachmentId);
 		sentSessionId = await selectedSession();
-		assert.ok((await sessions()).some((session) => session.sessionId === sentSessionId));
+		assert.ok(
+			(await sessions()).some((session) => session.sessionId === sentSessionId),
+		);
 		expectedPrompts.set(sentSessionId, [
 			[
 				{ type: "text", text: plain },
@@ -262,23 +267,31 @@ export async function verifyWorkstationChatClipboardUi({
 		await screenshot("chat-clipboard-rejected-send-keeps-draft");
 		rejectedSend = true;
 	}
+	const draftedSessionId = await selectedSession();
 	let unresolvedPrompt = null;
 	if (rejectedSend) {
 		await click("text:New chat");
-		await until(() => evaluate(`document.querySelector('${area}')?.closest('section')?.querySelector('[role=alert]')?.textContent.includes('Reconcile the pending operation')`));
+		await until(() =>
+			evaluate(
+				`document.querySelector('${area}')?.closest('section')?.querySelector('[role=alert]')?.textContent.includes('Reconcile the pending operation')`,
+			),
+		);
 		await ready();
 		assert.equal(await message(), plain);
 		assert.equal(await attachedCount("image.png"), 2);
 		if (file) assert.equal(await attachedCount(file.originalFilename), 1);
-		const pending = await evaluate(`window.directWorkstation.inspectPending(${JSON.stringify(scope.connectionId)})`);
+		const pending = await evaluate(
+			`window.directWorkstation.inspectPending(${JSON.stringify(scope.connectionId)})`,
+		);
 		assert.equal(pending.length, 1);
 		assert.equal(pending[0].procedure, "chat.prompt");
 		assert.equal(pending[0].status, "unresolved");
 		unresolvedPrompt = pending[0];
 		await screenshot("chat-clipboard-blocked-new-chat-keeps-draft");
 		await click("text:codex #1");
-		if (await selectedSession() === sentSessionId) await click("text:codex #2");
-		await until(async () => await selectedSession() !== sentSessionId);
+		if ((await selectedSession()) === sentSessionId)
+			await click("text:codex #2");
+		await until(async () => (await selectedSession()) !== sentSessionId);
 	} else {
 		await click("text:New chat");
 		await until(async () => (await sessions()).length === 2);
@@ -288,6 +301,31 @@ export async function verifyWorkstationChatClipboardUi({
 	assert.equal(await attachedCount("image.png"), 0);
 	await noPrompt();
 	await screenshot("chat-clipboard-new-session-isolated");
+
+	const retainDrafts = process.argv.includes("--expect-retained-chat-drafts");
+	const selectDraftedChat = async () => {
+		await click("text:codex #1");
+		if ((await selectedSession()) !== draftedSessionId)
+			await click("text:codex #2");
+		await until(async () => (await selectedSession()) === draftedSessionId);
+		await ready();
+	};
+	if (retainDrafts) {
+		await selectDraftedChat();
+		await until(async () => (await message()) === plain);
+		assert.equal(await attachedCount("image.png"), 2);
+		if (file) assert.equal(await attachedCount(file.originalFilename), 1);
+		await screenshot("chat-draft-returned-session-text-and-attachments");
+		await click("text:Files");
+		await until(() => evaluate(`!document.querySelector('${area}')`));
+		await click("text:Terminal");
+		await ready();
+		assert.equal(await message(), plain);
+		assert.equal(await attachedCount("image.png"), 2);
+		if (file) assert.equal(await attachedCount(file.originalFilename), 1);
+		await noPrompt();
+		await screenshot("chat-draft-returned-from-files-without-send");
+	}
 	await closeReopen();
 	await until(() =>
 		evaluate(
@@ -296,8 +334,10 @@ export async function verifyWorkstationChatClipboardUi({
 	);
 	await ready();
 	assert.equal((await sessions()).length, 2);
-	assert.equal(await message(), "");
-	assert.equal(await attachedCount("image.png"), 0);
+	await until(async () => (await message()) === (retainDrafts ? plain : ""));
+	assert.equal(await attachedCount("image.png"), retainDrafts ? 2 : 0);
+	if (retainDrafts && file)
+		assert.equal(await attachedCount(file.originalFilename), 1);
 	assert.equal(controls.inspectChatAttachments().length, file ? 3 : 2);
 	const reopenedImage = await readAttachment(image.attachmentId);
 	assert.equal(
@@ -308,6 +348,34 @@ export async function verifyWorkstationChatClipboardUi({
 	);
 	await noPrompt();
 	await screenshot("chat-clipboard-reopened-without-send");
+	let persistedDraft = null;
+	if (retainDrafts) {
+		const snapshot = await evaluate("window.directWorkstation.getChatDrafts()");
+		assert.equal(snapshot.invalid, false);
+		const entry = snapshot.entries.find(
+			(entry) =>
+				entry.identity.sessionId === draftedSessionId &&
+				entry.identity.workspaceId === scope.workspaceId,
+		);
+		assert.ok(entry);
+		assert.equal(entry.value.text, plain);
+		assert.deepEqual(
+			entry.value.attachments.map((a) => a.attachmentId).sort(),
+			controls
+				.inspectChatAttachments()
+				.map((a) => a.attachmentId)
+				.sort(),
+		);
+		persistedDraft = {
+			revision: snapshot.revision,
+			entries: snapshot.entries.length,
+			attachmentIds: entry.value.attachments.map((a) => a.attachmentId),
+			textSha256: createHash("sha256").update(entry.value.text).digest("hex"),
+		};
+		assert.equal(controls.inspectChatAttachments().length, file ? 3 : 2);
+		await screenshot("chat-draft-reopened-persisted-without-upload-or-send");
+	}
+
 	const restoredTerminals = await controls.verifyWorktreeLocation(
 		workspace.worktreePath,
 	);
@@ -318,6 +386,8 @@ export async function verifyWorkstationChatClipboardUi({
 		JSON.stringify(
 			{
 				sourceRevision: process.env.GITHUB_SHA,
+				retainedDraftsChecked: retainDrafts,
+				persistedDraft,
 				physicalNativePaste: true,
 				osClipboard: true,
 				workspaceId: scope.workspaceId,

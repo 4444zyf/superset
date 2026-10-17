@@ -20,6 +20,7 @@ import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
+import { useWorkstationChatDraft } from "../../providers/WorkstationChatDrafts/WorkstationChatDraftsContext";
 
 const ChatMarkdown = lazy(() =>
 	import("@superset/chat-ui/ChatMarkdown").then((module) => ({
@@ -88,17 +89,40 @@ export function RemoteChat({
 	};
 	const [harness, setHarness] = useState("codex");
 	const [snapshot, setSnapshot] = useState(emptySnapshot);
-	const [prompt, setPrompt] = useState("");
+
 	const [busy, setBusy] = useState(false);
 	const [attachmentError, setAttachmentError] = useState<string | null>(null);
-	const [attachments, setAttachments] = useState<
-		{
-			attachmentId: string;
-			originalFilename?: string;
-			mediaType: string;
-			sizeBytes: number;
-		}[]
-	>([]);
+	const draft = useWorkstationChatDraft(
+		api,
+		connection,
+		workspaceId,
+		sessionId,
+	);
+	const prompt = draft.value.text;
+	const attachments = draft.value.attachments;
+	const setPrompt = (text: string) => {
+		try {
+			draft.change((previous) => ({ ...previous, text }));
+		} catch (error) {
+			setAttachmentError(errorMessage(error));
+		}
+	};
+	const setAttachments = (
+		next:
+			| typeof attachments
+			| ((previous: typeof attachments) => typeof attachments),
+	) => {
+		try {
+			draft.change((previous) => ({
+				...previous,
+				attachments:
+					typeof next === "function" ? next(previous.attachments) : next,
+			}));
+		} catch (error) {
+			setAttachmentError(errorMessage(error));
+		}
+	};
+
 	const mounted = useRef(false);
 	const namespaceScope = JSON.stringify([
 		connection.connectionId,
@@ -175,8 +199,7 @@ export function RemoteChat({
 	useEffect(() => {
 		if (previousDraftScope.current === draftScope) return;
 		previousDraftScope.current = draftScope;
-		setPrompt("");
-		setAttachments([]);
+
 		setAttachmentError(null);
 	}, [draftScope]);
 	useEffect(() => {
@@ -481,19 +504,21 @@ export function RemoteChat({
 							</Button>
 						))}
 					</div>
-					{attachmentError && (
+					{(attachmentError || draft.error) && (
 						<output
 							role="alert"
 							className="max-h-24 shrink-0 overflow-auto text-xs text-destructive"
 						>
-							{attachmentError}
-							<button
-								type="button"
-								className="ml-2 underline"
-								onClick={() => setAttachmentError(null)}
-							>
-								<Trans>Close</Trans>
-							</button>
+							{attachmentError || draft.error}
+							{attachmentError && (
+								<button
+									type="button"
+									className="ml-2 underline"
+									onClick={() => setAttachmentError(null)}
+								>
+									<Trans>Close</Trans>
+								</button>
+							)}
 						</output>
 					)}
 					<form
@@ -529,8 +554,7 @@ export function RemoteChat({
 									],
 								});
 								if (!isCurrent()) return;
-								setPrompt("");
-								setAttachments([]);
+								draft.change({ text: "", attachments: [] });
 							}, true);
 						}}
 					>

@@ -155,3 +155,137 @@ test("a clean document permits close immediately and unmounting with a dirty pro
 	expect(f.doc.dirty).toBe(true);
 	expect(f.writes).toEqual([]);
 });
+
+test("chat draft storage failure blocks a clean-file window close until an explicit successful Save All retry", async () => {
+	const { WorkstationChatDraftStore } = await import(
+		"../../providers/WorkstationChatDrafts/workstation-chat-drafts"
+	);
+	const f = fixture();
+	await settle();
+	let fail = true;
+	const drafts = new WorkstationChatDraftStore(
+		{
+			getChatDrafts: async () => ({ revision: 0, invalid: false, entries: [] }),
+			saveChatDrafts: async (input) => {
+				if (fail) throw new Error("Disk full");
+				return { revision: 1, invalid: false, entries: input.entries };
+			},
+		},
+		() => () => {},
+	);
+	await drafts.start();
+	drafts.change(
+		{
+			connectionId: connection.connectionId,
+			backendId: connection.backendId,
+			namespaceId: connection.namespaceId,
+			workspaceId: "workspace",
+			sessionId: "chat",
+		},
+		{ text: "unsent", attachments: [] },
+	);
+	render(
+		<WorkstationCloseGuard
+			api={f.api}
+			documents={f.manager}
+			chatDrafts={drafts}
+		/>,
+	);
+	let pending!: Promise<boolean>;
+	let approved = false;
+	await act(async () => {
+		pending = f.request();
+		void pending.then((allow) => {
+			approved = allow;
+		});
+		await settle();
+	});
+	expect(approved).toBe(false);
+	expect(screen.getByRole("alertdialog").textContent).toContain("Disk full");
+	expect(
+		drafts.get({
+			connectionId: connection.connectionId,
+			backendId: connection.backendId,
+			namespaceId: connection.namespaceId,
+			workspaceId: "workspace",
+			sessionId: "chat",
+		}).text,
+	).toBe("unsent");
+	fail = false;
+	await act(async () => {
+		fireEvent.click(screen.getByRole("button", { name: "Save All" }));
+		await settle();
+	});
+	expect(await pending).toBe(true);
+	expect(f.writes).toEqual([]);
+	drafts.stop();
+});
+
+test("unmounting while chat draft storage is loading cannot approve the departed renderer's close request", async () => {
+	const { WorkstationChatDraftStore } = await import(
+		"../../providers/WorkstationChatDrafts/workstation-chat-drafts"
+	);
+	const f = fixture();
+	await settle();
+	let loaded!: (value: {
+		revision: number;
+		invalid: boolean;
+		entries: [];
+	}) => void;
+	const drafts = new WorkstationChatDraftStore(
+		{
+			getChatDrafts: () =>
+				new Promise((resolve) => {
+					loaded = resolve;
+				}),
+		},
+		() => () => {},
+	);
+	const view = render(
+		<WorkstationCloseGuard
+			api={f.api}
+			documents={f.manager}
+			chatDrafts={drafts}
+		/>,
+	);
+	const pending = f.request();
+	view.unmount();
+	loaded({ revision: 0, invalid: false, entries: [] });
+	expect(await pending).toBe(false);
+	drafts.stop();
+});
+
+test("a late chat-draft flush after the close dialog unmounts cannot start a file save", async () => {
+	const f = fixture();
+	await settle();
+	f.doc.setContent("must remain a draft");
+	let calls = 0;
+	let flushed!: () => void;
+	const drafts = {
+		flush: async () => {
+			if (++calls === 2)
+				await new Promise<void>((resolve) => {
+					flushed = resolve;
+				});
+		},
+	};
+	const view = render(
+		<WorkstationCloseGuard
+			api={f.api}
+			documents={f.manager}
+			chatDrafts={drafts}
+		/>,
+	);
+	let pending!: Promise<boolean>;
+	await act(async () => {
+		pending = f.request();
+		await settle();
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Save All" }));
+	view.unmount();
+	flushed();
+	await act(settle);
+	expect(await pending).toBe(false);
+	expect(f.writes).toEqual([]);
+	expect(f.doc.dirty).toBe(true);
+});

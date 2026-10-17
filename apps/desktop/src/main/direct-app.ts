@@ -63,6 +63,7 @@ import { WindowCloseGate } from "./lib/ssh-direct/window-close-gate";
 import { closeWindowTransports } from "./lib/ssh-direct/window-transports";
 import { WorkspaceRestoreCoordinator } from "./lib/ssh-direct/workspace-restore-coordinator";
 import { WorkspaceViewStore } from "./lib/ssh-direct/workspace-view-store";
+import { WorkstationChatDrafts } from "./lib/ssh-direct/workstation-chat-drafts";
 import { WorkstationController } from "./lib/ssh-direct/workstation-controller";
 import { WorkstationPreferences } from "./lib/ssh-direct/workstation-preferences";
 
@@ -125,6 +126,9 @@ export async function startWorkstation(): Promise<void> {
 	);
 	const preferences = new WorkstationPreferences(
 		path.join(dataDir, "preferences.db"),
+	);
+	const chatDrafts = new WorkstationChatDrafts(
+		path.join(dataDir, "chat-drafts.db"),
 	);
 	await initI18nAsync(
 		preferences.read().values.language ??
@@ -579,6 +583,12 @@ export async function startWorkstation(): Promise<void> {
 							.parse(payload),
 					);
 					return;
+				case "getChatDrafts":
+					return chatDrafts.read();
+				case "saveChatDrafts":
+					return chatDrafts.update(
+						payload as Parameters<WorkstationChatDrafts["update"]>[0],
+					);
 				case "getPreferences":
 					return preferences.read();
 				case "updatePreferences": {
@@ -1259,6 +1269,7 @@ export async function startWorkstation(): Promise<void> {
 					registry.close();
 					intents.close();
 					preferences.close();
+					chatDrafts.close();
 					viewStore?.close();
 					ipcMain.removeHandler(DIRECT_CHANNEL);
 					app.quit();

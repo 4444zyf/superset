@@ -12,6 +12,10 @@ import type {
 	WorkspaceViewSnapshot,
 } from "./workspace-view";
 import type {
+	WorkstationChatDraftSnapshot,
+	WorkstationChatDraftUpdate,
+} from "./workstation-chat-drafts";
+import type {
 	WorkstationPreferencePatch,
 	WorkstationPreferenceSnapshot,
 } from "./workstation-preferences";
@@ -176,6 +180,10 @@ export interface DirectWorkstationApi {
 	cancelWorkspaceRestore?(input: { restoreJobId: string }): Promise<void>;
 	forgetWorkspaceView?(input: { expectedRevision: number }): Promise<void>;
 	onWorkspaceViewFlush?(listener: () => Promise<void>): () => void;
+	getChatDrafts?(): Promise<WorkstationChatDraftSnapshot>;
+	saveChatDrafts?(
+		input: WorkstationChatDraftUpdate,
+	): Promise<WorkstationChatDraftSnapshot>;
 	onWindowCloseRequest?(
 		listener: (kind: "window" | "quit") => Promise<boolean>,
 	): () => void;

@@ -21,6 +21,8 @@ import { WorkstationShell } from "./components/WorkstationShell/WorkstationShell
 import { useWorkspaceViews } from "./hooks/useWorkspaceViews/useWorkspaceViews";
 import { useWorkstation } from "./hooks/useWorkstation/useWorkstation";
 import { useWorkstationPreferences } from "./hooks/useWorkstationPreferences";
+import { WorkstationChatDraftsContext } from "./providers/WorkstationChatDrafts/WorkstationChatDraftsContext";
+import { WorkstationChatDraftStore } from "./providers/WorkstationChatDrafts/workstation-chat-drafts";
 import {
 	WorkstationFileDocuments,
 	WorkstationFileDocumentsContext,
@@ -55,6 +57,11 @@ export function Workstation({
 	const ui = useWorkstation(api);
 	const preferences = useWorkstationPreferences(api);
 	const documents = useMemo(() => new WorkstationFileDocuments(api), [api]);
+	const chatDrafts = useMemo(() => new WorkstationChatDraftStore(api), [api]);
+	useEffect(() => {
+		void chatDrafts.start().catch(() => {});
+		return () => chatDrafts.stop();
+	}, [chatDrafts]);
 	useEffect(() => {
 		if (ui.connection) documents.activate(ui.connection);
 	}, [documents, ui.connection]);
@@ -853,50 +860,56 @@ export function Workstation({
 		<I18nProvider locale={preferences.snapshot?.values.language ?? undefined}>
 			<WorkstationPreferencesContext value={preferences.snapshot}>
 				<WorkstationFileDocumentsContext value={documents}>
-					<WorkstationCloseGuard api={api} documents={documents} />
-					{ui.connection && (
-						<WorkstationDocumentEvents
+					<WorkstationChatDraftsContext value={chatDrafts}>
+						<WorkstationCloseGuard
 							api={api}
-							connection={ui.connection}
 							documents={documents}
+							chatDrafts={chatDrafts}
 						/>
-					)}
-					{content}
-					{deleteWorkspace && connected && ui.connection && (
-						<RemoteWorkspaceDelete
-							key={JSON.stringify([
-								ui.connection.connectionId,
-								ui.connection.backendId,
-								ui.connection.namespaceId,
-								ui.connection.generation,
-								deleteWorkspace.id,
-							])}
-							api={api}
-							connection={ui.connection}
-							workspace={deleteWorkspace}
-							onClose={() => setDeleteWorkspace(null)}
-							hasUnsavedChanges={() =>
-								documents
-									.getDocuments(ui.connection!, deleteWorkspace.id)
-									.some((d) => d.dirty || d.pendingSave)
-							}
-							onDeleted={(warnings) => {
-								const target = ui.connection!;
-								setDeleteWorkspace(null);
+						{ui.connection && (
+							<WorkstationDocumentEvents
+								api={api}
+								connection={ui.connection}
+								documents={documents}
+							/>
+						)}
+						{content}
+						{deleteWorkspace && connected && ui.connection && (
+							<RemoteWorkspaceDelete
+								key={JSON.stringify([
+									ui.connection.connectionId,
+									ui.connection.backendId,
+									ui.connection.namespaceId,
+									ui.connection.generation,
+									deleteWorkspace.id,
+								])}
+								api={api}
+								connection={ui.connection}
+								workspace={deleteWorkspace}
+								onClose={() => setDeleteWorkspace(null)}
+								hasUnsavedChanges={() =>
+									documents
+										.getDocuments(ui.connection!, deleteWorkspace.id)
+										.some((d) => d.dirty || d.pendingSave)
+								}
+								onDeleted={(warnings) => {
+									const target = ui.connection!;
+									setDeleteWorkspace(null);
 
-								void ui.operation(async () => {
-									ui.setNotice(warnings.length ? warnings.join("\n") : null);
-									await views.removeWorkspace(target, deleteWorkspace.id);
-									if (
-										ui.active.current?.connectionId === target.connectionId &&
-										ui.active.current.generation === target.generation
-									) {
-										await ui.refresh(target);
-									}
-								});
-							}}
-						/>
-					)}
+									void ui.operation(async () => {
+										ui.setNotice(warnings.length ? warnings.join("\n") : null);
+										await views.removeWorkspace(target, deleteWorkspace.id);
+										if (
+											ui.active.current?.connectionId === target.connectionId &&
+											ui.active.current.generation === target.generation
+										) {
+											await ui.refresh(target);
+										}
+									});
+								}}
+							/>
+						)}
+					</WorkstationChatDraftsContext>
 				</WorkstationFileDocumentsContext>
 				{settingsOpen && (
 					<Suspense fallback={null}>
