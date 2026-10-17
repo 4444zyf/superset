@@ -37,6 +37,10 @@ export async function verifyWorkstationChatClipboardUi({
 		);
 	const sessions = () =>
 		query("chat.listSessions", { workspaceId: scope.workspaceId });
+	const workspace = await query("workspace.get", { id: scope.workspaceId });
+	const originalTerminals = await controls.verifyWorktreeLocation(
+		workspace.worktreePath,
+	);
 	const noPrompt = async () => {
 		for (const session of await sessions()) {
 			const page = await query("chat.getItems", {
@@ -101,6 +105,11 @@ export async function verifyWorkstationChatClipboardUi({
 	await click("text:New chat");
 	await ready();
 	const first = await until(async () => (await sessions())[0]);
+	await until(() =>
+		evaluate(
+			"document.querySelectorAll('.ws-compact-panes button').length===4",
+		),
+	);
 	await screenshot("chat-clipboard-before-paste");
 	writeFileSync(
 		join(output, "chat-clipboard-input-geometry.json"),
@@ -219,6 +228,10 @@ export async function verifyWorkstationChatClipboardUi({
 	);
 	await noPrompt();
 	await screenshot("chat-clipboard-reopened-without-send");
+	const restoredTerminals = await controls.verifyWorktreeLocation(
+		workspace.worktreePath,
+	);
+	assert.deepEqual(restoredTerminals, originalTerminals);
 	assert.deepEqual(getPage().errors, []);
 	writeFileSync(
 		join(output, "workstation-chat-clipboard-ui.json"),
@@ -228,6 +241,8 @@ export async function verifyWorkstationChatClipboardUi({
 				physicalNativePaste: true,
 				osClipboard: true,
 				workspaceId: scope.workspaceId,
+				adaptiveCompactSwitcher: true,
+				originalTerminalsRetained: restoredTerminals.terminals,
 				firstSessionId: first.sessionId,
 				textBytes: Buffer.byteLength(plain),
 				textSha256: createHash("sha256").update(plain).digest("hex"),

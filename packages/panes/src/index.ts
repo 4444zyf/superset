@@ -34,6 +34,7 @@ export type {
 } from "./react";
 export { resolveTabTitle, useTabTitle, Workspace } from "./react";
 export { Tab as WorkspaceTab } from "./react/components/Workspace/components/Tab";
+export { PANE_MIN_DIMENSIONS } from "./react/components/Workspace/components/Tab/constants";
 export { TabBar as WorkspaceTabBar } from "./react/components/Workspace/components/TabBar";
 export type {
 	LayoutNode,

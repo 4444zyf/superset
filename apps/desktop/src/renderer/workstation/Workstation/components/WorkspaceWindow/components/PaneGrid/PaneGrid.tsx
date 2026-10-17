@@ -24,6 +24,7 @@ import {
 } from "../../utils/pane-adapter/pane-adapter";
 
 import { WorkspacePaneView } from "../WorkspacePaneView/WorkspacePaneView";
+import { isCompactPaneLayout } from "./utils/isCompactPaneLayout/isCompactPaneLayout";
 
 export function PaneGrid({
 	api,
@@ -106,6 +107,29 @@ export function PaneGrid({
 		[store],
 	);
 	const [width, setWidth] = useState(window.innerWidth);
+	const gridRef = useRef<HTMLDivElement>(null);
+	const [availableSize, setAvailableSize] = useState<{
+		width: number;
+		height: number;
+	} | null>(null);
+	useLayoutEffect(() => {
+		const element = gridRef.current;
+		if (!element) return;
+		const observer = new ResizeObserver(([entry]) => {
+			if (
+				!entry ||
+				entry.contentRect.width <= 0 ||
+				entry.contentRect.height <= 0
+			)
+				return;
+			const { width, height } = entry.contentRect;
+			setAvailableSize((old) =>
+				old?.width === width && old.height === height ? old : { width, height },
+			);
+		});
+		observer.observe(element);
+		return () => observer.disconnect();
+	}, []);
 	const [attached, setAttached] = useState<string[]>([]);
 	const [failed, setFailed] = useState<string[]>([]);
 	const [overrides, setOverrides] = useState<
@@ -122,7 +146,12 @@ export function PaneGrid({
 			window.removeEventListener("resize", resized);
 		};
 	}, []);
-	const compact = width < 1000 || workspace.panes.length > 8;
+	const compact = isCompactPaneLayout({
+		viewportWidth: width,
+		paneCount: workspace.panes.length,
+		layout: workspace.layout,
+		availableSize,
+	});
 	const visible = compact
 		? workspace.panes.filter(
 				(p) =>
@@ -337,7 +366,7 @@ export function PaneGrid({
 		},
 	];
 	return (
-		<div className="ws-pane-grid">
+		<div ref={gridRef} className="ws-pane-grid">
 			{compact && (
 				<nav className="ws-compact-panes">
 					{workspace.panes.map((p) => (

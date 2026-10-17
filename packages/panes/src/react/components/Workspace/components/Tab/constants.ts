@@ -1,4 +1,5 @@
 export const PANE_MIN_SIZE_CLASS_NAME = "min-h-[160px] min-w-[260px]";
+export const PANE_MIN_DIMENSIONS = { width: 260, height: 160 } as const;
 
 // react-resizable-panels owns the pointer lifecycle for resize handles. A
 // collapsed handle can move underneath the pointer before pointerup, so the
