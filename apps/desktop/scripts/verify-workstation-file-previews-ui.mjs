@@ -44,7 +44,7 @@ export async function verifyWorkstationFilePreviewsUi({
 	const loaded = () =>
 		until(() =>
 			evaluate(
-				`(()=>{const e=document.querySelector('[role=tabpanel]:not([hidden]) [data-remote-image-preview] img');return e?.complete&&e.naturalWidth>0?{src:e.src,width:e.naturalWidth,height:e.naturalHeight,transform:e.parentElement.style.transform}:null;})()`,
+				`(()=>{const e=document.querySelector('[role=tabpanel]:not([hidden]) [data-remote-image-preview] img');return e?.complete&&e.naturalWidth>0?{src:e.src,width:e.naturalWidth,height:e.naturalHeight,transform:e.parentElement.style.transform,imageBox:e.getBoundingClientRect().toJSON(),surfaceBox:e.closest("[role=application]").getBoundingClientRect().toJSON()}:null;})()`,
 			),
 		);
 	await open("preview.png");
@@ -58,6 +58,10 @@ export async function verifyWorkstationFilePreviewsUi({
 		true,
 	);
 	await screenshot("file-preview-original-image");
+	writeFileSync(join(output, "file-preview-initial-geometry.json"), JSON.stringify(first, null, 2) + "\n");
+	assert.ok(first.imageBox.top >= first.surfaceBox.top - 1 && first.imageBox.bottom <= first.surfaceBox.bottom + 1, "The entire image must fit vertically before zoom");
+	assert.ok(first.imageBox.left >= first.surfaceBox.left - 1 && first.imageBox.right <= first.surfaceBox.right + 1, "The entire image must fit horizontally before zoom");
+	assert.ok(Math.abs(first.imageBox.width / first.imageBox.height - first.width / first.height) < 0.01, "Fit must preserve image aspect ratio");
 	const surface =
 		"[role=tabpanel]:not([hidden]) [data-remote-image-preview] [role=application]";
 	await click(surface);
