@@ -126,17 +126,14 @@ function CheckerboardImage({
 }) {
 	return (
 		<div
-			className="inline-block max-h-full max-w-full"
-			style={{
-				...style,
-				backgroundImage: CHECKERBOARD,
-				backgroundSize: "16px 16px",
-			}}
+			className="flex h-full w-full items-center justify-center"
+			style={style}
 		>
 			<img
 				src={src}
 				alt={getBaseName(filePath)}
 				className="block max-h-full max-w-full select-none object-contain"
+				style={{ backgroundImage: CHECKERBOARD, backgroundSize: "16px 16px" }}
 				draggable={false}
 				onError={onError}
 			/>

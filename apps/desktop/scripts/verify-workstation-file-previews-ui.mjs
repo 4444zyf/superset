@@ -58,10 +58,30 @@ export async function verifyWorkstationFilePreviewsUi({
 		true,
 	);
 	await screenshot("file-preview-original-image");
-	writeFileSync(join(output, "file-preview-initial-geometry.json"), JSON.stringify(first, null, 2) + "\n");
-	assert.ok(first.imageBox.top >= first.surfaceBox.top - 1 && first.imageBox.bottom <= first.surfaceBox.bottom + 1, "The entire image must fit vertically before zoom");
-	assert.ok(first.imageBox.left >= first.surfaceBox.left - 1 && first.imageBox.right <= first.surfaceBox.right + 1, "The entire image must fit horizontally before zoom");
-	assert.ok(Math.abs(first.imageBox.width / first.imageBox.height - first.width / first.height) < 0.01, "Fit must preserve image aspect ratio");
+	writeFileSync(
+		join(output, "file-preview-initial-geometry.json"),
+		JSON.stringify(first, null, 2) + "\n",
+	);
+	const assertFit = (image) => {
+		assert.ok(
+			image.imageBox.top >= image.surfaceBox.top - 1 &&
+				image.imageBox.bottom <= image.surfaceBox.bottom + 1,
+			"The entire image must fit vertically before zoom",
+		);
+		assert.ok(
+			image.imageBox.left >= image.surfaceBox.left - 1 &&
+				image.imageBox.right <= image.surfaceBox.right + 1,
+			"The entire image must fit horizontally before zoom",
+		);
+		assert.ok(
+			Math.abs(
+				image.imageBox.width / image.imageBox.height -
+					image.width / image.height,
+			) < 0.01,
+			"Fit must preserve image aspect ratio",
+		);
+	};
+	assertFit(first);
 	const surface =
 		"[role=tabpanel]:not([hidden]) [data-remote-image-preview] [role=application]";
 	await click(surface);
@@ -116,6 +136,42 @@ export async function verifyWorkstationFilePreviewsUi({
 			"!document.querySelector('[role=tabpanel]:not([hidden]) [title=\"Reset zoom\"]')",
 		),
 	);
+	const divider = await evaluate(
+		`(()=>{const group=document.querySelector('file-tree-container').closest('[data-panel-group-direction=horizontal]'),e=group.querySelector(':scope > [data-slot=resizable-handle]'),r=e.getBoundingClientRect(),g=group.getBoundingClientRect();return{start:{x:r.x+r.width/2,y:r.y+r.height/2},end:{x:g.x+g.width*.62,y:r.y+r.height/2}};})()`,
+	);
+	const resize = async (start, end) => {
+		await getPage().call("Input.dispatchMouseEvent", {
+			type: "mousePressed",
+			button: "left",
+			clickCount: 1,
+			...start,
+		});
+		await getPage().call("Input.dispatchMouseEvent", {
+			type: "mouseMoved",
+			button: "left",
+			buttons: 1,
+			...end,
+		});
+		await getPage().call("Input.dispatchMouseEvent", {
+			type: "mouseReleased",
+			button: "left",
+			clickCount: 1,
+			...end,
+		});
+	};
+	await resize(divider.start, divider.end);
+	const narrow = await until(async () => {
+		const image = await loaded();
+		return image.surfaceBox.width < first.surfaceBox.width * 0.8 ? image : null;
+	});
+	assertFit(narrow);
+	await screenshot("file-preview-contained-after-panel-resize");
+	await resize(divider.end, divider.start);
+	await until(
+		async () =>
+			Math.abs((await loaded()).surfaceBox.width - first.surfaceBox.width) < 5,
+	);
+
 	await open("unknown-preview.bin");
 	await until(() =>
 		evaluate(
@@ -174,6 +230,9 @@ export async function verifyWorkstationFilePreviewsUi({
 				sourceRevision: process.env.GITHUB_SHA,
 				physicalInput: true,
 				originalImageView: true,
+				initialGeometry: first,
+				narrowGeometry: narrow,
+				containedAfterResize: true,
 				...fixture,
 				dimensions: [first.width, first.height],
 				keyboardZoom: true,

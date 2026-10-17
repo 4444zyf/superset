@@ -530,3 +530,6 @@ POSIX系列Shell使用当前交互Shell的eval执行原buildTerminalCommand结�
 RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument 字节传给原 ImageView，复用透明棋盘、键盘/鼠标缩放和平移、复位；未增加文件读取或保存API。非图片二进制保留只读提示，超限文件不能绕过1MiB读取限制。原ImageView按文档ID/文件路径/磁盘revision持有和回收blob URL，切换同名文件不显示其他归属的旧图；损坏图片显示已有翻译 Failed to load image。
 
 先增加两个实际缺失行为的失败测试（图片不能显示、损坏图片无预览入口），再实现。HappyDOM Blob与BunURL实现不兼容的测试失败独立保留；组件测试为URL分配/回收使用逐用例恢复的spy，实际解码留给真实Electron验收。文件与原文档管理回归4文件40项/1091断言、类型、17语言严格检查及构建通过。新的 --file-previews-only 窗口验收准备真实PNG/损坏PNG/未知二进制/超限文件夹具，通过实际文件树打开，测试原缩放/拖动/复位和窗口重开；结果待补充。Markdown、PDF、视频预览仍待接入；Markdown旧wrapper中的偏好/链接/主题依赖需先分离，不能直接引入旧登录启动链。[红绿日志](evidence/local-ssh-feature-parity/stage22)。
+
+
+第74轮（9b6f1e309396889717e8d49b4ae47f09effb664c）加载、原缩放/平移/复位、损坏/二进制/超限和重开检查退出0，但实际查看截图发现原组件仍裁切底部，所以未将完整图片适配标为通过。新增真实尺寸断言，第75轮（724d0adc4）在同样布局明确失败：图片601.281×436.938，预览区域633.297×318，底部815.938超出区域底部681。修正共用ImageView的有限高度约束与棋盘位置，让完整图片按比例缩小，并追加实际拖窄文件面板后的包含/比例检查。组件4项通过，CSS修正后构建通过；新窗口验收待记录。[初轮和红色证据](evidence/local-ssh-feature-parity/source-linux-file-preview-failures)。
