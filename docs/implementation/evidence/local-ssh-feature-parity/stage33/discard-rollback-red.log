@@ -1,0 +1,25 @@
+$ bun test src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts --test-name-pattern "failed explicit discard"
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:
+152 | test("a failed explicit discard restores its message and stops automatic retries until another user action",async()=>{
+153 |  let fail=false;let revision=0;let calls=0;const timers=new Set<()=>void>();
+154 |  const store=new WorkstationChatDraftStore({getChatDrafts:async()=>empty(),saveChatDrafts:async input=>{calls++;if(fail)throw new Error("Disk full");return {revision:++revision,invalid:false,entries:input.entries};}},callback=>{timers.add(callback);return()=>{timers.delete(callback);};});
+155 |  await store.start();store.change(identity,{text:"do not lose me on a failed discard",attachments:[]});await store.flush();fail=true;
+156 |  await expect(store.discard(identity)).rejects.toThrow("Disk full");
+157 |  expect(store.get(identity).text).toBe("do not lose me on a failed discard");expect(calls).toBe(2);expect(timers.size).toBe(0);
+                                                                                                                             ^
+error: expect(received).toBe(expected)
+
+Expected: 0
+Received: 1
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:157:120)
+(fail) a failed explicit discard restores its message and stops automatic retries until another user action [4.10ms]
+
+ 0 pass
+ 4 filtered out
+ 1 fail
+ 4 expect() calls
+Ran 1 test across 1 file. [180.00ms]
+error: script "test" exited with code 1

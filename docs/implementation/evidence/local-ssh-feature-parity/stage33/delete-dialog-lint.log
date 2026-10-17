@@ -1,0 +1,106 @@
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceDelete/RemoteWorkspaceDelete.tsx:77:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on owned.
+  
+    75 │ 			input,
+    76 │ 		});
+  > 77 │ 	useEffect(() => {
+       │ 	^^^^^^^^^
+    78 │ 		mounted.current = true;
+    79 │ 		let active = true;
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    87 │ 				})
+    88 │ 				.catch((error) => {
+  > 89 │ 					if (active && owned())
+       │ 					              ^^^^^
+    90 │ 						setState((s) => ({
+    91 │ 							...s,
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    84 │ 			})
+    85 │ 				.then((inspection) => {
+  > 86 │ 					if (active && owned()) setState((s) => ({ ...s, inspection }));
+       │ 					              ^^^^^
+    87 │ 				})
+    88 │ 				.catch((error) => {
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    100 │ → },·[owner,·capable,·owned]);
+        │                     +++++++   
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceDelete/RemoteWorkspaceDelete.tsx:77:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on rpc.
+  
+    75 │ 			input,
+    76 │ 		});
+  > 77 │ 	useEffect(() => {
+       │ 	^^^^^^^^^
+    78 │ 		mounted.current = true;
+    79 │ 		let active = true;
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    80 │ 		setState({ owner, pending: false, blocked: false, deleteBranch: false });
+    81 │ 		if (capable)
+  > 82 │ 			void rpc<Inspection>("workspaceCleanup.inspect", "query", {
+       │ 			     ^^^
+    83 │ 				workspaceId: workspace.id,
+    84 │ 			})
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    100 │ → },·[owner,·capable,·rpc]);
+        │                     +++++   
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceDelete/RemoteWorkspaceDelete.tsx:77:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on workspace.id.
+  
+    75 │ 			input,
+    76 │ 		});
+  > 77 │ 	useEffect(() => {
+       │ 	^^^^^^^^^
+    78 │ 		mounted.current = true;
+    79 │ 		let active = true;
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    81 │ 		if (capable)
+    82 │ 			void rpc<Inspection>("workspaceCleanup.inspect", "query", {
+  > 83 │ 				workspaceId: workspace.id,
+       │ 				             ^^^^^^^^^^^^
+    84 │ 			})
+    85 │ 				.then((inspection) => {
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    100 │ → },·[owner,·capable,·workspace.id]);
+        │                     ++++++++++++++   
+
+Skipped 3 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 4 files in 24ms. Fixed 2 files.
+Found 3 errors.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while applying fixes.
+  
+

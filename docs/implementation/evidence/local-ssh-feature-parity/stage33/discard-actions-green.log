@@ -1,0 +1,81 @@
+$ bun test src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx src/renderer/lib/composer-draft-writer
+bun test v1.4.2 (744846f84)
+
+src/renderer/lib/composer-draft-writer/composer-draft-writer.test.ts:
+(pass) a late asynchronous draft save drains only the newest queued value and never drops it [0.32ms]
+(pass) a failed draft save retains the original value and retries only on an explicit flush or later edit [0.09ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:
+(pass) late draft hydration preserves text typed meanwhile and other persisted sessions without crossing namespaces [4.05ms]
+(pass) draft writes serialize and a late acknowledgement cannot clear a newer staged draft [0.58ms]
+(pass) failed draft persistence keeps the in-memory message and attachment references for an explicit retry [1.06ms]
+(pass) workspace draft guards stay scoped and clear only after the last reference or text is explicitly discarded [0.43ms]
+(pass) a failed explicit discard restores its message and stops automatic retries until another user action [0.43ms]
+
+src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:
+(pass) changing pane callbacks does not reopen a restored chat stream [38.27ms]
+(pass) an older backend without chat attachment input keeps file sending disabled [18.62ms]
+(pass) a rejected Send keeps the message draft visible without marking the chat stream failed [49.87ms]
+(pass) a second picked file cannot grow the draft beyond the existing clipboard byte limit [19.49ms]
+(pass) restoring a controlled chat selection never selects the first session or sends a prompt [5.05ms]
+(pass) closing the chat view closes only its stream, without cancelling or closing B's chat [56.62ms]
+(pass) an attachment replayed from chat history remains downloadable after reconnect [20.17ms]
+(pass) reconnecting keeps the selected remote chat and never repeats a prompt [16.06ms]
+(pass) switching chats isolates unsent drafts and returning restores the original text and attachment references [24.67ms]
+(pass) an upload completed after switching chats cannot attach to the new chat [11.06ms]
+(pass) returning to a chat cannot revive an old upload or clear a newer upload's busy state [16.10ms]
+(pass) an older session list cannot erase a newly created chat [5.76ms]
+(pass) a download completed after changing workspace cannot save stale attachment bytes [22.50ms]
+(pass) attachment controls require the backend's attachment capability [6.57ms]
+(pass) an uploaded attachment is referenced once by opaque id in the selected chat prompt [15.62ms]
+(pass) pasted images upload to the selected chat without sending a prompt [12.54ms]
+(pass) a pasted image completing after switching chats is not attached or sent [59.90ms]
+(pass) a rejected pasted attachment leaves the chat and message draft available [9.07ms]
+(pass) chat merges both clipboard file accessors, deduplicates the image, and retains the unsent message [10.75ms]
+(pass) the original attachment removal action removes only its local draft reference without uploading, downloading or sending [12.54ms]
+An update to RemoteChat inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to RemoteChat inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to RemoteChat inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to RemoteChat inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+(pass) explicit draft discard uses the original unsaved dialog, Cancel retains data and confirmation does not send a message [56.32ms]
+
+ 28 pass
+ 0 fail
+ 122 expect() calls
+Ran 28 tests across 3 files. [792.00ms]

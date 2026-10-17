@@ -1,0 +1,47 @@
+$ bun test src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts src/main/lib/ssh-direct/workstation-chat-drafts.test.ts src/renderer/workstation/Workstation/hooks/useWorkstation/useWorkstation.test.tsx
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-chat-drafts.test.ts:
+(pass) private SQLite draft snapshots retain attachment references and prevent an old write from reviving a cleared draft [5.29ms]
+(pass) draft storage rejects excess entries, duplicate identities and non UTF-8 byte bounds without changing existing data [6.40ms]
+(pass) invalid stored draft data is reported and cannot be silently replaced by an empty snapshot [1.04ms]
+(pass) persisted draft guards protect a connection and the exact workspace until the draft is explicitly cleared [1.09ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkstation/useWorkstation.test.tsx:
+(pass) removing a connection waits for local draft persistence and retains the connection when that save fails [10.75ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:
+(pass) late draft hydration preserves text typed meanwhile and other persisted sessions without crossing namespaces [1.10ms]
+(pass) draft writes serialize and a late acknowledgement cannot clear a newer staged draft [0.33ms]
+(pass) failed draft persistence keeps the in-memory message and attachment references for an explicit retry [0.35ms]
+(pass) workspace draft guards stay scoped and clear only after the last reference or text is explicitly discarded [0.24ms]
+(pass) a failed explicit discard restores its message and stops automatic retries until another user action [0.44ms]
+
+src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:
+(pass) changing pane callbacks does not reopen a restored chat stream [25.20ms]
+(pass) an older backend without chat attachment input keeps file sending disabled [13.43ms]
+(pass) a rejected Send keeps the message draft visible without marking the chat stream failed [39.70ms]
+(pass) a second picked file cannot grow the draft beyond the existing clipboard byte limit [17.04ms]
+(pass) restoring a controlled chat selection never selects the first session or sends a prompt [4.76ms]
+(pass) closing the chat view closes only its stream, without cancelling or closing B's chat [63.57ms]
+(pass) an attachment replayed from chat history remains downloadable after reconnect [17.86ms]
+(pass) reconnecting keeps the selected remote chat and never repeats a prompt [13.32ms]
+(pass) switching chats isolates unsent drafts and returning restores the original text and attachment references [20.34ms]
+(pass) an upload completed after switching chats cannot attach to the new chat [8.54ms]
+(pass) returning to a chat cannot revive an old upload or clear a newer upload's busy state [15.09ms]
+(pass) an older session list cannot erase a newly created chat [4.79ms]
+(pass) a download completed after changing workspace cannot save stale attachment bytes [12.91ms]
+(pass) attachment controls require the backend's attachment capability [5.43ms]
+(pass) an uploaded attachment is referenced once by opaque id in the selected chat prompt [13.14ms]
+(pass) pasted images upload to the selected chat without sending a prompt [8.02ms]
+(pass) a pasted image completing after switching chats is not attached or sent [58.78ms]
+(pass) a rejected pasted attachment leaves the chat and message draft available [7.72ms]
+(pass) chat merges both clipboard file accessors, deduplicates the image, and retains the unsent message [9.24ms]
+(pass) the original attachment removal action removes only its local draft reference without uploading, downloading or sending [11.52ms]
+(pass) explicit draft discard uses the original unsaved dialog, Cancel retains data and confirmation does not send a message [66.39ms]
+(pass) a failed confirmed discard keeps the original dialog, message and attachment until an explicit retry succeeds [38.06ms]
+
+ 32 pass
+ 0 fail
+ 135 expect() calls
+Ran 32 tests across 4 files. [772.00ms]

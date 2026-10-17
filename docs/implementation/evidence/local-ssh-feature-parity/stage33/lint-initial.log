@@ -1,0 +1,219 @@
+apps/desktop/scripts/verify-workstation-chat-clipboard-ui.mjs:144:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    142 │ 	writeFileSync(
+    143 │ 		join(output, "chat-clipboard-input-geometry.json"),
+  > 144 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 145 │ 			await evaluate(
+         ...
+  > 149 │ 			2,
+  > 150 │ 		) + "\n",
+        │ 		^^^^^^^^
+    151 │ 	);
+    152 │ 	await evaluate(
+  
+  i Unsafe fix: Use a template literal.
+  
+    142 142 │   	writeFileSync(
+    143 143 │   		join(output, "chat-clipboard-input-geometry.json"),
+    144     │ - → → JSON.stringify(
+        144 │ + → → `${JSON.stringify(
+    145 145 │   			await evaluate(
+    146 146 │   				`(()=>{const e=document.querySelector('${area}'),r=e.getBoundingClientRect(),parents=[];for(let p=e;p;p=p.parentElement){const s=getComputedStyle(p),b=p.getBoundingClientRect();parents.push({tag:p.tagName,className:p.className,x:b.x,y:b.y,width:b.width,height:b.height,display:s.display,minWidth:s.minWidth,maxWidth:s.maxWidth,flex:s.flex,flexWrap:s.flexWrap,alignItems:s.alignItems,overflowX:s.overflowX,overflowY:s.overflowY});}return {x:r.x,y:r.y,width:r.width,height:r.height,viewportHeight:innerHeight,viewportWidth:innerWidth,parents};})()`,
+    ······· │ 
+    148 148 │   			null,
+    149 149 │   			2,
+    150     │ - → → )·+·"\n",
+        150 │ + → → )}\n`,
+    151 151 │   	);
+    152 152 │   	await evaluate(
+  
+
+apps/desktop/scripts/verify-workstation-chat-clipboard-ui.mjs:155:16 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    153 │ 		`(()=>{window.chatPasteEvents=[];document.addEventListener('paste',e=>{if(e.target.matches?.('${area}'))window.chatPasteEvents.push({trusted:e.isTrusted,types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,size:f.size,type:f.type})),textLength:e.clipboardData.getData('text/plain').length});},true);return true;})()`,
+    154 │ 	);
+  > 155 │ 	const plain = "中文消息 🙂\n" + "multiline clipboard 你好\n".repeat(128);
+        │ 	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    156 │ 	await setClipboard({ text: plain });
+    157 │ 	await paste();
+  
+  i Unsafe fix: Use a template literal.
+  
+    153 153 │   		`(()=>{window.chatPasteEvents=[];document.addEventListener('paste',e=>{if(e.target.matches?.('${area}'))window.chatPasteEvents.push({trusted:e.isTrusted,types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,size:f.size,type:f.type})),textLength:e.clipboardData.getData('text/plain').length});},true);return true;})()`,
+    154 154 │   	);
+    155     │ - → const·plain·=·"中文消息·🙂\n"·+·"multiline·clipboard·你好\n".repeat(128);
+        155 │ + → const·plain·=·`中文消息·🙂\n${"multiline·clipboard·你好\n".repeat(128)}`;
+    156 156 │   	await setClipboard({ text: plain });
+    157 157 │   	await paste();
+  
+
+apps/desktop/scripts/verify-workstation-chat-clipboard-ui.mjs:504:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    502 │ 	writeFileSync(
+    503 │ 		join(output, "workstation-chat-clipboard-ui.json"),
+  > 504 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 505 │ 			{
+         ...
+  > 542 │ 			2,
+  > 543 │ 		) + "\n",
+        │ 		^^^^^^^^
+    544 │ 	);
+    545 │ }
+  
+  i Unsafe fix: Use a template literal.
+  
+    502 502 │   	writeFileSync(
+    503 503 │   		join(output, "workstation-chat-clipboard-ui.json"),
+    504     │ - → → JSON.stringify(
+        504 │ + → → `${JSON.stringify(
+    505 505 │   			{
+    506 506 │   				sourceRevision: process.env.GITHUB_SHA,
+    ······· │ 
+    541 541 │   			null,
+    542 542 │   			2,
+    543     │ - → → )·+·"\n",
+        543 │ + → → )}\n`,
+    544 544 │   	);
+    545 545 │   }
+  
+
+apps/desktop/src/renderer/lib/composer-draft-writer/composer-draft-writer.ts:41:16 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    39 │ 		if (this.inFlight) return this.inFlight;
+    40 │ 		while (this.pending.size) {
+  > 41 │ 			const key = this.pending.values().next().value!;
+       │ 			            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    42 │ 			this.pending.delete(key);
+    43 │ 			const value = this.cache.get(key);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:893:25 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    891 │ 								hasUnsavedChanges={() =>
+    892 │ 									documents
+  > 893 │ 										.getDocuments(ui.connection!, deleteWorkspace.id)
+        │ 										              ^^^^^^^^^^^^^^
+    894 │ 										.some((d) => d.dirty || d.pendingSave) ||
+    895 │ 									chatDrafts.hasDrafts({
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:896:14 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    894 │ 										.some((d) => d.dirty || d.pendingSave) ||
+    895 │ 									chatDrafts.hasDrafts({
+  > 896 │ 										...ui.connection!,
+        │ 										   ^^^^^^^^^^^^^^
+    897 │ 										workspaceId: deleteWorkspace.id,
+    898 │ 									})
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:901:25 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    899 │ 								}
+    900 │ 								onDeleted={(warnings) => {
+  > 901 │ 									const target = ui.connection!;
+        │ 									               ^^^^^^^^^^^^^^
+    902 │ 									setDeleteWorkspace(null);
+    903 │ 
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:882:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    880 │ 	const buttons = screen.getAllByRole("button", { name: "Discard changes" });
+    881 │ 	await act(async () => {
+  > 882 │ 		fireEvent.click(buttons.at(-1)!);
+        │ 		                ^^^^^^^^^^^^^^^
+    883 │ 	});
+    884 │ 	expect((screen.getByLabelText("Message") as HTMLTextAreaElement).value).toBe(
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:919:4 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    917 │ 	await act(async () => {
+    918 │ 		fireEvent.click(
+  > 919 │ 			screen.getAllByRole("button", { name: "Discard changes" }).at(-1)!,
+        │ 			^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    920 │ 		);
+    921 │ 	});
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:929:4 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    927 │ 	await act(async () => {
+    928 │ 		fireEvent.click(
+  > 929 │ 			screen.getAllByRole("button", { name: "Discard changes" }).at(-1)!,
+        │ 			^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    930 │ 		);
+    931 │ 	});
+  
+
+apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:101:49 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+     99 │ 	store.change(identity, { text: "latest", attachments: [] });
+    100 │ 	expect(writes).toHaveLength(1);
+  > 101 │ 	finish({ revision: 1, invalid: false, entries: writes[0]!.entries });
+        │ 	                                               ^^^^^^^^^^
+    102 │ 	await pending;
+    103 │ 	expect(writes).toHaveLength(2);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     99  99 │   	store.change(identity, { text: "latest", attachments: [] });
+    100 100 │   	expect(writes).toHaveLength(1);
+    101     │ - → finish({·revision:·1,·invalid:·false,·entries:·writes[0]!.entries·});
+        101 │ + → finish({·revision:·1,·invalid:·false,·entries:·writes[0]?.entries·});
+    102 102 │   	await pending;
+    103 103 │   	expect(writes).toHaveLength(2);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.ts:91:28 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    89 │ 		this.loading = (async () => {
+    90 │ 			try {
+  > 91 │ 				const snapshot = await this.api.getChatDrafts!();
+       │ 				                       ^^^^^^^^^^^^^^^^^^^^^^^
+    92 │ 				if (snapshot.invalid)
+    93 │ 					throw new Error(
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     89  89 │   		this.loading = (async () => {
+     90  90 │   			try {
+     91     │ - → → → → const·snapshot·=·await·this.api.getChatDrafts!();
+         91 │ + → → → → const·snapshot·=·await·this.api.getChatDrafts?.();
+     92  92 │   				if (snapshot.invalid)
+     93  93 │   					throw new Error(
+  
+
+Skipped 5 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 16 files in 110ms. Fixed 16 files.
+Found 9 warnings.
+Found 3 infos.

@@ -1,0 +1,653 @@
+$ bun test src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts src/main/lib/ssh-direct/workstation-chat-drafts.test.ts
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-chat-drafts.test.ts:
+(pass) private SQLite draft snapshots retain attachment references and prevent an old write from reviving a cleared draft [5.85ms]
+(pass) draft storage rejects excess entries, duplicate identities and non UTF-8 byte bounds without changing existing data [8.15ms]
+(pass) invalid stored draft data is reported and cannot be silently replaced by an empty snapshot [4.54ms]
+(pass) persisted draft guards protect a connection and the exact workspace until the draft is explicitly cleared [1.53ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:
+(pass) late draft hydration preserves text typed meanwhile and other persisted sessions without crossing namespaces [1.03ms]
+(pass) draft writes serialize and a late acknowledgement cannot clear a newer staged draft [0.32ms]
+(pass) failed draft persistence keeps the in-memory message and attachment references for an explicit retry [0.25ms]
+(pass) workspace draft guards stay scoped and clear only after the last reference or text is explicitly discarded [0.18ms]
+
+src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:
+(pass) changing pane callbacks does not reopen a restored chat stream [38.60ms]
+(pass) an older backend without chat attachment input keeps file sending disabled [17.95ms]
+2 | 
+3 | export function resolveFileIconAssetUrl(
+4 | 	iconName: string,
+5 | 	baseHref = globalThis.location?.href ?? "http://localhost/",
+6 | ): string {
+7 | 	return new URL(`${FILE_ICONS_DIR}/${iconName}.svg`, baseHref).toString();
+            ^
+TypeError: Invalid URL
+ input: "file-icons/image.svg",
+  base: "about:blank",
+  code: "ERR_INVALID_URL"
+
+      at resolveFileIconAssetUrl (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/resolveFileIconAssetUrl.ts:7:9)
+      at getFileIcon (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/getFileIcon.ts:56:19)
+      at AttachmentTile (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/components/AttachmentTile/AttachmentTile.tsx:77:12)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+Attempted to synchronously unmount a root while React was already rendering. React cannot finish unmounting the root until the current render has completed, which may lead to a race condition.
+(fail) a rejected Send keeps the message draft visible without marking the chat stream failed [25.35ms]
+An error occurred in the <AttachmentTile> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+2 | 
+3 | export function resolveFileIconAssetUrl(
+4 | 	iconName: string,
+5 | 	baseHref = globalThis.location?.href ?? "http://localhost/",
+6 | ): string {
+7 | 	return new URL(`${FILE_ICONS_DIR}/${iconName}.svg`, baseHref).toString();
+            ^
+TypeError: Invalid URL
+ input: "file-icons/image.svg",
+  base: "about:blank",
+  code: "ERR_INVALID_URL"
+
+      at resolveFileIconAssetUrl (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/resolveFileIconAssetUrl.ts:7:9)
+      at getFileIcon (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/getFileIcon.ts:56:19)
+      at AttachmentTile (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/components/AttachmentTile/AttachmentTile.tsx:77:12)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+Attempted to synchronously unmount a root while React was already rendering. React cannot finish unmounting the root until the current render has completed, which may lead to a race condition.
+(fail) a second picked file cannot grow the draft beyond the existing clipboard byte limit [16.18ms]
+An error occurred in the <AttachmentTile> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+(pass) restoring a controlled chat selection never selects the first session or sends a prompt [10.18ms]
+(pass) closing the chat view closes only its stream, without cancelling or closing B's chat [59.97ms]
+(pass) an attachment replayed from chat history remains downloadable after reconnect [31.17ms]
+(pass) reconnecting keeps the selected remote chat and never repeats a prompt [14.35ms]
+2 | 
+3 | export function resolveFileIconAssetUrl(
+4 | 	iconName: string,
+5 | 	baseHref = globalThis.location?.href ?? "http://localhost/",
+6 | ): string {
+7 | 	return new URL(`${FILE_ICONS_DIR}/${iconName}.svg`, baseHref).toString();
+            ^
+TypeError: Invalid URL
+ input: "file-icons/document.svg",
+  base: "about:blank",
+  code: "ERR_INVALID_URL"
+
+      at resolveFileIconAssetUrl (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/resolveFileIconAssetUrl.ts:7:9)
+      at getFileIcon (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/getFileIcon.ts:56:19)
+      at AttachmentTile (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/components/AttachmentTile/AttachmentTile.tsx:77:12)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+Attempted to synchronously unmount a root while React was already rendering. React cannot finish unmounting the root until the current render has completed, which may lead to a race condition.
+(fail) switching chats isolates unsent drafts and returning restores the original text and attachment references [11.90ms]
+An error occurred in the <AttachmentTile> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+(pass) an upload completed after switching chats cannot attach to the new chat [15.34ms]
+2 | 
+3 | export function resolveFileIconAssetUrl(
+4 | 	iconName: string,
+5 | 	baseHref = globalThis.location?.href ?? "http://localhost/",
+6 | ): string {
+7 | 	return new URL(`${FILE_ICONS_DIR}/${iconName}.svg`, baseHref).toString();
+            ^
+TypeError: Invalid URL
+ input: "file-icons/document.svg",
+  base: "about:blank",
+  code: "ERR_INVALID_URL"
+
+      at resolveFileIconAssetUrl (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/resolveFileIconAssetUrl.ts:7:9)
+      at getFileIcon (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/getFileIcon.ts:56:19)
+      at AttachmentTile (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/components/AttachmentTile/AttachmentTile.tsx:77:12)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+(fail) returning to a chat cannot revive an old upload or clear a newer upload's busy state [21.40ms]
+(pass) an older session list cannot erase a newly created chat [9.90ms]
+2 | 
+3 | export function resolveFileIconAssetUrl(
+4 | 	iconName: string,
+5 | 	baseHref = globalThis.location?.href ?? "http://localhost/",
+6 | ): string {
+7 | 	return new URL(`${FILE_ICONS_DIR}/${iconName}.svg`, baseHref).toString();
+            ^
+TypeError: Invalid URL
+ input: "file-icons/document.svg",
+  base: "about:blank",
+  code: "ERR_INVALID_URL"
+
+      at resolveFileIconAssetUrl (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/resolveFileIconAssetUrl.ts:7:9)
+      at getFileIcon (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/getFileIcon.ts:56:19)
+      at AttachmentTile (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/components/AttachmentTile/AttachmentTile.tsx:77:12)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+Attempted to synchronously unmount a root while React was already rendering. React cannot finish unmounting the root until the current render has completed, which may lead to a race condition.
+(fail) a download completed after changing workspace cannot save stale attachment bytes [9.51ms]
+An error occurred in the <AttachmentTile> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+(pass) attachment controls require the backend's attachment capability [9.90ms]
+2 | 
+3 | export function resolveFileIconAssetUrl(
+4 | 	iconName: string,
+5 | 	baseHref = globalThis.location?.href ?? "http://localhost/",
+6 | ): string {
+7 | 	return new URL(`${FILE_ICONS_DIR}/${iconName}.svg`, baseHref).toString();
+            ^
+TypeError: Invalid URL
+ input: "file-icons/document.svg",
+  base: "about:blank",
+  code: "ERR_INVALID_URL"
+
+      at resolveFileIconAssetUrl (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/resolveFileIconAssetUrl.ts:7:9)
+      at getFileIcon (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/getFileIcon.ts:56:19)
+      at AttachmentTile (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/components/AttachmentTile/AttachmentTile.tsx:77:12)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+Attempted to synchronously unmount a root while React was already rendering. React cannot finish unmounting the root until the current render has completed, which may lead to a race condition.
+(fail) an uploaded attachment is referenced once by opaque id in the selected chat prompt [12.68ms]
+An error occurred in the <AttachmentTile> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+2 | 
+3 | export function resolveFileIconAssetUrl(
+4 | 	iconName: string,
+5 | 	baseHref = globalThis.location?.href ?? "http://localhost/",
+6 | ): string {
+7 | 	return new URL(`${FILE_ICONS_DIR}/${iconName}.svg`, baseHref).toString();
+            ^
+TypeError: Invalid URL
+ input: "file-icons/image.svg",
+  base: "about:blank",
+  code: "ERR_INVALID_URL"
+
+      at resolveFileIconAssetUrl (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/resolveFileIconAssetUrl.ts:7:9)
+      at getFileIcon (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/getFileIcon.ts:56:19)
+      at AttachmentTile (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/components/AttachmentTile/AttachmentTile.tsx:77:12)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+Attempted to synchronously unmount a root while React was already rendering. React cannot finish unmounting the root until the current render has completed, which may lead to a race condition.
+(fail) pasted images upload to the selected chat without sending a prompt [10.64ms]
+An error occurred in the <AttachmentTile> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+# Unhandled error between tests
+-------------------------------
+32 |   // throw errors w/ suggestions for better queries. Opt in so off by default.
+33 |   throwSuggestions: false,
+34 |   // called when getBy* queries fail. (message, container) => Error
+35 |   getElementError(message, container) {
+36 |     const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
+37 |     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+                           ^
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "image.png"
+
+Here are the accessible roles:
+
+  combobox:
+
+  Name "Agent":
+  [36m<select[39m
+    [33maria-label[39m=[32m"Agent"[39m
+    [33mclass[39m=[32m"min-w-0 max-w-full rounded bg-muted p-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  option:
+
+  Name "Codex":
+  [36m<option[39m
+    [33mvalue[39m=[32m"codex"[39m
+  [36m/>[39m
+
+  Name "Claude Code":
+  [36m<option[39m
+    [33mvalue[39m=[32m"claude-code"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "New chat":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Attach files":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Discard changes":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Send":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Message":
+  [36m<textarea[39m
+    [33maria-label[39m=[32m"Message"[39m
+    [33mclass[39m=[32m"min-w-0 grow basis-40 resize-none rounded bg-muted p-2 text-sm"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"flex h-full min-h-0 min-w-0 flex-col gap-2 overflow-hidden rounded border border-border p-3"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex min-h-0 max-h-24 flex-wrap gap-2 overflow-auto"[39m
+      [36m>[39m
+        [36m<select[39m
+          [33maria-label[39m=[32m"Agent"[39m
+          [33mclass[39m=[32m"min-w-0 max-w-full rounded bg-muted p-2"[39m
+        [36m>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"codex"[39m
+          [36m>[39m
+            [0mCodex[0m
+          [36m</option>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"claude-code"[39m
+          [36m>[39m
+            [0mClaude Code[0m
+          [36m</option>[39m
+        [36m</select>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mNew chat[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"min-h-0 flex-1 overflow-auto space-y-3"[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex min-h-0 max-h-24 flex-wrap gap-2 overflow-auto"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mAttach files[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mdisabled[39m=[32m""[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mDiscard changes[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<form[39m
+        [33mclass[39m=[32m"flex shrink-0 flex-wrap gap-2"[39m
+      [36m>[39m
+        [36m<textarea[39m
+          [33maria-label[39m=[32m"Message"[39m
+          [33mclass[39m=[32m"min-w-0 grow basis-40 resize-none rounded bg-muted p-2 text-sm"[39m
+        [36m/>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"submit"[39m
+        [36m>[39m
+          [0mSend[0m
+        [36m</button>[39m
+      [36m</form>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at getElementError (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:23)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:670:16)
+-------------------------------
+
+(pass) a pasted image completing after switching chats is not attached or sent [70.49ms]
+(pass) a rejected pasted attachment leaves the chat and message draft available [14.86ms]
+2 | 
+3 | export function resolveFileIconAssetUrl(
+4 | 	iconName: string,
+5 | 	baseHref = globalThis.location?.href ?? "http://localhost/",
+6 | ): string {
+7 | 	return new URL(`${FILE_ICONS_DIR}/${iconName}.svg`, baseHref).toString();
+            ^
+TypeError: Invalid URL
+ input: "file-icons/image.svg",
+  base: "about:blank",
+  code: "ERR_INVALID_URL"
+
+      at resolveFileIconAssetUrl (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/resolveFileIconAssetUrl.ts:7:9)
+      at getFileIcon (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/getFileIcon.ts:56:19)
+      at AttachmentTile (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/components/AttachmentTile/AttachmentTile.tsx:77:12)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+Attempted to synchronously unmount a root while React was already rendering. React cannot finish unmounting the root until the current render has completed, which may lead to a race condition.
+(fail) chat merges both clipboard file accessors, deduplicates the image, and retains the unsent message [11.49ms]
+An error occurred in the <AttachmentTile> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+# Unhandled error between tests
+-------------------------------
+32 |   // throw errors w/ suggestions for better queries. Opt in so off by default.
+33 |   throwSuggestions: false,
+34 |   // called when getBy* queries fail. (message, container) => Error
+35 |   getElementError(message, container) {
+36 |     const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
+37 |     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+                           ^
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "image.png"
+
+Here are the accessible roles:
+
+  combobox:
+
+  Name "Agent":
+  [36m<select[39m
+    [33maria-label[39m=[32m"Agent"[39m
+    [33mclass[39m=[32m"min-w-0 max-w-full rounded bg-muted p-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  option:
+
+  Name "Codex":
+  [36m<option[39m
+    [33mvalue[39m=[32m"codex"[39m
+  [36m/>[39m
+
+  Name "Claude Code":
+  [36m<option[39m
+    [33mvalue[39m=[32m"claude-code"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "New chat":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "codex #1":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "codex #2":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Attach files":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Discard changes":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Send":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Message":
+  [36m<textarea[39m
+    [33maria-label[39m=[32m"Message"[39m
+    [33mclass[39m=[32m"min-w-0 grow basis-40 resize-none rounded bg-muted p-2 text-sm"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"flex h-full min-h-0 min-w-0 flex-col gap-2 overflow-hidden rounded border border-border p-3"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex min-h-0 max-h-24 flex-wrap gap-2 overflow-auto"[39m
+      [36m>[39m
+        [36m<select[39m
+          [33maria-label[39m=[32m"Agent"[39m
+          [33mclass[39m=[32m"min-w-0 max-w-full rounded bg-muted p-2"[39m
+        [36m>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"codex"[39m
+          [36m>[39m
+            [0mCodex[0m
+          [36m</option>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"claude-code"[39m
+          [36m>[39m
+            [0mClaude Code[0m
+          [36m</option>[39m
+        [36m</select>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mNew chat[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mcodex[0m
+          [0m #[0m
+          [0m1[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mcodex[0m
+          [0m #[0m
+          [0m2[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"min-h-0 flex-1 overflow-auto space-y-3"[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex min-h-0 max-h-24 flex-wrap gap-2 overflow-auto"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mAttach files[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mdisabled[39m=[32m""[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mDiscard changes[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<form[39m
+        [33mclass[39m=[32m"flex shrink-0 flex-wrap gap-2"[39m
+      [36m>[39m
+        [36m<textarea[39m
+          [33maria-label[39m=[32m"Message"[39m
+          [33mclass[39m=[32m"min-w-0 grow basis-40 resize-none rounded bg-muted p-2 text-sm"[39m
+        [36m/>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"submit"[39m
+        [36m>[39m
+          [0mSend[0m
+        [36m</button>[39m
+      [36m</form>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at getElementError (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:23)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:109:15)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:805:16)
+-------------------------------
+
+2 | 
+3 | export function resolveFileIconAssetUrl(
+4 | 	iconName: string,
+5 | 	baseHref = globalThis.location?.href ?? "http://localhost/",
+6 | ): string {
+7 | 	return new URL(`${FILE_ICONS_DIR}/${iconName}.svg`, baseHref).toString();
+            ^
+TypeError: Invalid URL
+ input: "file-icons/document.svg",
+  base: "about:blank",
+  code: "ERR_INVALID_URL"
+
+      at resolveFileIconAssetUrl (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/resolveFileIconAssetUrl.ts:7:9)
+      at getFileIcon (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/getFileIcon.ts:56:19)
+      at AttachmentTile (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/components/AttachmentTile/AttachmentTile.tsx:77:12)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+Attempted to synchronously unmount a root while React was already rendering. React cannot finish unmounting the root until the current render has completed, which may lead to a race condition.
+(fail) the original attachment removal action removes only its local draft reference without uploading, downloading or sending [19.41ms]
+An error occurred in the <AttachmentTile> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+2 | 
+3 | export function resolveFileIconAssetUrl(
+4 | 	iconName: string,
+5 | 	baseHref = globalThis.location?.href ?? "http://localhost/",
+6 | ): string {
+7 | 	return new URL(`${FILE_ICONS_DIR}/${iconName}.svg`, baseHref).toString();
+            ^
+TypeError: Invalid URL
+ input: "file-icons/document.svg",
+  base: "about:blank",
+  code: "ERR_INVALID_URL"
+
+      at resolveFileIconAssetUrl (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/resolveFileIconAssetUrl.ts:7:9)
+      at getFileIcon (/workspace/superset/apps/desktop/src/renderer/lib/fileIcons/getFileIcon.ts:56:19)
+      at AttachmentTile (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/components/AttachmentTile/AttachmentTile.tsx:77:12)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+      at renderWithHooks (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+      at updateFunctionComponent (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at performUnitOfWork (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+      at workLoopSync (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+Attempted to synchronously unmount a root while React was already rendering. React cannot finish unmounting the root until the current render has completed, which may lead to a race condition.
+(fail) explicit draft discard uses the original unsaved dialog, Cancel retains data and confirmation does not send a message [21.96ms]
+An error occurred in the <AttachmentTile> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+ 19 pass
+ 10 fail
+ 2 errors
+ 82 expect() calls
+Ran 29 tests across 3 files. [766.00ms]
+error: script "test" exited with code 1

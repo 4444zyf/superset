@@ -673,3 +673,21 @@ Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取�
 
 
 第106轮固定15bbb43e4736f7c1225421f890de6f20665990bd，重建后实际Linux/Electron/拥有的SSH --chat-clipboard-only --expect-retained-chat-drafts退出0。系统Ctrl+V仍将3474字节中文/emoji/129换行精确放入消息草稿，两PNG独立ID但同hash/像素、41字节URI文件原样存储/下载；另一会话为空，返回原会话恢复原文字和3份附件引用，离开至Files再回聊天仍完整。正常窗口关闭等待私有SQLite保存，重开仍同会话草稿，实际getChatDrafts返回revision=2的一条记录、文字hash及3个opaque ID均匹配；文件权限实际0600、UID1000。远端附件始终3份、没有新上传，服务器journal没有自动user_message或turn，3个原PTY与执行ID/统一worktree cwd保留。六张粘贴、会话隔离、返回及重开截图均已实际查看。[第106轮原始证据](evidence/local-ssh-feature-parity/source-linux-chat-drafts/106)、[阶段三十二红绿/回归/类型/构建日志](evidence/local-ssh-feature-parity/stage32)。当前Codex0.159版本门槛仍真实显示，未升级或绕过、未做真实供应商登录/识图或macOS验收。下一步继续明确草稿丢弃、附件移除、项目/连接生命周期清理及其他原功能；该阶段不代表整个聊天组完成。
+
+
+### 阶段三十三：原附件卡片、明确草稿丢弃及删除保护
+
+先添加真实缺失入口的失败回归，再复用原AttachmentTile的文件图标、文件名和Remove attachment按钮；只改变当前本地草稿引用，保留原明确下载，不调用远端删除、上传或prompt。原文件卡片增加filename aria-label，旧预览行为不变。Discard changes复用原UnsavedChangesDialog，仅保留Cancel和明确丢弃；可选closeOnDiscard=false使异步持久化完成前不自动关闭，原文件/窗口调用保持默认行为。另一个失败回归确认原AlertDialogAction默认会先关闭、导致丢弃失败错误不可见，已通过可选参数修复。明确丢弃等待私有SQLite确认；失败恢复原文字和引用，显示真实错误、保持原对话框，并暂停写入器自动重试，直到下一次明确动作。原有关于失败保持/300ms防抖及已确认Send清理的语义继续保留。
+
+本地草稿目标匹配采用固定connection/backend/namespace/workspace/session字段，忽略descriptor的generation/能力等附加字段；其他命名空间不误拦截。客户端工作区删除检查包含已存聊天草稿；主进程在真正转发原workspaceCleanup.destroyTrackedV1前再次检查精确作用域，在移除连接前检查该连接全部草稿。移除连接等待原客户端operation内的本地flush，失败保留连接。不更改后端tRPC输入/输出、不自动清除未确认发送日志；用户明确丢弃或手动Send得到成功回复后，空草稿从SQLite快照物理移除。被外部删除或已不可连接目标的完整草稿查看/管理入口仍需继续补齐，不让隐式过期清理代替用户选择。
+
+原附件图标使用实际file页面地址；测试环境about:blank不能解析相对图标URL，造成首轮10失败/2错误，已只修正该测试文件的URL并逐项恢复，未改生产图标解析。丢弃异步测试使用await act等待提交，没有加超时或真实等待。相关11文件65项1303断言，含原4项composer和3条桌面主线程阻塞检查；desktop类型、17语言及插件检查通过。第107轮产品仍未重建15bbb43e4、脚本4e6cee141，原草稿往返/离开视图/重开均保持，通过后因旧UI没有Remove attachment控制而超时退出1；失败截图已实际查看，未执行任何删除工作区尝试。旧bundle hash已保存后才重建，[第107轮旧构建基线](evidence/local-ssh-feature-parity/source-linux-chat-draft-actions-baseline/107)。新版移除/明确丢弃/工作区保护及重开实际窗口待记录，真实供应商和macOS仍须独立验收。
+
+
+第108轮产品/脚本固定4e6cee141，原附件X移除已持久化、远端原文件下载hash一致；确认删除工作区被草稿保护拦住，但原AlertDialogAction自动触发onClose，真实窗口关闭了对话框，Unsaved changes错误随之不可见，脚本按预期退出1。实际失败截图已查看，工作区目录仍存在，删除未执行。新增回归补上onClose计数及Teardown失败后新草稿的强制删除检查，先4通过/2失败；为原DestroyConfirmPane/TeardownFailedPane增加默认不变的可选closeOnConfirm，并在工作站关闭自动关闭、在原失败面板展示真实阻止原因。相关28项106断言及desktop类型检查通过。一次并行运行generate:icons与测试时manifest恰在重建，出现ENOENT；等待生成完成后重跑通过，不改变产品或超时。[第108轮真实失败](evidence/local-ssh-feature-parity/source-linux-chat-draft-actions-failures/108)。重建dfebaf896后再次验收。
+
+
+第109轮产品dfebaf896、脚本同revision，原删除对话框留住Unsaved changes且工作区未删除，已返回原聊天确认界面。脚本在Cancel后没有等实际DOM关闭就重新打开，后一个presence检查可能读到尚在关闭的旧对话框，下一次通用按钮点击重新打开而没有确认，空草稿断言失败。两张确认/失败截图已实际查看，原始结果保留为退出1。只修正脚本等待Cancel真正卸载、在原alertdialog内命中明确丢弃，并同时等待空文本与对话框关闭；产品不变，没有增加超时。[第109轮原始失败](evidence/local-ssh-feature-parity/source-linux-chat-draft-actions-failures/109)。
+
+
+第110轮产品仍dfebaf896、脚本be26db14d，删除保护继续通过；返回会话时脚本在异步选择落盘前读取旧selection，又条件点击了第二个会话，最终会话断言失败，退出1。已实际查看截图，只改为从只读会话清单确定目标可见按钮、物理点击一次并等待原持久化确认，不增加超时。[第110轮原始失败](evidence/local-ssh-feature-parity/source-linux-chat-draft-actions-failures/110)。第111轮产品仍dfebaf896、脚本3828b5cb7，实际Linux/Electron/拥有的SSH退出0：系统粘贴3474字节中文/emoji及两PNG/41字节URI文件、会话/视图往返及第一次重开保持，原附件X移除一份引用后SQLite剩两份，已移除的远端文件仍可下载且hash正确；工作区删除原提示留住Unsaved changes，目录未删。原丢弃提示Cancel保留文本和两份引用，重新打开后明确确认才清空私有SQLite，第二次重开仍空，无新上传或自动prompt/turn，远端三份附件保留。三个原PTY仍PID37533/37545/37539、执行ID与统一worktree cwd一致。五张移除/删除保护/确认/明确清空及重开截图均已实际查看。[第111轮原始证据](evidence/local-ssh-feature-parity/source-linux-chat-draft-actions/111)、[阶段三十三测试及构建日志](evidence/local-ssh-feature-parity/stage33)。离线/已替换后端草稿查看与清理入口继续补齐；不把当前Codex版本拒绝当作真实供应商识图或macOS发行物验收。

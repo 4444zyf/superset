@@ -1,0 +1,38 @@
+$ bun test src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts src/main/lib/ssh-direct/workstation-chat-drafts.test.ts
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-chat-drafts.test.ts:
+(pass) private SQLite draft snapshots retain attachment references and prevent an old write from reviving a cleared draft [6.06ms]
+(pass) draft storage rejects excess entries, duplicate identities and non UTF-8 byte bounds without changing existing data [7.55ms]
+(pass) invalid stored draft data is reported and cannot be silently replaced by an empty snapshot [1.21ms]
+91 | });
+92 | 
+93 | test("persisted draft guards protect a connection and the exact workspace until the draft is explicitly cleared",()=>{
+94 |  const db=new Database(":memory:");const store=new WorkstationChatDrafts(db as unknown as SqliteDatabase);
+95 |  try{
+96 |   store.update({expectedRevision:0,entries:[entry]});expect(store.hasDrafts({connectionId:identity.connectionId})).toBe(true);
+                                                                       ^
+TypeError: store.hasDrafts is not a function. (In 'store.hasDrafts({ connectionId: identity.connectionId })', 'store.hasDrafts' is undefined)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-chat-drafts.test.ts:96:67)
+(fail) persisted draft guards protect a connection and the exact workspace until the draft is explicitly cleared [0.69ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:
+(pass) late draft hydration preserves text typed meanwhile and other persisted sessions without crossing namespaces [1.14ms]
+(pass) draft writes serialize and a late acknowledgement cannot clear a newer staged draft [0.41ms]
+(pass) failed draft persistence keeps the in-memory message and attachment references for an explicit retry [0.32ms]
+142 | 
+143 | test("workspace draft guards stay scoped and clear only after the last reference or text is explicitly discarded",async()=>{
+144 |  const store=new WorkstationChatDraftStore({},noTimer);const target={connectionId:identity.connectionId,backendId:identity.backendId,namespaceId:identity.namespaceId,workspaceId:identity.workspaceId};
+145 |  store.change(identity,{text:"",attachments:[{attachmentId:"image",mediaType:"image/png",sizeBytes:7}]});
+146 |  store.change({...identity,namespaceId:"other"},{text:"another namespace",attachments:[]});
+147 |  expect(store.hasDrafts(target)).toBe(true);expect(store.hasDrafts({...target,workspaceId:"different"})).toBe(false);
+                    ^
+TypeError: store.hasDrafts is not a function. (In 'store.hasDrafts(target)', 'store.hasDrafts' is undefined)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:147:15)
+(fail) workspace draft guards stay scoped and clear only after the last reference or text is explicitly discarded [0.30ms]
+
+ 6 pass
+ 2 fail
+ 29 expect() calls
+Ran 8 tests across 2 files. [172.00ms]
+error: script "test" exited with code 1
