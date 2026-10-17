@@ -9,10 +9,19 @@ export interface WorkspaceProcedure {
 		| "workstationGitSyncV1"
 		| "workstationProjectsV1"
 		| "workstationProjectScriptsV1"
-		| "workstationWorkspaceRunV1";
+		| "workstationWorkspaceRunV1"
+		| "workstationWorkspaceCleanupV1";
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"workspaceCleanup.inspect": {
+		type: "query",
+		capability: "workstationWorkspaceCleanupV1",
+	},
+	"workspaceCleanup.destroyTrackedV1": {
+		type: "mutation",
+		capability: "workstationWorkspaceCleanupV1",
+	},
 	"workspaceRun.getStateV1": {
 		type: "query",
 		capability: "workstationWorkspaceRunV1",

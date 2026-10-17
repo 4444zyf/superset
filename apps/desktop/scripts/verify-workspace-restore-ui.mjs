@@ -1,3 +1,4 @@
+import { verifyWorkstationCleanupUi } from "./verify-workstation-cleanup-ui.mjs";
 import { verifyWorkstationSetupUi } from "./verify-workstation-setup-ui.mjs";
 import { verifyWorkstationClipboardUi } from "./verify-workstation-clipboard-ui.mjs";
 import assert from "node:assert/strict";
@@ -457,6 +458,13 @@ export async function verifyWorkspaceRestoreUi({
 		screenshot,
 		closeReopen,
 		controls,
+		output,
+	});
+	await verifyWorkstationCleanupUi({
+		getPage,
+		click,
+		screenshot,
+		closeReopen,
 		output,
 	});
 	await verifyWorkstationSettingsUi({

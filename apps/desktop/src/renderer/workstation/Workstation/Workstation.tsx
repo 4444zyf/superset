@@ -11,6 +11,7 @@ import { MachineForm } from "./components/MachineForm/MachineForm";
 import { MachineManager } from "./components/MachineManager/MachineManager";
 import { ProjectDialog } from "./components/ProjectDialog/ProjectDialog";
 import { SessionDialog } from "./components/SessionDialog/SessionDialog";
+import { RemoteWorkspaceDelete } from "./components/RemoteWorkspaceDelete/RemoteWorkspaceDelete";
 import { WorkspaceBrowser } from "./components/WorkspaceBrowser/WorkspaceBrowser";
 import { WorkspaceEditor } from "./components/WorkspaceEditor/WorkspaceEditor";
 import { WorkspaceWindow } from "./components/WorkspaceWindow/WorkspaceWindow";
@@ -87,9 +88,17 @@ export function Workstation({
 	const [create, setCreate] = useState<"project" | "session" | null>(null);
 	useEffect(() => {
 		setProjectSettings(null);
-	}, [selectedId, ui.connection?.backendId, ui.connection?.namespaceId]);
+		setDeleteWorkspace(null);
+	}, [
+		selectedId,
+		ui.connection?.backendId,
+		ui.connection?.namespaceId,
+		ui.connection?.generation,
+	]);
 	const createRef = useRef(create);
 	createRef.current = create;
+	const [deleteWorkspace, setDeleteWorkspace] =
+		useState<RemoteWorkspace | null>(null);
 	const [remove, setRemove] = useState<DirectProfile | null>(null);
 	const select = (id: string) => {
 		selectedRef.current = id;
@@ -627,6 +636,15 @@ export function Workstation({
 								setCreate("session");
 							}}
 							onOpen={(id) => void ui.operation(() => openWorkspace(id))}
+							onDelete={
+								ui.connection?.capabilities?.workstationWorkspaceCleanupV1 &&
+								ui.connection.capabilities.durableOperations
+									? (id) =>
+											setDeleteWorkspace(
+												visibleWorkspaces.find((w) => w.id === id) ?? null,
+											)
+									: undefined
+							}
 							onRefresh={() =>
 								void ui.operation(async () => {
 									await ui.refresh(ui.active.current, true);
@@ -813,6 +831,41 @@ export function Workstation({
 			<WorkstationPreferencesContext value={preferences.snapshot}>
 				<WorkstationFileDocumentsContext value={documents}>
 					{content}
+					{deleteWorkspace && connected && ui.connection && (
+						<RemoteWorkspaceDelete
+							key={JSON.stringify([
+								ui.connection.connectionId,
+								ui.connection.backendId,
+								ui.connection.namespaceId,
+								ui.connection.generation,
+								deleteWorkspace.id,
+							])}
+							api={api}
+							connection={ui.connection}
+							workspace={deleteWorkspace}
+							onClose={() => setDeleteWorkspace(null)}
+							hasUnsavedChanges={() =>
+								documents
+									.getDocuments(ui.connection!, deleteWorkspace.id)
+									.some((d) => d.dirty || d.pendingSave)
+							}
+							onDeleted={(warnings) => {
+								const target = ui.connection!;
+								setDeleteWorkspace(null);
+
+								void ui.operation(async () => {
+									await views.removeWorkspace(target, deleteWorkspace.id);
+									if (
+										ui.active.current?.connectionId === target.connectionId &&
+										ui.active.current.generation === target.generation
+									) {
+										await ui.refresh(target);
+										ui.setNotice(warnings.length ? warnings.join("\n") : null);
+									}
+								});
+							}}
+						/>
+					)}
 				</WorkstationFileDocumentsContext>
 				{settingsOpen && (
 					<Suspense fallback={null}>

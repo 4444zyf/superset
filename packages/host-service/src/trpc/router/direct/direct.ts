@@ -42,6 +42,7 @@ export function describeDirectBackend(
 			workstationProjectsV1: true,
 			workstationProjectScriptsV1: true,
 			workstationWorkspaceRunV1: workspaceViewRestoreV1,
+			workstationWorkspaceCleanupV1: durableOperations,
 			projects: true,
 			sessions: true,
 			terminals: true,
@@ -59,6 +60,7 @@ export function describeDirectBackend(
 }
 
 const directProcedures = z.enum([
+	"workspaceCleanup.destroyTrackedV1",
 	"workspaceRun.startV1",
 	"workspaceRun.stopV1",
 	"project.create",
@@ -110,6 +112,8 @@ async function dispatch(
 	const { appRouter } = await import("../router");
 	const caller = appRouter.createCaller(ctx);
 	switch (procedure) {
+		case "workspaceCleanup.destroyTrackedV1":
+			return caller.workspaceCleanup.destroyTrackedV1(input as never);
 		case "workspaceRun.startV1":
 			return caller.workspaceRun.startV1({ ...input, operationId } as never);
 		case "workspaceRun.stopV1":

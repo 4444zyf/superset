@@ -135,6 +135,7 @@ export class WorkstationController {
 				"workstationProjectsV1",
 				"workstationProjectScriptsV1",
 				"workstationWorkspaceRunV1",
+				"workstationWorkspaceCleanupV1",
 			].map((key) => [key, metadata.capabilities?.[key] === true]),
 		);
 		const chatHarnesses = Array.isArray(metadata.chatHarnesses)
@@ -192,6 +193,8 @@ export class WorkstationController {
 				"git.push": "git.push",
 				"git.syncBranchV1": "git.syncBranchV1",
 				"workspaceRun.startV1": "workspaceRun.startV1",
+				"workspaceCleanup.destroyTrackedV1":
+					"workspaceCleanup.destroyTrackedV1",
 				"workspaceRun.stopV1": "workspaceRun.stopV1",
 			} as Record<string, string>
 		)[request.path];
@@ -200,7 +203,8 @@ export class WorkstationController {
 			request.path === "git.push" ||
 			request.path === "git.syncBranchV1" ||
 			request.path === "workspaceRun.startV1" ||
-			request.path === "workspaceRun.stopV1"
+			request.path === "workspaceRun.stopV1" ||
+			request.path === "workspaceCleanup.destroyTrackedV1"
 		) {
 			const features = await this.features(request.connectionId);
 			this.assertGeneration(request.connectionId, request.generation);

@@ -465,3 +465,12 @@ TDD先记录原UI没有开关、固定runSetup=false，以及创建的Setup终�
 再新建相同项目Worktree，物理关闭同一个开关，后台既没有Setup终端也没有标记文件。之后通过原编辑器恢复原Setup配置，通过原标签关闭动作移除两个测试视图，原工作区焦点/布局保持。开关开启/关闭、原终端输出/重开和跳过后的窗口截图已实际查看。保存的编辑器截图对应恢复后的原配置，配置新脚本的物理输入与读回断言保留在冻结脚本及实际终端命令/输出中。[第65轮实际数据和截图](evidence/local-ssh-feature-parity/source-linux-workspace-setup)。
 
 同轮系统剪贴板图片/中文、原Run生命周期、文件/Git/设置/树/多标签/Diff/历史/基础分支/分支与四同步、关闭重开/缩放/手动断线/离线/host重启/部分结束/多工作区/daemon丢失回归通过。此轮仍为Linux源码、拥有的隔离SSH/Git与单恢复采样，不替代macOS发行物或供应商Agent认证。Setup启动失败/脚本失败状态、Teardown、完整预设和其余功能组仍需继续，新DMG尚未生成。
+
+
+## 阶段十八：复用删除工作区与 Teardown 确认
+
+将原 DestroyConfirmPane、TeardownFailedPane 及其 Enter/IME 规则提为共享纯组件，原入口保留同名导出和默认行为。直连工作区列表增加明确删除入口，使用原 workspaceCleanup.inspect 和 destroyWorkspace 生命周期，保持 Session 文件夹、Worktree 和共享 Local checkout 的原删除语义；未保存或正在保存的编辑草稿先阻止删除。删除成功仅移除同一连接/backend/namespace 下该工作区的所有窗口标签，保留其他机器和工作区。
+
+新增可选 workstationWorkspaceCleanupV1 能力与 destroyTrackedV1，不改变已发布 inspect/destroy 接口。新入口通过原 direct.execute 和主进程持久意图执行；已知 Teardown 失败作为有界结构化结果保存在操作收据中，保留退出码/信号/超时/输出，未知 IO 失败继续进入原核对流程。未提交/未推送的“仍然删除”仍运行 Teardown，只有脚本失败后再次明确操作才跳过。取消、重绘、重开窗口不会由客户端重发删除；同一操作收据在重启后读回不重跑。
+
+TDD 保存缺少入口、缺少组件/处理器及 A→B→A 晚回复的红日志；修复使用作用域 epoch，晚回复不能清理新选择的窗口。最终 desktop 6 文件44项/990断言，host 原清理+收据2文件39项/77断言通过；desktop 类型、17语言严格检查与构建通过，初始 renderer 入口4,669.50kB。此处为组件/原生命周期/传输验证，实际窗口、脚本退出和磁盘删除验收待记录。[阶段十八日志](evidence/local-ssh-feature-parity/stage18)。

@@ -701,6 +701,22 @@ export function useWorkspaceViews(
 					);
 			});
 		},
+		removeWorkspace: (owner: DirectDescriptor, workspaceId: string) =>
+			mutate((v) => {
+				const target = v.targets.find(
+					(t) =>
+						t.connectionId === owner.connectionId &&
+						t.backendId === owner.backendId &&
+						t.namespaceId === owner.namespaceId,
+				);
+				if (!target) return;
+				target.workspaces = target.workspaces.filter(
+					(w) => w.workspaceId !== workspaceId,
+				);
+				if (!target.workspaces.some((w) => w.tabId === target.activeTabId))
+					target.activeTabId = target.workspaces[0]?.tabId ?? null;
+			}),
+
 		closeTab: (id: string) => {
 			const connectionId = targetId();
 			return mutate((v) => {

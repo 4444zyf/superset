@@ -32,6 +32,7 @@ import { isInsideProjectWorktreesRoot } from "../workspace-creation/shared/workt
 import { cleanupGitOps, isIndeterminateGitTaskFailure } from "./git-ops";
 import { isLocalCheckoutWorkspace } from "./is-local-checkout-workspace";
 import { removeDirectoryTree } from "./remove-directory-tree";
+import { trackedDestroy } from "./tracked-destroy";
 
 /**
  * Process-local guard against concurrent destroys of the same workspace.
@@ -108,6 +109,28 @@ type InspectResult =
 	  };
 
 export const workspaceCleanupRouter = router({
+	destroyTrackedV1: protectedProcedure
+		.input(
+			z.object({
+				workspaceId: z.string().min(1),
+				deleteBranch: z.boolean().default(false),
+				force: z.boolean().default(false),
+				skipTeardown: z.boolean().default(false),
+			}),
+		)
+		.mutation(({ ctx, input }) => {
+			if (!ctx.direct || !ctx.directOperations)
+				throw new TRPCError({
+					code: "PRECONDITION_FAILED",
+					message: "Durable direct operations are unavailable on this host",
+				});
+			return trackedDestroy(() =>
+				destroyWorkspace(ctx, {
+					...input,
+					teardownMode: input.skipTeardown ? "skip" : "blocking",
+				}),
+			);
+		}),
 	/**
 	 * Status preview for the v2 delete dialog. Co-located with `destroy` so
 	 * the two can never disagree about what's blocked vs warned.

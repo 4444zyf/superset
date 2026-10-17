@@ -80,6 +80,7 @@ export function useWorkstation(api: DirectWorkstationApi) {
 		(
 			({
 				"project.create": t({ message: "Create project" }),
+				"workspaceCleanup.destroyTrackedV1": t({ message: "Delete workspace" }),
 				"workspaceCreation.createSession": t({ message: "New session" }),
 				"workspaces.create": t({ message: "New session" }),
 				"terminal.createSession": t({ message: "New terminal" }),

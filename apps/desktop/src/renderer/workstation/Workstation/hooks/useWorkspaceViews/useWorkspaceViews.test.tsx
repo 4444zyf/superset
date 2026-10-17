@@ -394,3 +394,94 @@ test("creation titles label existing setup resources without reopening or creati
 		),
 	).toBe(true);
 });
+
+test("deleting a workspace removes all its saved tabs only from its owning backend", async () => {
+	const connection = {
+		connectionId: "remote",
+		backendId: "backend",
+		namespaceId: "namespace",
+		instanceId: "instance",
+		generation: 1,
+	};
+	const tab = (tabId: string, workspaceId: string) => ({
+		tabId,
+		workspaceId,
+		activeTool: "terminal" as const,
+		activePaneId: null,
+		panes: [],
+		layout: null,
+	});
+	let backing: WorkspaceViewSnapshot = {
+		schemaVersion: 1,
+		revision: 1,
+		updatedAt: 1,
+		restoreOnLaunch: false,
+		activeConnectionId: "remote",
+		window: { x: 0, y: 0, width: 1200, height: 900, maximized: false },
+		targets: [
+			{
+				...connection,
+				targetRevision: 1,
+				serviceUid: 1000,
+				autoConnect: true,
+				activeTabId: "one",
+				workspaces: [
+					tab("one", "deleted"),
+					tab("two", "deleted"),
+					tab("keep", "kept"),
+				],
+			},
+			{
+				...connection,
+				connectionId: "other",
+				targetRevision: 1,
+				serviceUid: 1000,
+				autoConnect: true,
+				activeTabId: "other",
+				workspaces: [tab("other", "deleted")],
+			},
+		],
+	};
+	const api = {
+		getWorkspaceView: async () => ({
+			snapshot: structuredClone(backing),
+			revision: backing.revision,
+			invalid: false,
+			navigationRevision: 0,
+		}),
+		saveWorkspaceView: async ({ view }: { view: WorkspaceViewSnapshot }) => {
+			backing = {
+				...view,
+				schemaVersion: 1,
+				revision: backing.revision + 1,
+				updatedAt: 2,
+			};
+			return backing;
+		},
+		beginWorkspaceRestore: async () => {
+			throw new Error("must not restore");
+		},
+	} as unknown as DirectWorkstationApi;
+	const hook = renderHook(() =>
+		useWorkspaceViews(api, connection, {
+			onSkeleton() {},
+			onForget() {},
+			async onDescriptor() {},
+			onError() {},
+		}),
+	);
+	await waitFor(() => expect(hook.result.current.view?.revision).toBe(1));
+	await act(async () => {
+		await hook.result.current.removeWorkspace(
+			{ ...connection, namespaceId: "wrong" },
+			"deleted",
+		);
+	});
+	expect(backing.targets[0]?.workspaces).toHaveLength(3);
+	await act(async () => {
+		await hook.result.current.removeWorkspace(connection, "deleted");
+	});
+	expect(backing.targets[0]?.workspaces.map((w) => w.tabId)).toEqual(["keep"]);
+	expect(backing.targets[0]?.activeTabId).toBe("keep");
+	expect(backing.targets[1]?.workspaces.map((w) => w.tabId)).toEqual(["other"]);
+});

@@ -1,5 +1,12 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { ArrowRight, Folder, Link2, Plus, RefreshCw } from "lucide-react";
+import {
+	ArrowRight,
+	Folder,
+	Link2,
+	Plus,
+	RefreshCw,
+	Trash2,
+} from "lucide-react";
 import type {
 	DirectProfile,
 	RemoteProject,
@@ -23,6 +30,7 @@ export function WorkspaceBrowser({
 	onAddProject,
 	onNewSession,
 	onOpen,
+	onDelete,
 	onRefresh,
 	onPending,
 }: {
@@ -41,6 +49,7 @@ export function WorkspaceBrowser({
 	onAddProject(): void;
 	onNewSession(): void;
 	onOpen(id: string): void;
+	onDelete?(id: string): void;
 	onRefresh(): void;
 	onPending(): void;
 }) {
@@ -146,36 +155,49 @@ export function WorkspaceBrowser({
 					{workspaces
 						.filter((w) => !projectId || w.projectId === projectId)
 						.map((w) => (
-							<button
-								type="button"
-								className="ws-workspace-card"
-								key={w.id}
-								aria-label={w.name}
-								onClick={() => onOpen(w.id)}
-								disabled={busy}
-							>
-								<span className="ws-card-project">
-									<RemoteProjectThumbnail
-										project={projects.find((p) => p.id === w.projectId)}
-										className="size-3.5 text-[9px]"
-									/>
-									{projects.find((p) => p.id === w.projectId)?.name ||
-										t({ message: "Session" })}
-								</span>
-								<h2>{w.name}</h2>
-								<code>{w.worktreePath}</code>
-								<div>
-									<span>
-										{selected?.kind === "local"
-											? t({ message: "Local Device" })
-											: selected?.name}
+							<div className="relative" key={w.id}>
+								<button
+									type="button"
+									className="ws-workspace-card w-full"
+									aria-label={w.name}
+									onClick={() => onOpen(w.id)}
+									disabled={busy}
+								>
+									<span className="ws-card-project">
+										<RemoteProjectThumbnail
+											project={projects.find((p) => p.id === w.projectId)}
+											className="size-3.5 text-[9px]"
+										/>
+										{projects.find((p) => p.id === w.projectId)?.name ||
+											t({ message: "Session" })}
 									</span>
-									<span className="ws-status connected">
-										<i />
-										<Trans>Connected</Trans>
-									</span>
-								</div>
-							</button>
+									<h2>{w.name}</h2>
+									<code>{w.worktreePath}</code>
+									<div>
+										<span>
+											{selected?.kind === "local"
+												? t({ message: "Local Device" })
+												: selected?.name}
+										</span>
+										<span className="ws-status connected">
+											<i />
+											<Trans>Connected</Trans>
+										</span>
+									</div>
+								</button>
+								{onDelete && (
+									<button
+										type="button"
+										className="absolute right-3 top-3 rounded p-1 text-muted-foreground hover:text-destructive"
+										aria-label={t({ message: "Delete workspace" })}
+										data-workspace-delete={w.id}
+										disabled={busy}
+										onClick={() => onDelete(w.id)}
+									>
+										<Trash2 size={14} />
+									</button>
+								)}
+							</div>
 						))}
 					{!workspaces.length && (
 						<div className="ws-empty">

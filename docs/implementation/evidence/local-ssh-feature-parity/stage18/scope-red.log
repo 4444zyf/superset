@@ -1,0 +1,31 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceDelete/RemoteWorkspaceDelete.test.tsx:
+(pass) opening and cancelling uses the original warnings without deleting [102.14ms]
+(pass) warned deletion still runs teardown and only an explicit failure retry skips it [94.80ms]
+(pass) an uncertain deletion is not replayed by rerendering or clicking again [30.65ms]
+136 | 			connection={{ ...connection, generation: 4 }}
+137 | 		/>,
+138 | 	);
+139 | 	v.rerender(<RemoteWorkspaceDelete {...f.props} />);
+140 | await act(async () => finish({ outcome: "deleted", warnings: [] }));
+141 | 	expect(f.deleted).toEqual([]);
+                         ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   [],
++ ]
+
+- Expected  - 1
++ Received  + 3
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceDelete/RemoteWorkspaceDelete.test.tsx:141:20)
+(fail) a late deletion reply cannot affect a newly selected machine [42.69ms]
+(pass) unsaved editor drafts block deletion and old backends receive no cleanup calls [42.54ms]
+
+ 4 pass
+ 1 fail
+ 13 expect() calls
+Ran 5 tests across 1 file. [806.00ms]

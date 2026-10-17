@@ -786,7 +786,10 @@ test("project script procedures require their own capability and an explicit pro
 	expect(requests).toHaveLength(2);
 });
 
-test("a lost workspace-run response remains journaled and blocks a second start", async () => {
+test.each([
+	"workspaceRun.startV1",
+	"workspaceCleanup.destroyTrackedV1",
+])("a lost %s response remains journaled and blocks a second operation", async (path) => {
 	const db = new Database(":memory:"),
 		intents = new OperationIntents(db as unknown as SqliteDatabase),
 		f = fixture();
@@ -797,6 +800,7 @@ test("a lost workspace-run response remains journaled and blocks a second start"
 			getVerifiedDescription: () => ({
 				capabilities: {
 					workstationWorkspaceRunV1: true,
+					workstationWorkspaceCleanupV1: true,
 					durableOperations: true,
 				},
 			}),
@@ -810,7 +814,7 @@ test("a lost workspace-run response remains journaled and blocks a second start"
 	const request = {
 		connectionId: "machine",
 		generation: 1,
-		path: "workspaceRun.startV1",
+		path,
 		type: "mutation" as const,
 		input: {
 			workspaceId: "workspace",
@@ -829,7 +833,7 @@ test("a lost workspace-run response remains journaled and blocks a second start"
 		expect(requests).toHaveLength(1);
 		expect(intents.list("machine")).toMatchObject([
 			{
-				procedure: "workspaceRun.startV1",
+				procedure: path,
 				operationId: request.input.operationId,
 			},
 		]);
