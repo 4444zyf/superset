@@ -1,0 +1,63 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.30ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.24ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.12ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.16ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [3.01ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.11ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.46ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.02ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.06ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.21ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.18ms]
+(pass) disconnect and app disposal only close client transports [0.15ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.69ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.70ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.48ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.50ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.79ms]
+(pass) attachment readiness requires an explicit backend capability [0.20ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.16ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.15ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.13ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.32ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.21ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.81ms]
+(pass) project script procedures require their own capability and an explicit project [0.25ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.88ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.60ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [237.13ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:
+(pass) successful manual restore reloads the main process auto-connect decision [115.52ms]
+(pass) upstream tab reorder and rename persist without changing execution ownership [54.81ms]
+(pass) rerunning a command reuses its pane and preserves its saved layout and title [53.70ms]
+(pass) creation titles label existing setup resources without reopening or creating terminals [54.73ms]
+(pass) deleting a workspace removes all its saved tabs only from its owning backend [53.73ms]
+(pass) returning to a restored workspace queries its resource state after another workspace replaced the checks [57.49ms]
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceDelete/RemoteWorkspaceDelete.test.tsx:
+(pass) opening and cancelling uses the original warnings without deleting [66.80ms]
+(pass) warned deletion still runs teardown and only an explicit failure retry skips it [45.40ms]
+(pass) an uncertain deletion is not replayed by rerendering or clicking again [25.90ms]
+(pass) a late deletion reply cannot affect a newly selected machine [25.65ms]
+(pass) unsaved editor drafts block deletion and old backends receive no cleanup calls [22.70ms]
+
+src/renderer/routes/_authenticated/_dashboard/components/DashboardSidebar/components/DashboardSidebarDeleteDialog/utils/shouldConfirmDeleteDialogKey.test.ts:
+(pass) shouldConfirmDeleteDialogKey > accepts unmodified Enter [0.03ms]
+(pass) shouldConfirmDeleteDialogKey > rejects a held (auto-repeating) Enter [0.01ms]
+(pass) shouldConfirmDeleteDialogKey > rejects modified Enter [0.02ms]
+(pass) shouldConfirmDeleteDialogKey > rejects composition and non-Enter keys [0.02ms]
+
+src/renderer/routes/_authenticated/_dashboard/components/DashboardSidebar/components/DashboardSidebarDeleteDialog/components/DestroyConfirmPane/DestroyConfirmPane.test.tsx:
+(pass) DestroyConfirmPane Enter-to-confirm > the Enter that selects the menu item does not confirm the pane [42.15ms]
+(pass) opening from an agent input focuses the native action without intercepting typing [24.33ms]
+
+ 45 pass
+ 0 fail
+ 995 expect() calls
+Ran 45 tests across 6 files. [1318.00ms]

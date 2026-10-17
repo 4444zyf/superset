@@ -1,0 +1,36 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:
+(pass) successful manual restore reloads the main process auto-connect decision [114.33ms]
+(pass) upstream tab reorder and rename persist without changing execution ownership [55.36ms]
+(pass) rerunning a command reuses its pane and preserves its saved layout and title [61.45ms]
+(pass) creation titles label existing setup resources without reopening or creating terminals [56.22ms]
+(pass) deleting a workspace removes all its saved tabs only from its owning backend [54.80ms]
+42 |   computedStyleSupportsPseudoElements: false
+43 | };
+44 | function runWithExpensiveErrorDiagnosticsDisabled(callback) {
+45 |   try {
+46 |     config._disableExpensiveErrorDiagnostics = true;
+47 |     return callback();
+                ^
+error: expect(received).toBe(expected)
+
+Expected: "a"
+Received: "b"
+
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div />[39m
+  [36m</body>[39m
+[36m</html>[39m
+      at runWithExpensiveErrorDiagnosticsDisabled (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:36)
+(fail) returning to a restored workspace queries its resource state after another workspace replaced the checks [1059.68ms]
+
+ 5 pass
+ 1 fail
+ 59 expect() calls
+Ran 6 tests across 1 file. [1.61s]

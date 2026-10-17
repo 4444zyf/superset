@@ -485,3 +485,120 @@ test("deleting a workspace removes all its saved tabs only from its owning backe
 	expect(backing.targets[0]?.activeTabId).toBe("keep");
 	expect(backing.targets[1]?.workspaces.map((w) => w.tabId)).toEqual(["other"]);
 });
+
+test("returning to a restored workspace queries its resource state after another workspace replaced the checks", async () => {
+	const connection = {
+		connectionId: "remote",
+		backendId: "backend",
+		namespaceId: "namespace",
+		instanceId: "instance",
+		generation: 1,
+		capabilities: { workspaceViewRestoreV1: true },
+	};
+	let backing: WorkspaceViewSnapshot = {
+		schemaVersion: 1,
+		revision: 1,
+		updatedAt: 1,
+		restoreOnLaunch: false,
+		activeConnectionId: "remote",
+		window: { x: 0, y: 0, width: 1200, height: 900, maximized: false },
+		targets: [
+			{
+				...connection,
+				targetRevision: 1,
+				serviceUid: 1000,
+				autoConnect: true,
+				activeTabId: "a",
+				workspaces: ["a", "b"].map((id) => ({
+					tabId: id,
+					workspaceId: id,
+					activeTool: "terminal" as const,
+					activePaneId: id,
+					panes: [
+						{
+							paneId: id,
+							kind: "terminal" as const,
+							resourceId: id,
+							executionId: `exec-${id}`,
+						},
+					],
+					layout: { type: "pane" as const, paneId: id },
+				})),
+			},
+		],
+	};
+	let receive!: (snapshot: WorkspaceRestoreSnapshot) => void;
+	const reads: string[] = [];
+	const check = (id: string) => ({
+		workspaceId: id,
+		kind: "terminal" as const,
+		resourceId: id,
+		executionId: `exec-${id}`,
+		state: "live" as const,
+	});
+	const api = {
+		getWorkspaceView: async () => ({
+			snapshot: structuredClone(backing),
+			revision: backing.revision,
+			invalid: false,
+			navigationRevision: 0,
+		}),
+		saveWorkspaceView: async ({ view }: { view: WorkspaceViewSnapshot }) => {
+			backing = {
+				...view,
+				schemaVersion: 1,
+				revision: backing.revision + 1,
+				updatedAt: 2,
+			};
+			return structuredClone(backing);
+		},
+		beginWorkspaceRestore: async () => {
+			throw new Error("must not connect");
+		},
+		onWorkspaceRestore: (listener: typeof receive) => {
+			receive = listener;
+			return () => {};
+		},
+		rpc: async (r: { input: { refs: { workspaceId: string }[] } }) => {
+			const id = r.input.refs[0]!.workspaceId;
+			reads.push(id);
+			return [check(id)];
+		},
+	} as unknown as DirectWorkstationApi;
+	const hook = renderHook(() =>
+		useWorkspaceViews(api, connection, {
+			onSkeleton() {},
+			onForget() {},
+			async onDescriptor() {},
+			onError() {},
+		}),
+	);
+	await waitFor(() =>
+		expect(hook.result.current.resources[0]?.resourceId).toBe("a"),
+	);
+	await act(async () =>
+		receive({
+			jobId: "restore",
+			viewRevision: backing.revision,
+			connectionId: connection.connectionId,
+			sequence: 1,
+			navigationRevision: 0,
+			status: "ready",
+			descriptor: connection,
+			resources: [check("a")],
+		} as WorkspaceRestoreSnapshot),
+	);
+	await act(async () => {
+		await hook.result.current.selectTab("b");
+	});
+	await waitFor(() =>
+		expect(hook.result.current.resources[0]?.resourceId).toBe("b"),
+	);
+	await act(async () => {
+		await hook.result.current.selectTab("a");
+	});
+	await waitFor(() =>
+		expect(hook.result.current.resources[0]?.resourceId).toBe("a"),
+	);
+	expect(reads.filter((id) => id === "a").length).toBeGreaterThanOrEqual(2);
+});

@@ -356,16 +356,15 @@ export function useWorkspaceViews(
 	}, [api]);
 	// biome-ignore lint/correctness/useExhaustiveDependencies: Navigation invalidates pending resource checks even when IDs stay equal.
 	useEffect(() => {
-		if (
-			enabled &&
-			restoredScope.current !==
-				JSON.stringify([
-					connection?.connectionId,
-					connection?.generation,
-					JSON.parse(resourceKey),
-				])
-		)
-			void refreshResources();
+		if (!enabled) return;
+		const scope = JSON.stringify([
+			connection?.connectionId,
+			connection?.generation,
+			JSON.parse(resourceKey),
+		]);
+		if (restoredScope.current === scope) return;
+		restoredScope.current = null;
+		void refreshResources();
 	}, [enabled, connection, resourceKey, refreshResources, navigationEpoch]);
 	const openWorkspace = useCallback(
 		async (

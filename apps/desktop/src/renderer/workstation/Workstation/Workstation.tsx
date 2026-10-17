@@ -854,13 +854,13 @@ export function Workstation({
 								setDeleteWorkspace(null);
 
 								void ui.operation(async () => {
+									ui.setNotice(warnings.length ? warnings.join("\n") : null);
 									await views.removeWorkspace(target, deleteWorkspace.id);
 									if (
 										ui.active.current?.connectionId === target.connectionId &&
 										ui.active.current.generation === target.generation
 									) {
 										await ui.refresh(target);
-										ui.setNotice(warnings.length ? warnings.join("\n") : null);
 									}
 								});
 							}}
