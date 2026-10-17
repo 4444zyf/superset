@@ -1,0 +1,120 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find role="application" and name `/Image preview of picture.png/`
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/remote/worktree/picture.png"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/picture.png[0m
+      [36m</code>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm text-muted-foreground"[39m
+      [36m>[39m
+        [0mBinary files cannot be edited here.[0m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/remote/worktree/picture.png"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/picture.png[0m
+      [36m</code>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm text-muted-foreground"[39m
+      [36m>[39m
+        [0mBinary files cannot be edited here.[0m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:14:31
+(fail) a remote image reuses the original image surface and keyboard zoom without a text editor or save [1021.26ms]
+(pass) unknown bytes retain the read-only binary message [4.42ms]
+(pass) an oversized image cannot bypass the document size limit [34.15ms]
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find role="img" and name "picture.png"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-owner-a"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/picture.png[0m
+      [36m</code>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm text-muted-foreground"[39m
+      [36m>[39m
+        [0mBinary files cannot be edited here.[0m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-owner-a"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/picture.png[0m
+      [36m</code>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm text-muted-foreground"[39m
+      [36m>[39m
+        [0mBinary files cannot be edited here.[0m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:38:27
+(fail) an image decode error is visible and changing the owning document clears the old preview [1003.91ms]
+
+ 2 pass
+ 2 fail
+ 6 expect() calls
+Ran 4 tests across 1 file. [2.31s]

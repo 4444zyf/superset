@@ -523,3 +523,10 @@ POSIX系列Shell使用当前交互Shell的eval执行原buildTerminalCommand结�
 
 
 第73轮固定于 7c9938a52962ff6187e8545f780b808a31f97203，实际Linux源码客户端和所拥有的SSH，--clipboard-only退出0。系统Ctrl+V的PNG1200×872在远端按像素校验一致（71fd7782c2a9b9d2a4c85005f221014b9a9c665c6cbcba9bf0fac9b56bd30da9），原Shell实际读取，重复粘贴独立保存。中文/emoji/129换行3474字节再次精确匹配，SHA256 c8e7925a786ecb3fe0aa82a044d156040598219e64605c91b8455ccb53edc577。OS text/uri-list 指向自有36字节文件 clipboard selected '中文'.txt，实际Ctrl+V上传为所选SSH工作区内新路径，逐字节校验通过，再明确Enter由远端cat读取完整两行。原生URI剪贴板文件不等于真实文件管理器复制；未执行聊天原生粘贴、供应商Agent识图和macOS验收。实际文件读取/图片路径截图已查看，清理测试视图后恢复原布局。[第73轮证据](evidence/local-ssh-feature-parity/source-linux-clipboard-collector)。本轮不重复声明全量功能回归，完整第72轮仍单独保留。
+
+
+### 阶段二十二：原图片预览组件接入本地/SSH文件（实际窗口待记录）
+
+RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument 字节传给原 ImageView，复用透明棋盘、键盘/鼠标缩放和平移、复位；未增加文件读取或保存API。非图片二进制保留只读提示，超限文件不能绕过1MiB读取限制。原ImageView按文档ID/文件路径/磁盘revision持有和回收blob URL，切换同名文件不显示其他归属的旧图；损坏图片显示已有翻译 Failed to load image。
+
+先增加两个实际缺失行为的失败测试（图片不能显示、损坏图片无预览入口），再实现。HappyDOM Blob与BunURL实现不兼容的测试失败独立保留；组件测试为URL分配/回收使用逐用例恢复的spy，实际解码留给真实Electron验收。文件与原文档管理回归4文件40项/1091断言、类型、17语言严格检查及构建通过。新的 --file-previews-only 窗口验收准备真实PNG/损坏PNG/未知二进制/超限文件夹具，通过实际文件树打开，测试原缩放/拖动/复位和窗口重开；结果待补充。Markdown、PDF、视频预览仍待接入；Markdown旧wrapper中的偏好/链接/主题依赖需先分离，不能直接引入旧登录启动链。[红绿日志](evidence/local-ssh-feature-parity/stage22)。

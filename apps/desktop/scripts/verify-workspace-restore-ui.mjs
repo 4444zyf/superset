@@ -1,3 +1,4 @@
+import { verifyWorkstationFilePreviewsUi } from "./verify-workstation-file-previews-ui.mjs";
 import { verifyWorkstationInstantRunUi } from "./verify-workstation-instant-run-ui.mjs";
 import { verifyWorkstationCleanupUi } from "./verify-workstation-cleanup-ui.mjs";
 import { verifyWorkstationSetupUi } from "./verify-workstation-setup-ui.mjs";
@@ -425,6 +426,11 @@ export async function verifyWorkspaceRestoreUi({
 				2,
 			) + "\n",
 		);
+	}
+	if (process.argv.includes("--file-previews-only")) {
+		await verifyWorkstationFilePreviewsUi({ getPage, click, screenshot, closeReopen, controls, output });
+		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, filePreviewsOnly: true }, null, 2) + "\n");
+		return;
 	}
 	if (process.argv.includes("--clipboard-only")) {
 		await click("text:Terminal");

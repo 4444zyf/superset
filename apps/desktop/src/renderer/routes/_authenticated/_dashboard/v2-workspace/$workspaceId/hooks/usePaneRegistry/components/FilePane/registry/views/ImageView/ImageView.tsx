@@ -1,4 +1,4 @@
-import { useLingui } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
 import { type CSSProperties, useEffect, useState } from "react";
 import { getBaseName } from "renderer/lib/pathBasename";
 import { getImageMimeType } from "shared/file-types";
@@ -10,7 +10,16 @@ const CHECKERBOARD =
 
 export function ImageView({ document, filePath, embedded }: ViewProps) {
 	const { t } = useLingui();
-	const [objectUrl, setObjectUrl] = useState<string | null>(null);
+	const [source, setSource] = useState<{ key: string; url: string } | null>(
+		null,
+	);
+	const [failedUrl, setFailedUrl] = useState<string | null>(null);
+	const sourceKey =
+		document.content.kind === "bytes"
+			? JSON.stringify([document.id, filePath, document.content.revision])
+			: null;
+	const objectUrl = source?.key === sourceKey ? source?.url : null;
+	const failed = objectUrl != null && objectUrl === failedUrl;
 	const {
 		containerRef,
 		transform,
@@ -23,21 +32,37 @@ export function ImageView({ document, filePath, embedded }: ViewProps) {
 	useEffect(() => {
 		reset();
 		if (document.content.kind !== "bytes") {
-			setObjectUrl(null);
+			setSource(null);
 			return;
 		}
 		const mimeType = getImageMimeType(filePath) ?? "image/png";
 		const url = URL.createObjectURL(
 			new Blob([document.content.value as BlobPart], { type: mimeType }),
 		);
-		setObjectUrl(url);
+		setSource({
+			key: JSON.stringify([document.id, filePath, document.content.revision]),
+			url,
+		});
+		setFailedUrl(null);
 		return () => URL.revokeObjectURL(url);
-	}, [document.content, filePath, reset]);
+	}, [document.id, document.content, filePath, reset]);
 
 	if (embedded) {
 		return (
 			<div className="flex h-full items-center justify-center bg-background p-4">
-				{objectUrl && <CheckerboardImage src={objectUrl} filePath={filePath} />}
+				{failed ? (
+					<p role="alert">
+						<Trans>Failed to load image</Trans>
+					</p>
+				) : (
+					objectUrl && (
+						<CheckerboardImage
+							src={objectUrl}
+							filePath={filePath}
+							onError={() => setFailedUrl(objectUrl)}
+						/>
+					)
+				)}
 			</div>
 		);
 	}
@@ -56,10 +81,16 @@ export function ImageView({ document, filePath, embedded }: ViewProps) {
 			}`}
 			{...handlers}
 		>
-			{objectUrl && (
+			{failed && (
+				<p role="alert">
+					<Trans>Failed to load image</Trans>
+				</p>
+			)}
+			{objectUrl && !failed && (
 				<CheckerboardImage
 					src={objectUrl}
 					filePath={filePath}
+					onError={() => setFailedUrl(objectUrl)}
 					style={{
 						transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
 					}}
@@ -86,10 +117,12 @@ function CheckerboardImage({
 	src,
 	filePath,
 	style,
+	onError,
 }: {
 	src: string;
 	filePath: string;
 	style?: CSSProperties;
+	onError?(): void;
 }) {
 	return (
 		<div
@@ -105,6 +138,7 @@ function CheckerboardImage({
 				alt={getBaseName(filePath)}
 				className="block max-h-full max-w-full select-none object-contain"
 				draggable={false}
+				onError={onError}
 			/>
 		</div>
 	);

@@ -38,6 +38,18 @@ export function ownedRestoreControls(home, fixture) {
 	);
 	let originals = [];
 	return {
+		prepareFilePreviews(worktreePath, png) {
+			assert.ok(worktreePath.startsWith(join(fixture.homeDir, "Superset Remix", "worktrees") + "/"));
+			assert.equal(lstatSync(worktreePath).uid, process.getuid());
+			assert.ok(Buffer.isBuffer(png) && png.byteLength < 1024 * 1024);
+			for (const [name, bytes] of [
+				["preview.png", png],
+				["corrupt-preview.png", Buffer.from("invalid PNG")],
+				["unknown-preview.bin", Buffer.from([0, 1, 2, 255])],
+				["oversized-preview.png", Buffer.alloc(1024 * 1024 + 1)],
+			]) writeFileSync(join(worktreePath, name), bytes, { flag: "wx" });
+			return { imageBytes: png.byteLength, imageSha256: createHash("sha256").update(png).digest("hex") };
+		},
 		verifyProjectParent(path) {
 			assert.equal(path, fixture.homeDir);
 			assert.equal(lstatSync(path).uid, process.getuid());

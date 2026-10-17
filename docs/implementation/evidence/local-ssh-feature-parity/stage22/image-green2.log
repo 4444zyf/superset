@@ -1,0 +1,88 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [271.53ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+32 |   // throw errors w/ suggestions for better queries. Opt in so off by default.
+33 |   throwSuggestions: false,
+34 |   // called when getBy* queries fail. (message, container) => Error
+35 |   getElementError(message, container) {
+36 |     const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
+37 |     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+                           ^
+TestingLibraryElementError: Unable to find an accessible element with the role "img" and name "picture.png"
+
+Here are the accessible roles:
+
+  tabpanel:
+
+  Name "":
+  [36m<div[39m
+    [33mclass[39m=[32m"space-y-2"[39m
+    [33mid[39m=[32m"file-panel-/remote/worktree/picture.png"[39m
+    [33mrole[39m=[32m"tabpanel"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  code:
+
+  Name "":
+  [36m<code[39m
+    [33mclass[39m=[32m"block text-xs break-all"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  application:
+
+  Name "Image preview of picture.png. Zoom with plus and minus, pan with arrow keys, press 0 to reset.":
+  [36m<div[39m
+    [33maria-label[39m=[32m"Image preview of picture.png. Zoom with plus and minus, pan with arrow keys, press 0 to reset."[39m
+    [33mclass[39m=[32m"relative flex h-full touch-none items-center justify-center overflow-hidden bg-background p-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-grab"[39m
+    [33mrole[39m=[32m"application"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/remote/worktree/picture.png"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/picture.png[0m
+      [36m</code>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"h-80 border border-border rounded-md overflow-hidden"[39m
+        [33mdata-remote-image-preview[39m=[32m"true"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Image preview of picture.png. Zoom with plus and minus, pan with arrow keys, press 0 to reset."[39m
+          [33mclass[39m=[32m"relative flex h-full touch-none items-center justify-center overflow-hidden bg-background p-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-grab"[39m
+          [33mrole[39m=[32m"application"[39m
+          [33mtabindex[39m=[32m"0"[39m
+        [36m/>[39m
+      [36m</section>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at getElementError (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:23)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:22:23)
+(fail) a remote image reuses the original image surface and keyboard zoom without a text editor or save [328.07ms]
+(pass) unknown bytes retain the read-only binary message [4.90ms]
+(pass) an oversized image cannot bypass the document size limit [16.45ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [48.82ms]
+
+ 4 pass
+ 1 fail
+ 870 expect() calls
+Ran 5 tests across 2 files. [1082.00ms]

@@ -1,0 +1,129 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [245.27ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+31 | 		if (document.content.kind !== "bytes") {
+32 | 			setSource(null);
+33 | 			return;
+34 | 		}
+35 | 		const mimeType = getImageMimeType(filePath) ?? "image/png";
+36 | 		const url = URL.createObjectURL(
+                       ^
+TypeError: createObjectURL expects a Blob object
+ code: "ERR_INVALID_ARG_TYPE"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/views/ImageView/ImageView.tsx:36:19)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at commitHookEffectListMount (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
+      at commitHookPassiveMountEffects (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:13336:11)
+      at reconnectPassiveEffects (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:15832:11)
+      at recursivelyTraverseReconnectPassiveEffects (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:15784:9)
+      at commitPassiveMountOnFiber (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:15675:17)
+      at recursivelyTraversePassiveMountEffects (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:15439:11)
+Attempted to synchronously unmount a root while React was already rendering. React cannot finish unmounting the root until the current render has completed, which may lead to a race condition.
+(fail) a remote image reuses the original image surface and keyboard zoom without a text editor or save [331.06ms]
+An error occurred in the <ImageView> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+# Unhandled error between tests
+-------------------------------
+32 |   // throw errors w/ suggestions for better queries. Opt in so off by default.
+33 |   throwSuggestions: false,
+34 |   // called when getBy* queries fail. (message, container) => Error
+35 |   getElementError(message, container) {
+36 |     const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
+37 |     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+                           ^
+TestingLibraryElementError: Unable to find an accessible element with the role "img" and name "picture.png"
+
+Here are the accessible roles:
+
+  tabpanel:
+
+  Name "":
+  [36m<div[39m
+    [33mclass[39m=[32m"space-y-2"[39m
+    [33mid[39m=[32m"file-panel-/remote/worktree/archive.dat"[39m
+    [33mrole[39m=[32m"tabpanel"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  code:
+
+  Name "":
+  [36m<code[39m
+    [33mclass[39m=[32m"block text-xs break-all"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-sm text-muted-foreground"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/remote/worktree/archive.dat"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/archive.dat[0m
+      [36m</code>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-sm text-muted-foreground"[39m
+      [36m>[39m
+        [0mBinary files cannot be edited here.[0m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at getElementError (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:23)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:15:23)
+-------------------------------
+
+(pass) unknown bytes retain the read-only binary message [11.52ms]
+(pass) an oversized image cannot bypass the document size limit [53.70ms]
+31 | 		if (document.content.kind !== "bytes") {
+32 | 			setSource(null);
+33 | 			return;
+34 | 		}
+35 | 		const mimeType = getImageMimeType(filePath) ?? "image/png";
+36 | 		const url = URL.createObjectURL(
+                       ^
+TypeError: createObjectURL expects a Blob object
+ code: "ERR_INVALID_ARG_TYPE"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/views/ImageView/ImageView.tsx:36:19)
+      at react_stack_bottom_frame (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at commitHookEffectListMount (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
+      at commitHookPassiveMountEffects (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:13336:11)
+      at reconnectPassiveEffects (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:15832:11)
+      at recursivelyTraverseReconnectPassiveEffects (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:15784:9)
+      at commitPassiveMountOnFiber (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:15675:17)
+      at recursivelyTraversePassiveMountEffects (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:15439:11)
+(fail) an image decode error is visible and changing the owning document clears the old preview [8.15ms]
+
+ 3 pass
+ 2 fail
+ 1 error
+ 866 expect() calls
+Ran 5 tests across 2 files. [1053.00ms]

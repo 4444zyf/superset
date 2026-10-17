@@ -1,0 +1,54 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [532.62ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [3.08ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.64ms]
+(pass) a different backend cannot receive a previous backend's draft [0.70ms]
+(pass) binary bytes remain read-only and never enter a text save [0.31ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.43ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.51ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.73ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.56ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [287.84ms]
+(pass) the original explorer action opens a create form using the current remote directory [107.97ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [120.86ms]
+(pass) content search opens the selected remote file at the matched line [539.40ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [91.32ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [297.68ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [259.52ms]
+(pass) a truncated read cannot overwrite the complete remote file [233.93ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [109.15ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [383.11ms]
+(pass) editing a remote CRLF file preserves its line endings [381.55ms]
+(pass) Git diffs use the remote status category and surface transport failures [282.44ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [171.70ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [364.04ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [191.81ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [190.47ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [633.69ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [790.70ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [1147.76ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [969.58ms]
+(pass) switching to Changes and back retains the original editor undo history [642.28ms]
+(pass) Git changes reuse the original split and unified diff controls without account providers [822.05ms]
+(pass) history opens the selected commit files and requests that commit's original diff [380.46ms]
+(pass) the configured base branch reaches status and against-base diff queries [584.55ms]
+(pass) a late configured base invalidates an in-flight default-base diff and refreshes comparison status [545.58ms]
+(pass) pull reloads a clean original editor from the changed worktree [754.22ms]
+(pass) opening a file during a Git refresh is not silently dropped [216.51ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+(pass) a remote image reuses the original image surface and keyboard zoom without a text editor or save [337.25ms]
+(pass) unknown bytes retain the read-only binary message [2.36ms]
+(pass) an oversized image cannot bypass the document size limit [57.19ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [63.18ms]
+
+ 40 pass
+ 0 fail
+ 1091 expect() calls
+Ran 40 tests across 4 files. [13.40s]

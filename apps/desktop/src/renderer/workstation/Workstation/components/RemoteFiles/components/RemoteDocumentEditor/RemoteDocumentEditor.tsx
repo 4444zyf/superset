@@ -4,12 +4,18 @@ import { lazy, Suspense, useEffect, useRef, useSyncExternalStore } from "react";
 import { EMPTY_FONT_SETTINGS } from "renderer/lib/font-settings";
 import type { SharedFileDocument } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
 import { detectLanguage } from "shared/detect-language";
+import { isImageFile } from "shared/file-types";
 import { useWorkstationAppearance } from "../../../../providers/WorkstationPreferencesContext";
 
 const CodeEditorSurface = lazy(() =>
 	import(
 		"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/views/CodeView/components/CodeEditor/CodeEditorSurface"
 	).then((module) => ({ default: module.CodeEditorSurface })),
+);
+const ImageView = lazy(() =>
+	import(
+		"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/views/ImageView/ImageView"
+	).then((module) => ({ default: module.ImageView })),
 );
 
 export function RemoteDocumentEditor({
@@ -71,6 +77,24 @@ export function RemoteDocumentEditor({
 				<p>
 					<Trans>Loading files...</Trans>
 				</p>
+			) : content.kind === "bytes" && isImageFile(document.absolutePath) ? (
+				<section
+					className="h-80 border border-border rounded-md overflow-hidden"
+					data-remote-image-preview
+				>
+					<Suspense fallback={<Trans>Files</Trans>}>
+						<ImageView
+							key={document.id}
+							document={document}
+							filePath={document.absolutePath}
+							workspaceId={document.workspaceId}
+							paneId={document.id}
+							isActive={active}
+							onChangeView={() => {}}
+							onForceView={() => {}}
+						/>
+					</Suspense>
+				</section>
 			) : content.kind === "bytes" ? (
 				<p className="text-sm text-muted-foreground">
 					<Trans>Binary files cannot be edited here.</Trans>
