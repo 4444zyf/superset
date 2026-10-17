@@ -480,3 +480,7 @@ TDD 保存缺少入口、缺少组件/处理器及 A→B→A 晚回复的红日�
 第67轮冻结 b88d4307c 已实际打开同一Setup执行，取消未运行Teardown，脚本exit17后原失败窗显示、工作区恢复；重开窗口marker仍一次，第二次明确删除运行到两次，明确勾选删分支及跳过脚本后目录和分支移除、marker仍两次，原标签移除。截图已查看。随后第二个工作区存在未推送提交，原UI正确显示Delete anyway，而验收脚本硬找Delete，未执行后续删除，整轮未计通过。验收改为读取原inspect结果，按实际警告选择原按钮，不移除风险提示或改变后端语义。[第67轮记录](evidence/local-ssh-feature-parity/source-linux-cleanup-failures/67)。
 
 第68轮冻结 f8fddb584 已通过两个目录实际删除、勾选分支删除/默认保留、marker三次及原Teardown配置恢复。最后重开窗口时，验收在恢复描述符就绪之前立即查询workspace.list，读到undefined，截图显示Reconnecting；没有等待结果，不计整轮通过。验收补上原restore的ready及三原PTY attached的只读就绪判据后再核对marker与工作区列表，不增加等待时限，也不触发产品写入。[第68轮记录](evidence/local-ssh-feature-parity/source-linux-cleanup-failures/68)。
+
+第69轮冻结源码 `cc1429034154d98868b84fb222be757add8b8077` 整套实际窗口验收退出码0。通过原列表实际打开已关闭Setup工作区，同一原执行可附着；原确认框展示未提交和未推送警告，取消后目录保留且Teardown marker不存在。第一次明确删除实际运行Teardown并exit17，原失败窗显示退出码和输出，目录与工作区记录恢复。重开窗口且连接ready后marker仍一次；第二次明确删除运行到两次，勾选删除本地分支后在原失败窗明确跳过脚本，marker保持两次、worktree与本地分支实际移除、保存标签移除。第二工作区选择原警告按钮后成功执行一次Teardown，总marker三次，目录移除且默认保留分支。恢复原Teardown配置，再重开并确认原三个PTY attached后marker仍三次，已删两工作区未重新出现。确认框、失败窗、恢复后三PTY截图已查看。
+
+同轮设置/文件/Git/项目设置/Run/系统剪贴板/Setup，以及窗口关闭重开、布局、手动断开恢复、离线、host重启、部分结束、多工作区和daemon丢失整套回归通过。最终相关 desktop45项/995断言与host39项/77断言通过，类型、17语言严格检查和构建通过，最终初始renderer入口4,669.59kB。[第69轮实际记录](evidence/local-ssh-feature-parity/source-linux-workspace-cleanup)。恢复仍单采样，Linux源码、SSH/Git/PTY和脚本均为拥有的隔离夹具；不代表macOS发行物或真实供应商Agent认证通过。归档/恢复界面、Setup启动/脚本失败状态、瞬时Run可靠自然结束与完整终端预设仍待接入，完整功能对齐目标尚未完成；尚无1.37.7新DMG。
