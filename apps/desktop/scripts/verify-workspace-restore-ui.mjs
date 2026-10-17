@@ -1,3 +1,4 @@
+import { verifyWorkstationBackgroundFilesUi } from "./verify-workstation-background-files-ui.mjs";
 import { verifyWorkstationFileConflictUi } from "./verify-workstation-file-conflict-ui.mjs";
 import { verifyWorkstationFileEventsUi } from "./verify-workstation-file-events-ui.mjs";
 import { verifyWorkstationMediaUi } from "./verify-workstation-media-ui.mjs";
@@ -432,6 +433,11 @@ export async function verifyWorkspaceRestoreUi({
 			) + "\n",
 		);
 	}
+ if (process.argv.includes("--file-background-only")) {
+  await verifyWorkstationBackgroundFilesUi({getPage,click,screenshot,closeReopen,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,fileBackgroundOnly:true},null,2)+"\n");
+  return;
+ }
 	if (process.argv.includes("--file-conflict-only")) {
 		await verifyWorkstationFileConflictUi({
 			getPage,

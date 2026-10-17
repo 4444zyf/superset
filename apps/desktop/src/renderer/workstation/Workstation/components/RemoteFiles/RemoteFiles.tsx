@@ -75,6 +75,8 @@ type Category = "staged" | "unstaged" | "against-base" | "commit";
 
 const button = "justify-start text-xs";
 
+const noImageSubscription = () => () => {};
+const noImageVersion = () => 0;
 export function RemoteFiles({
 	api,
 	connection,
@@ -171,16 +173,24 @@ export function RemoteFiles({
 		connection.generation,
 		workspaceId,
 	]);
+	useSyncExternalStore(
+		ownedImages?.reader.subscribe ?? noImageSubscription,
+		ownedImages?.reader.getVersion ?? noImageVersion,
+		noImageVersion,
+	);
+	const imageRevision = ownedImages?.reader.getResourceRevision() ?? 0;
+
 	const markdownResources = useMemo(
 		() =>
 			ownedImages?.owner === operationOwner
 				? {
 						owner: operationOwner,
 						rootPath: root,
+						revision: imageRevision,
 						readFile: ownedImages.reader.readFile,
 					}
 				: undefined,
-		[ownedImages, operationOwner, root],
+		[ownedImages, operationOwner, root, imageRevision],
 	);
 
 	const epoch = useRef(0);
@@ -317,8 +327,16 @@ export function RemoteFiles({
 		connection,
 		workspaceId,
 		root,
-		paths: documents.map((document) => document.absolutePath),
+		paths: [
+			...documents.map((document) => document.absolutePath),
+			...(ownedImages?.owner === operationOwner
+				? ownedImages.reader.getPaths()
+				: []),
+		],
 		onEvents: (events) => {
+			if (ownedImages?.owner === operationOwner)
+				ownedImages.reader.invalidate(events);
+			if (sharedManager) return;
 			for (const event of events)
 				documentsManager.dispatchFsEvent(connection, workspaceId, event);
 		},

@@ -145,7 +145,7 @@ export function RemoteDocumentEditor({
 				? {
 						documentDirectory: getPathDirectory(document.absolutePath),
 						rootPath: markdownResources.rootPath,
-						revision,
+						revision: JSON.stringify([revision, markdownResources.revision]),
 						readFile: (path: string) =>
 							markdownResources.readFile(path, revision),
 					}

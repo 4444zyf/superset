@@ -117,9 +117,19 @@ export class WorkstationFileDocuments {
 			)
 		)
 			throw new Error("Stale file connection");
+		const changed = owned.some(
+			([id, scope]) =>
+				scope.active !== (id === scopeId(connection)) ||
+				(id === scopeId(connection) &&
+					scope.descriptor.generation !== connection.generation),
+		);
 		for (const [id, scope] of owned) {
 			scope.active = id === scopeId(connection);
 			if (scope.active) scope.descriptor = connection;
+		}
+		if (changed) {
+			this.revision++;
+			for (const listener of this.listeners) listener();
 		}
 	}
 
@@ -415,6 +425,17 @@ export class WorkstationFileDocuments {
 		this.revision++;
 		for (const listener of this.listeners) listener();
 	}
+	getDocumentWorkspaces(connection: DirectDescriptor): string[] {
+		const scope = this.scopes.get(scopeId(connection));
+		if (!scope?.active || scope.descriptor.generation !== connection.generation)
+			return [];
+		return [
+			...new Set(
+				scope.store.getDocuments().map((document) => document.workspaceId),
+			),
+		];
+	}
+
 	getDocuments(
 		connection: DirectDescriptor,
 		workspaceId: string,

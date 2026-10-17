@@ -10,8 +10,8 @@ import { LocalDataPanel } from "./components/LocalDataPanel";
 import { MachineForm } from "./components/MachineForm/MachineForm";
 import { MachineManager } from "./components/MachineManager/MachineManager";
 import { ProjectDialog } from "./components/ProjectDialog/ProjectDialog";
-import { SessionDialog } from "./components/SessionDialog/SessionDialog";
 import { RemoteWorkspaceDelete } from "./components/RemoteWorkspaceDelete/RemoteWorkspaceDelete";
+import { SessionDialog } from "./components/SessionDialog/SessionDialog";
 import { WorkspaceBrowser } from "./components/WorkspaceBrowser/WorkspaceBrowser";
 import { WorkspaceEditor } from "./components/WorkspaceEditor/WorkspaceEditor";
 import { WorkspaceWindow } from "./components/WorkspaceWindow/WorkspaceWindow";
@@ -24,6 +24,7 @@ import {
 	WorkstationFileDocuments,
 	WorkstationFileDocumentsContext,
 } from "./providers/WorkstationFileDocuments";
+import { WorkstationDocumentEvents } from "./providers/WorkstationFileEvents/components/WorkstationDocumentEvents/WorkstationDocumentEvents";
 import { WorkstationPreferencesContext } from "./providers/WorkstationPreferencesContext";
 import type {
 	DirectProfile,
@@ -86,15 +87,21 @@ export function Workstation({
 	} | null>(null);
 	const [form, setForm] = useState<"add" | DirectProfile | null>(null);
 	const [create, setCreate] = useState<"project" | "session" | null>(null);
-	useEffect(() => {
-		setProjectSettings(null);
-		setDeleteWorkspace(null);
-	}, [
+
+	const overlayOwner = JSON.stringify([
 		selectedId,
 		ui.connection?.backendId,
 		ui.connection?.namespaceId,
 		ui.connection?.generation,
 	]);
+	const previousOverlayOwner = useRef(overlayOwner);
+	useEffect(() => {
+		if (previousOverlayOwner.current === overlayOwner) return;
+		previousOverlayOwner.current = overlayOwner;
+		setProjectSettings(null);
+		setDeleteWorkspace(null);
+	}, [overlayOwner]);
+
 	const createRef = useRef(create);
 	createRef.current = create;
 	const [deleteWorkspace, setDeleteWorkspace] =
@@ -845,6 +852,13 @@ export function Workstation({
 		<I18nProvider locale={preferences.snapshot?.values.language ?? undefined}>
 			<WorkstationPreferencesContext value={preferences.snapshot}>
 				<WorkstationFileDocumentsContext value={documents}>
+					{ui.connection && (
+						<WorkstationDocumentEvents
+							api={api}
+							connection={ui.connection}
+							documents={documents}
+						/>
+					)}
 					{content}
 					{deleteWorkspace && connected && ui.connection && (
 						<RemoteWorkspaceDelete

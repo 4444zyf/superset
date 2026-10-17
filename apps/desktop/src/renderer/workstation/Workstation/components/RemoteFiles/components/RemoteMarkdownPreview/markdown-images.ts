@@ -1,8 +1,10 @@
+import type { FsWatchEvent } from "@superset/workspace-fs/client";
 import { isImageFile } from "shared/file-types";
 
 export interface MarkdownImageResources {
 	owner: string;
 	rootPath: string;
+	revision?: number;
 	readFile(path: string, revision?: string): Promise<Uint8Array>;
 }
 export type ImageResult = {
@@ -20,6 +22,46 @@ type Entry = {
 };
 export class MarkdownImageReader {
 	private readonly entries = new Map<string, Entry>();
+	private readonly paths = new Set<string>();
+	private readonly listeners = new Set<() => void>();
+	private version = 0;
+	private resourceRevision = 0;
+	getVersion = () => this.version;
+	getResourceRevision = () => this.resourceRevision;
+	getPaths = () => [...this.paths];
+	subscribe = (listener: () => void) => {
+		this.listeners.add(listener);
+		return () => {
+			this.listeners.delete(listener);
+		};
+	};
+	private notify() {
+		this.version++;
+		for (const listener of this.listeners) listener();
+	}
+	invalidate(events: FsWatchEvent[]) {
+		const affected = (path: string) =>
+			events.some((event) => {
+				const contains = (value: string | undefined) =>
+					value !== undefined &&
+					(path === value ||
+						path.startsWith(value.endsWith("/") ? value : `${value}/`));
+				return (
+					contains(event.absolutePath) ||
+					(event.kind === "rename" && contains(event.oldAbsolutePath))
+				);
+			});
+		if (!this.active || ![...this.paths].some(affected)) return;
+		for (const entry of this.entries.values()) {
+			if (!affected(entry.path)) continue;
+			this.remove(entry);
+			const queued = this.queue.indexOf(entry);
+			if (queued >= 0) this.queue.splice(queued, 1);
+			entry.reject(new Error("Image resource changed"));
+		}
+		this.resourceRevision++;
+		this.notify();
+	}
 	private readonly queue: Entry[] = [];
 	private readonly maxBytes: number;
 	private readonly maxCacheBytes: number;
@@ -77,6 +119,12 @@ export class MarkdownImageReader {
 	readFile = (path: string, revision = ""): Promise<Uint8Array> => {
 		if (!this.isCurrent() || path.length > 4096 || !isImageFile(path))
 			return Promise.reject(new Error("Image resource is unavailable"));
+		const tracked = this.paths.has(path);
+		this.paths.delete(path);
+		this.paths.add(path);
+		if (this.paths.size > this.maxEntries)
+			this.paths.delete(this.paths.values().next().value!);
+		if (!tracked) this.notify();
 		const key = JSON.stringify([path, revision]);
 		const cached = this.entries.get(key);
 		if (cached) {
@@ -116,7 +164,8 @@ export class MarkdownImageReader {
 		try {
 			if (!this.isCurrent()) throw new Error("Image owner changed");
 			const result = await this.options.read(entry.path, this.maxBytes);
-			if (!this.isCurrent()) throw new Error("Image owner changed");
+			if (!this.isCurrent() || this.entries.get(entry.key) !== entry)
+				throw new Error("Image owner changed");
 			if (
 				result.exceededLimit ||
 				(typeof result.content === "string" &&
@@ -145,10 +194,13 @@ export class MarkdownImageReader {
 		}
 	}
 	dispose() {
+		if (!this.active) return;
 		this.active = false;
 		for (const entry of this.queue.splice(0))
 			entry.reject(new Error("Image owner changed"));
 		this.entries.clear();
 		this.cacheBytes = 0;
+		this.paths.clear();
+		this.notify();
 	}
 }

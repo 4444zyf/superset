@@ -83,3 +83,54 @@ test("a saved markdown revision reloads its image while duplicate readers share 
 	expect(reads).toBe(2);
 	reader.dispose();
 });
+
+test("an independent image event rejects stale pending bytes and reloads without a markdown revision change", async () => {
+	const results: ((value: { kind: "bytes"; content: Uint8Array }) => void)[] =
+		[];
+	const reader = new MarkdownImageReader({
+		read: async () => new Promise((resolve) => results.push(resolve)),
+	});
+	const old = reader.readFile(
+		"/repo/ignored/image.png",
+		"same-markdown-revision",
+	);
+	const rejected = Promise.allSettled([old]);
+	reader.invalidate([
+		{ kind: "update", absolutePath: "/repo/ignored/image.png" },
+	]);
+	const next = reader.readFile(
+		"/repo/ignored/image.png",
+		"same-markdown-revision",
+	);
+	results[0]!({ kind: "bytes", content: new Uint8Array([1]) });
+	results[1]!({ kind: "bytes", content: new Uint8Array([2]) });
+	expect((await rejected)[0]?.status).toBe("rejected");
+	expect(await next).toEqual(new Uint8Array([2]));
+	expect(
+		await reader.readFile("/repo/ignored/image.png", "same-markdown-revision"),
+	).toEqual(new Uint8Array([2]));
+	reader.dispose();
+});
+
+test("missing images retain bounded watch interest so their later creation refreshes the original preview", async () => {
+	let missing = true;
+	const reader = new MarkdownImageReader({
+		maxEntries: 2,
+		read: async () => {
+			if (missing) throw new Error("ENOENT");
+			return { kind: "bytes", content: new Uint8Array([7]) };
+		},
+	});
+	await expect(reader.readFile("/repo/a.png")).rejects.toThrow();
+	expect(reader.getPaths()).toEqual(["/repo/a.png"]);
+	const before = reader.getResourceRevision();
+	missing = false;
+	reader.invalidate([{ kind: "create", absolutePath: "/repo/a.png" }]);
+	expect(reader.getResourceRevision()).toBeGreaterThan(before);
+	expect(await reader.readFile("/repo/a.png")).toEqual(new Uint8Array([7]));
+	await reader.readFile("/repo/b.png");
+	await reader.readFile("/repo/c.png");
+	expect(reader.getPaths()).toEqual(["/repo/b.png", "/repo/c.png"]);
+	reader.dispose();
+	expect(reader.getPaths()).toEqual([]);
+});
