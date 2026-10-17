@@ -116,6 +116,7 @@ export function RemoteDocumentEditor({
 	return (
 		<div
 			role="tabpanel"
+			tabIndex={-1}
 			id={`file-panel-${document.id}`}
 			hidden={!active}
 			className="space-y-2"

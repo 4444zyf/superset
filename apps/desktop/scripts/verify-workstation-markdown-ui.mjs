@@ -169,6 +169,7 @@ export async function verifyWorkstationMarkdownUi({
 		saved.text.includes("| Name | Value |\n| ---- | ----- |\n| Local | SSH |"),
 	);
 	assert.ok(saved.text.includes("```js\nconst count = 1;\n```"));
+	writeFileSync(join(output,"markdown-save-checkpoint.json"),JSON.stringify({saved,explicitSaveOnly:true,frontMatterPreserved:true,tableSourcePreserved:true,codeSourcePreserved:true},null,2)+"\n");
 	await preview();
 	await until(() => evaluate(`!!document.querySelector('${panel} .tiptap')`));
 	await click(`${panel} .tiptap h1`);
@@ -183,6 +184,10 @@ export async function verifyWorkstationMarkdownUi({
 		),
 	);
 	await screenshot("markdown-original-search");
+	await key("Escape", "Escape");
+	await until(() => evaluate(`!document.querySelector('${panel} input[aria-label=Find]')`));
+	await key("f", "KeyF", process.platform === "darwin" ? 4 : 2);
+	await until(() => evaluate(`!!document.querySelector('${panel} input[aria-label=Find]')`));
 	await key("Escape", "Escape");
 	await closeReopen();
 	await until(() =>
@@ -221,6 +226,7 @@ export async function verifyWorkstationMarkdownUi({
 				codeSourcePreserved: true,
 				remoteImage: image,
 				originalSearch: true,
+			searchFocusRestored: true,
 				windowReopenSavedContent: true,
 				savedFile: saved,
 				osExternalBrowserVerified: false,

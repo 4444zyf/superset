@@ -359,3 +359,58 @@ test("markdown links use explicit modifier clicks and local image sources use th
 		{ path: "/remote/worktree/assets/plot.png", revision: "r1" },
 	]);
 });
+
+test.each([
+	{ target: ".tiptap", busy: false },
+	{ target: 'button[title="Preview"]', busy: true },
+])("Ctrl+F stays scoped to the selected preview when focus is on %s", async ({
+	target,
+	busy,
+}) => {
+	render(
+		<RemoteDocumentEditor
+			document={doc("/remote/worktree/README.md", {
+				kind: "text",
+				value: "# Search\n\nOriginal paragraph.\n",
+				revision: "r1",
+			})}
+			active
+			busy={busy}
+			{...callbacks}
+		/>,
+	);
+	await screen.findByRole("heading", { name: "Search" });
+	const focused = document.querySelector(target);
+	if (!focused) throw new Error("preview input did not mount");
+	fireEvent.keyDown(focused, { key: "f", code: "KeyF", ctrlKey: true });
+	expect(await screen.findByRole("textbox", { name: "Find" })).toBeTruthy();
+});
+
+test("closing rich preview search returns focus to the same file for the next find", async () => {
+	render(
+		<RemoteDocumentEditor
+			document={doc("/remote/worktree/README.md", {
+				kind: "text",
+				value: "# Search\n\nOriginal paragraph.\n",
+				revision: "r1",
+			})}
+			active
+			busy={false}
+			{...callbacks}
+		/>,
+	);
+	await screen.findByRole("heading", { name: "Search" });
+	const editor = document.querySelector(".tiptap");
+	if (!editor) throw new Error("editor did not mount");
+	fireEvent.keyDown(editor, { key: "f", ctrlKey: true });
+	const find = await screen.findByRole("textbox", { name: "Find" });
+	fireEvent.keyDown(find, { key: "Escape" });
+	await waitFor(() =>
+		expect(screen.queryByRole("textbox", { name: "Find" })).toBeNull(),
+	);
+	expect(document.activeElement?.closest('[role="tabpanel"]')).not.toBeNull();
+	const focused = document.activeElement;
+	if (!focused) throw new Error("no focused file");
+	fireEvent.keyDown(focused, { key: "f", ctrlKey: true });
+	expect(await screen.findByRole("textbox", { name: "Find" })).toBeTruthy();
+});

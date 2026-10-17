@@ -547,3 +547,6 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 相对图片复用MarkdownResourceProvider/SafeImage/路径解析，通过所选机器filesystem.readFile获取，不误用本机file路径。图片读取器单图1MiB、缓存8MiB/16条、4并发、有界队列与LRU，按MD磁盘revision缓存；换机器/工作区/连接代际后丢弃晚回复，退出时取消排队。未新增后端过程或持久化键。
 
 主回归11文件118项/1431断言通过，后续MD/资源12项/53断言通过（有覆盖重叠，不相加）；原格式往返与链接、图像边界/新revision/晚回复、共享草稿/显式CAS保存/BOM保留均有测试。类型检查、17语言严格检查、相关新代码lint与构建通过；渲染主入口4703.06kB，Markdown动态块2934.50kB。已准备 --markdown-only 实际窗口流程验证双向编辑、保存前磁盘不变、头部/表格/代码格式、SSH相对图片、原查找与窗口重开；尚未把这些待执行项计为通过。未执行OS浏览器打开/macOS发行物验收。[阶段二十三原始日志](evidence/local-ssh-feature-parity/stage23)。
+
+
+第77轮实际窗口固定e27c3d81b：MD默认预览、SSH图片、源码到预览的草稿、富文本到源码的草稿、明确保存及头部/表格/代码格式断言均走过，随后在Ctrl+F打开查找失败，整轮退出1。截图已实际查看。单元直接向编辑器发键通过；追加焦点在Preview按钮且busy只读的用例复现失败，并追加Escape后焦点丢到文件外的失败。将默认查找快捷键捕获范围移到当前文件tabpanel，关闭查找恢复同一文件焦点，不绑定到窗口的其他工作区。单元红9通过/2失败后变为11通过；相关MD/资源/启动审计共16通过/1054断言，类型、相关lint和重建通过。新实际窗口待执行；第77轮不算完整通过。[第77轮失败证据](evidence/local-ssh-feature-parity/source-linux-markdown-failures/77)。

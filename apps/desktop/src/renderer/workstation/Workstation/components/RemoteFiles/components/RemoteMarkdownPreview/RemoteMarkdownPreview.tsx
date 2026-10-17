@@ -40,6 +40,37 @@ export function RemoteMarkdownPreview({
 	useEffect(() => {
 		if (!active) search.closeSearch();
 	}, [active, search.closeSearch]);
+	useEffect(() => {
+		if (!active) return;
+		const host =
+			containerRef.current?.closest<HTMLElement>('[role="tabpanel"]');
+		if (!host) return;
+		const find = (event: KeyboardEvent) => {
+			if (
+				!host.hidden &&
+				(event.metaKey || event.ctrlKey) &&
+				!event.altKey &&
+				!event.repeat &&
+				event.key.toLowerCase() === "f"
+			) {
+				event.preventDefault();
+				event.stopPropagation();
+				search.setIsSearchOpen((open) => !open);
+			}
+		};
+		host.addEventListener("keydown", find, true);
+		return () => host.removeEventListener("keydown", find, true);
+	}, [active, search.setIsSearchOpen]);
+	const closeFind = () => {
+		search.closeSearch();
+		const host =
+			containerRef.current?.closest<HTMLElement>('[role="tabpanel"]');
+		containerRef.current
+			?.querySelector<HTMLElement>(".tiptap")
+			?.focus({ preventScroll: true });
+		if (host && !host.contains(host.ownerDocument.activeElement))
+			host.focus({ preventScroll: true });
+	};
 	if (document.content.kind !== "text") return null;
 	const { frontMatter, body } = splitFrontMatter(document.content.value);
 	const content = (
@@ -72,18 +103,6 @@ export function RemoteMarkdownPreview({
 			aria-label={t({ message: "Preview" })}
 			data-remote-markdown-preview
 			className="relative h-full"
-			onKeyDownCapture={(event) => {
-				if (
-					active &&
-					(event.metaKey || event.ctrlKey) &&
-					!event.altKey &&
-					event.key.toLowerCase() === "f"
-				) {
-					event.preventDefault();
-					event.stopPropagation();
-					search.setIsSearchOpen((open) => !open);
-				}
-			}}
 			onBlur={(event) => {
 				if (!event.currentTarget.contains(event.relatedTarget as Node | null))
 					onFocusChange();
@@ -99,7 +118,7 @@ export function RemoteMarkdownPreview({
 				onCaseSensitiveChange={search.setCaseSensitive}
 				onFindNext={search.findNext}
 				onFindPrevious={search.findPrevious}
-				onClose={search.closeSearch}
+				onClose={closeFind}
 			/>
 			<div ref={containerRef} className="h-full overflow-auto p-4">
 				{frontMatter !== "" && (

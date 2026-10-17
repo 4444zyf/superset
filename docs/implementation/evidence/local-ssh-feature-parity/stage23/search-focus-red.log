@@ -1,0 +1,245 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+(pass) a remote image reuses the original image surface and keyboard zoom without a text editor or save [347.55ms]
+(pass) unknown bytes retain the read-only binary message [3.89ms]
+(pass) an oversized image cannot bypass the document size limit [49.08ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [14.94ms]
+(pass) markdown defaults to the original rich preview and can switch to the shared source document [754.97ms]
+(pass) a markdown search destination opens the source view at the requested line [43.36ms]
+(pass) rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision [167.69ms]
+(pass) markdown links use explicit modifier clicks and local image sources use the selected workspace reader [51.55ms]
+(pass) Ctrl+F stays scoped to the selected preview when focus is on %s [55.99ms]
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find role="textbox" and name "Find"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/remote/worktree/README.md"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/README.md[0m
+      [36m</code>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"inline-flex h-5 min-w-0 items-center gap-0.5 rounded-md bg-muted/50 p-0.5"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-pressed[39m=[32m"false"[39m
+          [33mclass[39m=[32m"flex h-4 min-w-0 max-w-20 items-center rounded-sm px-1.5 text-[10px] leading-none transition-colors text-muted-foreground hover:text-foreground"[39m
+          [33mtitle[39m=[32m"Markdown"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"min-w-0 truncate"[39m
+          [36m>[39m
+            [0mMarkdown[0m
+          [36m</span>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-pressed[39m=[32m"true"[39m
+          [33mclass[39m=[32m"flex h-4 min-w-0 max-w-20 items-center rounded-sm px-1.5 text-[10px] leading-none transition-colors bg-background text-foreground shadow-sm"[39m
+          [33mtitle[39m=[32m"Preview"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"min-w-0 truncate"[39m
+          [36m>[39m
+            [0mPreview[0m
+          [36m</span>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"File contents"[39m
+        [33mclass[39m=[32m"h-80 border border-border rounded-md overflow-hidden"[39m
+      [36m>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"Preview"[39m
+          [33mclass[39m=[32m"relative h-full"[39m
+          [33mdata-remote-markdown-preview[39m=[32m"true"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"h-full overflow-auto p-4"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"markdown-renderer h-full overflow-y-auto select-text default-markdown"[39m
+              [33mdata-slot[39m=[32m"context-menu-trigger"[39m
+              [33mdata-state[39m=[32m"closed"[39m
+            [36m>[39m
+              [36m<article[39m
+                [33mclass[39m=[32m"px-8 pt-2 pb-6"[39m
+              [36m>[39m
+                [36m<div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"tiptap ProseMirror focus:outline-none"[39m
+                    [33mcontenteditable[39m=[32m"false"[39m
+                    [33mtranslate[39m=[32m"no"[39m
+                  [36m>[39m
+                    [36m<h1>[39m
+                      [0mSearch[0m
+                    [36m</h1>[39m
+                    [36m<p>[39m
+                      [0mOriginal paragraph.[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</article>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</section>[39m
+      [36m</section>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex gap-2"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mdisabled[39m=[32m""[39m
+        [36m>[39m
+          [0mSave file[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mdisabled[39m=[32m""[39m
+        [36m>[39m
+          [0mClose file and discard draft[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/remote/worktree/README.md"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/README.md[0m
+      [36m</code>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"inline-flex h-5 min-w-0 items-center gap-0.5 rounded-md bg-muted/50 p-0.5"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-pressed[39m=[32m"false"[39m
+          [33mclass[39m=[32m"flex h-4 min-w-0 max-w-20 items-center rounded-sm px-1.5 text-[10px] leading-none transition-colors text-muted-foreground hover:text-foreground"[39m
+          [33mtitle[39m=[32m"Markdown"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"min-w-0 truncate"[39m
+          [36m>[39m
+            [0mMarkdown[0m
+          [36m</span>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-pressed[39m=[32m"true"[39m
+          [33mclass[39m=[32m"flex h-4 min-w-0 max-w-20 items-center rounded-sm px-1.5 text-[10px] leading-none transition-colors bg-background text-foreground shadow-sm"[39m
+          [33mtitle[39m=[32m"Preview"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"min-w-0 truncate"[39m
+          [36m>[39m
+            [0mPreview[0m
+          [36m</span>[39m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"File contents"[39m
+        [33mclass[39m=[32m"h-80 border border-border rounded-md overflow-hidden"[39m
+      [36m>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"Preview"[39m
+          [33mclass[39m=[32m"relative h-full"[39m
+          [33mdata-remote-markdown-preview[39m=[32m"true"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"h-full overflow-auto p-4"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"markdown-renderer h-full overflow-y-auto select-text default-markdown"[39m
+              [33mdata-slot[39m=[32m"context-menu-trigger"[39m
+              [33mdata-state[39m=[32m"closed"[39m
+            [36m>[39m
+              [36m<article[39m
+                [33mclass[39m=[32m"px-8 pt-2 pb-6"[39m
+              [36m>[39m
+                [36m<div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"tiptap ProseMirror focus:outline-none"[39m
+                    [33mcontenteditable[39m=[32m"false"[39m
+                    [33mtranslate[39m=[32m"no"[39m
+                  [36m>[39m
+                    [36m<h1>[39m
+                      [0mSearch[0m
+                    [36m</h1>[39m
+                    [36m<p>[39m
+                      [0mOriginal paragraph.[0m
+                    [36m</p>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</article>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</section>[39m
+      [36m</section>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex gap-2"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mdisabled[39m=[32m""[39m
+        [36m>[39m
+          [0mSave file[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mdisabled[39m=[32m""[39m
+        [36m>[39m
+          [0mClose file and discard draft[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:370:22
+(fail) Ctrl+F stays scoped to the selected preview when focus is on %s [1030.20ms]
+376 |  const editor=document.querySelector(".tiptap");if(!editor)throw new Error("editor did not mount");
+377 |  fireEvent.keyDown(editor,{key:"f",ctrlKey:true});
+378 |  const find=await screen.findByRole("textbox",{name:"Find"});
+379 |  fireEvent.keyDown(find,{key:"Escape"});
+380 |  await waitFor(()=>expect(screen.queryByRole("textbox",{name:"Find"})).toBeNull());
+381 |  expect(document.activeElement?.closest('[role="tabpanel"]')).not.toBeNull();
+                                                                        ^
+error: expect(received).not.toBeNull()
+
+Received: null
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:381:67)
+(fail) closing rich preview search returns focus to the same file for the next find [42.70ms]
+
+ 9 pass
+ 2 fail
+ 41 expect() calls
+Ran 11 tests across 1 file. [2.86s]

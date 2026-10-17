@@ -1,0 +1,28 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [290.02ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.test.ts:
+(pass) markdown images share one bounded read and evict old completed bytes [1.73ms]
+(pass) unsupported files and oversized image results never become preview bytes [0.33ms]
+(pass) switching the owner drops an in-flight image and does not launch its queued read [0.28ms]
+(pass) a saved markdown revision reloads its image while duplicate readers share that revision [0.38ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+(pass) a remote image reuses the original image surface and keyboard zoom without a text editor or save [350.27ms]
+(pass) unknown bytes retain the read-only binary message [4.85ms]
+(pass) an oversized image cannot bypass the document size limit [55.81ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [20.85ms]
+(pass) markdown defaults to the original rich preview and can switch to the shared source document [806.81ms]
+(pass) a markdown search destination opens the source view at the requested line [53.77ms]
+(pass) rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision [525.97ms]
+(pass) markdown links use explicit modifier clicks and local image sources use the selected workspace reader [173.56ms]
+(pass) Ctrl+F stays scoped to the selected preview when focus is on %s [177.27ms]
+(pass) Ctrl+F stays scoped to the selected preview when focus is on %s [54.72ms]
+(pass) closing rich preview search returns focus to the same file for the next find [110.70ms]
+
+ 16 pass
+ 0 fail
+ 1054 expect() calls
+Ran 16 tests across 3 files. [3.05s]
