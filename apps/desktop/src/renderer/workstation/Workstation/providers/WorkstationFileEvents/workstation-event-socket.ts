@@ -65,6 +65,14 @@ export class WorkstationEventSocket implements EventBusSocket {
 				this.drop();
 				return;
 			}
+			let message: { type?: string; code?: string } | null = null;
+			try {
+				message = JSON.parse(event.data);
+			} catch {}
+			if (message?.type === "error" && message.code !== "git-watch-cap") {
+				this.drop();
+				return;
+			}
 			this.events.dispatchEvent(
 				new MessageEvent("message", { data: event.data }),
 			);

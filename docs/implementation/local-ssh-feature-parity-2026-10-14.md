@@ -617,3 +617,5 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 复用原watchFs/watchFsFile，工作区递归监听与已打开文件的忽略目录兜底均按原引用计数释放；断线只恢复读取订阅，不重放写入。新的IPC适配层按连接/后端/namespace/generation与socket ID隔离，晚打开/晚错误丢弃，重连只保留一个定时器，未连接不排队。仅接受有界文本事件；工作区与根路径校验、异常批次转overflow、重连后原文档重新核对。文件树保留原Pierre引擎，事件刷新串行合并，连续变化最多保留一个待刷新标记；工作区切换后的旧事件不影响新视图。更新走原SharedFileDocument：干净文档重读、未保存草稿保留、不隐式保存。另一个回归确认stat丢失类型的目录rename/delete未影响已知子文档，补齐基于已打开路径的目录判断；原OrphanedBanner接回工作站，先13通过/1失败，后14通过，丢弃仍仅由明确按钮触发。
 
 客户端相关8文件98项1479断言，包含无账号启动链对纯事件核心的审计、旧后端/非法路径/切换隔离/引用计数/监听关闭与原编辑器回归；后端事件及原4条阻塞规则共11通过；workspace-client/host/desktop类型与17语言检查通过。新增--file-events-only将从拥有的SSH夹具运行机执行外部文件写入，核对真实事件与原树/编辑器、脏草稿冲突、忽略目录已打开文件、目录删除以及重开和原3个PTY。原冲突比较/解决对话框、全部文件内联操作、Markdown相对图片单独资源的监听及全局退出草稿提醒仍须继续接入，不能将本阶段称为整个文件组已完成。
+
+第92轮为明确旧构建基线：产品仍是阶段二十七e569fae28的未重建bundle，脚本17a2568d1。拥有的SSH运行机外部写入external update后，原编辑器仍显示external original，原事件观察为空，按预期退出1；失败截图已实际查看。记录旧bundle字节hash，随后才重建，不能把此轮算成新代码验收。[旧构建基线](evidence/local-ssh-feature-parity/source-linux-file-events-baseline/92)。继续检查发现原后端的监听流失败会通过正常socket发送type:error，新传输也须重订阅，不能停在表面open；新增失败回归后补齐只读订阅重连，未改变后端消息合同。

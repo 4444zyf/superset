@@ -173,3 +173,23 @@ test("closing a pending event socket cancels retry and discards its late open fa
 	expect(f.listeners.size).toBe(0);
 	expect(f.closed).toEqual([openedId(f)]);
 });
+
+test("a backend file watch error recovers the subscription instead of leaving it falsely open", async () => {
+	const f = fixture();
+	const socket = new WorkstationEventSocket(f.api, connection, f.schedule);
+	await settle();
+	const id = openedId(f);
+	f.emit(id, "open");
+	f.emit(
+		id,
+		"message",
+		JSON.stringify({
+			type: "error",
+			message: "Filesystem event stream failed",
+		}),
+	);
+	expect(socket.readyState).toBe(3);
+	expect([...f.timers.values()]).toEqual([1000]);
+	socket.close();
+	expect(f.timers.size).toBe(0);
+});
