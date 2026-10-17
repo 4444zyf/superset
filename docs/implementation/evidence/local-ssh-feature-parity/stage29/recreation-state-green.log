@@ -1,0 +1,27 @@
+$ bun test src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts "src/renderer/routes/_authenticated/_dashboard/v2-workspace/\$workspaceId/state/fileDocumentStore/fileDocumentStore.factory.test.ts"
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [1.89ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.55ms]
+(pass) a different backend cannot receive a previous backend's draft [0.69ms]
+(pass) binary bytes remain read-only and never enter a text save [0.23ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.42ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.37ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.35ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.76ms]
+(pass) a directory event whose stat lost the race still affects known descendant documents [0.34ms]
+(pass) an explicit conflict overwrite checks the selected backend's current revision and preserves the draft codec [0.67ms]
+(pass) only an explicit conflict action can recreate a deleted draft and the creation cannot overwrite a competing file [0.52ms]
+(pass) a backend switch during overwrite inspection cannot send the old draft to either backend [0.49ms]
+(pass) a competing creator during explicit recreation restores the original conflict instead of claiming a save [0.41ms]
+(pass) a deletion observed after a write started cannot be erased by its late successful receipt [0.40ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileDocumentStore.factory.test.ts:
+(pass) separate backend document stores isolate identical workspace IDs and paths [0.20ms]
+(pass) a new store can use a bounded read without changing the original default [0.11ms]
+
+ 16 pass
+ 0 fail
+ 51 expect() calls
+Ran 16 tests across 2 files. [167.00ms]

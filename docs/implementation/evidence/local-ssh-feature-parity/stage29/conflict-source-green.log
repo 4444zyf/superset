@@ -1,0 +1,21 @@
+$ bun test src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [1.93ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.56ms]
+(pass) a different backend cannot receive a previous backend's draft [0.41ms]
+(pass) binary bytes remain read-only and never enter a text save [0.23ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.28ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.37ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.34ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.48ms]
+(pass) a directory event whose stat lost the race still affects known descendant documents [0.37ms]
+(pass) an explicit conflict overwrite checks the selected backend's current revision and preserves the draft codec [0.63ms]
+(pass) only an explicit conflict action can recreate a deleted draft and the creation cannot overwrite a competing file [0.46ms]
+(pass) a backend switch during overwrite inspection cannot send the old draft to either backend [0.46ms]
+
+ 12 pass
+ 0 fail
+ 39 expect() calls
+Ran 12 tests across 1 file. [151.00ms]

@@ -625,3 +625,15 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 第94轮产品仍ed3b8f822、脚本ceedd5f7c，原外部修改/目录/冲突与明确丢弃通过；.gitignore排除目录中的已打开note.txt真实外部更新也自动显示，截图已实际查看。重开后目录和子项均显示，但open目录helper错误地等待CodeMirror，尚未点击子文件就超时，退出1。失败截图已查看；目录操作改为仅展开，文件操作才等待编辑器，产品不变。[第94轮失败证据](evidence/local-ssh-feature-parity/source-linux-file-events-failures/94)。
 
 第95轮产品ed3b8f822、脚本e39924e42，实际Linux/Electron/拥有的SSH --file-events-only退出0。外部写入来自夹具的SSH运行机文件系统，事件走真实后端原EventBus和客户端IPC，非renderer变更API或供应商Agent。原CodeMirror自动看到包含中文/emoji的外部新版本；原Pierre树自动显示目录新增/重命名/删除，目录rename使已打开child.txt自动跟随新路径，删除后原OrphanedBanner显示且内容保留。真实键入未保存草稿后外部再改，明确Save触发原版本冲突，草稿及远端新版本均未被覆盖；按原明确丢弃按钮关闭后，.gitignore排除目录中的已打开note.txt仍通过原watchFsFile收到更新。重开后正确读取新内容、没有自动写回，3个原PTY同PID15295/15307/15301、执行ID与统一worktree cwd保留。原始观察含6批create/update/rename/delete事件，自动更新、删除、冲突、忽略目录和重开截图均已实际查看。[第95轮原始证据](evidence/local-ssh-feature-parity/source-linux-file-events/95)、[阶段二十八红绿/回归/类型/构建日志](evidence/local-ssh-feature-parity/stage28)。真实断网恢复与晚回复隔离目前仍是确定性注入回归；当前监听生命周期附着在文件视图，后台文档与Markdown相对图片独立资源、原完整冲突比较/解决UI、其他内联操作及全局退出草稿提醒继续接入。Linux源码窗口不代替macOS发行物。
+
+
+### 阶段二十九：原文件冲突比较与明确解决
+
+复用原FileSaveConflictDialog的全部布局、默认Keep editing焦点和三个动作，将其提取为可注入Diff的纯Surface；旧入口继续包裹原LightDiffViewer，工作站注入原LightDiffSurface及当前主题/字体，不拉入云设置。原ExternalChangeBanner.Compare、SaveErrorBanner.Retry/Dismiss同时接回，冲突与保存失败使用文件内原反馈，避免解决后遗留顶部全局错误；其他Git等错误继续原全局路径。对话框先28通过/1失败，旧全局反馈独立复现28通过/3失败，修复后相关界面32通过。删除的干净文件先被Save按钮错误禁用，失败回归后允许明确保存；测试中的异步Overwrite交互改为await act等待React提交，未增加超时或真实等待，最终相关六文件73项1444断言全部通过。
+
+Overwrite只通过工作站明确冲突动作签发一次性许可，绑定连接generation、文档ID、路径、工作区和草稿字节；普通force调用仍拒绝。先读取所选后端已有getMetadata，再以最新revision执行原CAS；symlink使用有界目标读取获取实际revision。不存在的文件使用原原子create/no-overwrite，竞态EEXIST恢复原冲突。后端切换后的晚metadata不发送写入，写入期间新收到的delete不会被晚成功回执抹去。原文档store在没有新事件时清除已明确恢复文件的orphaned标志，不合成可能覆盖真实删除的create事件。旧后端无workstationFilesV1时禁用覆盖并显示已有能力提示。没有改变tRPC或后端合同，CRLF等原草稿编码继续保留。desktop类型、17语言、插件及桌面3条阻塞规则通过。
+
+第96轮产品仍ed3b8f822，脚本f996121dd，尚未到冲突验收就因严格鼠标选择器遇到刚保存后暂时禁用的Close控件而退出1；截图实际查看，修正为等待可见且启用，仍拒绝隐藏/被遮挡控件，不把本轮计为功能基线。第97轮产品仍同一未重建ed3b8f822、脚本922264d04，真实系统键入本地草稿后SSH运行机外部修改，草稿保留，但没有原外部变更Compare入口和冲突对话框，按预期退出1；失败截图实际查看。保存旧bundle字节hash后再重建，[旧构建基线](evidence/local-ssh-feature-parity/source-linux-file-conflict-baseline/97)、[第96轮脚本失败](evidence/local-ssh-feature-parity/source-linux-file-conflict-failures/96)。新版实际窗口结果待记录，不能由组件测试推断macOS或供应商Agent验收。
+
+
+第98轮固定922264d045fd4f31a81e9a5faf941cd6bc5dc9a5，重建后的真实Linux/Electron/拥有的SSH --file-conflict-only退出0。原Diff实际显示远端内容与中文/emoji草稿两侧；Keep editing两份内容不变，只有明确Reload读取远端版，明确Overwrite保存本地草稿且磁盘CRLF保留。文件真实unlink后原删除提示保留草稿，明确Save/Overwrite恢复文件。目录真实chmod 0500导致EACCES，原SaveErrorBanner出现且草稿、磁盘旧版均保留，恢复权限本身不写入，只有明确Retry才保存并清除错误。关闭/重开后读取已恢复内容且没有自动写入，原3个PTY仍PID19489/19502/19496、执行ID和统一worktree cwd保留。八张冲突/重载/覆盖/删除恢复/错误重试/重开截图均已实际查看。[第98轮原始证据](evidence/local-ssh-feature-parity/source-linux-file-conflict/98)、[阶段二十九红绿/回归/类型/构建日志](evidence/local-ssh-feature-parity/stage29)。背景文档与Markdown独立图片资源监听、其他内联操作和全局退出草稿提醒继续完成；本阶段不将整个文件组或macOS发行包标为完成。

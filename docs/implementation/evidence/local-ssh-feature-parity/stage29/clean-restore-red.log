@@ -1,0 +1,58 @@
+$ bun test src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [200.07ms]
+(pass) the original explorer action opens a create form using the current remote directory [108.32ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [111.46ms]
+(pass) content search opens the selected remote file at the matched line [449.21ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [69.47ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [122.97ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [202.69ms]
+(pass) a truncated read cannot overwrite the complete remote file [118.09ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [81.46ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [150.52ms]
+(pass) editing a remote CRLF file preserves its line endings [146.71ms]
+(pass) Git diffs use the remote status category and surface transport failures [71.59ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [91.51ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [142.69ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [200.18ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [167.64ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [303.89ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [306.09ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [393.57ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [304.16ms]
+(pass) switching to Changes and back retains the original editor undo history [344.42ms]
+(pass) Git changes reuse the original split and unified diff controls without account providers [542.51ms]
+(pass) history opens the selected commit files and requests that commit's original diff [282.06ms]
+(pass) the configured base branch reaches status and against-base diff queries [517.18ms]
+(pass) a late configured base invalidates an in-flight default-base diff and refreshes comparison status [286.43ms]
+(pass) pull reloads a clean original editor from the changed worktree [549.40ms]
+(pass) opening a file during a Git refresh is not silently dropped [124.43ms]
+(pass) remote filesystem events refresh the original tree and clean editor while preserving an unsaved draft [262.76ms]
+(pass) a backend without the optional file events capability keeps manual file access without opening a socket [103.57ms]
+(pass) the original conflict dialog reloads from the selected backend only after the explicit reload action [381.58ms]
+(pass) the original overwrite control reaches the bounded explicit conflict resolver instead of a blind force save [508.88ms]
+1541 |  render(<WorkstationFileDocumentsContext value={manager}><RemoteFiles api={f.api} connection={descriptor} workspaceId="workspace" onError={f.onError} /></WorkstationFileDocumentsContext>);
+1542 |  clickTreeRow(await treeRow("note.txt")); await fileEditor();
+1543 |  missing = true;
+1544 |  act(()=>manager.dispatchFsEvent(descriptor,"workspace",{kind:"delete",absolutePath:"/Users/remote/repo/note.txt",isDirectory:false}));
+1545 |  await screen.findByText("File was deleted on disk.");
+1546 |  expect((screen.getByRole("button",{name:"Save file"}) as HTMLButtonElement).disabled).toBe(false);
+                                                                                              ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:1546:88)
+(fail) a deleted clean file can be restored through the original Save and explicit overwrite controls [244.24ms]
+
+1 tests failed:
+(fail) a deleted clean file can be restored through the original Save and explicit overwrite controls [244.24ms]
+
+ 31 pass
+ 1 fail
+ 244 expect() calls
+Ran 32 tests across 1 file. [8.35s]
+error: script "test" exited with code 1

@@ -1,0 +1,41 @@
+$ bun test src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [166.13ms]
+(pass) the original explorer action opens a create form using the current remote directory [98.79ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [105.95ms]
+(pass) content search opens the selected remote file at the matched line [446.04ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [67.04ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [129.09ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [239.19ms]
+(pass) a truncated read cannot overwrite the complete remote file [116.14ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [83.45ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [138.89ms]
+(pass) editing a remote CRLF file preserves its line endings [147.07ms]
+(pass) Git diffs use the remote status category and surface transport failures [68.39ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [95.83ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [143.92ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [205.32ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [162.67ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [272.58ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [319.87ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [379.29ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [277.01ms]
+(pass) switching to Changes and back retains the original editor undo history [347.47ms]
+(pass) Git changes reuse the original split and unified diff controls without account providers [517.92ms]
+(pass) history opens the selected commit files and requests that commit's original diff [276.97ms]
+(pass) the configured base branch reaches status and against-base diff queries [524.22ms]
+(pass) a late configured base invalidates an in-flight default-base diff and refreshes comparison status [294.61ms]
+(pass) pull reloads a clean original editor from the changed worktree [557.30ms]
+(pass) opening a file during a Git refresh is not silently dropped [127.67ms]
+(pass) remote filesystem events refresh the original tree and clean editor while preserving an unsaved draft [304.24ms]
+(pass) a backend without the optional file events capability keeps manual file access without opening a socket [97.28ms]
+(pass) the original conflict dialog reloads from the selected backend only after the explicit reload action [409.42ms]
+(pass) the original overwrite control reaches the bounded explicit conflict resolver instead of a blind force save [511.89ms]
+(pass) a deleted clean file can be restored through the original Save and explicit overwrite controls [423.59ms]
+
+ 32 pass
+ 0 fail
+ 249 expect() calls
+Ran 32 tests across 1 file. [8.47s]

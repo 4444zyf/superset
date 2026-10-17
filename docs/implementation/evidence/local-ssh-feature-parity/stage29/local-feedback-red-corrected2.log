@@ -1,0 +1,100 @@
+$ bun test src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [188.31ms]
+(pass) the original explorer action opens a create form using the current remote directory [98.91ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [100.51ms]
+(pass) content search opens the selected remote file at the matched line [443.13ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [66.53ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [128.35ms]
+342 | 	clickTreeRow(await treeRow("note.txt"));
+343 | 	const editor = await fileEditor();
+344 | 	replaceContent(editor, "keep my draft");
+345 | 	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
+346 | 	await screen.findByRole("dialog", {name: "File changed on disk"});
+347 | 	expect(errors).toEqual([]);
+                      ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   "This file changed on the remote machine. Your draft is preserved; reload before saving.",
++ ]
+
+- Expected  - 1
++ Received  + 3
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:347:17)
+(fail) a concurrent remote edit preserves the user's draft without a blind retry [142.92ms]
+(pass) a truncated read cannot overwrite the complete remote file [140.02ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [85.09ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [137.14ms]
+(pass) editing a remote CRLF file preserves its line endings [152.23ms]
+(pass) Git diffs use the remote status category and surface transport failures [69.73ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [94.02ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [134.77ms]
+636 | 		expect(
+637 | 			f.calls.filter((call) => call.path === "filesystem.writeFile"),
+638 | 		).toHaveLength(1),
+639 | 	);
+640 | 	const conflictDialog = await screen.findByRole("dialog", {name: "File changed on disk"});
+641 | 	expect(f.errors).toEqual([]);
+                        ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   "This file changed on the remote machine. Your draft is preserved; reload before saving.",
++ ]
+
+- Expected  - 1
++ Received  + 3
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:641:19)
+(fail) an autosave conflict preserves the draft and blocks further automatic writes [177.83ms]
+694 | 	);
+695 | 	await act(async () => {
+696 | 		fail();
+697 | 	});
+698 | 	await screen.findByText("Save failed: Reply lost");
+699 | 	expect(f.errors).toEqual([]);
+                        ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   "Reply lost",
++ ]
+
+- Expected  - 1
++ Received  + 3
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:699:19)
+(fail) a lost autosave reply does not retry the write on the next window blur [131.42ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [451.65ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [363.21ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [391.71ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [329.30ms]
+(pass) switching to Changes and back retains the original editor undo history [392.33ms]
+(pass) Git changes reuse the original split and unified diff controls without account providers [531.93ms]
+(pass) history opens the selected commit files and requests that commit's original diff [247.04ms]
+(pass) the configured base branch reaches status and against-base diff queries [466.27ms]
+(pass) a late configured base invalidates an in-flight default-base diff and refreshes comparison status [314.48ms]
+(pass) pull reloads a clean original editor from the changed worktree [574.61ms]
+(pass) opening a file during a Git refresh is not silently dropped [134.62ms]
+(pass) remote filesystem events refresh the original tree and clean editor while preserving an unsaved draft [268.86ms]
+(pass) a backend without the optional file events capability keeps manual file access without opening a socket [103.25ms]
+(pass) the original conflict dialog reloads from the selected backend only after the explicit reload action [338.15ms]
+(pass) the original overwrite control reaches the bounded explicit conflict resolver instead of a blind force save [455.49ms]
+
+3 tests failed:
+(fail) a concurrent remote edit preserves the user's draft without a blind retry [142.92ms]
+(fail) an autosave conflict preserves the draft and blocks further automatic writes [177.83ms]
+(fail) a lost autosave reply does not retry the write on the next window blur [131.42ms]
+
+ 28 pass
+ 3 fail
+ 229 expect() calls
+Ran 31 tests across 1 file. [8.05s]
+error: script "test" exited with code 1
