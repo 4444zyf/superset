@@ -42,6 +42,7 @@ const procedures: Record<string, "query" | "mutation"> = {
 	"workspaces.create": "mutation",
 	"workspaces.createSession": "mutation",
 	"terminal.list": "query",
+	"settings.agentConfigs.list": "query",
 	"terminal.createSession": "mutation",
 	"terminal.launchSession": "mutation",
 	"chat.createSession": "mutation",
@@ -168,6 +169,14 @@ export class WorkstationController {
 			: undefined;
 		if ((workspaceProcedure?.type ?? procedures[request.path]) !== request.type)
 			throw new Error("Unsupported workstation procedure");
+		if (request.path === "settings.agentConfigs.list") {
+			const features = await this.features(request.connectionId);
+			this.assertGeneration(request.connectionId, request.generation);
+			if (!features.capabilities?.workstationTerminalPresetsV1)
+				throw new Error(
+					"This backend does not support the required capability",
+				);
+		}
 		if (workspaceProcedure) {
 			const identity = workspaceProcedure.identity ?? "workspaceId";
 			const input = request.input as Record<string, unknown> | undefined;

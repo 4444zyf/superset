@@ -558,7 +558,9 @@ test("attachment and file event readiness require explicit backend capabilities"
 		expect(features.capabilities?.workstationChatAttachmentInputV1).toBe(
 			advertised === true,
 		);
-		expect(features.capabilities?.workstationTerminalPresetsV1).toBe(advertised === true);
+		expect(features.capabilities?.workstationTerminalPresetsV1).toBe(
+			advertised === true,
+		);
 	}
 });
 
@@ -886,4 +888,43 @@ test("setup status is read only with an explicit workspace and its advertised ca
 	).rejects.toThrow("explicit workspace");
 	expect(await controller.invoke(request)).toBeNull();
 	expect(requests).toEqual([request]);
+});
+
+test("only the advertised read-only terminal agent catalog is exposed to the workstation", async () => {
+	const f = fixture();
+	let enabled = false;
+	const calls: unknown[] = [];
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationTerminalPresetsV1: enabled },
+		}),
+		invoke: async (id, request) => {
+			calls.push({ id, ...request });
+			return [{ id: "remote-config" }];
+		},
+	});
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "settings.agentConfigs.list",
+		type: "query" as const,
+	};
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"required capability",
+	);
+	expect(calls).toEqual([]);
+	enabled = true;
+	expect(await controller.invoke(request)).toEqual([{ id: "remote-config" }]);
+	expect(calls).toEqual([
+		{ id: "machine", ...request },
+	]);
+	await expect(
+		controller.invoke({
+			...request,
+			path: "settings.agentConfigs.update",
+			type: "mutation",
+		}),
+	).rejects.toThrow("Unsupported workstation procedure");
+	expect(calls).toHaveLength(1);
 });
