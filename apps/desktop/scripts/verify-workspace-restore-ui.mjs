@@ -37,6 +37,7 @@ export async function verifyWorkspaceRestoreUi({
 	setClipboard,
 	pasteClipboard,
 	inspectClipboardImage,
+	readClipboardText,
 	output,
 	samples = 20,
 }) {
@@ -491,7 +492,7 @@ export async function verifyWorkspaceRestoreUi({
 		return;
 	}
 	if (process.argv.includes("--chat-clipboard-only")) {
-		await verifyWorkstationChatClipboardUi({ getPage, click, screenshot, closeReopen, setClipboard, pasteClipboard, inspectClipboardImage, controls, output });
+		await verifyWorkstationChatClipboardUi({ getPage, click, screenshot, closeReopen, setClipboard, pasteClipboard, inspectClipboardImage, readClipboardText, controls, output });
 		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, chatClipboardOnly: true }, null, 2) + "\n");
 		return;
 	}

@@ -205,3 +205,56 @@ test("a failed explicit discard restores its message and stops automatic retries
 	expect(calls).toBe(3);
 	store.stop();
 });
+
+test("offline draft review includes replaced backends and removed sessions, with exact target filtering", async () => {
+	const entries = [
+		{ identity, value: { text: "old backend", attachments: [] } },
+		{
+			identity: {
+				...identity,
+				backendId: "replacement",
+				sessionId: "missing-session",
+			},
+			value: { text: "orphaned draft", attachments: [] },
+		},
+		{
+			identity: { ...identity, connectionId: "other" },
+			value: { text: "other machine", attachments: [] },
+		},
+	];
+	const store = new WorkstationChatDraftStore(
+		{ getChatDrafts: async () => ({ revision: 4, invalid: false, entries }) },
+		noTimer,
+	);
+	await store.start();
+	expect(store.list()).toEqual(entries);
+	expect(store.list({ connectionId: "machine" })).toEqual(entries.slice(0, 2));
+	expect(
+		store.list({
+			...identity,
+			backendId: "replacement",
+			sessionId: "missing-session",
+		}),
+	).toEqual([entries[1]]);
+	expect(store.list({ ...identity, namespaceId: "unrelated" })).toEqual([]);
+	store.stop();
+});
+
+test("an explicit discard of a reviewed draft cannot delete newer text or references", async () => {
+	const store = new WorkstationChatDraftStore({}, noTimer);
+	const reviewed = { text: "reviewed", attachments: [] };
+	store.change(identity, reviewed);
+	const newer = {
+		text: "new edit arrived",
+		attachments: [
+			{ attachmentId: "late", mediaType: "text/plain", sizeBytes: 5 },
+		],
+	};
+	store.change(identity, newer);
+	expect(await store.discard(identity, reviewed)).toBe(false);
+	expect(store.get(identity)).toEqual(newer);
+	await store.flush();
+	expect(await store.discard(identity, store.get(identity))).toBe(true);
+	expect(store.get(identity).text).toBe("");
+	store.stop();
+});

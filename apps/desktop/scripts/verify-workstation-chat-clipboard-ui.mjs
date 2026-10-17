@@ -13,6 +13,7 @@ export async function verifyWorkstationChatClipboardUi({
 	setClipboard,
 	pasteClipboard,
 	inspectClipboardImage,
+	readClipboardText,
 	controls,
 	output,
 }) {
@@ -302,7 +303,9 @@ export async function verifyWorkstationChatClipboardUi({
 	await noPrompt();
 	await screenshot("chat-clipboard-new-session-isolated");
 
-	const draftActions = process.argv.includes("--expect-chat-draft-actions");
+	const draftManager = process.argv.includes("--expect-chat-draft-manager");
+	const draftActions =
+		process.argv.includes("--expect-chat-draft-actions") || draftManager;
 	const retainDrafts =
 		process.argv.includes("--expect-retained-chat-drafts") || draftActions;
 	const selectDraftedChat = async () => {
@@ -454,16 +457,117 @@ export async function verifyWorkstationChatClipboardUi({
 			evaluate("!document.querySelector('[role=alertdialog]')"),
 		);
 		assert.equal(await message(), plain);
-		await click("text:Discard changes");
-		await until(() =>
-			evaluate("Boolean(document.querySelector('[role=alertdialog]'))"),
-		);
-		await click('[role="alertdialog"] button:last-child');
-		await until(
-			async () =>
-				(await message()) === "" &&
-				(await evaluate("!document.querySelector('[role=alertdialog]')")),
-		);
+		if (draftManager) {
+			const manager = "[data-chat-drafts]";
+			const managerText = () =>
+				evaluate(`document.querySelector('${manager} textarea')?.value`);
+			const closeManager = async () => {
+				await click(`${manager} [data-slot="dialog-close"]`);
+				await until(() => evaluate(`!document.querySelector('${manager}')`));
+			};
+			const openManager = async () => {
+				await click('button[aria-label="Chat drafts"]');
+				await until(async () => (await managerText()) === plain);
+				assert.equal(
+					await evaluate(
+						`document.querySelector('${manager} textarea').readOnly`,
+					),
+					true,
+				);
+				assert.equal(
+					await evaluate(
+						`document.querySelectorAll('${manager} article').length`,
+					),
+					1,
+				);
+				assert.equal(
+					await evaluate(
+						`document.querySelectorAll('${manager} article button:disabled').length`,
+					),
+					file ? 2 : 1,
+				);
+			};
+			await openManager();
+			await click(`${manager} button[aria-label="Copy"]`);
+			await until(async () => (await readClipboardText()) === plain);
+			await screenshot("chat-draft-manager-original-copy-exact");
+			await closeManager();
+			await click(
+				'[data-slot=sidebar-content] button[aria-label="SSH machines"]',
+			);
+			await click("text:Disconnect");
+			await until(() =>
+				evaluate(
+					`(async()=>{const v=await window.directWorkstation.getWorkspaceView();return v.snapshot.targets.find(t=>t.connectionId===${JSON.stringify(scope.connectionId)})?.autoConnect===false;})()`,
+				),
+			);
+			await openManager();
+			assert.equal(controls.inspectChatAttachments().length, file ? 3 : 2);
+			await screenshot("chat-draft-manager-disconnected-readable");
+			await closeReopen();
+			await until(() =>
+				evaluate(
+					`(async()=>{const r=await window.directWorkstation.getWorkspaceRestore();return r.status==='paused';})()`,
+				),
+			);
+			await openManager();
+			await screenshot("chat-draft-manager-offline-reopened-retained");
+			await click(`${manager} article button:last-child`);
+			await until(() =>
+				evaluate("Boolean(document.querySelector('[role=alertdialog]'))"),
+			);
+			await click("text:Cancel");
+			await until(() =>
+				evaluate("!document.querySelector('[role=alertdialog]')"),
+			);
+			assert.equal(await managerText(), plain);
+			await click(`${manager} article button:last-child`);
+			await until(() =>
+				evaluate("Boolean(document.querySelector('[role=alertdialog]'))"),
+			);
+			await click('[role="alertdialog"] button:last-child');
+			await until(() =>
+				evaluate(
+					`!document.querySelector('[role=alertdialog]')&&!document.querySelector('${manager} article')`,
+				),
+			);
+			assert.equal(
+				(
+					await evaluate("window.directWorkstation.getChatDrafts()")
+				).entries.some(
+					(entry) => entry.identity.sessionId === draftedSessionId,
+				),
+				false,
+			);
+			assert.equal(controls.inspectChatAttachments().length, file ? 3 : 2);
+			await screenshot("chat-draft-manager-offline-explicitly-discarded");
+			await closeManager();
+			await click("text:Connect");
+			await until(() =>
+				evaluate(
+					`(async()=>{const r=await window.directWorkstation.getWorkspaceRestore();return r.status==='ready'&&r.descriptor?.connectionId===${JSON.stringify(scope.connectionId)};})()`,
+				),
+			);
+			await until(() =>
+				evaluate("Boolean(document.querySelector('.ws-workspace-grid'))"),
+			);
+			await click(
+				`button.ws-workspace-card[aria-label=${JSON.stringify(workspace.name)}]`,
+			);
+			await ready();
+			await selectDraftedChat();
+		} else {
+			await click("text:Discard changes");
+			await until(() =>
+				evaluate("Boolean(document.querySelector('[role=alertdialog]'))"),
+			);
+			await click('[role="alertdialog"] button:last-child');
+			await until(
+				async () =>
+					(await message()) === "" &&
+					(await evaluate("!document.querySelector('[role=alertdialog]')")),
+			);
+		}
 		assert.equal(await message(), "");
 		assert.equal(
 			await evaluate(
@@ -512,6 +616,7 @@ export async function verifyWorkstationChatClipboardUi({
 				sourceRevision: process.env.GITHUB_SHA,
 				retainedDraftsChecked: retainDrafts,
 				draftActionsChecked,
+				offlineDraftManagerChecked: draftManager,
 				persistedDraft,
 				physicalNativePaste: true,
 				osClipboard: true,

@@ -6,6 +6,7 @@ import {
 	applyUIColors,
 	updateThemeClass,
 } from "renderer/stores/theme/utils/css-variables";
+import type { ChatDraftTarget } from "../../../shared/workstation-chat-drafts";
 import { LocalDataPanel } from "./components/LocalDataPanel";
 import { MachineForm } from "./components/MachineForm/MachineForm";
 import { MachineManager } from "./components/MachineManager/MachineManager";
@@ -15,6 +16,7 @@ import { SessionDialog } from "./components/SessionDialog/SessionDialog";
 import { WorkspaceBrowser } from "./components/WorkspaceBrowser/WorkspaceBrowser";
 import { WorkspaceEditor } from "./components/WorkspaceEditor/WorkspaceEditor";
 import { WorkspaceWindow } from "./components/WorkspaceWindow/WorkspaceWindow";
+import { WorkstationChatDraftManager } from "./components/WorkstationChatDraftManager/WorkstationChatDraftManager";
 import { WorkstationCloseGuard } from "./components/WorkstationCloseGuard";
 import { WorkstationDialog } from "./components/WorkstationDialog/WorkstationDialog";
 import { WorkstationShell } from "./components/WorkstationShell/WorkstationShell";
@@ -74,6 +76,9 @@ export function Workstation({
 		[documents, preferences.snapshot?.values.fileAutoSave],
 	);
 	const [settingsOpen, setSettingsOpen] = useState(false);
+	const [draftManager, setDraftManager] = useState<{
+		target?: ChatDraftTarget;
+	} | null>(null);
 	const theme =
 		getBuiltInTheme(preferences.snapshot?.values.themeId ?? "dark") ??
 		darkTheme;
@@ -373,6 +378,7 @@ export function Workstation({
 						}
 					: undefined
 			}
+			onChatDrafts={() => setDraftManager({})}
 			page={page}
 			onSettings={
 				api.getPreferences && api.updatePreferences
@@ -835,6 +841,17 @@ export function Workstation({
 							type="button"
 							className="ws-button"
 							disabled={disabled}
+							onClick={() => {
+								setDraftManager({ target: { connectionId: remove.id } });
+								setRemove(null);
+							}}
+						>
+							<Trans>Chat drafts</Trans>
+						</button>
+						<button
+							type="button"
+							className="ws-button"
+							disabled={disabled}
 							onClick={() => setRemove(null)}
 						>
 							<Trans>Cancel</Trans>
@@ -875,6 +892,14 @@ export function Workstation({
 							/>
 						)}
 						{content}
+						{draftManager && (
+							<WorkstationChatDraftManager
+								store={chatDrafts}
+								profiles={ui.profiles}
+								target={draftManager.target}
+								onClose={() => setDraftManager(null)}
+							/>
+						)}
 						{deleteWorkspace && connected && ui.connection && (
 							<RemoteWorkspaceDelete
 								key={JSON.stringify([

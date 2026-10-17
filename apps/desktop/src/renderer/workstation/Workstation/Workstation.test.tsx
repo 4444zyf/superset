@@ -628,3 +628,113 @@ test("pending actions show their purpose and retain unresolved work when acknowl
 	expect(screen.queryByText("Unresolved")).toBeNull();
 	expect(confirmations).toBe(2);
 });
+
+test("offline chat drafts remain reviewable and explicitly discardable without a connection or session", async () => {
+	const browser = (
+		window as unknown as { happyDOM: { setURL(url: string): void } }
+	).happyDOM;
+	const previousUrl = window.location.href;
+	browser.setURL(
+		"file:///workspace/superset/apps/desktop/dist/renderer/index.html",
+	);
+	const identity = {
+		connectionId: "unavailable-machine",
+		backendId: "replaced-backend",
+		namespaceId: "old-namespace",
+		workspaceId: "removed-workspace",
+		sessionId: "removed-session",
+	};
+	let snapshot = {
+		revision: 2,
+		invalid: false,
+		entries: [
+			{
+				identity,
+				value: {
+					text: "recover 中文 🙂\nunsent",
+					attachments: [
+						{
+							attachmentId: "opaque",
+							originalFilename: "keep.png",
+							mediaType: "image/png",
+							sizeBytes: 7,
+						},
+					],
+				},
+			},
+			{
+				identity: { ...identity, backendId: "current-backend" },
+				value: { text: "different backend draft", attachments: [] },
+			},
+		],
+	};
+	const remoteCalls: string[] = [];
+	const api = {
+		list: async () => [],
+		getChatDrafts: async () => snapshot,
+		saveChatDrafts: async (input: {
+			expectedRevision: number;
+			entries: typeof snapshot.entries;
+		}) => {
+			expect(input.expectedRevision).toBe(snapshot.revision);
+			snapshot = {
+				...snapshot,
+				revision: snapshot.revision + 1,
+				entries: input.entries,
+			};
+			return snapshot;
+		},
+		connect: async () => {
+			remoteCalls.push("connect");
+			throw new Error("offline");
+		},
+		rpc: async () => {
+			remoteCalls.push("rpc");
+			throw new Error("offline");
+		},
+		readAttachment: async () => {
+			remoteCalls.push("download");
+			throw new Error("offline");
+		},
+	} as unknown as DirectWorkstationApi;
+	const view = render(<Workstation api={api} />);
+	try {
+		fireEvent.click(await screen.findByRole("button", { name: "Chat drafts" }));
+		const area = await screen.findByDisplayValue(/recover 中文 🙂\sunsent/);
+		expect((area as HTMLTextAreaElement).readOnly).toBe(true);
+		expect((area as HTMLTextAreaElement).value).toBe("recover 中文 🙂\nunsent");
+		expect(
+			screen.getByRole("button", { name: "keep.png" }).hasAttribute("disabled"),
+		).toBe(true);
+		expect(remoteCalls).toEqual([]);
+		const article = area.closest("article")!;
+		fireEvent.click(
+			within(article).getByRole("button", { name: "Discard changes" }),
+		);
+		const confirmation = await screen.findByRole("alertdialog");
+		fireEvent.click(
+			within(confirmation).getByRole("button", { name: "Cancel" }),
+		);
+		expect(snapshot.entries).toHaveLength(2);
+		fireEvent.click(
+			within(article).getByRole("button", { name: "Discard changes" }),
+		);
+		await act(async () =>
+			fireEvent.click(
+				within(await screen.findByRole("alertdialog")).getByRole("button", {
+					name: "Discard changes",
+				}),
+			),
+		);
+		await waitFor(() => expect(snapshot.entries).toHaveLength(1));
+		expect(snapshot.entries[0]?.identity.backendId).toBe("current-backend");
+		fireEvent.click(screen.getByRole("button", { name: "Close" }));
+		fireEvent.click(screen.getByRole("button", { name: "Chat drafts" }));
+		await screen.findByDisplayValue("different backend draft");
+		expect(screen.queryByDisplayValue(/recover 中文 🙂\sunsent/)).toBeNull();
+		expect(remoteCalls).toEqual([]);
+	} finally {
+		view.unmount();
+		browser.setURL(previousUrl);
+	}
+});

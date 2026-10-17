@@ -18,6 +18,7 @@ import {
 } from "@superset/ui/sidebar";
 import { TooltipProvider } from "@superset/ui/tooltip";
 import {
+	FilePenLine,
 	Grid2X2,
 	Info,
 	Laptop,
@@ -41,6 +42,7 @@ export function WorkstationShell({
 	settings,
 	workspaceOpen,
 	onSettings,
+	onChatDrafts,
 	onNavigate,
 	onProject,
 	onProjectSettings,
@@ -51,6 +53,7 @@ export function WorkstationShell({
 	settings?: ReactNode;
 	workspaceOpen?: boolean;
 	onSettings?(): void;
+	onChatDrafts?(): void;
 	onNavigate(page: "machines" | "workspaces"): void;
 	onProject(id: string): void;
 	onProjectSettings?(id: string): void;
@@ -168,6 +171,20 @@ export function WorkstationShell({
 									{settings}
 								</div>
 								<SidebarMenu>
+									{onChatDrafts && (
+										<SidebarMenuItem>
+											<SidebarMenuButton
+												tooltip={t({ message: "Chat drafts" })}
+												aria-label={t({ message: "Chat drafts" })}
+												onClick={onChatDrafts}
+											>
+												<FilePenLine />
+												<span>
+													<Trans>Chat drafts</Trans>
+												</span>
+											</SidebarMenuButton>
+										</SidebarMenuItem>
+									)}
 									{onSettings && (
 										<SidebarMenuItem>
 											<SidebarMenuButton

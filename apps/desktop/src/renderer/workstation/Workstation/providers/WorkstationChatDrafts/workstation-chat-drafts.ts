@@ -160,16 +160,31 @@ export class WorkstationChatDraftStore {
 		this.writer.change("snapshot", this.sequence);
 		this.notify();
 	}
+	isReady() {
+		return this.ready;
+	}
+	list(target?: ChatDraftTarget): ChatDraftEntry[] {
+		return [...this.entries.values()].filter(
+			(entry) => !target || hasChatDraftsForTarget([entry], target),
+		);
+	}
 	hasDrafts(target: ChatDraftTarget): boolean {
 		return (
 			!this.ready || hasChatDraftsForTarget([...this.entries.values()], target)
 		);
 	}
-	async discard(identity: ChatDraftIdentity) {
+	async discard(identity: ChatDraftIdentity, expectedValue?: ChatDraftValue) {
+		await this.start();
+		if (
+			expectedValue &&
+			JSON.stringify(this.get(identity)) !== JSON.stringify(expectedValue)
+		)
+			return false;
 		const previous = this.get(identity);
 		this.change(identity, { text: "", attachments: [] });
 		try {
 			await this.flush();
+			return true;
 		} catch (error) {
 			if (this.get(identity) === EMPTY) {
 				this.change(identity, previous);
