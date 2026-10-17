@@ -289,3 +289,69 @@ test("a late chat-draft flush after the close dialog unmounts cannot start a fil
 	expect(f.writes).toEqual([]);
 	expect(f.doc.dirty).toBe(true);
 });
+
+test("a transient settings draft shares the original window guard and failed Save All cannot approve close", async () => {
+	const f = fixture();
+	await settle();
+	let dirty = true,
+		fail = true,
+		saves = 0;
+	const listeners = new Set<() => void>();
+	let version = 0;
+	const guard = {
+		id: "settings",
+		label: () => "Remote Codex",
+		isDirty: () => dirty,
+		isPending: () => false,
+		getError: () => "Agent configuration changed",
+		save: async () => {
+			saves++;
+			if (fail) return false;
+			dirty = false;
+			version++;
+			for (const listener of listeners) listener();
+			return true;
+		},
+	};
+	const editors = {
+		getVersion: () => version,
+		subscribe: (listener: () => void) => {
+			listeners.add(listener);
+			return () => {
+				listeners.delete(listener);
+			};
+		},
+		getUnsaved: () => (dirty ? [guard] : []),
+	};
+	render(
+		<WorkstationCloseGuard
+			api={f.api}
+			documents={f.manager}
+			editors={editors}
+		/>,
+	);
+	let request!: Promise<boolean>;
+	let approved = false;
+	await act(async () => {
+		request = f.request();
+		void request.then((value) => {
+			approved = value;
+		});
+		await settle();
+	});
+	expect(approved).toBe(false);
+	await screen.findByText("Remote Codex");
+	fireEvent.click(screen.getByRole("button", { name: "Save All" }));
+	await screen.findByText("Agent configuration changed");
+	expect(approved).toBe(false);
+	expect(dirty).toBe(true);
+	expect(saves).toBe(1);
+	fail = false;
+	await act(async () => {
+		fireEvent.click(screen.getByRole("button", { name: "Save All" }));
+		await settle();
+	});
+	expect(await request).toBe(true);
+	expect(saves).toBe(2);
+	expect(f.writes).toEqual([]);
+});

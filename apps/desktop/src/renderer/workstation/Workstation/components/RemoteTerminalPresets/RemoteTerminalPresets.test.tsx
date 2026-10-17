@@ -133,3 +133,70 @@ test("older hosts receive no preset queries and late replies cannot populate a d
 	await act(async () => reply([config]));
 	expect(screen.queryByRole("button", { name: "Remote Codex" })).toBeNull();
 });
+
+test("agent settings open the original launch form without launching a terminal", async () => {
+	const calls: DirectRpc[] = [];
+	const api = {
+		rpc: async (r: DirectRpc) => {
+			calls.push(r);
+			return r.path === "settings.agentConfigs.list"
+				? [config]
+				: { config, revision: "a".repeat(64) };
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<TooltipProvider>
+			<RemoteTerminalPresets
+				api={api}
+				connection={{
+					...connection,
+					capabilities: {
+						...connection.capabilities,
+						workstationAgentSettingsV1: true,
+					},
+				}}
+				workspaceId="workspace"
+				busy={false}
+				onLaunch={() => {
+					throw new Error("must not launch");
+				}}
+			/>
+		</TooltipProvider>,
+	);
+	await screen.findByRole("button", { name: "Remote Codex" });
+	fireEvent.click(screen.getByRole("button", { name: "Agent settings" }));
+	await screen.findByRole("textbox", { name: "Command" });
+	expect(calls.some((r) => r.type === "mutation")).toBe(false);
+});
+
+test("the host's custom configurations remain selectable beyond the first 128 entries", async () => {
+	const agents = Array.from({ length: 129 }, (_, index) => ({
+		...config,
+		id: `custom-${index}`,
+		presetId: "custom",
+		label: `Configured agent ${index + 1}`,
+	}));
+	const api = { rpc: async () => agents } as unknown as DirectWorkstationApi;
+	render(
+		<TooltipProvider>
+			<RemoteTerminalPresets
+				api={api}
+				connection={connection}
+				workspaceId="workspace"
+				busy={false}
+				onLaunch={() => {}}
+			/>
+		</TooltipProvider>,
+	);
+	await waitFor(() =>
+		expect(
+			screen.getByRole("button", { name: "Agents" }).hasAttribute("disabled"),
+		).toBe(false),
+	);
+	fireEvent.pointerDown(screen.getByRole("button", { name: "Agents" }), {
+		button: 0,
+		ctrlKey: false,
+		pointerType: "mouse",
+	});
+	await screen.findByRole("menuitem", { name: "Configured agent 129" });
+});

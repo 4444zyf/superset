@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { PromptTransport } from "@superset/shared/agent-prompt-launch";
 import {
 	getDefaultSeedPresets,
@@ -232,6 +232,74 @@ const updatePatchSchema = z
 		{ message: "Patch must update at least one field" },
 	);
 
+function updateAgentConfig(
+	db: Pick<HostDb, "select" | "update">,
+	input: { id: string; patch: z.infer<typeof updatePatchSchema> },
+): HostAgentConfig {
+	const existing = db
+		.select()
+		.from(hostAgentConfigs)
+		.where(eq(hostAgentConfigs.id, input.id))
+		.get();
+	if (!existing) {
+		throw new TRPCError({
+			code: "NOT_FOUND",
+			message: `Host agent config not found: ${input.id}`,
+		});
+	}
+	const update: Partial<typeof hostAgentConfigs.$inferInsert> = {
+		updatedAt: Date.now(),
+	};
+	if (input.patch.label !== undefined) update.label = input.patch.label;
+	if (input.patch.command !== undefined) update.command = input.patch.command;
+	if (input.patch.args !== undefined)
+		update.argsJson = JSON.stringify(input.patch.args);
+	if (input.patch.promptTransport !== undefined)
+		update.promptTransport = input.patch.promptTransport;
+	if (input.patch.promptArgs !== undefined)
+		update.promptArgsJson = JSON.stringify(input.patch.promptArgs);
+	if (input.patch.resumeArgs !== undefined)
+		update.resumeArgsJson = JSON.stringify(input.patch.resumeArgs);
+	if (input.patch.forkArgs !== undefined)
+		update.forkArgsJson = JSON.stringify(input.patch.forkArgs);
+	if (input.patch.env !== undefined)
+		update.envJson = JSON.stringify(input.patch.env);
+	if (input.patch.iconId !== undefined) update.iconId = input.patch.iconId;
+	db.update(hostAgentConfigs)
+		.set(update)
+		.where(eq(hostAgentConfigs.id, input.id))
+		.run();
+	const updated = db
+		.select()
+		.from(hostAgentConfigs)
+		.where(eq(hostAgentConfigs.id, input.id))
+		.get();
+	if (!updated) {
+		throw new TRPCError({
+			code: "INTERNAL_SERVER_ERROR",
+			message: "Failed to read back updated host agent config",
+		});
+	}
+	return toOutput(updated);
+}
+
+function versionedAgentConfig(db: Pick<HostDb, "select">, id: string) {
+	const row = db
+		.select()
+		.from(hostAgentConfigs)
+		.where(eq(hostAgentConfigs.id, id))
+		.get();
+	if (!row)
+		throw new TRPCError({
+			code: "NOT_FOUND",
+			message: `Host agent config not found: ${id}`,
+		});
+	return {
+		config: toOutput(row),
+		revision: createHash("sha256").update(JSON.stringify(row)).digest("hex"),
+	};
+}
+
 const addInputSchema = z.object({
 	label: z.string().trim().min(1),
 	command: z.string().trim().min(1),
@@ -302,6 +370,31 @@ export const agentConfigsRouter = router({
 		return toOutput(created);
 	}),
 
+	getWithRevisionV1: protectedProcedure
+		.input(z.object({ id: z.string().min(1) }))
+		.query(({ ctx, input }) => versionedAgentConfig(ctx.db, input.id)),
+
+	updateWithRevisionV1: protectedProcedure
+		.input(
+			z.object({
+				id: z.string().min(1),
+				expectedRevision: z.string().regex(/^[a-f0-9]{64}$/),
+				patch: updatePatchSchema,
+			}),
+		)
+		.mutation(({ ctx, input }) =>
+			ctx.db.transaction((tx) => {
+				const before = versionedAgentConfig(tx, input.id);
+				if (before.revision !== input.expectedRevision)
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "Agent configuration changed",
+					});
+				updateAgentConfig(tx, input);
+				return versionedAgentConfig(tx, input.id);
+			}),
+		),
+
 	/**
 	 * Update editable fields on an existing config. `presetId` and `order`
 	 * are not mutable.
@@ -314,53 +407,7 @@ export const agentConfigsRouter = router({
 			}),
 		)
 		.mutation(({ ctx, input }) => {
-			const existing = ctx.db
-				.select()
-				.from(hostAgentConfigs)
-				.where(eq(hostAgentConfigs.id, input.id))
-				.get();
-			if (!existing) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: `Host agent config not found: ${input.id}`,
-				});
-			}
-			const update: Partial<typeof hostAgentConfigs.$inferInsert> = {
-				updatedAt: Date.now(),
-			};
-			if (input.patch.label !== undefined) update.label = input.patch.label;
-			if (input.patch.command !== undefined)
-				update.command = input.patch.command;
-			if (input.patch.args !== undefined)
-				update.argsJson = JSON.stringify(input.patch.args);
-			if (input.patch.promptTransport !== undefined)
-				update.promptTransport = input.patch.promptTransport;
-			if (input.patch.promptArgs !== undefined)
-				update.promptArgsJson = JSON.stringify(input.patch.promptArgs);
-			if (input.patch.resumeArgs !== undefined)
-				update.resumeArgsJson = JSON.stringify(input.patch.resumeArgs);
-			if (input.patch.forkArgs !== undefined)
-				update.forkArgsJson = JSON.stringify(input.patch.forkArgs);
-			if (input.patch.env !== undefined)
-				update.envJson = JSON.stringify(input.patch.env);
-			if (input.patch.iconId !== undefined) update.iconId = input.patch.iconId;
-			ctx.db
-				.update(hostAgentConfigs)
-				.set(update)
-				.where(eq(hostAgentConfigs.id, input.id))
-				.run();
-			const updated = ctx.db
-				.select()
-				.from(hostAgentConfigs)
-				.where(eq(hostAgentConfigs.id, input.id))
-				.get();
-			if (!updated) {
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to read back updated host agent config",
-				});
-			}
-			return toOutput(updated);
+			return updateAgentConfig(ctx.db, input);
 		}),
 
 	/**

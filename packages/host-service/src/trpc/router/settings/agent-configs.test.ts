@@ -631,3 +631,54 @@ describe("agentConfigsRouter", () => {
 		});
 	});
 });
+
+describe("versioned local agent editing", () => {
+	it("keeps every original config field and refuses a stale edit after another client changes the launch", async () => {
+		const caller = createCaller();
+		const first = await listFirst(caller);
+		const reviewed = await caller.getWithRevisionV1({ id: first.id });
+		expect(reviewed.config).toEqual(first);
+		expect(reviewed.revision).toMatch(/^[a-f0-9]{64}$/);
+		const external = await caller.update({
+			id: first.id,
+			patch: {
+				command: "external-agent",
+				args: ["--approval-mode", "manual"],
+				env: { REMIX_TEST: "中文 value" },
+			},
+		});
+		await expect(
+			caller.updateWithRevisionV1({
+				id: first.id,
+				expectedRevision: reviewed.revision,
+				patch: { label: "stale label" },
+			}),
+		).rejects.toMatchObject({ code: "CONFLICT" });
+		expect((await caller.getWithRevisionV1({ id: first.id })).config).toEqual(
+			external,
+		);
+	});
+	it("explicitly saves a reviewed patch while preserving unrelated permissions, prompt and resume settings", async () => {
+		const caller = createCaller();
+		const first = await listFirst(caller);
+		const configured = await caller.update({
+			id: first.id,
+			patch: {
+				args: ["--approval-mode", "manual"],
+				promptArgs: ["--"],
+				resumeArgs: ["resume"],
+				forkArgs: ["fork", "{sessionId}"],
+				env: { REMIX_TEST: "space and 🙂" },
+			},
+		});
+		const before = await caller.getWithRevisionV1({ id: first.id });
+		const saved = await caller.updateWithRevisionV1({
+			id: first.id,
+			expectedRevision: before.revision,
+			patch: { label: "Reviewed agent" },
+		});
+		expect(saved.config).toEqual({ ...configured, label: "Reviewed agent" });
+		expect(saved.revision).not.toBe(before.revision);
+		expect(await caller.getWithRevisionV1({ id: first.id })).toEqual(saved);
+	});
+});

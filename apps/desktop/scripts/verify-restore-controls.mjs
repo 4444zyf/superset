@@ -57,6 +57,14 @@ export function ownedRestoreControls(home, fixture) {
 			} finally {db.close();}
 			return {label};
 		},
+		async changeFixtureAgentConfig(id) {
+			assert.equal(process.platform,"linux");
+			assert.match(id,/^[0-9a-f-]{36}$/);
+			const path=join(home,"host",identity.namespaceId,"host.db");
+			assert.equal(lstatSync(path).uid,process.getuid());
+			const {DatabaseSync}=await import("node:sqlite");const db=new DatabaseSync(path);
+			try {const result=db.prepare("UPDATE host_agent_configs SET command=?, updated_at=updated_at+1 WHERE id=?").run("/external/agent-not-executable",id);assert.equal(result.changes,1);}finally{db.close();}
+		},
 		async inspectPresetTerminal(terminalId) {
 			const client = await connectAndHello(socket);
 			let row;

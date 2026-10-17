@@ -4,21 +4,34 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { UnsavedChangesDialog } from "renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/TabView/FileViewerPane/UnsavedChangesDialog";
 import type { DirectWorkstationApi } from "../../../../../shared/direct-workstation";
 import type { WorkstationChatDraftStore } from "../../providers/WorkstationChatDrafts/workstation-chat-drafts";
+import { WorkstationEditorGuards } from "../../providers/WorkstationEditorGuards/workstation-editor-guards";
 import type { WorkstationFileDocuments } from "../../providers/WorkstationFileDocuments";
+
+const EMPTY_EDITORS = new WorkstationEditorGuards();
 export function WorkstationCloseGuard({
 	api,
 	documents,
 	chatDrafts,
+	editors = EMPTY_EDITORS,
 }: {
 	api: DirectWorkstationApi;
 	documents: WorkstationFileDocuments;
 	chatDrafts?: Pick<WorkstationChatDraftStore, "flush">;
+	editors?: Pick<
+		WorkstationEditorGuards,
+		"getUnsaved" | "getVersion" | "subscribe"
+	>;
 }) {
 	const { t } = useLingui();
 	useSyncExternalStore(
 		documents.subscribe,
 		documents.getVersion,
 		documents.getVersion,
+	);
+	useSyncExternalStore(
+		editors.subscribe,
+		editors.getVersion,
+		editors.getVersion,
 	);
 	const [open, setOpen] = useState(false);
 	const [saving, setSaving] = useState(false);
@@ -45,7 +58,11 @@ export function WorkstationCloseGuard({
 			}
 			if (!current) return false;
 			if (pending.current) return pending.current.promise;
-			if (!draftError && documents.getUnsavedDocuments().length === 0)
+			if (
+				!draftError &&
+				documents.getUnsavedDocuments().length === 0 &&
+				editors.getUnsaved().length === 0
+			)
 				return Promise.resolve(true);
 			let resolve!: (value: boolean) => void;
 			const promise = new Promise<boolean>((done) => {
@@ -64,9 +81,13 @@ export function WorkstationCloseGuard({
 			request?.resolve(false);
 			stop?.();
 		};
-	}, [api, documents, chatDrafts]);
+	}, [api, documents, chatDrafts, editors]);
 	const unsaved = documents.getUnsavedDocuments();
-	const busy = saving || unsaved.some((document) => document.pendingSave);
+	const editorDrafts = editors.getUnsaved();
+	const busy =
+		saving ||
+		unsaved.some((document) => document.pendingSave) ||
+		editorDrafts.some((guard) => guard.isPending());
 	const save = async () => {
 		const request = pending.current;
 		if (!request || busy) return;
@@ -91,7 +112,21 @@ export function WorkstationCloseGuard({
 					return;
 				}
 			}
-			if (documents.getUnsavedDocuments().length === 0) finish(true);
+			for (const guard of editors.getUnsaved()) {
+				if (guard.isPending()) return;
+				if (!guard.isDirty()) continue;
+				if (!(await guard.save())) {
+					if (pending.current === request)
+						setSaveError(guard.getError() ?? t({ message: "Failed to save" }));
+					return;
+				}
+				if (pending.current !== request) return;
+			}
+			if (
+				documents.getUnsavedDocuments().length === 0 &&
+				editors.getUnsaved().length === 0
+			)
+				finish(true);
 		} catch (error) {
 			if (pending.current === request) setSaveError(errorMessage(error));
 		} finally {
@@ -118,6 +153,11 @@ export function WorkstationCloseGuard({
 					{unsaved.map((document) => (
 						<p className="break-all" key={document.id}>
 							{document.absolutePath}
+						</p>
+					))}
+					{editorDrafts.map((guard) => (
+						<p key={guard.id} className="break-all">
+							{guard.label()}
 						</p>
 					))}
 					{saveError && (

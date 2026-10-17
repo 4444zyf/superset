@@ -43,6 +43,8 @@ const procedures: Record<string, "query" | "mutation"> = {
 	"workspaces.createSession": "mutation",
 	"terminal.list": "query",
 	"settings.agentConfigs.list": "query",
+	"settings.agentConfigs.getWithRevisionV1": "query",
+	"settings.agentConfigs.updateWithRevisionV1": "mutation",
 	"terminal.createSession": "mutation",
 	"terminal.launchSession": "mutation",
 	"chat.createSession": "mutation",
@@ -126,6 +128,7 @@ export class WorkstationController {
 				"attachments",
 				"workstationChatAttachmentInputV1",
 				"workstationTerminalPresetsV1",
+				"workstationAgentSettingsV1",
 				"git",
 				"durableOperations",
 				"workspaceViewRestoreV1",
@@ -169,6 +172,20 @@ export class WorkstationController {
 			: undefined;
 		if ((workspaceProcedure?.type ?? procedures[request.path]) !== request.type)
 			throw new Error("Unsupported workstation procedure");
+		if (
+			request.path === "settings.agentConfigs.getWithRevisionV1" ||
+			request.path === "settings.agentConfigs.updateWithRevisionV1"
+		) {
+			const input = request.input as { id?: unknown } | undefined;
+			if (typeof input?.id !== "string" || !input.id.trim())
+				throw new Error("An explicit agent is required");
+			const features = await this.features(request.connectionId);
+			this.assertGeneration(request.connectionId, request.generation);
+			if (features.capabilities?.workstationAgentSettingsV1 !== true)
+				throw new Error(
+					"This backend does not support the required capability",
+				);
+		}
 		if (request.path === "settings.agentConfigs.list") {
 			const features = await this.features(request.connectionId);
 			this.assertGeneration(request.connectionId, request.generation);

@@ -916,9 +916,7 @@ test("only the advertised read-only terminal agent catalog is exposed to the wor
 	expect(calls).toEqual([]);
 	enabled = true;
 	expect(await controller.invoke(request)).toEqual([{ id: "remote-config" }]);
-	expect(calls).toEqual([
-		{ id: "machine", ...request },
-	]);
+	expect(calls).toEqual([{ id: "machine", ...request }]);
 	await expect(
 		controller.invoke({
 			...request,
@@ -927,4 +925,51 @@ test("only the advertised read-only terminal agent catalog is exposed to the wor
 		}),
 	).rejects.toThrow("Unsupported workstation procedure");
 	expect(calls).toHaveLength(1);
+});
+
+test("versioned agent settings require a target id, capability and current connection", async () => {
+	const f = fixture();
+	let enabled = false;
+	const calls: unknown[] = [];
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationAgentSettingsV1: enabled },
+		}),
+		invoke: async (id, request) => {
+			calls.push({ id, ...request });
+			return { revision: "a".repeat(64), config: { id: "agent" } };
+		},
+	});
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "settings.agentConfigs.getWithRevisionV1",
+		type: "query" as const,
+		input: { id: "agent" },
+	};
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"required capability",
+	);
+	enabled = true;
+	await expect(controller.invoke({ ...request, input: {} })).rejects.toThrow(
+		"explicit agent",
+	);
+	await controller.invoke(request);
+	await controller.invoke({
+		...request,
+		path: "settings.agentConfigs.updateWithRevisionV1",
+		type: "mutation",
+		input: {
+			id: "agent",
+			expectedRevision: "a".repeat(64),
+			patch: { label: "New" },
+		},
+	});
+	expect(calls).toHaveLength(2);
+	f.nextGeneration();
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"Connection changed",
+	);
+	expect(calls).toHaveLength(2);
 });
