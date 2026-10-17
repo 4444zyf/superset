@@ -11,6 +11,7 @@ import {
 } from "react";
 import { EMPTY_FONT_SETTINGS } from "renderer/lib/font-settings";
 import { FileViewToggle } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/components/FileViewToggle/FileViewToggle";
+import { OrphanedBanner } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/components/OrphanedBanner";
 import {
 	codeViewLabel,
 	markdownPreviewLabel,
@@ -150,6 +151,12 @@ export function RemoteDocumentEditor({
 			className="space-y-2"
 		>
 			<code className="block text-xs break-all">{document.absolutePath}</code>
+			{document.orphaned && (
+				<OrphanedBanner
+					dirty={document.dirty}
+					onDiscard={() => void document.reload()}
+				/>
+			)}
 			{markdown && (
 				<FileViewToggle
 					views={[

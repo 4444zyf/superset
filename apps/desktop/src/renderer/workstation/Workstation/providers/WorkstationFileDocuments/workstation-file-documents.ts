@@ -324,6 +324,24 @@ export class WorkstationFileDocuments {
 		const scope = this.scopes.get(scopeId(connection));
 		if (!scope?.active || scope.descriptor.generation !== connection.generation)
 			return;
+		if (
+			(event.kind === "delete" || event.kind === "rename") &&
+			event.isDirectory === undefined
+		) {
+			const source =
+				event.kind === "rename" ? event.oldAbsolutePath : event.absolutePath;
+			if (
+				source &&
+				scope.store
+					.getDocuments()
+					.some(
+						(document) =>
+							document.workspaceId === workspaceId &&
+							document.absolutePath.startsWith(`${source.replace(/\/$/, "")}/`),
+					)
+			)
+				event = { ...event, isDirectory: true };
+		}
 		if (event.kind === "delete" && event.isDirectory) {
 			const paths = scope.store
 				.getDocuments()

@@ -3,7 +3,10 @@ import type { DirectSocketEvent } from "../../../shared/direct-workstation";
 interface SocketLike {
 	readyState: number;
 	binaryType?: string;
-	addEventListener(type: string, listener: (event: { type: string; data?: unknown }) => void): void;
+	addEventListener(
+		type: string,
+		listener: (event: { type: string; data?: unknown }) => void,
+	): void;
 	send(data: string): void;
 	close(): void;
 }
@@ -50,8 +53,11 @@ export class SocketBroker {
 		)
 			throw new Error("Too many workstation sockets");
 		if (
+			path !== "/events" &&
 			!/^\/terminal\/[a-zA-Z0-9-]+(?:\?seq=[0-9]+)?$/.test(path) &&
-			!/^\/terminal-restore\/[a-zA-Z0-9_-]+\?workspaceId=[a-zA-Z0-9_-]+&executionId=[a-zA-Z0-9_-]+$/.test(path) &&
+			!/^\/terminal-restore\/[a-zA-Z0-9_-]+\?workspaceId=[a-zA-Z0-9_-]+&executionId=[a-zA-Z0-9_-]+$/.test(
+				path,
+			) &&
 			!/^\/chat-v3\/sessions\/[a-zA-Z0-9-]+\/stream(?:\?since=[a-zA-Z0-9:%._-]+(?:&deltas=text,terminal)?)?$/.test(
 				path,
 			)

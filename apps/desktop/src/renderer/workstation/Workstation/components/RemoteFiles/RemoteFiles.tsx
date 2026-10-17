@@ -30,6 +30,7 @@ import {
 	useWorkstationFileDocuments,
 	WorkstationFileDocumentsContext,
 } from "../../providers/WorkstationFileDocuments";
+import { useWorkstationFileEvents } from "../../providers/WorkstationFileEvents/use-workstation-file-events";
 import { useWorkstationAppearance } from "../../providers/WorkstationPreferencesContext";
 import { CloseFileDialog } from "./components/CloseFileDialog";
 import { FileActionItems } from "./components/FileActionMenu/components/FileActionItems/FileActionItems";
@@ -311,6 +312,21 @@ export function RemoteFiles({
 		workspaceId,
 		operationOwner,
 	]);
+	const fileEvents = useWorkstationFileEvents({
+		api,
+		connection,
+		workspaceId,
+		root,
+		paths: documents.map((document) => document.absolutePath),
+		onEvents: (events) => {
+			for (const event of events)
+				documentsManager.dispatchFsEvent(connection, workspaceId, event);
+		},
+		onRefresh: () => {
+			if (treeController.current) void treeController.current.requestRefresh();
+			else setTreeRefresh((value) => value + 1);
+		},
+	});
 	const closeDocument = (id: string) => {
 		const document = documents.find((document) => document.id === id);
 		if (!document) return;
@@ -427,6 +443,8 @@ export function RemoteFiles({
 						disabled={busy || !directory}
 						onClick={() =>
 							void run(async (version) => {
+								if (fileEvents.status && fileEvents.status !== "open")
+									fileEvents.reconnect();
 								await Promise.all([
 									browse(directory, version),
 									refreshGit(version),
@@ -436,6 +454,11 @@ export function RemoteFiles({
 					>
 						<Trans>Refresh files and Git</Trans>
 					</Button>
+					{fileEvents.status && fileEvents.status !== "open" && (
+						<output>
+							<Trans>Reconnecting</Trans>
+						</output>
+					)}
 				</div>
 				{tab === "history" && (
 					<RemoteGitHistory

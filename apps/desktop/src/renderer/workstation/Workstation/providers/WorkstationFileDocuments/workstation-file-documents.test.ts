@@ -214,3 +214,26 @@ test("a confirmed remote rename keeps the original document id, draft and CRLF c
 	});
 	expect(document.orphaned).toBe(false);
 });
+
+test("a directory event whose stat lost the race still affects known descendant documents", async () => {
+	const f = fixture();
+	const manager = new WorkstationFileDocuments(f.api);
+	const document = manager.acquire(first, "workspace", "/repo/src/note.txt");
+	await settle();
+	document.setContent("private unsaved draft");
+	manager.dispatchFsEvent(first, "workspace", {
+		kind: "rename",
+		oldAbsolutePath: "/repo/src",
+		absolutePath: "/repo/moved",
+	});
+	expect(document.absolutePath).toBe("/repo/moved/note.txt");
+	manager.dispatchFsEvent(first, "workspace", {
+		kind: "delete",
+		absolutePath: "/repo/moved",
+	});
+	expect(document.orphaned).toBe(true);
+	expect(document.content).toMatchObject({ value: "private unsaved draft" });
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(0);
+});

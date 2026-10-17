@@ -177,6 +177,24 @@ export class FileTreeController {
 		collapseFileTreeDirectories(this.model, this.paths(this.directories));
 	}
 
+	private refreshing: Promise<void> | null = null;
+	private refreshRequested = false;
+	requestRefresh(): Promise<void> {
+		this.refreshRequested = true;
+		if (this.refreshing) return this.refreshing;
+		const task = (async () => {
+			while (this.running && this.refreshRequested) {
+				this.refreshRequested = false;
+				await this.refresh();
+			}
+		})();
+		this.refreshing = task;
+		void task.finally(() => {
+			if (this.refreshing === task) this.refreshing = null;
+		});
+		return task;
+	}
+
 	async refresh(): Promise<void> {
 		const epoch = ++this.epoch;
 		this.pending.clear();

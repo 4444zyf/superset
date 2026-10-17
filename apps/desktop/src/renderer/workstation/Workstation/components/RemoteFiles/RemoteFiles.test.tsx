@@ -1227,3 +1227,178 @@ test("opening a file during a Git refresh is not silently dropped", async () => 
 		await act(async () => finish(status));
 	}
 });
+
+test("remote filesystem events refresh the original tree and clean editor while preserving an unsaved draft", async () => {
+	let disk = "original";
+	const entries = [
+		{
+			absolutePath: "/Users/remote/repo/note.txt",
+			name: "note.txt",
+			kind: "file",
+		},
+	];
+	const f = fixture({
+		"filesystem.readFile": () => ({
+			kind: "bytes",
+			content: btoa(disk),
+			exceededLimit: false,
+			revision: disk,
+		}),
+		"filesystem.listDirectory": () => ({ entries }),
+	});
+	let listener: Parameters<DirectWorkstationApi["onSocket"]>[0] = () => {};
+	let socketId = "";
+	const commands: unknown[] = [];
+	f.api.onSocket = (next) => {
+		listener = next;
+		return () => {};
+	};
+	f.api.openSocket = async (_connection, path, id) => {
+		expect(path).toBe("/events");
+		socketId = id;
+		queueMicrotask(() => listener({ socketId: id, kind: "open" }));
+	};
+	f.api.sendSocket = async (_id, data) => {
+		commands.push(JSON.parse(data));
+	};
+	f.api.closeSocket = async () => {};
+	const rendered = render(
+		<RemoteFiles
+			api={f.api}
+			connection={{
+				...connection,
+				capabilities: {
+					...connection.capabilities,
+					workstationFileEventsV1: true,
+				},
+			}}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	clickTreeRow(await treeRow("note.txt"));
+	const editor = await fileEditor();
+	await waitFor(() =>
+		expect(commands).toContainEqual({
+			type: "fs:watch",
+			workspaceId: "workspace",
+		}),
+	);
+	disk = "external update";
+	entries.push({
+		absolutePath: "/Users/remote/repo/created.txt",
+		name: "created.txt",
+		kind: "file",
+	});
+	const update = () =>
+		listener({
+			socketId,
+			kind: "message",
+			data: JSON.stringify({
+				type: "fs:events",
+				workspaceId: "workspace",
+				events: [
+					{
+						kind: "update",
+						absolutePath: "/Users/remote/repo/note.txt",
+						isDirectory: false,
+					},
+					{
+						kind: "create",
+						absolutePath: "/Users/remote/repo/created.txt",
+						isDirectory: false,
+					},
+				],
+			}),
+		});
+	act(update);
+	await waitFor(() => expect(contentOf(editor)).toBe("external update"));
+	await treeRow("created.txt");
+	replaceContent(editor, "private unsaved draft");
+	disk = "another external update";
+	act(update);
+	await act(async () => {});
+	expect(contentOf(editor)).toBe("private unsaved draft");
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(0);
+	const previousSocketId = socketId;
+	rendered.rerender(
+		<RemoteFiles
+			api={f.api}
+			connection={{
+				...connection,
+				generation: 4,
+				capabilities: {
+					...connection.capabilities,
+					workstationFileEventsV1: true,
+				},
+			}}
+			workspaceId="replacement"
+			onError={f.onError}
+		/>,
+	);
+	await waitFor(() => expect(socketId).not.toBe(previousSocketId));
+	clickTreeRow(await treeRow("note.txt"));
+	const replacement = await fileEditor();
+	await waitFor(() => expect(contentOf(replacement)).toBe(disk));
+	const reads = f.calls.filter(
+		(call) => call.path === "filesystem.readFile",
+	).length;
+	act(() =>
+		listener({
+			socketId: previousSocketId,
+			kind: "message",
+			data: JSON.stringify({
+				type: "fs:events",
+				workspaceId: "workspace",
+				events: [
+					{ kind: "delete", absolutePath: "/Users/remote/repo/note.txt" },
+				],
+			}),
+		}),
+	);
+	act(() =>
+		listener({
+			socketId,
+			kind: "message",
+			data: JSON.stringify({
+				type: "fs:events",
+				workspaceId: "replacement",
+				events: [
+					{ kind: "update", absolutePath: "/Users/remote/repo/../outside.txt" },
+				],
+			}),
+		}),
+	);
+	await act(async () => {});
+	expect(contentOf(replacement)).toBe(disk);
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.readFile"),
+	).toHaveLength(reads);
+});
+
+test("a backend without the optional file events capability keeps manual file access without opening a socket", async () => {
+	const f = fixture();
+	let opened = 0;
+	f.api.openSocket = async () => {
+		opened++;
+	};
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={connection}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	await treeRow("note.txt");
+	expect(opened).toBe(0);
+	expect(
+		(
+			screen.getByRole("button", {
+				name: "Refresh files and Git",
+			}) as HTMLButtonElement
+		).disabled,
+	).toBe(false);
+});

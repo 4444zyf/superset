@@ -128,6 +128,7 @@ export class WorkstationController {
 				"durableOperations",
 				"workspaceViewRestoreV1",
 				"workstationFilesV1",
+				"workstationFileEventsV1",
 				"workstationGitV1",
 				"workstationGitIdentityV1",
 				"workstationGitHistoryV1",

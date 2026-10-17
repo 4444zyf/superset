@@ -1,3 +1,4 @@
+import { verifyWorkstationFileEventsUi } from "./verify-workstation-file-events-ui.mjs";
 import { verifyWorkstationMediaUi } from "./verify-workstation-media-ui.mjs";
 import { verifyWorkstationMarkdownUi } from "./verify-workstation-markdown-ui.mjs";
 import { verifyWorkstationFilePreviewsUi } from "./verify-workstation-file-previews-ui.mjs";
@@ -429,6 +430,11 @@ export async function verifyWorkspaceRestoreUi({
 				2,
 			) + "\n",
 		);
+	}
+	if (process.argv.includes("--file-events-only")) {
+		await verifyWorkstationFileEventsUi({ getPage, click, screenshot, closeReopen, controls, output });
+		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, fileEventsOnly: true }, null, 2) + "\n");
+		return;
 	}
 	if (process.argv.includes("--lifecycle-only")) {
 		await click("text:Terminal");

@@ -536,16 +536,27 @@ test("a stale reconciliation reply cannot clear an intent on the new connection"
 	db.close();
 });
 
-test("attachment readiness requires an explicit backend capability", async () => {
+test("attachment and file event readiness require explicit backend capabilities", async () => {
 	const { manager } = fixture();
 	for (const advertised of [true, false, undefined, "true"]) {
 		manager.request = async () =>
-			Response.json({ capabilities: { attachments: advertised, workstationChatAttachmentInputV1: advertised } });
+			Response.json({
+				capabilities: {
+					attachments: advertised,
+					workstationChatAttachmentInputV1: advertised,
+					workstationFileEventsV1: advertised,
+				},
+			});
 		const features = await new WorkstationController(manager).features(
 			"machine",
 		);
 		expect(features.capabilities?.attachments).toBe(advertised === true);
-		expect(features.capabilities?.workstationChatAttachmentInputV1).toBe(advertised === true);
+		expect(features.capabilities?.workstationFileEventsV1).toBe(
+			advertised === true,
+		);
+		expect(features.capabilities?.workstationChatAttachmentInputV1).toBe(
+			advertised === true,
+		);
 	}
 });
 

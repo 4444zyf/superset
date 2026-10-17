@@ -609,3 +609,11 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 阶段二十六暴露的主循环检查在本阶段修改前再次3通过/1失败，仍是相同5个文件，未修改ratchet或提高计数。将legacy-import/legacy-sources/legacy-v1的递归删除改为node:fs/promises.rm；导入恢复、历史归档及全部调用者等待清理结束，再继续发布/回滚或释放现有进程锁。RunCompletionStore目录清理改为await，工作区删除的Run/Setup状态清理均等待后再删状态记录，错误继续由原warning路径处理。进程锁只操作单个符号链接，改用unlinkSync；prepare也仅unlink固定result.tmp，仍只忽略ENOENT。没有将递归删除换名或移入豁免目录，tRPC输入/输出/错误合同不变。相关12文件83项253断言、host/desktop类型与单独Node静态历史FIFO用例通过；原7项history归档和恢复回归仅改为等待异步清理。新增--lifecycle-only复用已有瞬时Run、Setup与Teardown/删除实际窗口流程，结果待记录。
 
 第91轮固定e569fae2844bd1aafe98930c6176e14fe9154644，实际Linux/Electron/拥有的SSH --lifecycle-only退出0：原编辑器配置瞬时Run分别真实退出0/17、输出保留、同输出重开及Ctrl+C不结束父shell；Setup明确启用/跳过/失败17/取消，重开仍同PID/执行ID且不重跑；原删除影响确认、取消不删、Teardown失败17/重开、明确跳过不运行、成功只运行一次、2个Worktree及保存标签删除、勾选分支删除与默认分支保留均通过。原3个PTY仍PID7743/7749/7755，最终原布局和配置恢复。失败Run、Setup取消和删除后重开截图均已实际查看。原主线程4条ratchet检查全部通过，先前5文件递归同步清理失败已处理，未改豁免或允许计数；不将这称为所有既有同步文件读取均已消除。[第91轮原始证据](evidence/local-ssh-feature-parity/source-linux-cleanup-async/91)、[阶段二十七回归/类型/构建日志](evidence/local-ssh-feature-parity/stage27)。macOS发行物、供应商Agent验证及总清单其余入口仍按原范围继续。
+
+### 阶段二十八：原文件事件总线与外部变更（实际窗口待记录）
+
+新增失败回归先35通过/2失败：工作站SocketBroker拒绝原/events、RemoteFiles收不到原fs:events。将原workspace-client事件总线的订阅/引用计数/分发/状态与清理提取为可注入传输的纯核心；原getEventBus继续使用同一relay/token包装与参数，原12项真实WebSocket测试通过。工作站使用现有主进程IPC和已验证连接连接原后端EventBus，不向renderer暴露令牌或建立云账号。新增可选workstationFileEventsV1，仅字面true开放，旧后端继续原手动刷新。主进程只增加精确/events路径，不接受附加token或其他变形路径。
+
+复用原watchFs/watchFsFile，工作区递归监听与已打开文件的忽略目录兜底均按原引用计数释放；断线只恢复读取订阅，不重放写入。新的IPC适配层按连接/后端/namespace/generation与socket ID隔离，晚打开/晚错误丢弃，重连只保留一个定时器，未连接不排队。仅接受有界文本事件；工作区与根路径校验、异常批次转overflow、重连后原文档重新核对。文件树保留原Pierre引擎，事件刷新串行合并，连续变化最多保留一个待刷新标记；工作区切换后的旧事件不影响新视图。更新走原SharedFileDocument：干净文档重读、未保存草稿保留、不隐式保存。另一个回归确认stat丢失类型的目录rename/delete未影响已知子文档，补齐基于已打开路径的目录判断；原OrphanedBanner接回工作站，先13通过/1失败，后14通过，丢弃仍仅由明确按钮触发。
+
+客户端相关8文件98项1479断言，包含无账号启动链对纯事件核心的审计、旧后端/非法路径/切换隔离/引用计数/监听关闭与原编辑器回归；后端事件及原4条阻塞规则共11通过；workspace-client/host/desktop类型与17语言检查通过。新增--file-events-only将从拥有的SSH夹具运行机执行外部文件写入，核对真实事件与原树/编辑器、脏草稿冲突、忽略目录已打开文件、目录删除以及重开和原3个PTY。原冲突比较/解决对话框、全部文件内联操作、Markdown相对图片单独资源的监听及全局退出草稿提醒仍须继续接入，不能将本阶段称为整个文件组已完成。

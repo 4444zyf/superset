@@ -143,3 +143,28 @@ test("closing an opening socket cancels its late subscription without permitting
 	expect(socket.closed).toBe(true);
 	expect(emitted).toEqual([]);
 });
+
+test("the original event bus opens through the owned transport without accepting token or path additions", async () => {
+	const socket = new FakeSocket();
+	const broker = new SocketBroker(() => socket);
+	await broker.open(1, "events", "machine", "/events", () => {});
+	broker.send(
+		1,
+		"events",
+		JSON.stringify({ type: "fs:watch", workspaceId: "workspace" }),
+	);
+	expect(socket.sent).toEqual([
+		JSON.stringify({ type: "fs:watch", workspaceId: "workspace" }),
+	]);
+	for (const path of [
+		"/events?token=secret",
+		"/events/",
+		"/events/../events",
+	]) {
+		await expect(
+			broker.open(1, "other", "machine", path, () => {}),
+		).rejects.toThrow("Unsupported workstation socket");
+	}
+	broker.closeOwner(1);
+	expect(socket.closed).toBe(true);
+});

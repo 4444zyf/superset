@@ -142,3 +142,36 @@ test("refresh removes a deleted expanded directory without querying its missing 
 	controller.stop();
 	model.cleanUp();
 });
+
+test("watcher bursts coalesce while a listing is in flight and still install the final tree", async () => {
+	const model = new FileTree({ paths: [] });
+	let finish!: (entries: RemoteTreeEntry[]) => void;
+	let reads = 0;
+	const controller = new FileTreeController(model, "/repo", async () => {
+		reads++;
+		if (reads === 2)
+			return new Promise((resolve) => {
+				finish = resolve;
+			});
+		return [
+			{
+				absolutePath: reads === 1 ? "/repo/original.txt" : "/repo/latest.txt",
+				kind: "file",
+			},
+		];
+	});
+	controller.start();
+	await settle();
+	const pending = controller.requestRefresh();
+	const repeated = controller.requestRefresh();
+	controller.requestRefresh();
+	expect(repeated).toBe(pending);
+	expect(reads).toBe(2);
+	finish([{ absolutePath: "/repo/intermediate.txt", kind: "file" }]);
+	await pending;
+	expect(reads).toBe(3);
+	expect(model.getItem("latest.txt")).not.toBeNull();
+	expect(model.getItem("intermediate.txt")).toBeNull();
+	controller.stop();
+	model.cleanUp();
+});

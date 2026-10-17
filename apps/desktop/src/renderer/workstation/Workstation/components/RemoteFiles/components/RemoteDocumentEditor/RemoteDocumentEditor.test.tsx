@@ -453,3 +453,34 @@ test.each([
 		expect(media.preload).toBe("metadata");
 	}
 });
+
+test("a remotely deleted dirty document retains its draft and exposes the original explicit discard action", async () => {
+	const document = {
+		...doc("/repo/deleted.txt", {
+			kind: "text",
+			value: "retained draft",
+			revision: "r1",
+		}),
+		orphaned: true,
+		dirty: true,
+	};
+	let reloads = 0;
+	document.reload = async () => {
+		reloads++;
+	};
+	render(
+		<RemoteDocumentEditor
+			{...callbacks}
+			document={document}
+			active
+			busy={false}
+		/>,
+	);
+	await screen.findByText(
+		"File was deleted on disk. You still have unsaved changes.",
+	);
+	expect(reloads).toBe(0);
+	fireEvent.click(screen.getByRole("button", { name: "Discard" }));
+	expect(reloads).toBe(1);
+	expect(document.content).toMatchObject({ value: "retained draft" });
+});
