@@ -18,6 +18,7 @@ test("default main, preload and renderer cannot import the legacy cloud bootstra
 			true,
 		);
 		const references: string[] = [];
+		const eagerReferences = new Set<string>();
 		function collect(node: ts.Node) {
 			if (
 				(ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
@@ -36,6 +37,7 @@ test("default main, preload and renderer cannot import the legacy cloud bootstra
 						return;
 				} else if (node.isTypeOnly) return;
 				references.push(node.moduleSpecifier.text);
+				eagerReferences.add(node.moduleSpecifier.text);
 			}
 			if (
 				ts.isCallExpression(node) &&
@@ -49,6 +51,11 @@ test("default main, preload and renderer cannot import the legacy cloud bootstra
 		}
 		collect(ast);
 		for (const specifier of references) {
+			if (eagerReferences.has(specifier))
+				expect(
+					/\/trpc-client|\/trpc-storage/.test(specifier),
+					`${file} eagerly imports the legacy settings bridge ${specifier}`,
+				).toBe(false);
 			expect(forbidden.test(specifier), `${file} imports ${specifier}`).toBe(
 				false,
 			);

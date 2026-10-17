@@ -19,16 +19,18 @@ import {
 } from "renderer/lib/agent-launch-command";
 import { joinArgs, parseArgs } from "renderer/lib/argv";
 import {
-	AgentDetailHeader,
 	AgentLaunchFields,
 	Section,
-} from "renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentFormControls";
+} from "renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentFormControls/AgentFormControls";
+import { AgentDetailHeaderView } from "renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentFormControls/components/AgentDetailHeaderView/AgentDetailHeaderView";
+import { AgentIconView } from "renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentIcon/components/AgentIconView/AgentIconView";
 import { UnsavedChangesDialog } from "renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/TabView/FileViewerPane/UnsavedChangesDialog";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../../../shared/direct-workstation";
 import { WorkstationEditorGuardsContext } from "../../../../providers/WorkstationEditorGuards/workstation-editor-guards";
+import { useWorkstationAppearance } from "../../../../providers/WorkstationPreferencesContext/WorkstationPreferencesContext";
 
 export interface AgentConfigSnapshot {
 	config: HostAgentConfig;
@@ -83,6 +85,7 @@ export function AgentConfigEditor({
 	ref?: Ref<AgentConfigEditorHandle>;
 }) {
 	const { t } = useLingui();
+	const { theme } = useWorkstationAppearance();
 	const registry = useContext(WorkstationEditorGuardsContext);
 	const guardId = useId();
 	const errorRef = useRef<string | null>(null);
@@ -246,9 +249,15 @@ export function AgentConfigEditor({
 	};
 	return (
 		<div className="min-w-0 p-4">
-			<AgentDetailHeader
-				presetId={base.current.config.presetId}
-				iconId={base.current.config.iconId}
+			<AgentDetailHeaderView
+				icon={
+					<AgentIconView
+						presetId={base.current.config.presetId}
+						iconId={base.current.config.iconId}
+						isDark={theme.type === "dark"}
+						className="size-8"
+					/>
+				}
 				title={base.current.config.label}
 				subtitle={t({ message: "Terminal agent launch configuration" })}
 			/>

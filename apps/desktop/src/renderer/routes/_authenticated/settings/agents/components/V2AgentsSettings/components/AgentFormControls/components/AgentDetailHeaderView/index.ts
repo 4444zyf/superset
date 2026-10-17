@@ -1,0 +1,1 @@
+export { AgentDetailHeaderView } from "./AgentDetailHeaderView";

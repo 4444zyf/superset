@@ -4,40 +4,12 @@ import type { PromptTransport } from "@superset/shared/agent-prompt-launch";
 import { Input } from "@superset/ui/input";
 import { Label } from "@superset/ui/label";
 import { cn } from "@superset/ui/utils";
-import { AgentIcon } from "../AgentIcon";
 
 /**
  * Shared layout primitives and composites for the agent settings forms, used by
  * both the edit pane (`AgentDetail`) and the create pane (`NewCustomAgentDetail`)
  * so spacing, copy, and control semantics stay in sync.
  */
-
-interface AgentDetailHeaderProps {
-	iconId?: string | null;
-	presetId: string;
-	title: string;
-	subtitle: string;
-}
-
-/** Icon + title + subtitle header shared by the edit and create panes. */
-export function AgentDetailHeader({
-	iconId,
-	presetId,
-	title,
-	subtitle,
-}: AgentDetailHeaderProps) {
-	return (
-		<div className="mb-8 flex items-center gap-3">
-			<AgentIcon iconId={iconId} presetId={presetId} className="size-8" />
-			<div className="min-w-0 flex-1">
-				<h2 className="text-xl font-semibold truncate">{title}</h2>
-				<p className="text-sm text-muted-foreground mt-0.5 truncate">
-					{subtitle}
-				</p>
-			</div>
-		</div>
-	);
-}
 
 interface AgentLaunchFieldsProps {
 	/** Prefix for field ids so multiple instances stay unique. */

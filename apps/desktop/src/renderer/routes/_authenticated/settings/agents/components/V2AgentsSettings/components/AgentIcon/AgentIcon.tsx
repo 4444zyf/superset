@@ -1,9 +1,5 @@
-import { cn } from "@superset/ui/utils";
-import { Bot } from "lucide-react";
-import {
-	getPresetIcon,
-	useIsDarkTheme,
-} from "renderer/assets/app-icons/preset-icons";
+import { useIsDarkTheme } from "renderer/assets/app-icons/preset-icons";
+import { AgentIconView } from "./components/AgentIconView/AgentIconView";
 
 interface AgentIconProps {
 	/**
@@ -16,27 +12,13 @@ interface AgentIconProps {
 	className?: string;
 }
 
-/**
- * Renders a host-agent's icon: the `iconId` override when set, otherwise the
- * icon implied by `presetId`, otherwise a neutral fallback glyph so custom
- * agents without a recognizable icon still look intentional.
- */
 export function AgentIcon({ iconId, presetId, className }: AgentIconProps) {
-	const isDark = useIsDarkTheme();
-	const icon = getPresetIcon(iconId ?? presetId, isDark);
-	if (icon) {
-		return (
-			<img
-				src={icon}
-				alt=""
-				className={cn("object-contain shrink-0", className)}
-			/>
-		);
-	}
 	return (
-		<Bot
-			aria-hidden="true"
-			className={cn("shrink-0 text-muted-foreground", className)}
+		<AgentIconView
+			iconId={iconId}
+			presetId={presetId}
+			className={className}
+			isDark={useIsDarkTheme()}
 		/>
 	);
 }
