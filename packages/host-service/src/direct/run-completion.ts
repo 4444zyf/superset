@@ -7,8 +7,9 @@ import {
 	mkdirSync,
 	openSync,
 	readSync,
-	rmSync,
+	unlinkSync,
 } from "node:fs";
+import { rm } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { shellSingleQuote } from "../runtime/setup/config";
 
@@ -47,7 +48,11 @@ export class RunCompletionStore {
 		this.assertDirectory(directory);
 		const temp = join(directory, "result.tmp"),
 			result = join(directory, "result");
-		rmSync(temp, { force: true });
+		try {
+			unlinkSync(temp);
+		} catch (error) {
+			if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+		}
 		return `{
 eval ${shellSingleQuote(" " + command)}
 _superset_run_status=$?
@@ -100,13 +105,13 @@ command /bin/sh -c 'exit "$1"' -- "$_superset_run_status"
 			if (fd !== undefined) closeSync(fd);
 		}
 	}
-	remove(workspaceId: string): void {
+	async remove(workspaceId: string): Promise<void> {
 		try {
 			this.assertDirectory(this.root);
 		} catch (error) {
 			if ((error as NodeJS.ErrnoException).code === "ENOENT") return;
 			throw error;
 		}
-		rmSync(this.directory(workspaceId), { recursive: true, force: true });
+		await rm(this.directory(workspaceId), { recursive: true, force: true });
 	}
 }

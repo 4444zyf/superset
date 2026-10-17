@@ -250,7 +250,7 @@ test("rejects a pane mapped to two workspaces across windows and preserves clean
 		ended_at: 19,
 	});
 });
-test("archives original history bytes and captured session metadata as static owner-only files", () => {
+test("archives original history bytes and captured session metadata as static owner-only files", async () => {
 	const f = fixture();
 	const source = join(f.root, "source-history");
 	const history = join(source, WORKSPACE, TERMINAL);
@@ -272,7 +272,7 @@ test("archives original history bytes and captured session metadata as static ow
 		appState: f.appState,
 		importedAt: 100,
 	});
-	const staged = stageLegacyV1History({
+	const staged = await stageLegacyV1History({
 		sourceHistoryDir: source,
 		archiveDir,
 		historyCopies: mapped.historyCopies,
@@ -296,7 +296,7 @@ test("archives original history bytes and captured session metadata as static ow
 		updatedAt: 17,
 	});
 });
-test("rejects a symlinked history file without copying its target or publishing a partial archive", () => {
+test("rejects a symlinked history file without copying its target or publishing a partial archive", async () => {
 	const f = fixture();
 	const source = join(f.root, "source-history");
 	const history = join(source, WORKSPACE, TERMINAL);
@@ -320,7 +320,7 @@ test("rejects a symlinked history file without copying its target or publishing 
 		appState: f.appState,
 		importedAt: 100,
 	});
-	const staged = stageLegacyV1History({
+	const staged = await stageLegacyV1History({
 		sourceHistoryDir: source,
 		archiveDir,
 		historyCopies: mapped.historyCopies,
@@ -335,7 +335,7 @@ test("rejects a symlinked history file without copying its target or publishing 
 	expect(readFileSync(secret, "utf8")).toBe("must not copy");
 });
 
-test("retains static history whose closed pane is no longer in app-state without fabricating a live terminal", () => {
+test("retains static history whose closed pane is no longer in app-state without fabricating a live terminal", async () => {
 	const f = fixture();
 	const source = join(f.root, "source-history");
 	const history = join(source, WORKSPACE, SECOND);
@@ -354,7 +354,7 @@ test("retains static history whose closed pane is no longer in app-state without
 	});
 	const mapped = mapLegacyV1Snapshot({ database: f.db, importedAt: 100 });
 	const archiveDir = join(f.root, "archive");
-	const staged = stageLegacyV1History({
+	const staged = await stageLegacyV1History({
 		sourceHistoryDir: source,
 		archiveDir,
 		historyCopies: mapped.historyCopies,
@@ -371,7 +371,7 @@ test("retains static history whose closed pane is no longer in app-state without
 	).toBe("closed history");
 });
 
-test("preserves validated provider capture for an archived closed pane without creating terminal rows", () => {
+test("preserves validated provider capture for an archived closed pane without creating terminal rows", async () => {
 	const f = fixture();
 	Reflect.deleteProperty(f.appState.tabsState.panes, TERMINAL);
 	const source = join(f.root, "source-history");
@@ -396,7 +396,7 @@ test("preserves validated provider capture for an archived closed pane without c
 		importedAt: 100,
 	});
 	const archiveDir = join(f.root, "archive");
-	const staged = stageLegacyV1History({
+	const staged = await stageLegacyV1History({
 		sourceHistoryDir: source,
 		archiveDir,
 		historyCopies: mapped.historyCopies,
@@ -421,7 +421,7 @@ test("preserves validated provider capture for an archived closed pane without c
 	expect(JSON.stringify(mapped.agentCaptures)).not.toContain("must not copy");
 });
 
-test("rejects the workspace attribution of a provider capture when its terminal UUID has multiple historical workspaces", () => {
+test("rejects the workspace attribution of a provider capture when its terminal UUID has multiple historical workspaces", async () => {
 	const f = fixture();
 	Reflect.deleteProperty(f.appState.tabsState.panes, TERMINAL);
 	const source = join(f.root, "source-history");
@@ -448,7 +448,7 @@ test("rejects the workspace attribution of a provider capture when its terminal 
 		importedAt: 100,
 	});
 	const archiveDir = join(f.root, "archive");
-	const staged = stageLegacyV1History({
+	const staged = await stageLegacyV1History({
 		sourceHistoryDir: source,
 		archiveDir,
 		historyCopies: mapped.historyCopies,
@@ -468,7 +468,7 @@ test("rejects the workspace attribution of a provider capture when its terminal 
 	).toBe(false);
 });
 
-test("the static archive revalidates and whitelists agent captures passed by its caller", () => {
+test("the static archive revalidates and whitelists agent captures passed by its caller", async () => {
 	const f = fixture();
 	const source = join(f.root, "source-history");
 	const history = join(source, WORKSPACE, TERMINAL);
@@ -496,7 +496,7 @@ test("the static archive revalidates and whitelists agent captures passed by its
 		env: { AUTH_TOKEN: "must not copy" },
 	});
 	const archiveDir = join(f.root, "archive");
-	const staged = stageLegacyV1History({
+	const staged = await stageLegacyV1History({
 		sourceHistoryDir: source,
 		archiveDir,
 		historyCopies: mapped.historyCopies,
@@ -510,7 +510,7 @@ test("the static archive revalidates and whitelists agent captures passed by its
 	).not.toContain("must not copy");
 });
 
-test("archives only validated display metadata and leaves legacy environment, shell and hook settings in the source", () => {
+test("archives only validated display metadata and leaves legacy environment, shell and hook settings in the source", async () => {
 	const f = fixture();
 	const source = join(f.root, "source-history");
 	const history = join(source, WORKSPACE, TERMINAL);
@@ -536,7 +536,7 @@ test("archives only validated display metadata and leaves legacy environment, sh
 		mode: 0o600,
 	});
 	const archiveDir = join(f.root, "archive");
-	stageLegacyV1History({
+	await stageLegacyV1History({
 		sourceHistoryDir: source,
 		archiveDir,
 		historyCopies: [],

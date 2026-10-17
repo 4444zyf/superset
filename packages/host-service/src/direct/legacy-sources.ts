@@ -8,9 +8,9 @@ import {
 	mkdtempSync,
 	readdirSync,
 	realpathSync,
-	rmSync,
 	writeFileSync,
 } from "node:fs";
+import { rm } from "node:fs/promises";
 import { basename, isAbsolute, join, relative } from "node:path";
 import {
 	assertLegacySourceOffline,
@@ -315,7 +315,7 @@ export async function previewLegacySources(
 				).slice(0, 512),
 			});
 		} finally {
-			rmSync(stage, { recursive: true, force: true });
+			await rm(stage, { recursive: true, force: true });
 		}
 	}
 	const conflicts = [...evidence.values()].filter(

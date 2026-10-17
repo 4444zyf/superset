@@ -430,6 +430,16 @@ export async function verifyWorkspaceRestoreUi({
 			) + "\n",
 		);
 	}
+	if (process.argv.includes("--lifecycle-only")) {
+		await click("text:Terminal");
+		await ready();
+		await verifyWorkstationInstantRunUi({ getPage, click, screenshot, closeReopen, controls, output });
+		await verifyWorkstationSetupUi({ getPage, click, screenshot, closeReopen, controls, output });
+		await verifyWorkstationCleanupUi({ getPage, click, screenshot, closeReopen, output });
+		assert.deepEqual(getPage().errors, []);
+		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, lifecycleOnly: true }, null, 2) + "\n");
+		return;
+	}
 	if (process.argv.includes("--media-only")) {
 		await verifyWorkstationMediaUi({ getPage, click, screenshot, closeReopen, controls, output });
 		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, mediaOnly: true }, null, 2) + "\n");

@@ -14,9 +14,9 @@ import {
 	readFileSync,
 	realpathSync,
 	renameSync,
-	rmSync,
 	writeFileSync,
 } from "node:fs";
+import { rm } from "node:fs/promises";
 import {
 	basename,
 	dirname,
@@ -516,7 +516,9 @@ function syncTree(path: string): void {
 }
 
 /** A dead importer is recovered only from its validated, owner-local journal. */
-export function recoverLegacyImport(targetConfigPath: string): void {
+export async function recoverLegacyImport(
+	targetConfigPath: string,
+): Promise<void> {
 	const config = loadDirectConfig(targetConfigPath);
 	assertStopped(config);
 	const home = realpathSync(config.homeDir),
@@ -598,7 +600,7 @@ export function recoverLegacyImport(targetConfigPath: string): void {
 				if (present(original)) {
 					if (present(target)) {
 						directory(target);
-						rmSync(target, { recursive: true });
+						await rm(target, { recursive: true });
 					}
 					renameSync(original, target);
 				} else if (
@@ -608,20 +610,20 @@ export function recoverLegacyImport(targetConfigPath: string): void {
 					present(target)
 				) {
 					directory(target);
-					rmSync(target, { recursive: true });
+					await rm(target, { recursive: true });
 				}
-				rmSync(stage, { recursive: true, force: true });
+				await rm(stage, { recursive: true, force: true });
 				syncFile(hostRoot);
 				data.phase = "rolled-back";
 				persist();
 			} else if (data.phase === "completed" && present(original))
-				rmSync(original, { recursive: true });
-			rmSync(stage, { recursive: true, force: true });
+				await rm(original, { recursive: true });
+			await rm(stage, { recursive: true, force: true });
 			syncFile(hostRoot);
 			syncFile(state);
 		} else if (present(stage) || present(original))
 			throw new Error("Import journal is missing; explicit repair is required");
-		rmSync(lock);
+		await rm(lock);
 		syncFile(state);
 	} finally {
 		releaseBackend?.();
@@ -669,7 +671,7 @@ export async function importLegacyNamespace(
 	const target = join(hostRoot, config.namespaceId);
 	const state = join(home, "state");
 	const importId = randomUUID();
-	recoverLegacyImport(options.targetConfigPath);
+	await recoverLegacyImport(options.targetConfigPath);
 	const lock = join(state, "legacy-import.lock");
 	writeFileSync(lock, JSON.stringify({ pid: process.pid, importId }), {
 		mode: 0o600,
@@ -862,7 +864,7 @@ export async function importLegacyNamespace(
 					host.exec("ROLLBACK");
 					throw error;
 				}
-				const history = stageLegacyV1History({
+				const history = await stageLegacyV1History({
 					sourceHistoryDir: join(source, "terminal-history"),
 					archiveDir: join(stage, "legacy-history"),
 					historyCopies: payload.historyCopies,
@@ -932,7 +934,7 @@ export async function importLegacyNamespace(
 				sourceChat.close();
 			}
 		}
-		rmSync(snapshots, { recursive: true });
+		await rm(snapshots, { recursive: true });
 		await assertOffline(source, probe);
 		if (fingerprint(source) !== sourceFingerprint)
 			throw new Error(
@@ -958,7 +960,7 @@ export async function importLegacyNamespace(
 		phase = "completed";
 		journal();
 		if (displaced) {
-			rmSync(original, { recursive: true });
+			await rm(original, { recursive: true });
 			syncFile(hostRoot);
 		}
 		resolved = true;
@@ -992,9 +994,9 @@ export async function importLegacyNamespace(
 		if (phase === "completed") throw error;
 		phase = "rolling-back";
 		journal();
-		if (published) rmSync(target, { recursive: true, force: true });
+		if (published) await rm(target, { recursive: true, force: true });
 		if (displaced && present(original)) renameSync(original, target);
-		rmSync(stage, { recursive: true, force: true });
+		await rm(stage, { recursive: true, force: true });
 		syncFile(hostRoot);
 		phase = "rolled-back";
 		journal();
@@ -1003,7 +1005,7 @@ export async function importLegacyNamespace(
 	} finally {
 		releaseBackend?.();
 		if (resolved) {
-			rmSync(lock, { force: true });
+			await rm(lock, { force: true });
 			syncFile(state);
 		}
 	}

@@ -9,9 +9,9 @@ import {
 	readdirSync,
 	readSync,
 	realpathSync,
-	rmSync,
 	writeFileSync,
 } from "node:fs";
+import { rm } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { AGENT_IDENTITY_IDS } from "@superset/shared/agent-catalog";
 
@@ -448,12 +448,15 @@ function readHistory(path: string, maximum: number): Buffer {
 	}
 }
 
-export function stageLegacyV1History(options: {
+export async function stageLegacyV1History(options: {
 	sourceHistoryDir: string;
 	archiveDir: string;
 	historyCopies: LegacyV1HistoryCopy[];
 	agentCaptures?: Record<string, LegacyV1AgentCapture>;
-}): { archives: LegacyV1HistoryCopy[]; rejections: LegacyV1Rejection[] } {
+}): Promise<{
+	archives: LegacyV1HistoryCopy[];
+	rejections: LegacyV1Rejection[];
+}> {
 	if (!isAbsolute(options.sourceHistoryDir) || !isAbsolute(options.archiveDir))
 		throw new Error("History archive paths must be absolute");
 	if (options.historyCopies.length > MAX_ROWS)
@@ -631,7 +634,7 @@ export function stageLegacyV1History(options: {
 			});
 			totalBytes += metadata.length + scrollback.length;
 		} catch (error) {
-			rmSync(archive, { recursive: true, force: true });
+			await rm(archive, { recursive: true, force: true });
 			throw error;
 		}
 	}

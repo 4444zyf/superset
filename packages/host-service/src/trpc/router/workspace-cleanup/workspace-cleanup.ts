@@ -5,6 +5,11 @@ import { TRPCError } from "@trpc/server";
 import { eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { pullRequests, workspaces } from "../../../db/schema";
+import {
+	managedRunCompletionRoot,
+	managedSetupCompletionRoot,
+} from "../../../direct/managed-paths";
+import { RunCompletionStore } from "../../../direct/run-completion";
 import { invalidateLabelCache } from "../../../ports/static-ports";
 import { coercePullRequestState } from "../../../runtime/pull-requests/utils/pull-request-mappers";
 import {
@@ -25,11 +30,6 @@ import type {
 	DeleteInProgressCause,
 	TeardownFailureCause,
 } from "../../error-types";
-import {
-	managedSetupCompletionRoot,
-	managedRunCompletionRoot,
-} from "../../../direct/managed-paths";
-import { RunCompletionStore } from "../../../direct/run-completion";
 import { protectedProcedure, router } from "../../index";
 import { getProjectWorktreeBaseDir } from "../settings/worktree-location";
 import { isInsideSessionsRoot } from "../workspace-creation/shared/session-paths";
@@ -722,11 +722,11 @@ async function runDestroyPhases(
 	if (ctx.directOperations) {
 		try {
 			const root = managedRunCompletionRoot();
-			if (root) new RunCompletionStore(root).remove(input.workspaceId);
+			if (root) await new RunCompletionStore(root).remove(input.workspaceId);
 			ctx.directOperations.workspaceRuns.remove(input.workspaceId);
 			const setupRoot = managedSetupCompletionRoot();
 			if (setupRoot)
-				new RunCompletionStore(setupRoot).remove(input.workspaceId);
+				await new RunCompletionStore(setupRoot).remove(input.workspaceId);
 			ctx.directOperations.workspaceSetups.remove(input.workspaceId);
 		} catch (error) {
 			warnings.push(

@@ -3,8 +3,8 @@ import {
 	lstatSync,
 	mkdirSync,
 	readlinkSync,
-	rmSync,
 	symlinkSync,
+	unlinkSync,
 } from "node:fs";
 import { dirname } from "node:path";
 
@@ -46,7 +46,7 @@ function acquire(path: string, depth: number): () => void {
 		try {
 			if (isAlive(owner(path)))
 				throw new Error("A backend process is already running");
-			rmSync(path);
+			unlinkSync(path);
 			symlinkSync(target, path);
 		} finally {
 			releaseRecovery();
@@ -54,7 +54,7 @@ function acquire(path: string, depth: number): () => void {
 	}
 	return () => {
 		try {
-			if (readlinkSync(path) === target) rmSync(path);
+			if (readlinkSync(path) === target) unlinkSync(path);
 		} catch (error) {
 			if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
 		}

@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { RunCompletionStore, supportsRunCompletion } from "./run-completion";
+
 const roots: string[] = [];
 afterEach(() => {
 	for (const root of roots.splice(0))
@@ -16,7 +17,7 @@ const run = {
 test.each([
 	"/bin/bash",
 	"/usr/bin/zsh",
-])("%s reports a rapid failure while keeping the configured shell's cwd and variables", (shell) => {
+])("%s reports a rapid failure while keeping the configured shell's cwd and variables", async (shell) => {
 	const root = mkdtempSync(join(tmpdir(), "run completion-"));
 	roots.push(root);
 	const store = new RunCompletionStore(join(root, "private"));
@@ -34,7 +35,7 @@ test.each([
 	expect(store.read(run)).toBe(1);
 	expect(new RunCompletionStore(join(root, "private")).read(run)).toBe(1);
 	expect(store.read({ ...run, operationId: "different" })).toBeNull();
-	store.remove(run.workspaceId);
+	await store.remove(run.workspaceId);
 	expect(store.read(run)).toBeNull();
 });
 test("a successful command ending with a comment has an atomic bounded completion result", () => {

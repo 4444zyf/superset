@@ -828,7 +828,7 @@ test.each([
 		}),
 		{ mode: 0o600 },
 	);
-	recoverLegacyImport(f.configPath);
+	await recoverLegacyImport(f.configPath);
 	expect(
 		readFileSync(
 			join(target, phase === "completed" ? "candidate" : "prior"),
@@ -865,7 +865,7 @@ test("recovery after a second crash preserves an already restored prior target",
 		}),
 		{ mode: 0o600 },
 	);
-	recoverLegacyImport(f.configPath);
+	await recoverLegacyImport(f.configPath);
 	expect(readFileSync(join(target, "prior"), "utf8")).toBe(
 		"keep restored prior data",
 	);
