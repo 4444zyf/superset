@@ -78,6 +78,7 @@ export async function verifyWorkstationFileEventsUi({
 	const open = async (path) => {
 		await until(() => evaluate(`Boolean(${row(path)})`));
 		await click(`tree:${path}`);
+		if (path.endsWith("/")) return;
 		await until(() =>
 			evaluate(
 				"Boolean(document.querySelector('[role=tabpanel]:not([hidden]) .cm-content'))",
@@ -177,6 +178,7 @@ export async function verifyWorkstationFileEventsUi({
 			m.events.some((e) => e.absolutePath === join(ignored, "note.txt")),
 		),
 	);
+	writeFileSync(join(output, "file-events-before-reopen-observations.json"), JSON.stringify({events, automaticDirectoryRetarget}, null, 2) + "\n");
 	await evaluate("window.nativeFileEventsOff?.();true");
 	await closeReopen();
 	await until(() =>

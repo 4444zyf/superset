@@ -621,3 +621,5 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 第92轮为明确旧构建基线：产品仍是阶段二十七e569fae28的未重建bundle，脚本17a2568d1。拥有的SSH运行机外部写入external update后，原编辑器仍显示external original，原事件观察为空，按预期退出1；失败截图已实际查看。记录旧bundle字节hash，随后才重建，不能把此轮算成新代码验收。[旧构建基线](evidence/local-ssh-feature-parity/source-linux-file-events-baseline/92)。继续检查发现原后端的监听流失败会通过正常socket发送type:error，新传输也须重订阅，不能停在表面open；新增失败回归后补齐只读订阅重连，未改变后端消息合同。
 
 第93轮固定ed3b8f822，新构建实际窗口已走过：外部内容更新自动出现在原编辑器、目录create/rename/delete出现在原树，rename事件含原路径和目录类型，原删除提示可见；真实用户输入草稿后外部修改，明确Save被原版本条件拒绝，草稿和远端新内容均保留。随后脚本期待“Close file and discard draft”后再出现确认对话框而超时，退出1；该控件本身就是明确丢弃，只有标签关闭使用另一个确认流程。修改脚本等待明确丢弃完成，产品合同不变。自动更新、冲突与失败截图已实际查看。忽略目录文件和最终重开尚未走到，不能算本轮通过。[第93轮失败证据](evidence/local-ssh-feature-parity/source-linux-file-events-failures/93)。
+
+第94轮产品仍ed3b8f822、脚本ceedd5f7c，原外部修改/目录/冲突与明确丢弃通过；.gitignore排除目录中的已打开note.txt真实外部更新也自动显示，截图已实际查看。重开后目录和子项均显示，但open目录helper错误地等待CodeMirror，尚未点击子文件就超时，退出1。失败截图已查看；目录操作改为仅展开，文件操作才等待编辑器，产品不变。[第94轮失败证据](evidence/local-ssh-feature-parity/source-linux-file-events-failures/94)。
