@@ -31,7 +31,7 @@ export async function verifyWorkstationBackgroundFilesUi({
 			join(output, "background-files-failure-observations.json"),
 			JSON.stringify(
 				await evaluate(
-					"({events:window.nativeBackgroundEvents??[],text:document.body.innerText.slice(-4000)})",
+					"({events:window.nativeBackgroundEvents??[],text:document.body.innerText.slice(-4000),editable:document.querySelector('[role=tabpanel]:not([hidden]) .cm-content')?.getAttribute('contenteditable'),activeElement:document.activeElement?.className})",
 				),
 				null,
 				2,
@@ -89,7 +89,9 @@ export async function verifyWorkstationBackgroundFilesUi({
 	);
 	assert.equal(await editorText(), "before background rename\n");
 	await screenshot("background-files-returned-to-retargeted-document");
-	await click("[role=tabpanel]:not([hidden]) .cm-content");
+	await until(()=>evaluate("document.querySelector('[role=tabpanel]:not([hidden]) .cm-content')?.getAttribute('contenteditable')==='true'"));
+ await click("[role=tabpanel]:not([hidden]) .cm-content[contenteditable=true]");
+ assert.equal(await evaluate("document.activeElement?.matches('[role=tabpanel]:not([hidden]) .cm-content[contenteditable=true]')"),true);
 	for (const type of ["keyDown", "keyUp"])
 		await getPage().call("Input.dispatchKeyEvent", {
 			type,
