@@ -45,12 +45,16 @@ export async function verifyWorkstationCloseGuardUi({
 		);
 	const open = async () => {
 		await click("text:Files");
+  const alreadyOpen=await evaluate(`document.querySelector('[role=tabpanel]:not([hidden]) > code')?.textContent===${JSON.stringify(path)}`);
+  if(!alreadyOpen){
 		await until(() =>
 			evaluate(
 				"Boolean(document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path=\"close-guard-native.txt\"]'))",
 			),
 		);
 		await click("tree:close-guard-native.txt");
+  }
+
 		await until(() =>
 			evaluate(
 				"document.querySelector('[role=tabpanel]:not([hidden]) .cm-content')?.getAttribute('contenteditable')==='true'",
