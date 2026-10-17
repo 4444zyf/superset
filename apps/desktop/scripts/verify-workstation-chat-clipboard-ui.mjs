@@ -106,7 +106,7 @@ export async function verifyWorkstationChatClipboardUi({
 		join(output, "chat-clipboard-input-geometry.json"),
 		JSON.stringify(
 			await evaluate(
-				`(()=>{const e=document.querySelector('${area}'),r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,viewportHeight:innerHeight,viewportWidth:innerWidth};})()`,
+				`(()=>{const e=document.querySelector('${area}'),r=e.getBoundingClientRect(),parents=[];for(let p=e;p;p=p.parentElement){const s=getComputedStyle(p),b=p.getBoundingClientRect();parents.push({tag:p.tagName,className:p.className,x:b.x,y:b.y,width:b.width,height:b.height,display:s.display,minWidth:s.minWidth,maxWidth:s.maxWidth,flex:s.flex,flexWrap:s.flexWrap,alignItems:s.alignItems,overflowX:s.overflowX,overflowY:s.overflowY});}return {x:r.x,y:r.y,width:r.width,height:r.height,viewportHeight:innerHeight,viewportWidth:innerWidth,parents};})()`,
 			),
 			null,
 			2,
