@@ -295,7 +295,7 @@ export function RemoteChat({
 								{ sessionId: result.sessionId, harness },
 							]);
 							setSessionId(result.sessionId);
-						})
+						}, true)
 					}
 				>
 					<Trans>New chat</Trans>

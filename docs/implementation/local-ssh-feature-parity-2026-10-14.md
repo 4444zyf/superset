@@ -588,3 +588,16 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 第86轮固定ecfa7b7377dbe95be9d17eb162a06dbe5ebc1978，实际Linux/Electron/SSH增加 --expect-codex-version-rejection 后退出0。真实旧CLI启动错误现完整显示“codex 0.160.0 or newer is needed for chat, and 0.159.0-alpha.3 is installed”，不再被空turnId的Zod错误替换，未升级或伪装CLI/供应商登录。文字草稿、两份82575字节PNG的像素/下载读回、41字节URI文件、会话隔离、无自动发送、重开及原3个PTY保留再次通过。附件、重开和About截图已实际查看。原附件省略、明确Send/供应商识图及macOS边界仍如上一段所述。[第86轮原始证据](evidence/local-ssh-feature-parity/source-linux-chat-clipboard/86)、[阶段二十五回归和构建日志](evidence/local-ssh-feature-parity/stage25)。
 
 用户最新要求的原版风格图标已接入：原四枚像素括号、纯色深底、浅紫内侧括号；SVG为唯一几何源，派生PNG/ICNS/ICO/托盘/侧栏/About/安装背景，31项字节一致性及16/32/128/1024透明角检查通过。第86轮实际侧栏/About、最小窗口、退出/重开通过并查看截图；这仅是Linux源码窗口，未制作新的macOS安装包。原版权与许可继续保留，历史发布证据不改写。
+
+
+### 阶段二十六：原Codex/Claude聊天附件编码与失败恢复（实际窗口待记录）
+
+新环境重新检出默认分支后，恢复到已推送的release-local-ssh-feature-parity-1.37.7/8cca237bb，重建匹配此分支的PTY类型声明。新增两个失败测试确认：Codex RPC只含文字、Claude SDK只含文件名。通过可选附件解析器接入原适配器：Codex使用原协议image数据URL，Claude使用SDK图片块，PDF走SDK文档块，其他文件传递所选后端的可读路径引用；文字/顺序/原text_elements保留，客户端MIME不覆盖后端元数据。未提供解析器的旧调用合同保留；这是现有两个harness的修补，不将它们冒充ACP原生输入。
+
+读取器提取并复用原HTTP下载的私有目录/UID/权限、UUID、元数据/负载文件身份、硬链接/符号链接与25MiB检查，异步有界读取并支持AbortSignal。共享附件准备器按16个文件/整批25MiB约束、顺序解析；任一附件不可读则整条消息不投递，不静默丢弃。取消会丢弃旧读取，新的输入不被旧Promise阻塞；适配器结束会停止准备并释放排队数据。读取失败或取消在agent调用前使用内部inputNotDelivered标记结束该输入，修复尚未出现running turn时后续输入永久排队的问题；该标记不进入网络协议，也不把未知RPC结果标为未执行。此生命周期回归先3通过/1失败，再通过。
+
+新可选workstationChatAttachmentInputV1从后端到主进程/客户端贯通；旧后端禁用新附件发送但仍允许历史附件下载。Send拒绝只显示当前会话错误，保留文字与附件草稿；组件先16通过/2失败再通过。继续复用原剪贴板大小校验和翻译，限制已有草稿与新粘贴/选择合计字节，避免逐个文件均合法却整批超限；新增选择预算用例先18通过/1失败再通过。客户端相关5文件71项/206断言、无账号依赖审计1项/1005断言通过，runtime/host/desktop类型与17语言严格检查通过。
+
+扩展主线程阻塞检查发现5个既有文件legacy-import/legacy-sources/legacy-v1/process-lock/run-completion的同步清理违反ratchet；在未修改的8cca237bb归档源码中单独复现同样3通过/1失败，未提高允许计数，也不把完整扩展套件算通过。附件读取本身没有新增递归同步操作；既有清理问题继续留在整个对齐目标内。新增真实窗口验收参数将实际点击Send，确认当前0.159 CLI被真实版本门槛拒绝时保留草稿与附件，并检查重开无自动发送、原3个PTY仍保留。SDK消息编码目前为类型化协议夹具，真实供应商识图/登录与macOS仍须另验。
+
+第87轮固定7d20fac72，实际发送被0.159 CLI启动失败拒绝，文字及图片/文件草稿仍在；验收按钮定位将历史附件也计入，4对2，退出1。截图已实际查看，脚本改为只计草稿附件行。第88轮产品仍7d20fac72/脚本0ef6c5ecb，明确Send后的文字、两图片与文件均保留、远端仍只有3份附件且journal只有1条手动消息、无turn，随后New chat因原有未确认操作被拦截，并错误地让整个聊天窗格进入失败占位，退出1，失败截图和草稿截图均已查看。不能因版本错误就将未知执行结果自动清除，保留远端unresolved与本地pending防重发。新增同一路径回归先18通过/1失败，New chat拒绝改为当前会话内错误后19通过/76断言。实际脚本在Send前创建第二会话，Send后核对未确认操作仍在、新建拒绝不丢草稿，再切换已有会话检查隔离及重开，避免把“未知执行可自动继续”当成验收目标。[第87/88轮原始失败证据](evidence/local-ssh-feature-parity/source-linux-chat-input-failures)。

@@ -120,6 +120,15 @@ export async function verifyWorkstationChatClipboardUi({
 			),
 		);
 	}
+	if (process.argv.includes("--expect-rejected-chat-send")) {
+		await click("text:New chat");
+		await until(async () => (await sessions()).length === 2);
+		await ready();
+		assert.equal(await message(), "");
+		await noPrompt();
+		await click("text:codex #1");
+		await ready();
+	}
 	await until(() =>
 		evaluate(
 			"document.querySelectorAll('.ws-compact-panes button').length===4",
@@ -249,8 +258,25 @@ export async function verifyWorkstationChatClipboardUi({
 		await screenshot("chat-clipboard-rejected-send-keeps-draft");
 		rejectedSend = true;
 	}
-	await click("text:New chat");
-	await until(async () => (await sessions()).length === 2);
+	let unresolvedPrompt = null;
+	if (rejectedSend) {
+		await click("text:New chat");
+		await until(() => evaluate(`document.querySelector('${area}')?.closest('section')?.querySelector('[role=alert]')?.textContent.includes('Reconcile the pending operation')`));
+		await ready();
+		assert.equal(await message(), plain);
+		assert.equal(await attachedCount("image.png"), 2);
+		if (file) assert.equal(await attachedCount(file.originalFilename), 1);
+		const pending = await evaluate(`window.directWorkstation.inspectPending(${JSON.stringify(scope.connectionId)})`);
+		assert.equal(pending.length, 1);
+		assert.equal(pending[0].procedure, "chat.prompt");
+		assert.equal(pending[0].status, "unresolved");
+		unresolvedPrompt = pending[0];
+		await screenshot("chat-clipboard-blocked-new-chat-keeps-draft");
+		await click("text:codex #2");
+	} else {
+		await click("text:New chat");
+		await until(async () => (await sessions()).length === 2);
+	}
 	await ready();
 	assert.equal(await message(), "");
 	assert.equal(await attachedCount("image.png"), 0);
@@ -292,6 +318,8 @@ export async function verifyWorkstationChatClipboardUi({
 				adaptiveCompactSwitcher: true,
 				chatAttachmentInputCapability: scope.chatAttachmentInput,
 				explicitRejectedSendChecked: rejectedSend,
+				unresolvedPrompt,
+				blockedNewChatKeepsDraft: rejectedSend,
 				originalTerminalsRetained: restoredTerminals.terminals,
 				firstSessionId: first.sessionId,
 				startupRejection,

@@ -129,6 +129,16 @@ test("a rejected Send keeps the message draft visible without marking the chat s
 	expect((area as HTMLTextAreaElement).value).toBe("保留我的消息 🙂");
 	expect(screen.getByRole("button", { name: "photo.png" })).toBeTruthy();
 	expect(errors).toEqual([]);
+	fireEvent.click(screen.getByRole("button", { name: "New chat" }));
+	await waitFor(() =>
+		expect(
+			(screen.getByRole("button", { name: "New chat" }) as HTMLButtonElement)
+				.disabled,
+		).toBe(false),
+	);
+	expect((area as HTMLTextAreaElement).value).toBe("保留我的消息 🙂");
+	expect(screen.getByRole("button", { name: "photo.png" })).toBeTruthy();
+	expect(errors).toEqual([]);
 });
 
 test("a second picked file cannot grow the draft beyond the existing clipboard byte limit", async () => {
