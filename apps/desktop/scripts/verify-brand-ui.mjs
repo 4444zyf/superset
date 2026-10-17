@@ -128,7 +128,7 @@ async function connect(entry) {
 				? callback.reject(new Error(message.error.message))
 				: callback.accept(message.result);
 		} else if (message.method === "Runtime.exceptionThrown")
-			errors.push(message.params.exceptionDetails.text);
+			errors.push(message.params.exceptionDetails.exception?.description || message.params.exceptionDetails.text);
 		else if (
 			message.method === "Runtime.consoleAPICalled" &&
 			message.params.type === "error"
@@ -523,6 +523,7 @@ try {
 		`::notice::${JSON.stringify({ brand: brand.displayName, version, profile, sourceTest, singleInstance: true, reopen: true, offlineLicense: true, screenshots: 7 })}`,
 	);
 } catch (error) {
+	if (page) writeFileSync(join(output,"failure-console.json"),JSON.stringify(page.errors,null,2));
 	if (page) {
 		await screenshot("failure").catch(() => {});
 		const bounds = await page
