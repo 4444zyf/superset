@@ -550,3 +550,6 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 
 
 第77轮实际窗口固定e27c3d81b：MD默认预览、SSH图片、源码到预览的草稿、富文本到源码的草稿、明确保存及头部/表格/代码格式断言均走过，随后在Ctrl+F打开查找失败，整轮退出1。截图已实际查看。单元直接向编辑器发键通过；追加焦点在Preview按钮且busy只读的用例复现失败，并追加Escape后焦点丢到文件外的失败。将默认查找快捷键捕获范围移到当前文件tabpanel，关闭查找恢复同一文件焦点，不绑定到窗口的其他工作区。单元红9通过/2失败后变为11通过；相关MD/资源/启动审计共16通过/1054断言，类型、相关lint和重建通过。新实际窗口待执行；第77轮不算完整通过。[第77轮失败证据](evidence/local-ssh-feature-parity/source-linux-markdown-failures/77)。
+
+
+第78轮固定085e9fa59511b52e4fc1ca4ee5d2f4d4e6b0e294，实际Linux/Electron/SSH --markdown-only退出0：默认原TipTap预览/原切换控件、原表格/代码块、1200×872 SSH相对图片的blob显示通过；在源码和富文本中分别实际输入中文/emoji，另一视图立即看到同一草稿，两次编辑后保存前磁盘仍与原文件完全一致。实际点击Save后，磁盘225字节文件包含两份编辑、front matter逐字保留、表格和代码源码格式不变。原查找1 of 1、Escape后重新Ctrl+F以及窗口重开读取已保存正文通过；Search和重开截图已实际查看。OS外部浏览器及macOS发行物未验收，完整自定义快捷键/链接设置及全局退出草稿保护仍在清单中。[第78轮证据](evidence/local-ssh-feature-parity/source-linux-markdown)。
