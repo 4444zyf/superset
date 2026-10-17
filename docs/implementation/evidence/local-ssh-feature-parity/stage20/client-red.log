@@ -1,0 +1,61 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.87ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.39ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.11ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.07ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [3.70ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.22ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.86ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.04ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.08ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.12ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.22ms]
+(pass) disconnect and app disposal only close client transports [0.10ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.93ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [1.11ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.98ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.72ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.72ms]
+(pass) attachment readiness requires an explicit backend capability [0.34ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.23ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.21ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.11ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.48ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.26ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.93ms]
+(pass) project script procedures require their own capability and an explicit project [0.36ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.94ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.74ms]
+844 | 
+845 | test("setup status is read only with an explicit workspace and its advertised capability",async()=>{
+846 |  const f=fixture();let capable=false;const requests:unknown[]=[];
+847 |  const controller=new WorkstationController({...f.manager,getVerifiedDescription:()=>({capabilities:{workstationWorkspaceSetupV1:capable}}),invoke:async(_id,r)=>{requests.push(r);return null;}});
+848 |  const request={connectionId:"machine",generation:1,path:"workspaceSetup.getStateV1",type:"query" as const,input:{workspaceId:"workspace"}};
+849 |  await expect(controller.invoke(request)).rejects.toThrow("required capability");capable=true;
+                                                        ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "required capability"
+Received message: "Unsupported workstation procedure"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:849:51)
+(fail) setup status is read only with an explicit workspace and its advertised capability [0.72ms]
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceSetup/RemoteWorkspaceSetup.test.tsx:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './RemoteWorkspaceSetup' from '/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceSetup/RemoteWorkspaceSetup.test.tsx'
+-------------------------------
+
+
+2 tests failed:
+(fail) setup status is read only with an explicit workspace and its advertised capability [0.72ms]
+
+ 27 pass
+ 2 fail
+ 1 error
+ 75 expect() calls
+Ran 29 tests across 2 files. [341.00ms]

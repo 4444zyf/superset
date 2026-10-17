@@ -1,0 +1,27 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [871.53ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:
+(pass) successful manual restore reloads the main process auto-connect decision [134.36ms]
+(pass) upstream tab reorder and rename persist without changing execution ownership [81.28ms]
+(pass) rerunning a command reuses its pane and preserves its saved layout and title [71.83ms]
+(pass) creation titles label existing setup resources without reopening or creating terminals [92.38ms]
+(pass) deleting a workspace removes all its saved tabs only from its owning backend [74.35ms]
+(pass) returning to a restored workspace queries its resource state after another workspace replaced the checks [93.12ms]
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceDelete/RemoteWorkspaceDelete.test.tsx:
+(pass) opening and cancelling uses the original warnings without deleting [238.08ms]
+(pass) warned deletion still runs teardown and only an explicit failure retry skips it [146.58ms]
+(pass) an uncertain deletion is not replayed by rerendering or clicking again [71.17ms]
+(pass) a late deletion reply cannot affect a newly selected machine [45.83ms]
+(pass) unsaved editor drafts block deletion and old backends receive no cleanup calls [143.05ms]
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.test.tsx:
+(pass) loading Run state does not insert an action before New terminal [45.16ms]
+
+ 13 pass
+ 0 fail
+ 905 expect() calls
+Ran 13 tests across 4 files. [3.28s]

@@ -1,0 +1,23 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/operations.test.ts:
+(pass) a completed direct command is returned after backend restart without repeating side effects [2.57ms]
+(pass) an operation ID cannot be reused for different inputs [0.71ms]
+(pass) accepted operations from a crashed backend are unresolved and never automatically replayed [0.71ms]
+(pass) concurrent retries share one accepted operation and its final result [0.84ms]
+(pass) an exception after a side effect remains unresolved and cannot be replayed [0.55ms]
+(pass) maintenance drain persists and blocks new work until its owner commits [0.63ms]
+(pass) freeze persists across restart and only its maintenance owner can release it [0.40ms]
+(pass) a failed freeze write cannot leave a partially persisted maintenance transition [0.45ms]
+
+src/trpc/router/workspace-cleanup/tracked-destroy.test.ts:
+(pass) a teardown failure remains a typed result without running cleanup twice [0.24ms]
+(pass) a dirty or concurrent deletion conflict does not force retry [0.08ms]
+(pass) uncertain cleanup failures propagate for reconciliation [0.05ms]
+(pass) a successful deletion retains cleanup warnings [0.04ms]
+(pass) a persisted teardown failure can be read after restart without rerunning the script [1.01ms]
+
+ 13 pass
+ 0 fail
+ 28 expect() calls
+Ran 13 tests across 2 files. [28.00ms]

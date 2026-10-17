@@ -1,0 +1,86 @@
+bun test v1.4.2 (744846f84)
+
+test/workspace-cleanup.test.ts:
+(pass) isLocalCheckoutWorkspace > does not share the checkout when no local workspace row [0.74ms]
+(pass) isLocalCheckoutWorkspace > shares the checkout when worktreePath equals project repoPath [0.53ms]
+(pass) isLocalCheckoutWorkspace > normalizes paths via realpath (symlinked worktree path equals repoPath) [0.41ms]
+(pass) isLocalCheckoutWorkspace > shares the checkout via local type even when paths differ [0.15ms]
+(pass) isLocalCheckoutWorkspace > does not share the checkout when neither path equality nor local type fires [0.11ms]
+(pass) workspaceCleanup.inspect > a local workspace is deletable without reading the shared checkout's state [2.84ms]
+(pass) workspaceCleanup.inspect > returns canDelete: true with no warnings when no local row [0.75ms]
+(pass) workspaceCleanup.inspect > flags hasChanges from the worktree-state task [0.40ms]
+(pass) workspaceCleanup.inspect > flags hasUnpushedCommits from the worktree-state task [0.46ms]
+(pass) workspaceCleanup.inspect > swallows worktree-state task failures and returns canDelete: true [0.24ms]
+(pass) workspaceCleanup.inspect > swallows git env-resolution failures and returns canDelete: true with no warnings [0.41ms]
+(pass) workspaceCleanup.destroy in-flight guard > clears the Set on success [2.20ms]
+(pass) workspaceCleanup.destroy in-flight guard > rejects a concurrent call with CONFLICT + DELETE_IN_PROGRESS cause [0.41ms]
+(pass) workspaceCleanup.destroy in-flight guard > retry after a failed destroy succeeds (no in-flight leak) [4.23ms]
+(pass) workspaceCleanup.destroy cleanup ordering > a local workspace retires its record without touching git or disk [5.66ms]
+(pass) workspaceCleanup.destroy cleanup ordering > worktree removal failure blocks local delete while the path still exists [1.10ms]
+(pass) workspaceCleanup.destroy cleanup ordering > git unregisters the worktree but the folder survives: destroy removes it [1.39ms]
+(pass) workspaceCleanup.destroy cleanup ordering > git unregisters the worktree and a read-only directory blocks the delete: destroy restores write permission and removes it [1.97ms]
+(pass) workspaceCleanup.destroy cleanup ordering > a permission denial above the worktree is not repaired: destroy reports it and leaves the folder [1.38ms]
+(pass) workspaceCleanup.destroy cleanup ordering > git unregisters the worktree and leaves a dangling symlink: destroy removes the link [1.34ms]
+(pass) workspaceCleanup.destroy cleanup ordering > worktree path is a symlink into the managed root: destroy removes the link, not through it [0.91ms]
+(pass) workspaceCleanup.destroy cleanup ordering > unregistered leftover outside the managed root is left on disk with a warning [1.75ms]
+(pass) workspaceCleanup.destroy cleanup ordering > still-registered failure surfaces git's own error [1.34ms]
+(pass) workspaceCleanup.destroy cleanup ordering > worktree removal task failure blocks local delete (post-remove state unknown) [1.03ms]
+(pass) workspaceCleanup.destroy cleanup ordering > git env-resolution failure blocks local delete while the worktree path still exists [0.93ms]
+(pass) workspaceCleanup.destroy cleanup ordering > missing project metadata warns but still deletes local state [3.98ms]
+(pass) workspaceCleanup.destroy cleanup ordering > destroy archives the row and broadcasts once [0.81ms]
+(pass) workspaceCleanup.destroy cleanup ordering > branch delete failure is reported as a warning after the local commit point [0.59ms]
+(pass) workspaceCleanup.destroy cleanup ordering > worktree-removal timeout carries its phase into the reported error [0.60ms]
+(pass) workspaceCleanup.destroy cleanup ordering > preflight pool timeout fails closed instead of skipping the dirty check [0.46ms]
+(pass) workspaceCleanup.destroy cleanup ordering > preflight git failure (missing worktree) still proceeds idempotently [0.57ms]
+(pass) workspaceCleanup.destroy cleanup ordering > sqlite archive failure fails the destroy (the archive is the commit point) [0.46ms]
+(pass) workspaceCleanup.destroy cleanup ordering > session destroy archives the row like any other workspace [0.48ms]
+(pass) workspaceCleanup.destroy cleanup ordering > the archive commit point applies to sessions too [0.40ms]
+
+src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [1.48ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [0.44ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [1.20ms]
+(pass) a changed execution is never signalled by a stale stop request [0.43ms]
+(pass) a status read during launch cannot prevent its confirmed execution becoming active [0.56ms]
+(pass) the next confirmed run retains the preceding terminal identity for pane reuse [0.41ms]
+(pass) an instant command with a completion result ends even when foreground was never observed [0.49ms]
+(pass) an idle shell without its tracked completion cannot release a run for another launch [0.44ms]
+(pass) workspace deletion releases its bounded run slot without removing another workspace [0.30ms]
+(pass) a stop arriving after completion does not signal an idle or reused console [0.41ms]
+
+src/direct/run-completion.test.ts:
+(pass) /bin/bash reports a rapid failure while keeping the configured shell's cwd and variables [11.46ms]
+(pass) /usr/bin/zsh reports a rapid failure while keeping the configured shell's cwd and variables [7.67ms]
+(pass) a successful command ending with a comment has an atomic bounded completion result [11.90ms]
+(pass) invalid command syntax returns a completion instead of leaving the shell waiting for more input [6.70ms]
+
+src/direct/script-input.test.ts:
+(pass) a scoped Ctrl+C cancels queued delivery and releases a run only after its execution is idle [1.29ms]
+(pass) a Ctrl+C for another execution or ordinary pasted text cannot cancel a queued setup [0.71ms]
+(pass) an explicitly interrupted setup is cancelled on idle without inventing an exit code [1.01ms]
+
+src/direct/workspace-setups.test.ts:
+(pass) a setup completion is retained across host replacement without launching anything [0.64ms]
+(pass) a replaced terminal execution cannot complete the original setup [0.34ms]
+(pass) late launch warnings cannot overwrite a newer setup and deletion releases its bounded slot [0.43ms]
+(pass) a known setup terminal launch failure remains visible without a terminal or retry [0.26ms]
+(pass) an uncertain setup recovers the same terminal result instead of running a second script [0.49ms]
+
+src/trpc/router/workspace-creation/shared/setup-terminal.test.ts:
+(pass) resolveInitialCommand > returns null when no config and no fallback script exist [0.32ms]
+(pass) resolveInitialCommand > joins multi-line setup commands with ' && ' [0.36ms]
+(pass) resolveInitialCommand > returns the single command when setup has only one line [0.14ms]
+(pass) resolveInitialCommand > falls back to bash <repoPath>/.superset/setup.sh when config is empty [0.29ms]
+(pass) resolveInitialCommand > falls back to setup.sh when no config.json exists at all [0.09ms]
+(pass) resolveInitialCommand > config setup wins over the fallback script [0.23ms]
+(pass) resolveInitialCommand > carries config cwd for the terminal session [0.09ms]
+(pass) resolveInitialCommand > ignores teardown when resolving the setup command [0.08ms]
+(pass) resolveInitialCommand > filters whitespace-only setup entries [0.10ms]
+(pass) resolveInitialCommand > escapes single quotes in fallback path [0.12ms]
+(pass) resolveInitialCommand > worktree config wins over the main repo's when in scope [0.12ms]
+(pass) resolveInitialCommand > falls back to the worktree setup.sh before the main repo's [0.10ms]
+
+ 68 pass
+ 0 fail
+ 139 expect() calls
+Ran 68 tests across 6 files. [483.00ms]

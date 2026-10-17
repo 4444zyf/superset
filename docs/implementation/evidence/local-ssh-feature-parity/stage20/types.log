@@ -1,0 +1,11 @@
+$ bun run generate:icons && bun run generate:routes
+$ bun run scripts/generate-file-icons.ts
+Generated file icons: 1067 SVGs copied, 2046 file names, 1152 extensions, 4528 folder names
+$ tsr generate
+$ tsc --noEmit
+src/renderer/workstation/Workstation/components/RemoteWorkspaceSetup/RemoteWorkspaceSetup.test.tsx(53,14): error TS2352: Conversion of type '{ rpc: () => Promise<{ workspaceId: string; terminalId: string; phase: string; warning: string; startedAt: number; completionTracked: boolean; }>; }' to type 'DirectWorkstationApi' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ rpc: () => Promise<{ workspaceId: string; terminalId: string; phase: string; warning: string; startedAt: number; completionTracked: boolean; }>; }' is missing the following properties from type 'DirectWorkstationApi': about, openBrandLink, platform, list, and 22 more.
+src/renderer/workstation/Workstation/components/RemoteWorkspaceSetup/RemoteWorkspaceSetup.test.tsx(92,6): error TS2322: Type '(value: T | PromiseLike<T>) => void' is not assignable to type '(value: unknown) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'unknown' is not assignable to type 'T | PromiseLike<T>'.
+error: script "typecheck" exited with code 1

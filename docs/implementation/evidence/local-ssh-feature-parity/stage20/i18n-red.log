@@ -1,0 +1,100 @@
+$ bun run --cwd packages/i18n check
+$ bun run extract && bun run compile
+$ bun x --bun lingui extract --clean --overwrite --workers 1
+✔ Done in 22s
+Catalog statistics for locales/{locale}/messages: 
+┌─────────────┬─────────────┬─────────┐
+│[32m Language    [39m│[32m Total count [39m│[32m Missing [39m│
+├─────────────┼─────────────┼─────────┤
+│ en (source) │    6495     │    -    │
+│ cs          │    6495     │    1    │
+│ de          │    6495     │    1    │
+│ es          │    6495     │    1    │
+│ fr          │    6495     │    1    │
+│ id          │    6495     │    1    │
+│ it          │    6495     │    1    │
+│ ja          │    6495     │    1    │
+│ ko          │    6495     │    1    │
+│ nl          │    6495     │    1    │
+│ pl          │    6495     │    1    │
+│ pt-BR       │    6495     │    1    │
+│ ru          │    6495     │    1    │
+│ tr          │    6495     │    1    │
+│ vi          │    6495     │    1    │
+│ zh-CN       │    6495     │    1    │
+│ zh-TW       │    6495     │    1    │
+└─────────────┴─────────────┴─────────┘
+
+(Use "npm run extract" to update catalogs with new messages.)
+(Use "npm run compile" to compile catalogs for production. Alternatively, use bundler plugins: https://lingui.dev/ref/cli#compiling-catalogs-in-ci)
+$ bun x --bun lingui compile --strict --verbose --workers 1
+Compiling message catalogs…
+en ⇒ locales/en/messages.ts
+Error: Failed to compile catalog for locale ja!
+Missing translations after applying fallbackLocales:
+locales/ja/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale zh-CN!
+Missing translations after applying fallbackLocales:
+locales/zh-CN/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale fr!
+Missing translations after applying fallbackLocales:
+locales/fr/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale ko!
+Missing translations after applying fallbackLocales:
+locales/ko/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale zh-TW!
+Missing translations after applying fallbackLocales:
+locales/zh-TW/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale es!
+Missing translations after applying fallbackLocales:
+locales/es/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale de!
+Missing translations after applying fallbackLocales:
+locales/de/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale pt-BR!
+Missing translations after applying fallbackLocales:
+locales/pt-BR/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale it!
+Missing translations after applying fallbackLocales:
+locales/it/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale ru!
+Missing translations after applying fallbackLocales:
+locales/ru/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale tr!
+Missing translations after applying fallbackLocales:
+locales/tr/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale pl!
+Missing translations after applying fallbackLocales:
+locales/pl/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale nl!
+Missing translations after applying fallbackLocales:
+locales/nl/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale id!
+Missing translations after applying fallbackLocales:
+locales/id/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale cs!
+Missing translations after applying fallbackLocales:
+locales/cs/messages.po: fhBDUN: (Show output)
+
+Error: Failed to compile catalog for locale vi!
+Missing translations after applying fallbackLocales:
+locales/vi/messages.po: fhBDUN: (Show output)
+
+Done in 2s
+error: script "compile" exited with code 1
+error: script "check" exited with code 1
+error: script "check:i18n" exited with code 1

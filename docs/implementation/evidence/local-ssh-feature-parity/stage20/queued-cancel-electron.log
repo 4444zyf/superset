@@ -1,0 +1,31 @@
+[host-service:db] Initialized at /tmp/host-svc-initcmd-26135/host.db, migrations from /workspace/superset/packages/host-service/drizzle
+▶ initialCommand delivery
+  ✔ cancelling queued setup delivery preserves the shell and prevents a later automatic Enter (610.676029ms)
+  ✔ a >2KB initialCommand executes fully (no MAX_CANON truncation) (1032.034589ms)
+[terminal] failed to stage long initial command; typing it {
+  terminalId: 'e2e-fallback-9213b84c',
+  error: Error: ENOENT: no such file or directory, open '/tmp/host-svc-initcmd-26135/no-such-dir/nested/superset-launch-e2e-fallback-9213b84c-fc7983d5.sh'
+      at Object.openSync (node:fs:561:18)
+      at Object.func [as openSync] (node:electron/js2c/node_init:2:2630)
+      at writeFileSync (node:fs:2436:35)
+      at stageInitialCommandScript (/workspace/superset/packages/host-service/src/terminal/terminal.ts:2171:3)
+      at <anonymous> (/workspace/superset/packages/host-service/src/terminal/terminal.ts:2582:19)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/tmp/host-svc-initcmd-26135/no-such-dir/nested/superset-launch-e2e-fallback-9213b84c-fc7983d5.sh'
+  }
+}
+  ✔ staging failure falls back to typing the full command (2057.066354ms)
+  ✔ pre-Enter teardown unlinks the staged script (1230.846536ms)
+  ✔ short commands are still typed verbatim into the PTY (1039.215521ms)
+✔ initialCommand delivery (5995.022589ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8396.249423

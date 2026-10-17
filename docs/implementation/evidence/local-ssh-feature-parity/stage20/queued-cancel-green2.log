@@ -1,0 +1,57 @@
+▶ initialCommand delivery
+  ✖ cancelling queued setup delivery preserves the shell and prevents a later automatic Enter
+  ✖ a >2KB initialCommand executes fully (no MAX_CANON truncation)
+  ✖ staging failure falls back to typing the full command
+  ✖ pre-Enter teardown unlinks the staged script
+  ✖ short commands are still typed verbatim into the PTY
+✖ initialCommand delivery (14.794857ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 0
+ℹ fail 0
+ℹ cancelled 5
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1331.37421
+
+✖ failing tests:
+
+test at packages/host-service/src/terminal/terminal.initial-command.node-test.ts:1:2190
+✖ cancelling queued setup delivery preserves the shell and prevents a later automatic Enter
+  'test did not finish before its parent and was cancelled'
+
+test at packages/host-service/src/terminal/terminal.initial-command.node-test.ts:1:3366
+✖ a >2KB initialCommand executes fully (no MAX_CANON truncation)
+  'test did not finish before its parent and was cancelled'
+
+test at packages/host-service/src/terminal/terminal.initial-command.node-test.ts:1:4187
+✖ staging failure falls back to typing the full command
+  'test did not finish before its parent and was cancelled'
+
+test at packages/host-service/src/terminal/terminal.initial-command.node-test.ts:1:5112
+✖ pre-Enter teardown unlinks the staged script
+  'test did not finish before its parent and was cancelled'
+
+test at packages/host-service/src/terminal/terminal.initial-command.node-test.ts:1:5901
+✖ short commands are still typed verbatim into the PTY
+  'test did not finish before its parent and was cancelled'
+
+test at packages/host-service/src/terminal/terminal.initial-command.node-test.ts:1:2150
+✖ initialCommand delivery (14.794857ms)
+  Error: The module '/workspace/superset/node_modules/.bun/better-sqlite3@12.11.1/node_modules/better-sqlite3/build/Release/better_sqlite3.node'
+  was compiled against a different Node.js version using
+  NODE_MODULE_VERSION 145. This version of Node.js requires
+  NODE_MODULE_VERSION 137. Please try re-compiling or re-installing
+  the module (for instance, using `npm rebuild` or `npm install`).
+      at Object..node (node:internal/modules/cjs/loader:2030:18)
+      at Module.load (node:internal/modules/cjs/loader:1594:32)
+      at Module._load (node:internal/modules/cjs/loader:1396:12)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1617:12)
+      at require (node:internal/modules/helpers:153:16)
+      at bindings (/workspace/superset/node_modules/.bun/bindings@1.5.0/node_modules/bindings/bindings.js:112:48)
+      at new Database (/workspace/superset/node_modules/.bun/better-sqlite3@12.11.1/node_modules/better-sqlite3/lib/database.js:48:64)
+      at createDb (/workspace/superset/packages/host-service/src/db/db.ts:35:17)
+      at TestContext.<anonymous> (/workspace/superset/packages/host-service/src/terminal/terminal.initial-command.node-test.ts:68:7) {
+    code: 'ERR_DLOPEN_FAILED'
+  }

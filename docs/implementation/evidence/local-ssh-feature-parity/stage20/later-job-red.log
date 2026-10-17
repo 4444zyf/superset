@@ -1,0 +1,33 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceSetup/RemoteWorkspaceSetup.test.tsx:
+(pass) a failed setup displays its exit status without creating or retrying a terminal [31.32ms]
+(pass) known launch warnings are visible while an older backend receives no setup request [4.80ms]
+(pass) a late status from another workspace cannot overwrite the current setup [5.15ms]
+(pass) opening existing setup output never sends a host mutation and a view failure stays recoverable [14.05ms]
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find role="status"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceSetup/RemoteWorkspaceSetup.test.tsx:166:23
+(fail) an already open workspace observes a later setup job through read-only polling [1002.10ms]
+
+ 4 pass
+ 1 fail
+ 11 expect() calls
+Ran 5 tests across 1 file. [1250.00ms]

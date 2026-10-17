@@ -1,0 +1,30 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [2.79ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [0.51ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [1.02ms]
+(pass) a changed execution is never signalled by a stale stop request [0.57ms]
+(pass) a status read during launch cannot prevent its confirmed execution becoming active [0.82ms]
+(pass) the next confirmed run retains the preceding terminal identity for pane reuse [0.57ms]
+(pass) an instant command with a completion result ends even when foreground was never observed [0.47ms]
+(pass) an idle shell without its tracked completion cannot release a run for another launch [0.66ms]
+(pass) workspace deletion releases its bounded run slot without removing another workspace [0.37ms]
+(pass) a stop arriving after completion does not signal an idle or reused console [0.40ms]
+
+src/direct/script-input.test.ts:
+(pass) a scoped Ctrl+C cancels queued delivery and releases a run only after its execution is idle [1.26ms]
+(pass) a Ctrl+C for another execution or ordinary pasted text cannot cancel a queued setup [0.95ms]
+(pass) an explicitly interrupted setup is cancelled on idle without inventing an exit code [1.10ms]
+
+src/direct/workspace-setups.test.ts:
+(pass) a setup completion is retained across host replacement without launching anything [0.39ms]
+(pass) a replaced terminal execution cannot complete the original setup [0.27ms]
+(pass) late launch warnings cannot overwrite a newer setup and deletion releases its bounded slot [0.54ms]
+(pass) a known setup terminal launch failure remains visible without a terminal or retry [0.29ms]
+(pass) an uncertain setup recovers the same terminal result instead of running a second script [0.34ms]
+
+ 18 pass
+ 0 fail
+ 41 expect() calls
+Ran 18 tests across 3 files. [43.00ms]
