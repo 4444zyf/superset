@@ -1,0 +1,21 @@
+bun test v1.4.2 (744846f84)
+
+packages/host-service/src/no-main-loop-blocking.test.ts:
+(pass) no new main-loop blocking call sites > sync subprocess (execSync/spawnSync/execFileSync) [20.46ms]
+(pass) no new main-loop blocking call sites > sync recursive fs (rmSync/cpSync) [20.56ms]
+(pass) no new main-loop blocking call sites > in-process git client construction [16.08ms]
+(pass) no new main-loop blocking call sites > on-loop git via the ctx.git() shared factory [11.60ms]
+
+packages/host-service/src/events/event-bus.test.ts:
+(pass) EventBus agent binding events > broadcasts invalidation-only binding changes to every client [0.31ms]
+(pass) EventBus chat session events > nudges every client to refetch a workspace's chat sessions [0.07ms]
+(pass) EventBus port events > broadcasts port changes from the shared port manager and removes listeners on close [3.09ms]
+(pass) EventBus fs:watch-file > dedupes duplicate watch commands (one unwatch stops delivery) [877.71ms]
+(pass) EventBus fs:watch-file > is a no-op for a covered path (the recursive watcher owns delivery) [751.96ms]
+(pass) EventBus fs:watch-file > rejects paths outside the workspace root [0.74ms]
+(pass) EventBus fs:watch > lets a client re-watch after the stream failed [22.57ms]
+
+ 11 pass
+ 0 fail
+ 24 expect() calls
+Ran 11 tests across 2 files. [1.85s]

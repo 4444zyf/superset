@@ -1,0 +1,92 @@
+apps/desktop/scripts/verify-workstation-file-events-ui.mjs:31:4 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    29 │ 		writeFileSync(
+    30 │ 			join(output, "file-events-failure-observations.json"),
+  > 31 │ 			JSON.stringify(
+       │ 			^^^^^^^^^^^^^^^
+  > 32 │ 				await evaluate(
+        ...
+  > 36 │ 				2,
+  > 37 │ 			) + "\n",
+       │ 			^^^^^^^^
+    38 │ 		);
+    39 │ 		throw new Error("Remote file events acceptance did not complete");
+  
+  i Unsafe fix: Use a template literal.
+  
+     29  29 │   		writeFileSync(
+     30  30 │   			join(output, "file-events-failure-observations.json"),
+     31     │ - → → → JSON.stringify(
+         31 │ + → → → `${JSON.stringify(
+     32  32 │   				await evaluate(
+     33  33 │   					"({events:window.nativeFileEvents??[],text:document.body.innerText.slice(-3000)})",
+    ······· │ 
+     35  35 │   				null,
+     36  36 │   				2,
+     37     │ - → → → )·+·"\n",
+         37 │ + → → → )}\n`,
+     38  38 │   		);
+     39  39 │   		throw new Error("Remote file events acceptance did not complete");
+  
+
+apps/desktop/scripts/verify-workstation-file-events-ui.mjs:201:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    199 │ 	writeFileSync(
+    200 │ 		join(output, "workstation-file-events-ui.json"),
+  > 201 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 202 │ 			{
+         ...
+  > 222 │ 			2,
+  > 223 │ 		) + "\n",
+        │ 		^^^^^^^^
+    224 │ 	);
+    225 │ }
+  
+  i Unsafe fix: Use a template literal.
+  
+    199 199 │   	writeFileSync(
+    200 200 │   		join(output, "workstation-file-events-ui.json"),
+    201     │ - → → JSON.stringify(
+        201 │ + → → `${JSON.stringify(
+    202 202 │   			{
+    203 203 │   				sourceRevision: process.env.GITHUB_SHA,
+    ······· │ 
+    221 221 │   			null,
+    222 222 │   			2,
+    223     │ - → → )·+·"\n",
+        223 │ + → → )}\n`,
+    224 224 │   	);
+    225 225 │   }
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:244:17 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    242 │ test("rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision", async () => {
+    243 │ 	const frontMatter = "\ufeff---\ntitle: keep exactly\n---\n";
+  > 244 │ 	const source = frontMatter + "# Rich document\n\nOriginal paragraph.\n";
+        │ 	               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    245 │ 	const calls: DirectRpc[] = [];
+    246 │ 	const api = {
+  
+  i Unsafe fix: Use a template literal.
+  
+    242 242 │   test("rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision", async () => {
+    243 243 │   	const frontMatter = "\ufeff---\ntitle: keep exactly\n---\n";
+    244     │ - → const·source·=·frontMatter·+·"#·Rich·document\n\nOriginal·paragraph.\n";
+        244 │ + → const·source·=·`${frontMatter}#·Rich·document\n\nOriginal·paragraph.\n`;
+    245 245 │   	const calls: DirectRpc[] = [];
+    246 246 │   	const api = {
+  
+
+Skipped 3 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 5 files in 35ms. Fixed 4 files.
+Found 3 infos.

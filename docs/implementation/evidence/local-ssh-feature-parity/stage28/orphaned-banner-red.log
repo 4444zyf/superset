@@ -1,0 +1,329 @@
+$ bun test src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+(pass) a remote image reuses the original image surface and keyboard zoom without a text editor or save [340.27ms]
+(pass) unknown bytes retain the read-only binary message [3.68ms]
+(pass) an oversized image cannot bypass the document size limit [46.60ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [13.67ms]
+(pass) markdown defaults to the original rich preview and can switch to the shared source document [784.38ms]
+(pass) a markdown search destination opens the source view at the requested line [54.70ms]
+(pass) rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision [165.69ms]
+(pass) markdown links use explicit modifier clicks and local image sources use the selected workspace reader [52.60ms]
+(pass) Ctrl+F stays scoped to the selected preview when focus is on %s [57.12ms]
+(pass) Ctrl+F stays scoped to the selected preview when focus is on %s [73.05ms]
+(pass) closing rich preview search returns focus to the same file for the next find [78.20ms]
+328 |         const targetURL = BrowserFrameURL.getRelativeURL(browserFrame, this.src);
+329 |         if (this.#iframe && this.#iframe.window.location.href === targetURL.href) {
+330 |             return;
+331 |         }
+332 |         if (browserFrame.page.context.browser.settings.disableIframePageLoading) {
+333 |             const error = new window.DOMException(`Failed to load iframe page "${targetURL.href}". Iframe page loading is disabled.`, DOMExceptionNameEnum.notSupportedError);
+                                ^
+NotSupportedError: Failed to load iframe page "blob:preview-5". Iframe page loading is disabled.
+      at #loadPage (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/html-iframe-element/HTMLIFrameElement.js:333:27)
+      at [connectedToDocument] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/html-iframe-element/HTMLIFrameElement.js:230:14)
+      at [connectedToNode] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/node/Node.js:794:33)
+      at [appendChild] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/node/Node.js:413:29)
+      at [appendChild] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/element/Element.js:1072:50)
+      at insertOrAppendPlacementNode (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:13688:63)
+      at commitPlacement (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:13735:11)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at commitReconciliationEffects (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:15139:11)
+      at commitMutationEffectsOnFiber (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:14822:11)
+
+(pass) recognized media uses the original %s view without text editing or autoplay [305.49ms]
+(pass) recognized media uses the original %s view without text editing or autoplay [304.93ms]
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find an element with the text: File was deleted on disk. You still have unsaved changes.. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/repo/deleted.txt"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/repo/deleted.txt[0m
+      [36m</code>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"File contents"[39m
+        [33mclass[39m=[32m"h-80 border border-border rounded-md overflow-hidden"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"min-w-0 h-full w-full"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"cm-editor ͼ1 ͼ3 ͼ4 ͼ3r"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33maria-live[39m=[32m"polite"[39m
+              [33mclass[39m=[32m"cm-announced"[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"cm-scroller"[39m
+              [33mtabindex[39m=[32m"-1"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-gutters cm-gutters-before"[39m
+                [33mstyle[39m=[32m"min-height: 14px; position: sticky;"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-lineNumbers"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [0m9[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m1[0m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-foldGutter"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m9 18 6-6-6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m/>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-multiline[39m=[32m"true"[39m
+                [33mautocapitalize[39m=[32m"off"[39m
+                [33mautocorrect[39m=[32m"off"[39m
+                [33mclass[39m=[32m"cm-content"[39m
+                [33mcontenteditable[39m=[32m"true"[39m
+                [33mrole[39m=[32m"textbox"[39m
+                [33mspellcheck[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"tab-size: 4;"[39m
+                [33mtranslate[39m=[32m"no"[39m
+                [33mwritingsuggestions[39m=[32m"false"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line cm-activeLine"[39m
+                [36m>[39m
+                  [0mretained draft[0m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-layer-above cm-cursorLayer"[39m
+                [33mstyle[39m=[32m"z-index: 150; animation-duration: 1200ms;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-selectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -2;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-contourSelectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -3;"[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex gap-2"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+        [36m>[39m
+          [0mSave file[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+        [36m>[39m
+          [0mClose file and discard draft[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/repo/deleted.txt"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/repo/deleted.txt[0m
+      [36m</code>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"File contents"[39m
+        [33mclass[39m=[32m"h-80 border border-border rounded-md overflow-hidden"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"min-w-0 h-full w-full"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"cm-editor ͼ1 ͼ3 ͼ4 ͼ3r"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33maria-live[39m=[32m"polite"[39m
+              [33mclass[39m=[32m"cm-announced"[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"cm-scroller"[39m
+              [33mtabindex[39m=[32m"-1"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-gutters cm-gutters-before"[39m
+                [33mstyle[39m=[32m"min-height: 14px; position: sticky;"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-lineNumbers"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [0m9[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m1[0m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-foldGutter"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m9 18 6-6-6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m/>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-multiline[39m=[32m"true"[39m
+                [33mautocapitalize[39m=[32m"off"[39m
+                [33mautocorrect[39m=[32m"off"[39m
+                [33mclass[39m=[32m"cm-content"[39m
+                [33mcontenteditable[39m=[32m"true"[39m
+                [33mrole[39m=[32m"textbox"[39m
+                [33mspellcheck[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"tab-size: 4;"[39m
+                [33mtranslate[39m=[32m"no"[39m
+                [33mwritingsuggestions[39m=[32m"false"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line cm-activeLine"[39m
+                [36m>[39m
+                  [0mretained draft[0m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-layer-above cm-cursorLayer"[39m
+                [33mstyle[39m=[32m"z-index: 150; animation-duration: 1200ms;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-selectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -2;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-contourSelectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -3;"[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex gap-2"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+        [36m>[39m
+          [0mSave file[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+        [36m>[39m
+          [0mClose file and discard draft[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:462:15
+(fail) a remotely deleted dirty document retains its draft and exposes the original explicit discard action [1015.69ms]
+
+ 13 pass
+ 1 fail
+ 69 expect() calls
+Ran 14 tests across 1 file. [3.55s]
+error: script "test" exited with code 1

@@ -1,0 +1,171 @@
+$ bun test src/main/lib/ssh-direct/socket-broker.test.ts src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/socket-broker.test.ts:
+(pass) a renderer cannot send into another window's terminal connection [0.94ms]
+(pass) closing a renderer closes only its WebSockets and never sends terminal disposal [0.20ms]
+(pass) socket path cannot inject a different origin or host token [0.21ms]
+(pass) terminal bytes remain binary across IPC instead of corrupting UTF-8 fragments [0.40ms]
+(pass) disconnect during asynchronous socket creation closes the late connection [0.11ms]
+(pass) duplicate socket IDs cannot overwrite an asynchronously opening socket [0.12ms]
+(pass) stream cleanup after disconnect is idempotent while other owners remain protected [0.18ms]
+(pass) closing an opening socket cancels its late subscription without permitting another owner [0.13ms]
+54 | 			!/^\/terminal-restore\/[a-zA-Z0-9_-]+\?workspaceId=[a-zA-Z0-9_-]+&executionId=[a-zA-Z0-9_-]+$/.test(path) &&
+55 | 			!/^\/chat-v3\/sessions\/[a-zA-Z0-9-]+\/stream(?:\?since=[a-zA-Z0-9:%._-]+(?:&deltas=text,terminal)?)?$/.test(
+56 | 				path,
+57 | 			)
+58 | 		)
+59 | 			throw new Error("Unsupported workstation socket");
+                  ^
+error: Unsupported workstation socket
+      at open (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/socket-broker.ts:59:14)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/socket-broker.test.ts:150:15)
+(fail) the original event bus opens through the owned transport without accepting token or path additions [0.79ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [190.92ms]
+(pass) the original explorer action opens a create form using the current remote directory [118.96ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [122.65ms]
+(pass) content search opens the selected remote file at the matched line [456.78ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [71.45ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [152.43ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [178.10ms]
+(pass) a truncated read cannot overwrite the complete remote file [124.75ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [86.64ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [196.78ms]
+(pass) editing a remote CRLF file preserves its line endings [172.16ms]
+(pass) Git diffs use the remote status category and surface transport failures [95.40ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [100.80ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [153.28ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [171.07ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [159.70ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [338.05ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [400.13ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [479.73ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [339.09ms]
+(pass) switching to Changes and back retains the original editor undo history [419.78ms]
+(pass) Git changes reuse the original split and unified diff controls without account providers [619.84ms]
+(pass) history opens the selected commit files and requests that commit's original diff [325.17ms]
+(pass) the configured base branch reaches status and against-base diff queries [548.67ms]
+(pass) a late configured base invalidates an in-flight default-base diff and refreshes comparison status [324.01ms]
+(pass) pull reloads a clean original editor from the changed worktree [665.44ms]
+(pass) opening a file during a Git refresh is not silently dropped [175.37ms]
+42 |   computedStyleSupportsPseudoElements: false
+43 | };
+44 | function runWithExpensiveErrorDiagnosticsDisabled(callback) {
+45 |   try {
+46 |     config._disableExpensiveErrorDiagnostics = true;
+47 |     return callback();
+                ^
+error: expect(received).toContainEqual(expected)
+
+Expected to contain: {
+  type: "fs:watch",
+  workspaceId: "workspace",
+}
+Received: []
+
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"flex-1 min-h-0 flex flex-col overflow-auto p-3 gap-3 bg-background text-foreground"[39m
+        [33mdata-workspace-files[39m=[32m"workspace"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex gap-2 flex-wrap"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"true"[39m
+            [33mclass[39m=[32m"inline-flex items-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 justify-start text-xs"[39m
+            [33mdata-slot[39m=[32m"button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mFiles[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+            [33mclass[39m=[32m"inline-flex items-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 justify-start text-xs"[39m
+            [33mdata-slot[39m=[32m"button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mChanges[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+            [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+            [33mdata-slot[39m=[32m"button"[39m
+            [33mdisabled[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mHistory[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+            [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+            [33mdata-slot[39m=[32m"button"[39m
+            [33mdisabled[39m=[32m""[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mSearch files[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"inline-flex items-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 justify-start text-xs"[39m
+            [33mdata-slot[39m=[32m"button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mRefresh files and Git[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex min-h-0 flex-1"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex h-full w-full data-[panel-group-direction=vertical]:flex-col min-h-96 flex-1"[39m
+            [33mdata-panel-group[39m=[32m""[39m
+            [33mdata-panel-group-direction[39m=[32m"horizontal"[39m
+            [33mdata-panel-group-id[39m=[32m"_r_co_"[39m
+            [33mdata-slot[39m=[32m"resizable-panel-group"[39m
+            [33mstyle[39m=[32m"display: flex; flex-direction: row; height: 100%; overflow: hidden; width: 100%;"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-panel[39m=[32m""[39m
+              [33mdata-panel-group-id[39m=[32m"_r_co_"[39m
+              [33mdata-panel-id[39m=[32m"_r_cp_"[39m
+              [33mdata-panel-size[39m=[32m"30.0"[39m
+              [33mdata-slot[39m=[32m"resizable-panel"[39m
+              [33mid[39m=[32m"_r_cp_"[39m
+              [33mstyle[39m=[32m"flex-basis: 0px; flex-grow: 30; flex-shrink: 1; overflow: hidden;"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex h-full min-h-0 flex-col gap-2 pr-2"[39m
+              [36m>[39m
+                [36m<code[39m
+                  [33mclass[39m=[32m"block text-xs truncate"[39m
+                  [33mtitle[39m=[32m"/Users/remote/repo"[39m
+                [36m>[39m
+                  [0m/Users/remote/repo[0m
+                [36m</code>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex gap-1"[39m
+                [36m>[39m
+                  [36m<button[39m
+                    [33maria-label[39m=[32m"New File..."[39m
+                    [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opac...
+      at runWithExpensiveErrorDiagnosticsDisabled (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:36)
+(fail) remote filesystem events refresh the original tree and clean editor while preserving an unsaved draft [1133.44ms]
+
+2 tests failed:
+(fail) the original event bus opens through the owned transport without accepting token or path additions [0.79ms]
+(fail) remote filesystem events refresh the original tree and clean editor while preserving an unsaved draft [1133.44ms]
+
+ 35 pass
+ 2 fail
+ 238 expect() calls
+Ran 37 tests across 2 files. [9.03s]
+error: script "test" exited with code 1

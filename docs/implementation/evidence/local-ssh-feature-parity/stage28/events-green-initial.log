@@ -1,0 +1,48 @@
+$ bun test src/main/lib/ssh-direct/socket-broker.test.ts src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/socket-broker.test.ts:
+(pass) a renderer cannot send into another window's terminal connection [0.63ms]
+(pass) closing a renderer closes only its WebSockets and never sends terminal disposal [0.17ms]
+(pass) socket path cannot inject a different origin or host token [0.16ms]
+(pass) terminal bytes remain binary across IPC instead of corrupting UTF-8 fragments [0.24ms]
+(pass) disconnect during asynchronous socket creation closes the late connection [0.11ms]
+(pass) duplicate socket IDs cannot overwrite an asynchronously opening socket [0.09ms]
+(pass) stream cleanup after disconnect is idempotent while other owners remain protected [0.11ms]
+(pass) closing an opening socket cancels its late subscription without permitting another owner [0.10ms]
+(pass) the original event bus opens through the owned transport without accepting token or path additions [0.29ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [177.31ms]
+(pass) the original explorer action opens a create form using the current remote directory [112.83ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [121.84ms]
+(pass) content search opens the selected remote file at the matched line [465.07ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [70.62ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [138.88ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [140.33ms]
+(pass) a truncated read cannot overwrite the complete remote file [109.60ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [90.72ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [145.26ms]
+(pass) editing a remote CRLF file preserves its line endings [159.37ms]
+(pass) Git diffs use the remote status category and surface transport failures [71.98ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [85.81ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [154.32ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [144.75ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [158.87ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [318.35ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [327.14ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [414.17ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [306.74ms]
+(pass) switching to Changes and back retains the original editor undo history [436.00ms]
+(pass) Git changes reuse the original split and unified diff controls without account providers [684.78ms]
+(pass) history opens the selected commit files and requests that commit's original diff [306.53ms]
+(pass) the configured base branch reaches status and against-base diff queries [538.90ms]
+(pass) a late configured base invalidates an in-flight default-base diff and refreshes comparison status [357.74ms]
+(pass) pull reloads a clean original editor from the changed worktree [563.76ms]
+(pass) opening a file during a Git refresh is not silently dropped [161.57ms]
+(pass) remote filesystem events refresh the original tree and clean editor while preserving an unsaved draft [238.96ms]
+
+ 37 pass
+ 0 fail
+ 230 expect() calls
+Ran 37 tests across 2 files. [7.42s]

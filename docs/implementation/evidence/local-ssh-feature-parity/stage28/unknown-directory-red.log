@@ -1,0 +1,32 @@
+$ bun test src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [3.27ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.48ms]
+(pass) a different backend cannot receive a previous backend's draft [0.39ms]
+(pass) binary bytes remain read-only and never enter a text save [0.22ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.30ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.37ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.34ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.39ms]
+220 |  const manager = new WorkstationFileDocuments(f.api);
+221 |  const document = manager.acquire(first, "workspace", "/repo/src/note.txt");
+222 |  await settle();
+223 |  document.setContent("private unsaved draft");
+224 |  manager.dispatchFsEvent(first, "workspace", {kind: "rename", oldAbsolutePath: "/repo/src", absolutePath: "/repo/moved"});
+225 |  expect(document.absolutePath).toBe("/repo/moved/note.txt");
+                                     ^
+error: expect(received).toBe(expected)
+
+Expected: "/repo/moved/note.txt"
+Received: "/repo/src/note.txt"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:225:32)
+(fail) a directory event whose stat lost the race still affects known descendant documents [0.39ms]
+
+ 8 pass
+ 1 fail
+ 22 expect() calls
+Ran 9 tests across 1 file. [161.00ms]
+error: script "test" exited with code 1

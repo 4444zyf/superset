@@ -1,0 +1,140 @@
+$ bun test src/main/lib/ssh-direct/accountless-boot.test.ts src/main/lib/ssh-direct/workstation-controller.test.ts src/main/lib/ssh-direct/socket-broker.test.ts src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts src/renderer/workstation/Workstation/providers/WorkstationFileEvents/workstation-event-socket.test.ts src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/file-tree-controller.test.ts
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [240.54ms]
+
+src/main/lib/ssh-direct/socket-broker.test.ts:
+(pass) a renderer cannot send into another window's terminal connection [0.66ms]
+(pass) closing a renderer closes only its WebSockets and never sends terminal disposal [0.17ms]
+(pass) socket path cannot inject a different origin or host token [0.20ms]
+(pass) terminal bytes remain binary across IPC instead of corrupting UTF-8 fragments [0.31ms]
+(pass) disconnect during asynchronous socket creation closes the late connection [0.12ms]
+(pass) duplicate socket IDs cannot overwrite an asynchronously opening socket [0.09ms]
+(pass) stream cleanup after disconnect is idempotent while other owners remain protected [0.13ms]
+(pass) closing an opening socket cancels its late subscription without permitting another owner [0.12ms]
+(pass) the original event bus opens through the owned transport without accepting token or path additions [0.30ms]
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.12ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.21ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.23ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.13ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.99ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.12ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.54ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.11ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.15ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.14ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.80ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.57ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.68ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.66ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.56ms]
+(pass) attachment and file event readiness require explicit backend capabilities [0.29ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.15ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.14ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.15ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.39ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.48ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.73ms]
+(pass) project script procedures require their own capability and an explicit project [0.26ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.72ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.43ms]
+(pass) setup status is read only with an explicit workspace and its advertised capability [0.18ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [2.42ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.40ms]
+(pass) a different backend cannot receive a previous backend's draft [0.39ms]
+(pass) binary bytes remain read-only and never enter a text save [0.22ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.25ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.45ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.35ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.57ms]
+(pass) a directory event whose stat lost the race still affects known descendant documents [0.34ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationFileEvents/workstation-event-socket.test.ts:
+(pass) the original event bus refcounts watches, restores subscriptions after a drop and ignores the old socket [1.55ms]
+(pass) closing a pending event socket cancels retry and discards its late open failure [0.23ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [183.10ms]
+(pass) the original explorer action opens a create form using the current remote directory [118.03ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [107.27ms]
+(pass) content search opens the selected remote file at the matched line [443.66ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [66.12ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [126.74ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [139.38ms]
+(pass) a truncated read cannot overwrite the complete remote file [118.39ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [74.83ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [137.87ms]
+(pass) editing a remote CRLF file preserves its line endings [137.21ms]
+(pass) Git diffs use the remote status category and surface transport failures [71.59ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [95.07ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [154.41ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [141.53ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [157.09ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [267.14ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [315.84ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [376.70ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [287.71ms]
+(pass) switching to Changes and back retains the original editor undo history [377.65ms]
+(pass) Git changes reuse the original split and unified diff controls without account providers [689.28ms]
+(pass) history opens the selected commit files and requests that commit's original diff [283.43ms]
+(pass) the configured base branch reaches status and against-base diff queries [482.45ms]
+(pass) a late configured base invalidates an in-flight default-base diff and refreshes comparison status [320.84ms]
+(pass) pull reloads a clean original editor from the changed worktree [546.94ms]
+(pass) opening a file during a Git refresh is not silently dropped [145.16ms]
+(pass) remote filesystem events refresh the original tree and clean editor while preserving an unsaved draft [288.77ms]
+(pass) a backend without the optional file events capability keeps manual file access without opening a socket [97.43ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteFileTree/file-tree-controller.test.ts:
+(pass) the original tree loads an expanded remote folder once and retains its siblings [2.08ms]
+(pass) a directory reply from a stopped tree cannot appear in its replacement [0.48ms]
+(pass) directory responses cannot install paths outside the queried folder [0.39ms]
+(pass) a bounded tree rejects an oversized batch without dropping the current paths [0.43ms]
+(pass) refresh removes a deleted expanded directory without querying its missing path [0.66ms]
+(pass) watcher bursts coalesce while a listing is in flight and still install the final tree [0.72ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+(pass) a remote image reuses the original image surface and keyboard zoom without a text editor or save [330.43ms]
+(pass) unknown bytes retain the read-only binary message [2.20ms]
+(pass) an oversized image cannot bypass the document size limit [41.48ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [49.28ms]
+(pass) markdown defaults to the original rich preview and can switch to the shared source document [693.69ms]
+(pass) a markdown search destination opens the source view at the requested line [104.47ms]
+(pass) rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision [248.12ms]
+(pass) markdown links use explicit modifier clicks and local image sources use the selected workspace reader [106.88ms]
+(pass) Ctrl+F stays scoped to the selected preview when focus is on %s [120.60ms]
+(pass) Ctrl+F stays scoped to the selected preview when focus is on %s [113.67ms]
+(pass) closing rich preview search returns focus to the same file for the next find [149.37ms]
+328 |         const targetURL = BrowserFrameURL.getRelativeURL(browserFrame, this.src);
+329 |         if (this.#iframe && this.#iframe.window.location.href === targetURL.href) {
+330 |             return;
+331 |         }
+332 |         if (browserFrame.page.context.browser.settings.disableIframePageLoading) {
+333 |             const error = new window.DOMException(`Failed to load iframe page "${targetURL.href}". Iframe page loading is disabled.`, DOMExceptionNameEnum.notSupportedError);
+                                ^
+NotSupportedError: Failed to load iframe page "blob:preview-5". Iframe page loading is disabled.
+      at #loadPage (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/html-iframe-element/HTMLIFrameElement.js:333:27)
+      at [connectedToDocument] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/html-iframe-element/HTMLIFrameElement.js:230:14)
+      at [connectedToNode] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/node/Node.js:794:33)
+      at [appendChild] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/node/Node.js:413:29)
+      at [appendChild] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/element/Element.js:1072:50)
+      at insertOrAppendPlacementNode (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:13688:63)
+      at commitPlacement (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:13735:11)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at commitReconciliationEffects (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:15139:11)
+      at commitMutationEffectsOnFiber (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:14822:11)
+
+(pass) recognized media uses the original %s view without text editing or autoplay [305.13ms]
+(pass) recognized media uses the original %s view without text editing or autoplay [304.40ms]
+(pass) a remotely deleted dirty document retains its draft and exposes the original explicit discard action [54.92ms]
+
+ 98 pass
+ 0 fail
+ 1479 expect() calls
+Ran 98 tests across 8 files. [10.21s]

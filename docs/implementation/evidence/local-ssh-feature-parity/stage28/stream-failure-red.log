@@ -1,0 +1,26 @@
+$ bun test src/renderer/workstation/Workstation/providers/WorkstationFileEvents/workstation-event-socket.test.ts
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/providers/WorkstationFileEvents/workstation-event-socket.test.ts:
+(pass) the original event bus refcounts watches, restores subscriptions after a drop and ignores the old socket [1.72ms]
+(pass) closing a pending event socket cancels retry and discards its late open failure [0.25ms]
+179 |  const socket = new WorkstationEventSocket(f.api, connection, f.schedule);
+180 |  await settle();
+181 |  const id = openedId(f);
+182 |  f.emit(id, "open");
+183 |  f.emit(id, "message", JSON.stringify({type: "error", message: "Filesystem event stream failed"}));
+184 |  expect(socket.readyState).toBe(3);
+                                 ^
+error: expect(received).toBe(expected)
+
+Expected: 3
+Received: 1
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationFileEvents/workstation-event-socket.test.ts:184:28)
+(fail) a backend file watch error recovers the subscription instead of leaving it falsely open [0.25ms]
+
+ 2 pass
+ 1 fail
+ 18 expect() calls
+Ran 3 tests across 1 file. [145.00ms]
+error: script "test" exited with code 1

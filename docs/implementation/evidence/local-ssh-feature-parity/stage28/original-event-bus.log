@@ -1,0 +1,23 @@
+bun test v1.4.2 (744846f84)
+
+packages/workspace-client/src/lib/eventBus.test.ts:
+(pass) eventBus > routes events to listeners by type and workspaceId (exact and wildcard) [43.62ms]
+(pass) eventBus > delivers chat:sessions-changed to listeners for its workspace [41.94ms]
+(pass) eventBus > shares one connection per hostUrl across handles [171.96ms]
+(pass) eventBus > refcounts fs:watch and only unwatches at zero [264.23ms]
+(pass) eventBus > re-sends active fs:watch commands after a reconnect [1073.29ms]
+(pass) eventBus > reconnectEventBusIfDown dials a downed connection without waiting out the backoff [2339.51ms]
+(pass) eventBus > reconnectEventBusIfDown leaves an open connection alone [260.55ms]
+(pass) eventBus > closes the connection when the last listener unsubscribes [1547.86ms]
+(pass) eventBus > an active git-watch keeps the connection alive after its last listener/retainer releases [643.61ms]
+(pass) eventBus > releasing interest via a fresh handle, after the connection's last watcher already closed it, does not strand a new connection [1542.17ms]
+(pass) eventBus > a handle minted before its connection was torn down binds to the live connection, not the dead one [62.61ms]
+[eventBus] git:watch rejected by the host's cap {
+  workspaceId: "ws-1",
+}
+(pass) eventBus > a git:watch the host rejects for its cap is re-sent by the next watchGit [192.02ms]
+
+ 12 pass
+ 0 fail
+ 20 expect() calls
+Ran 12 tests across 1 file. [8.24s]

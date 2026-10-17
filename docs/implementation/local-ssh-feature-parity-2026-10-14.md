@@ -610,7 +610,7 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 
 第91轮固定e569fae2844bd1aafe98930c6176e14fe9154644，实际Linux/Electron/拥有的SSH --lifecycle-only退出0：原编辑器配置瞬时Run分别真实退出0/17、输出保留、同输出重开及Ctrl+C不结束父shell；Setup明确启用/跳过/失败17/取消，重开仍同PID/执行ID且不重跑；原删除影响确认、取消不删、Teardown失败17/重开、明确跳过不运行、成功只运行一次、2个Worktree及保存标签删除、勾选分支删除与默认分支保留均通过。原3个PTY仍PID7743/7749/7755，最终原布局和配置恢复。失败Run、Setup取消和删除后重开截图均已实际查看。原主线程4条ratchet检查全部通过，先前5文件递归同步清理失败已处理，未改豁免或允许计数；不将这称为所有既有同步文件读取均已消除。[第91轮原始证据](evidence/local-ssh-feature-parity/source-linux-cleanup-async/91)、[阶段二十七回归/类型/构建日志](evidence/local-ssh-feature-parity/stage27)。macOS发行物、供应商Agent验证及总清单其余入口仍按原范围继续。
 
-### 阶段二十八：原文件事件总线与外部变更（实际窗口待记录）
+### 阶段二十八：原文件事件总线与外部变更
 
 新增失败回归先35通过/2失败：工作站SocketBroker拒绝原/events、RemoteFiles收不到原fs:events。将原workspace-client事件总线的订阅/引用计数/分发/状态与清理提取为可注入传输的纯核心；原getEventBus继续使用同一relay/token包装与参数，原12项真实WebSocket测试通过。工作站使用现有主进程IPC和已验证连接连接原后端EventBus，不向renderer暴露令牌或建立云账号。新增可选workstationFileEventsV1，仅字面true开放，旧后端继续原手动刷新。主进程只增加精确/events路径，不接受附加token或其他变形路径。
 
@@ -623,3 +623,5 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 第93轮固定ed3b8f822，新构建实际窗口已走过：外部内容更新自动出现在原编辑器、目录create/rename/delete出现在原树，rename事件含原路径和目录类型，原删除提示可见；真实用户输入草稿后外部修改，明确Save被原版本条件拒绝，草稿和远端新内容均保留。随后脚本期待“Close file and discard draft”后再出现确认对话框而超时，退出1；该控件本身就是明确丢弃，只有标签关闭使用另一个确认流程。修改脚本等待明确丢弃完成，产品合同不变。自动更新、冲突与失败截图已实际查看。忽略目录文件和最终重开尚未走到，不能算本轮通过。[第93轮失败证据](evidence/local-ssh-feature-parity/source-linux-file-events-failures/93)。
 
 第94轮产品仍ed3b8f822、脚本ceedd5f7c，原外部修改/目录/冲突与明确丢弃通过；.gitignore排除目录中的已打开note.txt真实外部更新也自动显示，截图已实际查看。重开后目录和子项均显示，但open目录helper错误地等待CodeMirror，尚未点击子文件就超时，退出1。失败截图已查看；目录操作改为仅展开，文件操作才等待编辑器，产品不变。[第94轮失败证据](evidence/local-ssh-feature-parity/source-linux-file-events-failures/94)。
+
+第95轮产品ed3b8f822、脚本e39924e42，实际Linux/Electron/拥有的SSH --file-events-only退出0。外部写入来自夹具的SSH运行机文件系统，事件走真实后端原EventBus和客户端IPC，非renderer变更API或供应商Agent。原CodeMirror自动看到包含中文/emoji的外部新版本；原Pierre树自动显示目录新增/重命名/删除，目录rename使已打开child.txt自动跟随新路径，删除后原OrphanedBanner显示且内容保留。真实键入未保存草稿后外部再改，明确Save触发原版本冲突，草稿及远端新版本均未被覆盖；按原明确丢弃按钮关闭后，.gitignore排除目录中的已打开note.txt仍通过原watchFsFile收到更新。重开后正确读取新内容、没有自动写回，3个原PTY同PID15295/15307/15301、执行ID与统一worktree cwd保留。原始观察含6批create/update/rename/delete事件，自动更新、删除、冲突、忽略目录和重开截图均已实际查看。[第95轮原始证据](evidence/local-ssh-feature-parity/source-linux-file-events/95)、[阶段二十八红绿/回归/类型/构建日志](evidence/local-ssh-feature-parity/stage28)。真实断网恢复与晚回复隔离目前仍是确定性注入回归；当前监听生命周期附着在文件视图，后台文档与Markdown相对图片独立资源、原完整冲突比较/解决UI、其他内联操作及全局退出草稿提醒继续接入。Linux源码窗口不代替macOS发行物。
