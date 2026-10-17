@@ -311,3 +311,52 @@ it("remote file preference uploads clipboard files even when a copied local path
 	expect(input).not.toHaveBeenCalled();
 	expect(flags.defaultPrevented).toBe(true);
 });
+
+describe("remote clipboard file accessors", () => {
+	it("uses an item-only file once through the original collector without sending local clipboard keys", () => {
+		const file = {
+			name: "notes.pdf",
+			size: 3,
+			type: "application/pdf",
+		} as File;
+		const override = mock((_files: File[]) => {});
+		const { event, flags } = clipboardEvent({
+			types: ["Files"],
+			files: { length: 0 },
+			getData: () => "file:///local/notes.pdf",
+		});
+		Object.assign(event.clipboardData!, {
+			items: [{ kind: "file", getAsFile: () => file }],
+		});
+		const { terminal, input } = makeFakeTerminal();
+		handleImagePasteFallback(event, terminal, () => override, {
+			preferFiles: true,
+		});
+		expect(override).toHaveBeenCalledWith([file]);
+		expect(input).not.toHaveBeenCalled();
+		expect(flags.defaultPrevented).toBe(true);
+	});
+	it("merges files and items without duplicating the same remote upload", () => {
+		const file = { name: "image.png", size: 12, type: "image/png" } as File;
+		const other = { name: "notes.txt", size: 4, type: "text/plain" } as File;
+		const override = mock((_files: File[]) => {});
+		const { event } = clipboardEvent({
+			types: ["Files"],
+			files: { length: 1, 0: file } as unknown as { length: number },
+			getData: () => "",
+		});
+		Object.assign(event.clipboardData!, {
+			items: [
+				{ kind: "file", getAsFile: () => ({ ...file, lastModified: 55 }) },
+				{ kind: "file", getAsFile: () => other },
+			],
+		});
+		handleImagePasteFallback(
+			event,
+			makeFakeTerminal().terminal,
+			() => override,
+			{ preferFiles: true },
+		);
+		expect(override).toHaveBeenCalledWith([file, other]);
+	});
+});

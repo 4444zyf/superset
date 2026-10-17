@@ -426,6 +426,26 @@ export async function verifyWorkspaceRestoreUi({
 			) + "\n",
 		);
 	}
+	if (process.argv.includes("--clipboard-only")) {
+		await click("text:Terminal");
+		await ready();
+		await verifyWorkstationClipboardUi({
+			getPage,
+			click,
+			screenshot,
+			setClipboard,
+			pasteClipboard,
+			inspectClipboardImage,
+			controls,
+			output,
+		});
+		assert.deepEqual(getPage().errors, []);
+		writeFileSync(
+			join(output, "workspace-restore-ui.json"),
+			JSON.stringify({ ...report, clipboardOnly: true }, null, 2) + "\n",
+		);
+		return;
+	}
 	await verifyWorkstationProjectSettingsUi({
 		getPage,
 		click,

@@ -415,7 +415,7 @@ try {
 						: undefined,
 				setClipboard: async (value) =>
 					main.evaluate(
-						`(()=>{const e=${electron};e.clipboard.clear();${value.imageBase64 ? `e.clipboard.writeImage(e.nativeImage.createFromBuffer(Buffer.from(${JSON.stringify(value.imageBase64)},'base64')));` : `e.clipboard.writeText(${JSON.stringify(value.text)});`}const image=e.clipboard.readImage();return {formats:e.clipboard.availableFormats(),image:image.isEmpty()?null:{size:image.getSize(),pixelSha256:process.getBuiltinModule('crypto').createHash('sha256').update(image.toBitmap()).digest('hex')}};})()`,
+						`(()=>{const e=${electron};e.clipboard.clear();${value.fileUri ? `e.clipboard.writeBuffer('text/uri-list',Buffer.from(${JSON.stringify(value.fileUri + "\r\n")}));` : value.imageBase64 ? `e.clipboard.writeImage(e.nativeImage.createFromBuffer(Buffer.from(${JSON.stringify(value.imageBase64)},'base64')));` : `e.clipboard.writeText(${JSON.stringify(value.text)});`}const image=e.clipboard.readImage();return {formats:e.clipboard.availableFormats(),image:image.isEmpty()?null:{size:image.getSize(),pixelSha256:process.getBuiltinModule('crypto').createHash('sha256').update(image.toBitmap()).digest('hex')}};})()`,
 					),
 				inspectClipboardImage: async (base64) =>
 					main.evaluate(

@@ -13,6 +13,7 @@ import {
 	knownItemSchema,
 } from "@superset/chat/protocol";
 import { Button } from "@superset/ui/button";
+import { getClipboardFiles } from "@superset/ui/lib/clipboard-files";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { validateClipboardFiles } from "renderer/lib/terminal/clipboard-files";
 import type {
@@ -517,7 +518,7 @@ export function RemoteChat({
 							readOnly={busy}
 							value={prompt}
 							onPaste={(event) => {
-								const files = Array.from(event.clipboardData.files);
+								const files = getClipboardFiles(event.clipboardData);
 								if (!files.length) return;
 								event.preventDefault();
 								if (busy) return;

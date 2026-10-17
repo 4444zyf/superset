@@ -1,0 +1,46 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/lib/terminal/terminal-image-paste-fallback.test.ts:
+(pass) isNonTextPaste > returns true when files are present (screenshot, copied file, web image) [0.06ms]
+(pass) isNonTextPaste > returns false when text/plain has content [0.02ms]
+(pass) isNonTextPaste > returns false when text/plain has content alongside image [0.03ms]
+(pass) isNonTextPaste > returns false when only text/plain is present but empty [0.02ms]
+(pass) isNonTextPaste > returns false for text/html-only rich text (no file payload) [0.01ms]
+(pass) isNonTextPaste > returns false when types lists image but no File entry exists [0.02ms]
+(pass) isNonTextPaste > returns false when clipboard is empty [0.01ms]
+(pass) handleImagePasteFallback > forwards Ctrl+V (\x16) when clipboard has files but no text [0.11ms]
+(pass) handleImagePasteFallback > does not call terminal.input for text paste — xterm's built-in handles it [0.03ms]
+(pass) handleImagePasteFallback > does not call terminal.input for mixed text+image paste [0.03ms]
+(pass) handleImagePasteFallback > routes the clipboard files to the override instead of forwarding ^V [0.20ms]
+(pass) handleImagePasteFallback > forwards ^V when the override getter returns null [0.04ms]
+(pass) handleImagePasteFallback > does not consult the override for text paste [0.03ms]
+(pass) installImagePasteFallback > registers a capture-phase paste listener on the wrapper [0.11ms]
+(pass) installImagePasteFallback > dispose removes the listener with matching capture option [0.08ms]
+(pass) installImagePasteFallback > registered handler forwards Ctrl+V on file paste [0.05ms]
+(pass) installImagePasteFallback > registered handler ignores text paste [0.03ms]
+(pass) remote file preference uploads clipboard files even when a copied local path is also present [0.09ms]
+(pass) remote clipboard file accessors > uses an item-only file once through the original collector without sending local clipboard keys [0.07ms]
+(pass) remote clipboard file accessors > merges files and items without duplicating the same remote upload [0.07ms]
+
+src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:
+(pass) changing pane callbacks does not reopen a restored chat stream [33.46ms]
+(pass) restoring a controlled chat selection never selects the first session or sends a prompt [7.22ms]
+(pass) closing the chat view closes only its stream, without cancelling or closing B's chat [106.80ms]
+(pass) an attachment replayed from chat history remains downloadable after reconnect [77.00ms]
+(pass) reconnecting keeps the selected remote chat and never repeats a prompt [14.88ms]
+(pass) switching chats clears unsent message and attachment drafts [18.94ms]
+(pass) an upload completed after switching chats cannot attach to the new chat [8.48ms]
+(pass) returning to a chat cannot revive an old upload or clear a newer upload's busy state [11.13ms]
+(pass) an older session list cannot erase a newly created chat [4.60ms]
+(pass) a download completed after changing workspace cannot save stale attachment bytes [10.95ms]
+(pass) attachment controls require the backend's attachment capability [4.38ms]
+(pass) an uploaded attachment is referenced once by opaque id in the selected chat prompt [11.30ms]
+(pass) pasted images upload to the selected chat without sending a prompt [7.27ms]
+(pass) a pasted image completing after switching chats is not attached or sent [58.23ms]
+(pass) a rejected pasted attachment leaves the chat and message draft available [7.65ms]
+(pass) chat merges both clipboard file accessors, deduplicates the image, and retains the unsent message [6.31ms]
+
+ 36 pass
+ 0 fail
+ 99 expect() calls
+Ran 36 tests across 2 files. [604.00ms]

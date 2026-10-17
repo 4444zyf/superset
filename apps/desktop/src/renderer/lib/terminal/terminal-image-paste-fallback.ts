@@ -1,4 +1,5 @@
 import type { Terminal as XTerm } from "@xterm/xterm";
+import { getClipboardFiles } from "@superset/ui/lib/clipboard-files";
 
 // For file/image clipboard payloads (screenshot, copied file, web image),
 // xterm.js's built-in paste handler reads an empty string from
@@ -42,17 +43,16 @@ export function handleImagePasteFallback(
 	getOverride?: () => ImagePasteOverride | null,
 	options?: { preferFiles?: boolean },
 ): void {
-	if (
-		!isNonTextPaste(event) &&
-		!(options?.preferFiles && event.clipboardData?.files.length)
-	)
-		return;
+	const files = options?.preferFiles
+		? getClipboardFiles(event.clipboardData)
+		: null;
+	if (!isNonTextPaste(event) && !files?.length) return;
 	event.preventDefault();
 	event.stopImmediatePropagation();
 	const override = getOverride?.() ?? null;
 	if (override) {
 		// File handles stay readable after dispatch; the list itself doesn't.
-		override(Array.from(event.clipboardData?.files ?? []));
+		override(files ?? Array.from(event.clipboardData?.files ?? []));
 		return;
 	}
 	terminal.input("\x16", true);

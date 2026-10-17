@@ -513,3 +513,10 @@ POSIX系列Shell使用当前交互Shell的eval执行原buildTerminalCommand结�
 第72轮实际Linux窗口冻结于 6626bb7fe10e3dab22484d463dbafb4fa7ce9fc2，完整验收退出0。原Setup成功0、跳过无终端/无标记、失败17与同一输出重新打开、窗口重开同PID且标记只一次通过；实际Ctrl+C后显示Cancelled，父PTY仍为PID29392，重开不重跑，未伪造退出码。Run明确Ctrl+C也结束状态并保留PID28758父PTY。成功/失败/Ctrl+C截图已实际查看。
 
 用户要求的粘贴在本轮再次通过真实系统剪贴板+Ctrl+V+所拥有的SSH：PNG1200×872像素哈希 5da154ed7de40907de33ab1f8ab74482298c2766fc5b6cb2b648c9dcb309ae97；远端Shell实际读取、重复图片独立保存；中文/emoji/129换行3474字节SHA256 c8e7925a786ecb3fe0aa82a044d156040598219e64605c91b8455ccb53edc577，逐字节一致。图片未按Enter时路径与粘贴文本截图已查看。原Run/Teardown、文件/Git/设置及整体恢复回归通过。macOS安装包、聊天实际粘贴和真实Agent识图仍未验收。[第72轮证据](evidence/local-ssh-feature-parity/source-linux-setup-status)。
+
+
+### 阶段二十一：复用原剪贴板附件收集器
+
+新增失败测试复现：SSH终端启用附件上传时，只有 DataTransfer.items 的文件被漏掉；聊天同时存在 files/items 时遗漏 items 中的另一个附件。两处改用原 @superset/ui/lib/clipboard-files 的 getClipboardFiles，合并两个访问器并按原规则去重，避免不同 lastModified 重复上传。原本机终端默认键盘/混合文本行为不变。保留聊天未发送草稿，不因粘贴自动发 prompt；相关桌面8文件57项/1029断言、原收集器6项/8断言、类型与构建通过。
+
+实际窗口增加 --clipboard-only 验收选项，只复测本次有关的系统剪贴板/SSH路径，输出明确标注未跑其余功能。Linux增加真实OS text/uri-list文件格式：有空格/引号/中文文件名、精确字节与远端shell读取；它不替代Finder/真实文件管理器复制验收。新窗口结果待记录，聊天真实窗口、macOS和供应商Agent仍待验收。[红绿记录](evidence/local-ssh-feature-parity/stage21)。

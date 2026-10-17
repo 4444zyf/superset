@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { stripVTControlCharacters } from "node:util";
 import { setTimeout as delay } from "node:timers/promises";
+import { pathToFileURL } from "node:url";
 
 export async function verifyWorkstationClipboardUi({
 	getPage,
@@ -238,6 +239,69 @@ export async function verifyWorkstationClipboardUi({
 	}
 	await key("d", 68, 2);
 	await screenshot("clipboard-remote-multiline-text");
+	let selectedFile = null;
+	if (process.platform === "linux") {
+		const selectedText = "copied file 中文 🙂\nSecond line\n";
+		const selectedPath = join(output, "clipboard selected '中文'.txt");
+		writeFileSync(selectedPath, selectedText);
+		const selectedClipboard = await setClipboard({
+			fileUri: pathToFileURL(selectedPath).href,
+		});
+		await text("cat < ");
+		await paste();
+		selectedFile = await until(async () => {
+			const result = await query("filesystem.listDirectory", {
+				absolutePath: directory,
+			});
+			for (const e of result.entries) {
+				if (!e.name.endsWith(".txt") || e.name === "clipboard-text.txt")
+					continue;
+				const r = await query("filesystem.readFile", {
+					absolutePath: `${directory}/${e.name}`,
+					maxBytes: 1024,
+				});
+				const actual = Buffer.from(
+					r.content,
+					r.kind === "text" ? "utf8" : "base64",
+				);
+				if (actual.equals(Buffer.from(selectedText)))
+					return { name: e.name, bytes: actual.byteLength };
+			}
+			return null;
+		});
+		await until(() =>
+			evaluate(
+				`!document.querySelector('[data-terminal-id="${terminal.terminalId}"]').parentElement.querySelector('output')`,
+			),
+		);
+		await screenshot("clipboard-native-file-path-before-enter");
+		await enter();
+		await until(async () =>
+			stripVTControlCharacters(
+				(await controls.inspectRunExecution(terminal)).output,
+			)
+				.replace(/\r/g, "")
+				.split("\n")
+				.includes("copied file 中文 🙂"),
+		);
+		writeFileSync(
+			join(output, "clipboard-native-file.json"),
+			JSON.stringify(
+				{
+					clipboard: selectedClipboard,
+					source: selectedPath,
+					remote: `${directory}/${selectedFile.name}`,
+					bytes: selectedFile.bytes,
+					exact: true,
+					shellRead: true,
+					actualFileManagerCopy: false,
+				},
+				null,
+				2,
+			) + "\n",
+		);
+		await screenshot("clipboard-native-file-shell-read");
+	}
 	for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
 		await getPage().call("Input.dispatchMouseEvent", {
 			type,
@@ -282,6 +346,9 @@ export async function verifyWorkstationClipboardUi({
 				textBytes: Buffer.byteLength(plain),
 				textSha256: createHash("sha256").update(plain).digest("hex"),
 				textExact: true,
+				nativeFileUriPaste: selectedFile !== null,
+				fileBytes: selectedFile?.bytes,
+				fileExact: selectedFile ? true : undefined,
 				vendorAgentVerified: false,
 				chatNativePasteVerified: false,
 			},

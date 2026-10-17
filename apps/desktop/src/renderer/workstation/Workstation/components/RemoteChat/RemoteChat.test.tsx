@@ -623,3 +623,64 @@ test("a rejected pasted attachment leaves the chat and message draft available",
 	expect(errors).toEqual([]);
 	expect((area as HTMLTextAreaElement).value).toBe("keep this 中文");
 });
+
+test("chat merges both clipboard file accessors, deduplicates the image, and retains the unsent message", async () => {
+	const uploads: unknown[] = [],
+		mutations: unknown[] = [];
+	const api = {
+		rpc: async (r: { type: string }) => {
+			if (r.type === "mutation") mutations.push(r);
+			return [];
+		},
+		onSocket: () => () => {},
+		openSocket: async () => {},
+		closeSocket: async () => {},
+		uploadAttachment: async (
+			_c: unknown,
+			f: { fileName: string; bytes: Uint8Array; mimeType: string },
+		) => {
+			uploads.push(f);
+			return {
+				attachmentId: f.fileName,
+				originalFilename: f.fileName,
+				mediaType: f.mimeType,
+				sizeBytes: f.bytes.length,
+			};
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteChat
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			selectedSessionId="saved"
+			onError={() => {}}
+		/>,
+	);
+	const area = await screen.findByRole("textbox", { name: "Message" });
+	fireEvent.change(area, { target: { value: "未发送的消息 🙂" } });
+	const image = new File([new Uint8Array([1, 2, 3])], "image.png", {
+		type: "image/png",
+		lastModified: 1,
+	});
+	const duplicate = new File([new Uint8Array([1, 2, 3])], "image.png", {
+		type: "image/png",
+		lastModified: 2,
+	});
+	const note = new File(["你好"], "notes.txt", { type: "text/plain" });
+	fireEvent.paste(area, {
+		clipboardData: {
+			files: [image],
+			items: [
+				{ kind: "file", getAsFile: () => duplicate },
+				{ kind: "file", getAsFile: () => note },
+			],
+			getData: () => "",
+		},
+	});
+	await waitFor(() => expect(uploads).toHaveLength(2));
+	expect(screen.getAllByRole("button", { name: "image.png" })).toHaveLength(1);
+	expect(screen.getByRole("button", { name: "notes.txt" })).toBeTruthy();
+	expect((area as HTMLTextAreaElement).value).toBe("未发送的消息 🙂");
+	expect(mutations).toEqual([]);
+});
