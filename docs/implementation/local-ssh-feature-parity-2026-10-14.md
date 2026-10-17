@@ -495,3 +495,7 @@ POSIX系列Shell使用当前交互Shell的eval执行原buildTerminalCommand结�
 原Run控件复用，完成后显示Completed或实际退出码；若命令在首次回复前已结束，也附着已有输出终端，不重跑命令。记录客户端失败测试及Shell实现中Zsh对command eval的差异红日志，改用当前Shell的eval。相关desktop6文件47项/1001断言、host6文件55项/125断言通过；类型、17语言严格检查与构建通过。实际窗口验收待记录；不能以这些测试替代真实SSH/PTY运行。[阶段十九日志](evidence/local-ssh-feature-parity/stage19)。
 
 第70轮冻结 `8fce8152637bd711a72d95889439d56bde0d0ee0`，两个实际瞬时Run均foregroundSeen=false，结果正确为0和17，原终端显示独立实际输出，复用同一窗格，marker一次成功一次失败；重开仍同PID且未重跑，三个截图已查看。后续删除验收最后重开时发现第四个已完成Run窗格被补回，整轮未通过，截图已查看。新增红测试确认冷读完成Run不应创建输出窗格，修复为仅本次明确Run的operationId才能在结束后补附着；已保存窗格仍由原布局恢复。同时增加红测试修复完成后才到达的Stop：读到匹配完成结果即返回ended，不向空闲终端发信号。48项/1004断言及host56项/127断言通过，完整实际复测待记录。[第70轮记录](evidence/local-ssh-feature-parity/source-linux-instant-run-failures/70)。
+
+第71轮冻结源码 `43abb525eb588d59b29e9a4c8199800c8cbe37e7` 整套窗口验收退出码0。成功/失败瞬时命令的foregroundSeen均false，原控件显示Completed与退出码17，两个原终端输出分别有独立实际成功/失败行，marker精确once/failed各一次。PID20523/20582；失败输出重开仍同执行、同PID、marker不增加，同一Run窗格复用。关闭完成输出后，后续窗口重开保持原三PTY布局，不再补回完成窗格；相关四截图已实际查看。
+
+同轮原长Run的普通停止保留PTY、强制停止确认原PID消失、重开/host重启同执行，以及系统剪贴板、Setup、Teardown/删除、设置、文件/Git、多工作区和完整恢复回归通过。组件/后端最终104项/1131断言，类型、17语言严格检查和构建通过，初始renderer入口4,670.53kB。[第71轮实际记录](evidence/local-ssh-feature-parity/source-linux-instant-run)。恢复单采样；Linux源码和拥有的SSH/Git/PTY夹具，不是macOS安装包或真实供应商Agent认证证据。Bash/Zsh/sh等POSIX系列完成跟踪已接入，Fish/Nushell等仍保留原执行路径且瞬时完成待补；完整终端预设、Setup失败状态等仍待继续，完整功能对齐目标未完成。
