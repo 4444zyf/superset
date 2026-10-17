@@ -1,0 +1,113 @@
+bun test v1.4.2 (744846f84)
+
+packages/host-service/src/no-main-loop-blocking.test.ts:
+(pass) no new main-loop blocking call sites > sync subprocess (execSync/spawnSync/execFileSync) [64.71ms]
+(pass) no new main-loop blocking call sites > sync recursive fs (rmSync/cpSync) [74.00ms]
+(pass) no new main-loop blocking call sites > in-process git client construction [88.61ms]
+(pass) no new main-loop blocking call sites > on-loop git via the ctx.git() shared factory [56.39ms]
+
+packages/host-service/src/direct/legacy-import.test.ts:
+(pass) fixture close finalizes prepared statements before source fingerprints are captured [1.98ms]
+(pass) offline import preserves identities, real paths and history, while excluding executable account configuration [167.75ms]
+(pass) live source writers and daemon processes are refused before publishing [110.78ms]
+(pass) a stopped target containing any data is never overwritten [32.12ms]
+(pass) an initialized but resource-empty target can be replaced and its seeds roll back on failure [224.00ms]
+(pass) unsupported v1 local.db and unverified writer checks fail closed [83.22ms]
+(pass) offline v1 import publishes preserved UUIDs, static history and session captures without legacy settings or execution [92.66ms]
+(pass) v1 live terminal-host and a recent terminal spawn lock fail closed [83.74ms]
+(pass) a closed v1 pane preserves its historical provider capture without inventing a terminal row [75.98ms]
+(pass) conflicting real repository paths reject the whole import [143.72ms]
+(pass) multiple local workspaces of one project preserve their shared primary checkout [84.01ms]
+(pass) archived workspaces and deleted projects retain identities when active rows reuse their paths [91.57ms]
+(pass) failure before atomic publish keeps source and target intact with a rollback journal [96.31ms]
+(pass) WAL changes are included without touching source files, and pending chat actions become inert history [119.10ms]
+(pass) publication failure restores an existing resource-empty target [192.94ms]
+(pass) an incomplete rollback keeps its import lock and durable recovery phase [88.45ms]
+(pass) dead importer recovery handles prepared without losing the prior namespace [40.00ms]
+(pass) dead importer recovery handles publishing without losing the prior namespace [41.60ms]
+(pass) dead importer recovery handles completed without losing the prior namespace [29.69ms]
+(pass) recovery after a second crash preserves an already restored prior target [31.84ms]
+
+packages/host-service/src/direct/workspace-setups.test.ts:
+(pass) a setup completion is retained across host replacement without launching anything [0.94ms]
+(pass) a replaced terminal execution cannot complete the original setup [0.53ms]
+(pass) late launch warnings cannot overwrite a newer setup and deletion releases its bounded slot [0.73ms]
+(pass) a known setup terminal launch failure remains visible without a terminal or retry [0.31ms]
+(pass) an uncertain setup recovers the same terminal result instead of running a second script [0.42ms]
+
+packages/host-service/src/direct/legacy-sources.test.ts:
+(pass) private previews expose UUID and path conflicts across sources while retaining every namespace [29.01ms]
+(pass) preview refuses active source writers before opening even a private snapshot [0.62ms]
+(pass) discovers v1 and each v2 namespace from this user's known homes without changing database bytes [5.97ms]
+(pass) does not follow linked homes, namespaces or database files [0.34ms]
+(pass) refuses a home owned by another OS identity [0.11ms]
+(pass) reports nonregular database candidates without opening or blocking on them [0.11ms]
+
+packages/host-service/src/direct/legacy-history.test.ts:
+(pass) lists static history and captured provider IDs without exposing execution settings [1.03ms]
+(pass) scrollback paging keeps UTF-8 boundaries and returns a bounded static chunk [0.52ms]
+(pass) history refuses linked files and invalid resource IDs instead of reading outside the selected namespace [0.51ms]
+(pass) invalid UTF-8 scrollback fails instead of returning a nonadvancing page [0.33ms]
+
+packages/host-service/src/direct/process-lock.test.ts:
+(pass) a second backend cannot write the same namespace while its owner is alive [0.38ms]
+(pass) a dead predecessor's process lock can be reclaimed without deleting data [0.17ms]
+
+packages/host-service/src/direct/run-completion.test.ts:
+(pass) /bin/bash reports a rapid failure while keeping the configured shell's cwd and variables [27.83ms]
+(pass) /usr/bin/zsh reports a rapid failure while keeping the configured shell's cwd and variables [23.47ms]
+(pass) a successful command ending with a comment has an atomic bounded completion result [94.01ms]
+(pass) invalid command syntax returns a completion instead of leaving the shell waiting for more input [11.24ms]
+
+packages/host-service/src/direct/operations.test.ts:
+(pass) a completed direct command is returned after backend restart without repeating side effects [6.98ms]
+(pass) an operation ID cannot be reused for different inputs [0.78ms]
+(pass) accepted operations from a crashed backend are unresolved and never automatically replayed [0.85ms]
+(pass) concurrent retries share one accepted operation and its final result [0.79ms]
+(pass) an exception after a side effect remains unresolved and cannot be replayed [13.00ms]
+(pass) maintenance drain persists and blocks new work until its owner commits [0.95ms]
+(pass) freeze persists across restart and only its maintenance owner can release it [0.52ms]
+(pass) a failed freeze write cannot leave a partially persisted maintenance transition [0.49ms]
+
+packages/host-service/src/direct/legacy-v1.test.ts:
+(pass) maps only provable v1 metadata without changing the snapshot or inventing an actor [5.23ms]
+(pass) maps branch workspaces to the existing primary checkout without reading Git or rewriting IDs [0.68ms]
+(pass) preserves two v1 branch workspaces that legitimately share their own project's primary checkout [0.70ms]
+(pass) reports duplicate tab identities that assign the same pane to different workspaces [0.63ms]
+(pass) reports non-UUID entries and every conflicting path instead of silently renaming or selecting a winner [0.74ms]
+(pass) rejects a pane mapped to two workspaces across windows and preserves cleanly ended agent metadata [5.00ms]
+(pass) archives original history bytes and captured session metadata as static owner-only files [33.47ms]
+(pass) rejects a symlinked history file without copying its target or publishing a partial archive [6.21ms]
+(pass) retains static history whose closed pane is no longer in app-state without fabricating a live terminal [1.35ms]
+(pass) preserves validated provider capture for an archived closed pane without creating terminal rows [40.71ms]
+(pass) rejects the workspace attribution of a provider capture when its terminal UUID has multiple historical workspaces [1.45ms]
+(pass) the static archive revalidates and whitelists agent captures passed by its caller [32.96ms]
+(pass) archives only validated display metadata and leaves legacy environment, shell and hook settings in the source [1.03ms]
+
+packages/host-service/src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [0.85ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [0.38ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [1.95ms]
+(pass) a changed execution is never signalled by a stale stop request [0.39ms]
+(pass) a status read during launch cannot prevent its confirmed execution becoming active [0.47ms]
+(pass) the next confirmed run retains the preceding terminal identity for pane reuse [0.38ms]
+(pass) an instant command with a completion result ends even when foreground was never observed [0.40ms]
+(pass) an idle shell without its tracked completion cannot release a run for another launch [0.42ms]
+(pass) workspace deletion releases its bounded run slot without removing another workspace [0.27ms]
+(pass) a stop arriving after completion does not signal an idle or reused console [0.50ms]
+
+packages/host-service/src/trpc/router/workspace-cleanup/tracked-destroy.test.ts:
+(pass) a teardown failure remains a typed result without running cleanup twice [0.30ms]
+(pass) a dirty or concurrent deletion conflict does not force retry [0.09ms]
+(pass) uncertain cleanup failures propagate for reconciliation [0.06ms]
+(pass) a successful deletion retains cleanup warnings [0.06ms]
+(pass) a persisted teardown failure can be read after restart without rerunning the script [2.15ms]
+
+packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:
+(pass) run preview reuses original worktree-over-project resolution and rejects a stale definition before launch [29.98ms]
+(pass) invalid oversized run configuration does not make run status unavailable [11.49ms]
+
+ 83 pass
+ 0 fail
+ 253 expect() calls
+Ran 83 tests across 12 files. [3.34s]

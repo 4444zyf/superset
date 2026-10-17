@@ -1,0 +1,47 @@
+packages/host-service/src/direct/run-completion.test.ts:34:55 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    32 │ 		`${command}\n[ "$REMIX_TEST_VALUE" = kept ] && pwd > '${root}/cwd'`,
+    33 │ 	]);
+  > 34 │ 	expect(readFileSync(join(root, "cwd"), "utf8")).toBe(root + "\n");
+       │ 	                                                     ^^^^^^^^^^^
+    35 │ 	expect(store.read(run)).toBe(1);
+    36 │ 	expect(new RunCompletionStore(join(root, "private")).read(run)).toBe(1);
+  
+  i Unsafe fix: Use a template literal.
+  
+    32 32 │   		`${command}\n[ "$REMIX_TEST_VALUE" = kept ] && pwd > '${root}/cwd'`,
+    33 33 │   	]);
+    34    │ - → expect(readFileSync(join(root,·"cwd"),·"utf8")).toBe(root·+·"\n");
+       34 │ + → expect(readFileSync(join(root,·"cwd"),·"utf8")).toBe(`${root}\n`);
+    35 35 │   	expect(store.read(run)).toBe(1);
+    36 36 │   	expect(new RunCompletionStore(join(root, "private")).read(run)).toBe(1);
+  
+
+packages/host-service/src/direct/run-completion.ts:57:25 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    55 │ 		}
+    56 │ 		return `{
+  > 57 │ eval ${shellSingleQuote(" " + command)}
+       │                         ^^^^^^^^^^^^^
+    58 │ _superset_run_status=$?
+    59 │ (
+  
+  i Unsafe fix: Use a template literal.
+  
+     55  55 │   		}
+     56  56 │   		return `{
+     57     │ - eval·${shellSingleQuote("·"·+·command)}
+         57 │ + eval·${shellSingleQuote(`·${command}`)}
+     58  58 │   _superset_run_status=$?
+     59  59 │   (
+  
+
+Skipped 2 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 9 files in 72ms. Fixed 5 files.
+Found 2 infos.

@@ -607,3 +607,5 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 ### 阶段二十七：移除既有递归同步清理
 
 阶段二十六暴露的主循环检查在本阶段修改前再次3通过/1失败，仍是相同5个文件，未修改ratchet或提高计数。将legacy-import/legacy-sources/legacy-v1的递归删除改为node:fs/promises.rm；导入恢复、历史归档及全部调用者等待清理结束，再继续发布/回滚或释放现有进程锁。RunCompletionStore目录清理改为await，工作区删除的Run/Setup状态清理均等待后再删状态记录，错误继续由原warning路径处理。进程锁只操作单个符号链接，改用unlinkSync；prepare也仅unlink固定result.tmp，仍只忽略ENOENT。没有将递归删除换名或移入豁免目录，tRPC输入/输出/错误合同不变。相关12文件83项253断言、host/desktop类型与单独Node静态历史FIFO用例通过；原7项history归档和恢复回归仅改为等待异步清理。新增--lifecycle-only复用已有瞬时Run、Setup与Teardown/删除实际窗口流程，结果待记录。
+
+第91轮固定e569fae2844bd1aafe98930c6176e14fe9154644，实际Linux/Electron/拥有的SSH --lifecycle-only退出0：原编辑器配置瞬时Run分别真实退出0/17、输出保留、同输出重开及Ctrl+C不结束父shell；Setup明确启用/跳过/失败17/取消，重开仍同PID/执行ID且不重跑；原删除影响确认、取消不删、Teardown失败17/重开、明确跳过不运行、成功只运行一次、2个Worktree及保存标签删除、勾选分支删除与默认分支保留均通过。原3个PTY仍PID7743/7749/7755，最终原布局和配置恢复。失败Run、Setup取消和删除后重开截图均已实际查看。原主线程4条ratchet检查全部通过，先前5文件递归同步清理失败已处理，未改豁免或允许计数；不将这称为所有既有同步文件读取均已消除。[第91轮原始证据](evidence/local-ssh-feature-parity/source-linux-cleanup-async/91)、[阶段二十七回归/类型/构建日志](evidence/local-ssh-feature-parity/stage27)。macOS发行物、供应商Agent验证及总清单其余入口仍按原范围继续。

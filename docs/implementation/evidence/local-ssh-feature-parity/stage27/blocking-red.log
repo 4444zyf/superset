@@ -1,0 +1,34 @@
+bun test v1.4.2 (744846f84)
+
+packages/host-service/src/no-main-loop-blocking.test.ts:
+(pass) no new main-loop blocking call sites > sync subprocess (execSync/spawnSync/execFileSync) [19.40ms]
+146 | 				.map(
+147 | 					([rel, count]) =>
+148 | 						`${rel} (${count} > ${rule.allowedCounts[rel] ?? 0})`,
+149 | 				)
+150 | 				.sort();
+151 | 			expect(offenders, `New blocking call site(s). ${rule.advice}`).toEqual(
+                                                                        ^
+error: New blocking call site(s). rmSync/cpSync walk the whole tree on the event loop — deleting a large worktree stalls every response for seconds. Prefer `await rm/cp` from node:fs/promises: same result, but the walk runs on libuv's thread pool while the loop keeps serving.
+
+- []
++ [
++   "direct/legacy-import.ts (12 > 0)",
++   "direct/legacy-sources.ts (2 > 0)",
++   "direct/legacy-v1.ts (2 > 0)",
++   "direct/process-lock.ts (3 > 0)",
++   "direct/run-completion.ts (3 > 0)",
++ ]
+
+- Expected  - 1
++ Received  + 7
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/no-main-loop-blocking.test.ts:151:67)
+(fail) no new main-loop blocking call sites > sync recursive fs (rmSync/cpSync) [15.09ms]
+(pass) no new main-loop blocking call sites > in-process git client construction [16.14ms]
+(pass) no new main-loop blocking call sites > on-loop git via the ctx.git() shared factory [13.23ms]
+
+ 3 pass
+ 1 fail
+ 7 expect() calls
+Ran 4 tests across 1 file. [121.00ms]

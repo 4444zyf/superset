@@ -1,0 +1,67 @@
+bun test v1.4.2 (744846f84)
+
+packages/host-service/src/no-main-loop-blocking.test.ts:
+(pass) no new main-loop blocking call sites > sync subprocess (execSync/spawnSync/execFileSync) [20.44ms]
+(pass) no new main-loop blocking call sites > sync recursive fs (rmSync/cpSync) [13.76ms]
+(pass) no new main-loop blocking call sites > in-process git client construction [11.40ms]
+(pass) no new main-loop blocking call sites > on-loop git via the ctx.git() shared factory [11.42ms]
+
+packages/host-service/src/direct/legacy-import.test.ts:
+(pass) fixture close finalizes prepared statements before source fingerprints are captured [1.44ms]
+(pass) offline import preserves identities, real paths and history, while excluding executable account configuration [51.18ms]
+(pass) live source writers and daemon processes are refused before publishing [16.39ms]
+(pass) a stopped target containing any data is never overwritten [11.42ms]
+(pass) an initialized but resource-empty target can be replaced and its seeds roll back on failure [54.69ms]
+(pass) unsupported v1 local.db and unverified writer checks fail closed [20.67ms]
+(pass) offline v1 import publishes preserved UUIDs, static history and session captures without legacy settings or execution [24.28ms]
+(pass) v1 live terminal-host and a recent terminal spawn lock fail closed [11.13ms]
+(pass) a closed v1 pane preserves its historical provider capture without inventing a terminal row [22.66ms]
+(pass) conflicting real repository paths reject the whole import [24.67ms]
+(pass) multiple local workspaces of one project preserve their shared primary checkout [24.61ms]
+(pass) archived workspaces and deleted projects retain identities when active rows reuse their paths [24.51ms]
+(pass) failure before atomic publish keeps source and target intact with a rollback journal [25.13ms]
+(pass) WAL changes are included without touching source files, and pending chat actions become inert history [32.47ms]
+(pass) publication failure restores an existing resource-empty target [36.59ms]
+(pass) an incomplete rollback keeps its import lock and durable recovery phase [29.40ms]
+(pass) dead importer recovery handles prepared without losing the prior namespace [12.25ms]
+(pass) dead importer recovery handles publishing without losing the prior namespace [13.00ms]
+(pass) dead importer recovery handles completed without losing the prior namespace [12.57ms]
+(pass) recovery after a second crash preserves an already restored prior target [10.62ms]
+
+packages/host-service/src/direct/legacy-sources.test.ts:
+(pass) private previews expose UUID and path conflicts across sources while retaining every namespace [5.18ms]
+(pass) preview refuses active source writers before opening even a private snapshot [0.40ms]
+(pass) discovers v1 and each v2 namespace from this user's known homes without changing database bytes [0.68ms]
+(pass) does not follow linked homes, namespaces or database files [0.28ms]
+(pass) refuses a home owned by another OS identity [0.08ms]
+(pass) reports nonregular database candidates without opening or blocking on them [0.08ms]
+
+packages/host-service/src/direct/process-lock.test.ts:
+(pass) a second backend cannot write the same namespace while its owner is alive [0.24ms]
+(pass) a dead predecessor's process lock can be reclaimed without deleting data [0.12ms]
+
+packages/host-service/src/direct/run-completion.test.ts:
+(pass) /bin/bash reports a rapid failure while keeping the configured shell's cwd and variables [13.13ms]
+(pass) /usr/bin/zsh reports a rapid failure while keeping the configured shell's cwd and variables [32.64ms]
+(pass) a successful command ending with a comment has an atomic bounded completion result [4.54ms]
+(pass) invalid command syntax returns a completion instead of leaving the shell waiting for more input [4.27ms]
+
+packages/host-service/src/direct/legacy-v1.test.ts:
+(pass) maps only provable v1 metadata without changing the snapshot or inventing an actor [1.34ms]
+(pass) maps branch workspaces to the existing primary checkout without reading Git or rewriting IDs [0.50ms]
+(pass) preserves two v1 branch workspaces that legitimately share their own project's primary checkout [0.53ms]
+(pass) reports duplicate tab identities that assign the same pane to different workspaces [0.48ms]
+(pass) reports non-UUID entries and every conflicting path instead of silently renaming or selecting a winner [0.60ms]
+(pass) rejects a pane mapped to two workspaces across windows and preserves cleanly ended agent metadata [0.56ms]
+(pass) archives original history bytes and captured session metadata as static owner-only files [0.94ms]
+(pass) rejects a symlinked history file without copying its target or publishing a partial archive [3.27ms]
+(pass) retains static history whose closed pane is no longer in app-state without fabricating a live terminal [2.99ms]
+(pass) preserves validated provider capture for an archived closed pane without creating terminal rows [1.51ms]
+(pass) rejects the workspace attribution of a provider capture when its terminal UUID has multiple historical workspaces [0.97ms]
+(pass) the static archive revalidates and whitelists agent captures passed by its caller [3.32ms]
+(pass) archives only validated display metadata and leaves legacy environment, shell and hook settings in the source [1.76ms]
+
+ 49 pass
+ 0 fail
+ 172 expect() calls
+Ran 49 tests across 6 files. [720.00ms]
