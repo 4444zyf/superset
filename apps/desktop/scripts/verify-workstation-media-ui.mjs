@@ -48,14 +48,56 @@ export async function verifyWorkstationMediaUi({
 		);
 		await click(`tree:${name}`);
 	};
-	const physical = async (p) => {
+	const physical = async ({ x, y }) => {
 		for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
 			await getPage().call("Input.dispatchMouseEvent", {
 				type,
 				button: type === "mouseMoved" ? "none" : "left",
 				clickCount: type === "mouseMoved" ? 0 : 1,
-				...p,
+				x,
+				y,
 			});
+	};
+	const mediaControl = async (name) => {
+		const box = await evaluate(
+			`(()=>{const e=document.querySelector('${panel} video'),r=e.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height};})()`,
+		);
+		const fallback = {
+			x: box.x + 28,
+			y: box.y + box.height - 48,
+			method: "visible-native-control",
+		};
+		await getPage().call("Input.dispatchMouseEvent", {
+			type: "mouseMoved",
+			button: "none",
+			x: fallback.x,
+			y: fallback.y,
+		});
+		try {
+			const tree = await getPage().call("Accessibility.getFullAXTree");
+			const node = tree.nodes.find(
+				(n) =>
+					n.role?.value === "button" &&
+					n.name?.value?.toLowerCase() === name &&
+					n.backendDOMNodeId,
+			);
+			if (node) {
+				const { model } = await getPage().call("DOM.getBoxModel", {
+					backendNodeId: node.backendDOMNodeId,
+				});
+				const q = model.content;
+				const x = (q[0] + q[2] + q[4] + q[6]) / 4,
+					y = (q[1] + q[3] + q[5] + q[7]) / 4;
+				if (
+					x >= box.x &&
+					x <= box.x + box.width &&
+					y >= box.y &&
+					y <= box.y + box.height
+				)
+					return { x, y, method: "accessibility-native-control" };
+			}
+		} catch {}
+		return fallback;
 	};
 	await click("text:Files");
 	await click("text:Refresh files and Git");
@@ -127,7 +169,7 @@ export async function verifyWorkstationMediaUi({
 		await open(item.name);
 		const state = () =>
 			evaluate(
-				`(()=>{const e=document.querySelector('${panel} video');return e?{src:e.src,duration:Number.isFinite(e.duration)?e.duration:null,width:e.videoWidth,height:e.videoHeight,paused:e.paused,time:e.currentTime,autoplay:e.autoplay,controls:e.controls,ready:e.readyState,error:e.error?.message??null}:null;})()`,
+				`(()=>{const e=document.querySelector('${panel} video');return e?{src:e.src,duration:Number.isFinite(e.duration)?e.duration:null,width:e.videoWidth,height:e.videoHeight,paused:e.paused,time:e.currentTime,autoplay:e.autoplay,controls:e.controls,frames:e.getVideoPlaybackQuality().totalVideoFrames,ready:e.readyState,error:e.error?.message??null}:null;})()`,
 			);
 		const before = await until(async () => {
 			const v = await state();
@@ -146,20 +188,31 @@ export async function verifyWorkstationMediaUi({
 			sha256: item.sha256,
 		});
 		await screenshot(`media-${item.name}-before-play`);
-		const point = await evaluate(
-			`(()=>{const e=document.querySelector('${panel} video'),r=e.getBoundingClientRect(),x=r.x+28,y=r.bottom-20;if(!e.contains(document.elementFromPoint(x,y)))throw Error('Media controls are covered');return{x,y};})()`,
-		);
+		const point = await mediaControl("play");
 		await physical(point);
 		const playing = await until(async () => {
 			const v = await state();
-			return v?.time > 0.2 && !v.paused ? v : null;
+			return v?.time > 0.2 && !v.paused && v.frames >= 2 ? v : null;
 		});
-		await physical(point);
+		await screenshot(`media-${item.name}-playing`);
+		const pausePoint = await mediaControl("pause");
+		await physical(pausePoint);
 		const paused = await until(async () => {
 			const v = await state();
 			return v?.paused && v.time > 0.2 ? v : null;
 		});
-		videos.push({ file: item.name, before, playing, paused });
+		videos.push({
+			file: item.name,
+			before,
+			playControl: point,
+			playing,
+			pauseControl: pausePoint,
+			paused,
+		});
+		writeFileSync(
+			join(output, "media-playback-checkpoint.json"),
+			JSON.stringify(videos, null, 2) + "\n",
+		);
 		await screenshot(`media-${item.name}-played-and-paused`);
 	}
 	await open("oversized-clip.webm");

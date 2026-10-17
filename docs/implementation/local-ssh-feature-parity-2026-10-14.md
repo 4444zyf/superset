@@ -560,3 +560,6 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 先增加失败测试，复现PDF与WebM仅显示二进制提示；RemoteDocumentEditor复用原PdfView/VideoView和类型分类，通过已有SharedFileDocument字节预览，不新增后端接口。保留只读/1MiB界限、原生视频控件与metadata预加载、默认不自动播放，文档身份变更卸载旧blob。组件测试对HappyDOM中无实际浏览器的iframe导航仅逐用例关闭其自动加载，结束恢复设置；实际PDF内容不能由这个结构测试代替。文件相关4文件49项/1290断言、格式化工具21项/38断言、类型、17语言及构建通过。Markdown查找数字改走原formatNumber，现有消息ID和翻译继续使用。
 
 新增 --media-only 实际窗口流程，拥有的夹具生成可审查的PDF和FFmpeg testsrc2 WebM/MP4，不给产品增加FFmpeg依赖。读取/校验SSH字节、记录PDF帧与可访问树并截图；PDF必须另经截图实际查看，iframe加载不等于页面验证。视频使用可见原生播放按钮检查时间推进/暂停、默认与重开不自动播放，并核对超限文件不能加载播放器。新窗口结果待记录，macOS/其他容器和编码格式尚未验收。[阶段二十四日志](evidence/local-ssh-feature-parity/stage24)。
+
+
+第79轮固定39d4860da：PDF字节校验/iframe真实load通过，截图已实际查看，页面确实显示 Superset Remix SSH PDF 和 Selected remote workspace 两行；PDF插件可访问树未提供正文，因此不能用AX冒充文本断言。WebM元数据/首帧/控件与不自动播放通过，随后播放检查超时，整轮退出1。查看截图发现验收坐标点击了底部进度条而非上一行的播放按钮，产品视图未改；定位优先使用原生控件的AX/BoxModel，保留经截图核对的控件位置备用，并追加播放时间及至少2帧、暂停检查。新窗口待重跑。[第79轮原始证据](evidence/local-ssh-feature-parity/source-linux-media-failures/79)。
