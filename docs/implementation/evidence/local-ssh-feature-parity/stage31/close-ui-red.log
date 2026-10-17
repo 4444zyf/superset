@@ -1,0 +1,39 @@
+$ bun test src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+10 |  let ask:((kind:"window"|"quit")=>Promise<boolean>)|undefined;
+11 |  let conflict=false;const writes:unknown[]=[];
+12 |  const api={onWindowCloseRequest:(listener:typeof ask)=>{ask=listener;return()=>{ask=undefined;};},rpc:async(request:{path:string;input:unknown})=>{if(request.path==="filesystem.writeFile"){writes.push(request.input);return conflict?{ok:false,reason:"conflict"}:{ok:true,revision:"saved"};}return {kind:"text",content:"original",revision:"r1",exceededLimit:false};}} as unknown as DirectWorkstationApi;
+13 |  const manager=new WorkstationFileDocuments(api);
+14 |  const doc=manager.acquire(connection,"hidden-workspace","/repo/note.txt");
+15 |  const request=()=>{if(!ask)throw new Error("Close listener missing");return ask("window");};
+                                           ^
+error: Close listener missing
+      at request (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:15:39)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:22:32)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:48:24)
+      at <anonymous> (/workspace/superset/node_modules/.bun/react@19.2.3/node_modules/react/cjs/react.development.js:814:22)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:47:25)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:22:8)
+(fail) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [10.54ms]
+10 |  let ask:((kind:"window"|"quit")=>Promise<boolean>)|undefined;
+11 |  let conflict=false;const writes:unknown[]=[];
+12 |  const api={onWindowCloseRequest:(listener:typeof ask)=>{ask=listener;return()=>{ask=undefined;};},rpc:async(request:{path:string;input:unknown})=>{if(request.path==="filesystem.writeFile"){writes.push(request.input);return conflict?{ok:false,reason:"conflict"}:{ok:true,revision:"saved"};}return {kind:"text",content:"original",revision:"r1",exceededLimit:false};}} as unknown as DirectWorkstationApi;
+13 |  const manager=new WorkstationFileDocuments(api);
+14 |  const doc=manager.acquire(connection,"hidden-workspace","/repo/note.txt");
+15 |  const request=()=>{if(!ask)throw new Error("Close listener missing");return ask("window");};
+                                           ^
+error: Close listener missing
+      at request (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:15:39)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:34:32)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:48:24)
+      at <anonymous> (/workspace/superset/node_modules/.bun/react@19.2.3/node_modules/react/cjs/react.development.js:814:22)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:47:25)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:34:8)
+(fail) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [1.17ms]
+
+ 0 pass
+ 2 fail
+Ran 2 tests across 1 file. [221.00ms]
+error: script "test" exited with code 1

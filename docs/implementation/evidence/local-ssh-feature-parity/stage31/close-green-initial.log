@@ -1,0 +1,15 @@
+$ bun test src/main/lib/ssh-direct/window-close-gate.test.ts src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/window-close-gate.test.ts:
+(pass) close and quit share one request and only the current owner registration can resolve it [0.28ms]
+(pass) unregistering or replacing a renderer cancels its pending close rather than approving a new window [0.10ms]
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [84.26ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [32.95ms]
+
+ 4 pass
+ 0 fail
+ 28 expect() calls
+Ran 4 tests across 2 files. [350.00ms]

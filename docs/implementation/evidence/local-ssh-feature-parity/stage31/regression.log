@@ -1,0 +1,54 @@
+$ bun test src/main/lib/ssh-direct/window-close-gate.test.ts src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx src/renderer/workstation/Workstation/Workstation.test.tsx src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts src/main/lib/ssh-direct/accountless-boot.test.ts src/no-main-process-blocking.test.ts
+bun test v1.4.2 (744846f84)
+
+src/no-main-process-blocking.test.ts:
+(pass) no new main-process blocking call sites > sync subprocess (execSync/spawnSync/execFileSync) [16.94ms]
+(pass) no new main-process blocking call sites > sync recursive fs (rmSync/cpSync) [16.40ms]
+(pass) no new main-process blocking call sites > in-process git client construction [14.25ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [329.63ms]
+
+src/main/lib/ssh-direct/window-close-gate.test.ts:
+(pass) close and quit share one request and only the current owner registration can resolve it [0.38ms]
+(pass) unregistering or replacing a renderer cancels its pending close rather than approving a new window [0.14ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [246.41ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [133.78ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [115.31ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [80.86ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [121.60ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [117.73ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [278.56ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [154.88ms]
+(pass) opening a development server submits its port for forwarding on B [146.84ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [197.48ms]
+(pass) checking an empty operation journal shows a readable result [117.03ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [125.78ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [1.90ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.60ms]
+(pass) a different backend cannot receive a previous backend's draft [0.38ms]
+(pass) binary bytes remain read-only and never enter a text save [0.28ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.24ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.34ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.36ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.45ms]
+(pass) a directory event whose stat lost the race still affects known descendant documents [0.28ms]
+(pass) an explicit conflict overwrite checks the selected backend's current revision and preserves the draft codec [0.70ms]
+(pass) only an explicit conflict action can recreate a deleted draft and the creation cannot overwrite a competing file [0.44ms]
+(pass) a backend switch during overwrite inspection cannot send the old draft to either backend [0.83ms]
+(pass) a competing creator during explicit recreation restores the original conflict instead of claiming a save [0.39ms]
+(pass) a deletion observed after a write started cannot be erased by its late successful receipt [0.46ms]
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [48.64ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [47.40ms]
+(pass) a clean document permits close immediately and unmounting with a dirty prompt cancels the old request [6.57ms]
+
+ 35 pass
+ 0 fail
+ 1167 expect() calls
+Ran 35 tests across 6 files. [3.17s]

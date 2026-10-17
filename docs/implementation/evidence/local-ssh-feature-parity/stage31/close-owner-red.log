@@ -1,0 +1,25 @@
+$ bun test src/main/lib/ssh-direct/window-close-gate.test.ts
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/window-close-gate.test.ts:
+2 | import { WindowCloseGate } from "./window-close-gate";
+3 | 
+4 | test("close and quit share one request and only the current owner registration can resolve it", async () => {
+5 | 	const gate = new WindowCloseGate();
+6 | 	gate.register(7, 3, "registered");
+7 |  expect(await gate.request(8,3,"window",()=>{throw new Error("Wrong owner notified");})).toBe(false);
+                                                                                             ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/window-close-gate.test.ts:7:90)
+(fail) close and quit share one request and only the current owner registration can resolve it [0.35ms]
+(pass) unregistering or replacing a renderer cancels its pending close rather than approving a new window [0.20ms]
+
+ 1 pass
+ 1 fail
+ 4 expect() calls
+Ran 2 tests across 1 file. [155.00ms]
+error: script "test" exited with code 1

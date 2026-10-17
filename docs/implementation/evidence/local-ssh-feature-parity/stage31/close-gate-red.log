@@ -1,0 +1,38 @@
+$ bun test src/main/lib/ssh-direct/window-close-gate.test.ts
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/window-close-gate.test.ts:
+ 5 |  const gate=new WindowCloseGate();
+ 6 |  gate.register(7,3,"registered");
+ 7 |  const sent:{requestId:string;registrationId:string;kind:string}[]=[];
+ 8 |  const pending=gate.request(7,3,"window",request=>sent.push(request));
+ 9 |  const quit=gate.request(7,3,"quit",request=>sent.push(request));
+10 |  expect(quit).toBe(pending);expect(sent).toHaveLength(1);
+                   ^
+error: expect(received).toBe(expected)
+
+Expected: Promise { <resolved> }
+Received: serializes to the same string
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/window-close-gate.test.ts:10:15)
+(fail) close and quit share one request and only the current owner registration can resolve it [0.31ms]
+20 | test("unregistering or replacing a renderer cancels its pending close rather than approving a new window",async()=>{
+21 |  const gate=new WindowCloseGate();gate.register(7,3,"first");
+22 |  const sent:unknown[]=[];
+23 |  const pending=gate.request(7,3,"window",request=>sent.push(request));
+24 |  gate.register(7,4,"second");
+25 |  expect(await pending).toBe(false);
+                            ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/window-close-gate.test.ts:25:24)
+(fail) unregistering or replacing a renderer cancels its pending close rather than approving a new window [0.11ms]
+
+ 0 pass
+ 2 fail
+ 2 expect() calls
+Ran 2 tests across 1 file. [160.00ms]
+error: script "test" exited with code 1

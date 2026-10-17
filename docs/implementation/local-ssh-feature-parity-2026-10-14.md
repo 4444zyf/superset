@@ -649,3 +649,15 @@ Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取�
 
 
 第100轮固定8b758e8fb，真实终端视图中已收到目录及子文件rename，返回文件视图原文档跟随新路径；随后脚本未等待加载完成/CodeMirror可编辑就键入，预期草稿没有出现而退出1。失败截图已查看，保留产品不变，只在脚本中等待contenteditable=true并确认真实焦点；不把这一轮算全部通过。[第100轮失败证据](evidence/local-ssh-feature-parity/source-linux-background-files-failures/100)。第101轮产品仍8b758e8fb、脚本b006af752，实际Linux/Electron/拥有的SSH --file-background-only退出0：文件视图卸载、终端仍显示时真实目录rename已经到达，返回后原文档自动跟随；中文/emoji草稿在再次离开后的外部修改中保留，原外部变更Compare提示出现，远端新内容未被写回。Markdown引用.gitignore目录中的PNG，源文档不变时实际128×128图片更新为32×32及新blob，unlink显示原Could not load image，重新创建24×24后自动恢复。关闭/重开仍显示24×24、两个源文件字节保持正确，3个原PTY仍PID22882/22894/22888、执行ID和统一worktree cwd保留。八张后台目录/草稿/图片更新、删除恢复与重开截图均已实际查看。[第101轮原始证据](evidence/local-ssh-feature-parity/source-linux-background-files/101)、[阶段三十红绿/回归/类型/构建日志](evidence/local-ssh-feature-parity/stage30)。其他文件内联操作/拖拽/完整快捷键、全局退出草稿保护及总清单其余组继续接入；Linux源码窗口不代替macOS发行物。
+
+
+### 阶段三十一：原未保存更改对话框与窗口/退出保护
+
+复用原UnsavedChangesDialog，保留Cancel/Don't Save/Save All的动作与加载状态，补齐原Cancel/Saving的已有翻译，并用可选details展示有界滚动路径列表和真实保存错误。工作站从原共享store收集所有后端/工作区的脏文档与待完成保存；即使文件视图已关闭仍受保护。Cancel只拒绝关闭，Don't Save只明确允许关闭而不重读/改写文件，Save All逐项执行原CAS；失败/冲突保留原草稿及对话框，不自动覆盖。待完成写入时禁用继续关闭，旧视图卸载取消其挂起请求。纯界面回归先2失败后通过，新增干净文档/卸载回归也通过。
+
+客户端主进程、同一受限preload与renderer新增仅本机IPC握手，不改变任何后端tRPC或云协议。注册ID和请求ID均为一次性UUID，绑定实际窗口owner及导航epoch；重复window/quit共用一个请求，旧owner/旧注册/重复回复不能批准关闭，导航、卸载或renderer退出会拒绝挂起请求。新gate先2失败，另一个错误owner请求先失败后修正为拒绝。尚未挂载工作站的窗口按原启动/失败关闭行为处理；已注册的窗口在得到明确结果前不做views.invalidate、disconnect或退出清理。相关6文件35项1167断言、desktop类型及17语言检查通过，原桌面3条阻塞规则也包含在内。
+
+第102轮产品仍未重建8b758e8fb、脚本2b13262d6，实际输入草稿并切到原终端后BrowserWindow.close直接销毁旧renderer，没有原草稿对话框，后续CDP读取超时，退出1。关闭前终端截图已实际查看；renderer已消失，因此没有关闭后截图，不伪造为已捕获。保存旧bundle hash后才重建。[第102轮旧构建基线](evidence/local-ssh-feature-parity/source-linux-close-guard-baseline/102)。新版真实取消/合并关闭请求/明确Save All/冲突/Don't Save和重开结果待记录。本阶段是文件草稿的窗口/退出保护；聊天草稿、Reload及其他未接入口继续分别核对，不冒充OS强制结束或macOS实测。
+
+
+第103轮固定2b13262d6，真实窗口已通过原草稿提示、Cancel及window/quit重复请求只出现一个提示、明确Save All保存CRLF后退出和重开；冲突也确实阻止退出，保留草稿与远端新版。随后返回Files时原冲突对话框自动显示，脚本却重复点击被对话框挡住的文件树，超时退出1。四张提示/保存重开/冲突及失败截图已实际查看；修正helper使用已打开的活动文档，产品不变。[第103轮原始失败](evidence/local-ssh-feature-parity/source-linux-close-guard-failures/103)。第104轮产品仍2b13262d6、脚本0607413f2，实际Linux/Electron/拥有的SSH --file-close-guard-only退出0：后台终端视图下原关闭保护出现，Cancel保留窗口/草稿/连接；同时window.close和app.quit合并一个提示且取消后仍可编辑；明确Save All才保存中文/emoji及原CRLF并退出，重开读回正确。第二份草稿遇到外部新版本，退出Save All被原CAS拒绝，提示保留具体冲突，Cancel后原文件Diff及Keep editing仍保留完整草稿；明确Don't Save才关闭，重开只有远端新版本且无自动写回。两次重开后原3个PTY仍PID27113/27125/27119、执行ID及统一worktree cwd保留。七张原提示/保存重开/冲突/草稿/明确丢弃及重开截图均已实际查看。[第104轮原始证据](evidence/local-ssh-feature-parity/source-linux-close-guard/104)、[阶段三十一红绿/回归/类型/构建日志](evidence/local-ssh-feature-parity/stage31)。本次用拥有的BrowserWindow.close/app.quit生命周期事件触发关闭，实际键盘及按钮完成操作；不将其称为物理OS菜单、强制结束或macOS发行物验证。聊天草稿、Reload、完整快捷键、终端预设和总清单其余功能继续核对。

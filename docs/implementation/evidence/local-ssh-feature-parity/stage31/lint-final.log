@@ -1,0 +1,96 @@
+apps/desktop/scripts/verify-workstation-close-guard-ui.mjs:25:5 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    23 │ 			writeFileSync(
+    24 │ 				join(output, "close-guard-failure-error.json"),
+  > 25 │ 				JSON.stringify({ error: String(error) }, null, 2) + "\n",
+       │ 				^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    26 │ 			);
+    27 │ 		}
+  
+  i Unsafe fix: Use a template literal.
+  
+     23  23 │   			writeFileSync(
+     24  24 │   				join(output, "close-guard-failure-error.json"),
+     25     │ - → → → → JSON.stringify({·error:·String(error)·},·null,·2)·+·"\n",
+         25 │ + → → → → `${JSON.stringify({·error:·String(error)·},·null,·2)}\n`,
+     26  26 │   			);
+     27  27 │   		}
+  
+
+apps/desktop/scripts/verify-workstation-close-guard-ui.mjs:178:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    176 │ 	writeFileSync(
+    177 │ 		join(output, "workstation-close-guard-ui.json"),
+  > 178 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 179 │ 			{
+         ...
+  > 196 │ 			2,
+  > 197 │ 		) + "\n",
+        │ 		^^^^^^^^
+    198 │ 	);
+    199 │ }
+  
+  i Unsafe fix: Use a template literal.
+  
+    176 176 │   	writeFileSync(
+    177 177 │   		join(output, "workstation-close-guard-ui.json"),
+    178     │ - → → JSON.stringify(
+        178 │ + → → `${JSON.stringify(
+    179 179 │   			{
+    180 180 │   				sourceRevision: process.env.GITHUB_SHA,
+    ······· │ 
+    195 195 │   			null,
+    196 196 │   			2,
+    197     │ - → → )·+·"\n",
+        197 │ + → → )}\n`,
+    198 198 │   	);
+    199 199 │   }
+  
+
+apps/desktop/src/main/lib/ssh-direct/window-close-gate.test.ts:18:18 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    16 │ 	expect(quit).toBe(pending);
+    17 │ 	expect(sent).toHaveLength(1);
+  > 18 │ 	const request = sent[0]!;
+       │ 	                ^^^^^^^^
+    19 │ 	expect(gate.reply(8, 3, { ...request, allow: true })).toBe(false);
+    20 │ 	expect(gate.reply(7, 2, { ...request, allow: true })).toBe(false);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:880:24 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    878 │ 							hasUnsavedChanges={() =>
+    879 │ 								documents
+  > 880 │ 									.getDocuments(ui.connection!, deleteWorkspace.id)
+        │ 									              ^^^^^^^^^^^^^^
+    881 │ 									.some((d) => d.dirty || d.pendingSave)
+    882 │ 							}
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:884:24 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    882 │ 							}
+    883 │ 							onDeleted={(warnings) => {
+  > 884 │ 								const target = ui.connection!;
+        │ 								               ^^^^^^^^^^^^^^
+    885 │ 								setDeleteWorkspace(null);
+    886 │ 
+  
+
+Skipped 2 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 12 files in 66ms. Fixed 6 files.
+Found 3 warnings.
+Found 2 infos.
