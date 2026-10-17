@@ -563,3 +563,6 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 
 
 第79轮固定39d4860da：PDF字节校验/iframe真实load通过，截图已实际查看，页面确实显示 Superset Remix SSH PDF 和 Selected remote workspace 两行；PDF插件可访问树未提供正文，因此不能用AX冒充文本断言。WebM元数据/首帧/控件与不自动播放通过，随后播放检查超时，整轮退出1。查看截图发现验收坐标点击了底部进度条而非上一行的播放按钮，产品视图未改；定位优先使用原生控件的AX/BoxModel，保留经截图核对的控件位置备用，并追加播放时间及至少2帧、暂停检查。新窗口待重跑。[第79轮原始证据](evidence/local-ssh-feature-parity/source-linux-media-failures/79)。
+
+
+第80轮固定f246a77d990462bc0bc0d8be1d91ec8cd14d9a0d，实际Linux/Electron/SSH --media-only退出0。PDF页面截图已实际查看，两行标题/正文正常显示；原始AX正文不可见的记录继续保留，人工查看单独记录。WebM与H.264 MP4均由真实原生控件开始播放，时间分别推进至0.208880/0.207399秒，已解码4帧，随后真实点击暂停，时间分别0.448995/0.447977秒、5帧且paused=true；并非仅验证metadata。MP4播放截图已查看。超限文件不创建播放器且禁用保存，截图已查看；窗口重开恢复视频仍从0秒暂停、不自动播放。原始字节hash、控件AX定位方法与播放前后状态均归档。未验收macOS发行物、其他容器或编码格式；全量文件监听、快捷键和全局退出草稿保护仍待接入。[第80轮证据](evidence/local-ssh-feature-parity/source-linux-media)。
