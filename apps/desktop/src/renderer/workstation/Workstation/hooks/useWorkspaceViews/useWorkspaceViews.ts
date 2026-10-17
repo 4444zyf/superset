@@ -496,11 +496,17 @@ export function useWorkspaceViews(
 		[changeWorkspace],
 	);
 	const newTerminal = useCallback(
-		async (workspaceId: string, axis: "horizontal" | "vertical") => {
+		async (
+			workspaceId: string,
+			axis: "horizontal" | "vertical",
+			launch?: { initialCommand: string; label: string },
+		) => {
 			const descriptor = connectionRef.current;
 			if (
 				!descriptor?.capabilities?.durableOperations ||
 				!descriptor.capabilities.terminals ||
+				(launch &&
+					descriptor.capabilities.workstationTerminalPresetsV1 !== true) ||
 				operationBusy.current
 			)
 				return;
@@ -526,6 +532,7 @@ export function useWorkspaceViews(
 						workspaceId,
 						terminalId: id,
 						operationId: crypto.randomUUID(),
+						...(launch ? { initialCommand: launch.initialCommand } : {}),
 					},
 				});
 				if (
@@ -539,7 +546,10 @@ export function useWorkspaceViews(
 							paneId: crypto.randomUUID(),
 							kind: "terminal",
 							resourceId: id,
-							label: labelsRef.current.terminal,
+							label: (launch?.label || labelsRef.current.terminal).slice(
+								0,
+								128,
+							),
 						},
 						axis,
 					);

@@ -545,6 +545,7 @@ test("attachment and file event readiness require explicit backend capabilities"
 					attachments: advertised,
 					workstationChatAttachmentInputV1: advertised,
 					workstationFileEventsV1: advertised,
+					workstationTerminalPresetsV1: advertised,
 				},
 			});
 		const features = await new WorkstationController(manager).features(
@@ -557,6 +558,7 @@ test("attachment and file event readiness require explicit backend capabilities"
 		expect(features.capabilities?.workstationChatAttachmentInputV1).toBe(
 			advertised === true,
 		);
+		expect(features.capabilities?.workstationTerminalPresetsV1).toBe(advertised === true);
 	}
 });
 

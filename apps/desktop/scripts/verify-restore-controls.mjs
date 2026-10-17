@@ -40,6 +40,29 @@ export function ownedRestoreControls(home, fixture) {
 	);
 	let originals = [];
 	return {
+		async prepareTerminalPreset(worktreePath) {
+			assert.equal(process.platform, "linux");
+			assert.ok(worktreePath.startsWith(join(fixture.homeDir, "Superset Remix", "worktrees") + "/"));
+			assert.equal(lstatSync(worktreePath).uid, process.getuid());
+			const path = join(home, "host", identity.namespaceId, "host.db");
+			assert.equal(lstatSync(path).uid, process.getuid());
+			const {DatabaseSync} = await import("node:sqlite");
+			const db = new DatabaseSync(path);
+			const label = "Fixture terminal preset";
+			const script = String.raw`printf '%s\n' 'preset 中文 🙂' >> preset-runs.txt; printf '%s\n' "$PWD" >> preset-cwd.txt; printf 'preset execution done\n'`;
+			try {
+				const row = db.prepare("SELECT id FROM host_agent_configs WHERE preset_id = 'codex' ORDER BY display_order LIMIT 1").get();
+				if (row) db.prepare("UPDATE host_agent_configs SET label=?, command='/bin/sh', args_json=?, env_json='{}' WHERE id=?").run(label, JSON.stringify(["-c", script]), row.id);
+				else db.prepare("INSERT INTO host_agent_configs (id,preset_id,label,command,args_json,prompt_transport,display_order,created_at,updated_at) VALUES (?, 'codex', ?, '/bin/sh', ?, 'argv', 0, 1, 1)").run(crypto.randomUUID(), label, JSON.stringify(["-c", script]));
+			} finally {db.close();}
+			return {label};
+		},
+		async inspectPresetTerminal(terminalId) {
+			const client = await connectAndHello(socket);
+			let row;
+			try {client.send({type: "list"});const list = await client.waitFor(m => m.type === "list-reply");row=list.sessions.find(s => s.id === terminalId);assert.ok(row?.alive);} finally {await client.close();}
+			return this.inspectRunExecution({terminalId, executionId: row.executionId}, row.pid);
+		},
 		inspectChatAttachments() {
 			const root = join(home, "host", identity.namespaceId, "attachments");
 			if (!existsSync(root)) return [];

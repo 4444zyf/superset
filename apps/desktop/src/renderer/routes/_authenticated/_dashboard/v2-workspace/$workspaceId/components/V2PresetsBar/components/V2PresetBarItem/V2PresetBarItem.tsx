@@ -1,6 +1,5 @@
 import { Trans } from "@lingui/react/macro";
 import type { HostAgentConfig } from "@superset/host-service/settings";
-import { Button } from "@superset/ui/button";
 import {
 	ContextMenu,
 	ContextMenuContent,
@@ -10,11 +9,11 @@ import {
 } from "@superset/ui/context-menu";
 import { useEffect, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { HiMiniCommandLine } from "react-icons/hi2";
 import type { HotkeyId } from "renderer/hotkeys";
 import { HotkeyTooltip } from "renderer/hotkeys";
 import { resolveV2PresetIcon } from "renderer/lib/preset-icon";
 import type { V2TerminalPresetRow } from "renderer/routes/_authenticated/providers/CollectionsProvider/dashboardSidebarLocal";
+import { PresetBarButton } from "../PresetBarButton/PresetBarButton";
 
 const V2_PRESET_BAR_ITEM_TYPE = "V2_PRESET_BAR_ITEM";
 
@@ -87,25 +86,11 @@ export function V2PresetBarItem({
 					style={{ cursor: isDragging ? "grabbing" : "grab" }}
 				>
 					<HotkeyTooltip id={hotkeyId}>
-						<Button
-							variant="ghost"
-							size="sm"
-							className="h-6 max-w-32 min-w-0 shrink-0 gap-2 rounded-md px-2 text-xs font-normal text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+						<PresetBarButton
+							name={preset.name || "default"}
+							icon={icon}
 							onClick={() => onExecutePreset(preset)}
-						>
-							{icon ? (
-								<img
-									src={icon}
-									alt=""
-									className="size-3.5 shrink-0 object-contain opacity-90"
-								/>
-							) : (
-								<HiMiniCommandLine className="size-3.5 shrink-0" />
-							)}
-							<span className="min-w-0 truncate">
-								{preset.name || "default"}
-							</span>
-						</Button>
+						/>
 					</HotkeyTooltip>
 				</div>
 			</ContextMenuTrigger>

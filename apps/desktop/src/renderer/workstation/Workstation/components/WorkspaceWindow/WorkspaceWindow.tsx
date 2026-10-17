@@ -21,9 +21,10 @@ import type {
 } from "../../../../../shared/workspace-view";
 import type { WorkspaceViewActions } from "../../hooks/useWorkspaceViews/useWorkspaceViews";
 import { RemoteChat } from "../RemoteChat/RemoteChat";
-import { RemoteWorkspaceSetup } from "../RemoteWorkspaceSetup/RemoteWorkspaceSetup";
-import { RemoteWorkspaceRun } from "../RemoteWorkspaceRun";
 import { RemoteFiles } from "../RemoteFiles/RemoteFiles";
+import { RemoteTerminalPresets } from "../RemoteTerminalPresets/RemoteTerminalPresets";
+import { RemoteWorkspaceRun } from "../RemoteWorkspaceRun";
+import { RemoteWorkspaceSetup } from "../RemoteWorkspaceSetup/RemoteWorkspaceSetup";
 import { WorkspacePortControls } from "../WorkspacePortControls";
 import { WorkstationDialog } from "../WorkstationDialog/WorkstationDialog";
 import { PaneGrid } from "./components/PaneGrid/PaneGrid";
@@ -357,6 +358,21 @@ export function WorkspaceWindow({
 							/>
 						)}
 					</div>
+					{connection && (
+						<RemoteTerminalPresets
+							api={api}
+							connection={connection}
+							workspaceId={workspace.workspaceId}
+							busy={actions.busy}
+							onLaunch={(launch) => {
+								void actions.newTerminal(
+									workspace.workspaceId,
+									"horizontal",
+									launch,
+								);
+							}}
+						/>
+					)}
 					{workspace.activeTool === "files" && connection ? (
 						<RemoteFiles
 							api={api}

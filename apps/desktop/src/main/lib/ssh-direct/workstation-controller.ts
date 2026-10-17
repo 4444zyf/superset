@@ -124,6 +124,7 @@ export class WorkstationController {
 				"files",
 				"attachments",
 				"workstationChatAttachmentInputV1",
+				"workstationTerminalPresetsV1",
 				"git",
 				"durableOperations",
 				"workspaceViewRestoreV1",
