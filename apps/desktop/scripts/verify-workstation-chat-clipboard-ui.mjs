@@ -105,6 +105,14 @@ export async function verifyWorkstationChatClipboardUi({
 	await click("text:New chat");
 	await ready();
 	const first = await until(async () => (await sessions())[0]);
+	let startupRejection = null;
+	if (process.argv.includes("--expect-codex-version-rejection")) {
+		startupRejection = await until(() =>
+			evaluate(
+				`(()=>{const text=document.querySelector('${area}')?.closest('section')?.querySelector('article')?.textContent;return text?.includes('codex 0.160.0 or newer is needed for chat')&&!text.includes('too_small')?text:null;})()`,
+			),
+		);
+	}
 	await until(() =>
 		evaluate(
 			"document.querySelectorAll('.ws-compact-panes button').length===4",
@@ -244,6 +252,7 @@ export async function verifyWorkstationChatClipboardUi({
 				adaptiveCompactSwitcher: true,
 				originalTerminalsRetained: restoredTerminals.terminals,
 				firstSessionId: first.sessionId,
+				startupRejection,
 				textBytes: Buffer.byteLength(plain),
 				textSha256: createHash("sha256").update(plain).digest("hex"),
 				textExact: true,

@@ -702,7 +702,7 @@ export class CodexAdapter implements HarnessAdapter {
 	private emitNotice(
 		noticeKind: "info" | "error" | "compaction" | "config_change",
 		text?: string,
-		turnId = this.currentTurn?.id ?? "",
+		turnId = this.currentTurn?.id ?? this.mintId(),
 	): void {
 		this.emitItem(
 			{

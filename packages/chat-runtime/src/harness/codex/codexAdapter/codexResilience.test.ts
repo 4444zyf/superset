@@ -88,6 +88,41 @@ function notices(events: AdapterEvent[]): Notice[] {
 }
 
 describe("codex adapter resilience", () => {
+	test("a CLI launch failure before any prompt remains a valid durable notice with its original reason", async () => {
+		const reason = "codex 0.160.0 or newer is required; found 0.159.0";
+		const adapter = new CodexAdapter({
+			launch: async () => {
+				throw new Error(reason);
+			},
+			createTransport: () => {
+				throw new Error("A rejected launch must not spawn a transport");
+			},
+		});
+		const events: AdapterEvent[] = [];
+		try {
+			for await (const event of adapter.start({ cwd: "/tmp/workspace" }))
+				events.push(event);
+			const notice = events.find((event) => event.kind === "item");
+			if (!notice || notice.kind !== "item")
+				throw new Error("Startup failure notice missing");
+			expect(() =>
+				durableEventSchema.parse({
+					type: "item",
+					item: notice.item,
+					turnId: notice.turnId,
+				}),
+			).not.toThrow();
+			expect(notice.item).toMatchObject({
+				kind: "notice",
+				noticeKind: "error",
+				text: reason,
+			});
+			expect(events.some((event) => event.kind === "turn")).toBe(false);
+		} finally {
+			await adapter.dispose();
+		}
+	});
+
 	test("an omitted attachment notice belongs to the accepted prompt's Codex turn", async () => {
 		const harness = startAdapter();
 		try {
