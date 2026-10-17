@@ -1,4 +1,3 @@
-import { errorMessage } from "@superset/i18n/errors";
 import { Trans, useLingui } from "@lingui/react/macro";
 import {
 	displayText,
@@ -12,6 +11,7 @@ import {
 	type Item,
 	knownItemSchema,
 } from "@superset/chat/protocol";
+import { errorMessage } from "@superset/i18n/errors";
 import { Button } from "@superset/ui/button";
 import { getClipboardFiles } from "@superset/ui/lib/clipboard-files";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
@@ -28,7 +28,7 @@ const ChatMarkdown = lazy(() =>
 );
 
 const button =
-	"rounded border border-border px-3 py-2 text-sm disabled:opacity-40";
+	"max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40";
 const harnessLabels = { codex: "Codex", "claude-code": "Claude Code" } as const;
 
 type DownloadedAttachment = Awaited<
@@ -259,11 +259,11 @@ export function RemoteChat({
 			if (isCurrent()) saveAttachment(downloaded);
 		});
 	return (
-		<section className="border border-border rounded p-3 space-y-3">
-			<div className="flex flex-wrap gap-2">
+		<section className="flex h-full min-h-0 min-w-0 flex-col gap-2 overflow-hidden rounded border border-border p-3">
+			<div className="flex min-h-0 max-h-24 flex-wrap gap-2 overflow-auto">
 				<select
 					aria-label={t({ message: "Agent" })}
-					className="bg-muted rounded p-2"
+					className="min-w-0 max-w-full rounded bg-muted p-2"
 					value={harness}
 					onChange={(event) => setHarness(event.target.value)}
 				>
@@ -330,19 +330,19 @@ export function RemoteChat({
 					</Button>
 				)}
 			</div>
-			{!available && (
-				<p className="text-xs text-muted-foreground">
-					<Trans>
-						Install the agent CLI on the remote machine to start a chat.
-					</Trans>
-				</p>
-			)}
-			{!attachmentsAvailable && (
-				<p className="text-xs text-muted-foreground">
-					<Trans>Attachments are unavailable on this backend.</Trans>
-				</p>
-			)}
-			<div className="max-h-96 overflow-auto space-y-3">
+			<div className="min-h-0 flex-1 overflow-auto space-y-3">
+				{!available && (
+					<p className="text-xs text-muted-foreground">
+						<Trans>
+							Install the agent CLI on the remote machine to start a chat.
+						</Trans>
+					</p>
+				)}
+				{!attachmentsAvailable && (
+					<p className="text-xs text-muted-foreground">
+						<Trans>Attachments are unavailable on this backend.</Trans>
+					</p>
+				)}
 				{[...snapshot.items.values()].map(({ item: value }) => {
 					const parsed = knownItemSchema.safeParse(value);
 					if (!parsed.success) return null;
@@ -438,7 +438,7 @@ export function RemoteChat({
 			</div>
 			{sessionId && (
 				<>
-					<div className="flex gap-2 flex-wrap">
+					<div className="flex min-h-0 max-h-24 flex-wrap gap-2 overflow-auto">
 						<Button
 							variant="outline"
 							size="sm"
@@ -473,7 +473,10 @@ export function RemoteChat({
 						))}
 					</div>
 					{attachmentError && (
-						<output role="alert" className="text-xs text-destructive">
+						<output
+							role="alert"
+							className="max-h-24 shrink-0 overflow-auto text-xs text-destructive"
+						>
 							{attachmentError}
 							<button
 								type="button"
@@ -485,7 +488,7 @@ export function RemoteChat({
 						</output>
 					)}
 					<form
-						className="flex gap-2"
+						className="flex shrink-0 flex-wrap gap-2"
 						onSubmit={(event) => {
 							event.preventDefault();
 							if (!prompt.trim() && !attachments.length) return;
@@ -514,7 +517,7 @@ export function RemoteChat({
 					>
 						<textarea
 							aria-label={t({ message: "Message" })}
-							className="flex-1 bg-muted rounded p-2 text-sm"
+							className="min-w-0 grow basis-40 resize-none rounded bg-muted p-2 text-sm"
 							readOnly={busy}
 							value={prompt}
 							onPaste={(event) => {
