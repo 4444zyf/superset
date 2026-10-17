@@ -533,3 +533,6 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 
 
 第74轮（9b6f1e309396889717e8d49b4ae47f09effb664c）加载、原缩放/平移/复位、损坏/二进制/超限和重开检查退出0，但实际查看截图发现原组件仍裁切底部，所以未将完整图片适配标为通过。新增真实尺寸断言，第75轮（724d0adc4）在同样布局明确失败：图片601.281×436.938，预览区域633.297×318，底部815.938超出区域底部681。修正共用ImageView的有限高度约束与棋盘位置，让完整图片按比例缩小，并追加实际拖窄文件面板后的包含/比例检查。组件4项通过，CSS修正后构建通过；新窗口验收待记录。[初轮和红色证据](evidence/local-ssh-feature-parity/source-linux-file-preview-failures)。
+
+
+第76轮固定 06b91f7a6537668219c517418451897487208a4a，--file-previews-only 实际Linux/Electron/SSH退出0：1200×872原图显示为393.563×285.984，完整落在633.297×318区域内；实际拖窄面板后显示307.422×223.391，完整落在339.422×318内，两次均保持比例。原键盘125%缩放/箭头平移、来回鼠标拖动及0复位通过；未知二进制无编辑器、超限图保存禁用、损坏图可见错误、重开窗口重新读取并显示通过。标准和窄面板截图已实际查看；未测Markdown/PDF/视频或macOS发行物。[第76轮证据](evidence/local-ssh-feature-parity/source-linux-file-previews)。
