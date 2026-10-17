@@ -235,3 +235,32 @@ test("workspace deletion releases its bounded run slot without removing another 
 		db.close();
 	}
 });
+
+test("a stop arriving after completion does not signal an idle or reused console", async () => {
+	const db = new Database(":memory:");
+	try {
+		const store = new WorkspaceRunStore(db as unknown as OperationDatabase);
+		let exitCode: number | undefined;
+		let signals = 0;
+		const manager = new WorkspaceRunManager(store, {
+			launch: async () => {},
+			probe: async () => ({
+				state: "live" as const,
+				executionId: "execution",
+				foreground: exitCode === undefined,
+				exitCode,
+			}),
+			signal: async () => {
+				signals++;
+			},
+		});
+		await manager.start({ ...run, completionTracked: true });
+		exitCode = 0;
+		expect(
+			await manager.stop("workspace", "operation", "execution", false),
+		).toMatchObject({ state: "ended", exitCode: 0 });
+		expect(signals).toBe(0);
+	} finally {
+		db.close();
+	}
+});

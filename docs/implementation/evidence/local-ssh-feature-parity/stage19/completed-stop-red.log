@@ -1,0 +1,31 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [4.37ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [0.85ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [3.25ms]
+(pass) a changed execution is never signalled by a stale stop request [0.55ms]
+(pass) a status read during launch cannot prevent its confirmed execution becoming active [1.17ms]
+(pass) the next confirmed run retains the preceding terminal identity for pane reuse [0.99ms]
+(pass) an instant command with a completion result ends even when foreground was never observed [0.43ms]
+(pass) an idle shell without its tracked completion cannot release a run for another launch [0.47ms]
+(pass) workspace deletion releases its bounded run slot without removing another workspace [0.32ms]
+242 |   const store=new WorkspaceRunStore(db as unknown as OperationDatabase);
+243 |   let exitCode:number|undefined;let signals=0;
+244 |   const manager=new WorkspaceRunManager(store,{launch:async()=>{},probe:async()=>({state:"live" as const,executionId:"execution",foreground:exitCode===undefined,exitCode}),signal:async()=>{signals++;}});
+245 |   await manager.start({...run,completionTracked:true});exitCode=0;
+246 |   expect(await manager.stop("workspace","operation","execution",false)).toMatchObject({state:"ended",exitCode:0});
+247 |   expect(signals).toBe(0);
+                        ^
+error: expect(received).toBe(expected)
+
+Expected: 0
+Received: 1
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/workspace-runs.test.ts:247:19)
+(fail) a stop arriving after completion does not signal an idle or reused console [0.82ms]
+
+ 9 pass
+ 1 fail
+ 24 expect() calls
+Ran 10 tests across 1 file. [31.00ms]

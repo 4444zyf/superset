@@ -225,6 +225,11 @@ export class WorkspaceRunManager {
 				message:
 					"The run execution is unavailable or changed. No signal was sent.",
 			});
+		if (probe.exitCode !== undefined)
+			return this.store.update(run, {
+				state: "ended",
+				exitCode: probe.exitCode,
+			});
 		this.store.update(run, { state: "stop-requested" });
 		await this.runtime.signal(run, force);
 		return (await this.read(workspaceId)) ?? run;

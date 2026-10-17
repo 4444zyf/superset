@@ -1,0 +1,66 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.47ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.33ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.20ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.07ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [6.04ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.23ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.58ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.11ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.18ms]
+(pass) disconnect and app disposal only close client transports [0.08ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.79ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [3.75ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [4.87ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.63ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.61ms]
+(pass) attachment readiness requires an explicit backend capability [0.34ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.93ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.17ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.14ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.40ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.24ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [1.37ms]
+(pass) project script procedures require their own capability and an explicit project [0.27ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.78ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.42ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [263.25ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:
+(pass) successful manual restore reloads the main process auto-connect decision [115.24ms]
+(pass) upstream tab reorder and rename persist without changing execution ownership [55.13ms]
+(pass) rerunning a command reuses its pane and preserves its saved layout and title [54.11ms]
+(pass) creation titles label existing setup resources without reopening or creating terminals [56.16ms]
+(pass) deleting a workspace removes all its saved tabs only from its owning backend [57.04ms]
+(pass) returning to a restored workspace queries its resource state after another workspace replaced the checks [57.71ms]
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceDelete/RemoteWorkspaceDelete.test.tsx:
+(pass) opening and cancelling uses the original warnings without deleting [70.17ms]
+(pass) warned deletion still runs teardown and only an explicit failure retry skips it [50.98ms]
+(pass) an uncertain deletion is not replayed by rerendering or clicking again [27.56ms]
+(pass) a late deletion reply cannot affect a newly selected machine [24.65ms]
+(pass) unsaved editor drafts block deletion and old backends receive no cleanup calls [22.60ms]
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.test.tsx:
+(pass) loading Run state does not insert an action before New terminal [28.63ms]
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:
+(pass) a double click creates one durable run and attaches its returned execution [63.07ms]
+(pass) remounting an existing run reads and attaches it without launching again [6.81ms]
+(pass) an older backend without run capability receives no run request [1.15ms]
+(pass) a lost start reply is read back without replay and requires journal reconciliation [15.50ms]
+(pass) a launch reply from the previous backend cannot attach or unlock a new backend's launch [117.18ms]
+(pass) Run reads a just-saved definition before submitting its single start [7.22ms]
+(pass) a run completed before its first reply still attaches its output without launching again [7.03ms]
+(pass) restoring a completed run never reopens a console the user closed [3.50ms]
+
+ 48 pass
+ 0 fail
+ 1004 expect() calls
+Ran 48 tests across 6 files. [1.86s]

@@ -493,3 +493,5 @@ TDD 保存缺少入口、缺少组件/处理器及 A→B→A 晚回复的红日�
 POSIX系列Shell使用当前交互Shell的eval执行原buildTerminalCommand结果，保持变量和cwd；整个包装为一个命令组，避免其余输入被前台命令消费。长包装自动走原自删除临时脚本传输，复用原shell就绪和命令队列。Bash和Zsh实际进程验证失败退出码、cwd/变量保留、尾部注释与语法错误；其他Shell仍走原行为，未宣称瞬时完成已全部覆盖。Run的JSON记录只增加可选completionTracked/exitCode，不改变已发布API输入。已跟踪运行只有匹配结果、确认退出或明确Stop后才结束，不用时间阈值猜测完成；保持原条件执行ID及停止逻辑。
 
 原Run控件复用，完成后显示Completed或实际退出码；若命令在首次回复前已结束，也附着已有输出终端，不重跑命令。记录客户端失败测试及Shell实现中Zsh对command eval的差异红日志，改用当前Shell的eval。相关desktop6文件47项/1001断言、host6文件55项/125断言通过；类型、17语言严格检查与构建通过。实际窗口验收待记录；不能以这些测试替代真实SSH/PTY运行。[阶段十九日志](evidence/local-ssh-feature-parity/stage19)。
+
+第70轮冻结 `8fce8152637bd711a72d95889439d56bde0d0ee0`，两个实际瞬时Run均foregroundSeen=false，结果正确为0和17，原终端显示独立实际输出，复用同一窗格，marker一次成功一次失败；重开仍同PID且未重跑，三个截图已查看。后续删除验收最后重开时发现第四个已完成Run窗格被补回，整轮未通过，截图已查看。新增红测试确认冷读完成Run不应创建输出窗格，修复为仅本次明确Run的operationId才能在结束后补附着；已保存窗格仍由原布局恢复。同时增加红测试修复完成后才到达的Stop：读到匹配完成结果即返回ended，不向空闲终端发信号。48项/1004断言及host56项/127断言通过，完整实际复测待记录。[第70轮记录](evidence/local-ssh-feature-parity/source-linux-instant-run-failures/70)。

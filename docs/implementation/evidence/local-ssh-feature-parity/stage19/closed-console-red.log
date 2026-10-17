@@ -1,0 +1,34 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:
+(pass) a double click creates one durable run and attaches its returned execution [119.36ms]
+(pass) remounting an existing run reads and attaches it without launching again [11.83ms]
+(pass) an older backend without run capability receives no run request [1.23ms]
+(pass) a lost start reply is read back without replay and requires journal reconciliation [22.58ms]
+(pass) a launch reply from the previous backend cannot attach or unlock a new backend's launch [122.58ms]
+(pass) Run reads a just-saved definition before submitting its single start [9.31ms]
+(pass) a run completed before its first reply still attaches its output without launching again [9.70ms]
+340 |  const attached:string[]=[];let mutations=0;
+341 |  const run={workspaceId:"workspace",operationId:"old-operation",terminalId:"terminal",executionId:"execution",commands:["false"],startedAt:1,state:"ended",foregroundSeen:false,completionTracked:true,exitCode:17};
+342 |  const api={rpc:async(r:DirectRpc)=>{if(r.type==="mutation")mutations++;return {...base,run};}} as unknown as DirectWorkstationApi;
+343 |  render(<RemoteWorkspaceRun api={api} connection={connection} workspaceId="workspace" onConfigure={()=>{}} onAttach={async value=>{attached.push(value.executionId!);}}/>);
+344 |  await screen.findByRole("status");
+345 |  expect(attached).toEqual([]);expect(mutations).toBe(0);
+                        ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   "execution",
++ ]
+
+- Expected  - 1
++ Received  + 3
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:345:19)
+(fail) restoring a completed run never reopens a console the user closed [5.48ms]
+
+ 7 pass
+ 1 fail
+ 30 expect() calls
+Ran 8 tests across 1 file. [663.00ms]

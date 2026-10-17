@@ -231,8 +231,14 @@ export async function verifyWorkstationInstantRunUi({
 		`(async()=>{const v=(await window.directWorkstation.getWorkspaceView()).snapshot;return v.targets.flatMap(t=>t.workspaces).find(w=>w.workspaceId===${JSON.stringify(scope.workspaceId)});})()`,
 	);
 	assert.deepEqual(restored.layout, scope.layout);
-	if (scope.activePaneId)
+	if (scope.activePaneId) {
 		await click(`[data-pane-id="${scope.activePaneId}"] .xterm-screen`);
+		await until(() =>
+			evaluate(
+				`(async()=>{const v=(await window.directWorkstation.getWorkspaceView()).snapshot;return v.targets.flatMap(t=>t.workspaces).find(w=>w.workspaceId===${JSON.stringify(scope.workspaceId)}).activePaneId===${JSON.stringify(scope.activePaneId)};})()`,
+			),
+		);
+	}
 	writeFileSync(
 		join(output, "workstation-instant-run-ui.json"),
 		JSON.stringify(

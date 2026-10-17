@@ -1,0 +1,74 @@
+bun test v1.4.2 (744846f84)
+
+test/workspace-cleanup.test.ts:
+(pass) isLocalCheckoutWorkspace > does not share the checkout when no local workspace row [0.54ms]
+(pass) isLocalCheckoutWorkspace > shares the checkout when worktreePath equals project repoPath [0.55ms]
+(pass) isLocalCheckoutWorkspace > normalizes paths via realpath (symlinked worktree path equals repoPath) [0.33ms]
+(pass) isLocalCheckoutWorkspace > shares the checkout via local type even when paths differ [0.19ms]
+(pass) isLocalCheckoutWorkspace > does not share the checkout when neither path equality nor local type fires [0.09ms]
+(pass) workspaceCleanup.inspect > a local workspace is deletable without reading the shared checkout's state [1.92ms]
+(pass) workspaceCleanup.inspect > returns canDelete: true with no warnings when no local row [0.17ms]
+(pass) workspaceCleanup.inspect > flags hasChanges from the worktree-state task [0.25ms]
+(pass) workspaceCleanup.inspect > flags hasUnpushedCommits from the worktree-state task [0.20ms]
+(pass) workspaceCleanup.inspect > swallows worktree-state task failures and returns canDelete: true [0.27ms]
+(pass) workspaceCleanup.inspect > swallows git env-resolution failures and returns canDelete: true with no warnings [0.17ms]
+(pass) workspaceCleanup.destroy in-flight guard > clears the Set on success [1.69ms]
+(pass) workspaceCleanup.destroy in-flight guard > rejects a concurrent call with CONFLICT + DELETE_IN_PROGRESS cause [0.31ms]
+(pass) workspaceCleanup.destroy in-flight guard > retry after a failed destroy succeeds (no in-flight leak) [3.08ms]
+(pass) workspaceCleanup.destroy cleanup ordering > a local workspace retires its record without touching git or disk [0.95ms]
+(pass) workspaceCleanup.destroy cleanup ordering > worktree removal failure blocks local delete while the path still exists [2.13ms]
+(pass) workspaceCleanup.destroy cleanup ordering > git unregisters the worktree but the folder survives: destroy removes it [1.31ms]
+(pass) workspaceCleanup.destroy cleanup ordering > git unregisters the worktree and a read-only directory blocks the delete: destroy restores write permission and removes it [2.08ms]
+(pass) workspaceCleanup.destroy cleanup ordering > a permission denial above the worktree is not repaired: destroy reports it and leaves the folder [1.46ms]
+(pass) workspaceCleanup.destroy cleanup ordering > git unregisters the worktree and leaves a dangling symlink: destroy removes the link [0.74ms]
+(pass) workspaceCleanup.destroy cleanup ordering > worktree path is a symlink into the managed root: destroy removes the link, not through it [0.89ms]
+(pass) workspaceCleanup.destroy cleanup ordering > unregistered leftover outside the managed root is left on disk with a warning [1.12ms]
+(pass) workspaceCleanup.destroy cleanup ordering > still-registered failure surfaces git's own error [0.58ms]
+(pass) workspaceCleanup.destroy cleanup ordering > worktree removal task failure blocks local delete (post-remove state unknown) [0.56ms]
+(pass) workspaceCleanup.destroy cleanup ordering > git env-resolution failure blocks local delete while the worktree path still exists [0.40ms]
+(pass) workspaceCleanup.destroy cleanup ordering > missing project metadata warns but still deletes local state [0.37ms]
+(pass) workspaceCleanup.destroy cleanup ordering > destroy archives the row and broadcasts once [0.56ms]
+(pass) workspaceCleanup.destroy cleanup ordering > branch delete failure is reported as a warning after the local commit point [0.40ms]
+(pass) workspaceCleanup.destroy cleanup ordering > worktree-removal timeout carries its phase into the reported error [0.52ms]
+(pass) workspaceCleanup.destroy cleanup ordering > preflight pool timeout fails closed instead of skipping the dirty check [0.44ms]
+(pass) workspaceCleanup.destroy cleanup ordering > preflight git failure (missing worktree) still proceeds idempotently [0.51ms]
+(pass) workspaceCleanup.destroy cleanup ordering > sqlite archive failure fails the destroy (the archive is the commit point) [0.38ms]
+(pass) workspaceCleanup.destroy cleanup ordering > session destroy archives the row like any other workspace [0.41ms]
+(pass) workspaceCleanup.destroy cleanup ordering > the archive commit point applies to sessions too [0.31ms]
+
+src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [1.32ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [0.50ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [0.72ms]
+(pass) a changed execution is never signalled by a stale stop request [0.36ms]
+(pass) a status read during launch cannot prevent its confirmed execution becoming active [0.56ms]
+(pass) the next confirmed run retains the preceding terminal identity for pane reuse [0.36ms]
+(pass) an instant command with a completion result ends even when foreground was never observed [0.48ms]
+(pass) an idle shell without its tracked completion cannot release a run for another launch [0.44ms]
+(pass) workspace deletion releases its bounded run slot without removing another workspace [0.36ms]
+(pass) a stop arriving after completion does not signal an idle or reused console [0.43ms]
+
+src/direct/run-completion.test.ts:
+(pass) /bin/bash reports a rapid failure while keeping the configured shell's cwd and variables [6.29ms]
+(pass) /usr/bin/zsh reports a rapid failure while keeping the configured shell's cwd and variables [5.60ms]
+(pass) a successful command ending with a comment has an atomic bounded completion result [3.96ms]
+(pass) invalid command syntax returns a completion instead of leaving the shell waiting for more input [3.94ms]
+
+src/direct/managed-paths.test.ts:
+(pass) direct worktrees use the machine home while sessions keep the private backend home [0.17ms]
+
+src/trpc/router/workspace-cleanup/tracked-destroy.test.ts:
+(pass) a teardown failure remains a typed result without running cleanup twice [0.24ms]
+(pass) a dirty or concurrent deletion conflict does not force retry [0.11ms]
+(pass) uncertain cleanup failures propagate for reconciliation [0.06ms]
+(pass) a successful deletion retains cleanup warnings [0.05ms]
+(pass) a persisted teardown failure can be read after restart without rerunning the script [2.92ms]
+
+src/trpc/router/workspace-run/workspace-run.test.ts:
+(pass) run preview reuses original worktree-over-project resolution and rejects a stale definition before launch [23.49ms]
+(pass) invalid oversized run configuration does not make run status unavailable [11.82ms]
+
+ 56 pass
+ 0 fail
+ 127 expect() calls
+Ran 56 tests across 6 files. [376.00ms]

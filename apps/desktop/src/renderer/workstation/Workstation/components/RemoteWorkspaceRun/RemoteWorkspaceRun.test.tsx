@@ -315,6 +315,52 @@ test("a run completed before its first reply still attaches its output without l
 	};
 	const api = {
 		rpc: async (r: DirectRpc) => {
+			if (r.type === "mutation") {
+				mutations++;
+				return {
+					...run,
+					operationId: (r.input as { operationId: string }).operationId,
+				};
+			}
+			return base;
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspaceRun
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			onConfigure={() => {}}
+			onAttach={async (value) => {
+				attached.push(value.executionId!);
+			}}
+		/>,
+	);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Run workspace command" }),
+	);
+	await waitFor(() => expect(attached).toEqual(["execution"]));
+	expect(screen.getByRole("status").textContent).toContain("17");
+	expect(mutations).toBe(1);
+});
+
+test("restoring a completed run never reopens a console the user closed", async () => {
+	const attached: string[] = [];
+	let mutations = 0;
+	const run = {
+		workspaceId: "workspace",
+		operationId: "old-operation",
+		terminalId: "terminal",
+		executionId: "execution",
+		commands: ["false"],
+		startedAt: 1,
+		state: "ended",
+		foregroundSeen: false,
+		completionTracked: true,
+		exitCode: 17,
+	};
+	const api = {
+		rpc: async (r: DirectRpc) => {
 			if (r.type === "mutation") mutations++;
 			return { ...base, run };
 		},
@@ -330,8 +376,7 @@ test("a run completed before its first reply still attaches its output without l
 			}}
 		/>,
 	);
-	await screen.findByRole("button", { name: "Run workspace command" });
-	await waitFor(() => expect(attached).toEqual(["execution"]));
-	expect(screen.getByRole("status").textContent).toContain("17");
+	await screen.findByRole("status");
+	expect(attached).toEqual([]);
 	expect(mutations).toBe(0);
 });

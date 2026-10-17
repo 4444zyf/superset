@@ -58,7 +58,8 @@ export function RemoteWorkspaceRun({
 	const pendingRef = useRef(false),
 		reading = useRef(false),
 		fence = useRef(0),
-		attached = useRef<string | null>(null);
+		attached = useRef<string | null>(null),
+		requestedRun = useRef<string | null>(null);
 	const callbacks = useRef({ onAttach, onConfigure });
 	callbacks.current = { onAttach, onConfigure };
 	const capable =
@@ -82,13 +83,17 @@ export function RemoteWorkspaceRun({
 		if (
 			run &&
 			(run.state === "active" ||
-				(run.state === "ended" && run.exitCode !== undefined)) &&
+				(run.state === "ended" &&
+					run.exitCode !== undefined &&
+					requestedRun.current === run.operationId)) &&
 			run.executionId
 		) {
 			const key = `${run.operationId}:${run.executionId}`;
 			if (attached.current !== key) {
 				attached.current = key;
 				await callbacks.current.onAttach(run);
+				if (owned() && requestedRun.current === run.operationId)
+					requestedRun.current = null;
 			}
 		}
 	};
@@ -112,6 +117,7 @@ export function RemoteWorkspaceRun({
 		reading.current = false;
 		pendingRef.current = false;
 		attached.current = null;
+		requestedRun.current = null;
 		fence.current++;
 		setLoaded(null);
 		setPending(false);
@@ -152,6 +158,7 @@ export function RemoteWorkspaceRun({
 				selected = fresh;
 			}
 			attempted = true;
+			if (!stopping) requestedRun.current = operationId;
 			const result = await api.rpc<RemoteRun>({
 				connectionId: connection.connectionId,
 				generation: connection.generation,
