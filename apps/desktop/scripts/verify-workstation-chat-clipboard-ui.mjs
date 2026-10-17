@@ -542,17 +542,11 @@ export async function verifyWorkstationChatClipboardUi({
 			assert.equal(controls.inspectChatAttachments().length, file ? 3 : 2);
 			await screenshot("chat-draft-manager-offline-explicitly-discarded");
 			await closeManager();
-			await click("text:Connect");
+			await click(".ws-workspace-window > output.ws-notice button");
 			await until(() =>
 				evaluate(
 					`(async()=>{const r=await window.directWorkstation.getWorkspaceRestore();return r.status==='ready'&&r.descriptor?.connectionId===${JSON.stringify(scope.connectionId)};})()`,
 				),
-			);
-			await until(() =>
-				evaluate("Boolean(document.querySelector('.ws-workspace-grid'))"),
-			);
-			await click(
-				`button.ws-workspace-card[aria-label=${JSON.stringify(workspace.name)}]`,
 			);
 			await ready();
 			await selectDraftedChat();
