@@ -47,6 +47,8 @@ export async function verifyWorkstationChatClipboardUi({
 	await click("text:New chat");
 	await ready();
 	const first = await until(async () => (await sessions())[0]);
+	await screenshot("chat-clipboard-before-paste");
+	writeFileSync(join(output, "chat-clipboard-input-geometry.json"), JSON.stringify(await evaluate(`(()=>{const e=document.querySelector('${area}'),r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,viewportHeight:innerHeight,viewportWidth:innerWidth};})()`), null, 2) + "\n");
 	await evaluate(`(()=>{window.chatPasteEvents=[];document.addEventListener('paste',e=>{if(e.target.matches?.('${area}'))window.chatPasteEvents.push({trusted:e.isTrusted,types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,size:f.size,type:f.type})),textLength:e.clipboardData.getData('text/plain').length});},true);return true;})()`);
 	const plain = "中文消息 🙂\n" + "multiline clipboard 你好\n".repeat(128);
 	await setClipboard({ text: plain });
