@@ -306,9 +306,10 @@ export async function verifyWorkstationChatClipboardUi({
 	const retainDrafts =
 		process.argv.includes("--expect-retained-chat-drafts") || draftActions;
 	const selectDraftedChat = async () => {
-		await click("text:codex #1");
-		if ((await selectedSession()) !== draftedSessionId)
-			await click("text:codex #2");
+		const rows = await sessions();
+		const index = rows.findIndex((row) => row.sessionId === draftedSessionId);
+		assert.ok(index >= 0);
+		await click(`text:codex #${index + 1}`);
 		await until(async () => (await selectedSession()) === draftedSessionId);
 		await ready();
 	};
