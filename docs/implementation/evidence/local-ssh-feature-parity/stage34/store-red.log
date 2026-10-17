@@ -1,0 +1,37 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:
+(pass) late draft hydration preserves text typed meanwhile and other persisted sessions without crossing namespaces [5.20ms]
+(pass) draft writes serialize and a late acknowledgement cannot clear a newer staged draft [0.55ms]
+(pass) failed draft persistence keeps the in-memory message and attachment references for an explicit retry [1.14ms]
+(pass) workspace draft guards stay scoped and clear only after the last reference or text is explicitly discarded [0.71ms]
+(pass) a failed explicit discard restores its message and stops automatic retries until another user action [0.55ms]
+212 | 		{identity: {...identity, backendId: "replacement", sessionId: "missing-session"}, value: {text: "orphaned draft", attachments: []}},
+213 | 		{identity: {...identity, connectionId: "other"}, value: {text: "other machine", attachments: []}},
+214 | 	];
+215 | 	const store = new WorkstationChatDraftStore({getChatDrafts: async () => ({revision: 4, invalid: false, entries})}, noTimer);
+216 | 	await store.start();
+217 | 	expect(store.list()).toEqual(entries);
+                    ^
+TypeError: store.list is not a function. (In 'store.list()', 'store.list' is undefined)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:217:15)
+(fail) offline draft review includes replaced backends and removed sessions, with exact target filtering [0.60ms]
+225 | 	const store = new WorkstationChatDraftStore({}, noTimer);
+226 | 	const reviewed = {text: "reviewed", attachments: []};
+227 | 	store.change(identity, reviewed);
+228 | 	const newer = {text: "new edit arrived", attachments: [{attachmentId: "late", mediaType: "text/plain", sizeBytes: 5}]};
+229 | 	store.change(identity, newer);
+230 | 	expect(await store.discard(identity, reviewed)).toBe(false);
+                                                       ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: undefined
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:230:50)
+(fail) an explicit discard of a reviewed draft cannot delete newer text or references [0.44ms]
+
+ 5 pass
+ 2 fail
+ 28 expect() calls
+Ran 7 tests across 1 file. [246.00ms]

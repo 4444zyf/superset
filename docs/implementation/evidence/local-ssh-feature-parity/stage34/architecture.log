@@ -1,0 +1,14 @@
+bun test v1.4.2 (744846f84)
+
+src/no-main-process-blocking.test.ts:
+(pass) no new main-process blocking call sites > sync subprocess (execSync/spawnSync/execFileSync) [16.06ms]
+(pass) no new main-process blocking call sites > sync recursive fs (rmSync/cpSync) [10.50ms]
+(pass) no new main-process blocking call sites > in-process git client construction [14.60ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [284.12ms]
+
+ 4 pass
+ 0 fail
+ 1087 expect() calls
+Ran 4 tests across 2 files. [655.00ms]

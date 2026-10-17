@@ -1,0 +1,148 @@
+$ bun run --cwd packages/i18n check
+$ bun run extract && bun run compile
+$ bun x --bun lingui extract --clean --overwrite --workers 1
+✔ Done in 13s
+Catalog statistics for locales/{locale}/messages: 
+┌─────────────┬─────────────┬─────────┐
+│[32m Language    [39m│[32m Total count [39m│[32m Missing [39m│
+├─────────────┼─────────────┼─────────┤
+│ en (source) │    6501     │    -    │
+│ cs          │    6501     │    4    │
+│ de          │    6501     │    4    │
+│ es          │    6501     │    4    │
+│ fr          │    6501     │    4    │
+│ id          │    6501     │    4    │
+│ it          │    6501     │    4    │
+│ ja          │    6501     │    4    │
+│ ko          │    6501     │    4    │
+│ nl          │    6501     │    4    │
+│ pl          │    6501     │    4    │
+│ pt-BR       │    6501     │    4    │
+│ ru          │    6501     │    4    │
+│ tr          │    6501     │    4    │
+│ vi          │    6501     │    4    │
+│ zh-CN       │    6501     │    4    │
+│ zh-TW       │    6501     │    4    │
+└─────────────┴─────────────┴─────────┘
+
+(Use "npm run extract" to update catalogs with new messages.)
+(Use "npm run compile" to compile catalogs for production. Alternatively, use bundler plugins: https://lingui.dev/ref/cli#compiling-catalogs-in-ci)
+$ bun x --bun lingui compile --strict --verbose --workers 1
+Compiling message catalogs…
+en ⇒ locales/en/messages.ts
+Error: Failed to compile catalog for locale ja!
+Missing translations after applying fallbackLocales:
+locales/ja/messages.po: 6FqNY9: (Chat drafts)
+locales/ja/messages.po: 1FlVKM: (No chat drafts.)
+locales/ja/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/ja/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale zh-CN!
+Missing translations after applying fallbackLocales:
+locales/zh-CN/messages.po: 6FqNY9: (Chat drafts)
+locales/zh-CN/messages.po: 1FlVKM: (No chat drafts.)
+locales/zh-CN/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/zh-CN/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale fr!
+Missing translations after applying fallbackLocales:
+locales/fr/messages.po: 6FqNY9: (Chat drafts)
+locales/fr/messages.po: 1FlVKM: (No chat drafts.)
+locales/fr/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/fr/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale ko!
+Missing translations after applying fallbackLocales:
+locales/ko/messages.po: 6FqNY9: (Chat drafts)
+locales/ko/messages.po: 1FlVKM: (No chat drafts.)
+locales/ko/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/ko/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale zh-TW!
+Missing translations after applying fallbackLocales:
+locales/zh-TW/messages.po: 6FqNY9: (Chat drafts)
+locales/zh-TW/messages.po: 1FlVKM: (No chat drafts.)
+locales/zh-TW/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/zh-TW/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale es!
+Missing translations after applying fallbackLocales:
+locales/es/messages.po: 6FqNY9: (Chat drafts)
+locales/es/messages.po: 1FlVKM: (No chat drafts.)
+locales/es/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/es/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale de!
+Missing translations after applying fallbackLocales:
+locales/de/messages.po: 6FqNY9: (Chat drafts)
+locales/de/messages.po: 1FlVKM: (No chat drafts.)
+locales/de/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/de/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale pt-BR!
+Missing translations after applying fallbackLocales:
+locales/pt-BR/messages.po: 6FqNY9: (Chat drafts)
+locales/pt-BR/messages.po: 1FlVKM: (No chat drafts.)
+locales/pt-BR/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/pt-BR/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale it!
+Missing translations after applying fallbackLocales:
+locales/it/messages.po: 6FqNY9: (Chat drafts)
+locales/it/messages.po: 1FlVKM: (No chat drafts.)
+locales/it/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/it/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale ru!
+Missing translations after applying fallbackLocales:
+locales/ru/messages.po: 6FqNY9: (Chat drafts)
+locales/ru/messages.po: 1FlVKM: (No chat drafts.)
+locales/ru/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/ru/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale tr!
+Missing translations after applying fallbackLocales:
+locales/tr/messages.po: 6FqNY9: (Chat drafts)
+locales/tr/messages.po: 1FlVKM: (No chat drafts.)
+locales/tr/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/tr/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale pl!
+Missing translations after applying fallbackLocales:
+locales/pl/messages.po: 6FqNY9: (Chat drafts)
+locales/pl/messages.po: 1FlVKM: (No chat drafts.)
+locales/pl/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/pl/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale nl!
+Missing translations after applying fallbackLocales:
+locales/nl/messages.po: 6FqNY9: (Chat drafts)
+locales/nl/messages.po: 1FlVKM: (No chat drafts.)
+locales/nl/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/nl/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale id!
+Missing translations after applying fallbackLocales:
+locales/id/messages.po: 6FqNY9: (Chat drafts)
+locales/id/messages.po: 1FlVKM: (No chat drafts.)
+locales/id/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/id/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale cs!
+Missing translations after applying fallbackLocales:
+locales/cs/messages.po: 6FqNY9: (Chat drafts)
+locales/cs/messages.po: 1FlVKM: (No chat drafts.)
+locales/cs/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/cs/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Error: Failed to compile catalog for locale vi!
+Missing translations after applying fallbackLocales:
+locales/vi/messages.po: 6FqNY9: (Chat drafts)
+locales/vi/messages.po: 1FlVKM: (No chat drafts.)
+locales/vi/messages.po: df8gwm: (Review unsent drafts stored on this device, including unavailable sessions.)
+locales/vi/messages.po: 01cUN-: (This draft changed. Review it before discarding.)
+
+Done in 1s
+error: script "compile" exited with code 1
+error: script "check" exited with code 1
+error: script "check:i18n" exited with code 1

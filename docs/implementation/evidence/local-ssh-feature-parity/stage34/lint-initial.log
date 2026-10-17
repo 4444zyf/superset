@@ -1,0 +1,95 @@
+apps/desktop/src/renderer/workstation/Workstation/Workstation.test.tsx:709:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    707 │ 		).toBe(true);
+    708 │ 		expect(remoteCalls).toEqual([]);
+  > 709 │ 		const article = area.closest("article")!;
+        │ 		                ^^^^^^^^^^^^^^^^^^^^^^^^
+    710 │ 		fireEvent.click(
+    711 │ 			within(article).getByRole("button", { name: "Discard changes" }),
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:918:25 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    916 │ 								hasUnsavedChanges={() =>
+    917 │ 									documents
+  > 918 │ 										.getDocuments(ui.connection!, deleteWorkspace.id)
+        │ 										              ^^^^^^^^^^^^^^
+    919 │ 										.some((d) => d.dirty || d.pendingSave) ||
+    920 │ 									chatDrafts.hasDrafts({
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:921:14 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    919 │ 										.some((d) => d.dirty || d.pendingSave) ||
+    920 │ 									chatDrafts.hasDrafts({
+  > 921 │ 										...ui.connection!,
+        │ 										   ^^^^^^^^^^^^^^
+    922 │ 										workspaceId: deleteWorkspace.id,
+    923 │ 									})
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:926:25 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    924 │ 								}
+    925 │ 								onDeleted={(warnings) => {
+  > 926 │ 									const target = ui.connection!;
+        │ 									               ^^^^^^^^^^^^^^
+    927 │ 									setDeleteWorkspace(null);
+    928 │ 
+  
+
+apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:101:49 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+     99 │ 	store.change(identity, { text: "latest", attachments: [] });
+    100 │ 	expect(writes).toHaveLength(1);
+  > 101 │ 	finish({ revision: 1, invalid: false, entries: writes[0]!.entries });
+        │ 	                                               ^^^^^^^^^^
+    102 │ 	await pending;
+    103 │ 	expect(writes).toHaveLength(2);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     99  99 │   	store.change(identity, { text: "latest", attachments: [] });
+    100 100 │   	expect(writes).toHaveLength(1);
+    101     │ - → finish({·revision:·1,·invalid:·false,·entries:·writes[0]!.entries·});
+        101 │ + → finish({·revision:·1,·invalid:·false,·entries:·writes[0]?.entries·});
+    102 102 │   	await pending;
+    103 103 │   	expect(writes).toHaveLength(2);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.ts:91:28 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    89 │ 		this.loading = (async () => {
+    90 │ 			try {
+  > 91 │ 				const snapshot = await this.api.getChatDrafts!();
+       │ 				                       ^^^^^^^^^^^^^^^^^^^^^^^
+    92 │ 				if (snapshot.invalid)
+    93 │ 					throw new Error(
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     89  89 │   		this.loading = (async () => {
+     90  90 │   			try {
+     91     │ - → → → → const·snapshot·=·await·this.api.getChatDrafts!();
+         91 │ + → → → → const·snapshot·=·await·this.api.getChatDrafts?.();
+     92  92 │   				if (snapshot.invalid)
+     93  93 │   					throw new Error(
+  
+
+Skipped 2 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 8 files in 47ms. Fixed 6 files.
+Found 6 warnings.

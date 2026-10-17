@@ -1,0 +1,283 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [232.26ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [98.06ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [104.39ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [63.31ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [46.96ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [87.20ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [72.75ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [61.88ms]
+(pass) opening a development server submits its port for forwarding on B [60.23ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [64.28ms]
+(pass) checking an empty operation journal shows a readable result [44.48ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [56.96ms]
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find an element with the display value: recover 中文 🙂
+unsent.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<span[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"ssh-workstation"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"ws-titlebar"[39m
+      [36m>[39m
+        [36m<span>[39m
+          [0mSuperset Remix[0m
+        [36m</span>[39m
+        [36m<span>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-shield-check"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"12"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"12"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m9 12 2 2 4-4"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [0mDirect SSH[0m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full ws-shell"[39m
+        [33mdata-slot[39m=[32m"sidebar-wrapper"[39m
+        [33mstyle[39m=[32m"--sidebar-width: 16rem; --sidebar-width-icon: 3rem; min-height: 0;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"group peer text-sidebar-foreground hidden md:block"[39m
+          [33mdata-collapsible[39m=[32m""[39m
+          [33mdata-side[39m=[32m"left"[39m
+          [33mdata-slot[39m=[32m"sidebar"[39m
+          [33mdata-state[39m=[32m"expanded"[39m
+          [33mdata-variant[39m=[32m"sidebar"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear group-data-[collapsible=offcanvas]:w-0 group-data-[side=right]:rotate-180 group-data-[collapsible=icon]:w-(--sidebar-width-icon)"[39m
+            [33mdata-slot[39m=[32m"sidebar-gap"[39m
+          [36m/>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l ws-native-sidebar"[39m
+            [33mdata-slot[39m=[32m"sidebar-container"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"[39m
+              [33mdata-sidebar[39m=[32m"sidebar"[39m
+              [33mdata-slot[39m=[32m"sidebar-inner"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex flex-col gap-2 p-2"[39m
+                [33mdata-sidebar[39m=[32m"header"[39m
+                [33mdata-slot[39m=[32m"sidebar-header"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ws-native-brand flex h-9 items-center gap-2 overflow-hidden px-2 text-sm font-medium"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"currentColor"[39m
+                    [33mviewBox[39m=[32m"0 0 32 32"[39m
+                  [36m>[39m
+                    [36m<defs>[39m
+                      [36m<mask[39m
+                        [33mheight[39m=[32m"32"[39m
+                        [33mid[39m=[32m"brand-_r_55_"[39m
+                        [33mmaskUnits[39m=[32m"userSpaceOnUse"[39m
+                        [33mstyle[39m=[32m"mask-type: luminance;"[39m
+                        [33mwidth[39m=[32m"32"[39m
+                        [33mx[39m=[32m"0"[39m
+                        [33my[39m=[32m"0"[39m
+                      [36m>[39m
+                        [36m<image[39m
+                          [33mheight[39m=[32m"32"[39m
+                          [33mhref[39m=[32m"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8ZGVmcz4KICAgIDxwYXRoIGlkPSJjaGV2cm9uIiBkPSJNMSAwaDJ2MUgydjFIMVpNMCAyaDF2MkgwWk0xIDRoMXYxaDF2MUgxWiIvPgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIGZpbGw9IiMwMDAiLz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxIDEwKSBzY2FsZSgyKSIgZmlsbD0iI2ZmZiI+CiAgICA8dXNlIGhyZWY9IiNjaGV2cm9uIi8+CiAgICA8dXNlIGhyZWY9IiNjaGV2cm9uIiB4PSI0Ii8+CiAgICA8dXNlIGhyZWY9IiNjaGV2cm9uIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMSAwKSBzY2FsZSgtMSAxKSIvPgogICAgPHVzZSBocmVmPSIjY2hldnJvbiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTUgMCkgc2NhbGUoLTEgMSkiLz4KICA8L2c+Cjwvc3ZnPgo="[39m
+                          [33mwidth[39m=[32m"32"[39m
+                        [36m/>[39m
+                      [36m</mask>[39m
+                    [36m</defs>[39m
+                    [36m<rect[39m
+                      [33mheight[39m=[32m"32"[39m
+                      [33mmask[39m=[32m"url(#brand-_r_55_)"[39m
+                      [33mwidth[39m=[32m"32"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"truncate group-data-[collapsible=icon]:hidden"[39m
+                  [36m>[39m
+                    [0mSuperset Remix[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden"[39m
+                [33mdata-sidebar[39m=[32m"content"[39m
+                [33mdata-slot[39m=[32m"sidebar-content"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"relative flex w-full min-w-0 flex-col p-2"[39m
+                  [33mdata-sidebar[39m=[32m"group"[39m
+                  [33mdata-slot[39m=[32m"sidebar-group"[39m
+               ...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<span[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"ssh-workstation"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"ws-titlebar"[39m
+      [36m>[39m
+        [36m<span>[39m
+          [0mSuperset Remix[0m
+        [36m</span>[39m
+        [36m<span>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-shield-check"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"12"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"12"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m9 12 2 2 4-4"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [0mDirect SSH[0m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full ws-shell"[39m
+        [33mdata-slot[39m=[32m"sidebar-wrapper"[39m
+        [33mstyle[39m=[32m"--sidebar-width: 16rem; --sidebar-width-icon: 3rem; min-height: 0;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"group peer text-sidebar-foreground hidden md:block"[39m
+          [33mdata-collapsible[39m=[32m""[39m
+          [33mdata-side[39m=[32m"left"[39m
+          [33mdata-slot[39m=[32m"sidebar"[39m
+          [33mdata-state[39m=[32m"expanded"[39m
+          [33mdata-variant[39m=[32m"sidebar"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear group-data-[collapsible=offcanvas]:w-0 group-data-[side=right]:rotate-180 group-data-[collapsible=icon]:w-(--sidebar-width-icon)"[39m
+            [33mdata-slot[39m=[32m"sidebar-gap"[39m
+          [36m/>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l ws-native-sidebar"[39m
+            [33mdata-slot[39m=[32m"sidebar-container"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"[39m
+              [33mdata-sidebar[39m=[32m"sidebar"[39m
+              [33mdata-slot[39m=[32m"sidebar-inner"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex flex-col gap-2 p-2"[39m
+                [33mdata-sidebar[39m=[32m"header"[39m
+                [33mdata-slot[39m=[32m"sidebar-header"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"ws-native-brand flex h-9 items-center gap-2 overflow-hidden px-2 text-sm font-medium"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33maria-hidden[39m=[32m"true"[39m
+                    [33mfill[39m=[32m"currentColor"[39m
+                    [33mviewBox[39m=[32m"0 0 32 32"[39m
+                  [36m>[39m
+                    [36m<defs>[39m
+                      [36m<mask[39m
+                        [33mheight[39m=[32m"32"[39m
+                        [33mid[39m=[32m"brand-_r_55_"[39m
+                        [33mmaskUnits[39m=[32m"userSpaceOnUse"[39m
+                        [33mstyle[39m=[32m"mask-type: luminance;"[39m
+                        [33mwidth[39m=[32m"32"[39m
+                        [33mx[39m=[32m"0"[39m
+                        [33my[39m=[32m"0"[39m
+                      [36m>[39m
+                        [36m<image[39m
+                          [33mheight[39m=[32m"32"[39m
+                          [33mhref[39m=[32m"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8ZGVmcz4KICAgIDxwYXRoIGlkPSJjaGV2cm9uIiBkPSJNMSAwaDJ2MUgydjFIMVpNMCAyaDF2MkgwWk0xIDRoMXYxaDF2MUgxWiIvPgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIGZpbGw9IiMwMDAiLz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxIDEwKSBzY2FsZSgyKSIgZmlsbD0iI2ZmZiI+CiAgICA8dXNlIGhyZWY9IiNjaGV2cm9uIi8+CiAgICA8dXNlIGhyZWY9IiNjaGV2cm9uIiB4PSI0Ii8+CiAgICA8dXNlIGhyZWY9IiNjaGV2cm9uIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMSAwKSBzY2FsZSgtMSAxKSIvPgogICAgPHVzZSBocmVmPSIjY2hldnJvbiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTUgMCkgc2NhbGUoLTEgMSkiLz4KICA8L2c+Cjwvc3ZnPgo="[39m
+                          [33mwidth[39m=[32m"32"[39m
+                        [36m/>[39m
+                      [36m</mask>[39m
+                    [36m</defs>[39m
+                    [36m<rect[39m
+                      [33mheight[39m=[32m"32"[39m
+                      [33mmask[39m=[32m"url(#brand-_r_55_)"[39m
+                      [33mwidth[39m=[32m"32"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"truncate group-data-[collapsible=icon]:hidden"[39m
+                  [36m>[39m
+                    [0mSuperset Remix[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden"[39m
+                [33mdata-sidebar[39m=[32m"content"[39m
+                [33mdata-slot[39m=[32m"sidebar-content"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"relative flex w-full min-w-0 flex-col p-2"[39m
+                  [33mdata-sidebar[39m=[32m"group"[39m
+                  [33mdata-slot[39m=[32m"sidebar-group"[39m
+               ...
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/Workstation.test.tsx:703:29
+(fail) offline chat drafts remain reviewable and explicitly discardable without a connection or session [1030.08ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:
+(pass) late draft hydration preserves text typed meanwhile and other persisted sessions without crossing namespaces [1.23ms]
+(pass) draft writes serialize and a late acknowledgement cannot clear a newer staged draft [0.73ms]
+(pass) failed draft persistence keeps the in-memory message and attachment references for an explicit retry [0.46ms]
+(pass) workspace draft guards stay scoped and clear only after the last reference or text is explicitly discarded [0.31ms]
+(pass) a failed explicit discard restores its message and stops automatic retries until another user action [0.69ms]
+(pass) offline draft review includes replaced backends and removed sessions, with exact target filtering [0.51ms]
+(pass) an explicit discard of a reviewed draft cannot delete newer text or references [0.23ms]
+
+ 19 pass
+ 1 fail
+ 73 expect() calls
+Ran 20 tests across 2 files. [2.52s]

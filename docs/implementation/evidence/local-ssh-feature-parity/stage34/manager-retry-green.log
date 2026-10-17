@@ -1,0 +1,20 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:
+(pass) late draft hydration preserves text typed meanwhile and other persisted sessions without crossing namespaces [3.34ms]
+(pass) draft writes serialize and a late acknowledgement cannot clear a newer staged draft [0.59ms]
+(pass) failed draft persistence keeps the in-memory message and attachment references for an explicit retry [0.94ms]
+(pass) workspace draft guards stay scoped and clear only after the last reference or text is explicitly discarded [0.36ms]
+(pass) a failed explicit discard restores its message and stops automatic retries until another user action [0.47ms]
+(pass) offline draft review includes replaced backends and removed sessions, with exact target filtering [0.61ms]
+(pass) an explicit discard of a reviewed draft cannot delete newer text or references [0.22ms]
+
+src/renderer/workstation/Workstation/components/WorkstationChatDraftManager/WorkstationChatDraftManager.test.tsx:
+(pass) original copy action copies the exact local text without modifying or persisting drafts [69.34ms]
+(pass) failed confirmed discard retains text and references in the original confirmation until an explicit retry succeeds [74.21ms]
+(pass) a draft updated after review is preserved and must be reviewed again before discarding [35.39ms]
+
+ 10 pass
+ 0 fail
+ 46 expect() calls
+Ran 10 tests across 2 files. [498.00ms]

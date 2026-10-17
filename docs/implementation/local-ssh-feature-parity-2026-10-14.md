@@ -691,3 +691,18 @@ Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取�
 
 
 第110轮产品仍dfebaf896、脚本be26db14d，删除保护继续通过；返回会话时脚本在异步选择落盘前读取旧selection，又条件点击了第二个会话，最终会话断言失败，退出1。已实际查看截图，只改为从只读会话清单确定目标可见按钮、物理点击一次并等待原持久化确认，不增加超时。[第110轮原始失败](evidence/local-ssh-feature-parity/source-linux-chat-draft-actions-failures/110)。第111轮产品仍dfebaf896、脚本3828b5cb7，实际Linux/Electron/拥有的SSH退出0：系统粘贴3474字节中文/emoji及两PNG/41字节URI文件、会话/视图往返及第一次重开保持，原附件X移除一份引用后SQLite剩两份，已移除的远端文件仍可下载且hash正确；工作区删除原提示留住Unsaved changes，目录未删。原丢弃提示Cancel保留文本和两份引用，重新打开后明确确认才清空私有SQLite，第二次重开仍空，无新上传或自动prompt/turn，远端三份附件保留。三个原PTY仍PID37533/37545/37539、执行ID与统一worktree cwd一致。五张移除/删除保护/确认/明确清空及重开截图均已实际查看。[第111轮原始证据](evidence/local-ssh-feature-parity/source-linux-chat-draft-actions/111)、[阶段三十三测试及构建日志](evidence/local-ssh-feature-parity/stage33)。离线/已替换后端草稿查看与清理入口继续补齐；不把当前Codex版本拒绝当作真实供应商识图或macOS发行物验收。
+
+
+### 阶段三十四：离线聊天草稿查看、复制与明确清理
+
+先增加失败回归：原工作台无全局草稿入口、store无离线列表，旧确认可清掉更新后的内容。现复用原Dialog、Textarea、AttachmentTile、聊天CopyButton和UnsavedChangesDialog，侧栏Chat drafts无需任何SSH连接即可打开；移除连接确认页也能进入按连接筛选的草稿列表。所有旧后端/namespace/已不存在会话的本地草稿仍列出，可查看只读文字及附件名称、明确复制原文字或逐条确认丢弃。原附件卡片离线不发起下载；此入口不自动连接、上传、发送、删除远端文件或确认未知操作。仍使用原私有有界SQLite，不增加localStorage、自动过期或静默逐出。
+
+确认同时绑定完整五元作用域及当时文字/附件内容；内容已更新则保留并提示重新查看。明确动作才比较内容，避免每次按键序列化全库。丢弃等待SQLite确认，写入失败恢复文字及引用并保留原确认框，可明确重试。第一次使用对象引用判断时，失败恢复经schema克隆导致第二次确认被误当更改，新回归失败后改为确认时比较有界内容。原Dialog默认non-modal会因嵌套确认的焦点关闭外层，入口回归捕获后仅此管理器采用原modal模式；不改原公共默认。多行文字的首个测试选择器使用默认空白归一化而未命中，已改查询并单独严格断言原换行内容。
+
+本轮9文件64项258断言，加账号启动/主线程阻塞2文件4项1087断言及原composer4项8断言，通过；desktop纯tsc通过，没有与generate:icons并行；四条新文案17种语言已翻译并严格编译，插件检查通过。真实窗口旧构建基线与新版离线复制/断开/重开/清理、重连无自动发送继续验收，尚不能从单测推断真实供应商Agent或macOS行为。
+
+
+第112轮产品仍未重建dfebaf896、脚本77385872a，先完成原草稿保留/移除引用/工作区保护及本地丢弃提示取消；旧UI没有Chat drafts入口，首次点击按预期超时退出1。失败截图已实际查看，没有执行离线丢弃或重连。旧bundle hash已保存后才重建。[第112轮旧构建基线](evidence/local-ssh-feature-parity/source-linux-offline-chat-drafts-baseline/112)。
+
+
+第113轮产品/脚本77385872a，实际原Copy按钮将3474字节含中文/emoji/129换行的原文放入系统剪贴板；断开SSH后管理器仍可读，关闭重开保持paused且未自动连接，明确确认在离线时清空SQLite，远端三份附件保持。之后脚本错误地寻找机器页Connect按钮，但恢复后的工作区显示原Reconnect manually/Retry，超时退出1。五张复制/离线/重开/清空及失败截图均已实际查看；只改脚本点击原工作区Retry，并继续同一工作区，不改产品或超时。[第113轮原始失败](evidence/local-ssh-feature-parity/source-linux-offline-chat-drafts-failures/113)。第114轮产品仍77385872a、脚本923a2c465，实际Linux/Electron/拥有的SSH退出0，完整复制/断开/离线重开/取消保留/明确丢弃/原Retry手动重连及最终重开均通过；无草稿复活、额外上传或自动prompt/turn，三份远端文件保持，原三个PTY仍PID41942/41954/41948、执行ID与统一worktree cwd一致。五张管理器及最终重开截图均已实际查看。[第114轮原始证据](evidence/local-ssh-feature-parity/source-linux-offline-chat-drafts/114)、[阶段三十四红绿/类型/语言/构建](evidence/local-ssh-feature-parity/stage34)。旧后端/外部已删会话的恢复以组件及store测试覆盖，本轮没有删除真实远端数据；真实供应商Agent与macOS仍须独立验收。
