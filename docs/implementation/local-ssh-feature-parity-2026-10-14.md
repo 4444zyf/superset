@@ -661,3 +661,15 @@ Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取�
 
 
 第103轮固定2b13262d6，真实窗口已通过原草稿提示、Cancel及window/quit重复请求只出现一个提示、明确Save All保存CRLF后退出和重开；冲突也确实阻止退出，保留草稿与远端新版。随后返回Files时原冲突对话框自动显示，脚本却重复点击被对话框挡住的文件树，超时退出1。四张提示/保存重开/冲突及失败截图已实际查看；修正helper使用已打开的活动文档，产品不变。[第103轮原始失败](evidence/local-ssh-feature-parity/source-linux-close-guard-failures/103)。第104轮产品仍2b13262d6、脚本0607413f2，实际Linux/Electron/拥有的SSH --file-close-guard-only退出0：后台终端视图下原关闭保护出现，Cancel保留窗口/草稿/连接；同时window.close和app.quit合并一个提示且取消后仍可编辑；明确Save All才保存中文/emoji及原CRLF并退出，重开读回正确。第二份草稿遇到外部新版本，退出Save All被原CAS拒绝，提示保留具体冲突，Cancel后原文件Diff及Keep editing仍保留完整草稿；明确Don't Save才关闭，重开只有远端新版本且无自动写回。两次重开后原3个PTY仍PID27113/27125/27119、执行ID及统一worktree cwd保留。七张原提示/保存重开/冲突/草稿/明确丢弃及重开截图均已实际查看。[第104轮原始证据](evidence/local-ssh-feature-parity/source-linux-close-guard/104)、[阶段三十一红绿/回归/类型/构建日志](evidence/local-ssh-feature-parity/stage31)。本次用拥有的BrowserWindow.close/app.quit生命周期事件触发关闭，实际键盘及按钮完成操作；不将其称为物理OS菜单、强制结束或macOS发行物验证。聊天草稿、Reload、完整快捷键、终端预设和总清单其余功能继续核对。
+
+
+### 阶段三十二：原草稿写入器与私有SQLite聊天草稿
+
+真实失败回归确认：另一会话确实隔离了草稿，但返回原会话会丢掉文字和附件引用。提取原useComposerDraft的300ms防抖、待保存缓存、失败保留及离开时flush为可注入持久化和定时器的ComposerDraftWriter；原入口仍用相同localStorage读写/恢复语义，原4项回归全部通过，工作站不新增localStorage写入。异步保存改为单个在途写入、每个键只保留最新值，迟到成功不删除新值；新编辑才继续或明确flush重试，不无限重试失败快照。
+
+工作站草稿按connection/backend/namespace/workspace/session隔离，generation更新保留同一会话草稿；使用本机应用私有chat-drafts.db，文件0600、单独SQLite表，不接Superset账号、云数据库或第三方消息接口。最多32份草稿、单条文字UTF-8 1MiB、总8MiB、每条16个附件且引用的总文件大小继续25MiB，只存文字和opaque附件元数据，不复制图片文件或凭据。快照revision/CAS阻止旧写入复活已明确清空的草稿；非法旧数据报错并拒绝覆盖。晚回读与期间输入合并，后台工作台保留草稿，重开读取已存版本，恢复不调用upload/prompt。仅收到手动Send成功回复后清空对应草稿；发送拒绝或未知结果继续保留。已有双剪贴板附件回归也发现新适配层使用旧闭包丢掉前一个上传，已改为基于当前草稿追加，原19项聊天回归通过。
+
+窗口关闭/退出在批准前先等待本地草稿flush；持久化失败显示原未保存对话框，Cancel保留内存，Save All明确重试，Don't Save才可放弃。补齐两个失败回归：卸载后的晚读取不能批准旧窗口关闭，Save All等待聊天存储后对话框已卸载不能继续发起文件写入。最终相关9文件53项1256断言、desktop类型、17语言、插件检查通过，包含原3条桌面主线程阻塞规则。第105轮产品仍未重建2b13262d6、脚本15bbb43e4，系统粘贴的文字/两PNG/URI文件已在原会话可见，切换后返回草稿为空，按预期退出1，失败截图已实际查看；旧bundle hash保留后才重建。[第105轮旧构建基线](evidence/local-ssh-feature-parity/source-linux-chat-draft-baseline/105)。新版真实往返会话、离开文件视图、重开及无自动发送结果待记录；完整草稿清理/附件移除入口和其余聊天功能继续核对，不把当前旧CLI版本拒绝当作真实供应商发送验证。
+
+
+第106轮固定15bbb43e4736f7c1225421f890de6f20665990bd，重建后实际Linux/Electron/拥有的SSH --chat-clipboard-only --expect-retained-chat-drafts退出0。系统Ctrl+V仍将3474字节中文/emoji/129换行精确放入消息草稿，两PNG独立ID但同hash/像素、41字节URI文件原样存储/下载；另一会话为空，返回原会话恢复原文字和3份附件引用，离开至Files再回聊天仍完整。正常窗口关闭等待私有SQLite保存，重开仍同会话草稿，实际getChatDrafts返回revision=2的一条记录、文字hash及3个opaque ID均匹配；文件权限实际0600、UID1000。远端附件始终3份、没有新上传，服务器journal没有自动user_message或turn，3个原PTY与执行ID/统一worktree cwd保留。六张粘贴、会话隔离、返回及重开截图均已实际查看。[第106轮原始证据](evidence/local-ssh-feature-parity/source-linux-chat-drafts/106)、[阶段三十二红绿/回归/类型/构建日志](evidence/local-ssh-feature-parity/stage32)。当前Codex0.159版本门槛仍真实显示，未升级或绕过、未做真实供应商登录/识图或macOS验收。下一步继续明确草稿丢弃、附件移除、项目/连接生命周期清理及其他原功能；该阶段不代表整个聊天组完成。

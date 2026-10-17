@@ -1,0 +1,180 @@
+$ bun test src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:
+(pass) changing pane callbacks does not reopen a restored chat stream [35.44ms]
+(pass) an older backend without chat attachment input keeps file sending disabled [16.84ms]
+(pass) a rejected Send keeps the message draft visible without marking the chat stream failed [48.43ms]
+(pass) a second picked file cannot grow the draft beyond the existing clipboard byte limit [18.51ms]
+(pass) restoring a controlled chat selection never selects the first session or sends a prompt [5.27ms]
+(pass) closing the chat view closes only its stream, without cancelling or closing B's chat [106.34ms]
+(pass) an attachment replayed from chat history remains downloadable after reconnect [74.52ms]
+(pass) reconnecting keeps the selected remote chat and never repeats a prompt [14.54ms]
+(pass) switching chats isolates unsent drafts and returning restores the original text and attachment references [21.93ms]
+(pass) an upload completed after switching chats cannot attach to the new chat [9.72ms]
+(pass) returning to a chat cannot revive an old upload or clear a newer upload's busy state [17.39ms]
+(pass) an older session list cannot erase a newly created chat [6.51ms]
+(pass) a download completed after changing workspace cannot save stale attachment bytes [15.75ms]
+(pass) attachment controls require the backend's attachment capability [5.93ms]
+(pass) an uploaded attachment is referenced once by opaque id in the selected chat prompt [12.65ms]
+(pass) pasted images upload to the selected chat without sending a prompt [7.25ms]
+(pass) a pasted image completing after switching chats is not attached or sent [58.55ms]
+(pass) a rejected pasted attachment leaves the chat and message draft available [8.54ms]
+32 |   // throw errors w/ suggestions for better queries. Opt in so off by default.
+33 |   throwSuggestions: false,
+34 |   // called when getBy* queries fail. (message, container) => Error
+35 |   getElementError(message, container) {
+36 |     const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
+37 |     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+                           ^
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "image.png"
+
+Here are the accessible roles:
+
+  combobox:
+
+  Name "Agent":
+  [36m<select[39m
+    [33maria-label[39m=[32m"Agent"[39m
+    [33mclass[39m=[32m"min-w-0 max-w-full rounded bg-muted p-2"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  option:
+
+  Name "Codex":
+  [36m<option[39m
+    [33mvalue[39m=[32m"codex"[39m
+  [36m/>[39m
+
+  Name "Claude Code":
+  [36m<option[39m
+    [33mvalue[39m=[32m"claude-code"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "New chat":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Attach files":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "notes.txt":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Send":
+  [36m<button[39m
+    [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+    [33mdata-slot[39m=[32m"button"[39m
+    [33mtype[39m=[32m"submit"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  textbox:
+
+  Name "Message":
+  [36m<textarea[39m
+    [33maria-label[39m=[32m"Message"[39m
+    [33mclass[39m=[32m"min-w-0 grow basis-40 resize-none rounded bg-muted p-2 text-sm"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"flex h-full min-h-0 min-w-0 flex-col gap-2 overflow-hidden rounded border border-border p-3"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex min-h-0 max-h-24 flex-wrap gap-2 overflow-auto"[39m
+      [36m>[39m
+        [36m<select[39m
+          [33maria-label[39m=[32m"Agent"[39m
+          [33mclass[39m=[32m"min-w-0 max-w-full rounded bg-muted p-2"[39m
+        [36m>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"codex"[39m
+          [36m>[39m
+            [0mCodex[0m
+          [36m</option>[39m
+          [36m<option[39m
+            [33mvalue[39m=[32m"claude-code"[39m
+          [36m>[39m
+            [0mClaude Code[0m
+          [36m</option>[39m
+        [36m</select>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mNew chat[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"min-h-0 flex-1 overflow-auto space-y-3"[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex min-h-0 max-h-24 flex-wrap gap-2 overflow-auto"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mAttach files[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mnotes.txt[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<form[39m
+        [33mclass[39m=[32m"flex shrink-0 flex-wrap gap-2"[39m
+      [36m>[39m
+        [36m<textarea[39m
+          [33maria-label[39m=[32m"Message"[39m
+          [33mclass[39m=[32m"min-w-0 grow basis-40 resize-none rounded bg-muted p-2 text-sm"[39m
+        [36m>[39m
+          [0m未发送的消息 🙂[0m
+        [36m</textarea>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 gap-1.5 has-[>svg]:px-2.5 max-w-full min-w-0 truncate rounded border border-border px-3 py-2 text-sm disabled:opacity-40"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mtype[39m=[32m"submit"[39m
+        [36m>[39m
+          [0mSend[0m
+        [36m</button>[39m
+      [36m</form>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at getElementError (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:23)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:109:15)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:804:16)
+(fail) chat merges both clipboard file accessors, deduplicates the image, and retains the unsent message [12.37ms]
+
+ 18 pass
+ 1 fail
+ 74 expect() calls
+Ran 19 tests across 1 file. [730.00ms]
+error: script "test" exited with code 1

@@ -1,0 +1,68 @@
+$ bun test src/main/lib/ssh-direct/workstation-chat-drafts.test.ts
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-chat-drafts.test.ts:
+ 6 | const entry={identity,value:{text:"未发送的草稿 🙂\n",attachments:[{attachmentId:"opaque-upload",mediaType:"image/png",sizeBytes:14}]}};
+ 7 | test("private SQLite draft snapshots retain attachment references and prevent an old write from reviving a cleared draft",()=>{
+ 8 |  const db=new Database(":memory:");const store=new WorkstationChatDrafts(db as unknown as SqliteDatabase);
+ 9 |  try{
+10 |   expect(store.read()).toEqual({revision:0,invalid:false,entries:[]});
+11 |   const first=store.update({expectedRevision:0,entries:[entry]});expect(first.entries).toEqual([entry]);
+                                                                                            ^
+error: expect(received).toEqual(expected)
+
+- [
+-   {
+-     "identity": {
+-       "backendId": "backend",
+-       "connectionId": "machine",
+-       "namespaceId": "namespace",
+-       "sessionId": "session",
+-       "workspaceId": "workspace",
+-     },
+-     "value": {
+-       "attachments": [
+-         {
+-           "attachmentId": "opaque-upload",
+-           "mediaType": "image/png",
+-           "sizeBytes": 14,
+-         },
+-       ],
+-       "text": 
+- "未发送的草稿 🙂
+- "
+- ,
+-     },
+-   },
+- ]
++ []
+
+- Expected  - 24
++ Received  + 1
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-chat-drafts.test.ts:11:88)
+(fail) private SQLite draft snapshots retain attachment references and prevent an old write from reviving a cleared draft [0.58ms]
+15 | });
+16 | test("draft storage rejects excess entries, duplicate identities and non UTF-8 byte bounds without changing existing data",()=>{
+17 |  const db=new Database(":memory:");const store=new WorkstationChatDrafts(db as unknown as SqliteDatabase);
+18 |  try{
+19 |   store.update({expectedRevision:0,entries:[entry]});
+20 |   expect(()=>store.update({expectedRevision:1,entries:[entry,entry]})).toThrow();
+                                                                            ^
+error: expect(received).toThrow()
+
+Received function did not throw
+Received value: {
+  revision: 0,
+  invalid: false,
+  entries: [],
+}
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-chat-drafts.test.ts:20:72)
+(fail) draft storage rejects excess entries, duplicate identities and non UTF-8 byte bounds without changing existing data [0.18ms]
+
+ 0 pass
+ 2 fail
+ 3 expect() calls
+Ran 2 tests across 1 file. [143.00ms]
+error: script "test" exited with code 1

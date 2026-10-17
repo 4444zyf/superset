@@ -1,0 +1,78 @@
+$ bun test src/renderer/workstation/Workstation/Workstation.test.tsx src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx src/renderer/workstation/Workstation/providers/WorkstationChatDrafts src/renderer/lib/composer-draft-writer src/main/lib/ssh-direct/workstation-chat-drafts.test.ts src/main/lib/ssh-direct/accountless-boot.test.ts src/no-main-process-blocking.test.ts "src/renderer/routes/_authenticated/_dashboard/v2-workspace/\$workspaceId/hooks/usePaneRegistry/components/ChatSession/components/Composer/hooks/useComposerDraft/useComposerDraft.test.tsx"
+bun test v1.4.2 (744846f84)
+
+src/no-main-process-blocking.test.ts:
+(pass) no new main-process blocking call sites > sync subprocess (execSync/spawnSync/execFileSync) [14.50ms]
+(pass) no new main-process blocking call sites > sync recursive fs (rmSync/cpSync) [9.66ms]
+(pass) no new main-process blocking call sites > in-process git client construction [9.81ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [442.05ms]
+
+src/main/lib/ssh-direct/workstation-chat-drafts.test.ts:
+(pass) private SQLite draft snapshots retain attachment references and prevent an old write from reviving a cleared draft [6.05ms]
+(pass) draft storage rejects excess entries, duplicate identities and non UTF-8 byte bounds without changing existing data [8.19ms]
+(pass) invalid stored draft data is reported and cannot be silently replaced by an empty snapshot [1.41ms]
+
+src/renderer/lib/composer-draft-writer/composer-draft-writer.test.ts:
+(pass) a late asynchronous draft save drains only the newest queued value and never drops it [0.44ms]
+(pass) a failed draft save retains the original value and retries only on an explicit flush or later edit [0.10ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [294.53ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [119.95ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [104.64ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [108.96ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [75.64ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [82.81ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [125.43ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [108.96ms]
+(pass) opening a development server submits its port for forwarding on B [106.27ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [167.06ms]
+(pass) checking an empty operation journal shows a readable result [77.18ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [113.10ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationChatDrafts/workstation-chat-drafts.test.ts:
+(pass) late draft hydration preserves text typed meanwhile and other persisted sessions without crossing namespaces [1.10ms]
+(pass) draft writes serialize and a late acknowledgement cannot clear a newer staged draft [5.66ms]
+(pass) failed draft persistence keeps the in-memory message and attachment references for an explicit retry [0.36ms]
+
+src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:
+(pass) changing pane callbacks does not reopen a restored chat stream [11.21ms]
+(pass) an older backend without chat attachment input keeps file sending disabled [11.70ms]
+(pass) a rejected Send keeps the message draft visible without marking the chat stream failed [57.18ms]
+(pass) a second picked file cannot grow the draft beyond the existing clipboard byte limit [30.81ms]
+(pass) restoring a controlled chat selection never selects the first session or sends a prompt [8.25ms]
+(pass) closing the chat view closes only its stream, without cancelling or closing B's chat [112.60ms]
+(pass) an attachment replayed from chat history remains downloadable after reconnect [64.07ms]
+(pass) reconnecting keeps the selected remote chat and never repeats a prompt [8.80ms]
+(pass) switching chats isolates unsent drafts and returning restores the original text and attachment references [11.74ms]
+(pass) an upload completed after switching chats cannot attach to the new chat [7.10ms]
+(pass) returning to a chat cannot revive an old upload or clear a newer upload's busy state [10.15ms]
+(pass) an older session list cannot erase a newly created chat [4.30ms]
+(pass) a download completed after changing workspace cannot save stale attachment bytes [12.53ms]
+(pass) attachment controls require the backend's attachment capability [4.03ms]
+(pass) an uploaded attachment is referenced once by opaque id in the selected chat prompt [32.22ms]
+(pass) pasted images upload to the selected chat without sending a prompt [6.73ms]
+(pass) a pasted image completing after switching chats is not attached or sent [106.61ms]
+(pass) a rejected pasted attachment leaves the chat and message draft available [22.24ms]
+(pass) chat merges both clipboard file accessors, deduplicates the image, and retains the unsent message [24.70ms]
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [106.63ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [130.29ms]
+(pass) a clean document permits close immediately and unmounting with a dirty prompt cancels the old request [21.67ms]
+(pass) chat draft storage failure blocks a clean-file window close until an explicit successful Save All retry [69.16ms]
+(pass) unmounting while chat draft storage is loading cannot approve the departed renderer's close request [11.23ms]
+(pass) a late chat-draft flush after the close dialog unmounts cannot start a file save [10.57ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/ChatSession/components/Composer/hooks/useComposerDraft/useComposerDraft.test.tsx:
+(pass) a composer mounted before the save delay reads text typed into the one it replaces [1.46ms]
+(pass) recovered text survives the composer's own save on unmount [5.36ms]
+(pass) a draft that fails to save is still read from memory [0.88ms]
+(pass) text recovered after a composer read its draft is handed to it once [0.63ms]
+
+ 53 pass
+ 0 fail
+ 1256 expect() calls
+Ran 53 tests across 9 files. [3.68s]

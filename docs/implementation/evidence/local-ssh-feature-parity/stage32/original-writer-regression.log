@@ -1,0 +1,17 @@
+$ bun test src/renderer/lib/composer-draft-writer/composer-draft-writer.test.ts "src/renderer/routes/_authenticated/_dashboard/v2-workspace/\$workspaceId/hooks/usePaneRegistry/components/ChatSession/components/Composer/hooks/useComposerDraft/useComposerDraft.test.tsx"
+bun test v1.4.2 (744846f84)
+
+src/renderer/lib/composer-draft-writer/composer-draft-writer.test.ts:
+(pass) a late asynchronous draft save drains only the newest queued value and never drops it [0.29ms]
+(pass) a failed draft save retains the original value and retries only on an explicit flush or later edit [0.09ms]
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/ChatSession/components/Composer/hooks/useComposerDraft/useComposerDraft.test.tsx:
+(pass) a composer mounted before the save delay reads text typed into the one it replaces [9.66ms]
+(pass) recovered text survives the composer's own save on unmount [1.29ms]
+(pass) a draft that fails to save is still read from memory [1.29ms]
+(pass) text recovered after a composer read its draft is handed to it once [1.78ms]
+
+ 6 pass
+ 0 fail
+ 18 expect() calls
+Ran 6 tests across 2 files. [234.00ms]

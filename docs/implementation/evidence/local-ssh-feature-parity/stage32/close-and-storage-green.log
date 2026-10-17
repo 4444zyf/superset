@@ -1,0 +1,20 @@
+$ bun test src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx src/main/lib/ssh-direct/workstation-chat-drafts.test.ts
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-chat-drafts.test.ts:
+(pass) private SQLite draft snapshots retain attachment references and prevent an old write from reviving a cleared draft [6.22ms]
+(pass) draft storage rejects excess entries, duplicate identities and non UTF-8 byte bounds without changing existing data [8.20ms]
+(pass) invalid stored draft data is reported and cannot be silently replaced by an empty snapshot [4.58ms]
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [90.78ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [44.81ms]
+(pass) a clean document permits close immediately and unmounting with a dirty prompt cancels the old request [11.20ms]
+(pass) chat draft storage failure blocks a clean-file window close until an explicit successful Save All retry [16.67ms]
+(pass) unmounting while chat draft storage is loading cannot approve the departed renderer's close request [1.18ms]
+(pass) a late chat-draft flush after the close dialog unmounts cannot start a file save [9.08ms]
+
+ 9 pass
+ 0 fail
+ 42 expect() calls
+Ran 9 tests across 2 files. [447.00ms]

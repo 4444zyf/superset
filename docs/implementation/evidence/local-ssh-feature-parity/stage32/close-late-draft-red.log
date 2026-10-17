@@ -1,0 +1,28 @@
+$ bun test src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [84.26ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [36.55ms]
+(pass) a clean document permits close immediately and unmounting with a dirty prompt cancels the old request [8.50ms]
+(pass) chat draft storage failure blocks a clean-file window close until an explicit successful Save All retry [19.88ms]
+173 |  const {WorkstationChatDraftStore}=await import("../../providers/WorkstationChatDrafts/workstation-chat-drafts");
+174 |  const f=fixture();await settle();let loaded!:(value:{revision:number;invalid:boolean;entries:[]})=>void;
+175 |  const drafts=new WorkstationChatDraftStore({getChatDrafts:()=>new Promise(resolve=>{loaded=resolve;})},()=>()=>{});
+176 |  const view=render(<WorkstationCloseGuard api={f.api} documents={f.manager} chatDrafts={drafts}/>);
+177 |  const pending=f.request();view.unmount();loaded({revision:0,invalid:false,entries:[]});
+178 |  expect(await pending).toBe(false);drafts.stop();
+                             ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:178:24)
+(fail) unmounting while chat draft storage is loading cannot approve the departed renderer's close request [1.41ms]
+
+ 4 pass
+ 1 fail
+ 27 expect() calls
+Ran 5 tests across 1 file. [393.00ms]
+error: script "test" exited with code 1

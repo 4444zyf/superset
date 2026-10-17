@@ -1,0 +1,42 @@
+$ bun test src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx --test-name-pattern "late chat-draft flush"
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+259 |  const f=fixture();await settle();f.doc.setContent("must remain a draft");let calls=0;let flushed!:()=>void;
+260 |  const drafts={flush:async()=>{if(++calls===2)await new Promise<void>(resolve=>{flushed=resolve;});}};
+261 |  const view=render(<WorkstationCloseGuard api={f.api} documents={f.manager} chatDrafts={drafts}/>);
+262 |  let pending!:Promise<boolean>;await act(async()=>{pending=f.request();await settle();});
+263 |  fireEvent.click(screen.getByRole("button",{name:"Save All"}));view.unmount();flushed();await act(settle);
+264 |  expect(await pending).toBe(false);expect(f.writes).toEqual([]);expect(f.doc.dirty).toBe(true);
+                                                          ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   {
++     "absolutePath": "/repo/note.txt",
++     "content": "must remain a draft",
++     "encoding": "utf-8",
++     "options": {
++       "create": false,
++       "overwrite": true,
++     },
++     "precondition": {
++       "ifMatch": "r1",
++     },
++     "workspaceId": "hidden-workspace",
++   },
++ ]
+
+- Expected  - 1
++ Received  + 15
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:264:53)
+(fail) a late chat-draft flush after the close dialog unmounts cannot start a file save [75.21ms]
+
+ 0 pass
+ 5 filtered out
+ 1 fail
+ 2 expect() calls
+Ran 1 test across 1 file. [295.00ms]
+error: script "test" exited with code 1
