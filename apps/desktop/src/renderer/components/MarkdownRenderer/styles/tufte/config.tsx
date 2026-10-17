@@ -1,10 +1,9 @@
 import { CodeBlock, SafeImage } from "../../components";
 import type { MarkdownStyleConfig } from "../types";
-import "./tufte.css";
+import { tuftePresentation } from "./presentation";
 
 export const tufteConfig: MarkdownStyleConfig = {
-	wrapperClass: "tufte-markdown",
-	articleClass: "",
+	...tuftePresentation,
 	components: {
 		// Minimal overrides - let CSS handle styling
 		code: ({ className, children, node }) => (

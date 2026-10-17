@@ -1,0 +1,22 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [212.04ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.test.ts:
+(pass) markdown images share one bounded read and evict old completed bytes [1.05ms]
+(pass) unsupported files and oversized image results never become preview bytes [0.19ms]
+(pass) switching the owner drops an in-flight image and does not launch its queued read [0.15ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+(pass) a remote image reuses the original image surface and keyboard zoom without a text editor or save [337.35ms]
+(pass) unknown bytes retain the read-only binary message [3.65ms]
+(pass) an oversized image cannot bypass the document size limit [48.65ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [14.60ms]
+(pass) markdown defaults to the original rich preview and can switch to the shared source document [675.99ms]
+(pass) a markdown search destination opens the source view at the requested line [38.48ms]
+
+ 10 pass
+ 0 fail
+ 1029 expect() calls
+Ran 10 tests across 3 files. [1.69s]

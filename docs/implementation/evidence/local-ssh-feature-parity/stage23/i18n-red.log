@@ -1,0 +1,132 @@
+$ bun run --cwd packages/i18n check
+$ bun run extract && bun run compile
+$ bun x --bun lingui extract --clean --overwrite --workers 1
+✔ Done in 14s
+Catalog statistics for locales/{locale}/messages: 
+┌─────────────┬─────────────┬─────────┐
+│[32m Language    [39m│[32m Total count [39m│[32m Missing [39m│
+├─────────────┼─────────────┼─────────┤
+│ en (source) │    6498     │    -    │
+│ cs          │    6498     │    3    │
+│ de          │    6498     │    3    │
+│ es          │    6498     │    3    │
+│ fr          │    6498     │    3    │
+│ id          │    6498     │    3    │
+│ it          │    6498     │    3    │
+│ ja          │    6498     │    3    │
+│ ko          │    6498     │    3    │
+│ nl          │    6498     │    3    │
+│ pl          │    6498     │    3    │
+│ pt-BR       │    6498     │    3    │
+│ ru          │    6498     │    3    │
+│ tr          │    6498     │    3    │
+│ vi          │    6498     │    3    │
+│ zh-CN       │    6498     │    3    │
+│ zh-TW       │    6498     │    3    │
+└─────────────┴─────────────┴─────────┘
+
+(Use "npm run extract" to update catalogs with new messages.)
+(Use "npm run compile" to compile catalogs for production. Alternatively, use bundler plugins: https://lingui.dev/ref/cli#compiling-catalogs-in-ci)
+$ bun x --bun lingui compile --strict --verbose --workers 1
+Compiling message catalogs…
+en ⇒ locales/en/messages.ts
+Error: Failed to compile catalog for locale ja!
+Missing translations after applying fallbackLocales:
+locales/ja/messages.po: VjYYwa: ({0} of {matchCount})
+locales/ja/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/ja/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale zh-CN!
+Missing translations after applying fallbackLocales:
+locales/zh-CN/messages.po: VjYYwa: ({0} of {matchCount})
+locales/zh-CN/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/zh-CN/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale fr!
+Missing translations after applying fallbackLocales:
+locales/fr/messages.po: VjYYwa: ({0} of {matchCount})
+locales/fr/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/fr/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale ko!
+Missing translations after applying fallbackLocales:
+locales/ko/messages.po: VjYYwa: ({0} of {matchCount})
+locales/ko/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/ko/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale zh-TW!
+Missing translations after applying fallbackLocales:
+locales/zh-TW/messages.po: VjYYwa: ({0} of {matchCount})
+locales/zh-TW/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/zh-TW/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale es!
+Missing translations after applying fallbackLocales:
+locales/es/messages.po: VjYYwa: ({0} of {matchCount})
+locales/es/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/es/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale de!
+Missing translations after applying fallbackLocales:
+locales/de/messages.po: VjYYwa: ({0} of {matchCount})
+locales/de/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/de/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale pt-BR!
+Missing translations after applying fallbackLocales:
+locales/pt-BR/messages.po: VjYYwa: ({0} of {matchCount})
+locales/pt-BR/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/pt-BR/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale it!
+Missing translations after applying fallbackLocales:
+locales/it/messages.po: VjYYwa: ({0} of {matchCount})
+locales/it/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/it/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale ru!
+Missing translations after applying fallbackLocales:
+locales/ru/messages.po: VjYYwa: ({0} of {matchCount})
+locales/ru/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/ru/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale tr!
+Missing translations after applying fallbackLocales:
+locales/tr/messages.po: VjYYwa: ({0} of {matchCount})
+locales/tr/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/tr/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale pl!
+Missing translations after applying fallbackLocales:
+locales/pl/messages.po: VjYYwa: ({0} of {matchCount})
+locales/pl/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/pl/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale nl!
+Missing translations after applying fallbackLocales:
+locales/nl/messages.po: VjYYwa: ({0} of {matchCount})
+locales/nl/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/nl/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale id!
+Missing translations after applying fallbackLocales:
+locales/id/messages.po: VjYYwa: ({0} of {matchCount})
+locales/id/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/id/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale cs!
+Missing translations after applying fallbackLocales:
+locales/cs/messages.po: VjYYwa: ({0} of {matchCount})
+locales/cs/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/cs/messages.po: -8PP0T: (Match case)
+
+Error: Failed to compile catalog for locale vi!
+Missing translations after applying fallbackLocales:
+locales/vi/messages.po: VjYYwa: ({0} of {matchCount})
+locales/vi/messages.po: kxM64r: (External links are unavailable in this app.)
+locales/vi/messages.po: -8PP0T: (Match case)
+
+Done in 1s
+error: script "compile" exited with code 1
+error: script "check" exited with code 1
+error: script "check:i18n" exited with code 1

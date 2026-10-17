@@ -1,10 +1,37 @@
 import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { setupI18n } from "@lingui/core";
+import { I18nProvider } from "@lingui/react";
+import {
+	act,
+	render as baseRender,
+	cleanup,
+	fireEvent,
+	screen,
+	waitFor,
+} from "@testing-library/react";
+import type { Editor } from "@tiptap/core";
+import type { ReactElement } from "react";
 import type {
-	SharedFileDocument,
 	ContentState,
+	SharedFileDocument,
 } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+import { WorkstationFileDocuments } from "renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents";
+import type {
+	DirectDescriptor,
+	DirectRpc,
+	DirectWorkstationApi,
+} from "shared/direct-workstation";
 import { RemoteDocumentEditor } from "./RemoteDocumentEditor";
+
+const messages = setupI18n({ locale: "en", messages: { en: {} } });
+function render(ui: ReactElement) {
+	return baseRender(ui, {
+		wrapper: ({ children }) => (
+			<I18nProvider i18n={messages}>{children}</I18nProvider>
+		),
+	});
+}
+
 let sequence = 0;
 let createUrl: ReturnType<typeof spyOn<typeof URL, "createObjectURL">>;
 let revokeUrl: ReturnType<typeof spyOn<typeof URL, "revokeObjectURL">>;
@@ -152,4 +179,183 @@ test("an image decode error is visible and changing the owning document clears t
 	expect(next.src).not.toBe(oldSource);
 	expect(revokeUrl).toHaveBeenCalledWith(oldSource);
 	expect(screen.queryByRole("alert")).toBeNull();
+});
+
+test("markdown defaults to the original rich preview and can switch to the shared source document", async () => {
+	const value =
+		"---\ntitle: keep exactly\n---\n# Remote markdown\n\n| A | B |\n|---|---|\n| One | Two |\n";
+	render(
+		<RemoteDocumentEditor
+			document={doc("/remote/worktree/README.md", {
+				kind: "text",
+				value,
+				revision: "r1",
+			})}
+			active
+			busy={false}
+			{...callbacks}
+		/>,
+	);
+	expect(
+		await screen.findByRole("heading", { name: "Remote markdown" }),
+	).toBeTruthy();
+	expect(screen.getByRole("table")).toBeTruthy();
+	expect(screen.queryByText("title: keep exactly")).toBeNull();
+	fireEvent.click(screen.getByRole("button", { name: "Markdown" }));
+	await screen.findByRole("region", { name: "File contents" });
+	expect(document.querySelector(".markdown-renderer")).toBeNull();
+	fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+	expect(
+		await screen.findByRole("heading", { name: "Remote markdown" }),
+	).toBeTruthy();
+});
+test("a markdown search destination opens the source view at the requested line", async () => {
+	render(
+		<RemoteDocumentEditor
+			document={doc("/remote/worktree/README.md", {
+				kind: "text",
+				value: "# Preview\n\nneedle\n",
+				revision: "r1",
+			})}
+			active
+			busy={false}
+			revealLine={3}
+			{...callbacks}
+		/>,
+	);
+	expect(await screen.findByRole("button", { name: "Preview" })).toBeTruthy();
+	expect(
+		await screen.findByRole("region", { name: "File contents" }),
+	).toBeTruthy();
+	expect(document.querySelector(".markdown-renderer")).toBeNull();
+});
+
+test("rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision", async () => {
+	const frontMatter = "\ufeff---\ntitle: keep exactly\n---\n";
+	const source = frontMatter + "# Rich document\n\nOriginal paragraph.\n";
+	const calls: DirectRpc[] = [];
+	const api = {
+		rpc: async (r: DirectRpc) => {
+			calls.push(r);
+			return r.path === "filesystem.readFile"
+				? {
+						kind: "text",
+						content: source,
+						revision: "r1",
+						exceededLimit: false,
+						byteLength: source.length,
+					}
+				: { ok: true, revision: "r2" };
+		},
+	} as unknown as DirectWorkstationApi;
+	const connection: DirectDescriptor = {
+		connectionId: "machine",
+		backendId: "backend",
+		namespaceId: "namespace",
+		instanceId: "instance",
+		generation: 1,
+		capabilities: { files: true },
+	};
+	const manager = new WorkstationFileDocuments(api);
+	const shared = manager.acquire(
+		connection,
+		"workspace",
+		"/remote/worktree/README.md",
+	);
+	await waitFor(() => expect(shared.content.kind).toBe("text"));
+	const props = {
+		document: shared,
+		active: true,
+		busy: false,
+		...callbacks,
+		onSave: () => void shared.save(),
+	};
+	const view = render(<RemoteDocumentEditor {...props} />);
+	await screen.findByRole("heading", { name: "Rich document" });
+	expect(screen.queryByText("title: keep exactly")).toBeNull();
+	const rich = (
+		document.querySelector(".tiptap") as HTMLElement & { editor: Editor }
+	).editor;
+	act(() => {
+		rich.commands.insertContentAt(
+			rich.state.doc.content.size,
+			"Added in rich preview.",
+		);
+	});
+	expect(shared.dirty).toBe(true);
+	expect(calls.filter((r) => r.type === "mutation")).toEqual([]);
+	expect(
+		shared.content.kind === "text" &&
+			shared.content.value.startsWith(frontMatter),
+	).toBe(true);
+	const draft = shared.content.kind === "text" ? shared.content.value : "";
+	expect(draft).toContain("Added in rich preview.");
+	view.rerender(<RemoteDocumentEditor {...props} busy />);
+	await waitFor(() =>
+		expect(
+			document.querySelector(".tiptap")?.getAttribute("contenteditable"),
+		).toBe("false"),
+	);
+	act(() => rich.commands.insertContent("must not alter busy document"));
+	expect(shared.content.kind === "text" ? shared.content.value : "").toBe(
+		draft,
+	);
+	view.rerender(<RemoteDocumentEditor {...props} />);
+	fireEvent.click(screen.getByRole("button", { name: "Markdown" }));
+	await waitFor(() =>
+		expect(document.querySelector(".cm-editor")).not.toBeNull(),
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
+	await waitFor(() =>
+		expect(calls.filter((r) => r.type === "mutation")).toHaveLength(1),
+	);
+	expect(calls.find((r) => r.type === "mutation")).toMatchObject({
+		connectionId: "machine",
+		generation: 1,
+		path: "filesystem.writeFile",
+		input: {
+			workspaceId: "workspace",
+			absolutePath: "/remote/worktree/README.md",
+			content: draft,
+			precondition: { ifMatch: "r1" },
+		},
+	});
+});
+
+test("markdown links use explicit modifier clicks and local image sources use the selected workspace reader", async () => {
+	const paths: unknown[] = [];
+	const urls: string[] = [];
+	render(
+		<RemoteDocumentEditor
+			document={doc("/remote/worktree/docs/README.md", {
+				kind: "text",
+				value:
+					"# Links\n\n[Open](https://example.invalid/)\n\n![plot](../assets/plot.png)\n",
+				revision: "r1",
+			})}
+			active
+			busy={false}
+			{...callbacks}
+			onOpenUrl={async (url) => {
+				urls.push(url);
+			}}
+			markdownResources={{
+				owner: "selected-backend",
+				rootPath: "/remote/worktree",
+				readFile: async (path, revision) => {
+					paths.push({ path, revision });
+					return bytes.value;
+				},
+			}}
+		/>,
+	);
+	const link = await screen.findByRole("link", { name: "Open" });
+	fireEvent.click(link);
+	expect(urls).toEqual([]);
+	fireEvent.click(link, { ctrlKey: true });
+	expect(urls).toEqual(["https://example.invalid/"]);
+	await screen.findByRole("img", { name: "plot" });
+	expect(paths).toEqual([
+		{ path: "/remote/worktree/assets/plot.png", revision: "r1" },
+	]);
 });

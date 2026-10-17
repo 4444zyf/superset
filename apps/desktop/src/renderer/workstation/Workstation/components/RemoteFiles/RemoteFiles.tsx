@@ -10,6 +10,7 @@ import { FilePlus, FolderPlus } from "lucide-react";
 import {
 	useContext,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 	useSyncExternalStore,
@@ -49,6 +50,10 @@ import {
 	RemoteGitHistory,
 	type RemoteHistoryCommit,
 } from "./components/RemoteGitHistory/RemoteGitHistory";
+import {
+	type ImageResult,
+	MarkdownImageReader,
+} from "./components/RemoteMarkdownPreview/markdown-images";
 
 interface ChangedFile {
 	path: string;
@@ -140,6 +145,43 @@ export function RemoteFiles({
 	]);
 	const ownerRef = useRef(operationOwner);
 	ownerRef.current = operationOwner;
+	const [ownedImages, setOwnedImages] = useState<{
+		owner: string;
+		reader: MarkdownImageReader;
+	} | null>(null);
+	useEffect(() => {
+		const reader = new MarkdownImageReader({
+			isCurrent: () => ownerRef.current === operationOwner,
+			read: (absolutePath, maxBytes) =>
+				api.rpc<ImageResult>({
+					connectionId: connection.connectionId,
+					generation: connection.generation,
+					path: "filesystem.readFile",
+					type: "query",
+					input: { workspaceId, absolutePath, maxBytes },
+				}),
+		});
+		setOwnedImages({ owner: operationOwner, reader });
+		return () => reader.dispose();
+	}, [
+		api,
+		operationOwner,
+		connection.connectionId,
+		connection.generation,
+		workspaceId,
+	]);
+	const markdownResources = useMemo(
+		() =>
+			ownedImages?.owner === operationOwner
+				? {
+						owner: operationOwner,
+						rootPath: root,
+						readFile: ownedImages.reader.readFile,
+					}
+				: undefined,
+		[ownedImages, operationOwner, root],
+	);
+
 	const epoch = useRef(0);
 	const running = useRef(false);
 	const onErrorRef = useRef(onError);
@@ -584,8 +626,21 @@ export function RemoteFiles({
 									<RemoteDocumentEditor
 										key={document.id}
 										document={document}
-										active={document.id === activeDocument?.id}
+										active={
+											tab === "files" && document.id === activeDocument?.id
+										}
 										busy={busy}
+										markdownResources={markdownResources}
+										onOpenUrl={async (url) => {
+											if (!api.openExternal)
+												throw new Error(
+													t({
+														message:
+															"External links are unavailable in this app.",
+													}),
+												);
+											await api.openExternal(url);
+										}}
 										revealLine={documentView.revealLines[document.id]}
 										onSave={() => {
 											void save(document);

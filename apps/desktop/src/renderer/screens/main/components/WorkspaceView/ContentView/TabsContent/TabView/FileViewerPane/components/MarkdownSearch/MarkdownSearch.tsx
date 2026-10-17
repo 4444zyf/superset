@@ -1,5 +1,6 @@
 import { msg } from "@lingui/core/macro";
 import { useLingui as useTranslation } from "@lingui/react";
+import { Trans } from "@lingui/react/macro";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@superset/ui/tooltip";
 import { useEffect, useRef } from "react";
 import { HiChevronDown, HiChevronUp, HiMiniXMark } from "react-icons/hi2";
@@ -66,13 +67,12 @@ export function MarkdownSearch({
 				onChange={(e) => onQueryChange(e.target.value)}
 				onKeyDown={handleKeyDown}
 				placeholder={translate(msg({ message: "Find" }))}
+				aria-label={translate(msg({ message: "Find" }))}
 				className="h-6 min-w-0 w-28 flex-shrink bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
 			/>
 			{query && (
 				<span className="text-xs text-muted-foreground whitespace-nowrap px-1">
-					{matchCount === 0
-						? "No results"
-						: `${activeMatchIndex + 1} of ${matchCount}`}
+					{matchCount === 0 ? <Trans>No results</Trans> : <Trans>{activeMatchIndex + 1} of {matchCount}</Trans>}
 				</span>
 			)}
 			<div className="flex items-center shrink-0">
@@ -81,6 +81,8 @@ export function MarkdownSearch({
 						<button
 							type="button"
 							onClick={() => onCaseSensitiveChange(!caseSensitive)}
+							aria-label={translate(msg({ message: "Match case" }))}
+							aria-pressed={caseSensitive}
 							className={`rounded p-1 transition-colors ${
 								caseSensitive
 									? "bg-primary/20 text-foreground"
@@ -90,43 +92,46 @@ export function MarkdownSearch({
 							<PiTextAa className="size-3.5" />
 						</button>
 					</TooltipTrigger>
-					<TooltipContent side="bottom">Match case</TooltipContent>
+					<TooltipContent side="bottom"><Trans>Match case</Trans></TooltipContent>
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<button
 							type="button"
 							onClick={onFindPrevious}
+							aria-label={translate(msg({ message: "Previous match" }))}
 							className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted-foreground/20 hover:text-foreground"
 						>
 							<HiChevronUp className="size-3.5" />
 						</button>
 					</TooltipTrigger>
-					<TooltipContent side="bottom">Previous (Shift+Enter)</TooltipContent>
+					<TooltipContent side="bottom"><Trans>Previous match</Trans> (Shift+Enter)</TooltipContent>
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<button
 							type="button"
 							onClick={onFindNext}
+							aria-label={translate(msg({ message: "Next match" }))}
 							className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted-foreground/20 hover:text-foreground"
 						>
 							<HiChevronDown className="size-3.5" />
 						</button>
 					</TooltipTrigger>
-					<TooltipContent side="bottom">Next (Enter)</TooltipContent>
+					<TooltipContent side="bottom"><Trans>Next match</Trans> (Enter)</TooltipContent>
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<button
 							type="button"
 							onClick={onClose}
+							aria-label={translate(msg({ message: "Close" }))}
 							className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted-foreground/20 hover:text-foreground"
 						>
 							<HiMiniXMark className="size-3.5" />
 						</button>
 					</TooltipTrigger>
-					<TooltipContent side="bottom">Close (Esc)</TooltipContent>
+					<TooltipContent side="bottom"><Trans>Close</Trans> (Esc)</TooltipContent>
 				</Tooltip>
 			</div>
 		</div>

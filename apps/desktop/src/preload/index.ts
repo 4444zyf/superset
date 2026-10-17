@@ -20,6 +20,7 @@ declare global {
 const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
+	openExternal: (url) => invoke("openExternal", url),
 	copyText: (text) => invoke("copyText", text),
 	getPreferences: () => invoke("getPreferences"),
 	updatePreferences: (input) => invoke("updatePreferences", input),

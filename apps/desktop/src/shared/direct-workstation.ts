@@ -147,6 +147,7 @@ export type DirectConnectionEvent =
 	  };
 
 export interface DirectWorkstationApi {
+	openExternal?(url: string): Promise<void>;
 	copyText?(text: string): Promise<void>;
 	getPreferences?(): Promise<WorkstationPreferenceSnapshot>;
 	updatePreferences?(input: {

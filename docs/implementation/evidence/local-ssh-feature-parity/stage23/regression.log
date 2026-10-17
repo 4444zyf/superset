@@ -1,0 +1,155 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/safe-url/safe-url.test.ts:
+(pass) isSafeExternalUrl > allows http, https, and mailto URLs [0.06ms]
+(pass) isSafeExternalUrl > blocks file, javascript, data, and custom-scheme URLs [0.03ms]
+(pass) isSafeExternalUrl > blocks malformed input [0.03ms]
+(pass) externalUrlLogLabel > returns only the scheme, never the full URL [0.02ms]
+(pass) externalUrlLogLabel > returns sentinels for empty and malformed input [0.01ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [247.07ms]
+
+src/renderer/components/MarkdownRenderer/components/TipTapMarkdownRenderer/createMarkdownExtensions.test.ts:
+(pass) preview links > never opens a link itself when editable is true [36.49ms]
+(pass) preview links > never opens a link itself when editable is false [13.19ms]
+(pass) image attribute parsing > keeps a numeric alt as a string and serializes it [16.64ms]
+(pass) image attribute parsing > keeps a boolean-looking alt as a string [13.57ms]
+(pass) image attribute parsing > keeps a numeric title as a string and serializes it [19.21ms]
+(pass) image attribute parsing > keeps a numeric src as a string and serializes it [10.77ms]
+(pass) image attribute parsing > round-trips an ordinary image unchanged [7.77ms]
+(pass) table rendering > wraps tables in a dedicated horizontal scroll container [16.36ms]
+(pass) link attribute parsing > keeps a numeric link title as a string and serializes it [8.21ms]
+(pass) link attribute parsing > keeps a boolean-looking link title as a string [9.54ms]
+(pass) link attribute parsing > round-trips a link without a title unchanged [8.20ms]
+
+src/renderer/components/MarkdownRenderer/components/TipTapMarkdownRenderer/mergeMarkdownEdits.roundtrip.test.ts:
+(pass) mergeMarkdownEdits round-trip through production extensions > serializer baseline actually normalizes the fixture (sanity check) [21.46ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > no edit → file byte-identical [13.82ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > appending a paragraph keeps every original byte and adds the paragraph [20.07ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > editing the intro keeps setext title, bullets, comment, and table verbatim [15.30ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > editing a bullet normalizes only the list, not the rest [13.51ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > editing text next to the dropped HTML comment keeps the comment [13.63ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > front matter survives edits elsewhere [6.88ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > undo-equivalent (revert to baseline content) returns the original bytes [11.19ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > undo cannot cross an external reload and resurrect stale content [16.47ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > deleting one block keeps the neighbors byte-identical [12.18ms]
+
+src/renderer/components/MarkdownRenderer/components/TipTapMarkdownRenderer/mergeMarkdownEdits.test.ts:
+(pass) mergeMarkdownEdits > returns the original verbatim when nothing was edited [0.06ms]
+(pass) mergeMarkdownEdits > keeps normalized-but-untouched bullets while applying a paragraph edit [0.04ms]
+(pass) mergeMarkdownEdits > preserves hard-wrapped prose the serializer unwrapped [0.03ms]
+(pass) mergeMarkdownEdits > preserves untouched setext headings [0.07ms]
+(pass) mergeMarkdownEdits > preserves front matter the parser mangled [0.10ms]
+(pass) mergeMarkdownEdits > preserves raw HTML blocks the parser dropped [0.09ms]
+(pass) mergeMarkdownEdits > preserves escaping-free text when the serializer added escapes elsewhere [0.10ms]
+(pass) mergeMarkdownEdits > lets the user's edit win when it overlaps normalization (block takes serializer form) [0.09ms]
+(pass) mergeMarkdownEdits > does not duplicate or drop lines when the edit sits mid-way through a normalized hunk [0.07ms]
+(pass) mergeMarkdownEdits > applies block deletions without disturbing neighbors [0.12ms]
+(pass) mergeMarkdownEdits > applies block insertions between preserved blocks [0.06ms]
+(pass) mergeMarkdownEdits > round-trips CRLF files and no-ops exactly [0.03ms]
+(pass) mergeMarkdownEdits > keeps CRLF line endings when applying an edit [0.03ms]
+(pass) mergeMarkdownEdits > preserves a missing trailing newline [0.02ms]
+(pass) mergeMarkdownEdits > adds a trailing newline when the original had one [0.02ms]
+(pass) mergeMarkdownEdits > writes typed content into an empty file with a trailing newline [0.02ms]
+(pass) mergeMarkdownEdits > returns empty when the user deletes everything [0.02ms]
+(pass) mergeMarkdownEdits > stays fast and correct on a large document normalized in every block [14.90ms]
+(pass) mergeMarkdownEdits > handles 200k-line documents without engine argument-limit failures [66.85ms]
+(pass) mergeMarkdownEdits > aligns via fuzzy anchors when a leading blank-line mismatch offsets the doc [3.67ms]
+
+src/renderer/components/MarkdownRenderer/components/TipTapMarkdownRenderer/resolveLinkClick.test.ts:
+(pass) resolveLinkClick > leaves a plain click unbound so the caret can land in the link [9.13ms]
+(pass) resolveLinkClick > maps {
+  shiftKey: true,
+} to newTab [6.32ms]
+(pass) resolveLinkClick > maps {
+  metaKey: true,
+} to pane [6.45ms]
+(pass) resolveLinkClick > maps {
+  ctrlKey: true,
+} to pane [6.62ms]
+(pass) resolveLinkClick > maps {
+  metaKey: true,
+  shiftKey: true,
+} to external [6.90ms]
+(pass) resolveLinkClick > follows a custom tier map [16.47ms]
+(pass) resolveLinkClick > ignores the non-web link a[href^='mailto'] on every tier [22.58ms]
+(pass) resolveLinkClick > ignores the non-web link a[href^='./'] on every tier [28.53ms]
+(pass) resolveLinkClick > ignores the non-web link a[href^='#'] on every tier [18.25ms]
+(pass) resolveLinkClick > never renders file, javascript or custom-scheme links as anchors [5.64ms]
+(pass) resolveLinkClick > ignores right-clicks and clicks outside a link [10.49ms]
+
+src/renderer/components/MarkdownRenderer/components/TipTapMarkdownRenderer/serializeMarkdownTable.test.ts:
+(pass) serializeMarkdownTable > serializes a header + body table to GFM (never [table]) [0.48ms]
+(pass) serializeMarkdownTable > synthesizes an empty header for a headerless / partial cell selection [0.11ms]
+(pass) serializeMarkdownTable > escapes pipes and renders empty cells [0.08ms]
+(pass) serializeMarkdownTable > pads ragged rows to the widest row [0.08ms]
+(pass) serializeMarkdownTable > keeps inline marks inside cells [0.13ms]
+(pass) serializeMarkdownTable > preserves internal whitespace (meaningful inside code spans) [0.06ms]
+(pass) serializeMarkdownTable > does not treat a mixed header/body first row as a header [0.06ms]
+(pass) serializeMarkdownTable > joins multiple blocks in a cell with a space [0.15ms]
+(pass) serializeMarkdownTable > flattens block-level cell content (a list) onto the cell line [0.21ms]
+(pass) serializeSelectionForClipboard > serializes a whole-table CellSelection as a GFM table [1.15ms]
+(pass) serializeSelectionForClipboard > copies a single-cell CellSelection as plain text [0.09ms]
+(pass) serializeSelectionForClipboard > copies text selected inside a cell as plain text, not a table [0.15ms]
+(pass) serializeSelectionForClipboard > copies visible text for a selection outside any table [0.06ms]
+(pass) serializeSelectionForClipboard > copies a selection crossing the table boundary as plain text [0.16ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [2.54ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.70ms]
+(pass) a different backend cannot receive a previous backend's draft [0.57ms]
+(pass) binary bytes remain read-only and never enter a text save [0.35ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.31ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.53ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.45ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.60ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [195.09ms]
+(pass) the original explorer action opens a create form using the current remote directory [118.52ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [123.54ms]
+(pass) content search opens the selected remote file at the matched line [476.30ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [68.11ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [141.96ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [196.73ms]
+(pass) a truncated read cannot overwrite the complete remote file [137.05ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [84.56ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [203.43ms]
+(pass) editing a remote CRLF file preserves its line endings [153.50ms]
+(pass) Git diffs use the remote status category and surface transport failures [79.47ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [89.50ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [172.77ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [165.08ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [159.30ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [341.93ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [354.08ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [445.77ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [338.64ms]
+(pass) switching to Changes and back retains the original editor undo history [510.20ms]
+(pass) Git changes reuse the original split and unified diff controls without account providers [698.31ms]
+(pass) history opens the selected commit files and requests that commit's original diff [392.69ms]
+(pass) the configured base branch reaches status and against-base diff queries [653.58ms]
+(pass) a late configured base invalidates an in-flight default-base diff and refreshes comparison status [364.41ms]
+(pass) pull reloads a clean original editor from the changed worktree [586.78ms]
+(pass) opening a file during a Git refresh is not silently dropped [135.08ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.test.ts:
+(pass) markdown images share one bounded read and evict old completed bytes [0.73ms]
+(pass) unsupported files and oversized image results never become preview bytes [0.20ms]
+(pass) switching the owner drops an in-flight image and does not launch its queued read [0.21ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+(pass) a remote image reuses the original image surface and keyboard zoom without a text editor or save [344.29ms]
+(pass) unknown bytes retain the read-only binary message [2.30ms]
+(pass) an oversized image cannot bypass the document size limit [49.45ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [42.83ms]
+(pass) markdown defaults to the original rich preview and can switch to the shared source document [542.61ms]
+(pass) a markdown search destination opens the source view at the requested line [84.35ms]
+(pass) rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision [259.30ms]
+(pass) markdown links use explicit modifier clicks and local image sources use the selected workspace reader [110.07ms]
+
+ 118 pass
+ 0 fail
+ 1431 expect() calls
+Ran 118 tests across 11 files. [10.63s]

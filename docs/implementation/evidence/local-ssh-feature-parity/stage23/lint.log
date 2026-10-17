@@ -1,0 +1,735 @@
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:231:15 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    229 │ test("rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision", async()=>{
+    230 │  const frontMatter="---\ntitle: keep exactly\n---\n";
+  > 231 │  const source=frontMatter+"# Rich document\n\nOriginal paragraph.\n";
+        │               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    232 │  const calls:DirectRpc[]=[];
+    233 │  const api={rpc:async(r:DirectRpc)=>{calls.push(r);return r.path==="filesystem.readFile"?{kind:"text",content:source,revision:"r1",exceededLimit:false,byteLength:source.length}:{ok:true,revision:"r2"};}} as unknown as DirectWorkstationApi;
+  
+  i Unsafe fix: Use a template literal.
+  
+    229 229 │   test("rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision", async()=>{
+    230 230 │    const frontMatter="---\ntitle: keep exactly\n---\n";
+    231     │ - ·const·source=frontMatter+"#·Rich·document\n\nOriginal·paragraph.\n";
+        231 │ + ·const·source=`${frontMatter}#·Rich·document\n\nOriginal·paragraph.\n`;
+    232 232 │    const calls:DirectRpc[]=[];
+    233 233 │    const api={rpc:async(r:DirectRpc)=>{calls.push(r);return r.path==="filesystem.readFile"?{kind:"text",content:source,revision:"r1",exceededLimit:false,byteLength:source.length}:{ok:true,revision:"r2"};}} as unknown as DirectWorkstationApi;
+  
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.ts:106:18 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    104 │ 		}
+    105 │ 		while (this.running < this.concurrency && this.queue.length) {
+  > 106 │ 			const entry = this.queue.shift()!;
+        │ 			              ^^^^^^^^^^^^^^^^^^^
+    107 │ 			this.running++;
+    108 │ 			void this.fetch(entry).finally(() => {
+  
+
+src/renderer/components/MarkdownRenderer/components/TipTapMarkdownSurface/TipTapMarkdownSurface.tsx:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+
+  × The imports and exports are not sorted.
+  
+  > 1 │ import "../../../../styles/hljs-github.css";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ 
+    3 │ import { cn } from "@superset/ui/utils";
+  
+  i Safe fix: Organize Imports (Biome)
+  
+      7   7 │   import { BubbleMenu } from "@tiptap/react/menus";
+      8   8 │   import { type MutableRefObject, useEffect, useRef } from "react";
+      9     │ - import·type·{·LinkAction·}·from·"renderer/lib/clickPolicy/types";
+     10     │ - import·type·{·UrlLinkAction·}·from·"renderer/lib/clickPolicy/policies/useUrlLinkAction";
+     11     │ - import·{·MarkdownAppearanceContext·}·from·"../TipTapMarkdownRenderer/MarkdownAppearanceContext";
+     12     │ - import·{·defaultPresentation·as·defaultConfig·}·from·"../../styles/default/presentation";
+     13     │ - import·{·tuftePresentation·as·tufteConfig·}·from·"../../styles/tufte/presentation";
+     14     │ - import·{·SelectionContextMenu·}·from·"../SelectionContextMenu";
+     15     │ - import·{·BubbleMenuToolbar·}·from·"../TipTapMarkdownRenderer/components/BubbleMenuToolbar";
+     16     │ - import·{·createMarkdownExtensions·}·from·"../TipTapMarkdownRenderer/createMarkdownExtensions";
+          9 │ + import·type·{·UrlLinkAction·}·from·"renderer/lib/clickPolicy/policies/useUrlLinkAction";
+         10 │ + import·type·{·LinkAction·}·from·"renderer/lib/clickPolicy/types";
+         11 │ + import·{·defaultPresentation·as·defaultConfig·}·from·"../../styles/default/presentation";
+         12 │ + import·{·tuftePresentation·as·tufteConfig·}·from·"../../styles/tufte/presentation";
+         13 │ + import·{·SelectionContextMenu·}·from·"../SelectionContextMenu";
+         14 │ + import·{·BubbleMenuToolbar·}·from·"../TipTapMarkdownRenderer/components/BubbleMenuToolbar";
+         15 │ + import·{·createMarkdownExtensions·}·from·"../TipTapMarkdownRenderer/createMarkdownExtensions";
+         16 │ + import·{·MarkdownAppearanceContext·}·from·"../TipTapMarkdownRenderer/MarkdownAppearanceContext";
+     17  17 │   import { createMarkdownMerger } from "../TipTapMarkdownRenderer/mergeMarkdownEdits";
+     18  18 │   import { resolveLinkClick } from "../TipTapMarkdownRenderer/resolveLinkClick";
+  
+
+src/renderer/components/MarkdownRenderer/components/TipTapMarkdownSurface/index.ts:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+
+  × The imports and exports are not sorted.
+  
+  > 1 │ export { TipTapMarkdownSurface } from "./TipTapMarkdownSurface";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ export type {
+    3 │ 	MarkdownEditorAdapter,
+  
+  i Safe fix: Organize Imports (Biome)
+  
+    1   │ - export·{·TipTapMarkdownSurface·}·from·"./TipTapMarkdownSurface";
+    2   │ - export·type·{
+    3   │ - → MarkdownEditorAdapter,
+    4   │ - → TipTapMarkdownSurfaceProps,
+    5   │ - }·from·"./TipTapMarkdownSurface";
+      1 │ + export·type·{
+      2 │ + → MarkdownEditorAdapter,
+      3 │ + → TipTapMarkdownSurfaceProps,
+      4 │ + }·from·"./TipTapMarkdownSurface";
+      5 │ + export·{·TipTapMarkdownSurface·}·from·"./TipTapMarkdownSurface";
+    6 6 │   
+  
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+
+  × The imports and exports are not sorted.
+  
+  > 1 │ import {
+      │ ^^^^^^^^
+  > 2 │ 	MarkdownImageReader,
+  > 3 │ 	type ImageResult,
+  > 4 │ } from "./components/RemoteMarkdownPreview/markdown-images";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    5 │ import { Trans, useLingui } from "@lingui/react/macro";
+    6 │ import { Button } from "@superset/ui/button";
+  
+  i Safe fix: Organize Imports (Biome)
+  
+      1     │ - import·{
+      2     │ - → MarkdownImageReader,
+      3     │ - → type·ImageResult,
+      4     │ - }·from·"./components/RemoteMarkdownPreview/markdown-images";
+      5     │ - import·{·Trans,·useLingui·}·from·"@lingui/react/macro";
+      6     │ - import·{·Button·}·from·"@superset/ui/button";
+      7     │ - import·{
+      8     │ - → ResizableHandle,
+      9     │ - → ResizablePanel,
+     10     │ - → ResizablePanelGroup,
+     11     │ - }·from·"@superset/ui/resizable";
+     12     │ - import·{·TooltipProvider·}·from·"@superset/ui/tooltip";
+     13     │ - import·{·FilePlus,·FolderPlus·}·from·"lucide-react";
+     14     │ - import·{
+     15     │ - → useContext,
+     16     │ - → useEffect,
+     17     │ - → useMemo,
+     18     │ - → useRef,
+     19     │ - → useState,
+     20     │ - → useSyncExternalStore,
+     21     │ - }·from·"react";
+     22     │ - import·{·PierreRowContextMenu·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/PierreRowContextMenu";
+     23     │ - import·{·FilesTabHeaderButton·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/components/FilesTab/components/FilesTabHeaderButton/FilesTabHeaderButton";
+     24     │ - import·{·StageToggleButton·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/hooks/useChangesTab/components/ChangesFileList/components/StageToggleButton/StageToggleButton";
+          1 │ + import·{·Trans,·useLingui·}·from·"@lingui/react/macro";
+          2 │ + import·{·Button·}·from·"@superset/ui/button";
+          3 │ + import·{
+          4 │ + → ResizableHandle,
+          5 │ + → ResizablePanel,
+          6 │ + → ResizablePanelGroup,
+          7 │ + }·from·"@superset/ui/resizable";
+          8 │ + import·{·TooltipProvider·}·from·"@superset/ui/tooltip";
+          9 │ + import·{·FilePlus,·FolderPlus·}·from·"lucide-react";
+         10 │ + import·{
+         11 │ + → useContext,
+         12 │ + → useEffect,
+         13 │ + → useMemo,
+         14 │ + → useRef,
+         15 │ + → useState,
+         16 │ + → useSyncExternalStore,
+         17 │ + }·from·"react";
+         18 │ + import·{·PierreRowContextMenu·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/PierreRowContextMenu";
+         19 │ + import·{·FilesTabHeaderButton·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/components/FilesTab/components/FilesTabHeaderButton/FilesTabHeaderButton";
+         20 │ + import·{·StageToggleButton·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/WorkspaceSidebar/hooks/useChangesTab/components/ChangesFileList/components/StageToggleButton/StageToggleButton";
+         21 │ + import·type·{
+         22 │ + → SaveResult,
+         23 │ + → SharedFileDocument,
+         24 │ + }·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+     25  25 │   import type {
+     26     │ - → SaveResult,
+     27     │ - → SharedFileDocument,
+     28     │ - }·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+     29     │ - import·type·{
+     30     │ - → DirectDescriptor,
+     31     │ - → DirectWorkstationApi,
+     32     │ - }·from·"../../../../../shared/direct-workstation";
+     33     │ - import·{
+     34     │ - → useWorkstationFileDocuments,
+     35     │ - → WorkstationFileDocumentsContext,
+     36     │ - }·from·"../../providers/WorkstationFileDocuments";
+     37     │ - import·{·useWorkstationAppearance·}·from·"../../providers/WorkstationPreferencesContext";
+     38     │ - import·{·CloseFileDialog·}·from·"./components/CloseFileDialog";
+     39     │ - import·{·FileActionItems·}·from·"./components/FileActionMenu/components/FileActionItems/FileActionItems";
+     40     │ - import·{
+     41     │ - → type·FileOperation,
+     42     │ - → FileOperationDialog,
+     43     │ - }·from·"./components/FileOperationDialog/FileOperationDialog";
+     44     │ - import·{·RemoteBaseBranch·}·from·"./components/RemoteBaseBranch/RemoteBaseBranch";
+     45     │ - import·{·RemoteBranchActions·}·from·"./components/RemoteBranchActions/RemoteBranchActions";
+     46     │ - import·{·RemoteDocumentEditor·}·from·"./components/RemoteDocumentEditor";
+     47     │ - import·{·RemoteFileSearch·}·from·"./components/RemoteFileSearch/RemoteFileSearch";
+     48     │ - import·{·RemoteFileTabs·}·from·"./components/RemoteFileTabs";
+     49     │ - import·type·{·FileTreeController·}·from·"./components/RemoteFileTree/file-tree-controller";
+     50     │ - import·{·RemoteFileTree·}·from·"./components/RemoteFileTree/RemoteFileTree";
+     51     │ - import·{·RemoteGitActions·}·from·"./components/RemoteGitActions/RemoteGitActions";
+     52     │ - import·{·RemoteGitDiff·}·from·"./components/RemoteGitDiff/RemoteGitDiff";
+         26 │ + → DirectDescriptor,
+         27 │ + → DirectWorkstationApi,
+         28 │ + }·from·"../../../../../shared/direct-workstation";
+         29 │ + import·{
+         30 │ + → useWorkstationFileDocuments,
+         31 │ + → WorkstationFileDocumentsContext,
+         32 │ + }·from·"../../providers/WorkstationFileDocuments";
+         33 │ + import·{·useWorkstationAppearance·}·from·"../../providers/WorkstationPreferencesContext";
+         34 │ + import·{·CloseFileDialog·}·from·"./components/CloseFileDialog";
+         35 │ + import·{·FileActionItems·}·from·"./components/FileActionMenu/components/FileActionItems/FileActionItems";
+         36 │ + import·{
+         37 │ + → type·FileOperation,
+         38 │ + → FileOperationDialog,
+         39 │ + }·from·"./components/FileOperationDialog/FileOperationDialog";
+         40 │ + import·{·RemoteBaseBranch·}·from·"./components/RemoteBaseBranch/RemoteBaseBranch";
+         41 │ + import·{·RemoteBranchActions·}·from·"./components/RemoteBranchActions/RemoteBranchActions";
+         42 │ + import·{·RemoteDocumentEditor·}·from·"./components/RemoteDocumentEditor";
+         43 │ + import·{·RemoteFileSearch·}·from·"./components/RemoteFileSearch/RemoteFileSearch";
+         44 │ + import·{·RemoteFileTabs·}·from·"./components/RemoteFileTabs";
+         45 │ + import·type·{·FileTreeController·}·from·"./components/RemoteFileTree/file-tree-controller";
+         46 │ + import·{·RemoteFileTree·}·from·"./components/RemoteFileTree/RemoteFileTree";
+         47 │ + import·{·RemoteGitActions·}·from·"./components/RemoteGitActions/RemoteGitActions";
+         48 │ + import·{·RemoteGitDiff·}·from·"./components/RemoteGitDiff/RemoteGitDiff";
+         49 │ + import·{
+         50 │ + → RemoteGitHistory,
+         51 │ + → type·RemoteHistoryCommit,
+         52 │ + }·from·"./components/RemoteGitHistory/RemoteGitHistory";
+     53  53 │   import {
+     54     │ - → RemoteGitHistory,
+     55     │ - → type·RemoteHistoryCommit,
+     56     │ - }·from·"./components/RemoteGitHistory/RemoteGitHistory";
+         54 │ + → type·ImageResult,
+         55 │ + → MarkdownImageReader,
+         56 │ + }·from·"./components/RemoteMarkdownPreview/markdown-images";
+     57  57 │   
+     58  58 │   interface ChangedFile {
+  
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:152:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on connection.connectionId.
+  
+    150 │ 		reader: MarkdownImageReader;
+    151 │ 	} | null>(null);
+  > 152 │ 	useEffect(() => {
+        │ 	^^^^^^^^^
+    153 │ 		const reader = new MarkdownImageReader({
+    154 │ 			isCurrent: () => ownerRef.current === operationOwner,
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    155 │ 			read: (absolutePath, maxBytes) =>
+    156 │ 				api.rpc<ImageResult>({
+  > 157 │ 					connectionId: connection.connectionId,
+        │ 					              ^^^^^^^^^^^^^^^^^^^^^^^
+    158 │ 					generation: connection.generation,
+    159 │ 					path: "filesystem.readFile",
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    166 │ → },·[api,·operationOwner,·connection.connectionId]);
+        │                          +++++++++++++++++++++++++   
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:152:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on connection.generation.
+  
+    150 │ 		reader: MarkdownImageReader;
+    151 │ 	} | null>(null);
+  > 152 │ 	useEffect(() => {
+        │ 	^^^^^^^^^
+    153 │ 		const reader = new MarkdownImageReader({
+    154 │ 			isCurrent: () => ownerRef.current === operationOwner,
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    156 │ 				api.rpc<ImageResult>({
+    157 │ 					connectionId: connection.connectionId,
+  > 158 │ 					generation: connection.generation,
+        │ 					            ^^^^^^^^^^^^^^^^^^^^^
+    159 │ 					path: "filesystem.readFile",
+    160 │ 					type: "query",
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    166 │ → },·[api,·operationOwner,·connection.generation]);
+        │                          +++++++++++++++++++++++   
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.tsx:152:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on workspaceId.
+  
+    150 │ 		reader: MarkdownImageReader;
+    151 │ 	} | null>(null);
+  > 152 │ 	useEffect(() => {
+        │ 	^^^^^^^^^
+    153 │ 		const reader = new MarkdownImageReader({
+    154 │ 			isCurrent: () => ownerRef.current === operationOwner,
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    159 │ 					path: "filesystem.readFile",
+    160 │ 					type: "query",
+  > 161 │ 					input: { workspaceId, absolutePath, maxBytes },
+        │ 					         ^^^^^^^^^^^
+    162 │ 				}),
+    163 │ 		});
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    166 │ → },·[api,·operationOwner,·workspaceId]);
+        │                          +++++++++++++   
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+
+  × The imports and exports are not sorted.
+  
+  > 1 │ import type { Editor } from "@tiptap/core";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ import { WorkstationFileDocuments } from "renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents";
+    3 │ import type { DirectDescriptor, DirectRpc, DirectWorkstationApi } from "shared/direct-workstation";
+  
+  i Safe fix: Organize Imports (Biome)
+  
+      1     │ - import·type·{·Editor·}·from·"@tiptap/core";
+      2     │ - import·{·WorkstationFileDocuments·}·from·"renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents";
+      3     │ - import·type·{·DirectDescriptor,·DirectRpc,·DirectWorkstationApi·}·from·"shared/direct-workstation";
+      4     │ - import·{·I18nProvider·}·from·"@lingui/react";
+      5     │ - import·{·setupI18n·}·from·"@lingui/core";
+          1 │ + import·{·afterEach,·beforeEach,·expect,·spyOn,·test·}·from·"bun:test";
+          2 │ + import·{·setupI18n·}·from·"@lingui/core";
+          3 │ + import·{·I18nProvider·}·from·"@lingui/react";
+          4 │ + import·{
+          5 │ + → act,
+          6 │ + → render·as·baseRender,
+          7 │ + → cleanup,
+          8 │ + → fireEvent,
+          9 │ + → screen,
+         10 │ + → waitFor,
+         11 │ + }·from·"@testing-library/react";
+         12 │ + import·type·{·Editor·}·from·"@tiptap/core";
+      6  13 │   import type { ReactElement } from "react";
+      7     │ - import·{·afterEach,·beforeEach,·expect,·spyOn,·test·}·from·"bun:test";
+      8     │ - import·{
+      9     │ - → act,
+     10     │ - → waitFor,
+     11     │ - → cleanup,
+     12     │ - → fireEvent,
+     13     │ - → render·as·baseRender,
+     14     │ - → screen,
+     15     │ - }·from·"@testing-library/react";
+     16     │ - import·type·{
+     17     │ - → SharedFileDocument,
+     18     │ - → ContentState,
+     19     │ - }·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+         14 │ + import·type·{
+         15 │ + → ContentState,
+         16 │ + → SharedFileDocument,
+         17 │ + }·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+         18 │ + import·{·WorkstationFileDocuments·}·from·"renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents";
+         19 │ + import·type·{·DirectDescriptor,·DirectRpc,·DirectWorkstationApi·}·from·"shared/direct-workstation";
+     20  20 │   import { RemoteDocumentEditor } from "./RemoteDocumentEditor";
+         21 │ + 
+     21  22 │   const messages = setupI18n({ locale: "en", messages: { en: {} } });
+     22  23 │   function render(ui: ReactElement) {
+  
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx format ━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+      1   1 │   import type { Editor } from "@tiptap/core";
+      2   2 │   import { WorkstationFileDocuments } from "renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents";
+      3     │ - import·type·{·DirectDescriptor,·DirectRpc,·DirectWorkstationApi·}·from·"shared/direct-workstation";
+          3 │ + import·type·{
+          4 │ + → DirectDescriptor,
+          5 │ + → DirectRpc,
+          6 │ + → DirectWorkstationApi,
+          7 │ + }·from·"shared/direct-workstation";
+      4   8 │   import { I18nProvider } from "@lingui/react";
+      5   9 │   import { setupI18n } from "@lingui/core";
+    ······· │ 
+    225 229 │   	expect(document.querySelector(".markdown-renderer")).toBeNull();
+    226 230 │   });
+    227     │ - 
+    228 231 │   
+    229     │ - test("rich·markdown·edits·share·the·source·draft,·preserve·front·matter,·and·save·only·explicitly·with·the·disk·revision",·async()=>{
+    230     │ - ·const·frontMatter="---\ntitle:·keep·exactly\n---\n";
+    231     │ - ·const·source=frontMatter+"#·Rich·document\n\nOriginal·paragraph.\n";
+    232     │ - ·const·calls:DirectRpc[]=[];
+    233     │ - ·const·api={rpc:async(r:DirectRpc)=>{calls.push(r);return·r.path==="filesystem.readFile"?{kind:"text",content:source,revision:"r1",exceededLimit:false,byteLength:source.length}:{ok:true,revision:"r2"};}}·as·unknown·as·DirectWorkstationApi;
+    234     │ - ·const·connection:DirectDescriptor={connectionId:"machine",backendId:"backend",namespaceId:"namespace",instanceId:"instance",generation:1,capabilities:{files:true}};
+    235     │ - ·const·manager=new·WorkstationFileDocuments(api);
+    236     │ - ·const·shared=manager.acquire(connection,"workspace","/remote/worktree/README.md");
+    237     │ - ·await·waitFor(()=>expect(shared.content.kind).toBe("text"));
+    238     │ - ·const·props={document:shared,active:true,busy:false,...callbacks,onSave:()=>void·shared.save()};
+    239     │ - ·const·view=render(<RemoteDocumentEditor·{...props}/>);
+    240     │ - ·await·screen.findByRole("heading",{name:"Rich·document"});
+    241     │ - ·const·rich=(document.querySelector(".tiptap")·as·HTMLElement·&·{editor:Editor}).editor;
+    242     │ - ·act(()=>{rich.commands.insertContentAt(rich.state.doc.content.size,"Added·in·rich·preview.");});
+    243     │ - ·expect(shared.dirty).toBe(true);
+    244     │ - ·expect(calls.filter(r=>r.type==="mutation")).toEqual([]);
+    245     │ - ·expect(shared.content.kind==="text"&&shared.content.value.startsWith(frontMatter)).toBe(true);
+    246     │ - ·const·draft=shared.content.kind==="text"?shared.content.value:"";
+    247     │ - ·expect(draft).toContain("Added·in·rich·preview.");
+    248     │ - ·view.rerender(<RemoteDocumentEditor·{...props}·busy/>);
+    249     │ - ·await·waitFor(()=>expect(document.querySelector(".tiptap")?.getAttribute("contenteditable")).toBe("false"));
+    250     │ - ·act(()=>rich.commands.insertContent("must·not·alter·busy·document"));
+    251     │ - ·expect(shared.content.kind==="text"?shared.content.value:"").toBe(draft);
+    252     │ - ·view.rerender(<RemoteDocumentEditor·{...props}/>);
+    253     │ - ·fireEvent.click(screen.getByRole("button",{name:"Markdown"}));
+    254     │ - ·await·waitFor(()=>expect(document.querySelector(".cm-editor")).not.toBeNull());
+    255     │ - ·fireEvent.click(screen.getByRole("button",{name:"Save·file"}));
+    256     │ - ·await·waitFor(()=>expect(calls.filter(r=>r.type==="mutation")).toHaveLength(1));
+    257     │ - ·expect(calls.find(r=>r.type==="mutation")).toMatchObject({connectionId:"machine",generation:1,path:"filesystem.writeFile",input:{workspaceId:"workspace",absolutePath:"/remote/worktree/README.md",content:draft,precondition:{ifMatch:"r1"}}});
+        232 │ + test("rich·markdown·edits·share·the·source·draft,·preserve·front·matter,·and·save·only·explicitly·with·the·disk·revision",·async·()·=>·{
+        233 │ + → const·frontMatter·=·"---\ntitle:·keep·exactly\n---\n";
+        234 │ + → const·source·=·frontMatter·+·"#·Rich·document\n\nOriginal·paragraph.\n";
+        235 │ + → const·calls:·DirectRpc[]·=·[];
+        236 │ + → const·api·=·{
+        237 │ + → → rpc:·async·(r:·DirectRpc)·=>·{
+        238 │ + → → → calls.push(r);
+        239 │ + → → → return·r.path·===·"filesystem.readFile"
+        240 │ + → → → → ?·{
+        241 │ + → → → → → → kind:·"text",
+        242 │ + → → → → → → content:·source,
+        243 │ + → → → → → → revision:·"r1",
+        244 │ + → → → → → → exceededLimit:·false,
+        245 │ + → → → → → → byteLength:·source.length,
+        246 │ + → → → → → }
+        247 │ + → → → → :·{·ok:·true,·revision:·"r2"·};
+        248 │ + → → },
+        249 │ + → }·as·unknown·as·DirectWorkstationApi;
+        250 │ + → const·connection:·DirectDescriptor·=·{
+        251 │ + → → connectionId:·"machine",
+        252 │ + → → backendId:·"backend",
+        253 │ + → → namespaceId:·"namespace",
+        254 │ + → → instanceId:·"instance",
+        255 │ + → → generation:·1,
+        256 │ + → → capabilities:·{·files:·true·},
+        257 │ + → };
+        258 │ + → const·manager·=·new·WorkstationFileDocuments(api);
+        259 │ + → const·shared·=·manager.acquire(
+        260 │ + → → connection,
+        261 │ + → → "workspace",
+        262 │ + → → "/remote/worktree/README.md",
+        263 │ + → );
+        264 │ + → await·waitFor(()·=>·expect(shared.content.kind).toBe("text"));
+        265 │ + → const·props·=·{
+        266 │ + → → document:·shared,
+        267 │ + → → active:·true,
+        268 │ + → → busy:·false,
+        269 │ + → → ...callbacks,
+        270 │ + → → onSave:·()·=>·void·shared.save(),
+        271 │ + → };
+        272 │ + → const·view·=·render(<RemoteDocumentEditor·{...props}·/>);
+        273 │ + → await·screen.findByRole("heading",·{·name:·"Rich·document"·});
+        274 │ + → const·rich·=·(
+        275 │ + → → document.querySelector(".tiptap")·as·HTMLElement·&·{·editor:·Editor·}
+        276 │ + → ).editor;
+        277 │ + → act(()·=>·{
+        278 │ + → → rich.commands.insertContentAt(
+        279 │ + → → → rich.state.doc.content.size,
+        280 │ + → → → "Added·in·rich·preview.",
+        281 │ + → → );
+        282 │ + → });
+        283 │ + → expect(shared.dirty).toBe(true);
+        284 │ + → expect(calls.filter((r)·=>·r.type·===·"mutation")).toEqual([]);
+        285 │ + → expect(
+        286 │ + → → shared.content.kind·===·"text"·&&
+        287 │ + → → → shared.content.value.startsWith(frontMatter),
+        288 │ + → ).toBe(true);
+        289 │ + → const·draft·=·shared.content.kind·===·"text"·?·shared.content.value·:·"";
+        290 │ + → expect(draft).toContain("Added·in·rich·preview.");
+        291 │ + → view.rerender(<RemoteDocumentEditor·{...props}·busy·/>);
+        292 │ + → await·waitFor(()·=>
+        293 │ + → → expect(
+        294 │ + → → → document.querySelector(".tiptap")?.getAttribute("contenteditable"),
+        295 │ + → → ).toBe("false"),
+        296 │ + → );
+        297 │ + → act(()·=>·rich.commands.insertContent("must·not·alter·busy·document"));
+        298 │ + → expect(shared.content.kind·===·"text"·?·shared.content.value·:·"").toBe(
+        299 │ + → → draft,
+        300 │ + → );
+        301 │ + → view.rerender(<RemoteDocumentEditor·{...props}·/>);
+        302 │ + → fireEvent.click(screen.getByRole("button",·{·name:·"Markdown"·}));
+        303 │ + → await·waitFor(()·=>
+        304 │ + → → expect(document.querySelector(".cm-editor")).not.toBeNull(),
+        305 │ + → );
+        306 │ + → fireEvent.click(screen.getByRole("button",·{·name:·"Save·file"·}));
+        307 │ + → await·waitFor(()·=>
+        308 │ + → → expect(calls.filter((r)·=>·r.type·===·"mutation")).toHaveLength(1),
+        309 │ + → );
+        310 │ + → expect(calls.find((r)·=>·r.type·===·"mutation")).toMatchObject({
+        311 │ + → → connectionId:·"machine",
+        312 │ + → → generation:·1,
+        313 │ + → → path:·"filesystem.writeFile",
+        314 │ + → → input:·{
+        315 │ + → → → workspaceId:·"workspace",
+        316 │ + → → → absolutePath:·"/remote/worktree/README.md",
+        317 │ + → → → content:·draft,
+        318 │ + → → → precondition:·{·ifMatch:·"r1"·},
+        319 │ + → → },
+        320 │ + → });
+    258 321 │   });
+    259 322 │   
+    260     │ - test("markdown·links·use·explicit·modifier·clicks·and·local·image·sources·use·the·selected·workspace·reader",·async()=>{
+    261     │ - ·const·paths:unknown[]=[];const·urls:string[]=[];
+    262     │ - ·render(<RemoteDocumentEditor·document={doc("/remote/worktree/docs/README.md",{kind:"text",value:"#·Links\n\n[Open](https://example.invalid/)\n\n![plot](../assets/plot.png)\n",revision:"r1"})}·active·busy={false}·{...callbacks}·onOpenUrl={async·url=>{urls.push(url);}}·markdownResources={{owner:"selected-backend",rootPath:"/remote/worktree",readFile:async(path,revision)=>{paths.push({path,revision});return·bytes.value;}}}/>);
+    263     │ - ·const·link=await·screen.findByRole("link",{name:"Open"});
+    264     │ - ·fireEvent.click(link);
+    265     │ - ·expect(urls).toEqual([]);
+    266     │ - ·fireEvent.click(link,{ctrlKey:true});
+    267     │ - ·expect(urls).toEqual(["https://example.invalid/"]);
+    268     │ - ·await·screen.findByRole("img",{name:"plot"});
+    269     │ - ·expect(paths).toEqual([{path:"/remote/worktree/assets/plot.png",revision:"r1"}]);
+        323 │ + test("markdown·links·use·explicit·modifier·clicks·and·local·image·sources·use·the·selected·workspace·reader",·async·()·=>·{
+        324 │ + → const·paths:·unknown[]·=·[];
+        325 │ + → const·urls:·string[]·=·[];
+        326 │ + → render(
+        327 │ + → → <RemoteDocumentEditor
+        328 │ + → → → document={doc("/remote/worktree/docs/README.md",·{
+  32 more lines truncated
+  
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.tsx:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+
+  × The imports and exports are not sorted.
+  
+  > 1 │ import { FileViewToggle } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/components/FileViewToggle/FileViewToggle";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ import {
+    3 │ 	codeViewLabel,
+  
+  i Safe fix: Organize Imports (Biome)
+  
+      1     │ - import·{·FileViewToggle·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/components/FileViewToggle/FileViewToggle";
+      2     │ - import·{
+      3     │ - → codeViewLabel,
+      4     │ - → markdownPreviewLabel,
+      5     │ - }·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/viewLabels";
+      6     │ - import·type·{·MarkdownImageResources·}·from·"../RemoteMarkdownPreview/markdown-images";
+      7     │ - import·{·getPathDirectory·}·from·"shared/absolute-paths";
+      8     │ - import·{·Trans,·useLingui·}·from·"@lingui/react/macro";
+      9     │ - import·{·Button·}·from·"@superset/ui/button";
+     10     │ - import·{
+     11     │ - → lazy,
+     12     │ - → Suspense,
+     13     │ - → useEffect,
+     14     │ - → useMemo,
+     15     │ - → useRef,
+     16     │ - → useState,
+     17     │ - → useSyncExternalStore,
+     18     │ - }·from·"react";
+     19     │ - import·{·EMPTY_FONT_SETTINGS·}·from·"renderer/lib/font-settings";
+     20     │ - import·type·{·SharedFileDocument·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+     21     │ - import·{·detectLanguage·}·from·"shared/detect-language";
+     22     │ - import·{·isMarkdownFile,·isImageFile·}·from·"shared/file-types";
+     23     │ - import·{·useWorkstationAppearance·}·from·"../../../../providers/WorkstationPreferencesContext";
+          1 │ + import·{·Trans,·useLingui·}·from·"@lingui/react/macro";
+          2 │ + import·{·Button·}·from·"@superset/ui/button";
+          3 │ + import·{
+          4 │ + → lazy,
+          5 │ + → Suspense,
+          6 │ + → useEffect,
+          7 │ + → useMemo,
+          8 │ + → useRef,
+          9 │ + → useState,
+         10 │ + → useSyncExternalStore,
+         11 │ + }·from·"react";
+         12 │ + import·{·EMPTY_FONT_SETTINGS·}·from·"renderer/lib/font-settings";
+         13 │ + import·{·FileViewToggle·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/components/FileViewToggle/FileViewToggle";
+         14 │ + import·{
+         15 │ + → codeViewLabel,
+         16 │ + → markdownPreviewLabel,
+         17 │ + }·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/viewLabels";
+         18 │ + import·type·{·SharedFileDocument·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+         19 │ + import·{·getPathDirectory·}·from·"shared/absolute-paths";
+         20 │ + import·{·detectLanguage·}·from·"shared/detect-language";
+         21 │ + import·{·isImageFile,·isMarkdownFile·}·from·"shared/file-types";
+         22 │ + import·{·useWorkstationAppearance·}·from·"../../../../providers/WorkstationPreferencesContext";
+         23 │ + import·type·{·MarkdownImageResources·}·from·"../RemoteMarkdownPreview/markdown-images";
+     24  24 │   
+     25  25 │   const CodeEditorSurface = lazy(() =>
+  
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.tsx:102:27 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on document.absolutePath.
+  
+    100 │ 	const text = content.kind === "text" ? content.value : "";
+    101 │ 	const revision = content.kind === "text" ? content.revision : undefined;
+  > 102 │ 	const previewResources = useMemo(
+        │ 	                         ^^^^^^^
+    103 │ 		() =>
+    104 │ 			markdownResources
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    104 │ 			markdownResources
+    105 │ 				? {
+  > 106 │ 						documentDirectory: getPathDirectory(document.absolutePath),
+        │ 						                                    ^^^^^^^^^^^^^^^^^^^^^
+    107 │ 						rootPath: markdownResources.rootPath,
+    108 │ 						revision,
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    113 │ → → [markdownResources,·document.id,·revision,·document.absolutePath],
+        │                                              +++++++++++++++++++++++  
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.tsx:102:27 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook specifies more dependencies than necessary: document.id.
+  
+    100 │ 	const text = content.kind === "text" ? content.value : "";
+    101 │ 	const revision = content.kind === "text" ? content.revision : undefined;
+  > 102 │ 	const previewResources = useMemo(
+        │ 	                         ^^^^^^^
+    103 │ 		() =>
+    104 │ 			markdownResources
+  
+  i This dependency can be removed from the list.
+  
+    111 │ 					}
+    112 │ 				: undefined,
+  > 113 │ 		[markdownResources, document.id, revision],
+        │ 		                    ^^^^^^^^^^^
+    114 │ 	);
+    115 │ 
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Specifying more dependencies than required can lead to unnecessary re-rendering
+    and degraded performance.
+  
+  i Unsafe fix: Remove the extra dependencies from the list.
+  
+    113 │ → → [markdownResources,·document.id,·revision],
+        │                         -------------          
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/RemoteMarkdownPreview.tsx:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+
+  × The imports and exports are not sorted.
+  
+  > 1 │ import { useEffect, useRef } from "react";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ import { TipTapMarkdownSurface } from "renderer/components/MarkdownRenderer/components/TipTapMarkdownSurface";
+    3 │ import {
+  
+  i Safe fix: Organize Imports (Biome)
+  
+      1     │ - import·{·useEffect,·useRef·}·from·"react";
+      2     │ - import·{·TipTapMarkdownSurface·}·from·"renderer/components/MarkdownRenderer/components/TipTapMarkdownSurface";
+      3     │ - import·{
+      4     │ - → MarkdownResourceProvider,
+      5     │ - → type·MarkdownResources,
+      6     │ - }·from·"renderer/components/MarkdownRenderer/providers/MarkdownResourceProvider";
+      7     │ - import·{·MarkdownSearch·}·from·"renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/TabView/FileViewerPane/components/MarkdownSearch";
+      8     │ - import·{·useTextSearch·}·from·"renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/TabView/hooks/useTextSearch";
+      9     │ - import·{·splitFrontMatter·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/views/MarkdownPreviewView/splitFrontMatter";
+     10     │ - import·type·{·SharedFileDocument·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+     11     │ - import·{·useWorkstationAppearance·}·from·"../../../../providers/WorkstationPreferencesContext";
+     12     │ - import·{·Trans·}·from·"@lingui/react/macro";
+          1 │ + import·{·Trans·}·from·"@lingui/react/macro";
+          2 │ + import·{·useEffect,·useRef·}·from·"react";
+          3 │ + import·{·TipTapMarkdownSurface·}·from·"renderer/components/MarkdownRenderer/components/TipTapMarkdownSurface";
+          4 │ + import·{
+          5 │ + → MarkdownResourceProvider,
+          6 │ + → type·MarkdownResources,
+          7 │ + }·from·"renderer/components/MarkdownRenderer/providers/MarkdownResourceProvider";
+          8 │ + import·{·splitFrontMatter·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/views/MarkdownPreviewView/splitFrontMatter";
+          9 │ + import·type·{·SharedFileDocument·}·from·"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+         10 │ + import·{·MarkdownSearch·}·from·"renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/TabView/FileViewerPane/components/MarkdownSearch";
+         11 │ + import·{·useTextSearch·}·from·"renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/TabView/hooks/useTextSearch";
+         12 │ + import·{·useWorkstationAppearance·}·from·"../../../../providers/WorkstationPreferencesContext";
+     13  13 │   
+     14  14 │   export function RemoteMarkdownPreview({
+  
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/RemoteMarkdownPreview.tsx:70:3 lint/a11y/noStaticElementInteractions ━━━━━━━━━━
+
+  × Static Elements should not be interactive.
+  
+    68 │ 	);
+    69 │ 	return (
+  > 70 │ 		<div
+       │ 		^^^^
+  > 71 │ 			data-remote-markdown-preview
+        ...
+  > 88 │ 			}}
+  > 89 │ 		>
+       │ 		^
+    90 │ 			<MarkdownSearch
+    91 │ 				isOpen={search.isSearchOpen}
+  
+  i To add interactivity such as a mouse or key event listener to a static element, give the element an appropriate role value.
+  
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.test.ts format ━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    68 68 │   
+    69 69 │   test("a saved markdown revision reloads its image while duplicate readers share that revision", async () => {
+    70    │ - ·let·reads=0;
+    71    │ - ·const·reader=new·MarkdownImageReader({read:async()=>({kind:"bytes",content:new·Uint8Array([++reads])})});
+    72    │ - ·expect(await·reader.readFile("/remote/a.png","revision-1")).toEqual(new·Uint8Array([1]));
+    73    │ - ·expect(await·reader.readFile("/remote/a.png","revision-2")).toEqual(new·Uint8Array([2]));
+    74    │ - ·expect(await·reader.readFile("/remote/a.png","revision-2")).toEqual(new·Uint8Array([2]));
+    75    │ - ·expect(reads).toBe(2);reader.dispose();
+       70 │ + → let·reads·=·0;
+       71 │ + → const·reader·=·new·MarkdownImageReader({
+       72 │ + → → read:·async·()·=>·({·kind:·"bytes",·content:·new·Uint8Array([++reads])·}),
+       73 │ + → });
+       74 │ + → expect(await·reader.readFile("/remote/a.png",·"revision-1")).toEqual(
+       75 │ + → → new·Uint8Array([1]),
+       76 │ + → );
+       77 │ + → expect(await·reader.readFile("/remote/a.png",·"revision-2")).toEqual(
+       78 │ + → → new·Uint8Array([2]),
+       79 │ + → );
+       80 │ + → expect(await·reader.readFile("/remote/a.png",·"revision-2")).toEqual(
+       81 │ + → → new·Uint8Array([2]),
+       82 │ + → );
+       83 │ + → expect(reads).toBe(2);
+       84 │ + → reader.dispose();
+    76 85 │   });
+    77 86 │   
+  
+
+Checked 11 files in 40ms. No fixes applied.
+Found 14 errors.
+Found 1 warning.
+Found 1 info.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while running checks.
+  
+

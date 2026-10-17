@@ -1,11 +1,10 @@
 import { cn } from "@superset/ui/utils";
 import { CodeBlock, SafeImage } from "../../components";
 import type { MarkdownStyleConfig } from "../types";
-import "./default.css";
+import { defaultPresentation } from "./presentation";
 
 export const defaultConfig: MarkdownStyleConfig = {
-	wrapperClass: "default-markdown",
-	articleClass: "px-8 pt-2 pb-6",
+	...defaultPresentation,
 	components: {
 		code: ({ className, children, node }) => (
 			<CodeBlock className={className} node={node}>

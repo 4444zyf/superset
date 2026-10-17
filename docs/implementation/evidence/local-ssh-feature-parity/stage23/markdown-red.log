@@ -1,0 +1,984 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+(pass) a remote image reuses the original image surface and keyboard zoom without a text editor or save [345.50ms]
+(pass) unknown bytes retain the read-only binary message [3.85ms]
+(pass) an oversized image cannot bypass the document size limit [47.55ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [13.53ms]
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find role="heading" and name "Remote markdown"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/remote/worktree/README.md"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/README.md[0m
+      [36m</code>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"File contents"[39m
+        [33mclass[39m=[32m"h-80 border border-border rounded-md overflow-hidden"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"min-w-0 h-full w-full"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"cm-editor ͼ1 ͼ3 ͼ4 ͼ1f"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33maria-live[39m=[32m"polite"[39m
+              [33mclass[39m=[32m"cm-announced"[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"cm-scroller"[39m
+              [33mtabindex[39m=[32m"-1"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-gutters cm-gutters-before"[39m
+                [33mstyle[39m=[32m"min-height: 126px; position: sticky;"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-lineNumbers"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [0m9[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 14px; margin-top: 8px;"[39m
+                  [36m>[39m
+                    [0m1[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m2[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m3[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m4[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m5[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m6[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m7[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m8[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m9[0m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-foldGutter"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m9 18 6-6-6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 14px; margin-top: 8px;"[39m
+                  [36m/>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px; margin-top: 14px;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px; margin-top: 14px;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-multiline[39m=[32m"true"[39m
+                [33mautocapitalize[39m=[32m"off"[39m
+                [33mautocorrect[39m=[32m"off"[39m
+                [33mclass[39m=[32m"cm-content"[39m
+                [33mcontenteditable[39m=[32m"true"[39m
+                [33mdata-language[39m=[32m"markdown"[39m
+                [33mrole[39m=[32m"textbox"[39m
+                [33mspellcheck[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"tab-size: 4;"[39m
+                [33mtranslate[39m=[32m"no"[39m
+                [33mwritingsuggestions[39m=[32m"false"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line cm-activeLine"[39m
+                [36m>[39m
+                  [0m---[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0mtitle: keep exactly[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m---[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m# Remote markdown[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [36m<br />[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m| A | B |[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m|---|---|[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m| One | Two |[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [36m<br />[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-layer-above cm-cursorLayer"[39m
+                [33mstyle[39m=[32m"z-index: 150; animation-duration: 1200ms;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-selectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -2;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-contourSelectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -3;"[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex gap-2"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mdisabled[39m=[32m""[39m
+        [36m>[39m
+          [0mSave file[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+        [36m>[39m
+          [0mClose file and discard draft[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/remote/worktree/README.md"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/README.md[0m
+      [36m</code>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"File contents"[39m
+        [33mclass[39m=[32m"h-80 border border-border rounded-md overflow-hidden"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"min-w-0 h-full w-full"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"cm-editor ͼ1 ͼ3 ͼ4 ͼ1f"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33maria-live[39m=[32m"polite"[39m
+              [33mclass[39m=[32m"cm-announced"[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"cm-scroller"[39m
+              [33mtabindex[39m=[32m"-1"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-gutters cm-gutters-before"[39m
+                [33mstyle[39m=[32m"min-height: 126px; position: sticky;"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-lineNumbers"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [0m9[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 14px; margin-top: 8px;"[39m
+                  [36m>[39m
+                    [0m1[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m2[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m3[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m4[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m5[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m6[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m7[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m8[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [0m9[0m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-foldGutter"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m9 18 6-6-6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 14px; margin-top: 8px;"[39m
+                  [36m/>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px; margin-top: 14px;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 14px; margin-top: 14px;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-multiline[39m=[32m"true"[39m
+                [33mautocapitalize[39m=[32m"off"[39m
+                [33mautocorrect[39m=[32m"off"[39m
+                [33mclass[39m=[32m"cm-content"[39m
+                [33mcontenteditable[39m=[32m"true"[39m
+                [33mdata-language[39m=[32m"markdown"[39m
+                [33mrole[39m=[32m"textbox"[39m
+                [33mspellcheck[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"tab-size: 4;"[39m
+                [33mtranslate[39m=[32m"no"[39m
+                [33mwritingsuggestions[39m=[32m"false"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line cm-activeLine"[39m
+                [36m>[39m
+                  [0m---[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0mtitle: keep exactly[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m---[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m# Remote markdown[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [36m<br />[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m| A | B |[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m|---|---|[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m| One | Two |[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [36m<br />[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-layer-above cm-cursorLayer"[39m
+                [33mstyle[39m=[32m"z-index: 150; animation-duration: 1200ms;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-selectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -2;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-contourSelectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -3;"[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex gap-2"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mdisabled[39m=[32m""[39m
+        [36m>[39m
+          [0mSave file[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+        [36m>[39m
+          [0mClose file and discard draft[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:160:22
+(fail) markdown defaults to the original rich preview and can switch to the shared source document [1036.36ms]
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find role="button" and name "Preview"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/remote/worktree/README.md"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/README.md[0m
+      [36m</code>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"File contents"[39m
+        [33mclass[39m=[32m"h-80 border border-border rounded-md overflow-hidden"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"min-w-0 h-full w-full"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"cm-editor cm-focused ͼ1 ͼ3 ͼ4 ͼ27"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33maria-live[39m=[32m"polite"[39m
+              [33mclass[39m=[32m"cm-announced"[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"cm-scroller"[39m
+              [33mtabindex[39m=[32m"-1"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-gutters cm-gutters-before"[39m
+                [33mstyle[39m=[32m"min-height: 16px; position: sticky;"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-lineNumbers"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [0m9[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; margin-top: 8px;"[39m
+                  [36m>[39m
+                    [0m1[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px;"[39m
+                  [36m>[39m
+                    [0m2[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 0px;"[39m
+                  [36m>[39m
+                    [0m3[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px;"[39m
+                  [36m>[39m
+                    [0m4[0m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-foldGutter"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m9 18 6-6-6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; margin-top: 8px;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 0px;"[39m
+                  [36m/>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-multiline[39m=[32m"true"[39m
+                [33mautocapitalize[39m=[32m"off"[39m
+                [33mautocorrect[39m=[32m"off"[39m
+                [33mclass[39m=[32m"cm-content"[39m
+                [33mcontenteditable[39m=[32m"true"[39m
+                [33mdata-language[39m=[32m"markdown"[39m
+                [33mrole[39m=[32m"textbox"[39m
+                [33mspellcheck[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"tab-size: 4;"[39m
+                [33mtranslate[39m=[32m"no"[39m
+                [33mwritingsuggestions[39m=[32m"false"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m# Preview[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [36m<br />[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line cm-activeLine"[39m
+                [36m>[39m
+                  [0mneedle[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [36m<br />[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-layer-above cm-cursorLayer"[39m
+                [33mstyle[39m=[32m"z-index: 150; animation-duration: 1200ms; animation-name: cm-blink;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-selectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -2;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-contourSelectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -3;"[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex gap-2"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mdisabled[39m=[32m""[39m
+        [36m>[39m
+          [0mSave file[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+        [36m>[39m
+          [0mClose file and discard draft[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-2"[39m
+      [33mid[39m=[32m"file-panel-/remote/worktree/README.md"[39m
+      [33mrole[39m=[32m"tabpanel"[39m
+    [36m>[39m
+      [36m<code[39m
+        [33mclass[39m=[32m"block text-xs break-all"[39m
+      [36m>[39m
+        [0m/remote/worktree/README.md[0m
+      [36m</code>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"File contents"[39m
+        [33mclass[39m=[32m"h-80 border border-border rounded-md overflow-hidden"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"min-w-0 h-full w-full"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"cm-editor cm-focused ͼ1 ͼ3 ͼ4 ͼ27"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33maria-live[39m=[32m"polite"[39m
+              [33mclass[39m=[32m"cm-announced"[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"cm-scroller"[39m
+              [33mtabindex[39m=[32m"-1"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-gutters cm-gutters-before"[39m
+                [33mstyle[39m=[32m"min-height: 16px; position: sticky;"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-lineNumbers"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [0m9[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; margin-top: 8px;"[39m
+                  [36m>[39m
+                    [0m1[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px;"[39m
+                  [36m>[39m
+                    [0m2[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 0px;"[39m
+                  [36m>[39m
+                    [0m3[0m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px;"[39m
+                  [36m>[39m
+                    [0m4[0m
+                  [36m</div>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-gutter cm-foldGutter"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; visibility: hidden; pointer-events: none;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m9 18 6-6-6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement"[39m
+                    [33mstyle[39m=[32m"height: 0px; margin-top: 8px;"[39m
+                  [36m>[39m
+                    [36m<svg[39m
+                      [33mclass[39m=[32m"cm-foldChevron"[39m
+                      [33mfill[39m=[32m"none"[39m
+                      [33mstroke[39m=[32m"currentColor"[39m
+                      [33mstroke-linecap[39m=[32m"round"[39m
+                      [33mstroke-linejoin[39m=[32m"round"[39m
+                      [33mstroke-width[39m=[32m"2"[39m
+                      [33mviewBox[39m=[32m"0 0 24 24"[39m
+                      [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                    [36m>[39m
+                      [36m<path[39m
+                        [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                      [36m/>[39m
+                    [36m</svg>[39m
+                  [36m</div>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"cm-gutterElement cm-activeLineGutter"[39m
+                    [33mstyle[39m=[32m"height: 0px;"[39m
+                  [36m/>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-multiline[39m=[32m"true"[39m
+                [33mautocapitalize[39m=[32m"off"[39m
+                [33mautocorrect[39m=[32m"off"[39m
+                [33mclass[39m=[32m"cm-content"[39m
+                [33mcontenteditable[39m=[32m"true"[39m
+                [33mdata-language[39m=[32m"markdown"[39m
+                [33mrole[39m=[32m"textbox"[39m
+                [33mspellcheck[39m=[32m"false"[39m
+                [33mstyle[39m=[32m"tab-size: 4;"[39m
+                [33mtranslate[39m=[32m"no"[39m
+                [33mwritingsuggestions[39m=[32m"false"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [0m# Preview[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [36m<br />[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line cm-activeLine"[39m
+                [36m>[39m
+                  [0mneedle[0m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"cm-line"[39m
+                [36m>[39m
+                  [36m<br />[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-layer-above cm-cursorLayer"[39m
+                [33mstyle[39m=[32m"z-index: 150; animation-duration: 1200ms; animation-name: cm-blink;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-selectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -2;"[39m
+              [36m/>[39m
+              [36m<div[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"cm-layer cm-contourSelectionLayer"[39m
+                [33mstyle[39m=[32m"z-index: -3;"[39m
+              [36m/>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex gap-2"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mdisabled[39m=[32m""[39m
+        [36m>[39m
+          [0mSave file[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+        [36m>[39m
+          [0mClose file and discard draft[0m
+        [36m</button>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:171:22
+(fail) a markdown search destination opens the source view at the requested line [1019.71ms]
+
+ 4 pass
+ 2 fail
+ 15 expect() calls
+Ran 6 tests across 1 file. [2.73s]

@@ -536,3 +536,14 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 
 
 第76轮固定 06b91f7a6537668219c517418451897487208a4a，--file-previews-only 实际Linux/Electron/SSH退出0：1200×872原图显示为393.563×285.984，完整落在633.297×318区域内；实际拖窄面板后显示307.422×223.391，完整落在339.422×318内，两次均保持比例。原键盘125%缩放/箭头平移、来回鼠标拖动及0复位通过；未知二进制无编辑器、超限图保存禁用、损坏图可见错误、重开窗口重新读取并显示通过。标准和窄面板截图已实际查看；未测Markdown/PDF/视频或macOS发行物。[第76轮证据](evidence/local-ssh-feature-parity/source-linux-file-previews)。
+
+
+### 阶段二十三：原Markdown展示层、编辑与所选工作区资源（实际窗口待记录）
+
+先复现SSH文件页没有Markdown默认预览/原源码切换入口的失败测试。提取原TipTapMarkdownSurface和CodeBlockSurface，原TipTapMarkdownRenderer/CodeBlock继续作为旧偏好/链接/主题wrapper，保留调用合同；default/tufte的CSS与展示类共用，代码块、表格、源码格式合并、外部替换清理undo、复制菜单继续复用。修正样式config桶导出会拉入旧tabs/PostHog的依赖，纯展示层改用共享presentation；无账号入口完整依赖审计通过。原FileViewToggle与标签共用，不重新造切换布局。
+
+工作站MD默认预览，源码和富文本使用同一SharedFileDocument；保留front matter、BOM和原格式，busy只读，保存继续CAS原revision。搜索结果打开源代码行；预览查找复用原MarkdownSearch/useTextSearch，并补翻译及可访问名称。当前只接默认Ctrl/Cmd+F与修饰键外部链接，完整自定义快捷键/链接设置仍待接入。外部链接走新增可选本机IPC，并复用原safe-url协议白名单与原sender/frame校验，不接旧云tRPC。
+
+相对图片复用MarkdownResourceProvider/SafeImage/路径解析，通过所选机器filesystem.readFile获取，不误用本机file路径。图片读取器单图1MiB、缓存8MiB/16条、4并发、有界队列与LRU，按MD磁盘revision缓存；换机器/工作区/连接代际后丢弃晚回复，退出时取消排队。未新增后端过程或持久化键。
+
+主回归11文件118项/1431断言通过，后续MD/资源12项/53断言通过（有覆盖重叠，不相加）；原格式往返与链接、图像边界/新revision/晚回复、共享草稿/显式CAS保存/BOM保留均有测试。类型检查、17语言严格检查、相关新代码lint与构建通过；渲染主入口4703.06kB，Markdown动态块2934.50kB。已准备 --markdown-only 实际窗口流程验证双向编辑、保存前磁盘不变、头部/表格/代码格式、SSH相对图片、原查找与窗口重开；尚未把这些待执行项计为通过。未执行OS浏览器打开/macOS发行物验收。[阶段二十三原始日志](evidence/local-ssh-feature-parity/stage23)。

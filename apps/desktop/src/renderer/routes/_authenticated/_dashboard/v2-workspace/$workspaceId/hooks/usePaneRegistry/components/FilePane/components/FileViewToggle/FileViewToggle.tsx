@@ -1,8 +1,8 @@
 import { cn } from "@superset/ui/utils";
-import { type FileView, resolveViewLabel } from "../../registry";
+import { type FileView, resolveViewLabel } from "../../registry/types";
 
 interface FileViewToggleProps {
-	views: FileView[];
+	views: readonly Pick<FileView,"id" | "label">[];
 	activeViewId: string;
 	filePath: string;
 	onChange: (viewId: string) => void;
@@ -24,6 +24,7 @@ export function FileViewToggle({
 						key={view.id}
 						type="button"
 						title={label}
+						aria-pressed={view.id === activeViewId}
 						className={cn(
 							"flex h-4 min-w-0 max-w-20 items-center rounded-sm px-1.5 text-[10px] leading-none transition-colors",
 							view.id === activeViewId

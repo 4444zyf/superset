@@ -20,7 +20,8 @@ import {
 	FILE_VIEW_CODE_BLOCK_LANGUAGES,
 	getCodeBlockLanguageLabel,
 } from "renderer/lib/tiptap/code-block-languages";
-import { useTheme } from "renderer/stores";
+import { useContext } from "react";
+import { MarkdownAppearanceContext } from "../../MarkdownAppearanceContext";
 import { Streamdown } from "streamdown";
 
 export function EditableCodeBlockView({
@@ -29,8 +30,7 @@ export function EditableCodeBlockView({
 	extension,
 }: NodeViewProps) {
 	const [menuOpen, setMenuOpen] = useState(false);
-	const theme = useTheme();
-	const isDark = theme?.type !== "light";
+	const isDark = useContext(MarkdownAppearanceContext);
 
 	const attrs = node.attrs as { language?: string };
 	const htmlAttrs = extension.options.HTMLAttributes as { class?: string };

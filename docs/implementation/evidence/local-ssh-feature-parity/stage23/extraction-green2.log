@@ -1,0 +1,53 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/components/MarkdownRenderer/components/TipTapMarkdownRenderer/createMarkdownExtensions.test.ts:
+(pass) preview links > never opens a link itself when editable is true [41.28ms]
+(pass) preview links > never opens a link itself when editable is false [17.10ms]
+(pass) image attribute parsing > keeps a numeric alt as a string and serializes it [19.49ms]
+(pass) image attribute parsing > keeps a boolean-looking alt as a string [8.33ms]
+(pass) image attribute parsing > keeps a numeric title as a string and serializes it [7.79ms]
+(pass) image attribute parsing > keeps a numeric src as a string and serializes it [7.50ms]
+(pass) image attribute parsing > round-trips an ordinary image unchanged [6.98ms]
+(pass) table rendering > wraps tables in a dedicated horizontal scroll container [15.62ms]
+(pass) link attribute parsing > keeps a numeric link title as a string and serializes it [8.66ms]
+(pass) link attribute parsing > keeps a boolean-looking link title as a string [7.05ms]
+(pass) link attribute parsing > round-trips a link without a title unchanged [6.68ms]
+
+src/renderer/components/MarkdownRenderer/components/TipTapMarkdownRenderer/mergeMarkdownEdits.roundtrip.test.ts:
+(pass) mergeMarkdownEdits round-trip through production extensions > serializer baseline actually normalizes the fixture (sanity check) [23.65ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > no edit → file byte-identical [16.75ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > appending a paragraph keeps every original byte and adds the paragraph [19.83ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > editing the intro keeps setext title, bullets, comment, and table verbatim [15.47ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > editing a bullet normalizes only the list, not the rest [15.19ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > editing text next to the dropped HTML comment keeps the comment [15.46ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > front matter survives edits elsewhere [30.66ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > undo-equivalent (revert to baseline content) returns the original bytes [14.97ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > undo cannot cross an external reload and resurrect stale content [15.26ms]
+(pass) mergeMarkdownEdits round-trip through production extensions > deleting one block keeps the neighbors byte-identical [11.03ms]
+
+src/renderer/components/MarkdownRenderer/components/TipTapMarkdownRenderer/resolveLinkClick.test.ts:
+(pass) resolveLinkClick > leaves a plain click unbound so the caret can land in the link [13.54ms]
+(pass) resolveLinkClick > maps {
+  shiftKey: true,
+} to newTab [6.73ms]
+(pass) resolveLinkClick > maps {
+  metaKey: true,
+} to pane [6.01ms]
+(pass) resolveLinkClick > maps {
+  ctrlKey: true,
+} to pane [5.88ms]
+(pass) resolveLinkClick > maps {
+  metaKey: true,
+  shiftKey: true,
+} to external [6.83ms]
+(pass) resolveLinkClick > follows a custom tier map [15.88ms]
+(pass) resolveLinkClick > ignores the non-web link a[href^='mailto'] on every tier [23.12ms]
+(pass) resolveLinkClick > ignores the non-web link a[href^='./'] on every tier [26.56ms]
+(pass) resolveLinkClick > ignores the non-web link a[href^='#'] on every tier [18.13ms]
+(pass) resolveLinkClick > never renders file, javascript or custom-scheme links as anchors [5.75ms]
+(pass) resolveLinkClick > ignores right-clicks and clicks outside a link [9.53ms]
+
+ 32 pass
+ 0 fail
+ 95 expect() calls
+Ran 32 tests across 3 files. [1320.00ms]

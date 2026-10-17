@@ -38,6 +38,18 @@ export function ownedRestoreControls(home, fixture) {
 	);
 	let originals = [];
 	return {
+		prepareMarkdownPreview(worktreePath, png) {
+			const image = this.prepareFilePreviews(worktreePath, png);
+			const source = [
+				"---", 'title: "Keep literal quotes"', "---",
+				"# SSH markdown", "", "Original paragraph.", "",
+				"| Name | Value |", "| ---- | ----- |", "| Local | SSH |", "",
+				"```js", "const count = 1;", "```", "",
+				"![Remote plot](./preview.png)", "",
+			].join("\n");
+			writeFileSync(join(worktreePath, "README.md"), source, { flag: "wx" });
+			return { ...image, source };
+		},
 		prepareFilePreviews(worktreePath, png) {
 			assert.ok(worktreePath.startsWith(join(fixture.homeDir, "Superset Remix", "worktrees") + "/"));
 			assert.equal(lstatSync(worktreePath).uid, process.getuid());

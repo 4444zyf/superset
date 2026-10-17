@@ -1,0 +1,22 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.test.ts:
+(pass) markdown images share one bounded read and evict old completed bytes [1.31ms]
+(pass) unsupported files and oversized image results never become preview bytes [0.34ms]
+(pass) switching the owner drops an in-flight image and does not launch its queued read [0.30ms]
+(pass) a saved markdown revision reloads its image while duplicate readers share that revision [0.22ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+(pass) a remote image reuses the original image surface and keyboard zoom without a text editor or save [348.99ms]
+(pass) unknown bytes retain the read-only binary message [5.10ms]
+(pass) an oversized image cannot bypass the document size limit [51.40ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [18.15ms]
+(pass) markdown defaults to the original rich preview and can switch to the shared source document [688.22ms]
+(pass) a markdown search destination opens the source view at the requested line [39.53ms]
+(pass) rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision [204.24ms]
+(pass) markdown links use explicit modifier clicks and local image sources use the selected workspace reader [59.08ms]
+
+ 12 pass
+ 0 fail
+ 53 expect() calls
+Ran 12 tests across 2 files. [1.75s]

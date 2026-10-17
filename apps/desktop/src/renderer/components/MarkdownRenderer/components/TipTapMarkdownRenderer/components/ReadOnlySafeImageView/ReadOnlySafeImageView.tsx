@@ -1,6 +1,6 @@
 import type { NodeViewProps } from "@tiptap/react";
 import { NodeViewWrapper } from "@tiptap/react";
-import { SafeImage } from "renderer/components/MarkdownRenderer/components";
+import { SafeImage } from "renderer/components/MarkdownRenderer/components/SafeImage";
 
 export function ReadOnlySafeImageView({ node }: NodeViewProps) {
 	const src = typeof node.attrs.src === "string" ? node.attrs.src : undefined;

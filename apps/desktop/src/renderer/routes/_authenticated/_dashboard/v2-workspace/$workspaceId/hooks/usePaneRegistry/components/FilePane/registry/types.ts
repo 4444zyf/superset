@@ -67,7 +67,7 @@ export interface ViewProps {
 	onOpenUrl?: (url: string, action: LinkAction) => void;
 }
 
-export function resolveViewLabel(view: FileView, filePath: string): string {
+export function resolveViewLabel(view: Pick<FileView, "label">, filePath: string): string {
 	return i18n._(
 		typeof view.label === "function" ? view.label(filePath) : view.label,
 	);

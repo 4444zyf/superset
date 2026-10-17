@@ -44,6 +44,7 @@ import {
 	DIRECT_VIEW_FLUSH_CHANNEL,
 } from "../shared/direct-workstation";
 import { lockProductProfile } from "./lib/product-identity";
+import { isSafeExternalUrl } from "./lib/safe-url/scheme";
 import { AutomaticReconnect } from "./lib/ssh-direct/automatic-reconnect";
 import { runConfirmedRemoteControl } from "./lib/ssh-direct/confirmed-remote-control";
 import { importSelectedLocalData } from "./lib/ssh-direct/import-local-data";
@@ -512,6 +513,12 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "openExternal": {
+					const url = z.string().min(1).max(8192).parse(payload);
+					if (!isSafeExternalUrl(url)) throw new Error("Unsupported external URL");
+					await shell.openExternal(url);
+					return;
+				}
 				case "copyText":
 					clipboard.writeText(
 						z

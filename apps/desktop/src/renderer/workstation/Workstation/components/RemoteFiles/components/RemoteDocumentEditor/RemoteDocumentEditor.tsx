@@ -1,11 +1,26 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Button } from "@superset/ui/button";
-import { lazy, Suspense, useEffect, useRef, useSyncExternalStore } from "react";
+import {
+	lazy,
+	Suspense,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from "react";
 import { EMPTY_FONT_SETTINGS } from "renderer/lib/font-settings";
+import { FileViewToggle } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/components/FileViewToggle/FileViewToggle";
+import {
+	codeViewLabel,
+	markdownPreviewLabel,
+} from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/viewLabels";
 import type { SharedFileDocument } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+import { getPathDirectory } from "shared/absolute-paths";
 import { detectLanguage } from "shared/detect-language";
-import { isImageFile } from "shared/file-types";
+import { isImageFile, isMarkdownFile } from "shared/file-types";
 import { useWorkstationAppearance } from "../../../../providers/WorkstationPreferencesContext";
+import type { MarkdownImageResources } from "../RemoteMarkdownPreview/markdown-images";
 
 const CodeEditorSurface = lazy(() =>
 	import(
@@ -18,6 +33,12 @@ const ImageView = lazy(() =>
 	).then((module) => ({ default: module.ImageView })),
 );
 
+const RemoteMarkdownPreview = lazy(() =>
+	import("../RemoteMarkdownPreview/RemoteMarkdownPreview").then((module) => ({
+		default: module.RemoteMarkdownPreview,
+	})),
+);
+
 export function RemoteDocumentEditor({
 	document,
 	active,
@@ -27,6 +48,8 @@ export function RemoteDocumentEditor({
 	onClose,
 	onFocusChange,
 	onError,
+	markdownResources,
+	onOpenUrl,
 }: {
 	document: SharedFileDocument;
 	active: boolean;
@@ -36,8 +59,16 @@ export function RemoteDocumentEditor({
 	onClose(): void;
 	onFocusChange(): void;
 	onError(message: string): void;
+	markdownResources?: MarkdownImageResources;
+	onOpenUrl?(url: string): Promise<void>;
 }) {
 	const { t } = useLingui();
+	const [markdownView, setMarkdownView] = useState(
+		revealLine ? "code" : "markdown-preview",
+	);
+	useEffect(() => {
+		if (active && revealLine) setMarkdownView("code");
+	}, [active, revealLine]);
 	const appearance = useWorkstationAppearance();
 	useSyncExternalStore(
 		document.subscribe,
@@ -64,7 +95,24 @@ export function RemoteDocumentEditor({
 	}, [saveError, conflict, t]);
 	const content = document.content;
 	const truncated = content.kind === "too-large";
+	const markdown =
+		content.kind === "text" && isMarkdownFile(document.absolutePath);
 	const text = content.kind === "text" ? content.value : "";
+	const revision = content.kind === "text" ? content.revision : undefined;
+	const previewResources = useMemo(
+		() =>
+			markdownResources
+				? {
+						documentDirectory: getPathDirectory(document.absolutePath),
+						rootPath: markdownResources.rootPath,
+						revision,
+						readFile: (path: string) =>
+							markdownResources.readFile(path, revision),
+					}
+				: undefined,
+		[markdownResources, document.absolutePath, revision],
+	);
+
 	return (
 		<div
 			role="tabpanel"
@@ -73,6 +121,17 @@ export function RemoteDocumentEditor({
 			className="space-y-2"
 		>
 			<code className="block text-xs break-all">{document.absolutePath}</code>
+			{markdown && (
+				<FileViewToggle
+					views={[
+						{ id: "code", label: codeViewLabel },
+						{ id: "markdown-preview", label: markdownPreviewLabel },
+					]}
+					activeViewId={markdownView}
+					filePath={document.absolutePath}
+					onChange={setMarkdownView}
+				/>
+			)}
 			{content.kind === "loading" ? (
 				<p>
 					<Trans>Loading files...</Trans>
@@ -131,27 +190,41 @@ export function RemoteDocumentEditor({
 								</div>
 							}
 						>
-							<CodeEditorSurface
-								value={text}
-								language={detectLanguage(document.absolutePath)}
-								theme={appearance.theme}
-								fontSettings={{
-									...EMPTY_FONT_SETTINGS,
-									...appearance.fontSettings,
-								}}
-								readOnly={busy || truncated || content.kind !== "text"}
-								revealLine={revealLine}
-								onChange={(value) => {
-									try {
-										document.setContent(value);
-									} catch (error) {
-										onError(String(error));
-									}
-								}}
-								onSave={() => {
-									if (!busy && !truncated && document.dirty) onSave();
-								}}
-							/>
+							{markdown && markdownView === "markdown-preview" ? (
+								<RemoteMarkdownPreview
+									key={markdownResources?.owner ?? document.id}
+									document={document}
+									active={active}
+									busy={busy}
+									onSave={onSave}
+									onFocusChange={onFocusChange}
+									onError={onError}
+									resources={previewResources}
+									onOpenUrl={onOpenUrl}
+								/>
+							) : (
+								<CodeEditorSurface
+									value={text}
+									language={detectLanguage(document.absolutePath)}
+									theme={appearance.theme}
+									fontSettings={{
+										...EMPTY_FONT_SETTINGS,
+										...appearance.fontSettings,
+									}}
+									readOnly={busy || truncated || content.kind !== "text"}
+									revealLine={revealLine}
+									onChange={(value) => {
+										try {
+											document.setContent(value);
+										} catch (error) {
+											onError(String(error));
+										}
+									}}
+									onSave={() => {
+										if (!busy && !truncated && document.dirty) onSave();
+									}}
+								/>
+							)}
 						</Suspense>
 					</section>
 					<div className="flex gap-2">
