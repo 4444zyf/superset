@@ -71,7 +71,7 @@ export async function verifyWorkstationChatClipboardUi({
 	const message = () => evaluate(`document.querySelector('${area}')?.value`);
 	const attachedCount = (name) =>
 		evaluate(
-			`(()=>{const section=document.querySelector('${area}')?.closest('section');return [...(section?.querySelectorAll('button')??[])].filter(e=>e.textContent.trim()===${JSON.stringify(name)}).length;})()`,
+			`(()=>{const section=document.querySelector('${area}')?.closest('section');const attach=[...(section?.querySelectorAll('button')??[])].find(e=>e.textContent.trim()==='Attach files'&&!e.closest('article'));return [...(attach?.parentElement?.querySelectorAll('button')??[])].filter(e=>e.textContent.trim()===${JSON.stringify(name)}).length;})()`,
 		);
 	const paste = async () => {
 		const geometry = await evaluate(
@@ -240,6 +240,8 @@ export async function verifyWorkstationChatClipboardUi({
 			),
 		);
 		await ready();
+		await screenshot("chat-clipboard-after-send-before-assertions");
+		assert.equal(controls.inspectChatAttachments().length, file ? 3 : 2);
 		assert.equal(await message(), plain);
 		assert.equal(await attachedCount("image.png"), 2);
 		if (file) assert.equal(await attachedCount(file.originalFilename), 1);
