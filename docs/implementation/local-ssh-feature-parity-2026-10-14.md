@@ -553,3 +553,10 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 
 
 第78轮固定085e9fa59511b52e4fc1ca4ee5d2f4d4e6b0e294，实际Linux/Electron/SSH --markdown-only退出0：默认原TipTap预览/原切换控件、原表格/代码块、1200×872 SSH相对图片的blob显示通过；在源码和富文本中分别实际输入中文/emoji，另一视图立即看到同一草稿，两次编辑后保存前磁盘仍与原文件完全一致。实际点击Save后，磁盘225字节文件包含两份编辑、front matter逐字保留、表格和代码源码格式不变。原查找1 of 1、Escape后重新Ctrl+F以及窗口重开读取已保存正文通过；Search和重开截图已实际查看。OS外部浏览器及macOS发行物未验收，完整自定义快捷键/链接设置及全局退出草稿保护仍在清单中。[第78轮证据](evidence/local-ssh-feature-parity/source-linux-markdown)。
+
+
+### 阶段二十四：原PDF/视频文件视图（实际窗口待记录）
+
+先增加失败测试，复现PDF与WebM仅显示二进制提示；RemoteDocumentEditor复用原PdfView/VideoView和类型分类，通过已有SharedFileDocument字节预览，不新增后端接口。保留只读/1MiB界限、原生视频控件与metadata预加载、默认不自动播放，文档身份变更卸载旧blob。组件测试对HappyDOM中无实际浏览器的iframe导航仅逐用例关闭其自动加载，结束恢复设置；实际PDF内容不能由这个结构测试代替。文件相关4文件49项/1290断言、格式化工具21项/38断言、类型、17语言及构建通过。Markdown查找数字改走原formatNumber，现有消息ID和翻译继续使用。
+
+新增 --media-only 实际窗口流程，拥有的夹具生成可审查的PDF和FFmpeg testsrc2 WebM/MP4，不给产品增加FFmpeg依赖。读取/校验SSH字节、记录PDF帧与可访问树并截图；PDF必须另经截图实际查看，iframe加载不等于页面验证。视频使用可见原生播放按钮检查时间推进/暂停、默认与重开不自动播放，并核对超限文件不能加载播放器。新窗口结果待记录，macOS/其他容器和编码格式尚未验收。[阶段二十四日志](evidence/local-ssh-feature-parity/stage24)。

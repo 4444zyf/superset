@@ -1,6 +1,7 @@
 import { msg } from "@lingui/core/macro";
 import { useLingui as useTranslation } from "@lingui/react";
 import { Trans } from "@lingui/react/macro";
+import { formatNumber } from "@superset/i18n/format";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@superset/ui/tooltip";
 import { useEffect, useRef } from "react";
 import { HiChevronDown, HiChevronUp, HiMiniXMark } from "react-icons/hi2";
@@ -23,7 +24,7 @@ export function MarkdownSearch({
 	isOpen,
 	query,
 	caseSensitive,
-	matchCount,
+	matchCount: rawMatchCount,
 	activeMatchIndex,
 	onQueryChange,
 	onCaseSensitiveChange,
@@ -32,6 +33,7 @@ export function MarkdownSearch({
 	onClose,
 }: MarkdownSearchProps) {
 	const { _: translate } = useTranslation();
+	const matchCount = formatNumber(rawMatchCount);
 
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -72,7 +74,13 @@ export function MarkdownSearch({
 			/>
 			{query && (
 				<span className="text-xs text-muted-foreground whitespace-nowrap px-1">
-					{matchCount === 0 ? <Trans>No results</Trans> : <Trans>{activeMatchIndex + 1} of {matchCount}</Trans>}
+					{rawMatchCount === 0 ? (
+						<Trans>No results</Trans>
+					) : (
+						<Trans>
+							{formatNumber(activeMatchIndex + 1)} of {matchCount}
+						</Trans>
+					)}
 				</span>
 			)}
 			<div className="flex items-center shrink-0">
@@ -92,7 +100,9 @@ export function MarkdownSearch({
 							<PiTextAa className="size-3.5" />
 						</button>
 					</TooltipTrigger>
-					<TooltipContent side="bottom"><Trans>Match case</Trans></TooltipContent>
+					<TooltipContent side="bottom">
+						<Trans>Match case</Trans>
+					</TooltipContent>
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>
@@ -105,7 +115,9 @@ export function MarkdownSearch({
 							<HiChevronUp className="size-3.5" />
 						</button>
 					</TooltipTrigger>
-					<TooltipContent side="bottom"><Trans>Previous match</Trans> (Shift+Enter)</TooltipContent>
+					<TooltipContent side="bottom">
+						<Trans>Previous match</Trans> (Shift+Enter)
+					</TooltipContent>
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>
@@ -118,7 +130,9 @@ export function MarkdownSearch({
 							<HiChevronDown className="size-3.5" />
 						</button>
 					</TooltipTrigger>
-					<TooltipContent side="bottom"><Trans>Next match</Trans> (Enter)</TooltipContent>
+					<TooltipContent side="bottom">
+						<Trans>Next match</Trans> (Enter)
+					</TooltipContent>
 				</Tooltip>
 				<Tooltip>
 					<TooltipTrigger asChild>
@@ -131,7 +145,9 @@ export function MarkdownSearch({
 							<HiMiniXMark className="size-3.5" />
 						</button>
 					</TooltipTrigger>
-					<TooltipContent side="bottom"><Trans>Close</Trans> (Esc)</TooltipContent>
+					<TooltipContent side="bottom">
+						<Trans>Close</Trans> (Esc)
+					</TooltipContent>
 				</Tooltip>
 			</div>
 		</div>

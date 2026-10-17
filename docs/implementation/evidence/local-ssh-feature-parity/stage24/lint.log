@@ -1,0 +1,26 @@
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:244:17 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    242 │ test("rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision", async () => {
+    243 │ 	const frontMatter = "\ufeff---\ntitle: keep exactly\n---\n";
+  > 244 │ 	const source = frontMatter + "# Rich document\n\nOriginal paragraph.\n";
+        │ 	               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    245 │ 	const calls: DirectRpc[] = [];
+    246 │ 	const api = {
+  
+  i Unsafe fix: Use a template literal.
+  
+    242 242 │   test("rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision", async () => {
+    243 243 │   	const frontMatter = "\ufeff---\ntitle: keep exactly\n---\n";
+    244     │ - → const·source·=·frontMatter·+·"#·Rich·document\n\nOriginal·paragraph.\n";
+        244 │ + → const·source·=·`${frontMatter}#·Rich·document\n\nOriginal·paragraph.\n`;
+    245 245 │   	const calls: DirectRpc[] = [];
+    246 246 │   	const api = {
+  
+
+Skipped 1 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 5 files in 26ms. Fixed 3 files.
+Found 1 info.

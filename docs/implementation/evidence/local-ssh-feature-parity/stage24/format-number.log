@@ -1,0 +1,30 @@
+bun test v1.4.2 (744846f84)
+
+src/format/format.test.ts:
+(pass) format helpers (en) > active locale defaults to en [0.04ms]
+(pass) format helpers (en) > formatNumber groups digits [2.90ms]
+(pass) format helpers (en) > formatPercent renders one fractional digit by default [0.17ms]
+(pass) format helpers (en) > formatCompactNumber matches the previous en-US output [0.20ms]
+(pass) format helpers (en) > formatCurrency renders major units [1.49ms]
+(pass) format helpers (en) > formatPrice renders Stripe minor units and uppercases currency [0.15ms]
+(pass) format helpers (en) > formatDate default matches the settings-page shape [6.73ms]
+(pass) formatRelativeTime > formats past times [0.35ms]
+(pass) formatRelativeTime > uses idiomatic wording where the locale has one [0.05ms]
+(pass) formatRelativeTime > formats future times [0.07ms]
+(pass) formatRelativeTime > falls back to seconds below a minute [0.04ms]
+(pass) formatRelativeTime > the same instant reads as now, not as zero seconds [0.54ms]
+(pass) formatRelativeTime > compact form never shows seconds [0.47ms]
+(pass) formatRelativeTime > compact form uses the narrow style [0.05ms]
+(pass) formatRelativeTime > a timestamp that leads the clock still reads as the present [0.05ms]
+(pass) formatRelativeTime > a real future time keeps the future tense [0.05ms]
+(pass) formatRelativeTime > age fits two digits and a unit [0.72ms]
+(pass) formatRelativeTime > compact form never reads as a negative number [0.55ms]
+(pass) formatRelativeTime > age keeps a non-Latin locale's own units [0.33ms]
+Messages for locale "ja" not loaded.
+(pass) formatRelativeTime > follows the active locale [0.30ms]
+(pass) formatRelativePeriod > names recent periods the way a list heading would [0.12ms]
+
+ 21 pass
+ 0 fail
+ 38 expect() calls
+Ran 21 tests across 1 file. [46.00ms]

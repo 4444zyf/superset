@@ -1,0 +1,82 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [246.10ms]
+
+src/renderer/workstation/Workstation/providers/WorkstationFileDocuments/workstation-file-documents.test.ts:
+(pass) multiple files keep their drafts after releasing their views [2.98ms]
+(pass) reconnecting the same backend keeps drafts and sends saves with the current generation [0.59ms]
+(pass) a different backend cannot receive a previous backend's draft [0.57ms]
+(pass) binary bytes remain read-only and never enter a text save [0.26ms]
+(pass) the file limit preserves open dirty documents instead of silently evicting them [0.25ms]
+(pass) a stale activation cannot reactivate a previous backend before it rejects [0.54ms]
+(pass) a late read from a released view cannot change a replacement document's line endings [0.45ms]
+(pass) a confirmed remote rename keeps the original document id, draft and CRLF codec [0.56ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/RemoteFiles.test.tsx:
+(pass) the original stage button stages a file and refreshes only the selected workspace [223.60ms]
+(pass) the original explorer action opens a create form using the current remote directory [135.24ms]
+(pass) choosing Copy from the file menu leaves the destination dialog open [126.72ms]
+(pass) content search opens the selected remote file at the matched line [474.25ms]
+(pass) a backend without Git capability can browse files without issuing Git requests [68.68ms]
+(pass) reads and saves the remote file with an optimistic revision instead of local paths or storage [157.53ms]
+(pass) a concurrent remote edit preserves the user's draft without a blind retry [171.96ms]
+(pass) a truncated read cannot overwrite the complete remote file [116.68ms]
+(pass) invalid UTF-8 bytes cannot be saved through the text editor [76.97ms]
+(pass) editing a remote UTF-8 file retains its byte order mark [145.23ms]
+(pass) editing a remote CRLF file preserves its line endings [156.52ms]
+(pass) Git diffs use the remote status category and surface transport failures [107.87ms]
+(pass) a file read completing after the workspace changed cannot install an old editor [90.38ms]
+(pass) focus autosave reuses the remote file revision and saves once without manual Save [174.16ms]
+(pass) an autosave conflict preserves the draft and blocks further automatic writes [167.29ms]
+(pass) a lost autosave reply does not retry the write on the next window blur [171.53ms]
+(pass) opening another file keeps both editable drafts and switching back does not re-read [390.97ms]
+(pass) closing a dirty file tab requires confirmation and Cancel keeps its draft [398.68ms]
+(pass) close all file tabs confirms all dirty drafts and closes them together [474.94ms]
+(pass) a shared document provider retains the first workspace draft while another workspace is opened [348.27ms]
+(pass) switching to Changes and back retains the original editor undo history [453.04ms]
+(pass) Git changes reuse the original split and unified diff controls without account providers [963.08ms]
+(pass) history opens the selected commit files and requests that commit's original diff [348.32ms]
+(pass) the configured base branch reaches status and against-base diff queries [621.62ms]
+(pass) a late configured base invalidates an in-flight default-base diff and refreshes comparison status [480.31ms]
+(pass) pull reloads a clean original editor from the changed worktree [673.93ms]
+(pass) opening a file during a Git refresh is not silently dropped [172.36ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+(pass) a remote image reuses the original image surface and keyboard zoom without a text editor or save [339.26ms]
+(pass) unknown bytes retain the read-only binary message [2.31ms]
+(pass) an oversized image cannot bypass the document size limit [50.60ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [58.89ms]
+(pass) markdown defaults to the original rich preview and can switch to the shared source document [783.18ms]
+(pass) a markdown search destination opens the source view at the requested line [109.28ms]
+(pass) rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision [241.79ms]
+(pass) markdown links use explicit modifier clicks and local image sources use the selected workspace reader [110.75ms]
+(pass) Ctrl+F stays scoped to the selected preview when focus is on %s [95.80ms]
+(pass) Ctrl+F stays scoped to the selected preview when focus is on %s [147.55ms]
+(pass) closing rich preview search returns focus to the same file for the next find [137.16ms]
+328 |         const targetURL = BrowserFrameURL.getRelativeURL(browserFrame, this.src);
+329 |         if (this.#iframe && this.#iframe.window.location.href === targetURL.href) {
+330 |             return;
+331 |         }
+332 |         if (browserFrame.page.context.browser.settings.disableIframePageLoading) {
+333 |             const error = new window.DOMException(`Failed to load iframe page "${targetURL.href}". Iframe page loading is disabled.`, DOMExceptionNameEnum.notSupportedError);
+                                ^
+NotSupportedError: Failed to load iframe page "blob:preview-5". Iframe page loading is disabled.
+      at #loadPage (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/html-iframe-element/HTMLIFrameElement.js:333:27)
+      at [connectedToDocument] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/html-iframe-element/HTMLIFrameElement.js:230:14)
+      at [connectedToNode] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/node/Node.js:794:33)
+      at [appendChild] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/node/Node.js:413:29)
+      at [appendChild] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/element/Element.js:1072:50)
+      at insertOrAppendPlacementNode (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:13688:63)
+      at commitPlacement (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:13735:11)
+      at runWithFiberInDEV (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at commitReconciliationEffects (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:15139:11)
+      at commitMutationEffectsOnFiber (/workspace/superset/node_modules/.bun/react-dom@19.2.3+83d5fd7b249dbeef/node_modules/react-dom/cjs/react-dom-client.development.js:14822:11)
+
+(pass) recognized media uses the original %s view without text editing or autoplay [305.83ms]
+(pass) recognized media uses the original %s view without text editing or autoplay [304.99ms]
+
+ 49 pass
+ 0 fail
+ 1290 expect() calls
+Ran 49 tests across 4 files. [11.44s]

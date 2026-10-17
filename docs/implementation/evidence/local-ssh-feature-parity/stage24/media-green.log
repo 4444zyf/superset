@@ -1,0 +1,46 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [321.63ms]
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteDocumentEditor/RemoteDocumentEditor.test.tsx:
+(pass) a remote image reuses the original image surface and keyboard zoom without a text editor or save [345.77ms]
+(pass) unknown bytes retain the read-only binary message [4.29ms]
+(pass) an oversized image cannot bypass the document size limit [48.65ms]
+(pass) an image decode error is visible and changing the owning document clears the old preview [17.05ms]
+(pass) markdown defaults to the original rich preview and can switch to the shared source document [716.46ms]
+(pass) a markdown search destination opens the source view at the requested line [64.75ms]
+(pass) rich markdown edits share the source draft, preserve front matter, and save only explicitly with the disk revision [205.63ms]
+(pass) markdown links use explicit modifier clicks and local image sources use the selected workspace reader [65.57ms]
+(pass) Ctrl+F stays scoped to the selected preview when focus is on %s [48.84ms]
+(pass) Ctrl+F stays scoped to the selected preview when focus is on %s [43.19ms]
+(pass) closing rich preview search returns focus to the same file for the next find [63.01ms]
+12 |      * @param url URL.
+13 |      * @param [base] Base URL.
+14 |      */
+15 |     constructor(url, base) {
+16 |         try {
+17 |             super(url, base);
+                 ^
+TypeError: Invalid URL
+ input: "null",
+  base: "blob:preview-5",
+  code: "ERR_INVALID_URL"
+
+      at new URL (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/url/URL.js:17:13)
+      at getInitialReferrer (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/fetch/utilities/FetchRequestReferrerUtility.js:49:70)
+      at new Request (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/fetch/Request.js:98:69)
+      at new Request (1:23)
+      at new Fetch (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/fetch/Fetch.js:78:19)
+      at navigate (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/browser/utilities/BrowserFrameNavigator.js:187:23)
+      at #loadPage (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/html-iframe-element/HTMLIFrameElement.js:345:14)
+      at [connectedToDocument] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/html-iframe-element/HTMLIFrameElement.js:230:14)
+      at [connectedToNode] (/workspace/superset/node_modules/.bun/happy-dom@20.11.2+84634d09670b738c/node_modules/happy-dom/lib/nodes/node/Node.js:794:33)
+
+(pass) recognized media uses the original %s view without text editing or autoplay [313.84ms]
+(pass) recognized media uses the original %s view without text editing or autoplay [304.33ms]
+
+ 14 pass
+ 0 fail
+ 1073 expect() calls
+Ran 14 tests across 2 files. [3.00s]

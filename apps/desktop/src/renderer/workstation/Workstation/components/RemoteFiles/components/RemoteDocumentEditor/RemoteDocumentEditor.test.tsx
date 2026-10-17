@@ -32,10 +32,18 @@ function render(ui: ReactElement) {
 	});
 }
 
+const browserSettings = (
+	window as unknown as {
+		happyDOM: { settings: { disableIframePageLoading: boolean } };
+	}
+).happyDOM.settings;
+let priorIframeLoading = false;
 let sequence = 0;
 let createUrl: ReturnType<typeof spyOn<typeof URL, "createObjectURL">>;
 let revokeUrl: ReturnType<typeof spyOn<typeof URL, "revokeObjectURL">>;
 beforeEach(() => {
+	priorIframeLoading = browserSettings.disableIframePageLoading;
+	browserSettings.disableIframePageLoading = true;
 	createUrl = spyOn(URL, "createObjectURL").mockImplementation(
 		() => `blob:preview-${++sequence}`,
 	);
@@ -45,6 +53,7 @@ afterEach(() => {
 	cleanup();
 	createUrl.mockRestore();
 	revokeUrl.mockRestore();
+	browserSettings.disableIframePageLoading = priorIframeLoading;
 });
 function doc(
 	path: string,
@@ -413,4 +422,34 @@ test("closing rich preview search returns focus to the same file for the next fi
 	if (!focused) throw new Error("no focused file");
 	fireEvent.keyDown(focused, { key: "f", ctrlKey: true });
 	expect(await screen.findByRole("textbox", { name: "Find" })).toBeTruthy();
+});
+
+test.each([
+	{ path: "/remote/worktree/report.pdf", tag: "iframe" },
+	{ path: "/remote/worktree/clip.webm", tag: "video" },
+])("recognized media uses the original %s view without text editing or autoplay", async ({
+	path,
+	tag,
+}) => {
+	render(
+		<RemoteDocumentEditor
+			document={doc(path, bytes)}
+			active
+			busy={false}
+			{...callbacks}
+		/>,
+	);
+	await waitFor(() => expect(document.querySelector(tag)).not.toBeNull());
+	const media = document.querySelector<HTMLIFrameElement | HTMLVideoElement>(
+		tag,
+	);
+	if (!media) throw new Error("media view did not mount");
+	expect(media.src.startsWith("blob:")).toBe(true);
+	expect(document.querySelector(".cm-editor")).toBeNull();
+	expect(screen.queryByRole("button", { name: "Save file" })).toBeNull();
+	if (media instanceof HTMLVideoElement) {
+		expect(media.controls).toBe(true);
+		expect(media.autoplay).toBe(false);
+		expect(media.preload).toBe("metadata");
+	}
 });

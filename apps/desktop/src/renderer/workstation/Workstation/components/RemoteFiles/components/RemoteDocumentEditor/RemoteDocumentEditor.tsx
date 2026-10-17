@@ -18,7 +18,12 @@ import {
 import type { SharedFileDocument } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
 import { getPathDirectory } from "shared/absolute-paths";
 import { detectLanguage } from "shared/detect-language";
-import { isImageFile, isMarkdownFile } from "shared/file-types";
+import {
+	isImageFile,
+	isMarkdownFile,
+	isPdfFile,
+	isVideoFile,
+} from "shared/file-types";
 import { useWorkstationAppearance } from "../../../../providers/WorkstationPreferencesContext";
 import type { MarkdownImageResources } from "../RemoteMarkdownPreview/markdown-images";
 
@@ -31,6 +36,17 @@ const ImageView = lazy(() =>
 	import(
 		"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/views/ImageView/ImageView"
 	).then((module) => ({ default: module.ImageView })),
+);
+
+const PdfView = lazy(() =>
+	import(
+		"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/views/PdfView/PdfView"
+	).then((module) => ({ default: module.PdfView })),
+);
+const VideoView = lazy(() =>
+	import(
+		"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/views/VideoView/VideoView"
+	).then((module) => ({ default: module.VideoView })),
 );
 
 const RemoteMarkdownPreview = lazy(() =>
@@ -98,6 +114,18 @@ export function RemoteDocumentEditor({
 	const markdown =
 		content.kind === "text" && isMarkdownFile(document.absolutePath);
 	const text = content.kind === "text" ? content.value : "";
+	const image = isImageFile(document.absolutePath),
+		pdf = isPdfFile(document.absolutePath),
+		video = isVideoFile(document.absolutePath);
+	const MediaView = image
+		? ImageView
+		: pdf
+			? PdfView
+			: video
+				? VideoView
+				: null;
+	const mediaKind = image ? "image" : pdf ? "pdf" : video ? "video" : null;
+
 	const revision = content.kind === "text" ? content.revision : undefined;
 	const previewResources = useMemo(
 		() =>
@@ -137,13 +165,14 @@ export function RemoteDocumentEditor({
 				<p>
 					<Trans>Loading files...</Trans>
 				</p>
-			) : content.kind === "bytes" && isImageFile(document.absolutePath) ? (
+			) : content.kind === "bytes" && MediaView !== null ? (
 				<section
 					className="h-80 border border-border rounded-md overflow-hidden"
-					data-remote-image-preview
+					data-remote-image-preview={image ? true : undefined}
+					data-remote-media-preview={mediaKind}
 				>
 					<Suspense fallback={<Trans>Files</Trans>}>
-						<ImageView
+						<MediaView
 							key={document.id}
 							document={document}
 							filePath={document.absolutePath}

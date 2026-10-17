@@ -1,3 +1,4 @@
+import { writeMediaFixtures } from "./verify-media-fixtures.mjs";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -38,6 +39,11 @@ export function ownedRestoreControls(home, fixture) {
 	);
 	let originals = [];
 	return {
+		prepareMediaPreviews(worktreePath) {
+			assert.ok(worktreePath.startsWith(join(fixture.homeDir,"Superset Remix","worktrees")+"/"));
+			assert.equal(lstatSync(worktreePath).uid,process.getuid());
+			return writeMediaFixtures(worktreePath);
+		},
 		prepareMarkdownPreview(worktreePath, png) {
 			const image = this.prepareFilePreviews(worktreePath, png);
 			const source = [
