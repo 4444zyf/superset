@@ -1,0 +1,84 @@
+apps/desktop/scripts/verify-workstation-background-files-ui.mjs:32:4 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    30 │ 		writeFileSync(
+    31 │ 			join(output, "background-files-failure-observations.json"),
+  > 32 │ 			JSON.stringify(
+       │ 			^^^^^^^^^^^^^^^
+  > 33 │ 				await evaluate(
+        ...
+  > 37 │ 				2,
+  > 38 │ 			) + "\n",
+       │ 			^^^^^^^^
+    39 │ 		);
+    40 │ 		throw new Error("Background file acceptance did not complete");
+  
+  i Unsafe fix: Use a template literal.
+  
+     30  30 │   		writeFileSync(
+     31  31 │   			join(output, "background-files-failure-observations.json"),
+     32     │ - → → → JSON.stringify(
+         32 │ + → → → `${JSON.stringify(
+     33  33 │   				await evaluate(
+     34  34 │   					"({events:window.nativeBackgroundEvents??[],text:document.body.innerText.slice(-4000)})",
+    ······· │ 
+     36  36 │   				null,
+     37  37 │   				2,
+     38     │ - → → → )·+·"\n",
+         38 │ + → → → )}\n`,
+     39  39 │   		);
+     40  40 │   		throw new Error("Background file acceptance did not complete");
+  
+
+apps/desktop/scripts/verify-workstation-background-files-ui.mjs:212:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    210 │ 	writeFileSync(
+    211 │ 		join(output, "workstation-background-files-ui.json"),
+  > 212 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 213 │ 			{
+         ...
+  > 232 │ 			2,
+  > 233 │ 		) + "\n",
+        │ 		^^^^^^^^
+    234 │ 	);
+    235 │ }
+  
+  i Unsafe fix: Use a template literal.
+  
+    210 210 │   	writeFileSync(
+    211 211 │   		join(output, "workstation-background-files-ui.json"),
+    212     │ - → → JSON.stringify(
+        212 │ + → → `${JSON.stringify(
+    213 213 │   			{
+    214 214 │   				sourceRevision: process.env.GITHUB_SHA,
+    ······· │ 
+    231 231 │   			null,
+    232 232 │   			2,
+    233     │ - → → )·+·"\n",
+        233 │ + → → )}\n`,
+    234 234 │   	);
+    235 235 │   }
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.ts:126:22 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    124 │ 		this.paths.add(path);
+    125 │ 		if (this.paths.size > this.maxEntries)
+  > 126 │ 			this.paths.delete(this.paths.values().next().value!);
+        │ 			                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    127 │ 		if (!tracked) this.notify();
+    128 │ 		const key = JSON.stringify([path, revision]);
+  
+
+Skipped 2 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 2 files in 20ms. Fixed 2 files.
+Found 1 warning.
+Found 2 infos.

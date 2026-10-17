@@ -1,0 +1,15 @@
+$ bun test src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.test.ts
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.test.ts:
+(pass) markdown images share one bounded read and evict old completed bytes [0.98ms]
+(pass) unsupported files and oversized image results never become preview bytes [0.19ms]
+(pass) switching the owner drops an in-flight image and does not launch its queued read [0.22ms]
+(pass) a saved markdown revision reloads its image while duplicate readers share that revision [0.15ms]
+(pass) an independent image event rejects stale pending bytes and reloads without a markdown revision change [0.31ms]
+(pass) missing images retain bounded watch interest so their later creation refreshes the original preview [0.22ms]
+
+ 6 pass
+ 0 fail
+ 25 expect() calls
+Ran 6 tests across 1 file. [146.00ms]

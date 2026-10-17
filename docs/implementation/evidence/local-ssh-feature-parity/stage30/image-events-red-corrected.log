@@ -1,0 +1,34 @@
+$ bun test src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.test.ts
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.test.ts:
+(pass) markdown images share one bounded read and evict old completed bytes [0.84ms]
+(pass) unsupported files and oversized image results never become preview bytes [0.18ms]
+(pass) switching the owner drops an in-flight image and does not launch its queued read [0.15ms]
+(pass) a saved markdown revision reloads its image while duplicate readers share that revision [0.14ms]
+87 | test("an independent image event rejects stale pending bytes and reloads without a markdown revision change", async () => {
+88 |  const results:((value:{kind:"bytes";content:Uint8Array})=>void)[]=[];
+89 |  const reader=new MarkdownImageReader({read:async()=>new Promise(resolve=>results.push(resolve))});
+90 |  const old=reader.readFile("/repo/ignored/image.png","same-markdown-revision");
+91 |  const rejected=Promise.allSettled([old]);
+92 |  reader.invalidate([{kind:"update",absolutePath:"/repo/ignored/image.png"}]);
+             ^
+TypeError: reader.invalidate is not a function. (In 'reader.invalidate([{ kind: "update", absolutePath: "/repo/ignored/image.png" }])', 'reader.invalidate' is undefined)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.test.ts:92:9)
+(fail) an independent image event rejects stale pending bytes and reloads without a markdown revision change [0.30ms]
+101 | 
+102 | test("missing images retain bounded watch interest so their later creation refreshes the original preview", async () => {
+103 |  let missing=true;
+104 |  const reader=new MarkdownImageReader({maxEntries:2,read:async()=>{if(missing)throw new Error("ENOENT");return {kind:"bytes",content:new Uint8Array([7])};}});
+105 |  await expect(reader.readFile("/repo/a.png")).rejects.toThrow();
+106 |  expect(reader.getPaths()).toEqual(["/repo/a.png"]);
+                     ^
+TypeError: reader.getPaths is not a function. (In 'reader.getPaths()', 'reader.getPaths' is undefined)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteFiles/components/RemoteMarkdownPreview/markdown-images.test.ts:106:16)
+(fail) missing images retain bounded watch interest so their later creation refreshes the original preview [0.21ms]
+
+ 4 pass
+ 2 fail
+ 17 expect() calls
+Ran 6 tests across 1 file. [145.00ms]
+error: script "test" exited with code 1

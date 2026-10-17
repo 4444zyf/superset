@@ -637,3 +637,15 @@ Overwrite只通过工作站明确冲突动作签发一次性许可，绑定连�
 
 
 第98轮固定922264d045fd4f31a81e9a5faf941cd6bc5dc9a5，重建后的真实Linux/Electron/拥有的SSH --file-conflict-only退出0。原Diff实际显示远端内容与中文/emoji草稿两侧；Keep editing两份内容不变，只有明确Reload读取远端版，明确Overwrite保存本地草稿且磁盘CRLF保留。文件真实unlink后原删除提示保留草稿，明确Save/Overwrite恢复文件。目录真实chmod 0500导致EACCES，原SaveErrorBanner出现且草稿、磁盘旧版均保留，恢复权限本身不写入，只有明确Retry才保存并清除错误。关闭/重开后读取已恢复内容且没有自动写入，原3个PTY仍PID19489/19502/19496、执行ID和统一worktree cwd保留。八张冲突/重载/覆盖/删除恢复/错误重试/重开截图均已实际查看。[第98轮原始证据](evidence/local-ssh-feature-parity/source-linux-file-conflict/98)、[阶段二十九红绿/回归/类型/构建日志](evidence/local-ssh-feature-parity/stage29)。背景文档与Markdown独立图片资源监听、其他内联操作和全局退出草稿提醒继续完成；本阶段不将整个文件组或macOS发行包标为完成。
+
+
+### 阶段三十：后台文档及Markdown独立图片事件
+
+先复现没有文件视图时打开的文档不再订阅，失败回归后在工作台中复用原事件hook为保留文档拥有订阅；按实际连接/后端/namespace/generation/工作区隔离，仍是同一原EventBus的引用计数，不重复递归后端监听。文件视图继续负责树与图片刷新，正常共享文档由工作台分发一次，切到Terminal/Chat仍监听已有文档；断开或换后端释放，generation更新通知原文档订阅者并重建只读订阅。对同后端generation恢复的回归先失败后通过。后台干净文档更新、脏草稿保留/外部变化提示、旧连接事件拒绝和0写入均由注入原IPC事件的回归确认。
+
+Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取器。仅图片变化时失效相应缓存，并把资源revision传给原预览；编辑器和草稿不重新挂载。等待读取的旧字节立即被拒绝，晚回复不填回缓存；删除或缺失图片仍保留最多16个路径关注，后续create可重读，继续原单图1MiB/总8MiB/16项/4并发边界。原watchFsFile同样覆盖.gitignore目录中的图片，不依赖Markdown源文件revision改变。相关回归先4通过/2失败，后6通过；首次测试将未完成promise直接交给Bun同步rejects断言导致测试进程阻塞，已终止，改用Promise.allSettled观察后才复现功能失败，未提高超时。最终8文件83项1493断言、desktop类型及17语言检查通过。PDF夹具保留既有happy-dom禁用iframe加载的NotSupportedError诊断，不能将其算真实PDF页面加载；真实PDF已有第80轮独立证据。
+
+第99轮产品仍未重建922264d04、脚本8b758e8fb，实际进入原终端后文件树已卸载，SSH运行机外部目录rename未传到客户端，原观察只有之前的create事件，按预期退出1；失败截图已实际查看，旧bundle hash保留后才重建。[第99轮旧构建基线](evidence/local-ssh-feature-parity/source-linux-background-files-baseline/99)。新版后台目录跟随、草稿保留、独立图片更新/删除/恢复与重开实际窗口待验，不能从协议夹具推断供应商Agent或macOS行为。
+
+
+第100轮固定8b758e8fb，真实终端视图中已收到目录及子文件rename，返回文件视图原文档跟随新路径；随后脚本未等待加载完成/CodeMirror可编辑就键入，预期草稿没有出现而退出1。失败截图已查看，保留产品不变，只在脚本中等待contenteditable=true并确认真实焦点；不把这一轮算全部通过。[第100轮失败证据](evidence/local-ssh-feature-parity/source-linux-background-files-failures/100)。第101轮产品仍8b758e8fb、脚本b006af752，实际Linux/Electron/拥有的SSH --file-background-only退出0：文件视图卸载、终端仍显示时真实目录rename已经到达，返回后原文档自动跟随；中文/emoji草稿在再次离开后的外部修改中保留，原外部变更Compare提示出现，远端新内容未被写回。Markdown引用.gitignore目录中的PNG，源文档不变时实际128×128图片更新为32×32及新blob，unlink显示原Could not load image，重新创建24×24后自动恢复。关闭/重开仍显示24×24、两个源文件字节保持正确，3个原PTY仍PID22882/22894/22888、执行ID和统一worktree cwd保留。八张后台目录/草稿/图片更新、删除恢复与重开截图均已实际查看。[第101轮原始证据](evidence/local-ssh-feature-parity/source-linux-background-files/101)、[阶段三十红绿/回归/类型/构建日志](evidence/local-ssh-feature-parity/stage30)。其他文件内联操作/拖拽/完整快捷键、全局退出草稿保护及总清单其余组继续接入；Linux源码窗口不代替macOS发行物。

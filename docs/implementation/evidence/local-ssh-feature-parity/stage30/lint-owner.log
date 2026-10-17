@@ -1,0 +1,26 @@
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:878:24 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    876 │ 							hasUnsavedChanges={() =>
+    877 │ 								documents
+  > 878 │ 									.getDocuments(ui.connection!, deleteWorkspace.id)
+        │ 									              ^^^^^^^^^^^^^^
+    879 │ 									.some((d) => d.dirty || d.pendingSave)
+    880 │ 							}
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:882:24 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    880 │ 							}
+    881 │ 							onDeleted={(warnings) => {
+  > 882 │ 								const target = ui.connection!;
+        │ 								               ^^^^^^^^^^^^^^
+    883 │ 								setDeleteWorkspace(null);
+    884 │ 
+  
+
+Checked 1 file in 38ms. Fixed 1 file.
+Found 2 warnings.
