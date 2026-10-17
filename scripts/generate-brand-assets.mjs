@@ -10,14 +10,13 @@ const brand = JSON.parse(
 	readFileSync(resolve(root, "packages/shared/src/product-brand.json"), "utf8"),
 );
 const appSource = readFileSync(
-	resolve(root, "assets/branding/app-icon-source.png"),
+	resolve(root, "assets/branding/app-icon-source.svg"),
 );
 const markSource = readFileSync(
-	resolve(root, "assets/branding/mark-source.png"),
+	resolve(root, "assets/branding/mark-source.svg"),
 );
-const compactMask = await sharp(markSource).resize(128, 128).png().toBuffer();
-const maskDataUri = `data:image/png;base64,${compactMask.toString("base64")}`;
-const iconDataUri = `data:image/png;base64,${appSource.toString("base64")}`;
+const maskDataUri = `data:image/svg+xml;base64,${markSource.toString("base64")}`;
+const iconDataUri = `data:image/svg+xml;base64,${appSource.toString("base64")}`;
 const maskedMark = (id, color = "currentColor") =>
 	`<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="32" height="32" style="mask-type:luminance"><image width="32" height="32" href="${maskDataUri}"/></mask></defs><rect width="32" height="32" fill="${color}" mask="url(#${id})"/>`;
 const mark = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">${maskedMark("brand-mark")}</svg>\n`;
@@ -26,6 +25,14 @@ const escapedName = brand.displayName
 	.replaceAll("<", "&lt;")
 	.replaceAll('"', "&quot;");
 const outputs = new Map();
+outputs.set(
+	"assets/branding/app-icon-source.png",
+	await sharp(appSource).png().toBuffer(),
+);
+outputs.set(
+	"assets/branding/mark-source.png",
+	await sharp(markSource).resize(128, 128).png().toBuffer(),
+);
 const svg = (body, width = 1024, height = width) =>
 	`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${body}</svg>\n`;
 const wordmark = svg(
