@@ -89,3 +89,19 @@ test("invalid stored draft data is reported and cannot be silently replaced by a
 		store.close();
 	}
 });
+
+test("persisted draft guards protect a connection and the exact workspace until the draft is explicitly cleared", () => {
+	const db = new Database(":memory:");
+	const store = new WorkstationChatDrafts(db as unknown as SqliteDatabase);
+	try {
+		store.update({ expectedRevision: 0, entries: [entry] });
+		expect(store.hasDrafts({ connectionId: identity.connectionId })).toBe(true);
+		expect(store.hasDrafts({ ...identity, namespaceId: "other" })).toBe(false);
+		store.update({ expectedRevision: 1, entries: [] });
+		expect(store.hasDrafts({ connectionId: identity.connectionId })).toBe(
+			false,
+		);
+	} finally {
+		store.close();
+	}
+});

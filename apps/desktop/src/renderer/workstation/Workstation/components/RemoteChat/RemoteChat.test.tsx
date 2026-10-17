@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from "bun:test";
+import { afterEach, beforeEach, expect, test } from "bun:test";
 import {
 	act,
 	cleanup,
@@ -14,7 +14,20 @@ import type {
 } from "../../../../../shared/direct-workstation";
 import { RemoteChat } from "./RemoteChat";
 
-afterEach(cleanup);
+const browser = (
+	window as unknown as { happyDOM: { setURL(url: string): void } }
+).happyDOM;
+let priorUrl = "";
+beforeEach(() => {
+	priorUrl = window.location.href;
+	browser.setURL(
+		"file:///workspace/superset/apps/desktop/dist/renderer/index.html",
+	);
+});
+afterEach(() => {
+	cleanup();
+	browser.setURL(priorUrl);
+});
 test("changing pane callbacks does not reopen a restored chat stream", async () => {
 	let opens = 0;
 	let closes = 0;
@@ -806,4 +819,119 @@ test("chat merges both clipboard file accessors, deduplicates the image, and ret
 	expect(screen.getByRole("button", { name: "notes.txt" })).toBeTruthy();
 	expect((area as HTMLTextAreaElement).value).toBe("未发送的消息 🙂");
 	expect(mutations).toEqual([]);
+});
+
+test("the original attachment removal action removes only its local draft reference without uploading, downloading or sending", async () => {
+	const { api, calls } = attachmentFixture();
+	let downloads = 0;
+	api.readAttachment = async () => {
+		downloads++;
+		return {
+			bytes: new Uint8Array(),
+			mimeType: "image/png",
+			fileName: "selected.txt",
+		};
+	};
+	render(
+		<RemoteChat
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			onError={() => {}}
+		/>,
+	);
+	fireEvent.change(await screen.findByLabelText("Message"), {
+		target: { value: "keep my text" },
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Attach files" }));
+	await screen.findByRole("button", { name: "selected.txt" });
+	fireEvent.click(screen.getByRole("button", { name: "Remove attachment" }));
+	expect(screen.queryByRole("button", { name: "selected.txt" })).toBeNull();
+	expect((screen.getByLabelText("Message") as HTMLTextAreaElement).value).toBe(
+		"keep my text",
+	);
+	expect(downloads).toBe(0);
+	expect(calls.filter((call) => call.path === "chat.prompt")).toHaveLength(0);
+});
+
+test("explicit draft discard uses the original unsaved dialog, Cancel retains data and confirmation does not send a message", async () => {
+	const { api, calls } = attachmentFixture();
+	render(
+		<RemoteChat
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			onError={() => {}}
+		/>,
+	);
+	fireEvent.change(await screen.findByLabelText("Message"), {
+		target: { value: "discard only explicitly" },
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Attach files" }));
+	await screen.findByRole("button", { name: "selected.txt" });
+	fireEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+	const dialog = await screen.findByRole("alertdialog");
+	expect(dialog.textContent).toContain("Unsaved changes");
+	fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+	expect((screen.getByLabelText("Message") as HTMLTextAreaElement).value).toBe(
+		"discard only explicitly",
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+	const buttons = screen.getAllByRole("button", { name: "Discard changes" });
+	await act(async () => {
+		fireEvent.click(buttons.at(-1)!);
+	});
+	expect((screen.getByLabelText("Message") as HTMLTextAreaElement).value).toBe(
+		"",
+	);
+	expect(screen.queryByRole("button", { name: "selected.txt" })).toBeNull();
+	expect(calls.filter((call) => call.path === "chat.prompt")).toHaveLength(0);
+});
+
+test("a failed confirmed discard keeps the original dialog, message and attachment until an explicit retry succeeds", async () => {
+	const { api, calls } = attachmentFixture();
+	let fail = true;
+	api.getChatDrafts = async () => ({
+		revision: 0,
+		invalid: false,
+		entries: [],
+	});
+	api.saveChatDrafts = async (input) => {
+		if (fail) throw new Error("Disk full");
+		return { revision: 1, invalid: false, entries: input.entries };
+	};
+	render(
+		<RemoteChat
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			onError={() => {}}
+		/>,
+	);
+	fireEvent.change(await screen.findByLabelText("Message"), {
+		target: { value: "retain after failed discard" },
+	});
+	fireEvent.click(screen.getByRole("button", { name: "Attach files" }));
+	await screen.findByRole("button", { name: "selected.txt" });
+	fireEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+	await act(async () => {
+		fireEvent.click(
+			screen.getAllByRole("button", { name: "Discard changes" }).at(-1)!,
+		);
+	});
+	expect(screen.getByRole("alertdialog").textContent).toContain("Disk full");
+	expect((screen.getByLabelText("Message") as HTMLTextAreaElement).value).toBe(
+		"retain after failed discard",
+	);
+	fail = false;
+	await act(async () => {
+		fireEvent.click(
+			screen.getAllByRole("button", { name: "Discard changes" }).at(-1)!,
+		);
+	});
+	expect(screen.queryByRole("alertdialog")).toBeNull();
+	expect((screen.getByLabelText("Message") as HTMLTextAreaElement).value).toBe(
+		"",
+	);
+	expect(calls.filter((call) => call.path === "chat.prompt")).toHaveLength(0);
 });

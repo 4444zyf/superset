@@ -397,8 +397,12 @@ export function useWorkstation(api: DirectWorkstationApi) {
 			setProfiles(await api.list());
 			return saved;
 		});
-	const removeProfile = (profile: DirectProfile) =>
+	const removeProfile = (
+		profile: DirectProfile,
+		beforeRemove?: () => Promise<void>,
+	) =>
 		operation(async () => {
+			await beforeRemove?.();
 			await api.remove(profile.id);
 			if (active.current?.connectionId === profile.id) {
 				active.current = null;

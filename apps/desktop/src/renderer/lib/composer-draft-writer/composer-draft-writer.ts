@@ -24,9 +24,13 @@ export class ComposerDraftWriter<T> {
 			void this.flush();
 		});
 	}
-	cancel() {
+	pause() {
 		this.cancelTimer?.();
 		this.cancelTimer = null;
+	}
+
+	cancel() {
+		this.pause();
 		this.pending.clear();
 	}
 	flush(): void | Promise<void> {

@@ -845,7 +845,8 @@ export function Workstation({
 							disabled={disabled}
 							onClick={() =>
 								void (async () => {
-									if (await ui.removeProfile(remove)) setRemove(null);
+									if (await ui.removeProfile(remove, () => chatDrafts.flush()))
+										setRemove(null);
 								})()
 							}
 						>
@@ -890,7 +891,11 @@ export function Workstation({
 								hasUnsavedChanges={() =>
 									documents
 										.getDocuments(ui.connection!, deleteWorkspace.id)
-										.some((d) => d.dirty || d.pendingSave)
+										.some((d) => d.dirty || d.pendingSave) ||
+									chatDrafts.hasDrafts({
+										...ui.connection!,
+										workspaceId: deleteWorkspace.id,
+									})
 								}
 								onDeleted={(warnings) => {
 									const target = ui.connection!;

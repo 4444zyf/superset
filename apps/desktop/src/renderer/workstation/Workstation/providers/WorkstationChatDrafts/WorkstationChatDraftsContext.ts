@@ -48,6 +48,9 @@ export function useWorkstationChatDraft(
 	return {
 		value,
 		error: store.error,
+		discard: async () => {
+			if (identity) await store.discard(identity);
+		},
 		change: (
 			next: ChatDraftValue | ((previous: ChatDraftValue) => ChatDraftValue),
 		) => {

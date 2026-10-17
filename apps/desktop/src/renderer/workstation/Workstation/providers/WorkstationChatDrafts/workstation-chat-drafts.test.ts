@@ -139,3 +139,69 @@ test("failed draft persistence keeps the in-memory message and attachment refere
 	expect(store.error).toBeNull();
 	store.stop();
 });
+
+test("workspace draft guards stay scoped and clear only after the last reference or text is explicitly discarded", async () => {
+	const store = new WorkstationChatDraftStore({}, noTimer);
+	const target = {
+		connectionId: identity.connectionId,
+		backendId: identity.backendId,
+		namespaceId: identity.namespaceId,
+		workspaceId: identity.workspaceId,
+	};
+	store.change(identity, {
+		text: "",
+		attachments: [
+			{ attachmentId: "image", mediaType: "image/png", sizeBytes: 7 },
+		],
+	});
+	store.change(
+		{ ...identity, namespaceId: "other" },
+		{ text: "another namespace", attachments: [] },
+	);
+	expect(store.hasDrafts(target)).toBe(true);
+	expect(store.hasDrafts({ ...target, workspaceId: "different" })).toBe(false);
+	store.change(identity, { text: "", attachments: [] });
+	await store.flush();
+	expect(store.hasDrafts(target)).toBe(false);
+	expect(store.hasDrafts({ ...target, namespaceId: "other" })).toBe(true);
+	store.stop();
+});
+
+test("a failed explicit discard restores its message and stops automatic retries until another user action", async () => {
+	let fail = false;
+	let revision = 0;
+	let calls = 0;
+	const timers = new Set<() => void>();
+	const store = new WorkstationChatDraftStore(
+		{
+			getChatDrafts: async () => empty(),
+			saveChatDrafts: async (input) => {
+				calls++;
+				if (fail) throw new Error("Disk full");
+				return { revision: ++revision, invalid: false, entries: input.entries };
+			},
+		},
+		(callback) => {
+			timers.add(callback);
+			return () => {
+				timers.delete(callback);
+			};
+		},
+	);
+	await store.start();
+	store.change(identity, {
+		text: "do not lose me on a failed discard",
+		attachments: [],
+	});
+	await store.flush();
+	fail = true;
+	await expect(store.discard(identity)).rejects.toThrow("Disk full");
+	expect(store.get(identity).text).toBe("do not lose me on a failed discard");
+	expect(calls).toBe(2);
+	expect(timers.size).toBe(0);
+	fail = false;
+	await store.discard(identity);
+	expect(store.get(identity).text).toBe("");
+	expect(calls).toBe(3);
+	store.stop();
+});

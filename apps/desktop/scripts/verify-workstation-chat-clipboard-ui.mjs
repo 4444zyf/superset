@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
@@ -75,7 +75,7 @@ export async function verifyWorkstationChatClipboardUi({
 	const message = () => evaluate(`document.querySelector('${area}')?.value`);
 	const attachedCount = (name) =>
 		evaluate(
-			`(()=>{const section=document.querySelector('${area}')?.closest('section');const attach=[...(section?.querySelectorAll('button')??[])].find(e=>e.textContent.trim()==='Attach files'&&!e.closest('article'));return [...(attach?.parentElement?.querySelectorAll('button')??[])].filter(e=>e.textContent.trim()===${JSON.stringify(name)}).length;})()`,
+			`(()=>{const section=document.querySelector('${area}')?.closest('section');const attach=[...(section?.querySelectorAll('button')??[])].find(e=>e.textContent.trim()==='Attach files'&&!e.closest('article'));return [...(attach?.parentElement?.querySelectorAll('button')??[])].filter(e=>(e.getAttribute('aria-label')??e.textContent.trim())===${JSON.stringify(name)}).length;})()`,
 		);
 	const paste = async () => {
 		const geometry = await evaluate(
@@ -302,7 +302,9 @@ export async function verifyWorkstationChatClipboardUi({
 	await noPrompt();
 	await screenshot("chat-clipboard-new-session-isolated");
 
-	const retainDrafts = process.argv.includes("--expect-retained-chat-drafts");
+	const draftActions = process.argv.includes("--expect-chat-draft-actions");
+	const retainDrafts =
+		process.argv.includes("--expect-retained-chat-drafts") || draftActions;
 	const selectDraftedChat = async () => {
 		await click("text:codex #1");
 		if ((await selectedSession()) !== draftedSessionId)
@@ -376,6 +378,122 @@ export async function verifyWorkstationChatClipboardUi({
 		await screenshot("chat-draft-reopened-persisted-without-upload-or-send");
 	}
 
+	let draftActionsChecked = false;
+	if (draftActions) {
+		assert.ok(persistedDraft);
+		const snapshot = await evaluate("window.directWorkstation.getChatDrafts()");
+		const originalDraft = snapshot.entries.find(
+			(entry) => entry.identity.sessionId === draftedSessionId,
+		);
+		const removed = originalDraft.value.attachments[0];
+		await click('[aria-label="Remove attachment"]');
+		await until(async () => {
+			const current = await evaluate(
+				"window.directWorkstation.getChatDrafts()",
+			);
+			return (
+				current.entries.find(
+					(entry) => entry.identity.sessionId === draftedSessionId,
+				)?.value.attachments.length === (file ? 2 : 1)
+			);
+		});
+		assert.equal(await message(), plain);
+		assert.equal(controls.inspectChatAttachments().length, file ? 3 : 2);
+		const removedFile = await readAttachment(removed.attachmentId);
+		assert.equal(
+			createHash("sha256")
+				.update(Buffer.from(Object.values(removedFile.bytes)))
+				.digest("hex"),
+			controls
+				.inspectChatAttachments()
+				.find((a) => a.attachmentId === removed.attachmentId).sha256,
+		);
+		await noPrompt();
+		await screenshot("chat-draft-original-tile-reference-removed");
+		await click(
+			".ws-workspace-window .ws-window-toolbar:first-child button:first-child",
+		);
+		await until(() =>
+			evaluate("Boolean(document.querySelector('.ws-workspace-grid'))"),
+		);
+		await click(`[data-workspace-delete=${JSON.stringify(scope.workspaceId)}]`);
+		await until(() =>
+			evaluate("Boolean(document.querySelector('[role=alertdialog]'))"),
+		);
+		const inspection = await query("workspaceCleanup.inspect", {
+			workspaceId: scope.workspaceId,
+		});
+		assert.equal(inspection.canDelete, true);
+		await click(
+			inspection.hasChanges || inspection.hasUnpushedCommits
+				? "text:Delete anyway"
+				: "text:Delete",
+		);
+		await until(() =>
+			evaluate(
+				"document.querySelector('[role=alertdialog]')?.textContent.includes('Unsaved changes')",
+			),
+		);
+		assert.equal(existsSync(workspace.worktreePath), true);
+		await screenshot("chat-draft-protects-workspace-deletion");
+		await click("text:Cancel");
+		await click(
+			`button.ws-workspace-card[aria-label=${JSON.stringify(workspace.name)}]`,
+		);
+		await ready();
+		await selectDraftedChat();
+		assert.equal(await message(), plain);
+		await click("text:Discard changes");
+		await until(() =>
+			evaluate("Boolean(document.querySelector('[role=alertdialog]'))"),
+		);
+		await screenshot("chat-draft-original-discard-confirmation");
+		await click("text:Cancel");
+		assert.equal(await message(), plain);
+		await click("text:Discard changes");
+		await until(() =>
+			evaluate("Boolean(document.querySelector('[role=alertdialog]'))"),
+		);
+		await click("text:Discard changes");
+		await until(() =>
+			evaluate("!document.querySelector('[role=alertdialog]')"),
+		);
+		assert.equal(await message(), "");
+		assert.equal(
+			await evaluate(
+				"document.querySelectorAll('[aria-label=\"Remove attachment\"]').length",
+			),
+			0,
+		);
+		const cleared = await evaluate("window.directWorkstation.getChatDrafts()");
+		assert.equal(
+			cleared.entries.some(
+				(entry) => entry.identity.sessionId === draftedSessionId,
+			),
+			false,
+		);
+		assert.equal(controls.inspectChatAttachments().length, file ? 3 : 2);
+		await noPrompt();
+		await screenshot("chat-draft-explicitly-discarded-without-send");
+		await closeReopen();
+		await until(() =>
+			evaluate(
+				`(async()=>{const r=await window.directWorkstation.getWorkspaceRestore();return r.status==='ready'&&r.descriptor?.connectionId===${JSON.stringify(scope.connectionId)};})()`,
+			),
+		);
+		await ready();
+		assert.equal(await message(), "");
+		assert.equal(controls.inspectChatAttachments().length, file ? 3 : 2);
+		assert.equal(
+			(await evaluate("window.directWorkstation.getChatDrafts()")).entries.some(
+				(entry) => entry.identity.sessionId === draftedSessionId,
+			),
+			false,
+		);
+		await noPrompt();
+		await screenshot("chat-draft-discarded-and-reopened-without-replay");
+		draftActionsChecked = true;
+	}
 	const restoredTerminals = await controls.verifyWorktreeLocation(
 		workspace.worktreePath,
 	);
@@ -387,6 +505,7 @@ export async function verifyWorkstationChatClipboardUi({
 			{
 				sourceRevision: process.env.GITHUB_SHA,
 				retainedDraftsChecked: retainDrafts,
+				draftActionsChecked,
 				persistedDraft,
 				physicalNativePaste: true,
 				osClipboard: true,

@@ -84,3 +84,27 @@ export interface WorkstationChatDraftUpdate {
 	expectedRevision: number;
 	entries: ChatDraftEntry[];
 }
+
+export type ChatDraftTarget = Pick<ChatDraftIdentity, "connectionId"> &
+	Partial<Omit<ChatDraftIdentity, "connectionId">>;
+export function hasChatDraftsForTarget(
+	entries: ChatDraftEntry[],
+	target: ChatDraftTarget,
+): boolean {
+	const fields = [
+		"connectionId",
+		"backendId",
+		"namespaceId",
+		"workspaceId",
+		"sessionId",
+	] as const;
+	return entries.some(
+		(entry) =>
+			(entry.value.text.length > 0 || entry.value.attachments.length > 0) &&
+			fields.every(
+				(field) =>
+					target[field] === undefined ||
+					entry.identity[field] === target[field],
+			),
+	);
+}

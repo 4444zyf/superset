@@ -16,6 +16,8 @@ import { Button } from "@superset/ui/button";
 import { getClipboardFiles } from "@superset/ui/lib/clipboard-files";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { validateClipboardFiles } from "renderer/lib/terminal/clipboard-files";
+import { AttachmentTile } from "renderer/routes/_authenticated/components/AttachmentTile/AttachmentTile";
+import { UnsavedChangesDialog } from "renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/TabView/FileViewerPane/UnsavedChangesDialog";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -88,6 +90,7 @@ export function RemoteChat({
 		onSessionSelected?.(id);
 	};
 	const [harness, setHarness] = useState("codex");
+	const [discardScope, setDiscardScope] = useState<string | null>(null);
 	const [snapshot, setSnapshot] = useState(emptySnapshot);
 
 	const [busy, setBusy] = useState(false);
@@ -199,6 +202,7 @@ export function RemoteChat({
 	useEffect(() => {
 		if (previousDraftScope.current === draftScope) return;
 		previousDraftScope.current = draftScope;
+		setDiscardScope(null);
 
 		setAttachmentError(null);
 	}, [draftScope]);
@@ -491,18 +495,39 @@ export function RemoteChat({
 							<Trans>Attach files</Trans>
 						</Button>
 						{attachments.map((attachment) => (
-							<Button
-								variant="outline"
-								size="sm"
-								type="button"
-								className={button}
+							<AttachmentTile
 								key={attachment.attachmentId}
-								disabled={busy || !attachmentsAvailable}
-								onClick={() => void downloadAttachment(attachment.attachmentId)}
-							>
-								{attachment.originalFilename ?? attachment.attachmentId}
-							</Button>
+								filename={
+									attachment.originalFilename ?? attachment.attachmentId
+								}
+								imageUrl={null}
+								onOpen={
+									!busy && attachmentsAvailable
+										? () => void downloadAttachment(attachment.attachmentId)
+										: null
+								}
+								onRemove={
+									!busy
+										? () =>
+												setAttachments((previous) =>
+													previous.filter(
+														(item) =>
+															item.attachmentId !== attachment.attachmentId,
+													),
+												)
+										: undefined
+								}
+							/>
 						))}
+						<Button
+							type="button"
+							variant="ghost"
+							size="sm"
+							disabled={busy || (!prompt && attachments.length === 0)}
+							onClick={() => setDiscardScope(operationScope)}
+						>
+							<Trans>Discard changes</Trans>
+						</Button>
 					</div>
 					{(attachmentError || draft.error) && (
 						<output
@@ -521,6 +546,37 @@ export function RemoteChat({
 							)}
 						</output>
 					)}
+					<UnsavedChangesDialog
+						closeOnDiscard={false}
+						open={discardScope === operationScope}
+						onOpenChange={(open) => {
+							if (!open) setDiscardScope(null);
+						}}
+						onDiscard={() => {
+							if (discardScope !== operationScope || busy) return;
+							void run(async (isCurrent) => {
+								await draft.discard();
+								if (isCurrent()) {
+									setDiscardScope(null);
+									setAttachmentError(null);
+								}
+							}, true);
+						}}
+						isSaving={busy}
+						title={t({ message: "Unsaved changes" })}
+						description={t({
+							message: "Your changes will be lost if you don't save them.",
+						})}
+						discardLabel={t({ message: "Discard changes" })}
+						details={
+							attachmentError || draft.error ? (
+								<p role="alert" className="text-sm text-destructive break-all">
+									{attachmentError || draft.error}
+								</p>
+							) : undefined
+						}
+					/>
+
 					<form
 						className="flex shrink-0 flex-wrap gap-2"
 						onSubmit={(event) => {

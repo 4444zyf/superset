@@ -3,7 +3,9 @@ import type { SqliteDatabase } from "@superset/direct-connection";
 import BetterSqlite from "better-sqlite3";
 import { z } from "zod";
 import {
+	type ChatDraftTarget,
 	chatDraftEntriesSchema,
+	hasChatDraftsForTarget,
 	MAX_CHAT_DRAFT_STORAGE_BYTES,
 	type WorkstationChatDraftSnapshot,
 	type WorkstationChatDraftUpdate,
@@ -81,6 +83,11 @@ export class WorkstationChatDrafts {
 			throw error;
 		}
 	}
+	hasDrafts(target: ChatDraftTarget): boolean {
+		const snapshot = this.read();
+		return snapshot.invalid || hasChatDraftsForTarget(snapshot.entries, target);
+	}
+
 	close() {
 		this.db.close();
 	}

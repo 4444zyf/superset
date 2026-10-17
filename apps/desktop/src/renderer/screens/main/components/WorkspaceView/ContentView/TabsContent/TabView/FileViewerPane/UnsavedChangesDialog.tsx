@@ -16,7 +16,7 @@ import { LuLoader } from "react-icons/lu";
 interface UnsavedChangesDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onSave: () => void;
+	onSave?: () => void;
 	onDiscard: () => void;
 	isSaving?: boolean;
 	title?: string;
@@ -24,6 +24,7 @@ interface UnsavedChangesDialogProps {
 	discardLabel?: string;
 	saveLabel?: string;
 	details?: ReactNode;
+	closeOnDiscard?: boolean;
 }
 
 export function UnsavedChangesDialog({
@@ -37,9 +38,10 @@ export function UnsavedChangesDialog({
 	discardLabel = "Discard & Continue",
 	saveLabel = "Save & Continue",
 	details,
+	closeOnDiscard = true,
 }: UnsavedChangesDialogProps) {
 	const handleSaveAndSwitch = () => {
-		onSave();
+		onSave?.();
 	};
 
 	const handleDiscardAndSwitch = () => {
@@ -60,22 +62,27 @@ export function UnsavedChangesDialog({
 					</AlertDialogCancel>
 					<AlertDialogAction
 						variant="outline"
-						onClick={handleDiscardAndSwitch}
+						onClick={(event) => {
+							if (!closeOnDiscard) event.preventDefault();
+							handleDiscardAndSwitch();
+						}}
 						disabled={isSaving}
 						className="border-destructive/50 text-destructive hover:bg-destructive/10"
 					>
 						{discardLabel}
 					</AlertDialogAction>
-					<Button onClick={handleSaveAndSwitch} disabled={isSaving}>
-						{isSaving ? (
-							<>
-								<LuLoader className="mr-2 h-4 w-4 animate-spin" />
-								<Trans>Saving...</Trans>
-							</>
-						) : (
-							saveLabel
-						)}
-					</Button>
+					{onSave && (
+						<Button onClick={handleSaveAndSwitch} disabled={isSaving}>
+							{isSaving ? (
+								<>
+									<LuLoader className="mr-2 h-4 w-4 animate-spin" />
+									<Trans>Saving...</Trans>
+								</>
+							) : (
+								saveLabel
+							)}
+						</Button>
+					)}
 				</AlertDialogFooter>
 			</EnterEnabledAlertDialogContent>
 		</AlertDialog>

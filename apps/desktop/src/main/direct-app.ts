@@ -855,6 +855,9 @@ export async function startWorkstation(): Promise<void> {
 						throw new Error(
 							"Reconcile pending operations before removing this connection",
 						);
+					if (chatDrafts.hasDrafts({ connectionId: id }))
+						throw new Error(i18n._(msg({ message: "Unsaved changes" })));
+
 					reconnect.disarm(id);
 					sockets.closeConnection(id);
 					forwards.closeConnection(id);
@@ -1195,8 +1198,26 @@ export async function startWorkstation(): Promise<void> {
 						},
 					});
 				}
-				case "rpc":
-					return controller.invoke(rpcSchema.parse(payload));
+				case "rpc": {
+					const request = rpcSchema.parse(payload);
+					if (
+						request.type === "mutation" &&
+						request.path === "workspaceCleanup.destroyTrackedV1"
+					) {
+						controller.assertGeneration(
+							request.connectionId,
+							request.generation,
+						);
+						const connection = controller.describe(request.connectionId);
+						const { workspaceId } = z
+							.object({ workspaceId: z.string().uuid() })
+							.passthrough()
+							.parse(request.input);
+						if (chatDrafts.hasDrafts({ ...connection, workspaceId }))
+							throw new Error(i18n._(msg({ message: "Unsaved changes" })));
+					}
+					return controller.invoke(request);
+				}
 				case "openSocket": {
 					const input = z
 						.object({

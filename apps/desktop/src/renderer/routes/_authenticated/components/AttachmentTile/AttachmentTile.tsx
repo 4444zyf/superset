@@ -64,6 +64,7 @@ export function AttachmentTile({
 			<button
 				type="button"
 				disabled={!onOpen}
+				aria-label={filename}
 				onClick={() => onOpen?.()}
 				className={cn(
 					"relative flex h-16 w-[200px] items-center gap-2.5 rounded-xl border-[0.5px] border-border bg-foreground/[0.03] px-2.5 text-left",

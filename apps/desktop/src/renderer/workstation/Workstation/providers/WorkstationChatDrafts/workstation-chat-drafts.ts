@@ -3,10 +3,12 @@ import type { DirectWorkstationApi } from "../../../../../shared/direct-workstat
 import {
 	type ChatDraftEntry,
 	type ChatDraftIdentity,
+	type ChatDraftTarget,
 	type ChatDraftValue,
 	chatDraftEntriesSchema,
 	chatDraftEntrySchema,
 	chatDraftKey,
+	hasChatDraftsForTarget,
 	MAX_CHAT_DRAFT_STORAGE_BYTES,
 	MAX_CHAT_DRAFTS,
 } from "../../../../../shared/workstation-chat-drafts";
@@ -158,6 +160,25 @@ export class WorkstationChatDraftStore {
 		this.writer.change("snapshot", this.sequence);
 		this.notify();
 	}
+	hasDrafts(target: ChatDraftTarget): boolean {
+		return (
+			!this.ready || hasChatDraftsForTarget([...this.entries.values()], target)
+		);
+	}
+	async discard(identity: ChatDraftIdentity) {
+		const previous = this.get(identity);
+		this.change(identity, { text: "", attachments: [] });
+		try {
+			await this.flush();
+		} catch (error) {
+			if (this.get(identity) === EMPTY) {
+				this.change(identity, previous);
+				this.writer.pause();
+			}
+			throw error;
+		}
+	}
+
 	async flush() {
 		await this.start();
 		await this.writer.flush();
