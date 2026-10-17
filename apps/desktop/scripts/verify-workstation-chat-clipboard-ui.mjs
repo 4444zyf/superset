@@ -449,14 +449,19 @@ export async function verifyWorkstationChatClipboardUi({
 		);
 		await screenshot("chat-draft-original-discard-confirmation");
 		await click("text:Cancel");
+		await until(() =>
+			evaluate("!document.querySelector('[role=alertdialog]')"),
+		);
 		assert.equal(await message(), plain);
 		await click("text:Discard changes");
 		await until(() =>
 			evaluate("Boolean(document.querySelector('[role=alertdialog]'))"),
 		);
-		await click("text:Discard changes");
-		await until(() =>
-			evaluate("!document.querySelector('[role=alertdialog]')"),
+		await click('[role="alertdialog"] button:last-child');
+		await until(
+			async () =>
+				(await message()) === "" &&
+				(await evaluate("!document.querySelector('[role=alertdialog]')")),
 		);
 		assert.equal(await message(), "");
 		assert.equal(
