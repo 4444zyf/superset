@@ -32,6 +32,12 @@ export async function verifyWorkstationCleanupUi({
 		evaluate(
 			`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;return window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:${JSON.stringify(path)},type:'query',input:${JSON.stringify(input)}});})()`,
 		);
+	const ready = () =>
+		until(() =>
+			evaluate(
+				`(async()=>{const r=await window.directWorkstation.getWorkspaceRestore();return r.status==='ready' && r.descriptor?.connectionId===${JSON.stringify(scope.connectionId)};})()`,
+			),
+		);
 	const enabled = await query("workspace.get", { id: setup.enabledWorkspace });
 	const skipped = await query("workspace.get", { id: setup.skippedWorkspace });
 	const before = await query("config.getProjectScriptsV1", {
@@ -200,6 +206,7 @@ export async function verifyWorkstationCleanupUi({
 	);
 	await screenshot("cleanup-original-teardown-failed");
 	await closeReopen();
+	await ready();
 	assert.equal(readFileSync(marker, "utf8"), "once\n");
 	await openDelete(enabled.id);
 	await press("[role=alertdialog] button[role=checkbox]");
@@ -259,6 +266,12 @@ export async function verifyWorkstationCleanupUi({
 	await press('[data-tab-id="' + scope.tabId + '"]');
 	await configure(before.scripts.teardown);
 	await closeReopen();
+	await ready();
+	await until(() =>
+		evaluate(
+			"document.querySelectorAll('[data-terminal-id][data-restore-state=attached]').length===3",
+		),
+	);
 	assert.equal(readFileSync(marker, "utf8"), "once\nonce\nonce\n");
 	const list = await query("workspace.list", undefined);
 	assert.equal(

@@ -478,3 +478,5 @@ TDD 保存缺少入口、缺少组件/处理器及 A→B→A 晚回复的红日�
 第66轮冻结源码 a8bbb4382bfc3f8c144ab0eec1d6560be37174f1，在删除步骤前真实打开已关闭的Setup工作区时复现“Session status unavailable”，截图已查看，未计为删除通过。原因是恢复时的资源匹配标记在离开原工作区后仍有效；B工作区替换了当前检查结果，返回A时旧标记却阻止了新只读查询。新增A→B→A红测试得到A应有状态却仍是B的检查结果，修复为离开恢复资源范围后立即使旧标记失效，重新核对原执行；不创建会话或重跑脚本。45项/995断言通过，实际复测待记录。[第66轮失败证据](evidence/local-ssh-feature-parity/source-linux-cleanup-failures/66)。
 
 第67轮冻结 b88d4307c 已实际打开同一Setup执行，取消未运行Teardown，脚本exit17后原失败窗显示、工作区恢复；重开窗口marker仍一次，第二次明确删除运行到两次，明确勾选删分支及跳过脚本后目录和分支移除、marker仍两次，原标签移除。截图已查看。随后第二个工作区存在未推送提交，原UI正确显示Delete anyway，而验收脚本硬找Delete，未执行后续删除，整轮未计通过。验收改为读取原inspect结果，按实际警告选择原按钮，不移除风险提示或改变后端语义。[第67轮记录](evidence/local-ssh-feature-parity/source-linux-cleanup-failures/67)。
+
+第68轮冻结 f8fddb584 已通过两个目录实际删除、勾选分支删除/默认保留、marker三次及原Teardown配置恢复。最后重开窗口时，验收在恢复描述符就绪之前立即查询workspace.list，读到undefined，截图显示Reconnecting；没有等待结果，不计整轮通过。验收补上原restore的ready及三原PTY attached的只读就绪判据后再核对marker与工作区列表，不增加等待时限，也不触发产品写入。[第68轮记录](evidence/local-ssh-feature-parity/source-linux-cleanup-failures/68)。
