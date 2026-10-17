@@ -1,0 +1,25 @@
+bun test v1.4.2 (744846f84)
+
+packages/chat-runtime/src/sessions/liveSession/liveSessionFailure.test.ts:
+74 | 		});
+75 | 		try {
+76 | 			runtime.commands.prompt({ commandId: randomUUID(), sessionId, clientId: "first", content: [{ type: "text", text: "unreadable attachment" }] });
+77 | 			await waitFor(() => journalEnvelopes(runtime, sessionId).some((row) => row.event.type === "turn" && row.event.turn.status === "failed"));
+78 | 			const result = runtime.commands.prompt({ commandId: randomUUID(), sessionId, clientId: "second", content: [{ type: "text", text: "retry without the attachment" }] });
+79 | 			expect(result.queued).toBe(false);
+                              ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/packages/chat-runtime/src/sessions/liveSession/liveSessionFailure.test.ts:79:26)
+(fail) live session adapter failures > a preparation failure before the first running turn does not leave later input queued forever [24.74ms]
+(pass) live session adapter failures > a rejected pump journals the failure instead of going unhandled [6.59ms]
+(pass) live session adapter failures > a session whose stream died still disposes cleanly [4.25ms]
+(pass) live session adapter failures > a throwing prompt does not wedge the queue [2.93ms]
+
+ 3 pass
+ 1 fail
+ 8 expect() calls
+Ran 4 tests across 1 file. [220.00ms]

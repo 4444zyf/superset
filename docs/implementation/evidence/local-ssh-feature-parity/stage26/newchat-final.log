@@ -1,0 +1,63 @@
+$ bun test src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx src/main/lib/ssh-direct/workstation-controller.test.ts src/main/lib/ssh-direct/operation-intents.test.ts
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/operation-intents.test.ts:
+(pass) an unanswered mutation blocks a fresh operation even after reopening the journal [1.05ms]
+(pass) an operation cannot be moved to a different backend or changed input [0.38ms]
+(pass) reconciliation clears a resolved operation and the journal stores no prompt or secret [0.35ms]
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.19ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.29ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.12ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.08ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [1.65ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.11ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.63ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.07ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.11ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.13ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.95ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [1.55ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.56ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.51ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.54ms]
+(pass) attachment readiness requires an explicit backend capability [0.32ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.17ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.13ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.11ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.32ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.27ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.86ms]
+(pass) project script procedures require their own capability and an explicit project [0.27ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.84ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.54ms]
+(pass) setup status is read only with an explicit workspace and its advertised capability [0.17ms]
+
+src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:
+(pass) changing pane callbacks does not reopen a restored chat stream [31.83ms]
+(pass) an older backend without chat attachment input keeps file sending disabled [13.61ms]
+(pass) a rejected Send keeps the message draft visible without marking the chat stream failed [33.67ms]
+(pass) a second picked file cannot grow the draft beyond the existing clipboard byte limit [16.29ms]
+(pass) restoring a controlled chat selection never selects the first session or sends a prompt [6.20ms]
+(pass) closing the chat view closes only its stream, without cancelling or closing B's chat [106.78ms]
+(pass) an attachment replayed from chat history remains downloadable after reconnect [67.98ms]
+(pass) reconnecting keeps the selected remote chat and never repeats a prompt [12.42ms]
+(pass) switching chats clears unsent message and attachment drafts [15.32ms]
+(pass) an upload completed after switching chats cannot attach to the new chat [8.02ms]
+(pass) returning to a chat cannot revive an old upload or clear a newer upload's busy state [12.63ms]
+(pass) an older session list cannot erase a newly created chat [5.66ms]
+(pass) a download completed after changing workspace cannot save stale attachment bytes [11.78ms]
+(pass) attachment controls require the backend's attachment capability [4.85ms]
+(pass) an uploaded attachment is referenced once by opaque id in the selected chat prompt [11.36ms]
+(pass) pasted images upload to the selected chat without sending a prompt [7.21ms]
+(pass) a pasted image completing after switching chats is not attached or sent [57.70ms]
+(pass) a rejected pasted attachment leaves the chat and message draft available [8.65ms]
+(pass) chat merges both clipboard file accessors, deduplicates the image, and retains the unsent message [7.13ms]
+
+ 50 pass
+ 0 fail
+ 165 expect() calls
+Ran 50 tests across 3 files. [694.00ms]

@@ -1,0 +1,101 @@
+bun test v1.4.2 (744846f84)
+
+packages/host-service/src/direct/attachments.test.ts:
+(pass) agent attachment resolution reads the same private bytes and trusted media type as downloads [9.13ms]
+(pass) agent attachment reads cannot follow a payload symlink [0.65ms]
+(pass) agent attachment reads reject oversized files before buffering and honor cancellation [0.78ms]
+(pass) direct attachment download streams the stored bytes with their media type [4.69ms]
+(pass) empty attachments retain download privacy and filename headers [0.83ms]
+(pass) oversized valid metadata cannot grow the direct backend's synchronous read [0.71ms]
+(pass) attachment metadata must describe the requested identity and complete payload [1.03ms]
+(pass) direct metadata cannot follow symbolic links [3.51ms]
+(pass) attachment directories cannot redirect reads to another directory [0.43ms]
+(pass) attachment payloads cannot alias other files through hard links [0.68ms]
+(pass) downloads permit the byte limit and reject larger payloads with 413 [1.20ms]
+
+packages/chat-runtime/src/harness/attachments/attachments.test.ts:
+(pass) cancelling a slow read aborts it and cannot block or overwrite a newer prompt [0.59ms]
+(pass) an unreadable second attachment rejects the entire prepared message [0.44ms]
+(pass) the byte cap applies to the whole message before any SDK input is delivered [0.21ms]
+
+packages/chat-runtime/src/sessions/liveSession/liveSession.test.ts:
+(pass) LiveSession > mints the user_message and re-attributes it to the adapter turn [27.05ms]
+(pass) LiveSession > a queued prompt is counted by the time it is published [3.71ms]
+(pass) LiveSession > queues a prompt while a turn runs and delivers it at the boundary [8.82ms]
+(pass) LiveSession > cancelTurn interrupts the turn, cancels tools and stales approvals [12.91ms]
+(pass) LiveSession > cancelTurn for a turn that is no longer running is a no-op [6.16ms]
+(pass) LiveSession > a prompt sent while the turn only waits on background work joins it [6.18ms]
+(pass) LiveSession > a prompt sent while the agent is working is queued, not steered [4.66ms]
+(pass) LiveSession > prompts queued while the agent worked join the turn once it only waits on background work [8.47ms]
+(pass) LiveSession > a prompt sent with steer joins the running turn when the agent can steer [5.84ms]
+(pass) LiveSession > a prompt the agent does not take into the turn is queued [7.97ms]
+(pass) LiveSession > steerQueuedPrompt joins the running turn when the agent can steer [6.93ms]
+(pass) LiveSession > prompts the agent does not take into the turn are queued in send order [13.05ms]
+(pass) LiveSession > a prompt sent after the turn ends does not overtake a pending steer [40.01ms]
+(pass) LiveSession > a prompt steered at a turn that is no longer running is queued, not steered [5.51ms]
+(pass) LiveSession > a queued prompt whose steer is refused still runs next [17.67ms]
+(pass) LiveSession > a steer still waiting when the turn is stopped is not sent, and stays paused [25.32ms]
+(pass) LiveSession > a prompt still being steered when the session stops is discarded [4.99ms]
+(pass) LiveSession > removeQueuedPrompt drops a queued prompt so it never reaches the agent [4.59ms]
+(pass) LiveSession > steerQueuedPrompt interrupts the turn and delivers that prompt next [8.53ms]
+(pass) LiveSession > a prompt sent with steer for the running turn interrupts it and runs next [5.75ms]
+(pass) LiveSession > a prompt sent with steer for a turn that is no longer running only queues [4.17ms]
+(pass) LiveSession > steerQueuedPrompt between turns interrupts the turn that was about to start [206.81ms]
+(pass) LiveSession > cancelTurn with pauseQueue pauses the queue until resumeQueue [9.46ms]
+(pass) LiveSession > steerQueuedPrompt while paused sends that prompt, then resumes the queue [8.73ms]
+(pass) LiveSession > cancelTurn without pauseQueue keeps sending the queue [6.24ms]
+(pass) LiveSession > a pause right after Steer still sends the steered prompt [5.07ms]
+(pass) LiveSession > closing the session discards the prompts still queued [4.32ms]
+(pass) LiveSession > queue commands reject a prompt that is not queued [1.23ms]
+
+packages/chat-runtime/src/sessions/liveSession/liveSessionFailure.test.ts:
+(pass) live session adapter failures > a preparation failure before the first running turn does not leave later input queued forever [8.52ms]
+(pass) live session adapter failures > a rejected pump journals the failure instead of going unhandled [3.97ms]
+(pass) live session adapter failures > a session whose stream died still disposes cleanly [3.92ms]
+(pass) live session adapter failures > a throwing prompt does not wedge the queue [1.99ms]
+
+packages/chat-runtime/src/harness/claude/claudeAdapter/claudeAdapter.test.ts:
+(pass) ClaudeAdapter > a canceled turn interrupts the session without killing it, and the next prompt runs [1.63ms]
+(pass) ClaudeAdapter > reports the session id the stream carries, once [0.23ms]
+(pass) ClaudeAdapter > dispose aborts the underlying session [0.33ms]
+(pass) ClaudeAdapter permission modes > starts in full access when no mode is requested [0.21ms]
+(pass) ClaudeAdapter permission modes > resumes without a requested mode in ask-for-approval, not full access [0.15ms]
+(pass) ClaudeAdapter permission modes > starts in the requested mode and switches the live session on setMode [0.24ms]
+(pass) ClaudeAdapter permission modes > reports the previous mode again when the session rejects a switch [0.27ms]
+
+packages/chat-runtime/src/harness/claude/claudeAdapter/claudeAttachments.test.ts:
+(pass) Claude receives resolved SSH image bytes instead of just the pasted filename [0.55ms]
+
+packages/chat-runtime/src/harness/codex/codexAdapter/codexAdapter.test.ts:
+(pass) codexAdapter fixtures > every fixture emits protocol-valid items and turns [44.01ms]
+(pass) codexAdapter fixtures > a plain text turn maps to session, turn, agent message and deltas [10.60ms]
+(pass) codexAdapter fixtures > the runtime owns user messages: the adapter never emits one [33.12ms]
+(pass) codexAdapter fixtures > a shell command maps to an execute tool call with terminal content [10.09ms]
+(pass) codexAdapter fixtures > a created file maps to a diff with a null oldText [11.15ms]
+(pass) codexAdapter fixtures > an edited file reconstructs both sides of the hunk [10.51ms]
+(pass) codexAdapter fixtures > an approval round trip binds to its tool call and answers with the decision [10.10ms]
+(pass) codexAdapter fixtures > an interrupt settles the in-flight message with its streamed text [10.21ms]
+
+packages/chat-runtime/src/harness/codex/codexAdapter/codexResilience.test.ts:
+(pass) codex adapter resilience > a CLI launch failure before any prompt remains a valid durable notice with its original reason [0.52ms]
+(pass) codex adapter resilience > an omitted attachment notice belongs to the accepted prompt's Codex turn [13.58ms]
+(pass) codex adapter resilience > an unreadable notification becomes a notice, not a thrown frame [14.38ms]
+(pass) codex adapter resilience > an unreadable server request is answered so codex is not left waiting [13.48ms]
+(pass) codex adapter resilience > a stream that keeps arriving after a bad frame still maps items [13.45ms]
+(pass) codex cancel before the turn is running > a cancel raced against turn/start is applied when the turn appears [13.46ms]
+(pass) codex cancel before the turn is running > a cancel with no turn in flight is not held against the next turn [13.22ms]
+(pass) codex cancel before the turn is running > a cancel after the turn already settled is dropped [13.39ms]
+(pass) codex fixtures still map after the guards > the command fixture is unchanged by the dispatch wrapper [11.74ms]
+
+packages/chat-runtime/src/harness/codex/codexAdapter/codexTimeline.test.ts:
+(pass) codexAdapter through the journal > a command turn folds into user message, tool call and reply [31.71ms]
+(pass) codexAdapter through the journal > an interrupted turn leaves no item running [35.39ms]
+(pass) codexAdapter through the journal > an approval folds into an answered row bound to its tool call [33.15ms]
+
+packages/chat-runtime/src/harness/codex/codexAdapter/codexAttachments.test.ts:
+(pass) a resolved SSH image reaches Codex as an image input alongside the unchanged text [0.81ms]
+
+ 75 pass
+ 0 fail
+ 229 expect() calls
+Ran 75 tests across 10 files. [1127.00ms]

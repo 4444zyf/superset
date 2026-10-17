@@ -1,0 +1,36 @@
+bun test v1.4.2 (744846f84)
+
+packages/host-service/src/direct/attachments.test.ts:
+(pass) agent attachment resolution reads the same private bytes and trusted media type as downloads [7.69ms]
+(pass) agent attachment reads cannot follow a payload symlink [0.45ms]
+(pass) agent attachment reads reject oversized files before buffering and honor cancellation [0.64ms]
+(pass) direct attachment download streams the stored bytes with their media type [3.90ms]
+(pass) empty attachments retain download privacy and filename headers [0.65ms]
+(pass) oversized valid metadata cannot grow the direct backend's synchronous read [0.55ms]
+(pass) attachment metadata must describe the requested identity and complete payload [0.64ms]
+(pass) direct metadata cannot follow symbolic links [0.34ms]
+(pass) attachment directories cannot redirect reads to another directory [0.27ms]
+(pass) attachment payloads cannot alias other files through hard links [0.51ms]
+(pass) downloads permit the byte limit and reject larger payloads with 413 [0.84ms]
+
+packages/chat-runtime/src/harness/attachments/attachments.test.ts:
+(pass) cancelling a slow read aborts it and cannot block or overwrite a newer prompt [0.50ms]
+(pass) an unreadable second attachment rejects the entire prepared message [0.17ms]
+(pass) the byte cap applies to the whole message before any SDK input is delivered [0.13ms]
+
+packages/chat-runtime/src/sessions/liveSession/liveSessionFailure.test.ts:
+(pass) live session adapter failures > a preparation failure before the first running turn does not leave later input queued forever [19.16ms]
+(pass) live session adapter failures > a rejected pump journals the failure instead of going unhandled [7.64ms]
+(pass) live session adapter failures > a session whose stream died still disposes cleanly [5.38ms]
+(pass) live session adapter failures > a throwing prompt does not wedge the queue [3.56ms]
+
+packages/chat-runtime/src/harness/claude/claudeAdapter/claudeAttachments.test.ts:
+(pass) Claude receives resolved SSH image bytes instead of just the pasted filename [0.99ms]
+
+packages/chat-runtime/src/harness/codex/codexAdapter/codexAttachments.test.ts:
+(pass) a resolved SSH image reaches Codex as an image input alongside the unchanged text [3.04ms]
+
+ 20 pass
+ 0 fail
+ 45 expect() calls
+Ran 20 tests across 5 files. [246.00ms]

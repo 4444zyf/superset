@@ -1,0 +1,67 @@
+bun test v1.4.2 (744846f84)
+
+packages/chat-runtime/src/harness/claude/claudeAdapter/claudeAttachments.test.ts:
+25 | 			{ type: "attachment", attachmentId: "opaque-id", name: "image.png", mimeType: "text/plain" },
+26 | 		]);
+27 | 		const input = (await params).prompt;
+28 | 		if (typeof input === "string") throw new Error("Expected original streaming prompt");
+29 | 		const message = await input[Symbol.asyncIterator]().next();
+30 | 		expect(message.value.message.content).toEqual([
+                                             ^
+error: expect(received).toEqual(expected)
+
+- [
+-   {
+-     "text": "看这张图 🙂",
+-     "type": "text",
+-   },
+-   {
+-     "source": {
+-       "data": "iVBORw0KGgo=",
+-       "media_type": "image/png",
+-       "type": "base64",
+-     },
+-     "type": "image",
+-   },
+- ]
++ "看这张图 🙂
++ [image.png]"
+
+- Expected  - 14
++ Received  + 2
+
+      at <anonymous> (/workspace/superset/packages/chat-runtime/src/harness/claude/claudeAdapter/claudeAttachments.test.ts:30:41)
+(fail) Claude receives resolved SSH image bytes instead of just the pasted filename [1.60ms]
+
+packages/chat-runtime/src/harness/codex/codexAdapter/codexAttachments.test.ts:
+28 | 		adapter.start({ cwd: "/remote/project" });
+29 | 		adapter.prompt([
+30 | 			{ type: "text", text: "看这张图 🙂" },
+31 | 			{ type: "attachment", attachmentId: "opaque-id", name: "image.png", mimeType: "text/plain" },
+32 | 		]);
+33 | 		expect(await request).toEqual([
+                             ^
+error: expect(received).toEqual(expected)
+
+  [
+    {
+      "text": "看这张图 🙂",
+      "text_elements": [],
+      "type": "text",
+    },
+-   {
+-     "type": "image",
+-     "url": "data:image/png;base64,iVBORw0KGgo=",
+-   },
+  ]
+
+- Expected  - 4
++ Received  + 0
+
+      at <anonymous> (/workspace/superset/packages/chat-runtime/src/harness/codex/codexAdapter/codexAttachments.test.ts:33:25)
+(fail) a resolved SSH image reaches Codex as an image input alongside the unchanged text [5.57ms]
+
+ 0 pass
+ 2 fail
+ 2 expect() calls
+Ran 2 tests across 2 files. [118.00ms]

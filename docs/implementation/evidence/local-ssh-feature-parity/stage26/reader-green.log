@@ -1,0 +1,19 @@
+bun test v1.4.2 (744846f84)
+
+packages/host-service/src/direct/attachments.test.ts:
+(pass) agent attachment resolution reads the same private bytes and trusted media type as downloads [8.08ms]
+(pass) agent attachment reads cannot follow a payload symlink [0.43ms]
+(pass) agent attachment reads reject oversized files before buffering and honor cancellation [0.55ms]
+(pass) direct attachment download streams the stored bytes with their media type [3.68ms]
+(pass) empty attachments retain download privacy and filename headers [0.65ms]
+(pass) oversized valid metadata cannot grow the direct backend's synchronous read [0.49ms]
+(pass) attachment metadata must describe the requested identity and complete payload [0.64ms]
+(pass) direct metadata cannot follow symbolic links [0.63ms]
+(pass) attachment directories cannot redirect reads to another directory [0.31ms]
+(pass) attachment payloads cannot alias other files through hard links [0.36ms]
+(pass) downloads permit the byte limit and reject larger payloads with 413 [0.89ms]
+
+ 11 pass
+ 0 fail
+ 24 expect() calls
+Ran 11 tests across 1 file. [85.00ms]

@@ -1,0 +1,31 @@
+$ bun test src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx src/renderer/lib/terminal/clipboard-files.test.ts
+bun test v1.4.2 (744846f84)
+
+src/renderer/lib/terminal/clipboard-files.test.ts:
+(pass) clipboard limits reject oversized batches before reading files [0.34ms]
+
+src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:
+(pass) changing pane callbacks does not reopen a restored chat stream [34.88ms]
+(pass) an older backend without chat attachment input keeps file sending disabled [15.87ms]
+(pass) a rejected Send keeps the message draft visible without marking the chat stream failed [29.52ms]
+(pass) a second picked file cannot grow the draft beyond the existing clipboard byte limit [17.24ms]
+(pass) restoring a controlled chat selection never selects the first session or sends a prompt [4.80ms]
+(pass) closing the chat view closes only its stream, without cancelling or closing B's chat [105.59ms]
+(pass) an attachment replayed from chat history remains downloadable after reconnect [68.27ms]
+(pass) reconnecting keeps the selected remote chat and never repeats a prompt [11.57ms]
+(pass) switching chats clears unsent message and attachment drafts [13.84ms]
+(pass) an upload completed after switching chats cannot attach to the new chat [9.06ms]
+(pass) returning to a chat cannot revive an old upload or clear a newer upload's busy state [11.86ms]
+(pass) an older session list cannot erase a newly created chat [4.27ms]
+(pass) a download completed after changing workspace cannot save stale attachment bytes [11.83ms]
+(pass) attachment controls require the backend's attachment capability [5.05ms]
+(pass) an uploaded attachment is referenced once by opaque id in the selected chat prompt [10.52ms]
+(pass) pasted images upload to the selected chat without sending a prompt [7.66ms]
+(pass) a pasted image completing after switching chats is not attached or sent [58.12ms]
+(pass) a rejected pasted attachment leaves the chat and message draft available [7.98ms]
+(pass) chat merges both clipboard file accessors, deduplicates the image, and retains the unsent message [8.21ms]
+
+ 20 pass
+ 0 fail
+ 77 expect() calls
+Ran 20 tests across 2 files. [663.00ms]

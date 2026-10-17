@@ -1,0 +1,17 @@
+bun test v1.4.2 (744846f84)
+
+packages/chat-runtime/src/harness/attachments/attachments.test.ts:
+(pass) cancelling a slow read aborts it and cannot block or overwrite a newer prompt [0.90ms]
+(pass) an unreadable second attachment rejects the entire prepared message [0.51ms]
+(pass) the byte cap applies to the whole message before any SDK input is delivered [0.14ms]
+
+packages/chat-runtime/src/harness/claude/claudeAdapter/claudeAttachments.test.ts:
+(pass) Claude receives resolved SSH image bytes instead of just the pasted filename [1.06ms]
+
+packages/chat-runtime/src/harness/codex/codexAdapter/codexAttachments.test.ts:
+(pass) a resolved SSH image reaches Codex as an image input alongside the unchanged text [4.96ms]
+
+ 5 pass
+ 0 fail
+ 12 expect() calls
+Ran 5 tests across 3 files. [86.00ms]

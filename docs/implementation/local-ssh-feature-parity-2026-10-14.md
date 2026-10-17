@@ -590,7 +590,7 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 用户最新要求的原版风格图标已接入：原四枚像素括号、纯色深底、浅紫内侧括号；SVG为唯一几何源，派生PNG/ICNS/ICO/托盘/侧栏/About/安装背景，31项字节一致性及16/32/128/1024透明角检查通过。第86轮实际侧栏/About、最小窗口、退出/重开通过并查看截图；这仅是Linux源码窗口，未制作新的macOS安装包。原版权与许可继续保留，历史发布证据不改写。
 
 
-### 阶段二十六：原Codex/Claude聊天附件编码与失败恢复（实际窗口待记录）
+### 阶段二十六：原Codex/Claude聊天附件编码与失败恢复
 
 新环境重新检出默认分支后，恢复到已推送的release-local-ssh-feature-parity-1.37.7/8cca237bb，重建匹配此分支的PTY类型声明。新增两个失败测试确认：Codex RPC只含文字、Claude SDK只含文件名。通过可选附件解析器接入原适配器：Codex使用原协议image数据URL，Claude使用SDK图片块，PDF走SDK文档块，其他文件传递所选后端的可读路径引用；文字/顺序/原text_elements保留，客户端MIME不覆盖后端元数据。未提供解析器的旧调用合同保留；这是现有两个harness的修补，不将它们冒充ACP原生输入。
 
@@ -601,3 +601,5 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 扩展主线程阻塞检查发现5个既有文件legacy-import/legacy-sources/legacy-v1/process-lock/run-completion的同步清理违反ratchet；在未修改的8cca237bb归档源码中单独复现同样3通过/1失败，未提高允许计数，也不把完整扩展套件算通过。附件读取本身没有新增递归同步操作；既有清理问题继续留在整个对齐目标内。新增真实窗口验收参数将实际点击Send，确认当前0.159 CLI被真实版本门槛拒绝时保留草稿与附件，并检查重开无自动发送、原3个PTY仍保留。SDK消息编码目前为类型化协议夹具，真实供应商识图/登录与macOS仍须另验。
 
 第87轮固定7d20fac72，实际发送被0.159 CLI启动失败拒绝，文字及图片/文件草稿仍在；验收按钮定位将历史附件也计入，4对2，退出1。截图已实际查看，脚本改为只计草稿附件行。第88轮产品仍7d20fac72/脚本0ef6c5ecb，明确Send后的文字、两图片与文件均保留、远端仍只有3份附件且journal只有1条手动消息、无turn，随后New chat因原有未确认操作被拦截，并错误地让整个聊天窗格进入失败占位，退出1，失败截图和草稿截图均已查看。不能因版本错误就将未知执行结果自动清除，保留远端unresolved与本地pending防重发。新增同一路径回归先18通过/1失败，New chat拒绝改为当前会话内错误后19通过/76断言。实际脚本在Send前创建第二会话，Send后核对未确认操作仍在、新建拒绝不丢草稿，再切换已有会话检查隔离及重开，避免把“未知执行可自动继续”当成验收目标。[第87/88轮原始失败证据](evidence/local-ssh-feature-parity/source-linux-chat-input-failures)。
+
+第89轮固定715cb942e，Send拒绝和全部草稿断言通过后，journal身份校验失败：原会话列表在新建/刷新后排序改变，脚本将codex #1误认为最早会话，实际明确Send落在另一个已选择会话。失败截图已查看；改为用持久化窗格resourceId核对真正选择身份，仍只通过可见按钮切换，不通过内部API修改状态。第90轮产品715cb942e、脚本5f912722b，实际Linux/Electron/拥有的SSH --chat-clipboard-only --expect-rejected-chat-send退出0。系统Ctrl+V的3474字节中文/emoji/129换行精确匹配；两份独立ID的83473字节PNG下载与远端存储hash相同、像素1200×872一致；41字节含引号/中文文件精确读回。明确Send被真实旧CLI拒绝后，文字/两图片/文件草稿完整、没有重复上传，journal仅1条手动消息且无turn。继续New chat被既有pending操作阻止时仅显示当前会话错误，草稿仍在；只读inspectPending确认chat.prompt仍unresolved，不自动清除、重放或冒充未执行。切换已有另一会话草稿为空，重开无自动消息，附件仍可下载，原3个PTY同PID6039/6052/6045、执行ID及统一worktree目录保留。拒绝后草稿与重开截图已实际查看。最后相关客户端/主进程/操作日志50项165断言、类型与重建通过。[第90轮原始证据](evidence/local-ssh-feature-parity/source-linux-chat-input/90)、[阶段二十六红绿/回归/构建日志](evidence/local-ssh-feature-parity/stage26)。这不替代真实供应商发送/识图、ACP原生输入或macOS发行物；既有同步清理ratchet失败继续处理。
