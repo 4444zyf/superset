@@ -162,11 +162,8 @@ export async function verifyWorkstationFileEventsUi({
 	assert.equal(readFileSync(target, "utf8"), disk);
 	await screenshot("file-events-conflict-keeps-draft-and-disk");
 	await click("text:Close file and discard draft");
-	await until(() =>
-		evaluate("Boolean(document.querySelector('[role=dialog]'))"),
-	);
-	await click("text:Discard changes");
-	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
+	await until(async () => await editorPath() !== target);
+	assert.equal(readFileSync(target, "utf8"), disk);
 	await open("watch-ignored/");
 	await open("watch-ignored/note.txt");
 	await until(async () => (await editorText()) === "ignored original\n");

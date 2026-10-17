@@ -619,3 +619,5 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 客户端相关8文件98项1479断言，包含无账号启动链对纯事件核心的审计、旧后端/非法路径/切换隔离/引用计数/监听关闭与原编辑器回归；后端事件及原4条阻塞规则共11通过；workspace-client/host/desktop类型与17语言检查通过。新增--file-events-only将从拥有的SSH夹具运行机执行外部文件写入，核对真实事件与原树/编辑器、脏草稿冲突、忽略目录已打开文件、目录删除以及重开和原3个PTY。原冲突比较/解决对话框、全部文件内联操作、Markdown相对图片单独资源的监听及全局退出草稿提醒仍须继续接入，不能将本阶段称为整个文件组已完成。
 
 第92轮为明确旧构建基线：产品仍是阶段二十七e569fae28的未重建bundle，脚本17a2568d1。拥有的SSH运行机外部写入external update后，原编辑器仍显示external original，原事件观察为空，按预期退出1；失败截图已实际查看。记录旧bundle字节hash，随后才重建，不能把此轮算成新代码验收。[旧构建基线](evidence/local-ssh-feature-parity/source-linux-file-events-baseline/92)。继续检查发现原后端的监听流失败会通过正常socket发送type:error，新传输也须重订阅，不能停在表面open；新增失败回归后补齐只读订阅重连，未改变后端消息合同。
+
+第93轮固定ed3b8f822，新构建实际窗口已走过：外部内容更新自动出现在原编辑器、目录create/rename/delete出现在原树，rename事件含原路径和目录类型，原删除提示可见；真实用户输入草稿后外部修改，明确Save被原版本条件拒绝，草稿和远端新内容均保留。随后脚本期待“Close file and discard draft”后再出现确认对话框而超时，退出1；该控件本身就是明确丢弃，只有标签关闭使用另一个确认流程。修改脚本等待明确丢弃完成，产品合同不变。自动更新、冲突与失败截图已实际查看。忽略目录文件和最终重开尚未走到，不能算本轮通过。[第93轮失败证据](evidence/local-ssh-feature-parity/source-linux-file-events-failures/93)。
