@@ -508,3 +508,8 @@ POSIX系列Shell使用当前交互Shell的eval执行原buildTerminalCommand结�
 用户在原终端明确按 Ctrl+C 时，沿现有输入记录该次中断并取消尚未投递的初始命令；不追加信号，不杀父 Shell。只有同一 execution 已无前台进程时才结束中断状态，没有实际退出码就不编造。普通粘贴文本或其他 execution 的输入不取消当前脚本。新增失败测试后实现；实际 PTY 测试使用 Electron Node ABI，5项通过（系统 Node ABI 不匹配的失败日志保留）。桌面核心68项/214断言、视图13项/905断言、剪贴板43项/129断言；host核心68项/139断言通过。host类型检查补正既有测试字面量类型后通过，desktop类型、17语言严格检查及构建通过。
 
 本轮同时复查用户要求的 SSH 图片及其他消息粘贴：保留第63轮真实系统剪贴板/SSH字节与像素证据；聊天粘贴的组件测试通过，macOS发行物和真实供应商 Agent 识图仍待验收。新实际窗口将分别记录成功、失败17、Ctrl+C、原输出重开及恢复不重跑；本段不将尚未执行的验收计为通过。[阶段二十红绿日志](evidence/local-ssh-feature-parity/stage20)。
+
+
+第72轮实际Linux窗口冻结于 6626bb7fe10e3dab22484d463dbafb4fa7ce9fc2，完整验收退出0。原Setup成功0、跳过无终端/无标记、失败17与同一输出重新打开、窗口重开同PID且标记只一次通过；实际Ctrl+C后显示Cancelled，父PTY仍为PID29392，重开不重跑，未伪造退出码。Run明确Ctrl+C也结束状态并保留PID28758父PTY。成功/失败/Ctrl+C截图已实际查看。
+
+用户要求的粘贴在本轮再次通过真实系统剪贴板+Ctrl+V+所拥有的SSH：PNG1200×872像素哈希 5da154ed7de40907de33ab1f8ab74482298c2766fc5b6cb2b648c9dcb309ae97；远端Shell实际读取、重复图片独立保存；中文/emoji/129换行3474字节SHA256 c8e7925a786ecb3fe0aa82a044d156040598219e64605c91b8455ccb53edc577，逐字节一致。图片未按Enter时路径与粘贴文本截图已查看。原Run/Teardown、文件/Git/设置及整体恢复回归通过。macOS安装包、聊天实际粘贴和真实Agent识图仍未验收。[第72轮证据](evidence/local-ssh-feature-parity/source-linux-setup-status)。
