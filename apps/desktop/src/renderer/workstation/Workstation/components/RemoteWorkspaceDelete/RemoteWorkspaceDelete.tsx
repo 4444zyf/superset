@@ -2,7 +2,7 @@ import { useLingui } from "@lingui/react/macro";
 import type { AppRouter, TeardownFailureCause } from "@superset/host-service";
 import { errorMessage } from "@superset/i18n/errors";
 import type { inferRouterOutputs } from "@trpc/server";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DestroyConfirmPane } from "renderer/components/WorkspaceDeleteDialog/DestroyConfirmPane/DestroyConfirmPane";
 import { TeardownFailedPane } from "renderer/components/WorkspaceDeleteDialog/TeardownFailedPane/TeardownFailedPane";
 import type {
@@ -65,15 +65,21 @@ export function RemoteWorkspaceDelete({
 	const capable =
 		connection.capabilities?.workstationWorkspaceCleanupV1 === true &&
 		connection.capabilities.durableOperations === true;
-	const owned = () => mounted.current && scope.current.epoch === epoch;
-	const rpc = <T,>(path: string, type: "query" | "mutation", input: unknown) =>
-		api.rpc<T>({
-			connectionId: connection.connectionId,
-			generation: connection.generation,
-			path,
-			type,
-			input,
-		});
+	const owned = useCallback(
+		() => mounted.current && scope.current.epoch === epoch,
+		[epoch],
+	);
+	const rpc = useCallback(
+		<T,>(path: string, type: "query" | "mutation", input: unknown) =>
+			api.rpc<T>({
+				connectionId: connection.connectionId,
+				generation: connection.generation,
+				path,
+				type,
+				input,
+			}),
+		[api, connection.connectionId, connection.generation],
+	);
 	useEffect(() => {
 		mounted.current = true;
 		let active = true;
@@ -97,7 +103,7 @@ export function RemoteWorkspaceDelete({
 			active = false;
 			mounted.current = false;
 		};
-	}, [owner, capable]);
+	}, [owner, capable, owned, rpc, workspace.id]);
 	const run = async (skipTeardown = false) => {
 		if (
 			!capable ||
@@ -160,6 +166,8 @@ export function RemoteWorkspaceDelete({
 	if (state.cause)
 		return (
 			<TeardownFailedPane
+				closeOnConfirm={false}
+				blockingReason={state.error}
 				open
 				onOpenChange={changeOpen}
 				cause={state.cause}
@@ -170,6 +178,7 @@ export function RemoteWorkspaceDelete({
 	const inspection = state.inspection;
 	return (
 		<DestroyConfirmPane
+			closeOnConfirm={false}
 			open
 			onOpenChange={changeOpen}
 			workspaceName={workspace.name}

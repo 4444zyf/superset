@@ -31,6 +31,7 @@ interface DestroyConfirmPaneProps {
 	blockingReason: string | null;
 	onConfirm: () => void;
 	confirmLabel: string;
+	closeOnConfirm?: boolean;
 }
 
 export function DestroyConfirmPane({
@@ -47,6 +48,7 @@ export function DestroyConfirmPane({
 	blockingReason,
 	onConfirm,
 	confirmLabel,
+	closeOnConfirm = true,
 }: DestroyConfirmPaneProps) {
 	const checkboxId = useId();
 	const hasWarnings = hasChanges || hasUnpushedCommits;
@@ -145,7 +147,10 @@ export function DestroyConfirmPane({
 						variant="destructive"
 						size="sm"
 						className="h-7 px-3 text-xs"
-						onClick={onConfirm}
+						onClick={(event) => {
+							if (!closeOnConfirm) event.preventDefault();
+							onConfirm();
+						}}
 						disabled={!canConfirm}
 					>
 						{confirmLabel}

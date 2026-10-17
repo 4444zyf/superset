@@ -21,6 +21,8 @@ interface TeardownFailedPaneProps {
 	/** Re-runs destroy with `force: true` — skips teardown entirely. */
 	onForceDelete: () => void;
 	canForceDelete?: boolean;
+	closeOnConfirm?: boolean;
+	blockingReason?: string;
 }
 
 /** Shown when `.superset/teardown.sh` exited non-zero or timed out. */
@@ -30,6 +32,8 @@ export function TeardownFailedPane({
 	cause,
 	onForceDelete,
 	canForceDelete = true,
+	closeOnConfirm = true,
+	blockingReason,
 }: TeardownFailedPaneProps) {
 	const reason = formatTeardownReason(cause);
 	// Strip ANSI so raw PTY bytes render readably in the <pre>.
@@ -49,6 +53,11 @@ export function TeardownFailedPane({
 						{cleanTail}
 					</pre>
 				)}
+				{blockingReason && (
+					<p role="alert" className="px-4 pb-2 text-xs text-destructive">
+						{blockingReason}
+					</p>
+				)}
 				<AlertDialogFooter className="px-4 pb-4 pt-2 flex-row justify-end gap-2">
 					<AlertDialogCancel className="h-7 border-0 bg-transparent px-3 text-xs shadow-none">
 						<Trans>Cancel</Trans>
@@ -66,7 +75,10 @@ export function TeardownFailedPane({
 						variant="destructive"
 						size="sm"
 						className="h-7 px-3 text-xs"
-						onClick={onForceDelete}
+						onClick={(event) => {
+							if (!closeOnConfirm) event.preventDefault();
+							onForceDelete();
+						}}
 						disabled={!canForceDelete}
 					>
 						<Trans>Delete anyway</Trans>

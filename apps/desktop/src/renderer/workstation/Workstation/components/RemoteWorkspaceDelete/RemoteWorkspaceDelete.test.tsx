@@ -13,6 +13,7 @@ import type {
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
 import { RemoteWorkspaceDelete } from "./RemoteWorkspaceDelete";
+
 afterEach(cleanup);
 const connection: DirectDescriptor = {
 	connectionId: "remote",
@@ -148,6 +149,7 @@ test("unsaved editor drafts block deletion and old backends receive no cleanup c
 	await screen.findByText("Has uncommitted changes and unpushed commits");
 	fireEvent.click(screen.getByRole("button", { name: "Delete anyway" }));
 	await screen.findByText("Unsaved changes");
+	expect(f.closed()).toBe(0);
 	expect(f.calls.filter((r) => r.type === "mutation")).toHaveLength(0);
 	v.unmount();
 	f.calls.length = 0;
@@ -158,4 +160,28 @@ test("unsaved editor drafts block deletion and old backends receive no cleanup c
 		/>,
 	);
 	expect(f.calls).toEqual([]);
+});
+
+test("new drafts during a failed teardown keep the original dialog and block forced deletion", async () => {
+	const f = fixture(async () => ({
+		outcome: "teardown-failed",
+		cause: {
+			kind: "TEARDOWN_FAILED",
+			exitCode: 17,
+			signal: null,
+			timedOut: false,
+			outputTail: "cleanup failed",
+		},
+	}));
+	let dirty = false;
+	render(
+		<RemoteWorkspaceDelete {...f.props} hasUnsavedChanges={() => dirty} />,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "Delete anyway" }));
+	await screen.findByText("cleanup failed");
+	dirty = true;
+	fireEvent.click(screen.getByRole("button", { name: "Delete anyway" }));
+	await screen.findByText("Unsaved changes");
+	expect(f.closed()).toBe(0);
+	expect(f.calls.filter((r) => r.type === "mutation")).toHaveLength(1);
 });
