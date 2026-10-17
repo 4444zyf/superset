@@ -520,3 +520,6 @@ POSIX系列Shell使用当前交互Shell的eval执行原buildTerminalCommand结�
 新增失败测试复现：SSH终端启用附件上传时，只有 DataTransfer.items 的文件被漏掉；聊天同时存在 files/items 时遗漏 items 中的另一个附件。两处改用原 @superset/ui/lib/clipboard-files 的 getClipboardFiles，合并两个访问器并按原规则去重，避免不同 lastModified 重复上传。原本机终端默认键盘/混合文本行为不变。保留聊天未发送草稿，不因粘贴自动发 prompt；相关桌面8文件57项/1029断言、原收集器6项/8断言、类型与构建通过。
 
 实际窗口增加 --clipboard-only 验收选项，只复测本次有关的系统剪贴板/SSH路径，输出明确标注未跑其余功能。Linux增加真实OS text/uri-list文件格式：有空格/引号/中文文件名、精确字节与远端shell读取；它不替代Finder/真实文件管理器复制验收。新窗口结果待记录，聊天真实窗口、macOS和供应商Agent仍待验收。[红绿记录](evidence/local-ssh-feature-parity/stage21)。
+
+
+第73轮固定于 7c9938a52962ff6187e8545f780b808a31f97203，实际Linux源码客户端和所拥有的SSH，--clipboard-only退出0。系统Ctrl+V的PNG1200×872在远端按像素校验一致（71fd7782c2a9b9d2a4c85005f221014b9a9c665c6cbcba9bf0fac9b56bd30da9），原Shell实际读取，重复粘贴独立保存。中文/emoji/129换行3474字节再次精确匹配，SHA256 c8e7925a786ecb3fe0aa82a044d156040598219e64605c91b8455ccb53edc577。OS text/uri-list 指向自有36字节文件 clipboard selected '中文'.txt，实际Ctrl+V上传为所选SSH工作区内新路径，逐字节校验通过，再明确Enter由远端cat读取完整两行。原生URI剪贴板文件不等于真实文件管理器复制；未执行聊天原生粘贴、供应商Agent识图和macOS验收。实际文件读取/图片路径截图已查看，清理测试视图后恢复原布局。[第73轮证据](evidence/local-ssh-feature-parity/source-linux-clipboard-collector)。本轮不重复声明全量功能回归，完整第72轮仍单独保留。
