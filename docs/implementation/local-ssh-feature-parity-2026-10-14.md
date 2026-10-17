@@ -706,3 +706,13 @@ Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取�
 
 
 第113轮产品/脚本77385872a，实际原Copy按钮将3474字节含中文/emoji/129换行的原文放入系统剪贴板；断开SSH后管理器仍可读，关闭重开保持paused且未自动连接，明确确认在离线时清空SQLite，远端三份附件保持。之后脚本错误地寻找机器页Connect按钮，但恢复后的工作区显示原Reconnect manually/Retry，超时退出1。五张复制/离线/重开/清空及失败截图均已实际查看；只改脚本点击原工作区Retry，并继续同一工作区，不改产品或超时。[第113轮原始失败](evidence/local-ssh-feature-parity/source-linux-offline-chat-drafts-failures/113)。第114轮产品仍77385872a、脚本923a2c465，实际Linux/Electron/拥有的SSH退出0，完整复制/断开/离线重开/取消保留/明确丢弃/原Retry手动重连及最终重开均通过；无草稿复活、额外上传或自动prompt/turn，三份远端文件保持，原三个PTY仍PID41942/41954/41948、执行ID与统一worktree cwd一致。五张管理器及最终重开截图均已实际查看。[第114轮原始证据](evidence/local-ssh-feature-parity/source-linux-offline-chat-drafts/114)、[阶段三十四红绿/类型/语言/构建](evidence/local-ssh-feature-parity/stage34)。旧后端/外部已删会话的恢复以组件及store测试覆盖，本轮没有删除真实远端数据；真实供应商Agent与macOS仍须独立验收。
+
+
+### 阶段三十五：原终端预设按钮、目标配置与明确启动
+
+先增加失败测试：新终端未传入预设initialCommand，旧后端也会收到预设启动请求；能力转发缺失、当前工作台没有原预设入口。提取原V2PresetBarItem/BuiltinPresetBarItem同一个PresetBarButton，两处旧wrapper继续拥有原拖拽/菜单/快捷键与Tooltip行为；新工作台也使用同一按钮，不拉入云collections或PostHog。原createDefaultV2TerminalPresetRows和getAgentCommandText继续生成默认预设及完整命令，读取所选运行机器的settings.agentConfigs.list，保留参数、环境和权限选项；默认项之外的配置可经Agents菜单明确启动。新终端走原terminal.createSession和稳定operationId，仍在运行机器工作区cwd，保持已有终端；关闭重开不重放启动。旧后端缺能力时只禁用相应入口并解释，普通shell仍可新建；晚目录回复不能填入别的后端。
+
+新增可选workstationTerminalPresetsV1能力，只有支持durableOperations和原恢复的后端声明；主进程只接受字面true。原tRPC过程、输入、输出、错误及传输未改，不改变已发布调用者。53项1282断言/9文件相关回归、桌面类型、17语言及插件检查通过，包含原默认预设/命令生成和账号启动/主线程阻塞。第115轮产品仍未重建77385872a、脚本163f04e06，首个目录查询被旧主进程拒绝Unsupported workstation procedure，退出1，尚未改动夹具配置或启动命令；实际截图已查看、旧bundle hash已保存。[第115轮旧构建基线](evidence/local-ssh-feature-parity/source-linux-terminal-presets-baseline/115)。同一缺口也通过新增主进程失败回归复现，随后仅开放带能力检查的只读列表，其他settings写入继续拒绝；最后39项158断言/4文件通过。一次新测试误认为manager会剥离connectionId/generation，已按原保留归属的合同精确检查，未改转发形状。重建后实际按钮/菜单/命令计数/统一cwd/重开及原3个PTY待记录。自定义脚本预设的编辑、可见性、重排、快捷键和完整Agent设置仍是下一项，不能将本阶段当作整个终端/Agent组已完成。
+
+
+第116轮产品/脚本固定187f400c9，实际Linux/Electron/拥有的SSH --terminal-presets-only退出0：仅夹具的Codex目录行预置为确定性shell命令后，经原Refresh读取；未点击时计数文件不存在，真实点击预设按钮后一次、打开Agents菜单再选择同项后两次，两条中文/emoji记录和两份cwd均精确匹配统一worktree。两个新shell仍PID45576/45611、执行ID/标题/cwd在关闭重开后保留，计数仍两次，没有自动启动；三个原PTY仍PID45299/45312/45305及原执行ID/cwd。四张原预设按钮/两种明确启动/重开截图均已实际查看。夹具配置属于拥有的测试数据准备，不冒称用户通过尚未接入的配置编辑界面完成，也不将shell探针当作真实供应商Agent任务。[第116轮原始证据](evidence/local-ssh-feature-parity/source-linux-terminal-presets/116)、[阶段三十五红绿/类型/语言/构建](evidence/local-ssh-feature-parity/stage35)。接下来补原Agent配置编辑、命令参数/模式、预设项目范围/隐藏重排及快捷键，仍未完成整个总清单。

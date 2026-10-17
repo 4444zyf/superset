@@ -1,0 +1,52 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.29ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.24ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.13ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.09ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.88ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.11ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.66ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.02ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.07ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.15ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.15ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.80ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.73ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.61ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.59ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.57ms]
+556 | 			advertised === true,
+557 | 		);
+558 | 		expect(features.capabilities?.workstationChatAttachmentInputV1).toBe(
+559 | 			advertised === true,
+560 | 		);
+561 | 		expect(features.capabilities?.workstationTerminalPresetsV1).toBe(advertised === true);
+                                                                    ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: undefined
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:561:63)
+(fail) attachment and file event readiness require explicit backend capabilities [0.41ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.17ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.16ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.18ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.48ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.32ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.92ms]
+(pass) project script procedures require their own capability and an explicit project [0.33ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.97ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.45ms]
+(pass) setup status is read only with an explicit workspace and its advertised capability [0.18ms]
+
+1 tests failed:
+(fail) attachment and file event readiness require explicit backend capabilities [0.41ms]
+
+ 27 pass
+ 1 fail
+ 79 expect() calls
+Ran 28 tests across 1 file. [204.00ms]

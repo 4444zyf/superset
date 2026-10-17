@@ -1,0 +1,428 @@
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:67:2 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    65 │ 		expect(hook.result.current.view?.targets[0]?.autoConnect).toBe(false),
+    66 │ 	);
+  > 67 │ 	backing.targets[0]!.autoConnect = true;
+       │ 	^^^^^^^^^^^^^^^^^^^
+    68 │ 	backing.revision++;
+    69 │ 	act(() =>
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:129:35 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    127 │ 		],
+    128 │ 	};
+  > 129 │ 	const original = structuredClone(backing.targets[0]!.workspaces);
+        │ 	                                 ^^^^^^^^^^^^^^^^^^^
+    130 │ 	const api = {
+    131 │ 		getWorkspaceView: async () => ({
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    127 127 │   		],
+    128 128 │   	};
+    129     │ - → const·original·=·structuredClone(backing.targets[0]!.workspaces);
+        129 │ + → const·original·=·structuredClone(backing.targets[0]?.workspaces);
+    130 130 │   	const api = {
+    131 131 │   		getWorkspaceView: async () => ({
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:171:9 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    169 │ 		await hook.result.current.renameTab("a", "Claude");
+    170 │ 	});
+  > 171 │ 	expect(backing.targets[0]!.workspaces.map((w) => w.tabId)).toEqual([
+        │ 	       ^^^^^^^^^^^^^^^^^^^
+    172 │ 		"b",
+    173 │ 		"a",
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    169 169 │   		await hook.result.current.renameTab("a", "Claude");
+    170 170 │   	});
+    171     │ - → expect(backing.targets[0]!.workspaces.map((w)·=>·w.tabId)).toEqual([
+        171 │ + → expect(backing.targets[0]?.workspaces.map((w)·=>·w.tabId)).toEqual([
+    172 172 │   		"b",
+    173 173 │   		"a",
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:175:9 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    173 │ 		"a",
+    174 │ 	]);
+  > 175 │ 	expect(backing.targets[0]!.activeTabId).toBe("a");
+        │ 	       ^^^^^^^^^^^^^^^^^^^
+    176 │ 	expect(backing.targets[0]!.workspaces[1]!.label).toBe("Claude");
+    177 │ 	for (const w of backing.targets[0]!.workspaces) {
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    173 173 │   		"a",
+    174 174 │   	]);
+    175     │ - → expect(backing.targets[0]!.activeTabId).toBe("a");
+        175 │ + → expect(backing.targets[0]?.activeTabId).toBe("a");
+    176 176 │   	expect(backing.targets[0]!.workspaces[1]!.label).toBe("Claude");
+    177 177 │   	for (const w of backing.targets[0]!.workspaces) {
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:176:9 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    174 │ 	]);
+    175 │ 	expect(backing.targets[0]!.activeTabId).toBe("a");
+  > 176 │ 	expect(backing.targets[0]!.workspaces[1]!.label).toBe("Claude");
+        │ 	       ^^^^^^^^^^^^^^^^^^^
+    177 │ 	for (const w of backing.targets[0]!.workspaces) {
+    178 │ 		expect(w.workspaceId).toBe(`workspace-${w.tabId}`);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    174 174 │   	]);
+    175 175 │   	expect(backing.targets[0]!.activeTabId).toBe("a");
+    176     │ - → expect(backing.targets[0]!.workspaces[1]!.label).toBe("Claude");
+        176 │ + → expect(backing.targets[0]?.workspaces[1]!.label).toBe("Claude");
+    177 177 │   	for (const w of backing.targets[0]!.workspaces) {
+    178 178 │   		expect(w.workspaceId).toBe(`workspace-${w.tabId}`);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:176:9 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    174 │ 	]);
+    175 │ 	expect(backing.targets[0]!.activeTabId).toBe("a");
+  > 176 │ 	expect(backing.targets[0]!.workspaces[1]!.label).toBe("Claude");
+        │ 	       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    177 │ 	for (const w of backing.targets[0]!.workspaces) {
+    178 │ 		expect(w.workspaceId).toBe(`workspace-${w.tabId}`);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    174 174 │   	]);
+    175 175 │   	expect(backing.targets[0]!.activeTabId).toBe("a");
+    176     │ - → expect(backing.targets[0]!.workspaces[1]!.label).toBe("Claude");
+        176 │ + → expect(backing.targets[0]!.workspaces[1]?.label).toBe("Claude");
+    177 177 │   	for (const w of backing.targets[0]!.workspaces) {
+    178 178 │   		expect(w.workspaceId).toBe(`workspace-${w.tabId}`);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:177:18 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    175 │ 	expect(backing.targets[0]!.activeTabId).toBe("a");
+    176 │ 	expect(backing.targets[0]!.workspaces[1]!.label).toBe("Claude");
+  > 177 │ 	for (const w of backing.targets[0]!.workspaces) {
+        │ 	                ^^^^^^^^^^^^^^^^^^^
+    178 │ 		expect(w.workspaceId).toBe(`workspace-${w.tabId}`);
+    179 │ 		expect(w.panes).toEqual(original.find((o) => o.tabId === w.tabId)!.panes);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    175 175 │   	expect(backing.targets[0]!.activeTabId).toBe("a");
+    176 176 │   	expect(backing.targets[0]!.workspaces[1]!.label).toBe("Claude");
+    177     │ - → for·(const·w·of·backing.targets[0]!.workspaces)·{
+        177 │ + → for·(const·w·of·backing.targets[0]?.workspaces)·{
+    178 178 │   		expect(w.workspaceId).toBe(`workspace-${w.tabId}`);
+    179 179 │   		expect(w.panes).toEqual(original.find((o) => o.tabId === w.tabId)!.panes);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:179:27 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    177 │ 	for (const w of backing.targets[0]!.workspaces) {
+    178 │ 		expect(w.workspaceId).toBe(`workspace-${w.tabId}`);
+  > 179 │ 		expect(w.panes).toEqual(original.find((o) => o.tabId === w.tabId)!.panes);
+        │ 		                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    180 │ 	}
+    181 │ });
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    177 177 │   	for (const w of backing.targets[0]!.workspaces) {
+    178 178 │   		expect(w.workspaceId).toBe(`workspace-${w.tabId}`);
+    179     │ - → → expect(w.panes).toEqual(original.find((o)·=>·o.tabId·===·w.tabId)!.panes);
+        179 │ + → → expect(w.panes).toEqual(original.find((o)·=>·o.tabId·===·w.tabId)?.panes);
+    180 180 │   	}
+    181 181 │   });
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:283:20 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    281 │ 		);
+    282 │ 	});
+  > 283 │ 	const workspace = backing.targets[0]!.workspaces[0]!;
+        │ 	                  ^^^^^^^^^^^^^^^^^^^
+    284 │ 	expect(workspace.panes).toHaveLength(2);
+    285 │ 	expect(workspace.panes[1]).toMatchObject({
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    281 281 │   		);
+    282 282 │   	});
+    283     │ - → const·workspace·=·backing.targets[0]!.workspaces[0]!;
+        283 │ + → const·workspace·=·backing.targets[0]?.workspaces[0]!;
+    284 284 │   	expect(workspace.panes).toHaveLength(2);
+    285 285 │   	expect(workspace.panes[1]).toMatchObject({
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:283:20 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    281 │ 		);
+    282 │ 	});
+  > 283 │ 	const workspace = backing.targets[0]!.workspaces[0]!;
+        │ 	                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    284 │ 	expect(workspace.panes).toHaveLength(2);
+    285 │ 	expect(workspace.panes[1]).toMatchObject({
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:377:9 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    375 │ 		);
+    376 │ 	});
+  > 377 │ 	expect(backing.targets[0]!.workspaces[0]!.panes.map((p) => p.label)).toEqual([
+        │ 	       ^^^^^^^^^^^^^^^^^^^
+    378 │ 		"Setup",
+    379 │ 		"My terminal",
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    375 375 │   		);
+    376 376 │   	});
+    377     │ - → expect(backing.targets[0]!.workspaces[0]!.panes.map((p)·=>·p.label)).toEqual([
+        377 │ + → expect(backing.targets[0]?.workspaces[0]!.panes.map((p)·=>·p.label)).toEqual([
+    378 378 │   		"Setup",
+    379 379 │   		"My terminal",
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:377:9 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    375 │ 		);
+    376 │ 	});
+  > 377 │ 	expect(backing.targets[0]!.workspaces[0]!.panes.map((p) => p.label)).toEqual([
+        │ 	       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    378 │ 		"Setup",
+    379 │ 		"My terminal",
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    375 375 │   		);
+    376 376 │   	});
+    377     │ - → expect(backing.targets[0]!.workspaces[0]!.panes.map((p)·=>·p.label)).toEqual([
+        377 │ + → expect(backing.targets[0]!.workspaces[0]?.panes.map((p)·=>·p.label)).toEqual([
+    378 378 │   		"Setup",
+    379 379 │   		"My terminal",
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:387:9 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    385 │ 		);
+    386 │ 	});
+  > 387 │ 	expect(backing.targets[0]!.workspaces[0]!.panes[0]!.label).toBe("Setup");
+        │ 	       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    388 │ 	expect(calls.filter((path) => path === "terminal.list")).toEqual([
+    389 │ 		"terminal.list",
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    385 385 │   		);
+    386 386 │   	});
+    387     │ - → expect(backing.targets[0]!.workspaces[0]!.panes[0]!.label).toBe("Setup");
+        387 │ + → expect(backing.targets[0]!.workspaces[0]!.panes[0]?.label).toBe("Setup");
+    388 388 │   	expect(calls.filter((path) => path === "terminal.list")).toEqual([
+    389 389 │   		"terminal.list",
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.test.tsx:387:9 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    385 │ 		);
+    386 │ 	});
+  > 387 │ 	expect(backing.targets[0]!.workspaces[0]!.panes[0]!.label).toBe("Setup");
+        │ 	       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    388 │ 	expect(calls.filter((path) => path === "terminal.list")).toEqual([
+    389 │ 		"terminal.list",
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    385 385 │   		);
+    386 386 │   	});
+    387     │ - → expect(backing.targets[0]!.workspaces[0]!.panes[0]!.label).toBe("Setup");
+        387 │ + → expect(backing.targets[0]!.workspaces[0]?.panes[0]!.label).toBe("Setup");
+    388 388 │   	expect(calls.filter((path) => path === "terminal.list")).toEqual([
+    389 389 │   		"terminal.list",
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts:115:32 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    113 │ 			if (snapshot.status === "ready" && snapshot.descriptor) {
+    114 │ 				const target = viewRef.current?.targets.find(
+  > 115 │ 					(t) => t.connectionId === snapshot.descriptor!.connectionId,
+        │ 					                          ^^^^^^^^^^^^^^^^^^^^
+    116 │ 				);
+    117 │ 				if (target?.autoConnect === false)
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    113 113 │   			if (snapshot.status === "ready" && snapshot.descriptor) {
+    114 114 │   				const target = viewRef.current?.targets.find(
+    115     │ - → → → → → (t)·=>·t.connectionId·===·snapshot.descriptor!.connectionId,
+        115 │ + → → → → → (t)·=>·t.connectionId·===·snapshot.descriptor?.connectionId,
+    116 116 │   				);
+    117 117 │   				if (target?.autoConnect === false)
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts:176:29 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    174 │ 				if (saved?.restoreOnLaunch && saved.activeConnectionId) {
+    175 │ 					callbacksRef.current.onSkeleton(saved.activeConnectionId);
+  > 176 │ 					const snapshot = await api.beginWorkspaceRestore!({
+        │ 					                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    177 │ 						reason: "launch",
+    178 │ 						navigationRevision: navigation.current,
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    174 174 │   				if (saved?.restoreOnLaunch && saved.activeConnectionId) {
+    175 175 │   					callbacksRef.current.onSkeleton(saved.activeConnectionId);
+    176     │ - → → → → → const·snapshot·=·await·api.beginWorkspaceRestore!({
+        176 │ + → → → → → const·snapshot·=·await·api.beginWorkspaceRestore?.({
+    177 177 │   						reason: "launch",
+    178 178 │   						navigationRevision: navigation.current,
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts:229:28 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    227 │ 				for (let attempt = 0; attempt < 2; attempt++) {
+    228 │ 					if (!mounted.current || captured !== navigation.current) return null;
+  > 229 │ 					const current = await api.getWorkspaceView!();
+        │ 					                      ^^^^^^^^^^^^^^^^^^^^^
+    230 │ 					if (!mounted.current || captured !== navigation.current) return null;
+    231 │ 					const input = inputFor(current.snapshot);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    227 227 │   				for (let attempt = 0; attempt < 2; attempt++) {
+    228 228 │   					if (!mounted.current || captured !== navigation.current) return null;
+    229     │ - → → → → → const·current·=·await·api.getWorkspaceView!();
+        229 │ + → → → → → const·current·=·await·api.getWorkspaceView?.();
+    230 230 │   					if (!mounted.current || captured !== navigation.current) return null;
+    231 231 │   					const input = inputFor(current.snapshot);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts:234:27 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    232 │ 					change(input);
+    233 │ 					try {
+  > 234 │ 						const saved = await api.saveWorkspaceView!({
+        │ 						                    ^^^^^^^^^^^^^^^^^^^^^^
+    235 │ 							expectedRevision: current.revision,
+    236 │ 							navigationRevision: captured,
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    232 232 │   					change(input);
+    233 233 │   					try {
+    234     │ - → → → → → → const·saved·=·await·api.saveWorkspaceView!({
+        234 │ + → → → → → → const·saved·=·await·api.saveWorkspaceView?.({
+    235 235 │   							expectedRevision: current.revision,
+    236 236 │   							navigationRevision: captured,
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts:431:16 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    429 │ 				}
+    430 │ 				const currentTarget =
+  > 431 │ 					target ?? input.targets.find((t) => t.connectionId === id)!;
+        │ 					          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    432 │ 				const duplicate = currentTarget.workspaces.find(
+    433 │ 					(w) => w.workspaceId === workspace.id,
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.tsx:57:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook specifies more dependencies than necessary: reload.
+  
+    55 │ 	current.current = owner;
+    56 │ 	const agents = state.owner === owner && capable ? state.agents : [];
+  > 57 │ 	useEffect(() => {
+       │ 	^^^^^^^^^
+    58 │ 		if (!capable) return;
+    59 │ 		let active = true;
+  
+  i This dependency can be removed from the list.
+  
+    83 │ 		connection.connectionId,
+    84 │ 		connection.generation,
+  > 85 │ 		reload,
+       │ 		^^^^^^
+    86 │ 	]);
+    87 │ 	let index = 0;
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Specifying more dependencies than required can lead to unnecessary re-rendering
+    and degraded performance.
+  
+  i Unsafe fix: Remove the extra dependencies from the list.
+  
+     78  78 │   		};
+     79  79 │   	}, [
+     80     │ - → → api,
+     81     │ - → → capable,
+     82     │ - → → owner,
+     83     │ - → → connection.connectionId,
+     84     │ - → → connection.generation,
+     85     │ - → → reload,
+         80 │ + → → api,·
+         81 │ + → → capable,·
+         82 │ + → → owner,·
+         83 │ + → → connection.connectionId,·
+         84 │ + → → connection.generation
+     86  85 │   	]);
+     87  86 │   	let index = 0;
+  
+
+Skipped 19 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 2.
+Checked 12 files in 54ms. Fixed 8 files.
+Found 1 error.
+Found 21 warnings.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while applying fixes.
+  
+

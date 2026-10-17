@@ -1,0 +1,44 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.02ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.29ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.10ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.09ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.11ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.10ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.46ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.02ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.10ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.13ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.61ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.69ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.49ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.50ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.51ms]
+(pass) attachment and file event readiness require explicit backend capabilities [0.28ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.15ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.16ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.08ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.34ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.24ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.71ms]
+(pass) project script procedures require their own capability and an explicit project [0.25ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.77ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.40ms]
+(pass) setup status is read only with an explicit workspace and its advertised capability [0.18ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [71.98ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [53.47ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:
+(pass) the original default preset surface uses the selected host's config and launches only on an explicit click [41.77ms]
+(pass) older hosts receive no preset queries and late replies cannot populate a different backend [10.73ms]
+
+ 32 pass
+ 0 fail
+ 111 expect() calls
+Ran 32 tests across 3 files. [492.00ms]

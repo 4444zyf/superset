@@ -1,0 +1,64 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+16 | test("a terminal preset sends its original command once to the selected SSH backend and keeps original terminals", async () => {
+17 | 	const f = fixture(true); await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+18 | 	const initialCommand = "REMIX_CHECK='中文 value' printf '%s' 'hello world'";
+19 | 	await act(async () => f.hook.result.current.newTerminal("workspace", "horizontal", {initialCommand, label: "My agent"}));
+20 | 	expect(f.calls).toHaveLength(1);
+21 | 	expect(f.calls[0]).toMatchObject({connectionId: "ssh", generation: 2, path: "terminal.createSession", type: "mutation", input: {workspaceId: "workspace", initialCommand}});
+                         ^
+error: expect(received).toMatchObject(expected)
+
+  {
+    "connectionId": "ssh",
+    "generation": 2,
+    "input": {
+-     "initialCommand": "REMIX_CHECK='中文 value' printf '%s' 'hello world'",
++     "operationId": "101b6dce-cc43-4155-ad34-b85aa3c7b535",
++     "terminalId": "f0aa5d45-0cbf-4f4f-b1d4-90a09081c6d3",
+      "workspaceId": "workspace",
+    },
+    "path": "terminal.createSession",
+    "type": "mutation",
+  }
+
+- Expected  - 1
++ Received  + 2
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:21:21)
+(fail) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [64.80ms]
+26 | 	f.hook.rerender(); expect(f.calls).toHaveLength(1);
+27 | });
+28 | test("an older backend does not receive a preset command but can still create an ordinary shell", async () => {
+29 | 	const f = fixture(false); await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+30 | 	await act(async () => f.hook.result.current.newTerminal("workspace", "horizontal", {initialCommand: "printf keep", label: "Preset"}));
+31 | 	expect(f.calls).toEqual([]);
+                      ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   {
++     "connectionId": "ssh",
++     "generation": 2,
++     "input": {
++       "operationId": "ffd539af-766b-4b6a-850a-25e1ce07465e",
++       "terminalId": "df70cf05-e90d-47a2-875e-e2f32556b173",
++       "workspaceId": "workspace",
++     },
++     "path": "terminal.createSession",
++     "type": "mutation",
++   },
++ ]
+
+- Expected  - 1
++ Received  + 13
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:31:18)
+(fail) an older backend does not receive a preset command but can still create an ordinary shell [58.23ms]
+
+ 0 pass
+ 2 fail
+ 7 expect() calls
+Ran 2 tests across 1 file. [318.00ms]
