@@ -237,7 +237,15 @@ export async function verifyWorkstationCleanupUi({
 	await press('[data-tab-id="' + scope.tabId + '"]');
 	await configure([command]);
 	await openDelete(skipped.id);
-	await byText("Delete");
+	const inspection = await query("workspaceCleanup.inspect", {
+		workspaceId: skipped.id,
+	});
+	assert.equal(inspection.canDelete, true);
+	await byText(
+		inspection.hasChanges || inspection.hasUnpushedCommits
+			? "Delete anyway"
+			: "Delete",
+	);
 	await until(() => !existsSync(skipped.worktreePath));
 	assert.equal(readFileSync(marker, "utf8"), "once\nonce\nonce\n");
 	assert.ok(
