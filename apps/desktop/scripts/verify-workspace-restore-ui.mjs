@@ -5,6 +5,7 @@ import { verifyWorkstationInstantRunUi } from "./verify-workstation-instant-run-
 import { verifyWorkstationCleanupUi } from "./verify-workstation-cleanup-ui.mjs";
 import { verifyWorkstationSetupUi } from "./verify-workstation-setup-ui.mjs";
 import { verifyWorkstationClipboardUi } from "./verify-workstation-clipboard-ui.mjs";
+import { verifyWorkstationChatClipboardUi } from "./verify-workstation-chat-clipboard-ui.mjs";
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -442,6 +443,11 @@ export async function verifyWorkspaceRestoreUi({
 	if (process.argv.includes("--file-previews-only")) {
 		await verifyWorkstationFilePreviewsUi({ getPage, click, screenshot, closeReopen, controls, output });
 		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, filePreviewsOnly: true }, null, 2) + "\n");
+		return;
+	}
+	if (process.argv.includes("--chat-clipboard-only")) {
+		await verifyWorkstationChatClipboardUi({ getPage, click, screenshot, closeReopen, setClipboard, pasteClipboard, inspectClipboardImage, controls, output });
+		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, chatClipboardOnly: true }, null, 2) + "\n");
 		return;
 	}
 	if (process.argv.includes("--clipboard-only")) {

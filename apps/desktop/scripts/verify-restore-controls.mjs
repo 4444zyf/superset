@@ -6,6 +6,7 @@ import {
 	existsSync,
 	lstatSync,
 	readFileSync,
+	readdirSync,
 	readlinkSync,
 	writeFileSync,
 } from "node:fs";
@@ -39,6 +40,29 @@ export function ownedRestoreControls(home, fixture) {
 	);
 	let originals = [];
 	return {
+		inspectChatAttachments() {
+			const root = join(home, "host", identity.namespaceId, "attachments");
+			if (!existsSync(root)) return [];
+			assert.equal(lstatSync(root).uid, process.getuid());
+			const ids = readdirSync(root);
+			assert.ok(ids.length <= 32);
+			return ids.flatMap((id) => {
+				assert.match(id, /^[0-9a-f-]{36}$/);
+				const dir = join(root, id);
+				assert.ok(lstatSync(dir).isDirectory() && lstatSync(dir).uid === process.getuid());
+				if (!existsSync(join(dir, "metadata.json"))) return [];
+				const metadata = JSON.parse(readFileSync(join(dir, "metadata.json"), "utf8"));
+				assert.equal(metadata.attachmentId, id);
+				const files = readdirSync(dir).filter((name) => name !== "metadata.json");
+				assert.equal(files.length, 1);
+				const path = join(dir, files[0]);
+				const stat = lstatSync(path);
+				assert.ok(stat.isFile() && stat.uid === process.getuid() && stat.size <= 25 * 1024 * 1024);
+				const bytes = readFileSync(path);
+				assert.equal(bytes.length, metadata.sizeBytes);
+				return [{ ...metadata, sha256: createHash("sha256").update(bytes).digest("hex") }];
+			});
+		},
 		prepareMediaPreviews(worktreePath) {
 			assert.ok(worktreePath.startsWith(join(fixture.homeDir,"Superset Remix","worktrees")+"/"));
 			assert.equal(lstatSync(worktreePath).uid,process.getuid());
