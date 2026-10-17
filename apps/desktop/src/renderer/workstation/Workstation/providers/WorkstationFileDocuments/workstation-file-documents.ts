@@ -425,6 +425,12 @@ export class WorkstationFileDocuments {
 		this.revision++;
 		for (const listener of this.listeners) listener();
 	}
+	getUnsavedDocuments(): SharedFileDocument[] {
+		return [...this.scopes.values()]
+			.flatMap((scope) => scope.store.getDocuments())
+			.filter((document) => document.dirty || document.pendingSave);
+	}
+
 	getDocumentWorkspaces(connection: DirectDescriptor): string[] {
 		const scope = this.scopes.get(scopeId(connection));
 		if (!scope?.active || scope.descriptor.generation !== connection.generation)

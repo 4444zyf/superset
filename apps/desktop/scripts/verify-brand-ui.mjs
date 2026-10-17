@@ -445,8 +445,9 @@ try {
 					await attach();
 					return closedHeartbeat;
 				},
-				closeReopen: async () => {
-					await main.evaluate(
+				requestClose: async (kind) => main.evaluate(`${kind==="both"?`${electron}.BrowserWindow.getAllWindows()[0].close();${electron}.app.quit()` : kind==="quit"?`${electron}.app.quit()` : `${electron}.BrowserWindow.getAllWindows()[0].close()`};true`),
+    closeReopen: async (alreadyClosed = false) => {
+					if (!alreadyClosed) await main.evaluate(
 						`${electron}.BrowserWindow.getAllWindows()[0].close(); true`,
 					);
 					await delay(700);

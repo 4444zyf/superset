@@ -1,3 +1,4 @@
+import { verifyWorkstationCloseGuardUi } from "./verify-workstation-close-guard-ui.mjs";
 import { verifyWorkstationBackgroundFilesUi } from "./verify-workstation-background-files-ui.mjs";
 import { verifyWorkstationFileConflictUi } from "./verify-workstation-file-conflict-ui.mjs";
 import { verifyWorkstationFileEventsUi } from "./verify-workstation-file-events-ui.mjs";
@@ -31,6 +32,7 @@ export async function verifyWorkspaceRestoreUi({
 	screenshot,
 	restart,
 	closeReopen,
+ requestClose,
 	controls,
 	setClipboard,
 	pasteClipboard,
@@ -433,6 +435,11 @@ export async function verifyWorkspaceRestoreUi({
 			) + "\n",
 		);
 	}
+ if (process.argv.includes("--file-close-guard-only")) {
+  await verifyWorkstationCloseGuardUi({getPage,click,screenshot,closeReopen,requestClose,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,fileCloseGuardOnly:true},null,2)+"\n");
+  return;
+ }
  if (process.argv.includes("--file-background-only")) {
   await verifyWorkstationBackgroundFilesUi({getPage,click,screenshot,closeReopen,controls,output});
   writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,fileBackgroundOnly:true},null,2)+"\n");

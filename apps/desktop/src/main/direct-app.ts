@@ -34,7 +34,6 @@ import {
 	shell,
 } from "electron";
 import { z } from "zod";
-import { uploadClipboardAttachment } from "./lib/ssh-direct/clipboard-attachment";
 import {
 	DIRECT_CHANNEL,
 	DIRECT_CONNECTION_CHANNEL,
@@ -42,10 +41,12 @@ import {
 	DIRECT_SETUP_CHANNEL,
 	DIRECT_SOCKET_CHANNEL,
 	DIRECT_VIEW_FLUSH_CHANNEL,
+	DIRECT_WINDOW_CLOSE_CHANNEL,
 } from "../shared/direct-workstation";
 import { lockProductProfile } from "./lib/product-identity";
 import { isSafeExternalUrl } from "./lib/safe-url/scheme";
 import { AutomaticReconnect } from "./lib/ssh-direct/automatic-reconnect";
+import { uploadClipboardAttachment } from "./lib/ssh-direct/clipboard-attachment";
 import { runConfirmedRemoteControl } from "./lib/ssh-direct/confirmed-remote-control";
 import { importSelectedLocalData } from "./lib/ssh-direct/import-local-data";
 import { createLocalBackend } from "./lib/ssh-direct/local-backend";
@@ -58,6 +59,7 @@ import {
 import { readSelectedAttachmentBytes } from "./lib/ssh-direct/selected-attachment";
 import { SetupProgress } from "./lib/ssh-direct/setup-progress";
 import { SocketBroker } from "./lib/ssh-direct/socket-broker";
+import { WindowCloseGate } from "./lib/ssh-direct/window-close-gate";
 import { closeWindowTransports } from "./lib/ssh-direct/window-transports";
 import { WorkspaceRestoreCoordinator } from "./lib/ssh-direct/workspace-restore-coordinator";
 import { WorkspaceViewStore } from "./lib/ssh-direct/workspace-view-store";
@@ -245,6 +247,8 @@ export async function startWorkstation(): Promise<void> {
 	);
 	const forwards = new DirectPortForwardManager(manager);
 	let quitting = false;
+	let quitRequested = false;
+	const closeGate = new WindowCloseGate();
 	let rendererOwnerEpoch = 0;
 	const reconnect = new AutomaticReconnect({
 		getStatus: (id) => manager.getStatus(id),
@@ -400,6 +404,7 @@ export async function startWorkstation(): Promise<void> {
 			(_event, _url, isInPlace, isMainFrame) => {
 				if (isMainFrame && !isInPlace) {
 					rendererOwnerEpoch++;
+					closeGate.invalidate();
 					views?.activateOwner(owner);
 					closeWindowTransports(
 						owner,
@@ -424,18 +429,36 @@ export async function startWorkstation(): Promise<void> {
 		window.on("unmaximize", changedBounds);
 		let closing = false;
 		let allowClose = false;
+		window.webContents.on("render-process-gone", () => closeGate.invalidate());
 		window.on("close", (event) => {
 			if (quitting || allowClose) return;
 			event.preventDefault();
 			if (closing) return;
 			closing = true;
-			views?.invalidate();
-			void flushWindow(currentWindow).finally(() => {
-				allowClose = true;
-				if (!currentWindow.isDestroyed()) currentWindow.close();
-			});
+			void closeGate
+				.request(owner, rendererOwnerEpoch, "window", (request) =>
+					currentWindow.webContents.send(DIRECT_WINDOW_CLOSE_CHANNEL, request),
+				)
+				.then(async (allowed) => {
+					if (!allowed || quitRequested || quitting || window !== currentWindow)
+						return;
+					views?.invalidate();
+					try {
+						await flushWindow(currentWindow);
+					} finally {
+						allowClose = true;
+						if (!currentWindow.isDestroyed()) currentWindow.close();
+					}
+				})
+				.catch((error) =>
+					console.error("[workstation] Window close failed", error),
+				)
+				.finally(() => {
+					closing = false;
+				});
 		});
 		window.on("closed", () => {
+			closeGate.invalidate();
 			clearTimeout(windowSaveTimer);
 			rendererOwnerEpoch++;
 			views?.activateOwner(null);
@@ -513,9 +536,38 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "registerWindowCloseGuard": {
+					const { registrationId } = z
+						.object({ registrationId: z.string().uuid() })
+						.strict()
+						.parse(payload);
+					closeGate.register(owner, callerEpoch, registrationId);
+					return;
+				}
+				case "unregisterWindowCloseGuard": {
+					const { registrationId } = z
+						.object({ registrationId: z.string().uuid() })
+						.strict()
+						.parse(payload);
+					closeGate.unregister(owner, callerEpoch, registrationId);
+					return;
+				}
+				case "windowCloseResolved": {
+					const input = z
+						.object({
+							registrationId: z.string().uuid(),
+							requestId: z.string().uuid(),
+							allow: z.boolean(),
+						})
+						.strict()
+						.parse(payload);
+					return closeGate.reply(owner, callerEpoch, input);
+				}
+
 				case "openExternal": {
 					const url = z.string().min(1).max(8192).parse(payload);
-					if (!isSafeExternalUrl(url)) throw new Error("Unsupported external URL");
+					if (!isSafeExternalUrl(url))
+						throw new Error("Unsupported external URL");
 					await shell.openExternal(url);
 					return;
 				}
@@ -1174,26 +1226,48 @@ export async function startWorkstation(): Promise<void> {
 	app.on("before-quit", (event) => {
 		if (quitting) return;
 		event.preventDefault();
-		quitting = true;
-		reconnect.dispose();
-		views?.invalidate();
-		void (async () => {
-			if (window) {
-				await flushWindow(window);
-				sockets.closeOwner(window.webContents.id);
-			}
-			rendererOwnerEpoch++;
-			views?.activateOwner(null);
-			forwards.dispose();
-			await controller.dispose();
-		})().finally(() => {
-			registry.close();
-			intents.close();
-			preferences.close();
-			viewStore?.close();
-			ipcMain.removeHandler(DIRECT_CHANNEL);
-			app.quit();
-		});
+		if (quitRequested) return;
+		quitRequested = true;
+		const current = window;
+		const allowed = current
+			? closeGate.request(
+					current.webContents.id,
+					rendererOwnerEpoch,
+					"quit",
+					(request) =>
+						current.webContents.send(DIRECT_WINDOW_CLOSE_CHANNEL, request),
+				)
+			: Promise.resolve(true);
+		void allowed
+			.then((allow) => {
+				quitRequested = false;
+				if (!allow || window !== current) return;
+				quitting = true;
+				reconnect.dispose();
+				views?.invalidate();
+				void (async () => {
+					if (current) {
+						await flushWindow(current);
+						sockets.closeOwner(current.webContents.id);
+					}
+					rendererOwnerEpoch++;
+					closeGate.invalidate();
+					views?.activateOwner(null);
+					forwards.dispose();
+					await controller.dispose();
+				})().finally(() => {
+					registry.close();
+					intents.close();
+					preferences.close();
+					viewStore?.close();
+					ipcMain.removeHandler(DIRECT_CHANNEL);
+					app.quit();
+				});
+			})
+			.catch((error) => {
+				quitRequested = false;
+				console.error("[workstation] Quit request failed", error);
+			});
 	});
 	app.on("second-instance", () => {
 		window?.show();

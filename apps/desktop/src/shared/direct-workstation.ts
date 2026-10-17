@@ -176,6 +176,9 @@ export interface DirectWorkstationApi {
 	cancelWorkspaceRestore?(input: { restoreJobId: string }): Promise<void>;
 	forgetWorkspaceView?(input: { expectedRevision: number }): Promise<void>;
 	onWorkspaceViewFlush?(listener: () => Promise<void>): () => void;
+	onWindowCloseRequest?(
+		listener: (kind: "window" | "quit") => Promise<boolean>,
+	): () => void;
 	inspectPending?(id: string): Promise<unknown[]>;
 	openRestoredTerminal?(
 		connection: DirectDescriptor,
@@ -255,3 +258,5 @@ export const DIRECT_CONNECTION_CHANNEL = "direct-workstation:connection";
 export const DIRECT_SETUP_CHANNEL = "direct-workstation:setup";
 export const DIRECT_RESTORE_CHANNEL = "direct-workstation:restore";
 export const DIRECT_VIEW_FLUSH_CHANNEL = "direct-workstation:flush-view";
+
+export const DIRECT_WINDOW_CLOSE_CHANNEL = "direct-workstation:window-close";

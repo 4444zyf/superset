@@ -15,6 +15,7 @@ import { SessionDialog } from "./components/SessionDialog/SessionDialog";
 import { WorkspaceBrowser } from "./components/WorkspaceBrowser/WorkspaceBrowser";
 import { WorkspaceEditor } from "./components/WorkspaceEditor/WorkspaceEditor";
 import { WorkspaceWindow } from "./components/WorkspaceWindow/WorkspaceWindow";
+import { WorkstationCloseGuard } from "./components/WorkstationCloseGuard";
 import { WorkstationDialog } from "./components/WorkstationDialog/WorkstationDialog";
 import { WorkstationShell } from "./components/WorkstationShell/WorkstationShell";
 import { useWorkspaceViews } from "./hooks/useWorkspaceViews/useWorkspaceViews";
@@ -852,6 +853,7 @@ export function Workstation({
 		<I18nProvider locale={preferences.snapshot?.values.language ?? undefined}>
 			<WorkstationPreferencesContext value={preferences.snapshot}>
 				<WorkstationFileDocumentsContext value={documents}>
+					<WorkstationCloseGuard api={api} documents={documents} />
 					{ui.connection && (
 						<WorkstationDocumentEvents
 							api={api}

@@ -6,6 +6,7 @@ import {
 	DIRECT_SETUP_CHANNEL,
 	DIRECT_SOCKET_CHANNEL,
 	DIRECT_VIEW_FLUSH_CHANNEL,
+	DIRECT_WINDOW_CLOSE_CHANNEL,
 	type DirectConnectionEvent,
 	type DirectSocketEvent,
 	type DirectWorkstationApi,
@@ -55,6 +56,39 @@ const directWorkstation: DirectWorkstationApi = {
 		ipcRenderer.on(DIRECT_VIEW_FLUSH_CHANNEL, wrapped);
 		return () => ipcRenderer.removeListener(DIRECT_VIEW_FLUSH_CHANNEL, wrapped);
 	},
+	onWindowCloseRequest: (listener) => {
+		const registrationId = crypto.randomUUID();
+		const wrapped = (
+			_event: unknown,
+			input: {
+				requestId: string;
+				registrationId: string;
+				kind: "window" | "quit";
+			},
+		) => {
+			if (input.registrationId !== registrationId) return;
+			void Promise.resolve()
+				.then(() => listener(input.kind))
+				.catch(() => false)
+				.then((allow) =>
+					invoke("windowCloseResolved", {
+						requestId: input.requestId,
+						registrationId,
+						allow: allow === true,
+					}),
+				)
+				.catch(() => {});
+		};
+		ipcRenderer.on(DIRECT_WINDOW_CLOSE_CHANNEL, wrapped);
+		void invoke("registerWindowCloseGuard", { registrationId }).catch(() => {});
+		return () => {
+			ipcRenderer.removeListener(DIRECT_WINDOW_CLOSE_CHANNEL, wrapped);
+			void invoke("unregisterWindowCloseGuard", { registrationId }).catch(
+				() => {},
+			);
+		};
+	},
+
 	about: () => invoke("about"),
 	openBrandLink: (id) => invoke("openBrandLink", id),
 	platform: process.platform,

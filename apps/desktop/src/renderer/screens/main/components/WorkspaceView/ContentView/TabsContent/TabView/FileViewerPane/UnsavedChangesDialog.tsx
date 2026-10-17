@@ -1,3 +1,4 @@
+import { Trans } from "@lingui/react/macro";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -9,6 +10,7 @@ import {
 	EnterEnabledAlertDialogContent,
 } from "@superset/ui/alert-dialog";
 import { Button } from "@superset/ui/button";
+import type { ReactNode } from "react";
 import { LuLoader } from "react-icons/lu";
 
 interface UnsavedChangesDialogProps {
@@ -21,6 +23,7 @@ interface UnsavedChangesDialogProps {
 	description?: string;
 	discardLabel?: string;
 	saveLabel?: string;
+	details?: ReactNode;
 }
 
 export function UnsavedChangesDialog({
@@ -33,6 +36,7 @@ export function UnsavedChangesDialog({
 	description = "You have unsaved changes. What would you like to do?",
 	discardLabel = "Discard & Continue",
 	saveLabel = "Save & Continue",
+	details,
 }: UnsavedChangesDialogProps) {
 	const handleSaveAndSwitch = () => {
 		onSave();
@@ -49,8 +53,11 @@ export function UnsavedChangesDialog({
 					<AlertDialogTitle>{title}</AlertDialogTitle>
 					<AlertDialogDescription>{description}</AlertDialogDescription>
 				</AlertDialogHeader>
+				{details}
 				<AlertDialogFooter>
-					<AlertDialogCancel disabled={isSaving}>Cancel</AlertDialogCancel>
+					<AlertDialogCancel disabled={isSaving}>
+						<Trans>Cancel</Trans>
+					</AlertDialogCancel>
 					<AlertDialogAction
 						variant="outline"
 						onClick={handleDiscardAndSwitch}
@@ -63,7 +70,7 @@ export function UnsavedChangesDialog({
 						{isSaving ? (
 							<>
 								<LuLoader className="mr-2 h-4 w-4 animate-spin" />
-								Saving...
+								<Trans>Saving...</Trans>
 							</>
 						) : (
 							saveLabel
