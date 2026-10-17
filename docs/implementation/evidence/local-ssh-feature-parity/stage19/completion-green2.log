@@ -1,0 +1,35 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/run-completion.test.ts:
+(pass) /bin/bash reports a rapid failure while keeping the configured shell's cwd and variables [9.39ms]
+zsh:2: command not found: eval
+10 | test.each(["/bin/bash","/usr/bin/zsh"])("%s reports a rapid failure while keeping the configured shell's cwd and variables",shell=>{
+11 |  const root=mkdtempSync(join(tmpdir(),"run completion-")); roots.push(root);
+12 |  const store=new RunCompletionStore(join(root,"private"));
+13 |  const command=store.prepare(run,shell,`cd '${root}'; export REMIX_TEST_VALUE=kept; false`);
+14 |  expect(store.read(run)).toBeNull();
+15 |  execFileSync(shell,["-c",`${command}\n[ "$REMIX_TEST_VALUE" = kept ] && pwd > '${root}/cwd'`]);
+      ^
+error: Command failed: /usr/bin/zsh -c {
+command eval ' cd '\''/tmp/run completion-wJY99o'\''; export REMIX_TEST_VALUE=kept; false'
+_superset_run_status=$?
+(
+umask 077
+set -C
+command printf '%s\n%s\n' 'bbed79ba-4ca0-4ea4-8153-a6baf120a2fc' "$_superset_run_status" > '/tmp/run completion-wJY99o/private/21a3230e03772a58aff1b3709a9e232850916337e1fba95c434076b6668c6e08/result.tmp' && command mv -f '/tmp/run completion-wJY99o/private/21a3230e03772a58aff1b3709a9e232850916337e1fba95c434076b6668c6e08/result.tmp' '/tmp/run completion-wJY99o/private/21a3230e03772a58aff1b3709a9e232850916337e1fba95c434076b6668c6e08/result'
+command /bin/sh -c 'exit "$1"' -- "$_superset_run_status"
+)
+}
+[ "$REMIX_TEST_VALUE" = kept ] && pwd > '/tmp/run completion-wJY99o/cwd'
+zsh:2: command not found: eval
+
+      at execFileSync (node:child_process:302:14)
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/run-completion.test.ts:15:2)
+(fail) /usr/bin/zsh reports a rapid failure while keeping the configured shell's cwd and variables [5.36ms]
+(pass) a successful command ending with a comment has an atomic bounded completion result [3.11ms]
+(pass) invalid command syntax returns a completion instead of leaving the shell waiting for more input [3.40ms]
+
+ 3 pass
+ 1 fail
+ 10 expect() calls
+Ran 4 tests across 1 file. [34.00ms]

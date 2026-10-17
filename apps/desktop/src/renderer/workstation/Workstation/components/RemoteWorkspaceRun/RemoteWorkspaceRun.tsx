@@ -79,7 +79,12 @@ export function RemoteWorkspaceRun({
 		setLoaded({ owner, value });
 		if (value.definitionError) setError(value.definitionError);
 		const run = value.run;
-		if (run?.state === "active" && run.executionId) {
+		if (
+			run &&
+			(run.state === "active" ||
+				(run.state === "ended" && run.exitCode !== undefined)) &&
+			run.executionId
+		) {
 			const key = `${run.operationId}:${run.executionId}`;
 			if (attached.current !== key) {
 				attached.current = key;
@@ -123,6 +128,7 @@ export function RemoteWorkspaceRun({
 	}, [api, owner, capable, pollMs]);
 	const data = loaded?.owner === owner ? loaded.value : null;
 	const running = !!data?.run && data.run.state !== "ended";
+	const exitCode = data?.run?.state === "ended" ? data.run.exitCode : undefined;
 	const act = async (force = false) => {
 		if (pendingRef.current || blocked || !owned() || !data || !capable) return;
 		const run = data.run;
@@ -226,6 +232,23 @@ export function RemoteWorkspaceRun({
 					onToggle={() => act()}
 					onForceStop={() => act(true)}
 				/>
+			)}
+			{exitCode !== undefined && (
+				<output
+					role="status"
+					data-run-exit-code={exitCode}
+					className={
+						exitCode === 0
+							? "text-xs text-muted-foreground"
+							: "text-xs text-destructive"
+					}
+				>
+					{exitCode === 0 ? (
+						<Trans>Completed</Trans>
+					) : (
+						<Trans>Run exited with code {exitCode}</Trans>
+					)}
+				</output>
 			)}
 			{error && (
 				<span

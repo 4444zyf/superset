@@ -21,3 +21,9 @@ export function managedWorkspaceRoot(kind: "sessions" | "worktrees"): string {
 		return join(directMachineHome, "Superset Remix", "worktrees");
 	return join(directWorkspaceHome ?? join(homedir(), ".superset"), kind);
 }
+
+export function managedRunCompletionRoot(): string | null {
+	return directWorkspaceHome
+		? join(directWorkspaceHome, "run-completions")
+		: null;
+}

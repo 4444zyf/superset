@@ -1,0 +1,16 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [1.82ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [0.68ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [1.01ms]
+(pass) a changed execution is never signalled by a stale stop request [0.45ms]
+(pass) a status read during launch cannot prevent its confirmed execution becoming active [0.52ms]
+(pass) the next confirmed run retains the preceding terminal identity for pane reuse [0.41ms]
+(pass) an instant command with a completion result ends even when foreground was never observed [0.46ms]
+(pass) an idle shell without its tracked completion cannot release a run for another launch [0.55ms]
+
+ 8 pass
+ 0 fail
+ 20 expect() calls
+Ran 8 tests across 1 file. [18.00ms]

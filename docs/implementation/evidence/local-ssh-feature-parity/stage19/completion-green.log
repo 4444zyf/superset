@@ -1,0 +1,21 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [1.70ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [0.43ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [0.76ms]
+(pass) a changed execution is never signalled by a stale stop request [0.38ms]
+(pass) a status read during launch cannot prevent its confirmed execution becoming active [0.44ms]
+(pass) the next confirmed run retains the preceding terminal identity for pane reuse [0.41ms]
+(pass) an instant command with a completion result ends even when foreground was never observed [0.41ms]
+(pass) an idle shell without its tracked completion cannot release a run for another launch [0.42ms]
+
+src/direct/run-completion.test.ts:
+(pass) /bin/bash reports a rapid failure while keeping the configured shell's cwd and variables [8.12ms]
+(pass) /usr/bin/zsh reports a rapid failure while keeping the configured shell's cwd and variables [16.87ms]
+(pass) a successful command ending with a comment has an atomic bounded completion result [5.75ms]
+
+ 11 pass
+ 0 fail
+ 34 expect() calls
+Ran 11 tests across 2 files. [53.00ms]

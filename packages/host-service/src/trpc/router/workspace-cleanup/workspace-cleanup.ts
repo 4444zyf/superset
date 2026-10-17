@@ -25,6 +25,8 @@ import type {
 	DeleteInProgressCause,
 	TeardownFailureCause,
 } from "../../error-types";
+import { managedRunCompletionRoot } from "../../../direct/managed-paths";
+import { RunCompletionStore } from "../../../direct/run-completion";
 import { protectedProcedure, router } from "../../index";
 import { getProjectWorktreeBaseDir } from "../settings/worktree-location";
 import { isInsideSessionsRoot } from "../workspace-creation/shared/session-paths";
@@ -714,6 +716,17 @@ async function runDestroyPhases(
 		}
 	}
 
+	if (ctx.directOperations) {
+		try {
+			const root = managedRunCompletionRoot();
+			if (root) new RunCompletionStore(root).remove(input.workspaceId);
+			ctx.directOperations.workspaceRuns.remove(input.workspaceId);
+		} catch (error) {
+			warnings.push(
+				`Failed to remove run status: ${error instanceof Error ? error.message : String(error)}`,
+			);
+		}
+	}
 	return {
 		success: true,
 		// Workspaces have no cloud row to delete any more. Released CLI/SDK

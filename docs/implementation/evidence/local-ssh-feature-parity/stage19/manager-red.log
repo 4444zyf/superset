@@ -1,0 +1,58 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [1.90ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [0.64ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [0.82ms]
+(pass) a changed execution is never signalled by a stale stop request [0.41ms]
+(pass) a status read during launch cannot prevent its confirmed execution becoming active [0.45ms]
+(pass) the next confirmed run retains the preceding terminal identity for pane reuse [0.53ms]
+162 |  try {
+163 |   const store=new WorkspaceRunStore(db as unknown as OperationDatabase);
+164 |   let launches=0;
+165 |   const runtime={launch:async()=>{launches++;},probe:async()=>({state:"live" as const,executionId:"execution",foreground:false,exitCode:17}),signal:async()=>{}};
+166 |   const first=await new WorkspaceRunManager(store,runtime).start({...run,completionTracked:true});
+167 |   expect(first).toMatchObject({state:"ended",executionId:"execution",exitCode:17,foregroundSeen:false});
+                      ^
+error: expect(received).toMatchObject(expected)
+
+  {
++   "commands": [
++     "echo run",
++   ],
++   "completionTracked": true,
+    "executionId": "execution",
+-   "exitCode": 17,
+    "foregroundSeen": false,
+-   "state": "ended",
++   "operationId": "operation",
++   "startedAt": 1,
++   "state": "active",
++   "terminalId": "terminal",
++   "workspaceId": "workspace",
+  }
+
+- Expected  - 2
++ Received  + 9
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/workspace-runs.test.ts:167:17)
+(fail) an instant command with a completion result ends even when foreground was never observed [0.66ms]
+174 |  try {
+175 |   const store=new WorkspaceRunStore(db as unknown as OperationDatabase);
+176 |   let foreground=true;
+177 |   const manager=new WorkspaceRunManager(store,{launch:async()=>{},probe:async()=>({state:"live" as const,executionId:"execution",foreground}),signal:async()=>{}});
+178 |   await manager.start({...run,completionTracked:true}); foreground=false;
+179 |   expect((await manager.read("workspace"))?.state).toBe("active");
+                                                         ^
+error: expect(received).toBe(expected)
+
+Expected: "active"
+Received: "ended"
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/workspace-runs.test.ts:179:52)
+(fail) an idle shell without its tracked completion cannot release a run for another launch [0.55ms]
+
+ 6 pass
+ 2 fail
+ 17 expect() calls
+Ran 8 tests across 1 file. [21.00ms]

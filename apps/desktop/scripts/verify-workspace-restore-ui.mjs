@@ -1,3 +1,4 @@
+import { verifyWorkstationInstantRunUi } from "./verify-workstation-instant-run-ui.mjs";
 import { verifyWorkstationCleanupUi } from "./verify-workstation-cleanup-ui.mjs";
 import { verifyWorkstationSetupUi } from "./verify-workstation-setup-ui.mjs";
 import { verifyWorkstationClipboardUi } from "./verify-workstation-clipboard-ui.mjs";
@@ -435,6 +436,14 @@ export async function verifyWorkspaceRestoreUi({
 	await click("text:Terminal");
 	await ready();
 	await verifyWorkstationRunUi({
+		getPage,
+		click,
+		screenshot,
+		closeReopen,
+		controls,
+		output,
+	});
+	await verifyWorkstationInstantRunUi({
 		getPage,
 		click,
 		screenshot,

@@ -156,3 +156,82 @@ test("the next confirmed run retains the preceding terminal identity for pane re
 	});
 	expect(second.previousTerminalId).toBe("terminal");
 });
+
+test("an instant command with a completion result ends even when foreground was never observed", async () => {
+	const db = new Database(":memory:");
+	try {
+		const store = new WorkspaceRunStore(db as unknown as OperationDatabase);
+		let launches = 0;
+		const runtime = {
+			launch: async () => {
+				launches++;
+			},
+			probe: async () => ({
+				state: "live" as const,
+				executionId: "execution",
+				foreground: false,
+				exitCode: 17,
+			}),
+			signal: async () => {},
+		};
+		const first = await new WorkspaceRunManager(store, runtime).start({
+			...run,
+			completionTracked: true,
+		});
+		expect(first).toMatchObject({
+			state: "ended",
+			executionId: "execution",
+			exitCode: 17,
+			foregroundSeen: false,
+		});
+		expect(
+			await new WorkspaceRunManager(store, runtime).read("workspace"),
+		).toMatchObject({ state: "ended", exitCode: 17 });
+		expect(launches).toBe(1);
+	} finally {
+		db.close();
+	}
+});
+test("an idle shell without its tracked completion cannot release a run for another launch", async () => {
+	const db = new Database(":memory:");
+	try {
+		const store = new WorkspaceRunStore(db as unknown as OperationDatabase);
+		let foreground = true;
+		const manager = new WorkspaceRunManager(store, {
+			launch: async () => {},
+			probe: async () => ({
+				state: "live" as const,
+				executionId: "execution",
+				foreground,
+			}),
+			signal: async () => {},
+		});
+		await manager.start({ ...run, completionTracked: true });
+		foreground = false;
+		expect((await manager.read("workspace"))?.state).toBe("active");
+		await expect(
+			manager.start({ ...run, operationId: "second" }),
+		).rejects.toMatchObject({ code: "CONFLICT" });
+	} finally {
+		db.close();
+	}
+});
+
+test("workspace deletion releases its bounded run slot without removing another workspace", () => {
+	const db = new Database(":memory:");
+	try {
+		const store = new WorkspaceRunStore(db as unknown as OperationDatabase, 1);
+		store.reserve(run);
+		store.remove("other");
+		expect(() => store.reserve({ ...run, workspaceId: "next" })).toThrow(
+			"full",
+		);
+		store.remove(run.workspaceId);
+		expect(store.reserve({ ...run, workspaceId: "next" })).toMatchObject({
+			workspaceId: "next",
+			state: "starting",
+		});
+	} finally {
+		db.close();
+	}
+});

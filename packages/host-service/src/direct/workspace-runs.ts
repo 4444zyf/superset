@@ -8,15 +8,22 @@ export interface WorkspaceRunInput {
 	commands: string[];
 	cwd?: string;
 	startedAt: number;
+	completionTracked?: boolean;
 }
 export interface WorkspaceRun extends WorkspaceRunInput {
 	previousTerminalId?: string;
 	state: "starting" | "active" | "stop-requested" | "ended" | "unknown";
 	executionId?: string;
 	foregroundSeen: boolean;
+	exitCode?: number;
 }
 export type RunProbe =
-	| { state: "live"; executionId: string; foreground: boolean | null }
+	| {
+			state: "live";
+			executionId: string;
+			foreground: boolean | null;
+			exitCode?: number;
+	  }
 	| { state: "gone" }
 	| { state: "unknown" };
 
@@ -92,10 +99,18 @@ export class WorkspaceRunStore {
 			throw error;
 		}
 	}
+	remove(workspaceId: string): void {
+		this.db
+			.prepare("DELETE FROM direct_workspace_runs WHERE workspace_id = ?")
+			.run(workspaceId);
+	}
 	update(
 		run: WorkspaceRun,
 		patch: Partial<
-			Pick<WorkspaceRun, "state" | "executionId" | "foregroundSeen">
+			Pick<
+				WorkspaceRun,
+				"state" | "executionId" | "foregroundSeen" | "exitCode"
+			>
 		>,
 	): WorkspaceRun {
 		const next = { ...run, ...patch };
@@ -133,6 +148,12 @@ export class WorkspaceRunManager {
 		}
 		if (run.executionId && run.executionId !== probe.executionId)
 			return this.store.update(run, { state: "unknown" });
+		if (probe.exitCode !== undefined)
+			return this.store.update(run, {
+				state: "ended",
+				executionId: probe.executionId,
+				exitCode: probe.exitCode,
+			});
 		if (run.state === "starting" || run.state === "unknown")
 			return this.store.update(run, {
 				state: "unknown",
@@ -140,7 +161,8 @@ export class WorkspaceRunManager {
 			});
 		if (
 			probe.foreground === false &&
-			(run.state === "stop-requested" || run.foregroundSeen)
+			(run.state === "stop-requested" ||
+				(!run.completionTracked && run.foregroundSeen))
 		)
 			return this.store.update(run, { state: "ended" });
 		return probe.foreground === true && !run.foregroundSeen
@@ -165,7 +187,8 @@ export class WorkspaceRunManager {
 				if (current.executionId && current.executionId !== probe.executionId)
 					return this.store.update(current, { state: "unknown" });
 				return this.store.update(current, {
-					state: "active",
+					state: probe.exitCode !== undefined ? "ended" : "active",
+					...(probe.exitCode !== undefined ? { exitCode: probe.exitCode } : {}),
 					executionId: probe.executionId,
 					foregroundSeen: current.foregroundSeen || probe.foreground === true,
 				});

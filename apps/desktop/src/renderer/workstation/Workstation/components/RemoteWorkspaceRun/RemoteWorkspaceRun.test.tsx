@@ -297,3 +297,41 @@ test("Run reads a just-saved definition before submitting its single start", asy
 	await waitFor(() => expect(writes).toHaveLength(1));
 	expect(writes[0]?.input).toMatchObject({ definitionVersion: "just-saved" });
 });
+
+test("a run completed before its first reply still attaches its output without launching again", async () => {
+	let mutations = 0;
+	const attached: string[] = [];
+	const run = {
+		workspaceId: "workspace",
+		operationId: "operation",
+		terminalId: "terminal",
+		executionId: "execution",
+		commands: ["false"],
+		startedAt: 1,
+		state: "ended",
+		foregroundSeen: false,
+		completionTracked: true,
+		exitCode: 17,
+	};
+	const api = {
+		rpc: async (r: DirectRpc) => {
+			if (r.type === "mutation") mutations++;
+			return { ...base, run };
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspaceRun
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			onConfigure={() => {}}
+			onAttach={async (value) => {
+				attached.push(value.executionId!);
+			}}
+		/>,
+	);
+	await screen.findByRole("button", { name: "Run workspace command" });
+	await waitFor(() => expect(attached).toEqual(["execution"]));
+	expect(screen.getByRole("status").textContent).toContain("17");
+	expect(mutations).toBe(0);
+});

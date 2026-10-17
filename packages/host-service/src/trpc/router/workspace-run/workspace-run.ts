@@ -5,6 +5,16 @@ import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { projects, workspaces } from "../../../db/schema";
+import { managedRunCompletionRoot } from "../../../direct/managed-paths";
+import {
+	RunCompletionStore,
+	supportsRunCompletion,
+} from "../../../direct/run-completion";
+import {
+	getTerminalBaseEnv,
+	resolveLaunchShell,
+	waitForTerminalBaseEnv,
+} from "../../../terminal/env";
 import { WorkspaceRunManager } from "../../../direct/workspace-runs";
 import { resolveScript, shellSingleQuote } from "../../../runtime/setup/config";
 import { connectExistingDaemon } from "../../../terminal/daemon-client-singleton";
@@ -66,12 +76,25 @@ function managerFor(
 	ctx: HostServiceContext,
 	store: ReturnType<typeof requireWorkspace>["store"],
 ) {
+	const completionRoot = managedRunCompletionRoot();
+	const completion = completionRoot
+		? new RunCompletionStore(completionRoot)
+		: null;
 	return new WorkspaceRunManager(store, {
 		async launch(run) {
+			let initialCommand = buildTerminalCommand(run.commands) ?? undefined;
+			if (run.completionTracked && completion) {
+				await waitForTerminalBaseEnv();
+				initialCommand = completion.prepare(
+					run,
+					resolveLaunchShell(getTerminalBaseEnv()),
+					initialCommand ?? "",
+				);
+			}
 			const result = await createTerminalSessionInternal({
 				terminalId: run.terminalId,
 				workspaceId: run.workspaceId,
-				initialCommand: buildTerminalCommand(run.commands) ?? undefined,
+				initialCommand,
 				cwd: run.cwd,
 				db: ctx.db,
 				eventBus: ctx.eventBus,
@@ -103,6 +126,9 @@ function managerFor(
 					state: "live",
 					executionId: session.executionId,
 					foreground: readForegroundProcessState(session.pid),
+					...(run.completionTracked && completion
+						? { exitCode: completion.read(run) ?? undefined }
+						: {}),
 				};
 			} finally {
 				await daemon.dispose();
@@ -172,7 +198,15 @@ export const workspaceRunRouter = router({
 					code: "CONFLICT",
 					message: "The run command changed. Refresh before starting it.",
 				});
+			let completionTracked = false;
+			if (managedRunCompletionRoot()) {
+				await waitForTerminalBaseEnv();
+				completionTracked = supportsRunCompletion(
+					resolveLaunchShell(getTerminalBaseEnv()),
+				);
+			}
 			return managerFor(ctx, target.store).start({
+				completionTracked,
 				workspaceId: input.workspaceId,
 				operationId: input.operationId,
 				terminalId: input.operationId,
