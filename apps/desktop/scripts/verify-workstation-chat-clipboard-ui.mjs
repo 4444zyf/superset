@@ -41,6 +41,7 @@ export async function verifyWorkstationChatClipboardUi({
 	const originalTerminals = await controls.verifyWorktreeLocation(
 		workspace.worktreePath,
 	);
+	const selectedSession = () => evaluate(`(async()=>{const {snapshot}=await window.directWorkstation.getWorkspaceView();const target=snapshot.targets.find(t=>t.connectionId===${JSON.stringify(scope.connectionId)});const workspace=target.workspaces.find(w=>w.workspaceId===${JSON.stringify(scope.workspaceId)});return workspace.panes.find(p=>p.paneId===workspace.activePaneId)?.resourceId;})()`);
 	const expectedPrompts = new Map();
 	const noPrompt = async () => {
 		for (const session of await sessions()) {
@@ -226,12 +227,15 @@ export async function verifyWorkstationChatClipboardUi({
 		observedPastes.length >= 3 && observedPastes.every((e) => e.trusted),
 	);
 	let rejectedSend = false;
+	let sentSessionId = null;
 	if (process.argv.includes("--expect-rejected-chat-send")) {
 		assert.ok(
 			startupRejection?.includes("codex 0.160.0 or newer is needed for chat"),
 		);
 		const second = images.find((a) => a.attachmentId !== image.attachmentId);
-		expectedPrompts.set(first.sessionId, [
+		sentSessionId = await selectedSession();
+		assert.ok((await sessions()).some((session) => session.sessionId === sentSessionId));
+		expectedPrompts.set(sentSessionId, [
 			[
 				{ type: "text", text: plain },
 				...[image, second, ...(file ? [file] : [])].map((a) => ({
@@ -272,7 +276,9 @@ export async function verifyWorkstationChatClipboardUi({
 		assert.equal(pending[0].status, "unresolved");
 		unresolvedPrompt = pending[0];
 		await screenshot("chat-clipboard-blocked-new-chat-keeps-draft");
-		await click("text:codex #2");
+		await click("text:codex #1");
+		if (await selectedSession() === sentSessionId) await click("text:codex #2");
+		await until(async () => await selectedSession() !== sentSessionId);
 	} else {
 		await click("text:New chat");
 		await until(async () => (await sessions()).length === 2);
@@ -322,6 +328,7 @@ export async function verifyWorkstationChatClipboardUi({
 				blockedNewChatKeepsDraft: rejectedSend,
 				originalTerminalsRetained: restoredTerminals.terminals,
 				firstSessionId: first.sessionId,
+				sentSessionId,
 				startupRejection,
 				textBytes: Buffer.byteLength(plain),
 				textSha256: createHash("sha256").update(plain).digest("hex"),
