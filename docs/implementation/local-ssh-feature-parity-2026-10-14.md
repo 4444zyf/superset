@@ -525,7 +525,7 @@ POSIX系列Shell使用当前交互Shell的eval执行原buildTerminalCommand结�
 第73轮固定于 7c9938a52962ff6187e8545f780b808a31f97203，实际Linux源码客户端和所拥有的SSH，--clipboard-only退出0。系统Ctrl+V的PNG1200×872在远端按像素校验一致（71fd7782c2a9b9d2a4c85005f221014b9a9c665c6cbcba9bf0fac9b56bd30da9），原Shell实际读取，重复粘贴独立保存。中文/emoji/129换行3474字节再次精确匹配，SHA256 c8e7925a786ecb3fe0aa82a044d156040598219e64605c91b8455ccb53edc577。OS text/uri-list 指向自有36字节文件 clipboard selected '中文'.txt，实际Ctrl+V上传为所选SSH工作区内新路径，逐字节校验通过，再明确Enter由远端cat读取完整两行。原生URI剪贴板文件不等于真实文件管理器复制；未执行聊天原生粘贴、供应商Agent识图和macOS验收。实际文件读取/图片路径截图已查看，清理测试视图后恢复原布局。[第73轮证据](evidence/local-ssh-feature-parity/source-linux-clipboard-collector)。本轮不重复声明全量功能回归，完整第72轮仍单独保留。
 
 
-### 阶段二十二：原图片预览组件接入本地/SSH文件（实际窗口待记录）
+### 阶段二十二：原图片预览组件接入本地/SSH文件
 
 RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument 字节传给原 ImageView，复用透明棋盘、键盘/鼠标缩放和平移、复位；未增加文件读取或保存API。非图片二进制保留只读提示，超限文件不能绕过1MiB读取限制。原ImageView按文档ID/文件路径/磁盘revision持有和回收blob URL，切换同名文件不显示其他归属的旧图；损坏图片显示已有翻译 Failed to load image。
 
@@ -538,7 +538,7 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 第76轮固定 06b91f7a6537668219c517418451897487208a4a，--file-previews-only 实际Linux/Electron/SSH退出0：1200×872原图显示为393.563×285.984，完整落在633.297×318区域内；实际拖窄面板后显示307.422×223.391，完整落在339.422×318内，两次均保持比例。原键盘125%缩放/箭头平移、来回鼠标拖动及0复位通过；未知二进制无编辑器、超限图保存禁用、损坏图可见错误、重开窗口重新读取并显示通过。标准和窄面板截图已实际查看；未测Markdown/PDF/视频或macOS发行物。[第76轮证据](evidence/local-ssh-feature-parity/source-linux-file-previews)。
 
 
-### 阶段二十三：原Markdown展示层、编辑与所选工作区资源（实际窗口待记录）
+### 阶段二十三：原Markdown展示层、编辑与所选工作区资源
 
 先复现SSH文件页没有Markdown默认预览/原源码切换入口的失败测试。提取原TipTapMarkdownSurface和CodeBlockSurface，原TipTapMarkdownRenderer/CodeBlock继续作为旧偏好/链接/主题wrapper，保留调用合同；default/tufte的CSS与展示类共用，代码块、表格、源码格式合并、外部替换清理undo、复制菜单继续复用。修正样式config桶导出会拉入旧tabs/PostHog的依赖，纯展示层改用共享presentation；无账号入口完整依赖审计通过。原FileViewToggle与标签共用，不重新造切换布局。
 
@@ -555,7 +555,7 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 第78轮固定085e9fa59511b52e4fc1ca4ee5d2f4d4e6b0e294，实际Linux/Electron/SSH --markdown-only退出0：默认原TipTap预览/原切换控件、原表格/代码块、1200×872 SSH相对图片的blob显示通过；在源码和富文本中分别实际输入中文/emoji，另一视图立即看到同一草稿，两次编辑后保存前磁盘仍与原文件完全一致。实际点击Save后，磁盘225字节文件包含两份编辑、front matter逐字保留、表格和代码源码格式不变。原查找1 of 1、Escape后重新Ctrl+F以及窗口重开读取已保存正文通过；Search和重开截图已实际查看。OS外部浏览器及macOS发行物未验收，完整自定义快捷键/链接设置及全局退出草稿保护仍在清单中。[第78轮证据](evidence/local-ssh-feature-parity/source-linux-markdown)。
 
 
-### 阶段二十四：原PDF/视频文件视图（实际窗口待记录）
+### 阶段二十四：原PDF/视频文件视图
 
 先增加失败测试，复现PDF与WebM仅显示二进制提示；RemoteDocumentEditor复用原PdfView/VideoView和类型分类，通过已有SharedFileDocument字节预览，不新增后端接口。保留只读/1MiB界限、原生视频控件与metadata预加载、默认不自动播放，文档身份变更卸载旧blob。组件测试对HappyDOM中无实际浏览器的iframe导航仅逐用例关闭其自动加载，结束恢复设置；实际PDF内容不能由这个结构测试代替。文件相关4文件49项/1290断言、格式化工具21项/38断言、类型、17语言及构建通过。Markdown查找数字改走原formatNumber，现有消息ID和翻译继续使用。
 
@@ -566,3 +566,25 @@ RemoteDocumentEditor 按原 isImageFile 分类，将有界 SharedFileDocument �
 
 
 第80轮固定f246a77d990462bc0bc0d8be1d91ec8cd14d9a0d，实际Linux/Electron/SSH --media-only退出0。PDF页面截图已实际查看，两行标题/正文正常显示；原始AX正文不可见的记录继续保留，人工查看单独记录。WebM与H.264 MP4均由真实原生控件开始播放，时间分别推进至0.208880/0.207399秒，已解码4帧，随后真实点击暂停，时间分别0.448995/0.447977秒、5帧且paused=true；并非仅验证metadata。MP4播放截图已查看。超限文件不创建播放器且禁用保存，截图已查看；窗口重开恢复视频仍从0秒暂停、不自动播放。原始字节hash、控件AX定位方法与播放前后状态均归档。未验收macOS发行物、其他容器或编码格式；全量文件监听、快捷键和全局退出草稿保护仍待接入。[第80轮证据](evidence/local-ssh-feature-parity/source-linux-media)。
+
+
+### 阶段二十五：聊天系统剪贴板与实际分屏布局
+
+用户要求检查客户端向SSH机器粘贴图片、文件和文字。在原终端第73轮实际传输结果之外，追加 --chat-clipboard-only 流程：只通过系统剪贴板和真实粘贴键操作聊天输入框，通过所选SSH后端的附件读回与拥有的夹具目录核对字节/像素；检查重复附件独立ID、中文多行文字草稿、未明确Send前没有用户消息或turn、切换会话隔离、重开附件仍可读。该流程不冒充供应商模型发送或识图。
+
+第81轮固定c1fdb016b，第82轮固定4bd003a7f，均退出1：原3个PTY分屏中新建聊天后的真实窄窗格中，输入框y=985.5、高56，超出872高窗口，尚未到达粘贴步骤。第82轮截图已实际查看；未通过改布局来规避。修正聊天展示层的有界flex高度，使历史/会话选择/附件可以滚动、输入区保留可用空间；窄窗格表单换行并允许文本框收缩。上传、发送、协议及原有隔离逻辑不变。相关4文件40项/112断言与类型检查通过；新真实窗口复测待记录。[原始失败证据](evidence/local-ssh-feature-parity/source-linux-chat-clipboard-failures)。
+
+
+第83轮固定5e07290c5，第84轮固定9ca835739，均退出1。纵向输入区已回到y=801，但增加的真实祖先裁切/hit-test断言仍失败：textarea宽163.296875，仅73.90625可见且中心点落在相邻窗格。第83轮截图已查看，第84轮祖先几何显示原Pane仍260px最小宽，而所在子分屏只有348.90625px，两个最小宽度面板无法放下。没有调验收布局或移除原Pane最小尺寸。
+
+按原尺寸和真实容器尺寸判断布局能否放下，放不下时使用工作站已有紧凑窗格切换，保留原树/比例/资源记录。继续复用@superset/panes原引擎，并导出原尺寸常量供判定复用；ResizeObserver测量网格容器，容器增大可恢复原多窗格。新增回归先2通过/2失败，随后5通过/9断言（含原资源替换测试）；剪贴板与窗格共6文件45项/121断言通过。真实窗口流程追加4窗格切换入口、完整输入区可见及原3个PTY同PID/执行ID/工作目录检查；实际结果待记录。
+
+
+第85轮固定b5395782ea05aaae4cb2465829ad122f8576b103，实际Linux/Electron/SSH --chat-clipboard-only退出0。相同原3个PTY布局中新建聊天后自动使用已有4窗格切换，textarea宽847.296875、高56，系统粘贴前均通过完整祖先裁切和中心命中检查。真实Ctrl+V产生4个trusted事件：3474字节中文/emoji/129换行文字草稿精确匹配；两次PNG分别为独立附件ID、85981字节且hash相同，SSH后端存储与下载读回均核对、像素1200×872一致；URI文件包含空格/引号/中文，41字节精确读回。原3个PTY在紧凑切换和重开后仍为PID50476/50489/50483、同执行ID和统一worktree目录。新会话未带入旧文字/附件，重开后附件可读；两会话的真实journal均无用户消息/turn，未自动发送。附件和重开截图已实际查看。[第85轮证据](evidence/local-ssh-feature-parity/source-linux-chat-clipboard/85)。
+
+这些结果只验证聊天草稿和SSH附件传输。实际窗口同时显示旧Codex启动错误：已安装CLI为0.159.0-alpha.3，当前host要求0.160.0；错误提示却因首次prompt前notice的turnId为空变成Zod校验错误。新增启动失败回归先8通过/1失败，复现同样turnId错误；改为与原live-session失败路径相同的有界事件身份生成，保留真实CLI错误且不创建turn。Codex相关3文件20项/96断言通过，实际窗口需继续验证真实版本原因。源码还确认旧Codex harness目前会省略附件；附件上传成功不代表已发送给模型。ACP原生输入/附件投递、真实供应商发送与识图、Finder复制和macOS发行物仍待完成，不能以本轮替代。
+
+
+第86轮固定ecfa7b7377dbe95be9d17eb162a06dbe5ebc1978，实际Linux/Electron/SSH增加 --expect-codex-version-rejection 后退出0。真实旧CLI启动错误现完整显示“codex 0.160.0 or newer is needed for chat, and 0.159.0-alpha.3 is installed”，不再被空turnId的Zod错误替换，未升级或伪装CLI/供应商登录。文字草稿、两份82575字节PNG的像素/下载读回、41字节URI文件、会话隔离、无自动发送、重开及原3个PTY保留再次通过。附件、重开和About截图已实际查看。原附件省略、明确Send/供应商识图及macOS边界仍如上一段所述。[第86轮原始证据](evidence/local-ssh-feature-parity/source-linux-chat-clipboard/86)、[阶段二十五回归和构建日志](evidence/local-ssh-feature-parity/stage25)。
+
+用户最新要求的原版风格图标已接入：原四枚像素括号、纯色深底、浅紫内侧括号；SVG为唯一几何源，派生PNG/ICNS/ICO/托盘/侧栏/About/安装背景，31项字节一致性及16/32/128/1024透明角检查通过。第86轮实际侧栏/About、最小窗口、退出/重开通过并查看截图；这仅是Linux源码窗口，未制作新的macOS安装包。原版权与许可继续保留，历史发布证据不改写。

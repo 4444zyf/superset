@@ -1,0 +1,24 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.test.tsx:
+(pass) changing pane callbacks does not reopen a restored chat stream [43.13ms]
+(pass) restoring a controlled chat selection never selects the first session or sends a prompt [9.98ms]
+(pass) closing the chat view closes only its stream, without cancelling or closing B's chat [108.01ms]
+(pass) an attachment replayed from chat history remains downloadable after reconnect [81.79ms]
+(pass) reconnecting keeps the selected remote chat and never repeats a prompt [18.82ms]
+(pass) switching chats clears unsent message and attachment drafts [23.83ms]
+(pass) an upload completed after switching chats cannot attach to the new chat [11.49ms]
+(pass) returning to a chat cannot revive an old upload or clear a newer upload's busy state [14.81ms]
+(pass) an older session list cannot erase a newly created chat [6.15ms]
+(pass) a download completed after changing workspace cannot save stale attachment bytes [13.53ms]
+(pass) attachment controls require the backend's attachment capability [6.36ms]
+(pass) an uploaded attachment is referenced once by opaque id in the selected chat prompt [13.75ms]
+(pass) pasted images upload to the selected chat without sending a prompt [8.28ms]
+(pass) a pasted image completing after switching chats is not attached or sent [59.68ms]
+(pass) a rejected pasted attachment leaves the chat and message draft available [8.46ms]
+(pass) chat merges both clipboard file accessors, deduplicates the image, and retains the unsent message [6.38ms]
+
+ 16 pass
+ 0 fail
+ 60 expect() calls
+Ran 16 tests across 1 file. [671.00ms]

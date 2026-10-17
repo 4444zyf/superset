@@ -1,0 +1,32 @@
+bun test v1.4.2 (744846f84)
+
+packages/chat-runtime/src/harness/codex/codexAdapter/codexAdapter.test.ts:
+(pass) codexAdapter fixtures > every fixture emits protocol-valid items and turns [48.81ms]
+(pass) codexAdapter fixtures > a plain text turn maps to session, turn, agent message and deltas [10.49ms]
+(pass) codexAdapter fixtures > the runtime owns user messages: the adapter never emits one [35.62ms]
+(pass) codexAdapter fixtures > a shell command maps to an execute tool call with terminal content [10.99ms]
+(pass) codexAdapter fixtures > a created file maps to a diff with a null oldText [10.81ms]
+(pass) codexAdapter fixtures > an edited file reconstructs both sides of the hunk [11.28ms]
+(pass) codexAdapter fixtures > an approval round trip binds to its tool call and answers with the decision [11.11ms]
+(pass) codexAdapter fixtures > an interrupt settles the in-flight message with its streamed text [10.76ms]
+
+packages/chat-runtime/src/harness/codex/codexAdapter/codexResilience.test.ts:
+(pass) codex adapter resilience > a CLI launch failure before any prompt remains a valid durable notice with its original reason [1.75ms]
+(pass) codex adapter resilience > an omitted attachment notice belongs to the accepted prompt's Codex turn [13.82ms]
+(pass) codex adapter resilience > an unreadable notification becomes a notice, not a thrown frame [14.70ms]
+(pass) codex adapter resilience > an unreadable server request is answered so codex is not left waiting [13.66ms]
+(pass) codex adapter resilience > a stream that keeps arriving after a bad frame still maps items [13.77ms]
+(pass) codex cancel before the turn is running > a cancel raced against turn/start is applied when the turn appears [13.83ms]
+(pass) codex cancel before the turn is running > a cancel with no turn in flight is not held against the next turn [13.53ms]
+(pass) codex cancel before the turn is running > a cancel after the turn already settled is dropped [13.70ms]
+(pass) codex fixtures still map after the guards > the command fixture is unchanged by the dispatch wrapper [11.87ms]
+
+packages/chat-runtime/src/harness/codex/codexAdapter/codexTimeline.test.ts:
+(pass) codexAdapter through the journal > a command turn folds into user message, tool call and reply [53.40ms]
+(pass) codexAdapter through the journal > an interrupted turn leaves no item running [52.58ms]
+(pass) codexAdapter through the journal > an approval folds into an answered row bound to its tool call [40.70ms]
+
+ 20 pass
+ 0 fail
+ 96 expect() calls
+Ran 20 tests across 3 files. [600.00ms]

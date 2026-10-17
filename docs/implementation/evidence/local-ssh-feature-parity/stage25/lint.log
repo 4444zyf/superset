@@ -1,0 +1,137 @@
+apps/desktop/scripts/verify-workstation-chat-clipboard-ui.mjs:107:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    105 │ 	writeFileSync(
+    106 │ 		join(output, "chat-clipboard-input-geometry.json"),
+  > 107 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 108 │ 			await evaluate(
+         ...
+  > 112 │ 			2,
+  > 113 │ 		) + "\n",
+        │ 		^^^^^^^^
+    114 │ 	);
+    115 │ 	await evaluate(
+  
+  i Unsafe fix: Use a template literal.
+  
+    105 105 │   	writeFileSync(
+    106 106 │   		join(output, "chat-clipboard-input-geometry.json"),
+    107     │ - → → JSON.stringify(
+        107 │ + → → `${JSON.stringify(
+    108 108 │   			await evaluate(
+    109 109 │   				`(()=>{const e=document.querySelector('${area}'),r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,viewportHeight:innerHeight,viewportWidth:innerWidth};})()`,
+    ······· │ 
+    111 111 │   			null,
+    112 112 │   			2,
+    113     │ - → → )·+·"\n",
+        113 │ + → → )}\n`,
+    114 114 │   	);
+    115 115 │   	await evaluate(
+  
+
+apps/desktop/scripts/verify-workstation-chat-clipboard-ui.mjs:118:16 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    116 │ 		`(()=>{window.chatPasteEvents=[];document.addEventListener('paste',e=>{if(e.target.matches?.('${area}'))window.chatPasteEvents.push({trusted:e.isTrusted,types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,size:f.size,type:f.type})),textLength:e.clipboardData.getData('text/plain').length});},true);return true;})()`,
+    117 │ 	);
+  > 118 │ 	const plain = "中文消息 🙂\n" + "multiline clipboard 你好\n".repeat(128);
+        │ 	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    119 │ 	await setClipboard({ text: plain });
+    120 │ 	await paste();
+  
+  i Unsafe fix: Use a template literal.
+  
+    116 116 │   		`(()=>{window.chatPasteEvents=[];document.addEventListener('paste',e=>{if(e.target.matches?.('${area}'))window.chatPasteEvents.push({trusted:e.isTrusted,types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,size:f.size,type:f.type})),textLength:e.clipboardData.getData('text/plain').length});},true);return true;})()`,
+    117 117 │   	);
+    118     │ - → const·plain·=·"中文消息·🙂\n"·+·"multiline·clipboard·你好\n".repeat(128);
+        118 │ + → const·plain·=·`中文消息·🙂\n${"multiline·clipboard·你好\n".repeat(128)}`;
+    119 119 │   	await setClipboard({ text: plain });
+    120 120 │   	await paste();
+  
+
+apps/desktop/scripts/verify-workstation-chat-clipboard-ui.mjs:225:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    223 │ 	writeFileSync(
+    224 │ 		join(output, "workstation-chat-clipboard-ui.json"),
+  > 225 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 226 │ 			{
+         ...
+  > 252 │ 			2,
+  > 253 │ 		) + "\n",
+        │ 		^^^^^^^^
+    254 │ 	);
+    255 │ }
+  
+  i Unsafe fix: Use a template literal.
+  
+    223 223 │   	writeFileSync(
+    224 224 │   		join(output, "workstation-chat-clipboard-ui.json"),
+    225     │ - → → JSON.stringify(
+        225 │ + → → `${JSON.stringify(
+    226 226 │   			{
+    227 227 │   				sourceRevision: process.env.GITHUB_SHA,
+    ······· │ 
+    251 251 │   			null,
+    252 252 │   			2,
+    253     │ - → → )·+·"\n",
+        253 │ + → → )}\n`,
+    254 254 │   	);
+    255 255 │   }
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteChat/RemoteChat.tsx:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+
+  × The imports and exports are not sorted.
+  
+  > 1 │ import { errorMessage } from "@superset/i18n/errors";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ import { Trans, useLingui } from "@lingui/react/macro";
+    3 │ import {
+  
+  i Safe fix: Organize Imports (Biome)
+  
+      1     │ - import·{·errorMessage·}·from·"@superset/i18n/errors";
+      2     │ - import·{·Trans,·useLingui·}·from·"@lingui/react/macro";
+          1 │ + import·{·Trans,·useLingui·}·from·"@lingui/react/macro";
+          2 │ + import·{
+          3 │ + → displayText,
+          4 │ + → emptySnapshot,
+          5 │ + → reduce,
+          6 │ + → runningTurnId,
+          7 │ + → userMessageText,
+          8 │ + }·from·"@superset/chat/core";
+      3   9 │   import {
+      4     │ - → displayText,
+      5     │ - → emptySnapshot,
+      6     │ - → reduce,
+      7     │ - → runningTurnId,
+      8     │ - → userMessageText,
+      9     │ - }·from·"@superset/chat/core";
+     10     │ - import·{
+     11     │ - → envelopeSchema,
+     12     │ - → type·Item,
+     13     │ - → knownItemSchema,
+     14     │ - }·from·"@superset/chat/protocol";
+         10 │ + → envelopeSchema,
+         11 │ + → type·Item,
+         12 │ + → knownItemSchema,
+         13 │ + }·from·"@superset/chat/protocol";
+         14 │ + import·{·errorMessage·}·from·"@superset/i18n/errors";
+     15  15 │   import { Button } from "@superset/ui/button";
+     16  16 │   import { getClipboardFiles } from "@superset/ui/lib/clipboard-files";
+  
+
+Checked 3 files in 17ms. No fixes applied.
+Found 1 error.
+Found 3 infos.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while running checks.
+  
+

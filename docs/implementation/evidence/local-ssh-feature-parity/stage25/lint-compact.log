@@ -1,0 +1,92 @@
+apps/desktop/scripts/verify-workstation-chat-clipboard-ui.mjs:116:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    114 │ 	writeFileSync(
+    115 │ 		join(output, "chat-clipboard-input-geometry.json"),
+  > 116 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 117 │ 			await evaluate(
+         ...
+  > 121 │ 			2,
+  > 122 │ 		) + "\n",
+        │ 		^^^^^^^^
+    123 │ 	);
+    124 │ 	await evaluate(
+  
+  i Unsafe fix: Use a template literal.
+  
+    114 114 │   	writeFileSync(
+    115 115 │   		join(output, "chat-clipboard-input-geometry.json"),
+    116     │ - → → JSON.stringify(
+        116 │ + → → `${JSON.stringify(
+    117 117 │   			await evaluate(
+    118 118 │   				`(()=>{const e=document.querySelector('${area}'),r=e.getBoundingClientRect(),parents=[];for(let p=e;p;p=p.parentElement){const s=getComputedStyle(p),b=p.getBoundingClientRect();parents.push({tag:p.tagName,className:p.className,x:b.x,y:b.y,width:b.width,height:b.height,display:s.display,minWidth:s.minWidth,maxWidth:s.maxWidth,flex:s.flex,flexWrap:s.flexWrap,alignItems:s.alignItems,overflowX:s.overflowX,overflowY:s.overflowY});}return {x:r.x,y:r.y,width:r.width,height:r.height,viewportHeight:innerHeight,viewportWidth:innerWidth,parents};})()`,
+    ······· │ 
+    120 120 │   			null,
+    121 121 │   			2,
+    122     │ - → → )·+·"\n",
+        122 │ + → → )}\n`,
+    123 123 │   	);
+    124 124 │   	await evaluate(
+  
+
+apps/desktop/scripts/verify-workstation-chat-clipboard-ui.mjs:127:16 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    125 │ 		`(()=>{window.chatPasteEvents=[];document.addEventListener('paste',e=>{if(e.target.matches?.('${area}'))window.chatPasteEvents.push({trusted:e.isTrusted,types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,size:f.size,type:f.type})),textLength:e.clipboardData.getData('text/plain').length});},true);return true;})()`,
+    126 │ 	);
+  > 127 │ 	const plain = "中文消息 🙂\n" + "multiline clipboard 你好\n".repeat(128);
+        │ 	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    128 │ 	await setClipboard({ text: plain });
+    129 │ 	await paste();
+  
+  i Unsafe fix: Use a template literal.
+  
+    125 125 │   		`(()=>{window.chatPasteEvents=[];document.addEventListener('paste',e=>{if(e.target.matches?.('${area}'))window.chatPasteEvents.push({trusted:e.isTrusted,types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,size:f.size,type:f.type})),textLength:e.clipboardData.getData('text/plain').length});},true);return true;})()`,
+    126 126 │   	);
+    127     │ - → const·plain·=·"中文消息·🙂\n"·+·"multiline·clipboard·你好\n".repeat(128);
+        127 │ + → const·plain·=·`中文消息·🙂\n${"multiline·clipboard·你好\n".repeat(128)}`;
+    128 128 │   	await setClipboard({ text: plain });
+    129 129 │   	await paste();
+  
+
+apps/desktop/scripts/verify-workstation-chat-clipboard-ui.mjs:238:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    236 │ 	writeFileSync(
+    237 │ 		join(output, "workstation-chat-clipboard-ui.json"),
+  > 238 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 239 │ 			{
+         ...
+  > 267 │ 			2,
+  > 268 │ 		) + "\n",
+        │ 		^^^^^^^^
+    269 │ 	);
+    270 │ }
+  
+  i Unsafe fix: Use a template literal.
+  
+    236 236 │   	writeFileSync(
+    237 237 │   		join(output, "workstation-chat-clipboard-ui.json"),
+    238     │ - → → JSON.stringify(
+        238 │ + → → `${JSON.stringify(
+    239 239 │   			{
+    240 240 │   				sourceRevision: process.env.GITHUB_SHA,
+    ······· │ 
+    266 266 │   			null,
+    267 267 │   			2,
+    268     │ - → → )·+·"\n",
+        268 │ + → → )}\n`,
+    269 269 │   	);
+    270 270 │   }
+  
+
+Skipped 3 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 6 files in 27ms. Fixed 4 files.
+Found 3 infos.

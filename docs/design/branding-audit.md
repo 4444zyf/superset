@@ -57,3 +57,6 @@ The redesigned icon passed actual packaged acceptance on both Mac architectures 
 ## Flat icon revision (2026-10-17)
 
 The user requested a flat icon closer to upstream. The current source replaces the folded S with the original four stepped code chevrons, warm-black background, off-white outer pair and light-lavender inner pair. Canonical SVG masters now feed the existing generator for the desktop, tray, sidebar, About and installers; PNG masters are derived outputs. The concept was generated from the upstream preset icon, then implemented as exact flat vector geometry. Earlier native results above verify the historical artwork only. Actual window and macOS packaging validation of this revision are recorded separately and must not be inferred from those historical checks.
+
+
+The 31 generated outputs passed byte-for-byte checks, and 16/32/128/1024 PNGs plus the tray template have transparent outer corners. Actual Linux source-window run 86, frozen at `ecfa7b7377dbe95be9d17eb162a06dbe5ebc1978`, passed; the new sidebar/About marks were visually inspected along with clipboard, minimum-window and reopen checks. See the [raw evidence](../implementation/evidence/local-ssh-feature-parity/source-linux-chat-clipboard/86). This revision has no new native macOS package acceptance.

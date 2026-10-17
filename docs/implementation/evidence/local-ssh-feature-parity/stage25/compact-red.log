@@ -1,0 +1,40 @@
+$ bun test src/renderer/workstation/Workstation/components/WorkspaceWindow/components/PaneGrid/utils/isCompactPaneLayout/isCompactPaneLayout.test.ts
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/components/PaneGrid/utils/isCompactPaneLayout/isCompactPaneLayout.test.ts:
+(pass) the existing three-pane layout stays expanded when its actual content area fits [0.04ms]
+11 | test("the existing three-pane layout stays expanded when its actual content area fits", () => {
+12 | 	expect(compact(three, 944, 662)).toBe(false);
+13 | });
+14 | 
+15 | test("adding chat uses the compact switcher when a nested split cannot fit the original minimum widths", () => {
+16 | 	expect(compact(four, 944, 662)).toBe(true);
+                                      ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/components/PaneGrid/utils/isCompactPaneLayout/isCompactPaneLayout.test.ts:16:34)
+(fail) adding chat uses the compact switcher when a nested split cannot fit the original minimum widths [0.11ms]
+(pass) a wider content area can display the same persisted four-pane layout [0.01ms]
+19 | test("a wider content area can display the same persisted four-pane layout", () => {
+20 | 	expect(compact(four, 1440, 662)).toBe(false);
+21 | });
+22 | 
+23 | test("vertical splits also respect the original minimum height", () => {
+24 | 	expect(compact(three, 944, 300)).toBe(true);
+                                       ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/components/PaneGrid/utils/isCompactPaneLayout/isCompactPaneLayout.test.ts:24:35)
+(fail) vertical splits also respect the original minimum height [0.03ms]
+
+ 2 pass
+ 2 fail
+ 4 expect() calls
+Ran 4 tests across 1 file. [151.00ms]
+error: script "test" exited with code 1

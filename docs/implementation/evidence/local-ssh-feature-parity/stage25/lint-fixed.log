@@ -1,0 +1,92 @@
+scripts/verify-workstation-chat-clipboard-ui.mjs:107:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    105 │ 	writeFileSync(
+    106 │ 		join(output, "chat-clipboard-input-geometry.json"),
+  > 107 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 108 │ 			await evaluate(
+         ...
+  > 112 │ 			2,
+  > 113 │ 		) + "\n",
+        │ 		^^^^^^^^
+    114 │ 	);
+    115 │ 	await evaluate(
+  
+  i Unsafe fix: Use a template literal.
+  
+    105 105 │   	writeFileSync(
+    106 106 │   		join(output, "chat-clipboard-input-geometry.json"),
+    107     │ - → → JSON.stringify(
+        107 │ + → → `${JSON.stringify(
+    108 108 │   			await evaluate(
+    109 109 │   				`(()=>{const e=document.querySelector('${area}'),r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,viewportHeight:innerHeight,viewportWidth:innerWidth};})()`,
+    ······· │ 
+    111 111 │   			null,
+    112 112 │   			2,
+    113     │ - → → )·+·"\n",
+        113 │ + → → )}\n`,
+    114 114 │   	);
+    115 115 │   	await evaluate(
+  
+
+scripts/verify-workstation-chat-clipboard-ui.mjs:118:16 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    116 │ 		`(()=>{window.chatPasteEvents=[];document.addEventListener('paste',e=>{if(e.target.matches?.('${area}'))window.chatPasteEvents.push({trusted:e.isTrusted,types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,size:f.size,type:f.type})),textLength:e.clipboardData.getData('text/plain').length});},true);return true;})()`,
+    117 │ 	);
+  > 118 │ 	const plain = "中文消息 🙂\n" + "multiline clipboard 你好\n".repeat(128);
+        │ 	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    119 │ 	await setClipboard({ text: plain });
+    120 │ 	await paste();
+  
+  i Unsafe fix: Use a template literal.
+  
+    116 116 │   		`(()=>{window.chatPasteEvents=[];document.addEventListener('paste',e=>{if(e.target.matches?.('${area}'))window.chatPasteEvents.push({trusted:e.isTrusted,types:[...e.clipboardData.types],files:[...e.clipboardData.files].map(f=>({name:f.name,size:f.size,type:f.type})),textLength:e.clipboardData.getData('text/plain').length});},true);return true;})()`,
+    117 117 │   	);
+    118     │ - → const·plain·=·"中文消息·🙂\n"·+·"multiline·clipboard·你好\n".repeat(128);
+        118 │ + → const·plain·=·`中文消息·🙂\n${"multiline·clipboard·你好\n".repeat(128)}`;
+    119 119 │   	await setClipboard({ text: plain });
+    120 120 │   	await paste();
+  
+
+scripts/verify-workstation-chat-clipboard-ui.mjs:225:3 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    223 │ 	writeFileSync(
+    224 │ 		join(output, "workstation-chat-clipboard-ui.json"),
+  > 225 │ 		JSON.stringify(
+        │ 		^^^^^^^^^^^^^^^
+  > 226 │ 			{
+         ...
+  > 252 │ 			2,
+  > 253 │ 		) + "\n",
+        │ 		^^^^^^^^
+    254 │ 	);
+    255 │ }
+  
+  i Unsafe fix: Use a template literal.
+  
+    223 223 │   	writeFileSync(
+    224 224 │   		join(output, "workstation-chat-clipboard-ui.json"),
+    225     │ - → → JSON.stringify(
+        225 │ + → → `${JSON.stringify(
+    226 226 │   			{
+    227 227 │   				sourceRevision: process.env.GITHUB_SHA,
+    ······· │ 
+    251 251 │   			null,
+    252 252 │   			2,
+    253     │ - → → )·+·"\n",
+        253 │ + → → )}\n`,
+    254 254 │   	);
+    255 255 │   }
+  
+
+Skipped 3 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 3 files in 36ms. Fixed 1 file.
+Found 3 infos.
