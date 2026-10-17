@@ -94,7 +94,7 @@ export function RemoteMarkdownPreview({
 				}
 			}}
 			onSave={() => {
-				if (!busy && document.dirty) onSave();
+				if (!busy && (document.dirty || document.orphaned)) onSave();
 			}}
 		/>
 	);

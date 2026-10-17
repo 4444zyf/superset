@@ -1,4 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
+import { errorMessage } from "@superset/i18n/errors";
 import { Button } from "@superset/ui/button";
 import {
 	lazy,
@@ -9,14 +10,20 @@ import {
 	useState,
 	useSyncExternalStore,
 } from "react";
+import { FileSaveConflictDialogSurface } from "renderer/components/FileSaveConflictDialog/components/FileSaveConflictDialogSurface";
 import { EMPTY_FONT_SETTINGS } from "renderer/lib/font-settings";
+import { ExternalChangeBanner } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/components/ExternalChangeBanner";
 import { FileViewToggle } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/components/FileViewToggle/FileViewToggle";
 import { OrphanedBanner } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/components/OrphanedBanner";
+import { SaveErrorBanner } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/components/SaveErrorBanner";
 import {
 	codeViewLabel,
 	markdownPreviewLabel,
 } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/FilePane/registry/viewLabels";
-import type { SharedFileDocument } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+import type {
+	ConflictResolution,
+	SharedFileDocument,
+} from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
 import { getPathDirectory } from "shared/absolute-paths";
 import { detectLanguage } from "shared/detect-language";
 import {
@@ -27,6 +34,12 @@ import {
 } from "shared/file-types";
 import { useWorkstationAppearance } from "../../../../providers/WorkstationPreferencesContext";
 import type { MarkdownImageResources } from "../RemoteMarkdownPreview/markdown-images";
+
+const LightDiffSurface = lazy(() =>
+	import(
+		"renderer/screens/main/components/WorkspaceView/ChangesContent/components/LightDiffViewer/components/LightDiffSurface/LightDiffSurface"
+	).then((module) => ({ default: module.LightDiffSurface })),
+);
 
 const CodeEditorSurface = lazy(() =>
 	import(
@@ -67,6 +80,8 @@ export function RemoteDocumentEditor({
 	onError,
 	markdownResources,
 	onOpenUrl,
+	onResolveConflict,
+	canOverwrite = false,
 }: {
 	document: SharedFileDocument;
 	active: boolean;
@@ -78,6 +93,8 @@ export function RemoteDocumentEditor({
 	onError(message: string): void;
 	markdownResources?: MarkdownImageResources;
 	onOpenUrl?(url: string): Promise<void>;
+	onResolveConflict?(choice: ConflictResolution): Promise<void>;
+	canOverwrite?: boolean;
 }) {
 	const { t } = useLingui();
 	const [markdownView, setMarkdownView] = useState(
@@ -96,20 +113,14 @@ export function RemoteDocumentEditor({
 	errorCallback.current = onError;
 	const saveError = document.saveError;
 	const conflict = document.conflict;
-	const reportedError = useRef<unknown>(null);
-	useEffect(() => {
-		const current = saveError ?? conflict;
-		if (reportedError.current === current) return;
-		reportedError.current = current;
-		if (saveError) errorCallback.current(saveError.message);
-		else if (conflict)
-			errorCallback.current(
-				t({
-					message:
-						"This file changed on the remote machine. Your draft is preserved; reload before saving.",
-				}),
-			);
-	}, [saveError, conflict, t]);
+	const resolve = async (choice: ConflictResolution) => {
+		try {
+			if (onResolveConflict) await onResolveConflict(choice);
+			else await document.resolveConflict(choice);
+		} catch (error) {
+			errorCallback.current(errorMessage(error));
+		}
+	};
 	const content = document.content;
 	const truncated = content.kind === "too-large";
 	const markdown =
@@ -150,7 +161,45 @@ export function RemoteDocumentEditor({
 			hidden={!active}
 			className="space-y-2"
 		>
+			<FileSaveConflictDialogSurface
+				open={active && conflict !== null}
+				filePath={document.absolutePath}
+				localContent={content.kind === "text" ? content.value : ""}
+				diskContent={conflict?.diskContent ?? null}
+				isSaving={document.pendingSave}
+				overwriteDisabled={!canOverwrite}
+				onOpenChange={(open) => {
+					if (!open) void resolve("keep");
+				}}
+				onKeepEditing={() => void resolve("keep")}
+				onReloadFromDisk={() => void resolve("reload")}
+				onOverwrite={() => void resolve("overwrite")}
+				renderDiff={(contents, filePath) => (
+					<Suspense fallback={<Trans>Loading files...</Trans>}>
+						<LightDiffSurface
+							contents={contents}
+							filePath={filePath}
+							viewMode="side-by-side"
+							hideUnchangedRegions={false}
+							theme={appearance.theme}
+							fontSettings={appearance.fontSettings}
+						/>
+					</Suspense>
+				)}
+			/>
 			<code className="block text-xs break-all">{document.absolutePath}</code>
+			{document.hasExternalChange && !document.orphaned && (
+				<ExternalChangeBanner
+					onCompare={() => void document.compareWithDisk()}
+				/>
+			)}
+			{saveError && (
+				<SaveErrorBanner
+					message={errorMessage(saveError)}
+					onRetry={onSave}
+					onDismiss={() => document.clearSaveError()}
+				/>
+			)}
 			{document.orphaned && (
 				<OrphanedBanner
 					dirty={document.dirty}
@@ -258,7 +307,12 @@ export function RemoteDocumentEditor({
 										}
 									}}
 									onSave={() => {
-										if (!busy && !truncated && document.dirty) onSave();
+										if (
+											!busy &&
+											!truncated &&
+											(document.dirty || document.orphaned)
+										)
+											onSave();
 									}}
 								/>
 							)}
@@ -268,7 +322,9 @@ export function RemoteDocumentEditor({
 						<Button
 							variant="outline"
 							size="sm"
-							disabled={busy || truncated || !document.dirty}
+							disabled={
+								busy || truncated || (!document.dirty && !document.orphaned)
+							}
 							onClick={onSave}
 						>
 							<Trans>Save file</Trans>

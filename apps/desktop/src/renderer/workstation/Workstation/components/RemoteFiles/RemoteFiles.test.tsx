@@ -343,8 +343,27 @@ test("a concurrent remote edit preserves the user's draft without a blind retry"
 	const editor = await fileEditor();
 	replaceContent(editor, "keep my draft");
 	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
-	await waitFor(() => expect(errors).toHaveLength(1));
-	expect(errors[0]).toContain("changed on the remote machine");
+	await screen.findByRole("dialog", { name: "File changed on disk" });
+	expect(errors).toEqual([]);
+	expect(contentOf(editor)).toBe("keep my draft");
+	expect(
+		calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(1);
+	const dialog = await screen.findByRole("dialog", {
+		name: "File changed on disk",
+	});
+	expect(
+		(
+			within(dialog).getByRole("button", {
+				name: "Overwrite file",
+			}) as HTMLButtonElement
+		).disabled,
+	).toBe(true);
+	within(dialog).getByText(
+		"This backend does not support the required capability",
+	);
+	fireEvent.click(within(dialog).getByRole("button", { name: "Keep editing" }));
+	await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 	expect(contentOf(editor)).toBe("keep my draft");
 	expect(
 		calls.filter((call) => call.path === "filesystem.writeFile"),
@@ -628,7 +647,14 @@ test("an autosave conflict preserves the draft and blocks further automatic writ
 			f.calls.filter((call) => call.path === "filesystem.writeFile"),
 		).toHaveLength(1),
 	);
-	await waitFor(() => expect(f.errors.length).toBe(1));
+	const conflictDialog = await screen.findByRole("dialog", {
+		name: "File changed on disk",
+	});
+	expect(f.errors).toEqual([]);
+	fireEvent.click(
+		within(conflictDialog).getByRole("button", { name: "Keep editing" }),
+	);
+	await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 	replaceContent(element, "newer preserved draft");
 	fireEvent.blur(window);
 	await act(async () => {});
@@ -683,7 +709,8 @@ test("a lost autosave reply does not retry the write on the next window blur", a
 	await act(async () => {
 		fail();
 	});
-	await waitFor(() => expect(f.errors).toContain("Reply lost"));
+	await screen.findByText("Save failed: Reply lost");
+	expect(f.errors).toEqual([]);
 	replaceContent(element, "newer unknown draft");
 	fireEvent.blur(window);
 	await act(async () => {});
@@ -1401,4 +1428,187 @@ test("a backend without the optional file events capability keeps manual file ac
 			}) as HTMLButtonElement
 		).disabled,
 	).toBe(false);
+});
+
+test("the original conflict dialog reloads from the selected backend only after the explicit reload action", async () => {
+	let disk = "original";
+	const f = fixture({
+		"filesystem.readFile": () => ({
+			kind: "bytes",
+			content: btoa(disk),
+			revision: disk,
+			exceededLimit: false,
+		}),
+		"filesystem.writeFile": () => ({ ok: false, reason: "conflict" }),
+	});
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={connection}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	clickTreeRow(await treeRow("note.txt"));
+	const editor = await fileEditor();
+	replaceContent(editor, "unsaved local draft");
+	disk = "selected remote version";
+	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
+	const dialog = await screen.findByRole("dialog", {
+		name: "File changed on disk",
+	});
+	expect(contentOf(editor)).toBe("unsaved local draft");
+	fireEvent.click(
+		within(dialog).getByRole("button", { name: "Reload from disk" }),
+	);
+	const reloadedEditor = await fileEditor();
+	await waitFor(() => expect(contentOf(reloadedEditor)).toBe(disk));
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(1);
+	expect(f.calls.at(-1)).toMatchObject({
+		connectionId: "mini",
+		generation: 3,
+		path: "filesystem.readFile",
+		input: {
+			workspaceId: "workspace",
+			absolutePath: "/Users/remote/repo/note.txt",
+		},
+	});
+});
+
+test("the original overwrite control reaches the bounded explicit conflict resolver instead of a blind force save", async () => {
+	const f = fixture({
+		"filesystem.readFile": () => ({
+			kind: "bytes",
+			content: btoa("original\r\n"),
+			revision: "r1",
+			exceededLimit: false,
+		}),
+		"filesystem.getMetadata": () => ({ kind: "file", revision: "current-r2" }),
+		"filesystem.writeFile": (request) =>
+			(request.input as { precondition?: { ifMatch: string } }).precondition
+				?.ifMatch === "r1"
+				? { ok: false, reason: "conflict" }
+				: { ok: true, revision: "saved-r3" },
+	});
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={{
+				...connection,
+				capabilities: { ...connection.capabilities, workstationFilesV1: true },
+			}}
+			workspaceId="workspace"
+			onError={f.onError}
+		/>,
+	);
+	clickTreeRow(await treeRow("note.txt"));
+	const editor = await fileEditor();
+	replaceContent(editor, "explicit overwrite\n");
+	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
+	const dialog = await screen.findByRole("dialog", {
+		name: "File changed on disk",
+	});
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(1);
+	fireEvent.click(
+		within(dialog).getByRole("button", { name: "Overwrite file" }),
+	);
+	await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+	await waitFor(() =>
+		expect(
+			(screen.getByRole("button", { name: "Save file" }) as HTMLButtonElement)
+				.disabled,
+		).toBe(true),
+	);
+	expect(contentOf(editor)).toBe("explicit overwrite\n");
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(2);
+	expect(f.calls.at(-1)).toMatchObject({
+		connectionId: "mini",
+		generation: 3,
+		path: "filesystem.writeFile",
+		input: {
+			content: "explicit overwrite\r\n",
+			precondition: { ifMatch: "current-r2" },
+			options: { create: false, overwrite: true },
+		},
+	});
+});
+
+test("a deleted clean file can be restored through the original Save and explicit overwrite controls", async () => {
+	const { WorkstationFileDocuments, WorkstationFileDocumentsContext } =
+		await import("../../providers/WorkstationFileDocuments");
+	let missing = false;
+	const f = fixture({
+		"filesystem.readFile": () => {
+			if (missing) throw new Error("ENOENT");
+			return {
+				kind: "bytes",
+				content: btoa("retained original\r\n"),
+				revision: "r1",
+				exceededLimit: false,
+			};
+		},
+		"filesystem.getMetadata": () => null,
+		"filesystem.writeFile": (request) => {
+			if (!(request.input as { options: { create: boolean } }).options.create)
+				return { ok: false, reason: "conflict" };
+			missing = false;
+			return { ok: true, revision: "restored" };
+		},
+	});
+	const descriptor = {
+		...connection,
+		capabilities: { ...connection.capabilities, workstationFilesV1: true },
+	};
+	const manager = new WorkstationFileDocuments(f.api);
+	render(
+		<WorkstationFileDocumentsContext value={manager}>
+			<RemoteFiles
+				api={f.api}
+				connection={descriptor}
+				workspaceId="workspace"
+				onError={f.onError}
+			/>
+		</WorkstationFileDocumentsContext>,
+	);
+	clickTreeRow(await treeRow("note.txt"));
+	await fileEditor();
+	missing = true;
+	act(() =>
+		manager.dispatchFsEvent(descriptor, "workspace", {
+			kind: "delete",
+			absolutePath: "/Users/remote/repo/note.txt",
+			isDirectory: false,
+		}),
+	);
+	await screen.findByText("File was deleted on disk.");
+	expect(
+		(screen.getByRole("button", { name: "Save file" }) as HTMLButtonElement)
+			.disabled,
+	).toBe(false);
+	fireEvent.click(screen.getByRole("button", { name: "Save file" }));
+	const dialog = await screen.findByRole("dialog", {
+		name: "File changed on disk",
+	});
+	await act(async () => {
+		fireEvent.click(
+			within(dialog).getByRole("button", { name: "Overwrite file" }),
+		);
+	});
+	expect(screen.queryByText("File was deleted on disk.")).toBeNull();
+	expect(screen.queryByRole("dialog")).toBeNull();
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(2);
+	expect(f.calls.at(-1)).toMatchObject({
+		input: {
+			content: "retained original\r\n",
+			options: { create: true, overwrite: false },
+		},
+	});
 });

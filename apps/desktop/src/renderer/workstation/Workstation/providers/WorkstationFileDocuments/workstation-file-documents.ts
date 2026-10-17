@@ -5,7 +5,10 @@ import {
 	type DocumentFilesystemClient,
 } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/createFileDocumentStore";
 import { FileAutoSaveController } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/fileAutoSave/fileAutoSave";
-import type { SharedFileDocument } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
+import type {
+	ConflictResolution,
+	SharedFileDocument,
+} from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/state/fileDocumentStore/types";
 import { isImageFile, isPdfFile, isVideoFile } from "shared/file-types";
 import type {
 	DirectDescriptor,
@@ -13,6 +16,16 @@ import type {
 } from "../../../../../shared/direct-workstation";
 
 type Store = ReturnType<typeof createFileDocumentStore>;
+type WritePermit = {
+	workspaceId: string;
+	path: string;
+	documentId: string;
+	content: string;
+	generation: number;
+};
+type WriteResult = Awaited<
+	ReturnType<DocumentFilesystemClient["filesystem"]["writeFile"]["mutate"]>
+>;
 type ReadResult = Awaited<
 	ReturnType<DocumentFilesystemClient["filesystem"]["readFile"]["query"]>
 >;
@@ -35,6 +48,7 @@ interface Scope {
 	store: Store;
 	client: DocumentFilesystemClient;
 	lineEndings: Map<string, "\n" | "\r\n">;
+	writePermit?: WritePermit;
 }
 const scopeId = (connection: DirectDescriptor) =>
 	JSON.stringify([
@@ -245,8 +259,61 @@ export class WorkstationFileDocuments {
 				},
 				writeFile: {
 					mutate: async (input) => {
-						if (!input.precondition?.ifMatch)
-							throw new Error("A file revision is required for saving");
+						let precondition = input.precondition;
+						let options = { create: false, overwrite: true };
+						if (!precondition?.ifMatch) {
+							const permit = scope.writePermit;
+							scope.writePermit = undefined;
+							if (
+								!permit ||
+								permit.workspaceId !== input.workspaceId ||
+								permit.path !== input.absolutePath ||
+								permit.content !== input.content ||
+								permit.documentId !==
+									store.getDocument(input.workspaceId, input.absolutePath)?.id
+							)
+								throw new Error("A file revision is required for saving");
+							const metadata = await request<{
+								kind: string;
+								revision?: string;
+							} | null>("filesystem.getMetadata", "query", {
+								workspaceId: input.workspaceId,
+								absolutePath: input.absolutePath,
+							});
+							let revision = metadata?.revision;
+							if (metadata?.kind === "symlink") {
+								const target = await request<ReadResult>(
+									"filesystem.readFile",
+									"query",
+									{
+										workspaceId: input.workspaceId,
+										absolutePath: input.absolutePath,
+										maxBytes: 1,
+									},
+								);
+								revision = target.revision;
+							}
+							if (
+								!scope.active ||
+								scope.descriptor.generation !== permit.generation ||
+								store.getDocument(input.workspaceId, input.absolutePath)?.id !==
+									permit.documentId
+							)
+								throw new Error("File connection changed");
+							if (
+								metadata &&
+								((metadata.kind !== "file" && metadata.kind !== "symlink") ||
+									typeof revision !== "string" ||
+									!revision)
+							)
+								return { ok: false, reason: "conflict", currentRevision: "" };
+							options = metadata
+								? { create: false, overwrite: true }
+								: { create: true, overwrite: false };
+							precondition = metadata
+								? { ifMatch: revision as string }
+								: undefined;
+						}
 						const lineEnding = scope.lineEndings.get(
 							store.getDocument(input.workspaceId, input.absolutePath)?.id ??
 								"",
@@ -255,11 +322,19 @@ export class WorkstationFileDocuments {
 							lineEnding === "\r\n" && typeof input.content === "string"
 								? input.content.replaceAll("\n", "\r\n")
 								: input.content;
-						return await request("filesystem.writeFile", "mutation", {
-							...input,
-							content,
-							options: { create: false, overwrite: true },
-						});
+						const result = await request<WriteResult>(
+							"filesystem.writeFile",
+							"mutation",
+							{
+								...input,
+								content,
+								precondition,
+								options,
+							},
+						);
+						if (options.create && !result.ok && result.reason === "exists")
+							return { ok: false, reason: "conflict", currentRevision: "" };
+						return result;
 					},
 				},
 			},
@@ -285,6 +360,41 @@ export class WorkstationFileDocuments {
 				"Open file limit reached; close a saved file or discard a draft",
 			);
 		return scope.store.acquireDocument(workspaceId, path, scope.client);
+	}
+	async resolveConflict(
+		connection: DirectDescriptor,
+		workspaceId: string,
+		documentId: string,
+		choice: ConflictResolution,
+	): Promise<void> {
+		const scope = this.scopes.get(scopeId(connection));
+		if (!scope?.active || scope.descriptor.generation !== connection.generation)
+			throw new Error("File connection changed");
+		const document = scope.store
+			.getDocuments()
+			.find(
+				(document) =>
+					document.workspaceId === workspaceId && document.id === documentId,
+			);
+		if (!document?.conflict || document.pendingSave) return;
+		if (choice !== "overwrite") {
+			await document.resolveConflict(choice);
+			return;
+		}
+		if (document.content.kind !== "text") return;
+		const permit = {
+			workspaceId,
+			path: document.absolutePath,
+			documentId,
+			content: document.content.value,
+			generation: connection.generation,
+		};
+		scope.writePermit = permit;
+		try {
+			await document.resolveConflict(choice);
+		} finally {
+			if (scope.writePermit === permit) scope.writePermit = undefined;
+		}
 	}
 	getView(connection: DirectDescriptor, workspaceId: string): FileDocumentView {
 		return (

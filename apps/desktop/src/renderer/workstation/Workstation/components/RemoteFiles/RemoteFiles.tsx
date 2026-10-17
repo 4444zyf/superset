@@ -344,7 +344,7 @@ export function RemoteFiles({
 			error: new Error("File is unavailable for saving"),
 		};
 		await run(async (version) => {
-			if (!document || !document.dirty) return;
+			if (!document || (!document.dirty && !document.orphaned)) return;
 			result = await document.save();
 			if (version !== epoch.current) return;
 			if (result.status === "conflict" || result.status === "error") return;
@@ -647,6 +647,17 @@ export function RemoteFiles({
 								)}
 								{documents.map((document) => (
 									<RemoteDocumentEditor
+										canOverwrite={
+											connection.capabilities?.workstationFilesV1 === true
+										}
+										onResolveConflict={(choice) =>
+											documentsManager.resolveConflict(
+												connection,
+												workspaceId,
+												document.id,
+												choice,
+											)
+										}
 										key={document.id}
 										document={document}
 										active={

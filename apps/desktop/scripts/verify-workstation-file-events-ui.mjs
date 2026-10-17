@@ -156,14 +156,18 @@ export async function verifyWorkstationFileEventsUi({
 	await click("text:Save file");
 	await until(() =>
 		evaluate(
-			"document.body.innerText.includes('Your draft is preserved; reload before saving')",
+			"document.querySelector('[role=dialog] h2')?.textContent==='File changed on disk'||document.body.innerText.includes('Your draft is preserved; reload before saving')",
 		),
 	);
 	assert.equal(await editorText(), draft);
 	assert.equal(readFileSync(target, "utf8"), disk);
 	await screenshot("file-events-conflict-keeps-draft-and-disk");
+	if (await evaluate("Boolean(document.querySelector('[role=dialog]'))")) {
+		await click("text:Keep editing");
+		await until(() => evaluate("!document.querySelector('[role=dialog]')"));
+	}
 	await click("text:Close file and discard draft");
-	await until(async () => await editorPath() !== target);
+	await until(async () => (await editorPath()) !== target);
 	assert.equal(readFileSync(target, "utf8"), disk);
 	await open("watch-ignored/");
 	await open("watch-ignored/note.txt");
@@ -178,7 +182,10 @@ export async function verifyWorkstationFileEventsUi({
 			m.events.some((e) => e.absolutePath === join(ignored, "note.txt")),
 		),
 	);
-	writeFileSync(join(output, "file-events-before-reopen-observations.json"), JSON.stringify({events, automaticDirectoryRetarget}, null, 2) + "\n");
+	writeFileSync(
+		join(output, "file-events-before-reopen-observations.json"),
+		JSON.stringify({ events, automaticDirectoryRetarget }, null, 2) + "\n",
+	);
 	await evaluate("window.nativeFileEventsOff?.();true");
 	await closeReopen();
 	await until(() =>

@@ -1,4 +1,3 @@
-import { pasteOnOwnedX11Window } from "./verify-native-paste-input.mjs";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -13,6 +12,7 @@ import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
+import { pasteOnOwnedX11Window } from "./verify-native-paste-input.mjs";
 
 const restoreWindows = process.argv.includes("--restore-windows");
 const sourceTest = process.argv.includes("--source-test");
@@ -190,7 +190,7 @@ async function stop() {
 }
 async function click(selector) {
 	const point = await page.evaluate(
-		`(() => { const selector=${JSON.stringify(selector)}; const e = selector.startsWith("tree:") ? [...document.querySelectorAll("file-tree-container")].map(host=>host.shadowRoot?.querySelector('[data-item-path='+JSON.stringify(selector.slice(5))+']')).find(Boolean) : selector.startsWith("text:") ? [...document.querySelectorAll("button,[data-tab-id]")].find(b=>b.textContent.trim()===selector.slice(5)) : document.querySelector(selector); if (!e) throw new Error('Missing visible input'); const r = e.getBoundingClientRect(); if (r.y < 0 || r.bottom > innerHeight) throw new Error('Input is outside viewport'); return {x:r.x+r.width/2, y:r.y+r.height/2}; })()`,
+		`(() => { const selector=${JSON.stringify(selector)}; const visible=e=>{if(!e||e.matches(':disabled'))return false;const r=e.getBoundingClientRect();if(r.width<=0||r.height<=0||r.top<0||r.left<0||r.bottom>innerHeight||r.right>innerWidth)return false;const root=e.getRootNode();const hit=(root.elementFromPoint?root:document).elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===e||e.contains(hit);};const candidates = selector.startsWith("tree:") ? [...document.querySelectorAll("file-tree-container")].flatMap(host=>[...(host.shadowRoot?.querySelectorAll('[data-item-path='+JSON.stringify(selector.slice(5))+']:not([data-file-tree-sticky-row])')??[])]) : selector.startsWith("text:") ? [...document.querySelectorAll("button,[data-tab-id]")].filter(b=>b.textContent.trim()===selector.slice(5)) : [...document.querySelectorAll(selector)]; const e=candidates.find(visible);if(!e)throw new Error('Missing visible input: '+selector);const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`,
 	);
 	await page.call("Input.dispatchMouseEvent", {
 		type: "mousePressed",

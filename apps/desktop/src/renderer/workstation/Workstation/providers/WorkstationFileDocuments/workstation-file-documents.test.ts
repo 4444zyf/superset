@@ -237,3 +237,222 @@ test("a directory event whose stat lost the race still affects known descendant 
 		f.calls.filter((call) => call.path === "filesystem.writeFile"),
 	).toHaveLength(0);
 });
+
+test("an explicit conflict overwrite checks the selected backend's current revision and preserves the draft codec", async () => {
+	const f = fixture();
+	f.api.rpc = async (request) => {
+		f.calls.push(request);
+		if (request.path === "filesystem.readFile")
+			return {
+				kind: "bytes",
+				content: btoa("original\r\n"),
+				revision: "r1",
+				byteLength: 10,
+				exceededLimit: false,
+			} as never;
+		if (request.path === "filesystem.getMetadata")
+			return { kind: "file", revision: "current-r2" } as never;
+		return (
+			(request.input as { precondition?: { ifMatch: string } }).precondition
+				?.ifMatch === "r1"
+				? { ok: false, reason: "conflict" }
+				: { ok: true, revision: "r3" }
+		) as never;
+	};
+	const manager = new WorkstationFileDocuments(f.api);
+	const document = manager.acquire(first, "workspace", "/repo/note.txt");
+	await settle();
+	document.setContent("explicit draft\n");
+	expect((await document.save()).status).toBe("conflict");
+	await manager.resolveConflict(first, "workspace", document.id, "overwrite");
+	expect(f.calls.at(-1)).toMatchObject({
+		path: "filesystem.writeFile",
+		generation: 1,
+		input: {
+			workspaceId: "workspace",
+			absolutePath: "/repo/note.txt",
+			content: "explicit draft\r\n",
+			precondition: { ifMatch: "current-r2" },
+			options: { create: false, overwrite: true },
+		},
+	});
+	expect(document.dirty).toBe(false);
+	expect(document.conflict).toBeNull();
+});
+
+test("only an explicit conflict action can recreate a deleted draft and the creation cannot overwrite a competing file", async () => {
+	const f = fixture();
+	let missing = false;
+	f.api.rpc = async (request) => {
+		f.calls.push(request);
+		if (request.path === "filesystem.readFile") {
+			if (missing) throw new Error("ENOENT");
+			return {
+				kind: "bytes",
+				content: btoa("original\r\n"),
+				revision: "r1",
+				byteLength: 10,
+				exceededLimit: false,
+			} as never;
+		}
+		if (request.path === "filesystem.getMetadata") return null as never;
+		return (
+			(request.input as { options?: { create: boolean } }).options?.create
+				? { ok: true, revision: "recreated" }
+				: { ok: false, reason: "conflict" }
+		) as never;
+	};
+	const manager = new WorkstationFileDocuments(f.api);
+	const document = manager.acquire(first, "workspace", "/repo/note.txt");
+	await settle();
+	document.setContent("retained draft\n");
+	missing = true;
+	manager.dispatchFsEvent(first, "workspace", {
+		kind: "delete",
+		absolutePath: "/repo/note.txt",
+	});
+	expect((await document.save({ force: true })).status).toBe("error");
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(0);
+	expect((await document.save()).status).toBe("conflict");
+	await manager.resolveConflict(first, "workspace", document.id, "overwrite");
+	expect(f.calls.at(-1)).toMatchObject({
+		path: "filesystem.writeFile",
+		input: {
+			content: "retained draft\r\n",
+			options: { create: true, overwrite: false },
+		},
+	});
+	expect(
+		(f.calls.at(-1)?.input as { precondition?: unknown }).precondition,
+	).toBeUndefined();
+	expect(document.dirty).toBe(false);
+	expect(document.orphaned).toBe(false);
+});
+
+test("a backend switch during overwrite inspection cannot send the old draft to either backend", async () => {
+	const f = fixture();
+	let inspected!: () => void, finish!: (value: unknown) => void;
+	const inspecting = new Promise<void>((resolve) => {
+		inspected = resolve;
+	});
+	f.api.rpc = async (request) => {
+		f.calls.push(request);
+		if (request.path === "filesystem.getMetadata") {
+			inspected();
+			return (await new Promise<unknown>((resolve) => {
+				finish = resolve;
+			})) as never;
+		}
+		if (request.path === "filesystem.writeFile")
+			return { ok: false, reason: "conflict" } as never;
+		return {
+			kind: "bytes",
+			content: btoa("original"),
+			revision: "r1",
+			byteLength: 8,
+			exceededLimit: false,
+		} as never;
+	};
+	const manager = new WorkstationFileDocuments(f.api);
+	const document = manager.acquire(first, "workspace", "/repo/note.txt");
+	await settle();
+	document.setContent("private old draft");
+	await document.save();
+	const pending = manager.resolveConflict(
+		first,
+		"workspace",
+		document.id,
+		"overwrite",
+	);
+	await inspecting;
+	manager.activate({ ...first, backendId: "replacement", generation: 2 });
+	finish({ kind: "file", revision: "stale" });
+	await pending;
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(1);
+	expect(document.content).toMatchObject({ value: "private old draft" });
+	expect(document.saveError?.message).toContain("connection changed");
+});
+
+test("a competing creator during explicit recreation restores the original conflict instead of claiming a save", async () => {
+	const f = fixture();
+	f.api.rpc = async (request) => {
+		f.calls.push(request);
+		if (request.path === "filesystem.readFile")
+			return {
+				kind: "bytes",
+				content: btoa("competing file"),
+				revision: "r1",
+				byteLength: 14,
+				exceededLimit: false,
+			} as never;
+		if (request.path === "filesystem.getMetadata") return null as never;
+		return (
+			(request.input as { options?: { create: boolean } }).options?.create
+				? { ok: false, reason: "exists" }
+				: { ok: false, reason: "conflict" }
+		) as never;
+	};
+	const manager = new WorkstationFileDocuments(f.api);
+	const document = manager.acquire(first, "workspace", "/repo/note.txt");
+	await settle();
+	document.setContent("retained private draft");
+	await document.save();
+	await manager.resolveConflict(first, "workspace", document.id, "overwrite");
+	expect(document.dirty).toBe(true);
+	expect(document.content).toMatchObject({ value: "retained private draft" });
+	expect(document.conflict?.diskContent).toBe("competing file");
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.writeFile"),
+	).toHaveLength(2);
+});
+
+test("a deletion observed after a write started cannot be erased by its late successful receipt", async () => {
+	const f = fixture();
+	let finish!: (value: unknown) => void, writing!: () => void;
+	const started = new Promise<void>((resolve) => {
+		writing = resolve;
+	});
+	f.api.rpc = async (request) => {
+		f.calls.push(request);
+		if (request.path === "filesystem.readFile")
+			return {
+				kind: "bytes",
+				content: btoa("original"),
+				revision: "r1",
+				byteLength: 8,
+				exceededLimit: false,
+			} as never;
+		if (request.path === "filesystem.getMetadata") return null as never;
+		if (!(request.input as { options?: { create: boolean } }).options?.create)
+			return { ok: false, reason: "conflict" } as never;
+		writing();
+		return (await new Promise<unknown>((resolve) => {
+			finish = resolve;
+		})) as never;
+	};
+	const manager = new WorkstationFileDocuments(f.api);
+	const document = manager.acquire(first, "workspace", "/repo/note.txt");
+	await settle();
+	document.setContent("retained draft");
+	await document.save();
+	const pending = manager.resolveConflict(
+		first,
+		"workspace",
+		document.id,
+		"overwrite",
+	);
+	await started;
+	manager.dispatchFsEvent(first, "workspace", {
+		kind: "delete",
+		absolutePath: "/repo/note.txt",
+		isDirectory: false,
+	});
+	finish({ ok: true, revision: "receipt-before-deletion" });
+	await pending;
+	expect(document.orphaned).toBe(true);
+	expect(document.content).toMatchObject({ value: "retained draft" });
+});

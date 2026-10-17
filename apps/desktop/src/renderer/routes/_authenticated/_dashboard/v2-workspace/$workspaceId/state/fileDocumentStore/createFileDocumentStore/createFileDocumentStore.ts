@@ -299,7 +299,7 @@ export function createFileDocumentStore(
 				const client = entry.trpcClient;
 				const currentValue = entry.content.value;
 				const currentRevision = entry.content.revision;
-				entry.loadGeneration += 1;
+				const writeGeneration = ++entry.loadGeneration;
 				entry.pendingSave = true;
 				entry.saveError = null;
 				notify(entry);
@@ -336,6 +336,7 @@ export function createFileDocumentStore(
 						};
 					}
 					entry.savedContentText = currentValue;
+					if (entry.loadGeneration === writeGeneration) entry.orphaned = false;
 					entry.conflict = null;
 					entry.hasExternalChange = false;
 					notify(entry);
