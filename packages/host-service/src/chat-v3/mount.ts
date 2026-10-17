@@ -24,6 +24,7 @@ import {
 import type { Hono, MiddlewareHandler } from "hono";
 import type { HostDb } from "../db";
 import { directAgentProfiles } from "../direct/agent-environment";
+import { readDirectAttachmentForAgent } from "../direct/attachments";
 import { cliFloor } from "./acpCatalogue";
 import { acpHarnessEntries } from "./acpHarnesses";
 import { resolveAgentCli } from "./agentCli";
@@ -53,11 +54,18 @@ function harnessRegistry(
 	db: HostDb,
 	agents: ChatAgentBridge | undefined,
 ): HarnessRegistry {
+	const hostDir = process.env.HOST_MANIFEST_DIR;
+	const resolveAttachment =
+		directAgentProfiles() && hostDir
+			? (id: string, signal: AbortSignal) =>
+					readDirectAttachmentForAgent(id, hostDir, signal)
+			: undefined;
 	const entries: [string, HarnessFactory][] = [
 		[
 			"claude-code",
 			(options) =>
 				createClaudeAdapter({
+					resolveAttachment,
 					launch: async () => {
 						const cli = await resolveAgentCli({
 							binary: "claude",
@@ -83,6 +91,7 @@ function harnessRegistry(
 			"codex",
 			(options) =>
 				new CodexAdapter({
+					resolveAttachment,
 					launch: async () => {
 						const cli = await resolveAgentCli({
 							binary: "codex",

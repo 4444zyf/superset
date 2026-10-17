@@ -9,6 +9,13 @@ import type {
 	UserContent,
 } from "@superset/chat/protocol";
 import { isKnownItem } from "@superset/chat/protocol";
+import {
+	attachmentReference,
+	INLINE_IMAGE_TYPES,
+	PromptAttachmentQueue,
+	type ResolvedPromptContent,
+	type ResolvePromptAttachment,
+} from "../../attachments/attachments";
 import { EventQueue } from "../../eventQueue";
 import type {
 	AdapterEvent,
@@ -111,6 +118,7 @@ type PreparedCodexInput = {
 };
 
 export type CodexAdapterOptions = SpawnCodexOptions & {
+	resolveAttachment?: ResolvePromptAttachment;
 	launch?: () => Promise<Pick<SpawnCodexOptions, "command" | "args" | "env">>;
 	minVersion?: string;
 	clientVersion?: string;
@@ -139,8 +147,23 @@ export class CodexAdapter implements HarnessAdapter {
 	private currentTurn: Turn | null = null;
 	private usage: Turn["usage"];
 	private disposed = false;
+	private readonly attachmentQueue?: PromptAttachmentQueue;
+	private inputClosed = false;
 
-	constructor(private readonly options: CodexAdapterOptions = {}) {}
+	constructor(private readonly options: CodexAdapterOptions = {}) {
+		if (options.resolveAttachment)
+			this.attachmentQueue = new PromptAttachmentQueue({
+				resolve: options.resolveAttachment,
+				deliver: (content) => {
+					if (!this.disposed) this.enqueueInput(this.toCodexInput(content));
+				},
+				fail: (error) =>
+					this.finishPreparation(
+						"failed",
+						error instanceof Error ? error.message : String(error),
+					),
+			});
+	}
 
 	start(startOptions: HarnessStartOptions): AsyncIterable<AdapterEvent> {
 		this.cwd = startOptions.cwd;
@@ -158,7 +181,16 @@ export class CodexAdapter implements HarnessAdapter {
 	}
 
 	prompt(content: UserContent[]): void {
-		const input = this.toCodexInput(content);
+		if (this.disposed) return;
+		if (this.inputClosed) throw new Error("Agent session has ended");
+		if (this.attachmentQueue) {
+			this.attachmentQueue.enqueue(content);
+			return;
+		}
+		this.enqueueInput(this.toCodexInput(content));
+	}
+
+	private enqueueInput(input: PreparedCodexInput): void {
 		if (!this.threadId || !this.client) {
 			this.queuedInput.push(input);
 			return;
@@ -167,6 +199,15 @@ export class CodexAdapter implements HarnessAdapter {
 	}
 
 	cancelTurn(): void {
+		const preparing = this.attachmentQueue?.cancel();
+		const queued = this.attachmentQueue && this.queuedInput.length > 0;
+		if (this.attachmentQueue) this.queuedInput.length = 0;
+		if (
+			(preparing || queued) &&
+			!this.pendingTurnStart &&
+			this.currentTurn?.status !== "running"
+		)
+			this.finishPreparation("interrupted");
 		if (!this.client || !this.threadId) return;
 		const turn = this.currentTurn;
 		if (turn?.status === "running") {
@@ -209,6 +250,7 @@ export class CodexAdapter implements HarnessAdapter {
 	async dispose(): Promise<void> {
 		if (this.disposed) return;
 		this.disposed = true;
+		this.attachmentQueue?.cancel();
 		this.stalePendingApprovals();
 		await this.client?.close();
 		this.queue.close();
@@ -675,7 +717,7 @@ export class CodexAdapter implements HarnessAdapter {
 		if (this.cancelRequested) this.interrupt(turn.id);
 	}
 
-	private toCodexInput(content: UserContent[]): PreparedCodexInput {
+	private toCodexInput(content: ResolvedPromptContent[]): PreparedCodexInput {
 		const input: unknown[] = [];
 		let skippedAttachment = false;
 		for (const entry of content) {
@@ -690,13 +732,48 @@ export class CodexAdapter implements HarnessAdapter {
 				});
 				continue;
 			}
-			skippedAttachment = true;
+			const attachment = this.attachmentQueue
+				? entry.resolvedAttachment
+				: undefined;
+			if (!attachment) {
+				skippedAttachment = true;
+				continue;
+			}
+			if (INLINE_IMAGE_TYPES.has(attachment.mimeType))
+				input.push({
+					type: "image",
+					url: `data:${attachment.mimeType};base64,${attachment.data}`,
+				});
+			else
+				input.push({
+					type: "text",
+					text: attachmentReference(entry.name, attachment.path),
+					text_elements: [],
+				});
 		}
 		return { input, attachmentsOmitted: skippedAttachment };
 	}
 
 	private emitItem(item: Item, turnId: string): void {
 		this.emit({ kind: "item", item, turnId });
+	}
+
+	private finishPreparation(
+		status: "failed" | "interrupted",
+		message?: string,
+	): void {
+		if (this.disposed) return;
+		const now = this.now();
+		const turn = {
+			id: this.mintId(),
+			status,
+			startedAtMs: now,
+			completedAtMs: now,
+			...(message ? { error: { message } } : {}),
+		};
+		if (message) this.emitNotice("error", message, turn.id);
+		this.emit({ kind: "turn", turn, inputNotDelivered: true });
+		this.emitSession({ status: "idle" });
 	}
 
 	private emitNotice(
@@ -718,6 +795,18 @@ export class CodexAdapter implements HarnessAdapter {
 	}
 
 	private emitSession(session: Partial<SessionState>): void {
+		if (session.status === "dead" && this.attachmentQueue) {
+			this.inputClosed = true;
+			const preparing = this.attachmentQueue.cancel();
+			const queued = this.queuedInput.length > 0;
+			this.queuedInput.length = 0;
+			if (
+				(preparing || queued) &&
+				!this.pendingTurnStart &&
+				this.currentTurn?.status !== "running"
+			)
+				this.finishPreparation("failed");
+		}
 		this.emit({ kind: "session", session });
 	}
 

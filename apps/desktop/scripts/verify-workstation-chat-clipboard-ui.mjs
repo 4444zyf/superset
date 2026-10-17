@@ -29,7 +29,7 @@ export async function verifyWorkstationChatClipboardUi({
 		);
 	};
 	const scope = await evaluate(
-		`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const {snapshot:v}=await window.directWorkstation.getWorkspaceView();const t=v.targets.find(t=>t.connectionId===d.connectionId);return {connectionId:d.connectionId,workspaceId:t.workspaces.find(w=>w.tabId===t.activeTabId).workspaceId,chatHarnesses:d.chatHarnesses};})()`,
+		`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const {snapshot:v}=await window.directWorkstation.getWorkspaceView();const t=v.targets.find(t=>t.connectionId===d.connectionId);return {connectionId:d.connectionId,workspaceId:t.workspaces.find(w=>w.tabId===t.activeTabId).workspaceId,chatHarnesses:d.chatHarnesses,chatAttachmentInput:d.capabilities?.workstationChatAttachmentInputV1};})()`,
 	);
 	const query = (path, input = {}) =>
 		evaluate(
@@ -41,6 +41,7 @@ export async function verifyWorkstationChatClipboardUi({
 	const originalTerminals = await controls.verifyWorktreeLocation(
 		workspace.worktreePath,
 	);
+	const expectedPrompts = new Map();
 	const noPrompt = async () => {
 		for (const session of await sessions()) {
 			const page = await query("chat.getItems", {
@@ -48,12 +49,17 @@ export async function verifyWorkstationChatClipboardUi({
 			});
 			assert.equal(page.ok, true);
 			assert.equal(page.nextBefore, null);
-			assert.equal(
-				page.envelopes.some(
-					(e) =>
-						e.event.type === "item" && e.event.item.kind === "user_message",
-				),
-				false,
+			const messages = new Map(
+				page.envelopes
+					.filter(
+						(e) =>
+							e.event.type === "item" && e.event.item.kind === "user_message",
+					)
+					.map((e) => [e.event.item.id, e.event.item.content]),
+			);
+			assert.deepEqual(
+				[...messages.values()],
+				expectedPrompts.get(session.sessionId) ?? [],
 			);
 			assert.equal(
 				page.envelopes.some((e) => e.event.type === "turn"),
@@ -96,6 +102,7 @@ export async function verifyWorkstationChatClipboardUi({
 			),
 		);
 	assert.equal(controls.inspectChatAttachments().length, 0);
+	assert.equal(scope.chatAttachmentInput, true);
 	assert.equal((await sessions()).length, 0);
 	assert.equal(
 		scope.chatHarnesses.some((h) => h.id === "codex" && h.available),
@@ -209,6 +216,37 @@ export async function verifyWorkstationChatClipboardUi({
 	assert.ok(
 		observedPastes.length >= 3 && observedPastes.every((e) => e.trusted),
 	);
+	let rejectedSend = false;
+	if (process.argv.includes("--expect-rejected-chat-send")) {
+		assert.ok(
+			startupRejection?.includes("codex 0.160.0 or newer is needed for chat"),
+		);
+		const second = images.find((a) => a.attachmentId !== image.attachmentId);
+		expectedPrompts.set(first.sessionId, [
+			[
+				{ type: "text", text: plain },
+				...[image, second, ...(file ? [file] : [])].map((a) => ({
+					type: "attachment",
+					attachmentId: a.attachmentId,
+					name: a.originalFilename,
+					mimeType: a.mediaType,
+				})),
+			],
+		]);
+		await click("text:Send");
+		await until(() =>
+			evaluate(
+				`document.querySelector('${area}')?.closest('section')?.querySelector('[role=alert]')?.textContent.trim()`,
+			),
+		);
+		await ready();
+		assert.equal(await message(), plain);
+		assert.equal(await attachedCount("image.png"), 2);
+		if (file) assert.equal(await attachedCount(file.originalFilename), 1);
+		await noPrompt();
+		await screenshot("chat-clipboard-rejected-send-keeps-draft");
+		rejectedSend = true;
+	}
 	await click("text:New chat");
 	await until(async () => (await sessions()).length === 2);
 	await ready();
@@ -250,6 +288,8 @@ export async function verifyWorkstationChatClipboardUi({
 				osClipboard: true,
 				workspaceId: scope.workspaceId,
 				adaptiveCompactSwitcher: true,
+				chatAttachmentInputCapability: scope.chatAttachmentInput,
+				explicitRejectedSendChecked: rejectedSend,
 				originalTerminalsRetained: restoredTerminals.terminals,
 				firstSessionId: first.sessionId,
 				startupRejection,

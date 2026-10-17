@@ -14,7 +14,83 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Hono } from "hono";
 import { MAX_INLINE_ATTACHMENT_BYTES } from "../trpc/router/attachments/constants";
-import { registerDirectAttachmentRoute } from "./attachments";
+import {
+	readDirectAttachmentForAgent,
+	registerDirectAttachmentRoute,
+} from "./attachments";
+
+test("agent attachment resolution reads the same private bytes and trusted media type as downloads", async () => {
+	const f = fixture();
+	try {
+		const read = await readDirectAttachmentForAgent(
+			f.id,
+			f.home,
+			new AbortController().signal,
+		);
+		expect(read).toEqual({
+			path: f.payloadPath,
+			mimeType: "text/plain",
+			data: Buffer.from("original").toString("base64"),
+		});
+		expect(
+			await readDirectAttachmentForAgent(
+				"../outside",
+				f.home,
+				new AbortController().signal,
+			),
+		).toBeNull();
+	} finally {
+		f.close();
+	}
+});
+
+test("agent attachment reads cannot follow a payload symlink", async () => {
+	const f = fixture();
+	try {
+		const outside = join(f.home, "private.txt");
+		writeFileSync(outside, "original", { mode: 0o600 });
+		rmSync(f.payloadPath);
+		symlinkSync(outside, f.payloadPath);
+		expect(
+			await readDirectAttachmentForAgent(
+				f.id,
+				f.home,
+				new AbortController().signal,
+			),
+		).toBeNull();
+	} finally {
+		f.close();
+	}
+});
+
+test("agent attachment reads reject oversized files before buffering and honor cancellation", async () => {
+	const f = fixture();
+	try {
+		truncateSync(f.payloadPath, MAX_INLINE_ATTACHMENT_BYTES + 1);
+		writeFileSync(
+			f.metadataPath,
+			JSON.stringify({
+				...f.metadata,
+				sizeBytes: MAX_INLINE_ATTACHMENT_BYTES + 1,
+			}),
+			{ mode: 0o600 },
+		);
+		expect(
+			await readDirectAttachmentForAgent(
+				f.id,
+				f.home,
+				new AbortController().signal,
+			),
+		).toBeNull();
+		const controller = new AbortController();
+		controller.abort();
+		await expect(
+			readDirectAttachmentForAgent(f.id, f.home, controller.signal),
+		).rejects.toThrow();
+	} finally {
+		f.close();
+	}
+});
 
 function fixture() {
 	const home = mkdtempSync(join(tmpdir(), "direct-attachment-"));

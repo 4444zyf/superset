@@ -123,6 +123,7 @@ export class WorkstationController {
 				"chat",
 				"files",
 				"attachments",
+				"workstationChatAttachmentInputV1",
 				"git",
 				"durableOperations",
 				"workspaceViewRestoreV1",

@@ -299,6 +299,8 @@ export class LiveSession {
 				});
 				return;
 			case "turn": {
+				if (event.inputNotDelivered)
+					this.attributeAwaitingPrompt(event.turn.id);
 				this.currentTurn = event.turn;
 				this.appendDurable({ type: "turn", turn: event.turn });
 				if (event.turn.status === "running") {

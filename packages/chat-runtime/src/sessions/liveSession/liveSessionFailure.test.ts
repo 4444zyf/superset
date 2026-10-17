@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { randomUUID } from "node:crypto";
 import type { DurableEnvelope } from "@superset/chat/protocol";
 import type { AdapterEvent, HarnessAdapter } from "../../harness";
+import { EventQueue } from "../../harness/eventQueue";
 import { FakeHarness } from "../../harness/fake";
 import type { ChatRuntime } from "../../index";
 import type { HarnessRegistry } from "../../sessions";
@@ -62,6 +63,57 @@ function statuses(envelopes: DurableEnvelope[]): string[] {
 }
 
 describe("live session adapter failures", () => {
+	test("a preparation failure before the first running turn does not leave later input queued forever", async () => {
+		const events = new EventQueue();
+		let calls = 0;
+		const { runtime, sessionId } = startSession({
+			start: () => events.iterable(),
+			prompt: () => {
+				calls++;
+				events.push({
+					kind: "turn",
+					inputNotDelivered: true,
+					turn: {
+						id: `preflight-${calls}`,
+						status: "failed",
+						startedAtMs: 1,
+						completedAtMs: 1,
+					},
+				});
+			},
+			cancelTurn() {},
+			respondToApproval() {},
+			setMode() {},
+			dispose: async () => {
+				events.close();
+			},
+		});
+		try {
+			runtime.commands.prompt({
+				commandId: randomUUID(),
+				sessionId,
+				clientId: "first",
+				content: [{ type: "text", text: "unreadable attachment" }],
+			});
+			await waitFor(() =>
+				journalEnvelopes(runtime, sessionId).some(
+					(row) =>
+						row.event.type === "turn" && row.event.turn.status === "failed",
+				),
+			);
+			const result = runtime.commands.prompt({
+				commandId: randomUUID(),
+				sessionId,
+				clientId: "second",
+				content: [{ type: "text", text: "retry without the attachment" }],
+			});
+			expect(result.queued).toBe(false);
+			expect(calls).toBe(2);
+		} finally {
+			await runtime.dispose();
+		}
+	});
+
 	test("a rejected pump journals the failure instead of going unhandled", async () => {
 		const runningTurn: AdapterEvent = {
 			kind: "turn",

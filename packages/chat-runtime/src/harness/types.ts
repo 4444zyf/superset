@@ -10,7 +10,7 @@ import type {
 export type AdapterEvent =
 	| { kind: "item"; item: Item; turnId: string }
 	| { kind: "delta"; delta: Delta }
-	| { kind: "turn"; turn: Turn }
+	| { kind: "turn"; turn: Turn; inputNotDelivered?: true }
 	| { kind: "session"; session: Partial<SessionState> };
 
 export type HarnessStartOptions = {

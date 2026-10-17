@@ -8,6 +8,13 @@ import type {
 	Decision,
 	UserContent,
 } from "@superset/chat/protocol";
+import {
+	attachmentReference,
+	INLINE_IMAGE_TYPES,
+	PromptAttachmentQueue,
+	type ResolvedPromptContent,
+	type ResolvePromptAttachment,
+} from "../../attachments/attachments";
 import type {
 	AdapterEvent,
 	HarnessAdapter,
@@ -74,6 +81,7 @@ export type ClaudeLaunch = {
 };
 
 export type ClaudeAdapterOptions = {
+	resolveAttachment?: ResolvePromptAttachment;
 	query: ClaudeQuery;
 	pathToClaudeCodeExecutable?: string;
 	launch?: () => Promise<ClaudeLaunch>;
@@ -131,6 +139,7 @@ class PromptQueue {
 	private closed = false;
 
 	push(message: SDKUserMessage): void {
+		if (this.closed) return;
 		const waiting = this.waiting;
 		if (waiting) {
 			this.waiting = null;
@@ -142,11 +151,16 @@ class PromptQueue {
 
 	close(): void {
 		this.closed = true;
+		this.discardPending();
 		const waiting = this.waiting;
 		if (waiting) {
 			this.waiting = null;
 			waiting({ value: undefined, done: true });
 		}
+	}
+
+	discardPending(): boolean {
+		return this.buffered.splice(0).length > 0;
 	}
 
 	async *stream(): AsyncIterable<SDKUserMessage> {
@@ -185,8 +199,28 @@ export class ClaudeAdapter implements HarnessAdapter {
 	private modeId: ClaudePermissionMode = "default";
 	private pump: Promise<void> | null = null;
 	private disposed = false;
+	private readonly attachmentQueue?: PromptAttachmentQueue;
+	private inputClosed = false;
 
-	constructor(private readonly options: ClaudeAdapterOptions) {}
+	constructor(private readonly options: ClaudeAdapterOptions) {
+		if (options.resolveAttachment)
+			this.attachmentQueue = new PromptAttachmentQueue({
+				resolve: options.resolveAttachment,
+				deliver: (content) => {
+					if (!this.disposed)
+						this.prompts.push({
+							type: "user",
+							message: { role: "user", content: this.toSdkContent(content) },
+							parent_tool_use_id: null,
+						});
+				},
+				fail: (error) =>
+					this.finishPreparation(
+						"failed",
+						error instanceof Error ? error.message : String(error),
+					),
+			});
+	}
 
 	start(startOptions: HarnessStartOptions): AsyncIterable<AdapterEvent> {
 		const translator = new ClaudeTranslator({
@@ -221,6 +255,17 @@ export class ClaudeAdapter implements HarnessAdapter {
 		try {
 			launch = await this.options.launch?.();
 		} catch (error) {
+			if (this.attachmentQueue) {
+				this.attachmentQueue.cancel();
+				this.inputClosed = true;
+				this.finishPreparation(
+					"failed",
+					error instanceof Error ? error.message : String(error),
+				);
+				this.events.push({ kind: "session", session: { status: "dead" } });
+				this.events.close();
+				return;
+			}
 			for (const event of translator.interrupt(
 				error instanceof Error ? error.message : String(error),
 			)) {
@@ -256,6 +301,12 @@ export class ClaudeAdapter implements HarnessAdapter {
 	}
 
 	prompt(content: UserContent[]): void {
+		if (this.disposed) return;
+		if (this.inputClosed) throw new Error("Agent session has ended");
+		if (this.attachmentQueue) {
+			this.attachmentQueue.enqueue(content);
+			return;
+		}
 		this.prompts.push({
 			type: "user",
 			message: { role: "user", content: promptText(content) },
@@ -264,6 +315,12 @@ export class ClaudeAdapter implements HarnessAdapter {
 	}
 
 	cancelTurn(): void {
+		const preparing = this.attachmentQueue?.cancel();
+		const buffered = this.attachmentQueue && this.prompts.discardPending();
+		if (preparing || buffered) {
+			this.finishPreparation("interrupted");
+			return;
+		}
 		const interrupt = this.session?.interrupt;
 		if (!interrupt) {
 			this.abortController.abort();
@@ -309,6 +366,7 @@ export class ClaudeAdapter implements HarnessAdapter {
 
 	async dispose(): Promise<void> {
 		this.disposed = true;
+		this.attachmentQueue?.cancel();
 		for (const [approvalId, pending] of [...this.approvals]) {
 			this.approvals.delete(approvalId);
 			pending.settle({ behavior: "deny", message: "Session disposed." });
@@ -317,6 +375,76 @@ export class ClaudeAdapter implements HarnessAdapter {
 		this.prompts.close();
 		await this.pump;
 		this.events.close();
+	}
+
+	private toSdkContent(
+		content: ResolvedPromptContent[],
+	): SDKUserMessage["message"]["content"] {
+		return content.map((part) => {
+			if (part.type === "text") return { type: "text", text: part.text };
+			const attachment = part.resolvedAttachment;
+			if (!attachment) throw new Error("Attachment resolution is missing");
+			if (INLINE_IMAGE_TYPES.has(attachment.mimeType))
+				return {
+					type: "image",
+					source: {
+						type: "base64",
+						media_type: attachment.mimeType as
+							| "image/png"
+							| "image/jpeg"
+							| "image/gif"
+							| "image/webp",
+						data: attachment.data,
+					},
+				};
+			if (attachment.mimeType === "application/pdf")
+				return {
+					type: "document",
+					source: {
+						type: "base64",
+						media_type: "application/pdf",
+						data: attachment.data,
+					},
+				};
+			return {
+				type: "text",
+				text: attachmentReference(part.name, attachment.path),
+			};
+		});
+	}
+
+	private finishPreparation(
+		status: "failed" | "interrupted",
+		message?: string,
+	): void {
+		if (this.disposed) return;
+		const now = (this.options.now ?? Date.now)();
+		const id = (this.options.mintId ?? randomUUID)();
+		if (message)
+			this.events.push({
+				kind: "item",
+				turnId: id,
+				item: {
+					id: (this.options.mintId ?? randomUUID)(),
+					kind: "notice",
+					noticeKind: "error",
+					text: message,
+					startedAtMs: now,
+					completedAtMs: now,
+				},
+			});
+		this.events.push({
+			kind: "turn",
+			inputNotDelivered: true,
+			turn: {
+				id,
+				status,
+				startedAtMs: now,
+				completedAtMs: now,
+				...(message ? { error: { message } } : {}),
+			},
+		});
+		this.events.push({ kind: "session", session: { status: "idle" } });
 	}
 
 	private async run(
@@ -334,6 +462,17 @@ export class ClaudeAdapter implements HarnessAdapter {
 		} catch (error) {
 			for (const event of translator.interrupt(String(error))) {
 				this.events.push(event);
+			}
+		} finally {
+			if (this.attachmentQueue && !this.disposed) {
+				this.inputClosed = true;
+				if (this.attachmentQueue.cancel())
+					this.finishPreparation(
+						"failed",
+						"Agent session ended before message delivery",
+					);
+				this.events.push({ kind: "session", session: { status: "dead" } });
+				this.prompts.close();
 			}
 		}
 	}

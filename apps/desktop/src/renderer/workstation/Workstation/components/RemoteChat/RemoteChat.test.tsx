@@ -58,9 +58,114 @@ const connection: DirectDescriptor = {
 	backendId: "backend",
 	namespaceId: "namespace",
 	instanceId: "instance",
-	capabilities: { durableOperations: true, attachments: true },
+	capabilities: {
+		durableOperations: true,
+		attachments: true,
+		workstationChatAttachmentInputV1: true,
+	},
 	chatHarnesses: [{ id: "codex", available: true }],
 };
+
+test("an older backend without chat attachment input keeps file sending disabled", async () => {
+	const api = {
+		rpc: async () => [],
+		onSocket: () => () => {},
+		openSocket: async () => {},
+		closeSocket: async () => {},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteChat
+			api={api}
+			connection={{
+				...connection,
+				capabilities: { durableOperations: true, attachments: true },
+			}}
+			workspaceId="workspace"
+			selectedSessionId="saved"
+			onError={() => {}}
+		/>,
+	);
+	expect(
+		(
+			(await screen.findByRole("button", {
+				name: "Attach files",
+			})) as HTMLButtonElement
+		).disabled,
+	).toBe(true);
+});
+
+test("a rejected Send keeps the message draft visible without marking the chat stream failed", async () => {
+	const errors: string[] = [];
+	const api = {
+		rpc: async (r: { type: string }) => {
+			if (r.type === "mutation") throw new Error("Agent session has ended");
+			return [];
+		},
+		chooseAttachment: async () => ({
+			attachmentId: "photo",
+			originalFilename: "photo.png",
+			mediaType: "image/png",
+			sizeBytes: 3,
+		}),
+		onSocket: () => () => {},
+		openSocket: async () => {},
+		closeSocket: async () => {},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteChat
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			selectedSessionId="saved"
+			onError={(message) => errors.push(message)}
+		/>,
+	);
+	const area = await screen.findByRole("textbox", { name: "Message" });
+	fireEvent.change(area, { target: { value: "保留我的消息 🙂" } });
+	fireEvent.click(screen.getByRole("button", { name: "Attach files" }));
+	await screen.findByRole("button", { name: "photo.png" });
+	fireEvent.click(screen.getByRole("button", { name: "Send" }));
+	await waitFor(() => expect(screen.queryByRole("alert")).not.toBeNull());
+	expect((area as HTMLTextAreaElement).value).toBe("保留我的消息 🙂");
+	expect(screen.getByRole("button", { name: "photo.png" })).toBeTruthy();
+	expect(errors).toEqual([]);
+});
+
+test("a second picked file cannot grow the draft beyond the existing clipboard byte limit", async () => {
+	let picked = 0;
+	const errors: string[] = [];
+	const api = {
+		rpc: async () => [],
+		onSocket: () => () => {},
+		openSocket: async () => {},
+		closeSocket: async () => {},
+		chooseAttachment: async () => {
+			picked++;
+			return {
+				attachmentId: `file-${picked}`,
+				originalFilename: `file-${picked}.png`,
+				mediaType: "image/png",
+				sizeBytes: (picked === 1 ? 14 : 12) * 1024 * 1024,
+			};
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteChat
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			selectedSessionId="saved"
+			onError={(message) => errors.push(message)}
+		/>,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "Attach files" }));
+	await screen.findByRole("button", { name: "file-1.png" });
+	fireEvent.click(screen.getByRole("button", { name: "Attach files" }));
+	await waitFor(() => expect(screen.queryByRole("alert")).not.toBeNull());
+	expect(screen.getByRole("button", { name: "file-1.png" })).toBeTruthy();
+	expect(screen.queryByRole("button", { name: "file-2.png" })).toBeNull();
+	expect(errors).toEqual([]);
+});
 
 test("restoring a controlled chat selection never selects the first session or sends a prompt", async () => {
 	const paths: string[] = [];
@@ -171,7 +276,10 @@ test("an attachment replayed from chat history remains downloadable after reconn
 	render(
 		<RemoteChat
 			api={api}
-			connection={connection}
+			connection={{
+				...connection,
+				capabilities: { durableOperations: true, attachments: true },
+			}}
 			workspaceId="workspace"
 			onError={() => {}}
 			saveAttachment={(attachment) => {

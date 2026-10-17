@@ -122,6 +122,9 @@ export function RemoteChat({
 	const previousDraftScope = useRef(draftScope);
 	const previousNamespaceScope = useRef(namespaceScope);
 	const attachmentsAvailable = connection.capabilities?.attachments === true;
+	const sendingAttachmentsAvailable =
+		attachmentsAvailable &&
+		connection.capabilities?.workstationChatAttachmentInputV1 === true;
 	const available =
 		connection.chatHarnesses?.find((candidate) => candidate.id === harness)
 			?.available === true;
@@ -338,7 +341,7 @@ export function RemoteChat({
 						</Trans>
 					</p>
 				)}
-				{!attachmentsAvailable && (
+				{!sendingAttachmentsAvailable && (
 					<p className="text-xs text-muted-foreground">
 						<Trans>Attachments are unavailable on this backend.</Trans>
 					</p>
@@ -445,15 +448,21 @@ export function RemoteChat({
 							type="button"
 							className={button}
 							disabled={
-								busy || !attachmentsAvailable || attachments.length >= 16
+								busy || !sendingAttachmentsAvailable || attachments.length >= 16
 							}
 							onClick={() =>
 								void run(async (isCurrent) => {
-									if (!attachmentsAvailable) return;
+									if (!sendingAttachmentsAvailable) return;
 									const attachment = await api.chooseAttachment(connection);
-									if (attachment && isCurrent())
+									if (attachment && isCurrent()) {
+										validateClipboardFiles(
+											[...attachments, attachment].map((a) => ({
+												size: a.sizeBytes,
+											})),
+										);
 										setAttachments((previous) => [...previous, attachment]);
-								})
+									}
+								}, true)
 							}
 						>
 							<Trans>Attach files</Trans>
@@ -492,7 +501,17 @@ export function RemoteChat({
 						onSubmit={(event) => {
 							event.preventDefault();
 							if (!prompt.trim() && !attachments.length) return;
-							if (attachments.length && !attachmentsAvailable) return;
+							if (attachments.length && !sendingAttachmentsAvailable) return;
+							if (attachments.length) {
+								try {
+									validateClipboardFiles(
+										attachments.map((a) => ({ size: a.sizeBytes })),
+									);
+								} catch (error) {
+									setAttachmentError(errorMessage(error));
+									return;
+								}
+							}
 							void run(async (isCurrent) => {
 								await rpc("prompt", "mutation", {
 									commandId: crypto.randomUUID(),
@@ -512,7 +531,7 @@ export function RemoteChat({
 								if (!isCurrent()) return;
 								setPrompt("");
 								setAttachments([]);
-							});
+							}, true);
 						}}
 					>
 						<textarea
@@ -527,8 +546,11 @@ export function RemoteChat({
 								if (busy) return;
 								setAttachmentError(null);
 								void run(async (isCurrent) => {
-									validateClipboardFiles(files, 16 - attachments.length);
-									if (!attachmentsAvailable || !api.uploadAttachment)
+									validateClipboardFiles([
+										...attachments.map((a) => ({ size: a.sizeBytes })),
+										...files,
+									]);
+									if (!sendingAttachmentsAvailable || !api.uploadAttachment)
 										throw new Error(
 											"This backend does not support the required capability",
 										);
@@ -555,7 +577,7 @@ export function RemoteChat({
 							disabled={
 								busy ||
 								!connection.capabilities?.durableOperations ||
-								(attachments.length > 0 && !attachmentsAvailable)
+								(attachments.length > 0 && !sendingAttachmentsAvailable)
 							}
 							type="submit"
 						>

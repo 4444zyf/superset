@@ -1,5 +1,9 @@
 export type { AcpAdapterOptions } from "./acp";
 export { AcpAdapter, createAcpAdapter } from "./acp";
+export type {
+	PromptAttachment,
+	ResolvePromptAttachment,
+} from "./attachments/attachments";
 export { BackgroundTasks } from "./backgroundTasks";
 export type {
 	ClaudeAdapterOptions,

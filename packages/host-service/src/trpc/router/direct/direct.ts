@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createResolveCwd } from "../../../chat-v3/resolveCwd";
 import { directChatHarnesses } from "../../../direct/chat-readiness";
+import { directAgentProfiles } from "../../../direct/agent-environment";
 import {
 	beginDirectDrain,
 	directMaintenanceStatus,
@@ -52,6 +53,7 @@ export function describeDirectBackend(
 			chat: true,
 			files: true,
 			attachments: true,
+			workstationChatAttachmentInputV1: Boolean(directAgentProfiles() && process.env.HOST_MANIFEST_DIR),
 			git: true,
 			durableOperations,
 			relay: false,
