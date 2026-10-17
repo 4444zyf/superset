@@ -1,4 +1,5 @@
 import os from "node:os";
+import { managedSetupCompletionRoot } from "../../../direct/managed-paths";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createResolveCwd } from "../../../chat-v3/resolveCwd";
@@ -43,6 +44,8 @@ export function describeDirectBackend(
 			workstationProjectScriptsV1: true,
 			workstationWorkspaceRunV1: workspaceViewRestoreV1,
 			workstationWorkspaceCleanupV1: durableOperations,
+			workstationWorkspaceSetupV1:
+				durableOperations && managedSetupCompletionRoot() !== null,
 			projects: true,
 			sessions: true,
 			terminals: true,

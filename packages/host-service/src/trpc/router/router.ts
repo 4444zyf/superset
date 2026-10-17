@@ -1,3 +1,4 @@
+import { workspaceSetupRouter } from "./workspace-setup/workspace-setup";
 import { workspaceRunRouter } from "./workspace-run/workspace-run";
 import { router } from "../index";
 import { agentToolingRouter } from "./agent-tooling";
@@ -58,6 +59,7 @@ export const appRouter = router({
 	usage: usageRouter,
 	workspace: workspaceRouter,
 	workspaceRun: workspaceRunRouter,
+	workspaceSetup: workspaceSetupRouter,
 	workspaces: workspacesRouter,
 	workspaceCleanup: workspaceCleanupRouter,
 	workspaceCreation: workspaceCreationRouter,

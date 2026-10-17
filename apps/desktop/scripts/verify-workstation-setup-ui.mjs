@@ -233,6 +233,17 @@ export async function verifyWorkstationSetupUi({
 			: null;
 	});
 	if (process.platform === "linux") assert.equal(initial.cwd, row.worktreePath);
+	await until(async () => {
+		const s = await query("workspaceSetup.getStateV1", {
+			workspaceId: enabled.workspaceId,
+		});
+		return s?.phase === "succeeded" && s.exitCode === 0;
+	});
+	await until(() =>
+		evaluate(
+			"document.querySelector('[data-workspace-setup]')?.dataset.setupPhase==='succeeded'",
+		),
+	);
 	await screenshot("setup-original-terminal-output");
 	await closeReopen();
 	await until(() =>
@@ -264,10 +275,211 @@ export async function verifyWorkstationSetupUi({
 		}),
 		null,
 	);
+	assert.equal(
+		await query("workspaceSetup.getStateV1", {
+			workspaceId: skipped.workspaceId,
+		}),
+		null,
+	);
 	await screenshot("setup-skipped-without-terminal");
+	await configure([
+		"mkdir -p .superset/attachments",
+		"printf '*\\n' > .superset/attachments/.gitignore",
+		"printf 'once\\n' >> .superset/attachments/setup-failure-marker.txt",
+		"printf 'SETUP_ACTUAL_FAILURE\\n'",
+		"sh -c 'exit 17'",
+	]);
+	const failed = await create("Setup failed", true);
+	const failure = await until(async () => {
+		const s = await query("workspaceSetup.getStateV1", {
+			workspaceId: failed.workspaceId,
+		});
+		return s?.phase === "failed" && s.exitCode === 17 ? s : null;
+	});
+	await until(() =>
+		evaluate(
+			"document.querySelector('[data-workspace-setup]')?.dataset.setupPhase==='failed' && document.querySelector('[data-workspace-setup]')?.dataset.setupExitCode==='17'",
+		),
+	);
+	await until(() =>
+		evaluate(
+			`document.querySelector('[data-terminal-id="${failure.terminalId}"]')?.dataset.restoreState==='attached'`,
+		),
+	);
+	const failureProcess = await until(async () => {
+		const p = await controls.inspectRunExecution({
+			terminalId: failure.terminalId,
+			executionId: failure.executionId,
+		});
+		return stripVTControlCharacters(p.output)
+			.replace(/\r/g, "")
+			.split("\n")
+			.includes("SETUP_ACTUAL_FAILURE")
+			? p
+			: null;
+	});
+	const failedRow = await query("workspace.get", { id: failed.workspaceId });
+	const failureMarker = async () => {
+		const r = await query("filesystem.readFile", {
+			workspaceId: failed.workspaceId,
+			absolutePath: `${failedRow.worktreePath}/.superset/attachments/setup-failure-marker.txt`,
+			maxBytes: 128,
+		});
+		return r.kind === "text"
+			? r.content
+			: Buffer.from(r.content, "base64").toString("utf8");
+	};
+	assert.equal(await failureMarker(), "once\n");
+	await screenshot("setup-failure-code-and-original-output");
+	const failedPane = (await active()).panes.find(
+		(p) => p.resourceId === failure.terminalId,
+	);
+	const closeSetup = await until(() =>
+		evaluate(
+			`(()=>{let e=document.querySelector('[data-pane-title-id="${failedPane.paneId}"]');while(e&&!e.querySelector('button[aria-label="Close pane"]'))e=e.parentElement;const b=e?.querySelector('button[aria-label="Close pane"]');if(!b)return null;const r=b.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;return b.contains(document.elementFromPoint(x,y))?{x,y}:null;})()`,
+		),
+	);
+	await physical(closeSetup);
+	await until(() =>
+		evaluate("document.querySelectorAll('[data-terminal-id]').length===0"),
+	);
+	await physical(await pointFor("[data-workspace-setup] button"));
+	await until(() =>
+		evaluate(
+			`document.querySelector('[data-terminal-id="${failure.terminalId}"]')?.dataset.restoreState==='attached'`,
+		),
+	);
+	assert.equal(
+		(
+			await controls.inspectRunExecution({
+				terminalId: failure.terminalId,
+				executionId: failure.executionId,
+			})
+		).pid,
+		failureProcess.pid,
+	);
+	assert.equal(await failureMarker(), "once\n");
+	assert.equal(
+		(await query("terminal.list", { workspaceId: failed.workspaceId })).sessions
+			.length,
+		1,
+	);
+	await screenshot("setup-explicit-existing-output-reopened");
+	await closeReopen();
+	await until(() =>
+		evaluate(
+			`document.querySelector('[data-terminal-id="${failure.terminalId}"]')?.dataset.restoreState==='attached'`,
+		),
+	);
+	assert.equal(
+		(
+			await query("workspaceSetup.getStateV1", {
+				workspaceId: failed.workspaceId,
+			})
+		).exitCode,
+		17,
+	);
+	assert.equal(
+		(
+			await controls.inspectRunExecution({
+				terminalId: failure.terminalId,
+				executionId: failure.executionId,
+			})
+		).pid,
+		failureProcess.pid,
+	);
+	assert.equal(await failureMarker(), "once\n");
+	await screenshot("setup-failure-reopened-without-replay");
+	await configure([
+		"mkdir -p .superset/attachments",
+		"printf '*\\n' > .superset/attachments/.gitignore",
+		"printf 'once\\n' >> .superset/attachments/setup-cancel-marker.txt",
+		"printf 'SETUP_CANCEL_READY\\n'",
+		"sleep 120",
+	]);
+	const cancelledWorkspace = await create("Setup cancelled", true);
+	const cancelling = await until(async () => {
+		const s = await query("workspaceSetup.getStateV1", {
+			workspaceId: cancelledWorkspace.workspaceId,
+		});
+		return s?.phase === "running" && s.executionId ? s : null;
+	});
+	const cancelProcess = await until(async () => {
+		const p = await controls.inspectRunExecution(cancelling);
+		return stripVTControlCharacters(p.output)
+			.replace(/\r/g, "")
+			.split("\n")
+			.includes("SETUP_CANCEL_READY")
+			? p
+			: null;
+	});
+	await until(() =>
+		evaluate(
+			`document.querySelector('[data-terminal-id="${cancelling.terminalId}"]')?.dataset.restoreState==='attached'`,
+		),
+	);
+	await click(`[data-terminal-id="${cancelling.terminalId}"] .xterm-screen`);
+	for (const type of ["keyDown", "keyUp"])
+		await getPage().call("Input.dispatchKeyEvent", {
+			type,
+			key: "c",
+			code: "KeyC",
+			modifiers: 2,
+			windowsVirtualKeyCode: 67,
+		});
+	const cancelled = await until(async () => {
+		const s = await query("workspaceSetup.getStateV1", {
+			workspaceId: cancelledWorkspace.workspaceId,
+		});
+		return s?.phase === "cancelled" ? s : null;
+	});
+	await until(() =>
+		evaluate(
+			"document.querySelector('[data-workspace-setup]')?.dataset.setupPhase==='cancelled'",
+		),
+	);
+	const cancelledRow = await query("workspace.get", {
+		id: cancelledWorkspace.workspaceId,
+	});
+	const cancelMarker = async () => {
+		const r = await query("filesystem.readFile", {
+			workspaceId: cancelledWorkspace.workspaceId,
+			absolutePath: `${cancelledRow.worktreePath}/.superset/attachments/setup-cancel-marker.txt`,
+			maxBytes: 128,
+		});
+		return r.kind === "text"
+			? r.content
+			: Buffer.from(r.content, "base64").toString("utf8");
+	};
+	assert.equal(await cancelMarker(), "once\n");
+	const afterCancel = await controls.inspectRunExecution(cancelling);
+	assert.equal(afterCancel.alive, true);
+	assert.equal(afterCancel.pid, cancelProcess.pid);
+	await screenshot("setup-physical-ctrl-c-cancelled");
+	await closeReopen();
+	await until(() =>
+		evaluate(
+			`document.querySelector('[data-terminal-id="${cancelling.terminalId}"]')?.dataset.restoreState==='attached'`,
+		),
+	);
+	assert.equal(
+		(
+			await query("workspaceSetup.getStateV1", {
+				workspaceId: cancelledWorkspace.workspaceId,
+			})
+		).phase,
+		"cancelled",
+	);
+	assert.equal(
+		(await controls.inspectRunExecution(cancelling)).pid,
+		cancelProcess.pid,
+	);
+	assert.equal(await cancelMarker(), "once\n");
+	await screenshot("setup-cancelled-reopened-without-replay");
+
 	await click("text:Restore lifecycle");
 	await configure(before.scripts.setup);
-	for (const w of [enabled, skipped]) {
+	for (const w of [enabled, skipped, failed, cancelledWorkspace]) {
 		const selector = `.ws-workspace-tabs [data-tab-id="${w.tabId}"] button[aria-label="Close tab"]`;
 		const rect = await evaluate(
 			`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`,
@@ -300,6 +512,28 @@ export async function verifyWorkstationSetupUi({
 				skippedWorkspace: skipped.workspaceId,
 				skippedNoTerminal: true,
 				skippedNoMarker: true,
+				failedSetup: {
+					workspaceId: failed.workspaceId,
+					terminalId: failure.terminalId,
+					executionId: failure.executionId,
+					exitCode: 17,
+					pid: failureProcess.pid,
+					marker: "once\n",
+					existingOutputReopened: true,
+					windowReopenSamePid: true,
+					noReplay: true,
+				},
+				physicalCtrlC: {
+					workspaceId: cancelledWorkspace.workspaceId,
+					terminalId: cancelling.terminalId,
+					executionId: cancelling.executionId,
+					phase: cancelled.phase,
+					exitCode: cancelled.exitCode,
+					pid: cancelProcess.pid,
+					parentAlive: true,
+					marker: "once\n",
+					windowReopenNoReplay: true,
+				},
 				configRestored: true,
 				originalViewRestored: true,
 				vendorAgentVerified: false,

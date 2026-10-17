@@ -51,6 +51,9 @@ test.each([
 				];
 			if (request.path === "workspaces.create")
 				return {
+					...(managedWorktrees
+						? { setupWarnings: ["Setup terminal unavailable"] }
+						: {}),
 					workspace: {
 						id: "new-workspace",
 						name: "Feature",
@@ -85,6 +88,7 @@ test.each([
 			runSetup: managedWorktrees,
 		},
 	});
+	if (managedWorktrees) await screen.findByText(/Setup terminal unavailable/);
 });
 
 test("selecting another local namespace clears the old workspace without reconnecting or stopping workloads", async () => {

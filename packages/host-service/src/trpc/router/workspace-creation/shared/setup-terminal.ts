@@ -4,6 +4,17 @@ import {
 	resolveScript,
 	shellSingleQuote,
 } from "../../../../runtime/setup/config";
+import { managedSetupCompletionRoot } from "../../../../direct/managed-paths";
+import {
+	RunCompletionStore as CommandCompletionStore,
+	supportsRunCompletion,
+} from "../../../../direct/run-completion";
+import type { WorkspaceSetup } from "../../../../direct/workspace-setups";
+import {
+	getTerminalBaseEnv,
+	resolveLaunchShell,
+	waitForTerminalBaseEnv,
+} from "../../../../terminal/env";
 import { createTerminalSessionInternal } from "../../../../terminal/terminal";
 import type { HostServiceContext } from "../../../../types";
 import type { TerminalDescriptor } from "./types";
@@ -67,11 +78,44 @@ export async function startSetupTerminalIfPresent(
 		return { terminal: null, warning: null, chained: false };
 	}
 
-	const initialCommand = args.chainCommand
-		? `${resolved.initialCommand} && ${args.chainCommand}`
-		: resolved.initialCommand;
-
 	const terminalId = crypto.randomUUID();
+	const completionRoot = managedSetupCompletionRoot();
+	const setupStore =
+		args.ctx.direct && completionRoot
+			? args.ctx.directOperations?.workspaceSetups
+			: undefined;
+	let setup: WorkspaceSetup | null = null;
+	let setupCommand = resolved.initialCommand;
+	if (setupStore && completionRoot) {
+		try {
+			await waitForTerminalBaseEnv();
+			const shell = resolveLaunchShell(getTerminalBaseEnv());
+			setup = setupStore.begin({
+				workspaceId: args.workspaceId,
+				terminalId,
+				completionTracked: supportsRunCompletion(shell),
+				startedAt: Date.now(),
+			});
+			if (setup.completionTracked)
+				setupCommand = new CommandCompletionStore(completionRoot).prepare(
+					{ workspaceId: args.workspaceId, operationId: terminalId },
+					shell,
+					setupCommand,
+				);
+		} catch (error) {
+			const warning =
+				`Failed to start setup terminal: ${error instanceof Error ? error.message : String(error)}`.slice(
+					0,
+					8192,
+				);
+			if (setup) setupStore.update(setup, { phase: "failed", warning });
+			return { terminal: null, warning, chained: false };
+		}
+	}
+	const initialCommand = args.chainCommand
+		? `${setupCommand} && ${args.chainCommand}`
+		: setupCommand;
+
 	const result = await createTerminalSessionInternal({
 		terminalId,
 		workspaceId: args.workspaceId,
@@ -81,13 +125,26 @@ export async function startSetupTerminalIfPresent(
 		...(resolved.cwd && { cwd: resolved.cwd }),
 	});
 	if ("error" in result) {
+		const warning = `Failed to start setup terminal: ${result.error}`.slice(
+			0,
+			8192,
+		);
+		if (setup && setupStore)
+			setupStore.update(setup, {
+				phase:
+					result.kind === "DAEMON_UNAVAILABLE" || result.transient
+						? "unknown"
+						: "failed",
+				warning,
+			});
 		return {
 			terminal: null,
-			warning: `Failed to start setup terminal: ${result.error}`,
+			warning,
 			chained: false,
 		};
 	}
 
+	if (setup && setupStore) setupStore.update(setup, { phase: "running" });
 	return {
 		terminal: {
 			id: terminalId,

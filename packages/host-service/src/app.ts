@@ -48,6 +48,7 @@ import {
 	runSandboxSelfSeed,
 } from "./runtime/sandbox-self-seed";
 import {
+	cancelQueuedInitialCommand,
 	isAgentTerminalAlive,
 	registerWorkspaceTerminalRoute,
 	sendAgentMessage,
@@ -61,6 +62,7 @@ import { appRouter } from "./trpc/router";
 import { describeDirectBackend } from "./trpc/router/direct/direct";
 import { supportsWorkspaceRestore } from "./terminal/restore-resources";
 import { registerTerminalRestoreRoute } from "./terminal/restore-route";
+import { observeScriptInput } from "./direct/script-input";
 import { gitStatusStore } from "./trpc/router/git/utils/git-status-store";
 import {
 	resumeCrashedAgentSessions,
@@ -590,7 +592,20 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 		upgradeWebSocket,
 	});
 	registerChatV3Routes({ app, db, mount: chatV3, upgradeWebSocket });
-	registerTerminalRestoreRoute(app, db, upgradeWebSocket);
+	registerTerminalRestoreRoute(
+		app,
+		db,
+		upgradeWebSocket,
+		isDirect && config.directOperations
+			? (ref, data) => {
+					try {
+						observeScriptInput(config.directOperations!, ref, data, cancelQueuedInitialCommand);
+					} catch (error) {
+						console.warn("[direct] could not record script interruption", error);
+					}
+				}
+			: undefined,
+	);
 
 	app.use(
 		"/trpc/*",

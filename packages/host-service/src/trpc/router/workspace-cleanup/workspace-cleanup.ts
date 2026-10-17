@@ -25,7 +25,10 @@ import type {
 	DeleteInProgressCause,
 	TeardownFailureCause,
 } from "../../error-types";
-import { managedRunCompletionRoot } from "../../../direct/managed-paths";
+import {
+	managedSetupCompletionRoot,
+	managedRunCompletionRoot,
+} from "../../../direct/managed-paths";
 import { RunCompletionStore } from "../../../direct/run-completion";
 import { protectedProcedure, router } from "../../index";
 import { getProjectWorktreeBaseDir } from "../settings/worktree-location";
@@ -721,6 +724,10 @@ async function runDestroyPhases(
 			const root = managedRunCompletionRoot();
 			if (root) new RunCompletionStore(root).remove(input.workspaceId);
 			ctx.directOperations.workspaceRuns.remove(input.workspaceId);
+			const setupRoot = managedSetupCompletionRoot();
+			if (setupRoot)
+				new RunCompletionStore(setupRoot).remove(input.workspaceId);
+			ctx.directOperations.workspaceSetups.remove(input.workspaceId);
 		} catch (error) {
 			warnings.push(
 				`Failed to remove run status: ${error instanceof Error ? error.message : String(error)}`,

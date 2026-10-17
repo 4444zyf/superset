@@ -606,6 +606,7 @@ interface TerminalSession {
 	 */
 	dsrCarry: Uint8Array;
 	initialCommandQueued: boolean;
+	initialCommandCancelled?: boolean;
 	/**
 	 * Basename of the launch shell. Picks the source keyword when a long
 	 * initialCommand is staged as a script (fish 4 removed `.`; sh/ksh
@@ -1009,6 +1010,17 @@ export async function listLiveTerminalSessions(
 		});
 	}
 	return merged;
+}
+
+export function cancelQueuedInitialCommand(
+	terminalId: string,
+	workspaceId: string,
+): boolean {
+	const session = sessions.get(terminalId);
+	if (!session || session.workspaceId !== workspaceId || session.exited)
+		return false;
+	session.initialCommandCancelled = true;
+	return true;
 }
 
 export function writeInputToSession({
@@ -2532,6 +2544,7 @@ function queueInitialCommand(
 	// only the registry reliably says the session is gone.
 	const isDefunct = () =>
 		session.exited ||
+		session.initialCommandCancelled === true ||
 		session.shellReadyState === "cancelled" ||
 		sessions.get(session.terminalId) !== session;
 	void session.shellReadyPromise.then(() => {

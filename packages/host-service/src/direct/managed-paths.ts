@@ -27,3 +27,9 @@ export function managedRunCompletionRoot(): string | null {
 		? join(directWorkspaceHome, "run-completions")
 		: null;
 }
+
+export function managedSetupCompletionRoot(): string | null {
+	return directWorkspaceHome
+		? join(directWorkspaceHome, "setup-completions")
+		: null;
+}

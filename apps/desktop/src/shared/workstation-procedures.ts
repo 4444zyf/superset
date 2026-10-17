@@ -10,10 +10,15 @@ export interface WorkspaceProcedure {
 		| "workstationProjectsV1"
 		| "workstationProjectScriptsV1"
 		| "workstationWorkspaceRunV1"
-		| "workstationWorkspaceCleanupV1";
+		| "workstationWorkspaceCleanupV1"
+		| "workstationWorkspaceSetupV1";
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"workspaceSetup.getStateV1": {
+		type: "query",
+		capability: "workstationWorkspaceSetupV1",
+	},
 	"workspaceCleanup.inspect": {
 		type: "query",
 		capability: "workstationWorkspaceCleanupV1",

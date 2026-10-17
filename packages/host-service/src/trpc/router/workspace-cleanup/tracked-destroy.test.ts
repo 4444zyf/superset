@@ -5,7 +5,7 @@ import { trackedDestroy } from "./tracked-destroy";
 test("a teardown failure remains a typed result without running cleanup twice", async () => {
 	let calls = 0;
 	const cause = {
-		kind: "TEARDOWN_FAILED",
+		kind: "TEARDOWN_FAILED" as const,
 		exitCode: 17,
 		signal: null,
 		timedOut: false,

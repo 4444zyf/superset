@@ -217,6 +217,39 @@ export async function verifyWorkstationInstantRunUi({
 	);
 	assert.equal(await marker(), "once\nfailed\n");
 	await screenshot("instant-run-reopened-without-replay");
+	await configure(["printf 'MANUAL_RUN_CANCEL_READY\\n'", "sleep 120"]);
+	await click(start);
+	const interrupting = await until(async () => {
+		const s = (await state()).run;
+		return s?.operationId !== failed.operationId &&
+			s?.state === "active" &&
+			s.foregroundSeen
+			? s
+			: null;
+	});
+	const interruptProcess = await until(async () => {
+		const p = await controls.inspectRunExecution(interrupting);
+		return stripVTControlCharacters(p.output)
+			.replace(/\r/g, "")
+			.split("\n")
+			.includes("MANUAL_RUN_CANCEL_READY")
+			? p
+			: null;
+	});
+	await click(`[data-terminal-id="${interrupting.terminalId}"] .xterm-screen`);
+	for (const type of ["keyDown", "keyUp"])
+		await getPage().call("Input.dispatchKeyEvent", {
+			type,
+			key: "c",
+			code: "KeyC",
+			modifiers: 2,
+			windowsVirtualKeyCode: 67,
+		});
+	await until(async () => (await state()).run?.state === "ended");
+	const interrupted = await controls.inspectRunExecution(interrupting);
+	assert.equal(interrupted.alive, true);
+	assert.equal(interrupted.pid, interruptProcess.pid);
+	await screenshot("run-physical-ctrl-c-parent-survives");
 	await configure(before.scripts.run);
 	const closePoint = await until(() =>
 		evaluate(
@@ -263,6 +296,12 @@ export async function verifyWorkstationInstantRunUi({
 				windowReopenSamePid: true,
 				marker: "once\nfailed\n",
 				noReplay: true,
+				physicalCtrlC: {
+					operationId: interrupting.operationId,
+					pid: interruptProcess.pid,
+					ended: true,
+					parentAlive: true,
+				},
 				originalConfigRestored: true,
 				originalLayoutRestored: true,
 				vendorAgentVerified: false,

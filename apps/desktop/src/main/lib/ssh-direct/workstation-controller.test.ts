@@ -841,3 +841,35 @@ test.each([
 		db.close();
 	}
 });
+
+test("setup status is read only with an explicit workspace and its advertised capability", async () => {
+	const f = fixture();
+	let capable = false;
+	const requests: unknown[] = [];
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationWorkspaceSetupV1: capable },
+		}),
+		invoke: async (_id, r) => {
+			requests.push(r);
+			return null;
+		},
+	});
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "workspaceSetup.getStateV1",
+		type: "query" as const,
+		input: { workspaceId: "workspace" },
+	};
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"required capability",
+	);
+	capable = true;
+	await expect(
+		controller.invoke({ ...request, input: { workspaceId: "" } }),
+	).rejects.toThrow("explicit workspace");
+	expect(await controller.invoke(request)).toBeNull();
+	expect(requests).toEqual([request]);
+});

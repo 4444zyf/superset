@@ -499,3 +499,12 @@ POSIX系列Shell使用当前交互Shell的eval执行原buildTerminalCommand结�
 第71轮冻结源码 `43abb525eb588d59b29e9a4c8199800c8cbe37e7` 整套窗口验收退出码0。成功/失败瞬时命令的foregroundSeen均false，原控件显示Completed与退出码17，两个原终端输出分别有独立实际成功/失败行，marker精确once/failed各一次。PID20523/20582；失败输出重开仍同执行、同PID、marker不增加，同一Run窗格复用。关闭完成输出后，后续窗口重开保持原三PTY布局，不再补回完成窗格；相关四截图已实际查看。
 
 同轮原长Run的普通停止保留PTY、强制停止确认原PID消失、重开/host重启同执行，以及系统剪贴板、Setup、Teardown/删除、设置、文件/Git、多工作区和完整恢复回归通过。组件/后端最终104项/1131断言，类型、17语言严格检查和构建通过，初始renderer入口4,670.53kB。[第71轮实际记录](evidence/local-ssh-feature-parity/source-linux-instant-run)。恢复单采样；Linux源码和拥有的SSH/Git/PTY夹具，不是macOS安装包或真实供应商Agent认证证据。Bash/Zsh/sh等POSIX系列完成跟踪已接入，Fish/Nushell等仍保留原执行路径且瞬时完成待补；完整终端预设、Setup失败状态等仍待继续，完整功能对齐目标未完成。
+
+
+### 阶段二十：原 Setup 执行状态与明确 Ctrl+C（实际窗口待验收）
+
+继续复用原 Setup 配置解析、启动、终端与新建工作区开关，新增可选 workstationWorkspaceSetupV1 能力和只读 workspaceSetup.getStateV1。私有 operations.db 有界记录按 workspace 保存并在删除时清理；POSIX Shell 复用 Run 的私有完成文件，记录真实退出码。启动失败返回可选 setupWarnings；不确定启动保持 Unknown，可读回但不自动重试。原 Setup 输出可通过 Show output 重新附着同一 execution，不新建进程。客户端对晚回复、旧后端和读取错误独立处理。
+
+用户在原终端明确按 Ctrl+C 时，沿现有输入记录该次中断并取消尚未投递的初始命令；不追加信号，不杀父 Shell。只有同一 execution 已无前台进程时才结束中断状态，没有实际退出码就不编造。普通粘贴文本或其他 execution 的输入不取消当前脚本。新增失败测试后实现；实际 PTY 测试使用 Electron Node ABI，5项通过（系统 Node ABI 不匹配的失败日志保留）。桌面核心68项/214断言、视图13项/905断言、剪贴板43项/129断言；host核心68项/139断言通过。host类型检查补正既有测试字面量类型后通过，desktop类型、17语言严格检查及构建通过。
+
+本轮同时复查用户要求的 SSH 图片及其他消息粘贴：保留第63轮真实系统剪贴板/SSH字节与像素证据；聊天粘贴的组件测试通过，macOS发行物和真实供应商 Agent 识图仍待验收。新实际窗口将分别记录成功、失败17、Ctrl+C、原输出重开及恢复不重跑；本段不将尚未执行的验收计为通过。[阶段二十红绿日志](evidence/local-ssh-feature-parity/stage20)。

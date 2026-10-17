@@ -13,6 +13,10 @@ export function registerTerminalRestoreRoute(
 	app: Hono,
 	db: HostDb,
 	upgrade: NodeWebSocket["upgradeWebSocket"],
+	onInput?: (
+		ref: { workspaceId: string; resourceId: string; executionId: string },
+		data: string,
+	) => void,
 ): void {
 	app.get(
 		"/terminal-restore/:terminalId",
@@ -171,13 +175,17 @@ export function registerTerminalRestoreRoute(
 							return fail(ws, "INVALID_RESTORE_INPUT");
 						const message = JSON.parse(event.data);
 						const ref = parsed.data;
-						if (message.type === "input" && typeof message.data === "string")
+						if (message.type === "input" && typeof message.data === "string") {
 							daemon.inputExisting(
 								ref.resourceId,
 								ref.executionId!,
 								Buffer.from(message.data),
 							);
-						else if (
+							onInput?.(
+								{ workspaceId: ref.workspaceId, resourceId: ref.resourceId, executionId: ref.executionId! },
+								message.data,
+							);
+						} else if (
 							message.type === "resize" &&
 							Number.isInteger(message.cols) &&
 							Number.isInteger(message.rows) &&

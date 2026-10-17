@@ -212,6 +212,7 @@ async function acquireWorkspaceCreateLock(key: string): Promise<() => void> {
 type CloudWorkspace = CloudShapedWorkspace;
 
 type WorkspaceCreateResult = {
+	setupWarnings?: string[];
 	workspace: CloudWorkspace;
 	terminals: Array<{ terminalId: string; label?: string }>;
 	agents: AgentLaunchResult[];
@@ -1297,6 +1298,7 @@ export const workspacesRouter = router({
 			}
 
 			const terminalsResult: Array<{ terminalId: string; label?: string }> = [];
+			const setupWarnings: string[] = [];
 			const replayedLocalCreate = input.checkout === "local" && alreadyExists;
 			const sugarLaunches = replayedLocalCreate ? [] : (input.agents ?? []);
 
@@ -1356,6 +1358,7 @@ export const workspacesRouter = router({
 					});
 				if (warning) {
 					console.warn(`[workspaces.create] setup warning: ${warning}`);
+					setupWarnings.push(warning.slice(0, 8192));
 				}
 				if (terminal) {
 					terminalsResult.push({
@@ -1425,6 +1428,7 @@ export const workspacesRouter = router({
 					? { ...workspaceRow, ...toCloudShape(latest, ctx.organizationId) }
 					: workspaceRow,
 				terminals: terminalsResult,
+				...(setupWarnings.length ? { setupWarnings } : {}),
 				agents: chainedAgentResult
 					? [chainedAgentResult, ...agentsResult]
 					: agentsResult,

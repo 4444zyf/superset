@@ -237,6 +237,7 @@ export function Workstation({
 			const result = await ui.rpc<{
 				workspace: RemoteWorkspace;
 				terminals?: { terminalId: string; label?: string }[];
+				setupWarnings?: string[];
 			}>(
 				chosenProject ? "workspaces.create" : "workspaces.createSession",
 				"mutation",
@@ -268,6 +269,20 @@ export function Workstation({
 							: terminal.label,
 				})),
 			);
+			if (
+				ui.active.current === target &&
+				Array.isArray(result.setupWarnings) &&
+				result.setupWarnings.length
+			)
+				ui.setNotice(
+					t({ message: "Setup" }) +
+						" " +
+						result.setupWarnings
+							.filter((w) => typeof w === "string")
+							.slice(0, 8)
+							.map((w) => w.slice(0, 8192))
+							.join("\n"),
+				);
 		});
 	const projectMutation = (input: unknown) =>
 		ui.operation(async () => {

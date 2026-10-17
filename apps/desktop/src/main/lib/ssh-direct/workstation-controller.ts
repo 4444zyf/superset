@@ -136,6 +136,7 @@ export class WorkstationController {
 				"workstationProjectScriptsV1",
 				"workstationWorkspaceRunV1",
 				"workstationWorkspaceCleanupV1",
+				"workstationWorkspaceSetupV1",
 			].map((key) => [key, metadata.capabilities?.[key] === true]),
 		);
 		const chatHarnesses = Array.isArray(metadata.chatHarnesses)

@@ -21,6 +21,7 @@ import type {
 } from "../../../../../shared/workspace-view";
 import type { WorkspaceViewActions } from "../../hooks/useWorkspaceViews/useWorkspaceViews";
 import { RemoteChat } from "../RemoteChat/RemoteChat";
+import { RemoteWorkspaceSetup } from "../RemoteWorkspaceSetup/RemoteWorkspaceSetup";
 import { RemoteWorkspaceRun } from "../RemoteWorkspaceRun";
 import { RemoteFiles } from "../RemoteFiles/RemoteFiles";
 import { WorkspacePortControls } from "../WorkspacePortControls";
@@ -323,6 +324,34 @@ export function WorkspaceWindow({
 											placement: "root",
 											replaceResourceId: run.previousTerminalId,
 										},
+									);
+								}}
+							/>
+						)}
+						{connection?.capabilities?.workstationWorkspaceSetupV1 && (
+							<RemoteWorkspaceSetup
+								key={JSON.stringify([
+									connection.connectionId,
+									connection.backendId,
+									connection.namespaceId,
+									connection.generation,
+									workspace.workspaceId,
+								])}
+								api={api}
+								connection={connection}
+								workspaceId={workspace.workspaceId}
+								onOpen={async (setup) => {
+									await actions.addPane(
+										workspace.workspaceId,
+										{
+											paneId: crypto.randomUUID(),
+											kind: "terminal",
+											resourceId: setup.terminalId,
+											executionId: setup.executionId,
+											label: t({ message: "Setup" }),
+										},
+										"vertical",
+										{ connection, placement: "root" },
 									);
 								}}
 							/>

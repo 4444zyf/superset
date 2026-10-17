@@ -26,6 +26,8 @@ import { initTerminalBaseEnv } from "./env.ts";
 import {
 	__resetSessionsForTesting,
 	createTerminalSessionInternal,
+	cancelQueuedInitialCommand,
+	writeInputToSession,
 	disposeSessionAndWait,
 	snapshotSession,
 } from "./terminal.ts";
@@ -91,6 +93,44 @@ after(async () => {
 });
 
 describe("initialCommand delivery", () => {
+	test("cancelling queued setup delivery preserves the shell and prevents a later automatic Enter", async () => {
+		const terminalId = `e2e-cancel-${randomUUID().slice(0, 8)}`;
+		const automatic = path.join(TEST_HOME, `auto-${terminalId}`),
+			manual = path.join(TEST_HOME, `manual-${terminalId}`);
+		const session = await createTerminalSessionInternal({
+			terminalId,
+			workspaceId,
+			db,
+			listed: true,
+			initialCommand: `printf auto > "${automatic}" # ${"x".repeat(600)}`,
+		});
+		assert.ok(!("error" in session));
+		if ("error" in session) return;
+		const staged = () =>
+			fs
+				.readdirSync(os.tmpdir())
+				.filter((f) => f.startsWith(`superset-launch-${terminalId}`));
+		await waitFor(() => staged().length === 1, 5000);
+		assert.equal(cancelQueuedInitialCommand(terminalId, "different"), false);
+		assert.equal(cancelQueuedInitialCommand(terminalId, workspaceId), true);
+		assert.deepEqual(
+			writeInputToSession({ terminalId, workspaceId, data: "\x03" }),
+			{ success: true },
+		);
+		await waitFor(() => staged().length === 0, 5000);
+		assert.deepEqual(
+			writeInputToSession({
+				terminalId,
+				workspaceId,
+				data: `printf manual > "${manual}"\r`,
+			}),
+			{ success: true },
+		);
+		await waitFor(() => fs.existsSync(manual), 5000);
+		assert.equal(fs.existsSync(automatic), false);
+		await disposeSessionAndWait(terminalId, db);
+	});
+
 	test("a >2KB initialCommand executes fully (no MAX_CANON truncation)", async () => {
 		const terminalId = `e2e-longcmd-${randomUUID().slice(0, 8)}`;
 		const outFile = path.join(TEST_HOME, `long-${terminalId}`);
