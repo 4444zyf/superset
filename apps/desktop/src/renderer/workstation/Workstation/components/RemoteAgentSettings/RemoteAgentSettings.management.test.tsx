@@ -272,3 +272,36 @@ test("explicitly discarding a new draft before refresh clears the form and its c
 	expect(f.registry.getUnsaved()).toHaveLength(0);
 	expect(f.calls.filter((c) => c.type === "mutation")).toHaveLength(0);
 });
+
+test("an empty V2 target shows the original empty state and original Add menu", async () => {
+	const calls: DirectRpc[] = [];
+	const api = {
+		rpc: async (r: DirectRpc) => {
+			calls.push(r);
+			return { configs: [], revision: "a".repeat(64) };
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteAgentSettings
+			api={api}
+			connection={{
+				...connection,
+				capabilities: {
+					...connection.capabilities,
+					workstationAgentCatalogV2: true,
+				},
+			}}
+			agents={[]}
+			onChanged={() => {}}
+			onClose={() => {}}
+		/>,
+	);
+	await screen.findByText("No agents yet");
+	expect(
+		(screen.getByRole("button", { name: "Add agent" }) as HTMLButtonElement)
+			.disabled,
+	).toBe(false);
+	expect(calls.map((c) => c.path)).toEqual([
+		"settings.agentConfigs.catalogWithRevisionV2",
+	]);
+});

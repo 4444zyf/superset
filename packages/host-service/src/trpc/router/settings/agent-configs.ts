@@ -9,7 +9,7 @@ import { TRPCError } from "@trpc/server";
 import { asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { HostDb } from "../../../db";
-import { hostAgentConfigs } from "../../../db/schema";
+import { hostAgentConfigs, hostSettings } from "../../../db/schema";
 import { protectedProcedure, router } from "../../index";
 
 const promptTransportSchema = z.enum(["argv", "stdin"]);
@@ -136,7 +136,9 @@ function listOrdered(db: Pick<HostDb, "select">): HostAgentConfigRow[] {
  * an agent before any client has listed its agents, which is what normally
  * seeds the defaults.
  */
-export function seedDefaultsIfEmpty(db: HostDb): HostAgentConfigRow[] {
+export function seedDefaultsIfEmpty(
+	db: Pick<HostDb, "select" | "insert">,
+): HostAgentConfigRow[] {
 	const existing = listOrdered(db);
 	if (existing.length > 0) return existing;
 	const seeds = getDefaultSeedPresets().map((preset, index) =>
@@ -484,64 +486,98 @@ function versionedAgentCatalog(db: Pick<HostDb, "select">) {
 	};
 }
 
+const catalogChangeInputSchema = z.object({
+	expectedRevision: z.string().regex(/^[a-f0-9]{64}$/),
+	change: z.discriminatedUnion("kind", [
+		z.object({
+			kind: z.literal("add"),
+			id: z.string().uuid(),
+			config: addInputSchema,
+		}),
+		z.object({ kind: z.literal("remove"), id: z.string().min(1) }),
+		z.object({ kind: z.literal("restore"), id: z.string().min(1) }),
+		z.object({
+			kind: z.literal("reorder"),
+			ids: z.array(z.string().min(1)).min(1),
+		}),
+		z.object({ kind: z.literal("reset") }),
+	]),
+});
+function applyAgentCatalogChange(
+	db: AgentConfigDb,
+	input: z.infer<typeof catalogChangeInputSchema>,
+) {
+	const before = versionedAgentCatalog(db);
+	if (before.revision !== input.expectedRevision)
+		throw new TRPCError({
+			code: "CONFLICT",
+			message: "Agent configuration changed",
+		});
+	const change = input.change;
+	switch (change.kind) {
+		case "add": {
+			if (before.configs.some((c) => c.id === change.id))
+				throw new TRPCError({
+					code: "CONFLICT",
+					message: "Agent configuration changed",
+				});
+			addAgentConfig(db, change.config, change.id);
+			break;
+		}
+		case "remove":
+			removeAgentConfig(db, change);
+			break;
+		case "restore":
+			restoreAgentDefault(db, change);
+			break;
+		case "reorder":
+			reorderAgentConfigs(db, change);
+			break;
+		case "reset":
+			resetAgentConfigs(db);
+			break;
+	}
+	return versionedAgentCatalog(db);
+}
+function initializeAgentCatalog(db: AgentConfigDb) {
+	const state = db
+		.select({ initialized: hostSettings.agentCatalogInitialized })
+		.from(hostSettings)
+		.where(eq(hostSettings.id, 1))
+		.get();
+	if (state?.initialized) return;
+	seedDefaultsIfEmpty(db);
+	db.insert(hostSettings)
+		.values({ id: 1, agentCatalogInitialized: true })
+		.onConflictDoUpdate({
+			target: hostSettings.id,
+			set: { agentCatalogInitialized: true },
+		})
+		.run();
+}
+
 export const agentConfigsRouter = router({
 	catalogWithRevisionV1: protectedProcedure.query(({ ctx }) => {
 		backfillPresetForkArgs(ctx.db, seedDefaultsIfEmpty(ctx.db));
 		return versionedAgentCatalog(ctx.db);
 	}),
 	applyCatalogChangeV1: protectedProcedure
-		.input(
-			z.object({
-				expectedRevision: z.string().regex(/^[a-f0-9]{64}$/),
-				change: z.discriminatedUnion("kind", [
-					z.object({
-						kind: z.literal("add"),
-						id: z.string().uuid(),
-						config: addInputSchema,
-					}),
-					z.object({ kind: z.literal("remove"), id: z.string().min(1) }),
-					z.object({ kind: z.literal("restore"), id: z.string().min(1) }),
-					z.object({
-						kind: z.literal("reorder"),
-						ids: z.array(z.string().min(1)).min(1),
-					}),
-					z.object({ kind: z.literal("reset") }),
-				]),
-			}),
-		)
+		.input(catalogChangeInputSchema)
+		.mutation(({ ctx, input }) =>
+			ctx.db.transaction((tx) => applyAgentCatalogChange(tx, input)),
+		),
+	catalogWithRevisionV2: protectedProcedure.query(({ ctx }) =>
+		ctx.db.transaction((tx) => {
+			initializeAgentCatalog(tx);
+			return versionedAgentCatalog(tx);
+		}),
+	),
+	applyCatalogChangeV2: protectedProcedure
+		.input(catalogChangeInputSchema)
 		.mutation(({ ctx, input }) =>
 			ctx.db.transaction((tx) => {
-				const before = versionedAgentCatalog(tx);
-				if (before.revision !== input.expectedRevision)
-					throw new TRPCError({
-						code: "CONFLICT",
-						message: "Agent configuration changed",
-					});
-				const change = input.change;
-				switch (change.kind) {
-					case "add": {
-						if (before.configs.some((c) => c.id === change.id))
-							throw new TRPCError({
-								code: "CONFLICT",
-								message: "Agent configuration changed",
-							});
-						addAgentConfig(tx, change.config, change.id);
-						break;
-					}
-					case "remove":
-						removeAgentConfig(tx, change);
-						break;
-					case "restore":
-						restoreAgentDefault(tx, change);
-						break;
-					case "reorder":
-						reorderAgentConfigs(tx, change);
-						break;
-					case "reset":
-						resetAgentConfigs(tx);
-						break;
-				}
-				return versionedAgentCatalog(tx);
+				initializeAgentCatalog(tx);
+				return applyAgentCatalogChange(tx, input);
 			}),
 		),
 

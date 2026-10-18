@@ -14,7 +14,7 @@ export async function verifyWorkstationAgentCatalogChoicesUi({getPage,click,scre
  await until(()=>evaluate(`document.querySelector('${root}')?.textContent.includes('Saved')&&!document.querySelector('${root} fieldset:disabled input[aria-label="Label"]')`),'cleared fork save acknowledged');
  const afterClear=await catalog();const actual=await query('settings.agentConfigs.getWithRevisionV1',{id:first.id});
  writeFileSync(join(output,'agent-catalog-cleared-fork-readback.json'),JSON.stringify({sourceRevision:process.env.GITHUB_SHA,capabilityV2:scope.v2,procedure:path,original:first,afterClear:afterClear.configs.find(c=>c.id===first.id),actual},null,2)+'\n');
- await screenshot('agent-catalog-cleared-fork-readback');assert.deepEqual(actual.config.forkArgs,[]);assert.deepEqual(afterClear.configs.find(c=>c.id===first.id)?.forkArgs,[]);
+ await scrollTo(`${root} input[id="${first.id}-fork-args"]`);await screenshot('agent-catalog-cleared-fork-readback');assert.deepEqual(actual.config.forkArgs,[]);assert.deepEqual(afterClear.configs.find(c=>c.id===first.id)?.forkArgs,[]);
  await closeEditor();await closeReopen();
  const ready=()=>until(()=>evaluate(`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;return Boolean(d&&d.connectionId===${JSON.stringify(scope.connectionId)}&&document.querySelector('[data-workstation-presets] button[aria-label="Agent settings"]:not(:disabled)'));})()`),'restored authenticated catalog');
  await ready();assert.deepEqual((await query('settings.agentConfigs.getWithRevisionV1',{id:first.id})).config.forkArgs,[]);

@@ -47,6 +47,8 @@ export function RemoteTerminalPresets({
 		connection.capabilities?.workstationTerminalPresetsV1 === true &&
 		connection.capabilities.durableOperations === true &&
 		connection.capabilities.terminals === true;
+	const versionedCatalog =
+		connection.capabilities?.workstationAgentCatalogV2 === true;
 	const [state, setState] = useState<{
 		owner: string;
 		agents: HostAgentConfig[];
@@ -62,14 +64,17 @@ export function RemoteTerminalPresets({
 		if (!capable) return;
 		let active = true;
 		void api
-			.rpc<HostAgentConfig[]>({
+			.rpc<HostAgentConfig[] | { configs: HostAgentConfig[] }>({
 				connectionId: connection.connectionId,
 				generation: connection.generation,
-				path: "settings.agentConfigs.list",
+				path: versionedCatalog
+					? "settings.agentConfigs.catalogWithRevisionV2"
+					: "settings.agentConfigs.list",
 				type: "query",
 				input: undefined,
 			})
-			.then((agents) => {
+			.then((result) => {
+				const agents = Array.isArray(result) ? result : result.configs;
 				if (active && current.current === requestKey)
 					setState({ owner, agents });
 			})
@@ -87,6 +92,7 @@ export function RemoteTerminalPresets({
 		connection.connectionId,
 		connection.generation,
 		requestKey,
+		versionedCatalog,
 	]);
 	let index = 0;
 	const presets = createDefaultV2TerminalPresetRows({
@@ -136,7 +142,9 @@ export function RemoteTerminalPresets({
 							}
 							disabled={
 								busy ||
-								!agents.length ||
+								(!agents.length &&
+									connection.capabilities?.workstationAgentManagementV1 !==
+										true) ||
 								connection.capabilities?.workstationAgentSettingsV1 !== true
 							}
 							onClick={() => setEditingOwner(owner)}

@@ -9,7 +9,6 @@ import { Skeleton } from "@superset/ui/skeleton";
 import { toast } from "@superset/ui/sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Bot } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
 	V2_AGENT_CONFIGS_QUERY_KEY as QUERY_KEY,
@@ -26,6 +25,7 @@ import { useCollections } from "renderer/routes/_authenticated/providers/Collect
 import { useLocalHostService } from "renderer/routes/_authenticated/providers/LocalHostServiceProvider";
 import { useScrollReset } from "renderer/routes/_authenticated/settings/hooks/useScrollReset";
 import { AgentDetail } from "./components/AgentDetail";
+import { AgentSettingsEmptyState as EmptyState } from "./components/AgentSettingsEmptyState/AgentSettingsEmptyState";
 import { AgentsSettingsSidebar } from "./components/AgentsSettingsSidebar";
 import {
 	type CreateCustomAgentInput,
@@ -406,25 +406,6 @@ function SidebarSkeleton() {
 			{[0, 1, 2, 3].map((i) => (
 				<Skeleton key={i} className="h-7 w-full" />
 			))}
-		</div>
-	);
-}
-
-function EmptyState() {
-	return (
-		<div className="flex h-full items-center justify-center p-6">
-			<div className="text-center">
-				<Bot
-					aria-hidden="true"
-					className="mx-auto size-10 text-muted-foreground/60"
-				/>
-				<h3 className="mt-3 text-sm font-medium">
-					<Trans>No agents yet</Trans>
-				</h3>
-				<p className="mt-1 text-xs text-muted-foreground">
-					<Trans>Add one from the menu in the sidebar to get started.</Trans>
-				</p>
-			</div>
 		</div>
 	);
 }

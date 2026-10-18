@@ -783,3 +783,61 @@ describe("versioned local agent catalog management", () => {
 		expect(catalog.configs.some((c) => c.id === first.id)).toBe(false);
 	});
 });
+
+describe("explicit agent catalog choices survive initialization", () => {
+	it("initializes defaults once and preserves an explicitly empty built-in fork setting", async () => {
+		const caller = createCaller();
+		const before = await caller.catalogWithRevisionV2();
+		const row = before.configs.find((c) => c.presetId === "codex");
+		if (!row) throw new Error("Missing default Codex");
+		const current = await caller.getWithRevisionV1({ id: row.id });
+		const saved = await caller.updateWithRevisionV1({
+			id: row.id,
+			expectedRevision: current.revision,
+			patch: { forkArgs: [] },
+		});
+		const after = await caller.catalogWithRevisionV2();
+		expect(after.configs.find((c) => c.id === row.id)?.forkArgs).toEqual([]);
+		expect(await caller.getWithRevisionV1({ id: row.id })).toEqual(saved);
+	});
+	it("keeps a deliberately empty catalog across a new caller until explicit reset", async () => {
+		const { caller, db } = createCallerWithDb();
+		let catalog = await caller.catalogWithRevisionV2();
+		for (const row of catalog.configs)
+			catalog = await caller.applyCatalogChangeV2({
+				expectedRevision: catalog.revision,
+				change: { kind: "remove", id: row.id },
+			});
+		expect(catalog.configs).toEqual([]);
+		const reopened = agentConfigsRouter.createCaller({
+			db,
+			isAuthenticated: true,
+		} as unknown as HostServiceContext);
+		expect(await reopened.catalogWithRevisionV2()).toEqual(catalog);
+		const reset = await reopened.applyCatalogChangeV2({
+			expectedRevision: catalog.revision,
+			change: { kind: "reset" },
+		});
+		expect(reset.configs.map((c) => c.presetId)).toEqual(DEFAULT_PRESET_IDS);
+	});
+});
+
+it("one-time catalog initialization preserves other host settings", async () => {
+	const { caller, db } = createCallerWithDb();
+	db.insert(schema.hostSettings)
+		.values({
+			id: 1,
+			worktreeBaseDir: "/owned/worktrees",
+			branchPrefixMode: "custom",
+			branchPrefixCustom: "owned-",
+			defaultCodexHome: "/owned/vendor-profile",
+		})
+		.run();
+	const before = db.select().from(schema.hostSettings).get();
+ if(!before)throw new Error("Expected original host settings");
+	await caller.catalogWithRevisionV2();
+	expect(db.select().from(schema.hostSettings).get()).toEqual({
+		...before,
+		agentCatalogInitialized: true,
+	});
+});

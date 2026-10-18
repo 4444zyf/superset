@@ -200,3 +200,46 @@ test("the host's custom configurations remain selectable beyond the first 128 en
 	});
 	await screen.findByRole("menuitem", { name: "Configured agent 129" });
 });
+
+test("a deliberately empty versioned catalog remains manageable without the legacy reseeding list", async () => {
+	const calls: DirectRpc[] = [];
+	const api = {
+		rpc: async (r: DirectRpc) => {
+			calls.push(r);
+			return r.path.endsWith("catalogWithRevisionV2")
+				? { configs: [], revision: "a".repeat(64) }
+				: [];
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<TooltipProvider>
+			<RemoteTerminalPresets
+				api={api}
+				connection={{
+					...connection,
+					capabilities: {
+						...connection.capabilities,
+						workstationAgentSettingsV1: true,
+						workstationAgentManagementV1: true,
+						workstationAgentCatalogV2: true,
+					},
+				}}
+				workspaceId="workspace"
+				busy={false}
+				onLaunch={() => {}}
+			/>
+		</TooltipProvider>,
+	);
+	await waitFor(() =>
+		expect(
+			(
+				screen.getByRole("button", {
+					name: "Agent settings",
+				}) as HTMLButtonElement
+			).disabled,
+		).toBe(false),
+	);
+	expect(calls.map((c) => c.path)).toEqual([
+		"settings.agentConfigs.catalogWithRevisionV2",
+	]);
+});

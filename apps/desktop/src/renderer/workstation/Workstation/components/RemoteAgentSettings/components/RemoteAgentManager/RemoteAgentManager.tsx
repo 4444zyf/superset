@@ -24,6 +24,7 @@ import {
 } from "react";
 import { AgentDetailHeaderView } from "renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentFormControls/components/AgentDetailHeaderView/AgentDetailHeaderView";
 import { AgentIconView } from "renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentIcon/components/AgentIconView/AgentIconView";
+import { AgentSettingsEmptyState } from "renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentSettingsEmptyState/AgentSettingsEmptyState";
 import { AgentsSettingsSidebarView } from "renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentsSettingsSidebar/components/AgentsSettingsSidebarView/AgentsSettingsSidebarView";
 import {
 	type CreateCustomAgentInput,
@@ -90,6 +91,14 @@ export function RemoteAgentManager({
 }) {
 	const { t } = useLingui(),
 		{ theme } = useWorkstationAppearance();
+	const catalogPath =
+		connection.capabilities?.workstationAgentCatalogV2 === true
+			? "catalogWithRevisionV2"
+			: "catalogWithRevisionV1";
+	const applyPath =
+		connection.capabilities?.workstationAgentCatalogV2 === true
+			? "applyCatalogChangeV2"
+			: "applyCatalogChangeV1";
 	const registry = useContext(WorkstationEditorGuardsContext),
 		guardId = useId();
 	const [catalog, setCatalog] = useState<Catalog | null>(null),
@@ -142,7 +151,7 @@ export function RemoteAgentManager({
 	useEffect(() => {
 		mounted.current = true;
 		let active = true;
-		void rpc<Catalog>("catalogWithRevisionV1", "query")
+		void rpc<Catalog>(catalogPath, "query")
 			.then((value) => {
 				if (active) {
 					setCatalog(value);
@@ -160,7 +169,7 @@ export function RemoteAgentManager({
 			active = false;
 			mounted.current = false;
 		};
-	}, [rpc, setError]);
+	}, [rpc, setError, catalogPath]);
 	useEffect(() => {
 		if (!selected || selected === NEW) return;
 		let active = true;
@@ -214,7 +223,7 @@ export function RemoteAgentManager({
 		if (pending.current) return;
 		setPending(true);
 		try {
-			const value = await rpc<Catalog>("catalogWithRevisionV1", "query");
+			const value = await rpc<Catalog>(catalogPath, "query");
 			if (!mounted.current) return;
 			setCatalog(value);
 			setConflicted(false);
@@ -278,7 +287,7 @@ export function RemoteAgentManager({
 		setPending(true);
 		setError(null);
 		try {
-			const result = await rpc<Catalog>("applyCatalogChangeV1", "mutation", {
+			const result = await rpc<Catalog>(applyPath, "mutation", {
 				expectedRevision: catalog.revision,
 				change,
 			});
@@ -288,7 +297,7 @@ export function RemoteAgentManager({
 		} catch (e) {
 			if (!mounted.current) return false;
 			try {
-				const value = await rpc<Catalog>("catalogWithRevisionV1", "query");
+				const value = await rpc<Catalog>(catalogPath, "query");
 				if (!mounted.current) return false;
 				if (applied(value, change)) {
 					acknowledge(value, change);
@@ -444,7 +453,7 @@ export function RemoteAgentManager({
 										snapshot={snapshot.value}
 										onPendingChange={setPending}
 										onReloaded={() => {
-											void rpc<Catalog>("catalogWithRevisionV1", "query")
+											void rpc<Catalog>(catalogPath, "query")
 												.then((value) => {
 													if (mounted.current) setCatalog(value);
 												})
@@ -454,7 +463,7 @@ export function RemoteAgentManager({
 										}}
 										onChanged={(config) => {
 											onChanged(config);
-											void rpc<Catalog>("catalogWithRevisionV1", "query")
+											void rpc<Catalog>(catalogPath, "query")
 												.then((value) => {
 													if (mounted.current) setCatalog(value);
 												})
@@ -493,6 +502,8 @@ export function RemoteAgentManager({
 										)}
 									</div>
 								</>
+							) : catalog && !selected ? (
+								<AgentSettingsEmptyState />
 							) : (
 								<p className="p-4">
 									<Trans>Loading...</Trans>
