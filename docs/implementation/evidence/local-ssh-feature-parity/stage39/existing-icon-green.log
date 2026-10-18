@@ -1,0 +1,27 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [219.18ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.test.tsx:
+(pass) original agent launch fields save a label to the selected host and keep permissions and prompt settings [122.42ms]
+(pass) a conflicting edit keeps the original input until explicit confirmed reload [110.89ms]
+(pass) a replacement connection loads its own fields and ignores the previous save reply [43.51ms]
+(pass) a failed save while leaving the settings form stays visible in the original unsaved dialog [76.31ms]
+(pass) returning a field to its saved value acknowledges without a host mutation [22.13ms]
+(pass) the original icon picker saves an existing agent icon without changing launch permissions [97.07ms]
+(pass) a conflicting icon save keeps the chosen icon and cannot acknowledge another stored icon [73.80ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.management.test.tsx:
+(pass) original custom agent form creates a target config only after explicit submit [104.67ms]
+(pass) removing a reviewed agent requires the original confirmation and cancellation never mutates [67.27ms]
+(pass) a lost create reply is acknowledged by readonly stable ID without duplicating or retrying the mutation [103.69ms]
+(pass) stale deletion stays in the confirmation and needs explicit refresh and review before another write [120.26ms]
+(pass) an unsent custom form participates in close protection and cancelling navigation keeps its fields [94.99ms]
+(pass) explicitly discarding a new draft before refresh clears the form and its close guard [109.52ms]
+(pass) an empty V2 target shows the original empty state and original Add menu [13.35ms]
+
+ 15 pass
+ 0 fail
+ 2395 expect() calls
+Ran 15 tests across 3 files. [1.79s]

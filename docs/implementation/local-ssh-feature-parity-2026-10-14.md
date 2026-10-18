@@ -778,3 +778,12 @@ Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取�
 
 
 第132轮产品固定8242be6aa、脚本e6682f193，真实Linux/Electron/拥有的SSH `--agent-catalog-choices-only`退出0：原Fork字段清空、Saved后V2目录/行读回为空，关闭重开仍为空；通过原Delete agent/确认逐项移除全部22个已审阅默认ID，每步计数精确减一，原空状态出现。再次关闭重开后目录仍为空/revision一致，无默认项复活，设置仍可打开。经原Add菜单只新增Pi，关闭重开仅此一项/revision保持；没有启动Agent或新增PTY，原三个PTY13615/13627/13621的执行ID/cwd均保持。五张相关截图均已实际查看。[第132轮完整证据](evidence/local-ssh-feature-parity/source-linux-agent-catalog-choices/132)、[阶段三十八迁移回放/红绿/类型/语言/构建](evidence/local-ssh-feature-parity/stage38)。共享真实输入/原菜单滚动驱动从前一验收提取复用；清空通过真实Backspace，删除循环限定原审阅ID且验证每步减一，不用无限循环掩盖重播种。新V2客户端保留明确选择，旧list/V1的兼容语义仍保留；原CLI本地目标接入与新读取适配继续列在待办。真实供应商Agent、macOS和原生图标文件选择仍未由此验证。
+
+
+### 阶段三十九：已有Agent图标编辑与客户端系统选图
+
+先为已有配置缺少原图标选择器添加2项失败回归，旧5项仍通过。复用WorkstationAgentIconPicker/原AgentIconPickerView，图标字段纳入现有行版本patch和完整读回匹配；明确选择即使用原版本保存，不改命令/权限/env/prompt字段。失败读回不能因其他字段相等就误确认一个未存储的图标；输入和关闭保护仍保留。补查原打开菜单在disabled变true后仍可选项，新增回归实际触发Gemini选择而失败，再把原菜单Upload/No icon/内置项一并按disabled或isProcessing禁用，旧wrapper的disabled语义也得到贯彻。原预设栏本来已使用agent.iconId，直接复用现有回显。相关45项2502断言/8文件、桌面类型、17语言严格编译、插件及lint通过，不新增后端接口或迁移。
+
+第133轮产品仍8242be6aa、脚本89ced6c5f，已有编辑页只有Label/Launch，没有Icon选择器，原控件可用性检查按预期超时退出1；失败截图已实际查看，旧bundle hash保存后才重建。没有图标写入、文件选择框或命令执行。[第133轮旧构建基线](evidence/local-ssh-feature-parity/source-linux-agent-icons-baseline/133)。第134轮产品112b9fa1f、脚本445e9c197，内置图标保存及原预设栏回显、真正拥有的GTK文件选择框打开/取消、取消后行与revision精确保持均通过。上传时中文/emoji路径已输入，但Return未激活Open，文件框仍在而退出1；四张相关回显/取消/系统文件框截图已查看，尚未存储PNG或验后续冲突/重开。[第134轮原始失败](evidence/local-ssh-feature-parity/source-linux-agent-icons-failures/134)。只改验收输入：明确记录系统位置框，再对同一拥有的Open File窗口使用Open助记键；每次以PID和transient parent校验归属，不向其他窗口发送输入，产品保持不变。
+
+第135轮产品固定112b9fa1f、脚本6ce1ff596，真实Linux/Electron/拥有的SSH `--agent-icons-only`退出0：原内置Gemini选择更新已有Claude行且其他启动字段完全保持，原预设栏立即回显；真实GTK取消无写入。通过系统位置框/原Open动作选择客户端带空格、中文、emoji文件名的1024 PNG，原缩图后128×128，返回SSH配置的PNG字节SHA及header/原预设栏src一致，关闭重开行/revision/图标保持。外部更新命令后换图标触发CAS冲突，保留本地Codex选择、不覆盖服务器PNG或外部命令；Reload取消保留，确认只读恢复，原No icon重置后重开恢复默认标记，外部命令保持。全程未启动Agent，原三个PTY18055/18067/18061的执行ID/cwd不变；十二张相关截图（含真实系统窗口）均已实际查看。[第135轮完整证据](evidence/local-ssh-feature-parity/source-linux-agent-icons/135)、[阶段三十九红绿/类型/语言/构建](evidence/local-ssh-feature-parity/stage39)。这是PNG与取消/冲突/重开路径，其他格式/损坏/超限边界、真实供应商任务及macOS仍须独立验收。

@@ -1,0 +1,27 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.test.tsx:
+(pass) original agent launch fields save a label to the selected host and keep permissions and prompt settings [127.21ms]
+(pass) a conflicting edit keeps the original input until explicit confirmed reload [143.37ms]
+(pass) a replacement connection loads its own fields and ignores the previous save reply [48.05ms]
+(pass) a failed save while leaving the settings form stays visible in the original unsaved dialog [56.26ms]
+(pass) returning a field to its saved value acknowledges without a host mutation [31.07ms]
+(pass) the original icon picker saves an existing agent icon without changing launch permissions [94.58ms]
+(pass) a conflicting icon save keeps the chosen icon and cannot acknowledge another stored icon [93.58ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.management.test.tsx:
+(pass) original custom agent form creates a target config only after explicit submit [123.84ms]
+(pass) removing a reviewed agent requires the original confirmation and cancellation never mutates [112.41ms]
+(pass) a lost create reply is acknowledged by readonly stable ID without duplicating or retrying the mutation [115.66ms]
+(pass) stale deletion stays in the confirmation and needs explicit refresh and review before another write [121.17ms]
+(pass) an unsent custom form participates in close protection and cancelling navigation keeps its fields [111.67ms]
+(pass) explicitly discarding a new draft before refresh clears the form and its close guard [107.57ms]
+(pass) an empty V2 target shows the original empty state and original Add menu [16.70ms]
+
+src/renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentIconPicker/components/AgentIconPickerView/AgentIconPickerView.test.tsx:
+(pass) an open original icon menu cannot change a selection after it becomes disabled [29.01ms]
+
+ 15 pass
+ 0 fail
+ 46 expect() calls
+Ran 15 tests across 3 files. [1.62s]

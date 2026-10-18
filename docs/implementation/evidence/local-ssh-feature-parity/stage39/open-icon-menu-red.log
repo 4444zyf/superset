@@ -1,0 +1,27 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentIconPicker/components/AgentIconPickerView/AgentIconPickerView.test.tsx:
+ 6 |  const changed:(string|null)[]=[];const props={value:null,onChange:(v:string|null)=>changed.push(v),renderIcon:()=>null,selectImage:async()=>({canceled:true})};
+ 7 |  const view=render(<AgentIconPickerView {...props}/>);
+ 8 |  fireEvent.pointerDown(screen.getByRole("button",{name:"No icon"}),{button:0,ctrlKey:false});
+ 9 |  const item=await screen.findByRole("menuitem",{name:"Gemini"});
+10 |  view.rerender(<AgentIconPickerView {...props} disabled/>);
+11 |  fireEvent.click(item);expect(changed).toEqual([]);
+                                            ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   "gemini",
++ ]
+
+- Expected  - 1
++ Received  + 3
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentIconPicker/components/AgentIconPickerView/AgentIconPickerView.test.tsx:11:40)
+(fail) an open original icon menu cannot change a selection after it becomes disabled [112.56ms]
+
+ 0 pass
+ 1 fail
+ 1 expect() calls
+Ran 1 test across 1 file. [370.00ms]

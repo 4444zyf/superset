@@ -1,0 +1,67 @@
+bun test v1.4.2 (744846f84)
+
+src/no-main-process-blocking.test.ts:
+(pass) no new main-process blocking call sites > sync subprocess (execSync/spawnSync/execFileSync) [14.86ms]
+(pass) no new main-process blocking call sites > sync recursive fs (rmSync/cpSync) [9.40ms]
+(pass) no new main-process blocking call sites > in-process git client construction [9.61ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [252.32ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [270.55ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [136.11ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [140.46ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [79.46ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [57.53ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [119.43ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [102.70ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [88.35ms]
+(pass) opening a development server submits its port for forwarding on B [96.09ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [121.26ms]
+(pass) checking an empty operation journal shows a readable result [85.37ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [133.46ms]
+(pass) offline chat drafts remain reviewable and explicitly discardable without a connection or session [156.35ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.test.tsx:
+(pass) original agent launch fields save a label to the selected host and keep permissions and prompt settings [35.59ms]
+(pass) a conflicting edit keeps the original input until explicit confirmed reload [110.79ms]
+(pass) a replacement connection loads its own fields and ignores the previous save reply [51.96ms]
+(pass) a failed save while leaving the settings form stays visible in the original unsaved dialog [53.51ms]
+(pass) returning a field to its saved value acknowledges without a host mutation [41.83ms]
+(pass) the original icon picker saves an existing agent icon without changing launch permissions [217.25ms]
+(pass) a conflicting icon save keeps the chosen icon and cannot acknowledge another stored icon [229.25ms]
+(pass) a rejected icon write cannot be acknowledged by an unchanged readonly row [183.08ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.management.test.tsx:
+(pass) original custom agent form creates a target config only after explicit submit [181.48ms]
+(pass) removing a reviewed agent requires the original confirmation and cancellation never mutates [114.97ms]
+(pass) a lost create reply is acknowledged by readonly stable ID without duplicating or retrying the mutation [181.54ms]
+(pass) stale deletion stays in the confirmation and needs explicit refresh and review before another write [144.00ms]
+(pass) an unsent custom form participates in close protection and cancelling navigation keeps its fields [263.54ms]
+(pass) explicitly discarding a new draft before refresh clears the form and its close guard [117.19ms]
+(pass) an empty V2 target shows the original empty state and original Add menu [13.95ms]
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [15.98ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [39.08ms]
+(pass) a clean document permits close immediately and unmounting with a dirty prompt cancels the old request [5.14ms]
+(pass) chat draft storage failure blocks a clean-file window close until an explicit successful Save All retry [14.97ms]
+(pass) unmounting while chat draft storage is loading cannot approve the departed renderer's close request [1.11ms]
+(pass) a late chat-draft flush after the close dialog unmounts cannot start a file save [6.65ms]
+(pass) a transient settings draft shares the original window guard and failed Save All cannot approve close [15.88ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:
+(pass) the original default preset surface uses the selected host's config and launches only on an explicit click [8.12ms]
+(pass) older hosts receive no preset queries and late replies cannot populate a different backend [4.55ms]
+(pass) agent settings open the original launch form without launching a terminal [19.50ms]
+(pass) the host's custom configurations remain selectable beyond the first 128 entries [66.16ms]
+(pass) a deliberately empty versioned catalog remains manageable without the legacy reseeding list [4.32ms]
+
+src/renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/AgentIconPicker/components/AgentIconPickerView/AgentIconPickerView.test.tsx:
+(pass) an open original icon menu cannot change a selection after it becomes disabled [46.31ms]
+
+ 45 pass
+ 0 fail
+ 2502 expect() calls
+Ran 45 tests across 8 files. [4.67s]
