@@ -1,0 +1,180 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.29ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.23ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.23ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.12ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.31ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.11ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.54ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.09ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.13ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.80ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.76ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.46ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.67ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.54ms]
+(pass) attachment and file event readiness require explicit backend capabilities [0.36ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.23ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.17ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.09ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.53ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.28ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.95ms]
+(pass) project script procedures require their own capability and an explicit project [0.31ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.90ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.68ms]
+(pass) setup status is read only with an explicit workspace and its advertised capability [0.18ms]
+(pass) only the advertised read-only terminal agent catalog is exposed to the workstation [0.17ms]
+(pass) versioned agent settings require a target id, capability and current connection [0.19ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.test.tsx:
+(pass) original agent launch fields save a label to the selected host and keep permissions and prompt settings [99.24ms]
+(pass) a conflicting edit keeps the original input until explicit confirmed reload [101.27ms]
+(pass) a replacement connection loads its own fields and ignores the previous save reply [44.90ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:
+(pass) the original default preset surface uses the selected host's config and launches only on an explicit click [12.03ms]
+(pass) older hosts receive no preset queries and late replies cannot populate a different backend [5.26ms]
+(pass) agent settings open the original launch form without launching a terminal [31.21ms]
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find role="menuitem" and name "Configured agent 129"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"Terminal Scripts"[39m
+      [33mclass[39m=[32m"flex min-w-0 shrink-0 flex-wrap items-center gap-1.5 bg-background px-2 py-1"[39m
+      [33mdata-workstation-presets[39m=[32m"true"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Agent settings"[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 size-8"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+        [33mdisabled[39m=[32m""[39m
+        [33mtitle[39m=[32m"This backend does not support the required capability"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-settings"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"14"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"14"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"[39m
+          [36m/>[39m
+          [36m<circle[39m
+            [33mcx[39m=[32m"12"[39m
+            [33mcy[39m=[32m"12"[39m
+            [33mr[39m=[32m"3"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+      [36m</button>[39m
+      [36m<button[39m
+        [33maria-expanded[39m=[32m"false"[39m
+        [33maria-haspopup[39m=[32m"menu"[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+        [33mdata-state[39m=[32m"closed"[39m
+        [33mid[39m=[32m"radix-_r_1d_"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mAgents[0m
+      [36m</button>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+      [36m>[39m
+        [0mRefresh[0m
+      [36m</button>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"Terminal Scripts"[39m
+      [33mclass[39m=[32m"flex min-w-0 shrink-0 flex-wrap items-center gap-1.5 bg-background px-2 py-1"[39m
+      [33mdata-workstation-presets[39m=[32m"true"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Agent settings"[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 size-8"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+        [33mdisabled[39m=[32m""[39m
+        [33mtitle[39m=[32m"This backend does not support the required capability"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-settings"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"14"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"14"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"[39m
+          [36m/>[39m
+          [36m<circle[39m
+            [33mcx[39m=[32m"12"[39m
+            [33mcy[39m=[32m"12"[39m
+            [33mr[39m=[32m"3"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+      [36m</button>[39m
+      [36m<button[39m
+        [33maria-expanded[39m=[32m"false"[39m
+        [33maria-haspopup[39m=[32m"menu"[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+        [33mdata-state[39m=[32m"closed"[39m
+        [33mid[39m=[32m"radix-_r_1d_"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mAgents[0m
+      [36m</button>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+      [36m>[39m
+        [0mRefresh[0m
+      [36m</button>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:197:15
+(fail) the host's custom configurations remain selectable beyond the first 128 entries [1009.22ms]
+
+1 tests failed:
+(fail) the host's custom configurations remain selectable beyond the first 128 entries [1009.22ms]
+
+ 36 pass
+ 1 fail
+ 126 expect() calls
+Ran 37 tests across 3 files. [1.65s]

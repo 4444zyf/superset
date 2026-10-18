@@ -1,0 +1,63 @@
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.tsx:61:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook specifies more dependencies than necessary: owner, reload.
+  
+    59 │ 		selected,
+    60 │ 	]);
+  > 61 │ 	useEffect(() => {
+       │ 	^^^^^^^^^
+    62 │ 		if (!capable || !selected) return;
+    63 │ 		let active = true;
+  
+  i This dependency can be removed from the list.
+  
+    88 │ 		connection.connectionId,
+    89 │ 		connection.generation,
+  > 90 │ 		owner,
+       │ 		^^^^^
+    91 │ 		reload,
+    92 │ 	]);
+  
+  i This dependency can be removed from the list.
+  
+    89 │ 		connection.generation,
+    90 │ 		owner,
+  > 91 │ 		reload,
+       │ 		^^^^^^
+    92 │ 	]);
+    93 │ 	const finish = (id: string | null) => {
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Specifying more dependencies than required can lead to unnecessary re-rendering
+    and degraded performance.
+  
+  i Unsafe fix: Remove the extra dependencies from the list.
+  
+     83  83 │   		};
+     84  84 │   	}, [
+     85     │ - → → api,
+     86     │ - → → capable,
+     87     │ - → → selected,
+     88     │ - → → connection.connectionId,
+     89     │ - → → connection.generation,
+     90     │ - → → owner,
+     91     │ - → → reload,
+         85 │ + → → api,·
+         86 │ + → → capable,·
+         87 │ + → → selected,·
+         88 │ + → → connection.connectionId,·
+         89 │ + → → connection.generation
+     92  90 │   	]);
+     93  91 │   	const finish = (id: string | null) => {
+  
+
+Skipped 1 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 3 files in 25ms. Fixed 3 files.
+Found 1 error.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while applying fixes.
+  
+

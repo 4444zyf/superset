@@ -1,0 +1,21 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [233.89ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.test.tsx:
+(pass) original agent launch fields save a label to the selected host and keep permissions and prompt settings [103.55ms]
+(pass) a conflicting edit keeps the original input until explicit confirmed reload [102.62ms]
+(pass) a replacement connection loads its own fields and ignores the previous save reply [38.36ms]
+(pass) a failed save while leaving the settings form stays visible in the original unsaved dialog [47.84ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:
+(pass) the original default preset surface uses the selected host's config and launches only on an explicit click [9.80ms]
+(pass) older hosts receive no preset queries and late replies cannot populate a different backend [5.03ms]
+(pass) agent settings open the original launch form without launching a terminal [33.36ms]
+(pass) the host's custom configurations remain selectable beyond the first 128 entries [109.73ms]
+
+ 9 pass
+ 0 fail
+ 2267 expect() calls
+Ran 9 tests across 3 files. [1129.00ms]

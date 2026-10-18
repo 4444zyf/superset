@@ -1,0 +1,28 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [101.21ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [53.64ms]
+(pass) a clean document permits close immediately and unmounting with a dirty prompt cancels the old request [11.78ms]
+(pass) chat draft storage failure blocks a clean-file window close until an explicit successful Save All retry [25.78ms]
+(pass) unmounting while chat draft storage is loading cannot approve the departed renderer's close request [1.44ms]
+(pass) a late chat-draft flush after the close dialog unmounts cannot start a file save [10.24ms]
+296 | 	const guard={id:"settings",label:()=>"Remote Codex",isDirty:()=>dirty,isPending:()=>false,getError:()=>"Agent configuration changed",save:async()=>{saves++;if(fail)return false;dirty=false;version++;for(const listener of listeners)listener();return true;}};
+297 | 	const editors={getVersion:()=>version,subscribe:(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener);};},getUnsaved:()=>dirty?[guard]:[]};
+298 | 	render(<WorkstationCloseGuard api={f.api} documents={f.manager} editors={editors}/>);
+299 | 	let request!:Promise<boolean>;let approved=false;
+300 | 	await act(async()=>{request=f.request();void request.then(value=>{approved=value;});await settle();});
+301 | 	expect(approved).toBe(false);await screen.findByText("Remote Codex");
+                        ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:301:19)
+(fail) a transient settings draft shares the original window guard and failed Save All cannot approve close [1.42ms]
+
+ 6 pass
+ 1 fail
+ 31 expect() calls
+Ran 7 tests across 1 file. [492.00ms]

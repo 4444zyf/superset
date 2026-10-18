@@ -716,3 +716,26 @@ Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取�
 
 
 第116轮产品/脚本固定187f400c9，实际Linux/Electron/拥有的SSH --terminal-presets-only退出0：仅夹具的Codex目录行预置为确定性shell命令后，经原Refresh读取；未点击时计数文件不存在，真实点击预设按钮后一次、打开Agents菜单再选择同项后两次，两条中文/emoji记录和两份cwd均精确匹配统一worktree。两个新shell仍PID45576/45611、执行ID/标题/cwd在关闭重开后保留，计数仍两次，没有自动启动；三个原PTY仍PID45299/45312/45305及原执行ID/cwd。四张原预设按钮/两种明确启动/重开截图均已实际查看。夹具配置属于拥有的测试数据准备，不冒称用户通过尚未接入的配置编辑界面完成，也不将shell探针当作真实供应商Agent任务。[第116轮原始证据](evidence/local-ssh-feature-parity/source-linux-terminal-presets/116)、[阶段三十五红绿/类型/语言/构建](evidence/local-ssh-feature-parity/stage35)。接下来补原Agent配置编辑、命令参数/模式、预设项目范围/隐藏重排及快捷键，仍未完成整个总清单。
+
+
+### 阶段三十六：原Agent配置字段、版本保存及关闭保护
+
+先复现新配置读取/版本保存缺失，再在原host SQLite配置表上添加getWithRevisionV1/updateWithRevisionV1；读取完整原配置及行指纹，事务内比较后才复用原更新逻辑，过期写入CONFLICT且不覆盖外部修改。原list/add/update/restore/remove等过程形状、输入、错误与传输保持，原35项配置测试和2项新行为共37项89断言通过；host类型检查通过，不新增表或迁移。新增可选workstationAgentSettingsV1，客户端和主进程分别检查能力、明确agent ID及当前generation，只开放新的版本读取/保存；普通旧settings写入仍拒绝。
+
+直接复用原AgentDetailHeader、AgentLaunchFields、SettingsListSidebar、Input及UnsavedChangesDialog，保留Label、完整命令/环境、prompt-only/resume/fork参数和argv/stdin控件与失焦保存。新适配器绑定连接/后端/namespace/generation/agent；旧保存回复不能填进替换连接。失焦保存只在内容确实改变时发起，失败只读核对；若目标已经等于希望保存的字段则确认读回，否则保留原输入，发现新revision提示先Reload，禁止自动覆盖。Reload先原确认，Cancel保留输入，明确确认才读入新版，不写回。离开表单的Save失败会在原确认框显示错误。初次仅按agent ID保留snapshot，连接替换回归失败后改为完整owner匹配；父级pending和选择也按scope隔离。
+
+未保存/待完成设置表单接入原窗口/退出对话框，通过仅包含当前已挂载编辑器的内存登记，不新增localStorage、客户端实体表或设置凭据持久化。关闭时即使文件/聊天干净也受保护；待完成写入禁用继续关闭，明确Save All复用当前版本保存，失败不批准，Cancel保留输入，Don't Save才允许离开。新关闭失败回归先红后绿，文件/聊天原保护回归保持。
+
+同时移除终端目录截取前128项造成的缺项。首个测试错误地只发click没有打开Radix菜单，已改为真实pointerDown合同；在保留旧128截取的源码上再次红，然后移除截取后绿，整个原host配置目录可滚动选择，不新增持久化列表。这里只是临时恢复旧限制来验证回归，不冒称新的真实窗口基线。最终前端/主进程相关11文件79项1440断言、桌面类型、17语言及插件检查通过。第117轮产品仍未重建187f400c9、脚本b8b436f43，原预设仍能读目录/刷新，但没有Agent settings按钮，首次打开编辑页按预期超时退出1；仅有拥有的夹具配置准备，没有通过UI编辑或启动命令。失败截图已实际查看，旧bundle hash保存后才重建。[第117轮旧构建基线](evidence/local-ssh-feature-parity/source-linux-agent-settings-baseline/117)。新版字段/模式保存、外部版本冲突、全局关闭失败、明确Reload及实际运行/重开继续验收；真实供应商Prompt/Resume和macOS仍须独立验证。
+
+
+第118轮固定b8b436f43，真实renderer在启动阶段空白，About控制未出现而退出1；尚未创建SSH夹具或进行表单交互。失败截图已实际查看。[第118轮启动失败](evidence/local-ssh-feature-parity/source-linux-agent-settings-failures/118)。第119轮产品仍b8b436f43、仅脚本aed5fad3f补充Runtime异常描述及失败console归档，仍退出1，明确定位原AgentIcon→旧theme store→旧electronTRPC客户端在模块加载时创建，当前direct preload不提供该旧global；并非SSH错误。失败截图与异常栈已实际查看。[第119轮诊断](evidence/local-ssh-feature-parity/source-linux-agent-settings-failures/119)。补充的启动依赖回归先定位到同一静态桥接路径，再提取原AgentIconView/AgentDetailHeaderView，原Header wrapper继续用旧store，工作站用本机外观上下文注入，不伪造旧global。原AgentFormControls纯字段直接导入，旧barrel仍保留原Header导出。新增静态桥接依赖断言继续遍历全部静态/导出/动态图，不修改原禁止账号/云bootstrap规则；原终端有条件动态兼容入口保留。首个过宽尝试也保留为失败日志，正式新断言仅禁止静态导入旧settings桥接，没有给特定文件加豁免。相关9项2267断言/3文件与desktop类型通过；重新构建后再验真实启动及完整表单流程，不能将此前79项单测当作启动通过。
+
+
+第120轮产品/脚本eb6dcaf92，启动恢复并实际打开原设置表单，Label、命令/环境、prompt/resume参数写入检查通过；重新输入与原值相同的fork参数后，界面未显示Saved，脚本在此等待后退出1。失败截图已实际查看，尚未执行后续冲突、关闭保护或运行检查。[第120轮原始失败](evidence/local-ssh-feature-parity/source-linux-agent-settings-failures/120)。新增“输入恢复为原值后不发起写入但确认已保存”回归，先4通过1失败，再5项17断言通过；只修复无变化时的保存反馈和旧错误清除。实际窗口脚本将fork改成不同值`fork --from {sessionId}`，使后续验收包含真实写入；没有放宽等待或断言。相关80项2536断言/11文件及桌面纯类型检查通过，重新构建后再验完整流程。
+
+
+第121轮产品/脚本764dbeaf2，真实字段/环境、prompt/resume/fork和stdin模式保存通过，未明确启动前无命令执行；外部CAS冲突保留输入，全局窗口关闭Save All显示冲突并阻止关闭，Cancel保留输入。Reload确认取消后保留、明确确认后读回完整外部命令（包括原env/args），但脚本错误地只预期可执行路径，退出1，未达到运行/重开。三张相关截图已实际查看。[第121轮原始证据](evidence/local-ssh-feature-parity/source-linux-agent-settings-failures/121)。只修改脚本使用原getAgentCommandText比较完整命令；第122轮脚本58a19784d因Node/tsx将desktop模块按CommonJS加载，命名导入失败，退出1，未创建SSH夹具或进行设置操作。[第122轮脚本失败](evidence/local-ssh-feature-parity/source-linux-agent-settings-failures/122)。改用模块默认导出后，独立加载检查通过；产品仍固定764dbeaf2，继续实际窗口验收，不延长等待或放宽行为断言。
+
+
+第123轮产品固定764dbeaf2、脚本a486a67e0，真实Linux/Electron/拥有的SSH `--agent-settings-only`退出0。实际原字段依次保存Label、完整命令/中文emoji环境、prompt/resume/fork参数及stdin模式；未点击启动前计数文件不存在。外部写入改变revision后，失焦保存保留本地Label，远端Label/外部命令不被覆盖；全局窗口关闭Save All显示冲突、不批准关闭，Cancel仍保留输入。原Reload取消保留、明确确认只读入完整外部字段，不改变revision。再次明确保存后，从原预设按钮启动一次，文件精确包含`中文 space 🙂\n`及统一worktree cwd；关闭重开配置/revision一致、计数仍一次，新PTY3553及原三个PTY3253/3265/3259的执行ID/cwd保持。七张相关截图均已实际查看，console错误为空。[第123轮完整原始证据](evidence/local-ssh-feature-parity/source-linux-agent-settings/123)、[阶段三十六红绿/类型/语言/构建](evidence/local-ssh-feature-parity/stage36)。这验证配置与确定性shell探针，不冒称真实供应商Prompt/Resume、macOS或发行DMG通过；Agent新增/删除/重排/恢复默认、图标与自定义预设等继续逐项接入。

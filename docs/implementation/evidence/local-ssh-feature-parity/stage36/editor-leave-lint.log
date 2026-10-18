@@ -1,0 +1,78 @@
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:925:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    923 │ 									hasUnsavedChanges={() =>
+    924 │ 										documents
+  > 925 │ 											.getDocuments(ui.connection!, deleteWorkspace.id)
+        │ 											              ^^^^^^^^^^^^^^
+    926 │ 											.some((d) => d.dirty || d.pendingSave) ||
+    927 │ 										chatDrafts.hasDrafts({
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:928:15 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    926 │ 											.some((d) => d.dirty || d.pendingSave) ||
+    927 │ 										chatDrafts.hasDrafts({
+  > 928 │ 											...ui.connection!,
+        │ 											   ^^^^^^^^^^^^^^
+    929 │ 											workspaceId: deleteWorkspace.id,
+    930 │ 										})
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:933:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    931 │ 									}
+    932 │ 									onDeleted={(warnings) => {
+  > 933 │ 										const target = ui.connection!;
+        │ 										               ^^^^^^^^^^^^^^
+    934 │ 										setDeleteWorkspace(null);
+    935 │ 
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteAgentSettings/components/AgentConfigEditor/AgentConfigEditor.tsx:204:5 lint/suspicious/noDuplicateObjectKeys  FIXABLE  ━━━━━━━━━━
+
+  × This property is later overwritten by an object member with the same name.
+  
+    202 │ 				isDirty: () => dirty.current,
+    203 │ 				isPending: () => pending.current,
+  > 204 │ 				getError: () => errorRef.current,
+        │ 				^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    205 │ 				getError: () => errorRef.current,
+    206 │ 				save: () => saveRef.current(),
+  
+  i Overwritten with this property.
+  
+    203 │ 				isPending: () => pending.current,
+    204 │ 				getError: () => errorRef.current,
+  > 205 │ 				getError: () => errorRef.current,
+        │ 				^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    206 │ 				save: () => saveRef.current(),
+    207 │ 			}),
+  
+  i If an object property with the same name is defined multiple times (except when combining a getter with a setter), only the last definition makes it into the object and previous definitions are ignored.
+  
+  i Unsafe fix: Remove this property.
+  
+    202 202 │   				isDirty: () => dirty.current,
+    203 203 │   				isPending: () => pending.current,
+    204     │ - → → → → getError:·()·=>·errorRef.current,
+    205 204 │   				getError: () => errorRef.current,
+    206 205 │   				save: () => saveRef.current(),
+  
+
+Skipped 1 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 4 files in 46ms. Fixed 3 files.
+Found 1 error.
+Found 3 warnings.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while applying fixes.
+  
+

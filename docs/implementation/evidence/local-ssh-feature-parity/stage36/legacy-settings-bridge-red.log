@@ -1,0 +1,27 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+47 | 			}
+48 | 			ts.forEachChild(node, collect);
+49 | 		}
+50 | 		collect(ast);
+51 | 		for (const specifier of references) {
+52 | 			expect(forbidden.test(specifier), `${file} imports ${specifier}`).toBe(
+                                                                          ^
+error: /workspace/superset/apps/desktop/src/renderer/lib/terminal/terminal-clipboard.ts imports renderer/lib/trpc-client
+
+Expected: false
+Received: true
+
+      at visit (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/accountless-boot.test.ts:52:70)
+      at visit (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/accountless-boot.test.ts:73:18)
+      at visit (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/accountless-boot.test.ts:73:18)
+      at visit (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/accountless-boot.test.ts:73:18)
+      at visit (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/accountless-boot.test.ts:73:18)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/accountless-boot.test.ts:81:3)
+(fail) default main, preload and renderer cannot import the legacy cloud bootstrap [181.89ms]
+
+ 0 pass
+ 1 fail
+ 777 expect() calls
+Ran 1 test across 1 file. [443.00ms]

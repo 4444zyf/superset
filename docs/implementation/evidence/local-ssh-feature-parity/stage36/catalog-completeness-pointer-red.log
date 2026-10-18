@@ -1,0 +1,196 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:
+(pass) the original default preset surface uses the selected host's config and launches only on an explicit click [54.40ms]
+(pass) older hosts receive no preset queries and late replies cannot populate a different backend [12.56ms]
+(pass) agent settings open the original launch form without launching a terminal [75.51ms]
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find role="menuitem" and name "Configured agent 129"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<span[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"Terminal Scripts"[39m
+      [33mclass[39m=[32m"flex min-w-0 shrink-0 flex-wrap items-center gap-1.5 bg-background px-2 py-1"[39m
+      [33mdata-workstation-presets[39m=[32m"true"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Agent settings"[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 size-8"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+        [33mdisabled[39m=[32m""[39m
+        [33mtitle[39m=[32m"This backend does not support the required capability"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-settings"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"14"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"14"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"[39m
+          [36m/>[39m
+          [36m<circle[39m
+            [33mcx[39m=[32m"12"[39m
+            [33mcy[39m=[32m"12"[39m
+            [33mr[39m=[32m"3"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+      [36m</button>[39m
+      [36m<button[39m
+        [33maria-controls[39m=[32m"radix-_r_g_"[39m
+        [33maria-expanded[39m=[32m"true"[39m
+        [33maria-haspopup[39m=[32m"menu"[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+        [33mdata-state[39m=[32m"open"[39m
+        [33mid[39m=[32m"radix-_r_f_"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mAgents[0m
+      [36m</button>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+      [36m>[39m
+        [0mRefresh[0m
+      [36m</button>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mdata-radix-popper-content-wrapper[39m=[32m""[39m
+    [33mdir[39m=[32m"ltr"[39m
+    [33mstyle[39m=[32m"position: fixed; left: 0px; top: 0px; transform: translate(0px, 4px); min-width: max-content; --radix-popper-available-width: 0px; --radix-popper-available-height: -4px; --radix-popper-anchor-width: 0px; --radix-popper-anchor-height: 0px; --radix-popper-transform-origin: 50% 0px;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33maria-labelledby[39m=[32m"radix-_r_f_"[39m
+      [33maria-orientation[39m=[32m"vertical"[39m
+      [33mclass[39m=[32m"bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden rounded-lg border p-1 shadow-md max-h-80 overflow-y-auto"[39m
+      [33mdata-align[39m=[32m"center"[39m
+      [33mdata-orientation[39m=[32m"vertical"[39m
+      [33mdata-radix-menu-content[39m=[32m""[39m
+      [33mdata-side[39m=[32m"bottom"[39m
+      [33mdata-slot[39m=[32m"dropdown-menu-content"[39m
+      [33mdata-state[39m=[32m"open"[39m
+      [33mdir[39m=[32m"ltr"[39m
+      [33mid[39m=[32m"radix-_r_g_"[39m
+      [33mrole[39m=[32m"menu"[39m
+      [33mstyle[39m=[32m"--radix-dropdown-menu-content-transform-origin: var(--radix-popper-transform-origin); --radix-dropdown-menu-content-available-width: var(--radix-popper-available-width); --radix-dropdown-menu-content-available-height: var(--radix-popper-available-height); --radix-dropdown-menu-trigger-width: var(--radix-popper-anchor-width); --radix-dropdown-menu-trigger-height: var(--radix-popper-anchor-height); outline-color: none; outline-style: none; outline-width: initial;"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:!text-destructive [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hid...
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<span[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-label[39m=[32m"Terminal Scripts"[39m
+      [33mclass[39m=[32m"flex min-w-0 shrink-0 flex-wrap items-center gap-1.5 bg-background px-2 py-1"[39m
+      [33mdata-workstation-presets[39m=[32m"true"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Agent settings"[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 size-8"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+        [33mdisabled[39m=[32m""[39m
+        [33mtitle[39m=[32m"This backend does not support the required capability"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"lucide lucide-settings"[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mheight[39m=[32m"14"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"round"[39m
+          [33mstroke-linejoin[39m=[32m"round"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 24 24"[39m
+          [33mwidth[39m=[32m"14"[39m
+          [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"[39m
+          [36m/>[39m
+          [36m<circle[39m
+            [33mcx[39m=[32m"12"[39m
+            [33mcy[39m=[32m"12"[39m
+            [33mr[39m=[32m"3"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+      [36m</button>[39m
+      [36m<button[39m
+        [33maria-controls[39m=[32m"radix-_r_g_"[39m
+        [33maria-expanded[39m=[32m"true"[39m
+        [33maria-haspopup[39m=[32m"menu"[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+        [33mdata-state[39m=[32m"open"[39m
+        [33mid[39m=[32m"radix-_r_f_"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mAgents[0m
+      [36m</button>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+      [36m>[39m
+        [0mRefresh[0m
+      [36m</button>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mdata-radix-popper-content-wrapper[39m=[32m""[39m
+    [33mdir[39m=[32m"ltr"[39m
+    [33mstyle[39m=[32m"position: fixed; left: 0px; top: 0px; transform: translate(0px, 4px); min-width: max-content; --radix-popper-available-width: 0px; --radix-popper-available-height: -4px; --radix-popper-anchor-width: 0px; --radix-popper-anchor-height: 0px; --radix-popper-transform-origin: 50% 0px;"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33maria-labelledby[39m=[32m"radix-_r_f_"[39m
+      [33maria-orientation[39m=[32m"vertical"[39m
+      [33mclass[39m=[32m"bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden rounded-lg border p-1 shadow-md max-h-80 overflow-y-auto"[39m
+      [33mdata-align[39m=[32m"center"[39m
+      [33mdata-orientation[39m=[32m"vertical"[39m
+      [33mdata-radix-menu-content[39m=[32m""[39m
+      [33mdata-side[39m=[32m"bottom"[39m
+      [33mdata-slot[39m=[32m"dropdown-menu-content"[39m
+      [33mdata-state[39m=[32m"open"[39m
+      [33mdir[39m=[32m"ltr"[39m
+      [33mid[39m=[32m"radix-_r_g_"[39m
+      [33mrole[39m=[32m"menu"[39m
+      [33mstyle[39m=[32m"--radix-dropdown-menu-content-transform-origin: var(--radix-popper-transform-origin); --radix-dropdown-menu-content-available-width: var(--radix-popper-available-width); --radix-dropdown-menu-content-available-height: var(--radix-popper-available-height); --radix-dropdown-menu-trigger-width: var(--radix-popper-anchor-width); --radix-dropdown-menu-trigger-height: var(--radix-popper-anchor-height); outline-color: none; outline-style: none; outline-width: initial;"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:!text-destructive [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hid...
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:197:15
+(fail) the host's custom configurations remain selectable beyond the first 128 entries [1120.08ms]
+
+ 3 pass
+ 1 fail
+ 10 expect() calls
+Ran 4 tests across 1 file. [1.60s]

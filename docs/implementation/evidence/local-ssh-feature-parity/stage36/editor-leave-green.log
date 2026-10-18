@@ -1,0 +1,21 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.test.tsx:
+(pass) original agent launch fields save a label to the selected host and keep permissions and prompt settings [116.17ms]
+(pass) a conflicting edit keeps the original input until explicit confirmed reload [103.53ms]
+(pass) a replacement connection loads its own fields and ignores the previous save reply [43.95ms]
+(pass) a failed save while leaving the settings form stays visible in the original unsaved dialog [53.07ms]
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [23.43ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [22.39ms]
+(pass) a clean document permits close immediately and unmounting with a dirty prompt cancels the old request [5.69ms]
+(pass) chat draft storage failure blocks a clean-file window close until an explicit successful Save All retry [17.93ms]
+(pass) unmounting while chat draft storage is loading cannot approve the departed renderer's close request [1.07ms]
+(pass) a late chat-draft flush after the close dialog unmounts cannot start a file save [7.51ms]
+(pass) a transient settings draft shares the original window guard and failed Save All cannot approve close [20.47ms]
+
+ 11 pass
+ 0 fail
+ 52 expect() calls
+Ran 11 tests across 2 files. [736.00ms]

@@ -1,0 +1,136 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.test.tsx:
+(pass) original agent launch fields save a label to the selected host and keep permissions and prompt settings [119.33ms]
+(pass) a conflicting edit keeps the original input until explicit confirmed reload [88.57ms]
+(pass) a replacement connection loads its own fields and ignores the previous save reply [37.54ms]
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find an element with the text: This configuration changed. Reload before saving.. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33maria-describedby[39m=[32m"radix-_r_17_"[39m
+  [33maria-labelledby[39m=[32m"radix-_r_16_"[39m
+  [33mclass[39m=[32m"bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] max-h-[calc(100vh-2rem)] overflow-y-auto translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 select-text sm:max-w-lg"[39m
+  [33mdata-slot[39m=[32m"alert-dialog-content"[39m
+  [33mdata-state[39m=[32m"open"[39m
+  [33mid[39m=[32m"radix-_r_15_"[39m
+  [33mrole[39m=[32m"alertdialog"[39m
+  [33mstyle[39m=[32m"pointer-events: auto;"[39m
+  [33mtabindex[39m=[32m"-1"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"flex flex-col gap-2 text-center sm:text-left"[39m
+    [33mdata-slot[39m=[32m"alert-dialog-header"[39m
+  [36m>[39m
+    [36m<h2[39m
+      [33mclass[39m=[32m"text-lg font-semibold [overflow-wrap:anywhere]"[39m
+      [33mdata-slot[39m=[32m"alert-dialog-title"[39m
+      [33mid[39m=[32m"radix-_r_16_"[39m
+    [36m>[39m
+      [0mUnsaved changes[0m
+    [36m</h2>[39m
+    [36m<p[39m
+      [33mclass[39m=[32m"text-muted-foreground text-sm [overflow-wrap:anywhere]"[39m
+      [33mdata-slot[39m=[32m"alert-dialog-description"[39m
+      [33mid[39m=[32m"radix-_r_17_"[39m
+    [36m>[39m
+      [0mYour changes will be lost if you don't save them.[0m
+    [36m</p>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"[39m
+    [33mdata-slot[39m=[32m"alert-dialog-footer"[39m
+  [36m>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [0mCancel[0m
+    [36m</button>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 border-destructive/50 text-destructive hover:bg-destructive/10"[39m
+      [33mdata-slot[39m=[32m"alert-dialog-action"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [0mDiscard changes[0m
+    [36m</button>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"[39m
+      [33mdata-slot[39m=[32m"button"[39m
+    [36m>[39m
+      [0mSave[0m
+    [36m</button>[39m
+  [36m</div>[39m
+[36m</div>[39m
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33maria-describedby[39m=[32m"radix-_r_17_"[39m
+  [33maria-labelledby[39m=[32m"radix-_r_16_"[39m
+  [33mclass[39m=[32m"bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] max-h-[calc(100vh-2rem)] overflow-y-auto translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 select-text sm:max-w-lg"[39m
+  [33mdata-slot[39m=[32m"alert-dialog-content"[39m
+  [33mdata-state[39m=[32m"open"[39m
+  [33mid[39m=[32m"radix-_r_15_"[39m
+  [33mrole[39m=[32m"alertdialog"[39m
+  [33mstyle[39m=[32m"pointer-events: auto;"[39m
+  [33mtabindex[39m=[32m"-1"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"flex flex-col gap-2 text-center sm:text-left"[39m
+    [33mdata-slot[39m=[32m"alert-dialog-header"[39m
+  [36m>[39m
+    [36m<h2[39m
+      [33mclass[39m=[32m"text-lg font-semibold [overflow-wrap:anywhere]"[39m
+      [33mdata-slot[39m=[32m"alert-dialog-title"[39m
+      [33mid[39m=[32m"radix-_r_16_"[39m
+    [36m>[39m
+      [0mUnsaved changes[0m
+    [36m</h2>[39m
+    [36m<p[39m
+      [33mclass[39m=[32m"text-muted-foreground text-sm [overflow-wrap:anywhere]"[39m
+      [33mdata-slot[39m=[32m"alert-dialog-description"[39m
+      [33mid[39m=[32m"radix-_r_17_"[39m
+    [36m>[39m
+      [0mYour changes will be lost if you don't save them.[0m
+    [36m</p>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"[39m
+    [33mdata-slot[39m=[32m"alert-dialog-footer"[39m
+  [36m>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [0mCancel[0m
+    [36m</button>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 border-destructive/50 text-destructive hover:bg-destructive/10"[39m
+      [33mdata-slot[39m=[32m"alert-dialog-action"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [0mDiscard changes[0m
+    [36m</button>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"[39m
+      [33mdata-slot[39m=[32m"button"[39m
+    [36m>[39m
+      [0mSave[0m
+    [36m</button>[39m
+  [36m</div>[39m
+[36m</div>[39m
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.test.tsx:202:23
+(fail) a failed save while leaving the settings form stays visible in the original unsaved dialog [1036.19ms]
+
+ 3 pass
+ 1 fail
+ 14 expect() calls
+Ran 4 tests across 1 file. [1.60s]

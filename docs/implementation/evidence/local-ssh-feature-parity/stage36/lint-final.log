@@ -1,0 +1,38 @@
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:925:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    923 │ 									hasUnsavedChanges={() =>
+    924 │ 										documents
+  > 925 │ 											.getDocuments(ui.connection!, deleteWorkspace.id)
+        │ 											              ^^^^^^^^^^^^^^
+    926 │ 											.some((d) => d.dirty || d.pendingSave) ||
+    927 │ 										chatDrafts.hasDrafts({
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:928:15 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    926 │ 											.some((d) => d.dirty || d.pendingSave) ||
+    927 │ 										chatDrafts.hasDrafts({
+  > 928 │ 											...ui.connection!,
+        │ 											   ^^^^^^^^^^^^^^
+    929 │ 											workspaceId: deleteWorkspace.id,
+    930 │ 										})
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:933:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    931 │ 									}
+    932 │ 									onDeleted={(warnings) => {
+  > 933 │ 										const target = ui.connection!;
+        │ 										               ^^^^^^^^^^^^^^
+    934 │ 										setDeleteWorkspace(null);
+    935 │ 
+  
+
+Checked 11 files in 76ms. Fixed 1 file.
+Found 3 warnings.

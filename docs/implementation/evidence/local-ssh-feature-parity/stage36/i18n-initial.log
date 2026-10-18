@@ -1,0 +1,116 @@
+$ bun run --cwd packages/i18n check
+$ bun run extract && bun run compile
+$ bun x --bun lingui extract --clean --overwrite --workers 1
+✔ Done in 22s
+Catalog statistics for locales/{locale}/messages: 
+┌─────────────┬─────────────┬─────────┐
+│[32m Language    [39m│[32m Total count [39m│[32m Missing [39m│
+├─────────────┼─────────────┼─────────┤
+│ en (source) │    6503     │    -    │
+│ cs          │    6503     │    2    │
+│ de          │    6503     │    2    │
+│ es          │    6503     │    2    │
+│ fr          │    6503     │    2    │
+│ id          │    6503     │    2    │
+│ it          │    6503     │    2    │
+│ ja          │    6503     │    2    │
+│ ko          │    6503     │    2    │
+│ nl          │    6503     │    2    │
+│ pl          │    6503     │    2    │
+│ pt-BR       │    6503     │    2    │
+│ ru          │    6503     │    2    │
+│ tr          │    6503     │    2    │
+│ vi          │    6503     │    2    │
+│ zh-CN       │    6503     │    2    │
+│ zh-TW       │    6503     │    2    │
+└─────────────┴─────────────┴─────────┘
+
+(Use "npm run extract" to update catalogs with new messages.)
+(Use "npm run compile" to compile catalogs for production. Alternatively, use bundler plugins: https://lingui.dev/ref/cli#compiling-catalogs-in-ci)
+$ bun x --bun lingui compile --strict --verbose --workers 1
+Compiling message catalogs…
+en ⇒ locales/en/messages.ts
+Error: Failed to compile catalog for locale ja!
+Missing translations after applying fallbackLocales:
+locales/ja/messages.po: Wfy3rU: (Agent settings)
+locales/ja/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale zh-CN!
+Missing translations after applying fallbackLocales:
+locales/zh-CN/messages.po: Wfy3rU: (Agent settings)
+locales/zh-CN/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale fr!
+Missing translations after applying fallbackLocales:
+locales/fr/messages.po: Wfy3rU: (Agent settings)
+locales/fr/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale ko!
+Missing translations after applying fallbackLocales:
+locales/ko/messages.po: Wfy3rU: (Agent settings)
+locales/ko/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale zh-TW!
+Missing translations after applying fallbackLocales:
+locales/zh-TW/messages.po: Wfy3rU: (Agent settings)
+locales/zh-TW/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale es!
+Missing translations after applying fallbackLocales:
+locales/es/messages.po: Wfy3rU: (Agent settings)
+locales/es/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale de!
+Missing translations after applying fallbackLocales:
+locales/de/messages.po: Wfy3rU: (Agent settings)
+locales/de/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale pt-BR!
+Missing translations after applying fallbackLocales:
+locales/pt-BR/messages.po: Wfy3rU: (Agent settings)
+locales/pt-BR/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale it!
+Missing translations after applying fallbackLocales:
+locales/it/messages.po: Wfy3rU: (Agent settings)
+locales/it/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale ru!
+Missing translations after applying fallbackLocales:
+locales/ru/messages.po: Wfy3rU: (Agent settings)
+locales/ru/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale tr!
+Missing translations after applying fallbackLocales:
+locales/tr/messages.po: Wfy3rU: (Agent settings)
+locales/tr/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale pl!
+Missing translations after applying fallbackLocales:
+locales/pl/messages.po: Wfy3rU: (Agent settings)
+locales/pl/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale nl!
+Missing translations after applying fallbackLocales:
+locales/nl/messages.po: Wfy3rU: (Agent settings)
+locales/nl/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale id!
+Missing translations after applying fallbackLocales:
+locales/id/messages.po: Wfy3rU: (Agent settings)
+locales/id/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale cs!
+Missing translations after applying fallbackLocales:
+locales/cs/messages.po: Wfy3rU: (Agent settings)
+locales/cs/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Error: Failed to compile catalog for locale vi!
+Missing translations after applying fallbackLocales:
+locales/vi/messages.po: Wfy3rU: (Agent settings)
+locales/vi/messages.po: TrwtNf: (This configuration changed. Reload before saving.)
+
+Done in 1s
+error: script "compile" exited with code 1
+error: script "check" exited with code 1
+error: script "check:i18n" exited with code 1
