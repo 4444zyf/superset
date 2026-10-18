@@ -1,0 +1,116 @@
+$ bun run --cwd packages/i18n check
+$ bun run extract && bun run compile
+$ bun x --bun lingui extract --clean --overwrite --workers 1
+✔ Done in 14s
+Catalog statistics for locales/{locale}/messages: 
+┌─────────────┬─────────────┬─────────┐
+│[32m Language    [39m│[32m Total count [39m│[32m Missing [39m│
+├─────────────┼─────────────┼─────────┤
+│ en (source) │    6505     │    -    │
+│ cs          │    6505     │    2    │
+│ de          │    6505     │    2    │
+│ es          │    6505     │    2    │
+│ fr          │    6505     │    2    │
+│ id          │    6505     │    2    │
+│ it          │    6505     │    2    │
+│ ja          │    6505     │    2    │
+│ ko          │    6505     │    2    │
+│ nl          │    6505     │    2    │
+│ pl          │    6505     │    2    │
+│ pt-BR       │    6505     │    2    │
+│ ru          │    6505     │    2    │
+│ tr          │    6505     │    2    │
+│ vi          │    6505     │    2    │
+│ zh-CN       │    6505     │    2    │
+│ zh-TW       │    6505     │    2    │
+└─────────────┴─────────────┴─────────┘
+
+(Use "npm run extract" to update catalogs with new messages.)
+(Use "npm run compile" to compile catalogs for production. Alternatively, use bundler plugins: https://lingui.dev/ref/cli#compiling-catalogs-in-ci)
+$ bun x --bun lingui compile --strict --verbose --workers 1
+Compiling message catalogs…
+en ⇒ locales/en/messages.ts
+Error: Failed to compile catalog for locale ja!
+Missing translations after applying fallbackLocales:
+locales/ja/messages.po: 7VpPHA: (Confirm)
+locales/ja/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale zh-CN!
+Missing translations after applying fallbackLocales:
+locales/zh-CN/messages.po: 7VpPHA: (Confirm)
+locales/zh-CN/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale fr!
+Missing translations after applying fallbackLocales:
+locales/fr/messages.po: 7VpPHA: (Confirm)
+locales/fr/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale ko!
+Missing translations after applying fallbackLocales:
+locales/ko/messages.po: 7VpPHA: (Confirm)
+locales/ko/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale zh-TW!
+Missing translations after applying fallbackLocales:
+locales/zh-TW/messages.po: 7VpPHA: (Confirm)
+locales/zh-TW/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale es!
+Missing translations after applying fallbackLocales:
+locales/es/messages.po: 7VpPHA: (Confirm)
+locales/es/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale de!
+Missing translations after applying fallbackLocales:
+locales/de/messages.po: 7VpPHA: (Confirm)
+locales/de/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale pt-BR!
+Missing translations after applying fallbackLocales:
+locales/pt-BR/messages.po: 7VpPHA: (Confirm)
+locales/pt-BR/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale it!
+Missing translations after applying fallbackLocales:
+locales/it/messages.po: 7VpPHA: (Confirm)
+locales/it/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale ru!
+Missing translations after applying fallbackLocales:
+locales/ru/messages.po: 7VpPHA: (Confirm)
+locales/ru/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale tr!
+Missing translations after applying fallbackLocales:
+locales/tr/messages.po: 7VpPHA: (Confirm)
+locales/tr/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale pl!
+Missing translations after applying fallbackLocales:
+locales/pl/messages.po: 7VpPHA: (Confirm)
+locales/pl/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale nl!
+Missing translations after applying fallbackLocales:
+locales/nl/messages.po: 7VpPHA: (Confirm)
+locales/nl/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale id!
+Missing translations after applying fallbackLocales:
+locales/id/messages.po: 7VpPHA: (Confirm)
+locales/id/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale cs!
+Missing translations after applying fallbackLocales:
+locales/cs/messages.po: 7VpPHA: (Confirm)
+locales/cs/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Error: Failed to compile catalog for locale vi!
+Missing translations after applying fallbackLocales:
+locales/vi/messages.po: 7VpPHA: (Confirm)
+locales/vi/messages.po: 2xOCJW: (This action cannot be undone.)
+
+Done in 1s
+error: script "compile" exited with code 1
+error: script "check" exited with code 1
+error: script "check:i18n" exited with code 1

@@ -1,0 +1,38 @@
+packages/host-service/src/trpc/router/settings/agent-configs.test.ts:716:17 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    714 │ 		const caller = createCaller();
+    715 │ 		const before = await caller.catalogWithRevisionV1();
+  > 716 │ 		const first = before.configs[0]!;
+        │ 		              ^^^^^^^^^^^^^^^^^^
+    717 │ 		await caller.update({ id: first.id, patch: { command: "external-agent" } });
+    718 │ 		const external = await caller.catalogWithRevisionV1();
+  
+
+packages/host-service/src/trpc/router/settings/agent-configs.test.ts:734:17 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    732 │ 		const caller = createCaller();
+    733 │ 		let catalog = await caller.catalogWithRevisionV1();
+  > 734 │ 		const first = catalog.configs[0]!;
+        │ 		              ^^^^^^^^^^^^^^^^^^^
+    735 │ 		await expect(
+    736 │ 			caller.applyCatalogChangeV1({
+  
+
+packages/host-service/src/trpc/router/settings/agent-configs.test.ts:769:17 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    767 │ 		const caller = createCaller();
+    768 │ 		let catalog = await caller.catalogWithRevisionV1();
+  > 769 │ 		const first = catalog.configs[0]!;
+        │ 		              ^^^^^^^^^^^^^^^^^^^
+    770 │ 		const removed = await caller.applyCatalogChangeV1({
+    771 │ 			expectedRevision: catalog.revision,
+  
+
+Checked 38 files in 71ms. Fixed 2 files.
+Found 3 warnings.

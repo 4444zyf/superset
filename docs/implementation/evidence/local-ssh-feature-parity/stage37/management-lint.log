@@ -1,0 +1,239 @@
+apps/desktop/src/renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/NewCustomAgentDetail/components/NewCustomAgentDetailView/NewCustomAgentDetailView.tsx:27:47 lint/suspicious/noConfusingVoidType  FIXABLE  ━━━━━━━━━━
+
+  ! void is confusing inside a union type.
+  
+    26 │ export interface NewCustomAgentDetailProps {
+  > 27 │ 	onCreate: (input: CreateCustomAgentInput) => void | Promise<boolean>;
+       │ 	                                             ^^^^
+    28 │ 	onCancel: () => void;
+    29 │ 	/** True while the create request is in flight. */
+  
+  i Unsafe fix: Use undefined instead.
+  
+     25  25 │   
+     26  26 │   export interface NewCustomAgentDetailProps {
+     27     │ - → onCreate:·(input:·CreateCustomAgentInput)·=>·void·|·Promise<boolean>;
+         27 │ + → onCreate:·(input:·CreateCustomAgentInput)·=>·undefined·|·Promise<boolean>;
+     28  28 │   	onCancel: () => void;
+     29  29 │   	/** True while the create request is in flight. */
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteAgentSettings/components/RemoteAgentManager/RemoteAgentManager.tsx:241:54 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    239 │ 				return (
+    240 │ 					value.configs.length === presets.length &&
+  > 241 │ 					value.configs.every((row, i) => sameConfig(row, presets[i]!))
+        │ 					                                                ^^^^^^^^^^^
+    242 │ 				);
+    243 │ 			}
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteAgentSettings/components/RemoteAgentManager/RemoteAgentManager.tsx:129:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on rpc.
+  
+    127 │ 		registry?.changed();
+    128 │ 	};
+  > 129 │ 	useEffect(() => {
+        │ 	^^^^^^^^^
+    130 │ 		mounted.current = true;
+    131 │ 		let active = true;
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    130 │ 		mounted.current = true;
+    131 │ 		let active = true;
+  > 132 │ 		void rpc<Catalog>("catalogWithRevisionV1", "query")
+        │ 		     ^^^
+    133 │ 			.then((value) => {
+    134 │ 				if (active) {
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Either include it or remove the dependency array.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    150 │ → },·[rpc]);
+        │       +++   
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteAgentSettings/components/RemoteAgentManager/RemoteAgentManager.tsx:129:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on setError.
+  
+    127 │ 		registry?.changed();
+    128 │ 	};
+  > 129 │ 	useEffect(() => {
+        │ 	^^^^^^^^^
+    130 │ 		mounted.current = true;
+    131 │ 		let active = true;
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    142 │ 			})
+    143 │ 			.catch((e) => {
+  > 144 │ 				if (active) setError(errorMessage(e));
+        │ 				            ^^^^^^^^
+    145 │ 			});
+    146 │ 		return () => {
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Either include it or remove the dependency array.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    150 │ → },·[setError]);
+        │       ++++++++   
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteAgentSettings/components/RemoteAgentManager/RemoteAgentManager.tsx:151:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on rpc.
+  
+    149 │ 		};
+    150 │ 	}, []);
+  > 151 │ 	useEffect(() => {
+        │ 	^^^^^^^^^
+    152 │ 		if (!selected || selected === NEW) return;
+    153 │ 		let active = true;
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    152 │ 		if (!selected || selected === NEW) return;
+    153 │ 		let active = true;
+  > 154 │ 		void rpc<AgentConfigSnapshot>("getWithRevisionV1", "query", {
+        │ 		     ^^^
+    155 │ 			id: selected,
+    156 │ 		})
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    167 │ → },·[queryKey,·rpc]);
+        │               +++++   
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteAgentSettings/components/RemoteAgentManager/RemoteAgentManager.tsx:151:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on selected.
+  
+    149 │ 		};
+    150 │ 	}, []);
+  > 151 │ 	useEffect(() => {
+        │ 	^^^^^^^^^
+    152 │ 		if (!selected || selected === NEW) return;
+    153 │ 		let active = true;
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    153 │ 		let active = true;
+    154 │ 		void rpc<AgentConfigSnapshot>("getWithRevisionV1", "query", {
+  > 155 │ 			id: selected,
+        │ 			    ^^^^^^^^
+    156 │ 		})
+    157 │ 			.then((value) => {
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    150 │ 	}, []);
+    151 │ 	useEffect(() => {
+  > 152 │ 		if (!selected || selected === NEW) return;
+        │ 		                 ^^^^^^^^
+    153 │ 		let active = true;
+    154 │ 		void rpc<AgentConfigSnapshot>("getWithRevisionV1", "query", {
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    150 │ 	}, []);
+    151 │ 	useEffect(() => {
+  > 152 │ 		if (!selected || selected === NEW) return;
+        │ 		     ^^^^^^^^
+    153 │ 		let active = true;
+    154 │ 		void rpc<AgentConfigSnapshot>("getWithRevisionV1", "query", {
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    167 │ → },·[queryKey,·selected]);
+        │               ++++++++++   
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteAgentSettings/components/RemoteAgentManager/RemoteAgentManager.tsx:151:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on setError.
+  
+    149 │ 		};
+    150 │ 	}, []);
+  > 151 │ 	useEffect(() => {
+        │ 	^^^^^^^^^
+    152 │ 		if (!selected || selected === NEW) return;
+    153 │ 		let active = true;
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    160 │ 			})
+    161 │ 			.catch((e) => {
+  > 162 │ 				if (active && current.current === queryKey) setError(errorMessage(e));
+        │ 				                                            ^^^^^^^^
+    163 │ 			});
+    164 │ 		return () => {
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    167 │ → },·[queryKey,·setError]);
+        │               ++++++++++   
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteAgentSettings/components/RemoteAgentManager/RemoteAgentManager.tsx:178:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook does not specify its dependency on t.
+  
+    176 │ 	const saveRef = useRef(save);
+    177 │ 	saveRef.current = save;
+  > 178 │ 	useEffect(
+        │ 	^^^^^^^^^
+    179 │ 		() =>
+    180 │ 			selected === NEW
+  
+  i This dependency is being used here, but is not specified in the hook dependency list.
+  
+    181 │ 				? registry?.register({
+    182 │ 						id: guardId,
+  > 183 │ 						label: () => t({ message: "New agent" }),
+        │ 						             ^
+    184 │ 						isDirty: () =>
+    185 │ 							!creationSaved.current && Boolean(creation.current?.isDirty()),
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Failing to specify dependencies can result in Effects not updating correctly when state changes.
+    These "stale closures" are a common source of surprising bugs.
+  
+  i Unsafe fix: Add the missing dependency to the list.
+  
+    191 │ → → [selected,·registry,·guardId,·t],
+        │                                 +++  
+
+Skipped 7 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 20 files in 58ms. Fixed 8 files.
+Found 6 errors.
+Found 2 warnings.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while applying fixes.
+  
+

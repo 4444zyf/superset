@@ -1,0 +1,24 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [254.35ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.test.tsx:
+(pass) original agent launch fields save a label to the selected host and keep permissions and prompt settings [112.37ms]
+(pass) a conflicting edit keeps the original input until explicit confirmed reload [100.01ms]
+(pass) a replacement connection loads its own fields and ignores the previous save reply [38.24ms]
+(pass) a failed save while leaving the settings form stays visible in the original unsaved dialog [72.27ms]
+(pass) returning a field to its saved value acknowledges without a host mutation [24.99ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.management.test.tsx:
+(pass) original custom agent form creates a target config only after explicit submit [132.38ms]
+(pass) removing a reviewed agent requires the original confirmation and cancellation never mutates [58.40ms]
+(pass) a lost create reply is acknowledged by readonly stable ID without duplicating or retrying the mutation [79.76ms]
+(pass) stale deletion stays in the confirmation and needs explicit refresh and review before another write [109.31ms]
+(pass) an unsent custom form participates in close protection and cancelling navigation keeps its fields [96.07ms]
+(pass) explicitly discarding a new draft before refresh clears the form and its close guard [108.21ms]
+
+ 12 pass
+ 0 fail
+ 2378 expect() calls
+Ran 12 tests across 3 files. [1.64s]

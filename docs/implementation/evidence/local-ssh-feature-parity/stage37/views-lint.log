@@ -1,0 +1,25 @@
+apps/desktop/src/renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/components/NewCustomAgentDetail/components/NewCustomAgentDetailView/NewCustomAgentDetailView.tsx:27:47 lint/suspicious/noConfusingVoidType  FIXABLE  ━━━━━━━━━━
+
+  ! void is confusing inside a union type.
+  
+    26 │ export interface NewCustomAgentDetailProps {
+  > 27 │ 	onCreate: (input: CreateCustomAgentInput) => void | Promise<boolean>;
+       │ 	                                             ^^^^
+    28 │ 	onCancel: () => void;
+    29 │ 	/** True while the create request is in flight. */
+  
+  i Unsafe fix: Use undefined instead.
+  
+     25  25 │   
+     26  26 │   export interface NewCustomAgentDetailProps {
+     27     │ - → onCreate:·(input:·CreateCustomAgentInput)·=>·void·|·Promise<boolean>;
+         27 │ + → onCreate:·(input:·CreateCustomAgentInput)·=>·undefined·|·Promise<boolean>;
+     28  28 │   	onCancel: () => void;
+     29  29 │   	/** True while the create request is in flight. */
+  
+
+Skipped 1 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 14 files in 29ms. Fixed 6 files.
+Found 1 warning.

@@ -739,3 +739,28 @@ Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取�
 
 
 第123轮产品固定764dbeaf2、脚本a486a67e0，真实Linux/Electron/拥有的SSH `--agent-settings-only`退出0。实际原字段依次保存Label、完整命令/中文emoji环境、prompt/resume/fork参数及stdin模式；未点击启动前计数文件不存在。外部写入改变revision后，失焦保存保留本地Label，远端Label/外部命令不被覆盖；全局窗口关闭Save All显示冲突、不批准关闭，Cancel仍保留输入。原Reload取消保留、明确确认只读入完整外部字段，不改变revision。再次明确保存后，从原预设按钮启动一次，文件精确包含`中文 space 🙂\n`及统一worktree cwd；关闭重开配置/revision一致、计数仍一次，新PTY3553及原三个PTY3253/3265/3259的执行ID/cwd保持。七张相关截图均已实际查看，console错误为空。[第123轮完整原始证据](evidence/local-ssh-feature-parity/source-linux-agent-settings/123)、[阶段三十六红绿/类型/语言/构建](evidence/local-ssh-feature-parity/stage36)。这验证配置与确定性shell探针，不冒称真实供应商Prompt/Resume、macOS或发行DMG通过；Agent新增/删除/重排/恢复默认、图标与自定义预设等继续逐项接入。
+
+
+### 阶段三十七：原Agent目录管理、新建表单与目标端版本检查
+
+第124轮产品仍固定764dbeaf2、脚本e43af5c1b，真实设置页能打开，但没有原Add agent管理入口，按预期退出1，未新增、删除或运行配置；失败截图已实际查看，旧bundle hash已保存。[第124轮旧构建基线](evidence/local-ssh-feature-parity/source-linux-agent-management-baseline/124)。
+
+先为目录读取、稳定ID新增、过期删除/重置、精确重排和恢复默认添加失败测试，再将原host处理函数提取供新版本操作复用。新增catalogWithRevisionV1/applyCatalogChangeV1：完整行集合指纹在事务内比较后执行，旧调用的形状、默认值、错误和返回保持；旧35项加行版本2项及目录4项共41项104断言通过，不新增表或迁移。新workstationAgentManagementV1与字段编辑能力分开，主进程只为明确支持的后端开放新目录路径，并在异步能力查询后复查generation。
+
+提取原AgentsSettingsSidebarView/AgentSidebarRow、NewCustomAgentDetailView及AgentIconPickerView，旧wrapper仍提供原主题与native文件选择；工作站注入本地外观和本机文件选择，复用原字段、菜单、DND、图标选项与128像素缩图。新建配置只在明确Submit或关闭保护Save时写入，稳定UUID与只读恢复避免丢失回复时重复创建；不自动启动命令。删除/恢复/全量重置采用原确认控件，失败保留确认和错误，不自动重新提交；过期目录需明确刷新和重新确认。新建未提交表单登记到已有内存关闭保护，Cancel保留，明确丢弃才清理；补查发现丢弃后刷新仍保留旧输入，新增回归先5通过1失败，修复表单按epoch重置及关闭登记后6项19断言通过。
+
+相关完整回归先86项2649断言/12文件通过；丢弃修复后相关72项2591断言/9文件通过，侧栏按组件目录拆分后12项2378断言/3文件通过。桌面/host类型检查、17语言严格编译、插件及lint检查通过。两个新确认文案已补齐全部语言。正在构建并验实际新建、原拖拽、删除/恢复默认、过期重置和重开，不以组件测试替代真实窗口；配置图标后续编辑、自定义脚本预设/项目范围/隐藏/快捷键等仍待继续接入。
+
+
+第125轮产品/脚本54254eb44，原新建表单、未提交关闭窗口/Cancel、内置图标选择及目标端完整配置新增通过，明确启动前计数文件不存在；随后打开原Agents启动菜单，新项位于原滚动列表底部，脚本未滚动即尝试可见点击，超时退出1。三张相关截图已实际查看，尚未启动命令、排序、删除、恢复或重置。[第125轮原始失败](evidence/local-ssh-feature-parity/source-linux-agent-management-failures/125)。只修脚本使用真实滚轮滚动原菜单，保留全部目录项、实际布局、产品和等待条件；产品仍固定54254eb44继续验收。
+
+
+第126轮产品54254eb44、脚本e24308f23，菜单滚动辅助错误增加8像素内边距，但原菜单实际4像素padding，已可见的首项被错误判成裁切，退出1，未写配置；失败截图已查看。[第126轮脚本失败](evidence/local-ssh-feature-parity/source-linux-agent-management-failures/126)。改按真实菜单与视口边界判断后，第127轮产品仍54254eb44、脚本6c816b61e通过原表单/图标、新建后明确执行一次、原手柄相邻拖拽（含往返及停留）、恢复默认且ID/order保持、取消删除及确认删除且PTY仍活；之后原Add菜单底部Reset入口滚不到，退出1，未执行重置和最终重开。三张拖拽/删除/失败截图已实际查看。[第127轮证据](evidence/local-ssh-feature-parity/source-linux-agent-management-failures/127)。
+
+第128轮产品仍54254eb44，脚本14de7f61b只增加滚动几何记录并将滚轮坐标限制在可见弹层交集，重置入口仍不可达，退出1；记录明确显示hitMenu=true、scrollHeight794/clientHeight681，但菜单scrollTop始终0、外层Dialog却滚动103像素。原DropdownMenu默认modal=false，嵌入当前modal设置Dialog时其portal不在外层滚动锁范围。失败截图已实际查看。[第128轮诊断](evidence/local-ssh-feature-parity/source-linux-agent-management-failures/128)。为原侧栏和图标选择展示组件增加可选menuModal，旧wrapper默认仍false；只有工作站模态设置传true，复用原Radix菜单已有模态/滚动范围，不加手写滚轮搬运。相关12项2378断言及lint通过，重建后用相同真实滚动和几何检查继续验收。
+
+
+第129轮产品f43d544f3、脚本同版本，实际菜单滚动已生效：同样滚轮下菜单scrollTop216、外层Dialog保持0，Reset入口可见可点击。新建/启动/原排序/恢复默认/删除，以及外部写入后过期重置保留确认和数据、Cancel后明确Refresh并重新确认重置均通过。最后关闭重开后，脚本立即查询尚未恢复的descriptor，在正常Reconnecting界面退出1，尚未完成最终读回；三张过期重置/新确认重置/失败截图已实际查看。[第129轮原始证据](evidence/local-ssh-feature-parity/source-linux-agent-management-failures/129)。只修改脚本先等待相同connection/backend/namespace的已认证描述及可用原预设目录，再做最终只读核对；产品保持f43d544f3。
+
+
+第130轮产品固定f43d544f3、脚本9e2f10a04，真实Linux/Electron/拥有的SSH `--agent-management-only`退出0。原新建表单/关闭Cancel/内置图标选择新增自定义配置，显式启动后中文emoji计数一次且cwd精确为统一worktree；原Add菜单新增Pi，原手柄相邻重排（含往返及停留）持久化，原恢复默认保留ID/order。删除取消不写入，确认删除仅移除配置，已启动终端保持。全量重置确认期间外部更新导致CAS拒绝且原确认/数据保留，Cancel后原Refresh重新审阅、再次明确确认才重置；菜单滚动trace证明独立滚动范围生效。关闭重开后目录/revision完整一致、计数仍一次、没有自动重跑；新PTY10966和原三个PTY10689/10701/10695的执行ID/cwd均保持。九张相关截图均已实际查看，console错误为空。[第130轮完整原始证据](evidence/local-ssh-feature-parity/source-linux-agent-management/130)、[阶段三十七红绿/类型/语言/构建](evidence/local-ssh-feature-parity/stage37)。图标原生文件选择、已有配置图标编辑、空参数/空目录持久化、自定义脚本预设、快捷键、真实供应商Agent和macOS仍继续逐项验收，不将当前确定性shell探针等同完整功能清单完成。

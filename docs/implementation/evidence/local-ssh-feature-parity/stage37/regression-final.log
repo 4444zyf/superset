@@ -1,0 +1,96 @@
+bun test v1.4.2 (744846f84)
+
+src/no-main-process-blocking.test.ts:
+(pass) no new main-process blocking call sites > sync subprocess (execSync/spawnSync/execFileSync) [14.63ms]
+(pass) no new main-process blocking call sites > sync recursive fs (rmSync/cpSync) [9.77ms]
+(pass) no new main-process blocking call sites > in-process git client construction [9.56ms]
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [252.81ms]
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.27ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.27ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.09ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.07ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.45ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.15ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.48ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.07ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.15ms]
+(pass) disconnect and app disposal only close client transports [0.08ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.64ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.64ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.66ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.69ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.51ms]
+(pass) attachment and file event readiness require explicit backend capabilities [0.31ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.17ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.23ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.14ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.33ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.25ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.73ms]
+(pass) project script procedures require their own capability and an explicit project [0.31ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.85ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.59ms]
+(pass) setup status is read only with an explicit workspace and its advertised capability [0.18ms]
+(pass) only the advertised read-only terminal agent catalog is exposed to the workstation [0.16ms]
+(pass) versioned agent settings require a target id, capability and current connection [0.18ms]
+(pass) versioned catalog management is gated separately from row editing and rejects stale connections [0.17ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [262.55ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [105.59ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [128.54ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [123.91ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [138.42ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [186.77ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [331.05ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [375.25ms]
+(pass) opening a development server submits its port for forwarding on B [231.85ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [239.39ms]
+(pass) checking an empty operation journal shows a readable result [241.51ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [281.15ms]
+(pass) offline chat drafts remain reviewable and explicitly discardable without a connection or session [428.96ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [54.52ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [52.71ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.test.tsx:
+(pass) original agent launch fields save a label to the selected host and keep permissions and prompt settings [204.15ms]
+(pass) a conflicting edit keeps the original input until explicit confirmed reload [247.38ms]
+(pass) a replacement connection loads its own fields and ignores the previous save reply [137.18ms]
+(pass) a failed save while leaving the settings form stays visible in the original unsaved dialog [161.32ms]
+(pass) returning a field to its saved value acknowledges without a host mutation [41.85ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.management.test.tsx:
+(pass) original custom agent form creates a target config only after explicit submit [194.34ms]
+(pass) removing a reviewed agent requires the original confirmation and cancellation never mutates [76.43ms]
+(pass) a lost create reply is acknowledged by readonly stable ID without duplicating or retrying the mutation [147.17ms]
+(pass) stale deletion stays in the confirmation and needs explicit refresh and review before another write [134.05ms]
+(pass) an unsent custom form participates in close protection and cancelling navigation keeps its fields [336.54ms]
+(pass) explicitly discarding a new draft before refresh clears the form and its close guard [450.90ms]
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [69.47ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [68.32ms]
+(pass) a clean document permits close immediately and unmounting with a dirty prompt cancels the old request [10.10ms]
+(pass) chat draft storage failure blocks a clean-file window close until an explicit successful Save All retry [24.02ms]
+(pass) unmounting while chat draft storage is loading cannot approve the departed renderer's close request [29.68ms]
+(pass) a late chat-draft flush after the close dialog unmounts cannot start a file save [24.26ms]
+(pass) a transient settings draft shares the original window guard and failed Save All cannot approve close [40.24ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:
+(pass) the original default preset surface uses the selected host's config and launches only on an explicit click [42.64ms]
+(pass) older hosts receive no preset queries and late replies cannot populate a different backend [5.23ms]
+(pass) agent settings open the original launch form without launching a terminal [47.09ms]
+(pass) the host's custom configurations remain selectable beyond the first 128 entries [248.20ms]
+
+ 72 pass
+ 0 fail
+ 2591 expect() calls
+Ran 72 tests across 9 files. [6.85s]
