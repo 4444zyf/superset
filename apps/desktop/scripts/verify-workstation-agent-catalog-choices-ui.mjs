@@ -20,10 +20,10 @@ export async function verifyWorkstationAgentCatalogChoicesUi({getPage,click,scre
  await ready();assert.deepEqual((await query('settings.agentConfigs.getWithRevisionV1',{id:first.id})).config.forkArgs,[]);
  await click('button[aria-label="Agent settings"]');await until(()=>evaluate(`Boolean(document.querySelector('${root}'))`),'catalog reopened');
  const deleted=[];let current=await catalog();
- while(current.configs.length){
-  const row=current.configs[0];await select(row.id);await scrollText('Delete agent');await click('text:Delete agent');await until(()=>evaluate(`Boolean(document.querySelector('[role=alertdialog]'))`),'reviewed deletion');await click('text:Delete');
+ for(const expected of initial.configs){
+  const row=current.configs[0];assert.ok(row&&row.id===expected.id);const beforeCount=current.configs.length;await select(row.id);await scrollText('Delete agent');await click('text:Delete agent');await until(()=>evaluate(`Boolean(document.querySelector('[role=alertdialog]'))`),'reviewed deletion');await click('text:Delete');
   current=await until(async()=>{const value=await catalog();return !value.configs.some(c=>c.id===row.id)&&value;},'reviewed row removed');
-  await until(()=>evaluate(`!document.querySelector('[role=alertdialog]')`),'delete confirmation closed');deleted.push(row.id);
+  await until(()=>evaluate(`!document.querySelector('[role=alertdialog]')`),'delete confirmation closed');assert.equal(current.configs.length,beforeCount-1);deleted.push(row.id);
  }
  assert.equal(deleted.length,initial.configs.length);await until(()=>evaluate(`document.querySelector('${root}')?.textContent.includes('No agents yet')`),'original empty state');await screenshot('agent-catalog-all-original-configs-explicitly-removed');
  const empty=await catalog();assert.deepEqual(empty.configs,[]);await closeEditor();await closeReopen();await ready();assert.deepEqual(await catalog(),empty);assert.deepEqual(await controls.verifyWorktreeLocation(workspace.worktreePath),original);
