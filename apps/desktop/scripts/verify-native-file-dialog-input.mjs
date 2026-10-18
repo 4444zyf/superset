@@ -48,7 +48,7 @@ try:
  if action=='cancel':press('Escape')
  elif action=='confirm':press('Return')
  elif action=='choose':
-  chord('l');time.sleep(0.1);chord('v');time.sleep(0.1);press('Return')
+  chord('l');time.sleep(0.1);chord('a');chord('v');time.sleep(0.1);press('Return')
 finally:x.XCloseDisplay(d)
 `,String(dialog.windowId),action],{stdio:'pipe'});
  return dialog;
