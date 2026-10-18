@@ -1,3 +1,4 @@
+import {verifyWorkstationAgentIconsUi} from "./verify-workstation-agent-icons-ui.mjs";
 import {verifyWorkstationAgentCatalogChoicesUi} from "./verify-workstation-agent-catalog-choices-ui.mjs";
 import {verifyWorkstationAgentManagementUi} from "./verify-workstation-agent-management-ui.mjs";
 import {verifyWorkstationAgentSettingsUi} from "./verify-workstation-agent-settings-ui.mjs";
@@ -38,6 +39,7 @@ export async function verifyWorkspaceRestoreUi({
 	closeReopen,
  requestClose,
 	controls,
+	nativeFileDialog,
 	setClipboard,
 	pasteClipboard,
 	inspectClipboardImage,
@@ -495,6 +497,11 @@ export async function verifyWorkspaceRestoreUi({
 		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, filePreviewsOnly: true }, null, 2) + "\n");
 		return;
 	}
+ if (process.argv.includes("--agent-icons-only")) {
+  await click("text:Terminal");await ready();
+  await verifyWorkstationAgentIconsUi({getPage,click,screenshot,closeReopen,controls,output,setClipboard,nativeFileDialog});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,agentIconsOnly:true},null,2)+"\n");return;
+ }
  if (process.argv.includes("--agent-catalog-choices-only")) {
   await click("text:Terminal");await ready();
   await verifyWorkstationAgentCatalogChoicesUi({getPage,click,screenshot,closeReopen,controls,output});

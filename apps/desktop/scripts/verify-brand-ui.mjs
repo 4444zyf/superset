@@ -1,3 +1,4 @@
+import {driveOwnedX11FileDialog} from "./verify-native-file-dialog-input.mjs";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -413,6 +414,10 @@ try {
 								pasteOnOwnedX11Window(id);
 							}
 						: undefined,
+ nativeFileDialog: process.platform==='linux'?async(action)=>{
+ const owner=await main.evaluate(`({ownerWindowId:${electron}.BrowserWindow.getAllWindows()[0].getNativeWindowHandle().readUInt32LE(),ownerPid:process.pid})`);
+ return driveOwnedX11FileDialog({...owner,action});
+ }:undefined,
 				setClipboard: async (value) =>
 					main.evaluate(
 						`(()=>{const e=${electron};e.clipboard.clear();${value.fileUri ? `e.clipboard.writeBuffer('text/uri-list',Buffer.from(${JSON.stringify(value.fileUri + "\r\n")}));` : value.imageBase64 ? `e.clipboard.writeImage(e.nativeImage.createFromBuffer(Buffer.from(${JSON.stringify(value.imageBase64)},'base64')));` : `e.clipboard.writeText(${JSON.stringify(value.text)});`}const image=e.clipboard.readImage();return {formats:e.clipboard.availableFormats(),image:image.isEmpty()?null:{size:image.getSize(),pixelSha256:process.getBuiltinModule('crypto').createHash('sha256').update(image.toBitmap()).digest('hex')}};})()`,
