@@ -17,6 +17,7 @@ import { AGENT_ICON_OPTIONS } from "../../agent-icon-options";
 import { resizeImageDataUrl } from "../../resize-image";
 
 export interface AgentIconPickerProps {
+	menuModal?: boolean;
 	/**
 	 * Current icon: a built-in icon key, an uploaded `data:` image URI, or null
 	 * for the neutral fallback glyph.
@@ -27,6 +28,7 @@ export interface AgentIconPickerProps {
 }
 
 export function AgentIconPickerView({
+	menuModal = false,
 	renderIcon,
 	selectImage,
 	value,
@@ -85,7 +87,7 @@ export function AgentIconPickerView({
 	);
 
 	return (
-		<DropdownMenu>
+		<DropdownMenu modal={menuModal}>
 			<DropdownMenuTrigger asChild>
 				<button
 					type="button"

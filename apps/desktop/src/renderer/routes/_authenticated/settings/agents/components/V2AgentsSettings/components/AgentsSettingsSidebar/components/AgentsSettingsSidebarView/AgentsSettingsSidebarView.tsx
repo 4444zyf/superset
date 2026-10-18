@@ -33,6 +33,7 @@ import {
 import { AgentSidebarRow } from "./components/AgentSidebarRow/AgentSidebarRow";
 
 export interface AgentsSettingsSidebarProps {
+	menuModal?: boolean;
 	configs: HostAgentConfig[];
 	presets: HostAgentPreset[];
 	selectedAgentId: string | null;
@@ -46,6 +47,7 @@ export interface AgentsSettingsSidebarProps {
 }
 
 export function AgentsSettingsSidebarView({
+	menuModal = false,
 	renderIcon,
 	configs,
 	presets,
@@ -85,7 +87,7 @@ export function AgentsSettingsSidebarView({
 	};
 
 	const listHeader = (
-		<DropdownMenu>
+		<DropdownMenu modal={menuModal}>
 			<DropdownMenuTrigger asChild>
 				<button
 					type="button"

@@ -356,6 +356,7 @@ export function RemoteAgentManager({
 							className="min-w-0 [&>div]:w-full [&>div]:max-h-52 md:[&>div]:max-h-none"
 						>
 							<AgentsSettingsSidebarView
+								menuModal
 								configs={catalog?.configs ?? agents}
 								presets={[...HOST_AGENT_PRESETS]}
 								selectedAgentId={selected}

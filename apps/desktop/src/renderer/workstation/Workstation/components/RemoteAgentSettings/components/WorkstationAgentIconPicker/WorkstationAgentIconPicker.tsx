@@ -34,6 +34,7 @@ export function WorkstationAgentIconPicker({
 	return (
 		<>
 			<AgentIconPickerView
+				menuModal
 				value={value}
 				onChange={onChange}
 				disabled={disabled}
