@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { getAgentCommandText } from "../src/renderer/lib/agent-launch-command.ts";
 
 export async function verifyWorkstationAgentSettingsUi({
 	getPage,
@@ -186,7 +187,7 @@ export async function verifyWorkstationAgentSettingsUi({
 	await click("[role=alertdialog] button:last-child");
 	await until(
 		async () =>
-			(await value(field("command"))) === "/external/agent-not-executable",
+			(await value(field("command"))) === getAgentCommandText(external.config),
 	);
 	assert.equal((await snapshot()).revision, external.revision);
 	assert.equal(await value(label), editedLabel);
