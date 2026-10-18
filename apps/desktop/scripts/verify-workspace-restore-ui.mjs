@@ -1,3 +1,4 @@
+import {verifyWorkstationAgentManagementUi} from "./verify-workstation-agent-management-ui.mjs";
 import {verifyWorkstationAgentSettingsUi} from "./verify-workstation-agent-settings-ui.mjs";
 import {verifyWorkstationTerminalPresetsUi} from "./verify-workstation-terminal-presets-ui.mjs";
 import { verifyWorkstationCloseGuardUi } from "./verify-workstation-close-guard-ui.mjs";
@@ -493,6 +494,11 @@ export async function verifyWorkspaceRestoreUi({
 		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, filePreviewsOnly: true }, null, 2) + "\n");
 		return;
 	}
+	if (process.argv.includes("--agent-management-only")) {
+  await click("text:Terminal");await ready();
+  await verifyWorkstationAgentManagementUi({getPage,click,screenshot,closeReopen,requestClose,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,agentManagementOnly:true},null,2)+"\n");return;
+ }
 	if (process.argv.includes("--agent-settings-only")) {
 		await click("text:Terminal");await ready();
 		await verifyWorkstationAgentSettingsUi({getPage,click,screenshot,closeReopen,requestClose,controls,output});
