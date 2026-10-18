@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { getAgentCommandText } from "../src/renderer/lib/agent-launch-command.ts";
+import agentCommand from "../src/renderer/lib/agent-launch-command.ts";
+
+const { getAgentCommandText } = agentCommand;
 
 export async function verifyWorkstationAgentSettingsUi({
 	getPage,
