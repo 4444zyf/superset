@@ -39,16 +39,16 @@ focus=ctypes.c_ulong();revert=ctypes.c_int();x.XGetInputFocus(d,ctypes.byref(foc
 if focus.value!=w: raise RuntimeError('Owned native dialog did not receive focus')
 def press(name):
  c=x.XKeysymToKeycode(d,x.XStringToKeysym(name.encode()));t.XTestFakeKeyEvent(d,c,1,10);t.XTestFakeKeyEvent(d,c,0,10);x.XSync(d,0)
-def chord(name):
- c=x.XKeysymToKeycode(d,x.XStringToKeysym(b'Control_L'));key=x.XKeysymToKeycode(d,x.XStringToKeysym(name.encode()))
+def chord(name,modifier='Control_L'):
+ c=x.XKeysymToKeycode(d,x.XStringToKeysym(modifier.encode()));key=x.XKeysymToKeycode(d,x.XStringToKeysym(name.encode()))
  for k,p in [(c,1),(key,1),(key,0),(c,0)]:t.XTestFakeKeyEvent(d,k,p,10)
  x.XSync(d,0)
 try:
  action=sys.argv[2]
  if action=='cancel':press('Escape')
- elif action=='confirm':press('Return')
+ elif action=='confirm':chord('o','Alt_L')
  elif action=='choose':
-  chord('l');time.sleep(0.1);chord('a');chord('v');time.sleep(0.1);press('Return')
+  chord('l');time.sleep(0.1);chord('a');chord('v');time.sleep(0.1)
 finally:x.XCloseDisplay(d)
 `,String(dialog.windowId),action],{stdio:'pipe'});
  return dialog;
