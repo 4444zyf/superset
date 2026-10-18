@@ -43,6 +43,8 @@ const procedures: Record<string, "query" | "mutation"> = {
 	"workspaces.createSession": "mutation",
 	"terminal.list": "query",
 	"settings.agentConfigs.list": "query",
+	"settings.agentConfigs.catalogWithRevisionV1": "query",
+	"settings.agentConfigs.applyCatalogChangeV1": "mutation",
 	"settings.agentConfigs.getWithRevisionV1": "query",
 	"settings.agentConfigs.updateWithRevisionV1": "mutation",
 	"terminal.createSession": "mutation",
@@ -129,6 +131,7 @@ export class WorkstationController {
 				"workstationChatAttachmentInputV1",
 				"workstationTerminalPresetsV1",
 				"workstationAgentSettingsV1",
+				"workstationAgentManagementV1",
 				"git",
 				"durableOperations",
 				"workspaceViewRestoreV1",
@@ -182,6 +185,18 @@ export class WorkstationController {
 			const features = await this.features(request.connectionId);
 			this.assertGeneration(request.connectionId, request.generation);
 			if (features.capabilities?.workstationAgentSettingsV1 !== true)
+				throw new Error(
+					"This backend does not support the required capability",
+				);
+		}
+
+		if (
+			request.path === "settings.agentConfigs.catalogWithRevisionV1" ||
+			request.path === "settings.agentConfigs.applyCatalogChangeV1"
+		) {
+			const features = await this.features(request.connectionId);
+			this.assertGeneration(request.connectionId, request.generation);
+			if (features.capabilities?.workstationAgentManagementV1 !== true)
 				throw new Error(
 					"This backend does not support the required capability",
 				);

@@ -682,3 +682,104 @@ describe("versioned local agent editing", () => {
 		expect(await caller.getWithRevisionV1({ id: first.id })).toEqual(saved);
 	});
 });
+
+describe("versioned local agent catalog management", () => {
+	it("adds a stable custom ID once and preserves the full launch shape on readonly recovery", async () => {
+		const caller = createCaller();
+		const before = await caller.catalogWithRevisionV1();
+		const id = crypto.randomUUID();
+		const config = {
+			...presetBody("codex"),
+			presetId: "custom",
+			label: "中文 custom 🙂",
+			env: { TEST: "a b" },
+			iconId: "terminal",
+		};
+		const input = {
+			expectedRevision: before.revision,
+			change: { kind: "add" as const, id, config },
+		};
+		const added = await caller.applyCatalogChangeV1(input);
+		expect(added.configs.find((r) => r.id === id)).toMatchObject({
+			...config,
+			id,
+		});
+		await expect(caller.applyCatalogChangeV1(input)).rejects.toMatchObject({
+			code: "CONFLICT",
+		});
+		expect(await caller.catalogWithRevisionV1()).toEqual(added);
+		expect(added.configs.filter((r) => r.id === id)).toHaveLength(1);
+	});
+	it("refuses stale removal and reset after an external config edit", async () => {
+		const caller = createCaller();
+		const before = await caller.catalogWithRevisionV1();
+		const first = before.configs[0];
+		if (!first) throw new Error("Expected seeded agent");
+		await caller.update({ id: first.id, patch: { command: "external-agent" } });
+		const external = await caller.catalogWithRevisionV1();
+		for (const change of [
+			{ kind: "remove" as const, id: first.id },
+			{ kind: "reset" as const },
+		])
+			await expect(
+				caller.applyCatalogChangeV1({
+					expectedRevision: before.revision,
+					change,
+				}),
+			).rejects.toMatchObject({ code: "CONFLICT" });
+		expect(await caller.catalogWithRevisionV1()).toEqual(external);
+	});
+	it("reorders exact IDs atomically and restores a built-in without changing its identity or other rows", async () => {
+		const caller = createCaller();
+		let catalog = await caller.catalogWithRevisionV1();
+		const first = catalog.configs[0];
+		if (!first) throw new Error("Expected seeded agent");
+		await expect(
+			caller.applyCatalogChangeV1({
+				expectedRevision: catalog.revision,
+				change: { kind: "reorder", ids: [first.id, first.id] },
+			}),
+		).rejects.toMatchObject({ code: "BAD_REQUEST" });
+		expect(await caller.catalogWithRevisionV1()).toEqual(catalog);
+		catalog = await caller.applyCatalogChangeV1({
+			expectedRevision: catalog.revision,
+			change: {
+				kind: "reorder",
+				ids: catalog.configs.map((c) => c.id).reverse(),
+			},
+		});
+		expect(catalog.configs.at(-1)?.id).toBe(first.id);
+		await caller.update({
+			id: first.id,
+			patch: { command: "changed", env: { CUSTOM: "x" } },
+		});
+		catalog = await caller.catalogWithRevisionV1();
+		const restored = await caller.applyCatalogChangeV1({
+			expectedRevision: catalog.revision,
+			change: { kind: "restore", id: first.id },
+		});
+		expect(restored.configs.at(-1)).toMatchObject({
+			...presetBody(first.presetId),
+			id: first.id,
+			order: catalog.configs.length - 1,
+		});
+		expect(restored.configs.slice(0, -1)).toEqual(catalog.configs.slice(0, -1));
+	});
+	it("removes only the reviewed row and resets only after fresh catalog review", async () => {
+		const caller = createCaller();
+		let catalog = await caller.catalogWithRevisionV1();
+		const first = catalog.configs[0];
+		if (!first) throw new Error("Expected seeded agent");
+		const removed = await caller.applyCatalogChangeV1({
+			expectedRevision: catalog.revision,
+			change: { kind: "remove", id: first.id },
+		});
+		expect(removed.configs).toEqual(catalog.configs.slice(1));
+		catalog = await caller.applyCatalogChangeV1({
+			expectedRevision: removed.revision,
+			change: { kind: "reset" },
+		});
+		expect(catalog.configs.map((c) => c.presetId)).toEqual(DEFAULT_PRESET_IDS);
+		expect(catalog.configs.some((c) => c.id === first.id)).toBe(false);
+	});
+});

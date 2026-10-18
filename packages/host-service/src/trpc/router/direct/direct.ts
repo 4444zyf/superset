@@ -1,14 +1,14 @@
 import os from "node:os";
-import { managedSetupCompletionRoot } from "../../../direct/managed-paths";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createResolveCwd } from "../../../chat-v3/resolveCwd";
-import { directChatHarnesses } from "../../../direct/chat-readiness";
 import { directAgentProfiles } from "../../../direct/agent-environment";
+import { directChatHarnesses } from "../../../direct/chat-readiness";
 import {
 	beginDirectDrain,
 	directMaintenanceStatus,
 } from "../../../direct/maintenance";
+import { managedSetupCompletionRoot } from "../../../direct/managed-paths";
 import { HOST_SERVICE_VERSION } from "../../../install-source";
 import { supportsWorkspaceRestore } from "../../../terminal/restore-resources";
 import type { DirectBackendIdentity, HostServiceContext } from "../../../types";
@@ -47,6 +47,7 @@ export function describeDirectBackend(
 			workstationWorkspaceRunV1: workspaceViewRestoreV1,
 			workstationTerminalPresetsV1: durableOperations && workspaceViewRestoreV1,
 			workstationAgentSettingsV1: true,
+			workstationAgentManagementV1: true,
 			workstationWorkspaceCleanupV1: durableOperations,
 			workstationWorkspaceSetupV1:
 				durableOperations && managedSetupCompletionRoot() !== null,
@@ -56,7 +57,9 @@ export function describeDirectBackend(
 			chat: true,
 			files: true,
 			attachments: true,
-			workstationChatAttachmentInputV1: Boolean(directAgentProfiles() && process.env.HOST_MANIFEST_DIR),
+			workstationChatAttachmentInputV1: Boolean(
+				directAgentProfiles() && process.env.HOST_MANIFEST_DIR,
+			),
 			git: true,
 			durableOperations,
 			relay: false,

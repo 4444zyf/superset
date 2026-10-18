@@ -123,7 +123,7 @@ function rowFromPreset(
 	};
 }
 
-function listOrdered(db: HostDb): HostAgentConfigRow[] {
+function listOrdered(db: Pick<HostDb, "select">): HostAgentConfigRow[] {
 	return db
 		.select()
 		.from(hostAgentConfigs)
@@ -314,7 +314,237 @@ const addInputSchema = z.object({
 	iconId: iconIdSchema.optional(),
 });
 
+type AgentConfigDb = Pick<HostDb, "select" | "insert" | "update" | "delete">;
+
+function addAgentConfig(
+	db: AgentConfigDb,
+	input: z.infer<typeof addInputSchema>,
+	id: string = randomUUID(),
+) {
+	const existing = listOrdered(db);
+	const nextOrder =
+		existing.length === 0
+			? 0
+			: Math.max(...existing.map((row) => row.displayOrder)) + 1;
+	db.insert(hostAgentConfigs)
+		.values({
+			id,
+			presetId: input.presetId ?? "custom",
+			iconId: input.iconId ?? null,
+			label: input.label,
+			command: input.command,
+			argsJson: JSON.stringify(input.args),
+			promptTransport: input.promptTransport,
+			promptArgsJson: JSON.stringify(input.promptArgs),
+			resumeArgsJson: JSON.stringify(input.resumeArgs),
+			forkArgsJson: JSON.stringify(input.forkArgs),
+			envJson: JSON.stringify(input.env),
+			displayOrder: nextOrder,
+		})
+		.run();
+	const created = db
+		.select()
+		.from(hostAgentConfigs)
+		.where(eq(hostAgentConfigs.id, id))
+		.get();
+	if (!created) {
+		throw new TRPCError({
+			code: "INTERNAL_SERVER_ERROR",
+			message: "Failed to read back inserted host agent config",
+		});
+	}
+	return toOutput(created);
+}
+
+function restoreAgentDefault(db: AgentConfigDb, input: { id: string }) {
+	const existing = db
+		.select()
+		.from(hostAgentConfigs)
+		.where(eq(hostAgentConfigs.id, input.id))
+		.get();
+	if (!existing) {
+		throw new TRPCError({
+			code: "NOT_FOUND",
+			message: `Host agent config not found: ${input.id}`,
+		});
+	}
+
+	const preset = getPresetById(existing.presetId);
+	if (!preset) {
+		throw new TRPCError({
+			code: "BAD_REQUEST",
+			message: `Agent config '${input.id}' has no bundled default`,
+		});
+	}
+
+	db.update(hostAgentConfigs)
+		.set({
+			iconId: null,
+			label: preset.label,
+			command: preset.command,
+			argsJson: JSON.stringify(preset.args),
+			promptTransport: preset.promptTransport,
+			promptArgsJson: JSON.stringify(preset.promptArgs),
+			resumeArgsJson: JSON.stringify(preset.resumeArgs),
+			forkArgsJson: JSON.stringify(preset.forkArgs),
+			envJson: JSON.stringify(preset.env),
+			updatedAt: Date.now(),
+		})
+		.where(eq(hostAgentConfigs.id, input.id))
+		.run();
+
+	const restored = db
+		.select()
+		.from(hostAgentConfigs)
+		.where(eq(hostAgentConfigs.id, input.id))
+		.get();
+	if (!restored) {
+		throw new TRPCError({
+			code: "INTERNAL_SERVER_ERROR",
+			message: "Failed to read back restored host agent config",
+		});
+	}
+	return toOutput(restored);
+}
+
+function removeAgentConfig(db: AgentConfigDb, input: { id: string }) {
+	const existing = db
+		.select({ id: hostAgentConfigs.id })
+		.from(hostAgentConfigs)
+		.where(eq(hostAgentConfigs.id, input.id))
+		.get();
+	if (!existing) {
+		throw new TRPCError({
+			code: "NOT_FOUND",
+			message: `Host agent config not found: ${input.id}`,
+		});
+	}
+	db.delete(hostAgentConfigs).where(eq(hostAgentConfigs.id, input.id)).run();
+	return { success: true as const };
+}
+
+function reorderAgentConfigs(db: AgentConfigDb, input: { ids: string[] }) {
+	const existing = listOrdered(db);
+	const existingIds = new Set(existing.map((row) => row.id));
+	const inputIds = new Set(input.ids);
+	if (inputIds.size !== input.ids.length) {
+		throw new TRPCError({
+			code: "BAD_REQUEST",
+			message: "Reorder ids must be unique",
+		});
+	}
+	if (
+		existingIds.size !== inputIds.size ||
+		input.ids.some((id) => !existingIds.has(id))
+	) {
+		throw new TRPCError({
+			code: "BAD_REQUEST",
+			message: "Reorder ids must match existing configs exactly",
+		});
+	}
+	const now = Date.now();
+	input.ids.forEach((id, index) => {
+		db.update(hostAgentConfigs)
+			.set({ displayOrder: index, updatedAt: now })
+			.where(eq(hostAgentConfigs.id, id))
+			.run();
+	});
+	return listOrdered(db).map(toOutput);
+}
+
+function resetAgentConfigs(db: AgentConfigDb) {
+	const existing = db
+		.select({ id: hostAgentConfigs.id })
+		.from(hostAgentConfigs)
+		.all();
+	if (existing.length > 0) {
+		db.delete(hostAgentConfigs)
+			.where(
+				inArray(
+					hostAgentConfigs.id,
+					existing.map((row) => row.id),
+				),
+			)
+			.run();
+	}
+	const seeds = getDefaultSeedPresets().map((preset, index) =>
+		rowFromPreset(preset, index),
+	);
+	if (seeds.length > 0) {
+		db.insert(hostAgentConfigs).values(seeds).run();
+	}
+	return listOrdered(db).map(toOutput);
+}
+
+function versionedAgentCatalog(db: Pick<HostDb, "select">) {
+	const rows = listOrdered(db);
+	return {
+		configs: rows.map(toOutput),
+		revision: createHash("sha256").update(JSON.stringify(rows)).digest("hex"),
+	};
+}
+
 export const agentConfigsRouter = router({
+	catalogWithRevisionV1: protectedProcedure.query(({ ctx }) => {
+		backfillPresetForkArgs(ctx.db, seedDefaultsIfEmpty(ctx.db));
+		return versionedAgentCatalog(ctx.db);
+	}),
+	applyCatalogChangeV1: protectedProcedure
+		.input(
+			z.object({
+				expectedRevision: z.string().regex(/^[a-f0-9]{64}$/),
+				change: z.discriminatedUnion("kind", [
+					z.object({
+						kind: z.literal("add"),
+						id: z.string().uuid(),
+						config: addInputSchema,
+					}),
+					z.object({ kind: z.literal("remove"), id: z.string().min(1) }),
+					z.object({ kind: z.literal("restore"), id: z.string().min(1) }),
+					z.object({
+						kind: z.literal("reorder"),
+						ids: z.array(z.string().min(1)).min(1),
+					}),
+					z.object({ kind: z.literal("reset") }),
+				]),
+			}),
+		)
+		.mutation(({ ctx, input }) =>
+			ctx.db.transaction((tx) => {
+				const before = versionedAgentCatalog(tx);
+				if (before.revision !== input.expectedRevision)
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "Agent configuration changed",
+					});
+				const change = input.change;
+				switch (change.kind) {
+					case "add": {
+						if (before.configs.some((c) => c.id === change.id))
+							throw new TRPCError({
+								code: "CONFLICT",
+								message: "Agent configuration changed",
+							});
+						addAgentConfig(tx, change.config, change.id);
+						break;
+					}
+					case "remove":
+						removeAgentConfig(tx, change);
+						break;
+					case "restore":
+						restoreAgentDefault(tx, change);
+						break;
+					case "reorder":
+						reorderAgentConfigs(tx, change);
+						break;
+					case "reset":
+						resetAgentConfigs(tx);
+						break;
+				}
+				return versionedAgentCatalog(tx);
+			}),
+		),
+
 	/**
 	 * List configured host agents in persisted order. Seeds bundled defaults
 	 * on first call when no configs exist.
@@ -333,41 +563,7 @@ export const agentConfigsRouter = router({
 	 * `presetId` values are allowed — each row gets a fresh `id`.
 	 */
 	add: protectedProcedure.input(addInputSchema).mutation(({ ctx, input }) => {
-		const existing = listOrdered(ctx.db);
-		const nextOrder =
-			existing.length === 0
-				? 0
-				: Math.max(...existing.map((row) => row.displayOrder)) + 1;
-		const id = randomUUID();
-		ctx.db
-			.insert(hostAgentConfigs)
-			.values({
-				id,
-				presetId: input.presetId ?? "custom",
-				iconId: input.iconId ?? null,
-				label: input.label,
-				command: input.command,
-				argsJson: JSON.stringify(input.args),
-				promptTransport: input.promptTransport,
-				promptArgsJson: JSON.stringify(input.promptArgs),
-				resumeArgsJson: JSON.stringify(input.resumeArgs),
-				forkArgsJson: JSON.stringify(input.forkArgs),
-				envJson: JSON.stringify(input.env),
-				displayOrder: nextOrder,
-			})
-			.run();
-		const created = ctx.db
-			.select()
-			.from(hostAgentConfigs)
-			.where(eq(hostAgentConfigs.id, id))
-			.get();
-		if (!created) {
-			throw new TRPCError({
-				code: "INTERNAL_SERVER_ERROR",
-				message: "Failed to read back inserted host agent config",
-			});
-		}
-		return toOutput(created);
+		return addAgentConfig(ctx.db, input);
 	}),
 
 	getWithRevisionV1: protectedProcedure
@@ -418,77 +614,14 @@ export const agentConfigsRouter = router({
 	restoreDefault: protectedProcedure
 		.input(z.object({ id: z.string().min(1) }))
 		.mutation(({ ctx, input }) => {
-			const existing = ctx.db
-				.select()
-				.from(hostAgentConfigs)
-				.where(eq(hostAgentConfigs.id, input.id))
-				.get();
-			if (!existing) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: `Host agent config not found: ${input.id}`,
-				});
-			}
-
-			const preset = getPresetById(existing.presetId);
-			if (!preset) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: `Agent config '${input.id}' has no bundled default`,
-				});
-			}
-
-			ctx.db
-				.update(hostAgentConfigs)
-				.set({
-					iconId: null,
-					label: preset.label,
-					command: preset.command,
-					argsJson: JSON.stringify(preset.args),
-					promptTransport: preset.promptTransport,
-					promptArgsJson: JSON.stringify(preset.promptArgs),
-					resumeArgsJson: JSON.stringify(preset.resumeArgs),
-					forkArgsJson: JSON.stringify(preset.forkArgs),
-					envJson: JSON.stringify(preset.env),
-					updatedAt: Date.now(),
-				})
-				.where(eq(hostAgentConfigs.id, input.id))
-				.run();
-
-			const restored = ctx.db
-				.select()
-				.from(hostAgentConfigs)
-				.where(eq(hostAgentConfigs.id, input.id))
-				.get();
-			if (!restored) {
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to read back restored host agent config",
-				});
-			}
-			return toOutput(restored);
+			return restoreAgentDefault(ctx.db, input);
 		}),
 
 	/** Delete a single host agent config by id. Throws NOT_FOUND if missing. */
 	remove: protectedProcedure
 		.input(z.object({ id: z.string().min(1) }))
 		.mutation(({ ctx, input }) => {
-			const existing = ctx.db
-				.select({ id: hostAgentConfigs.id })
-				.from(hostAgentConfigs)
-				.where(eq(hostAgentConfigs.id, input.id))
-				.get();
-			if (!existing) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: `Host agent config not found: ${input.id}`,
-				});
-			}
-			ctx.db
-				.delete(hostAgentConfigs)
-				.where(eq(hostAgentConfigs.id, input.id))
-				.run();
-			return { success: true as const };
+			return removeAgentConfig(ctx.db, input);
 		}),
 
 	/**
@@ -500,34 +633,7 @@ export const agentConfigsRouter = router({
 	reorder: protectedProcedure
 		.input(z.object({ ids: z.array(z.string().min(1)).min(1) }))
 		.mutation(({ ctx, input }) => {
-			const existing = listOrdered(ctx.db);
-			const existingIds = new Set(existing.map((row) => row.id));
-			const inputIds = new Set(input.ids);
-			if (inputIds.size !== input.ids.length) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: "Reorder ids must be unique",
-				});
-			}
-			if (
-				existingIds.size !== inputIds.size ||
-				input.ids.some((id) => !existingIds.has(id))
-			) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: "Reorder ids must match existing configs exactly",
-				});
-			}
-			const now = Date.now();
-			ctx.db.transaction((tx) => {
-				input.ids.forEach((id, index) => {
-					tx.update(hostAgentConfigs)
-						.set({ displayOrder: index, updatedAt: now })
-						.where(eq(hostAgentConfigs.id, id))
-						.run();
-				});
-			});
-			return listOrdered(ctx.db).map(toOutput);
+			return ctx.db.transaction((tx) => reorderAgentConfigs(tx, input));
 		}),
 
 	/**
@@ -536,28 +642,6 @@ export const agentConfigsRouter = router({
 	 * table empty.
 	 */
 	resetToDefaults: protectedProcedure.mutation(({ ctx }) => {
-		ctx.db.transaction((tx) => {
-			const existing = tx
-				.select({ id: hostAgentConfigs.id })
-				.from(hostAgentConfigs)
-				.all();
-			if (existing.length > 0) {
-				tx.delete(hostAgentConfigs)
-					.where(
-						inArray(
-							hostAgentConfigs.id,
-							existing.map((row) => row.id),
-						),
-					)
-					.run();
-			}
-			const seeds = getDefaultSeedPresets().map((preset, index) =>
-				rowFromPreset(preset, index),
-			);
-			if (seeds.length > 0) {
-				tx.insert(hostAgentConfigs).values(seeds).run();
-			}
-		});
-		return listOrdered(ctx.db).map(toOutput);
+		return ctx.db.transaction((tx) => resetAgentConfigs(tx));
 	}),
 });

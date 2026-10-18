@@ -24,8 +24,9 @@ import {
 	type AgentConfigEditorHandle,
 	type AgentConfigSnapshot,
 } from "./components/AgentConfigEditor/AgentConfigEditor";
+import { RemoteAgentManager } from "./components/RemoteAgentManager/RemoteAgentManager";
 
-export function RemoteAgentSettings({
+function LegacyRemoteAgentSettings({
 	api,
 	connection,
 	agents,
@@ -263,4 +264,22 @@ export function RemoteAgentSettings({
 			/>
 		</>
 	);
+}
+
+export function RemoteAgentSettings(
+	props: Parameters<typeof LegacyRemoteAgentSettings>[0],
+) {
+	if (props.connection.capabilities?.workstationAgentManagementV1 === true)
+		return (
+			<RemoteAgentManager
+				key={JSON.stringify([
+					props.connection.connectionId,
+					props.connection.backendId,
+					props.connection.namespaceId,
+					props.connection.generation,
+				])}
+				{...props}
+			/>
+		);
+	return <LegacyRemoteAgentSettings {...props} />;
 }

@@ -973,3 +973,46 @@ test("versioned agent settings require a target id, capability and current conne
 	);
 	expect(calls).toHaveLength(2);
 });
+
+test("versioned catalog management is gated separately from row editing and rejects stale connections", async () => {
+	const f = fixture();
+	let enabled = false;
+	const calls: unknown[] = [];
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: {
+				workstationAgentSettingsV1: true,
+				workstationAgentManagementV1: enabled,
+			},
+		}),
+		invoke: async (id, request) => {
+			calls.push({ id, ...request });
+			return { configs: [], revision: "a".repeat(64) };
+		},
+	});
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "settings.agentConfigs.catalogWithRevisionV1",
+		type: "query" as const,
+	};
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"required capability",
+	);
+	expect(calls).toHaveLength(0);
+	enabled = true;
+	await controller.invoke(request);
+	await controller.invoke({
+		...request,
+		path: "settings.agentConfigs.applyCatalogChangeV1",
+		type: "mutation",
+		input: { expectedRevision: "a".repeat(64), change: { kind: "reset" } },
+	});
+	expect(calls).toHaveLength(2);
+	f.nextGeneration();
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"Connection changed",
+	);
+	expect(calls).toHaveLength(2);
+});
