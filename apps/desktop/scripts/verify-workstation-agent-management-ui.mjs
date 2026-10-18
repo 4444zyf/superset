@@ -1,10 +1,10 @@
+import {agentUiDriver} from "./verify-workstation-agent-ui-driver.mjs";
 import assert from "node:assert/strict";
 import { existsSync,readFileSync,writeFileSync } from "node:fs";
 import {join} from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 export async function verifyWorkstationAgentManagementUi({getPage,click,screenshot,closeReopen,requestClose,controls,output}) {
- const evaluate=expression=>getPage().evaluate(expression),root='[data-workstation-agent-settings]';
- const until=async(read,label)=>{for(let i=0;i<200;i++){const value=await read();if(value)return value;await delay(50);}await screenshot('agent-management-failure');throw new Error(`Agent management condition failed: ${label}`);};
+ const {evaluate,root,until,rect,scrollTo,menu,replace,select,closeEditor,scrollText}=agentUiDriver({getPage,click,screenshot,output});
  const scope=await evaluate(`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const {snapshot}=await window.directWorkstation.getWorkspaceView();const target=snapshot.targets.find(t=>t.connectionId===d.connectionId);return {connectionId:d.connectionId,backendId:d.backendId,namespaceId:d.namespaceId,workspaceId:target.workspaces.find(w=>w.tabId===target.activeTabId).workspaceId};})()`);
  const query=(path,input)=>evaluate(`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;if(d.connectionId!==${JSON.stringify(scope.connectionId)}||d.backendId!==${JSON.stringify(scope.backendId)}||d.namespaceId!==${JSON.stringify(scope.namespaceId)})throw new Error('Agent target changed');return window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:${JSON.stringify(path)},type:'query',input:${JSON.stringify(input)}});})()`);
  const workspace=await query('workspace.get',{id:scope.workspaceId}),original=await controls.verifyWorktreeLocation(workspace.worktreePath);
@@ -13,19 +13,6 @@ export async function verifyWorkstationAgentManagementUi({getPage,click,screensh
  await until(()=>evaluate(`Boolean([...document.querySelectorAll('${root} button')].find(e=>e.textContent.trim()==='Add agent'))`),'original Add agent control');
  const catalog=()=>query('settings.agentConfigs.catalogWithRevisionV1');
  const before=await catalog();assert.deepEqual(before.configs,initial);
- const rect=selector=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)return null;const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,top:r.top,bottom:r.bottom};})()`);
- const scrollTo=async(selector)=>{for(let i=0;i<40;i++){const r=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}),d=document.querySelector('${root}');if(!e||!d)return null;const r=e.getBoundingClientRect(),dr=d.getBoundingClientRect();let top=Math.max(dr.top,0)+12,bottom=Math.min(dr.bottom,innerHeight)-12;for(let p=e.parentElement;p&&p!==d;p=p.parentElement){if(/auto|scroll|hidden/.test(getComputedStyle(p).overflowY)&&p.scrollHeight>p.clientHeight){const pr=p.getBoundingClientRect();top=Math.max(top,pr.top);bottom=Math.min(bottom,pr.bottom);}}return {top:r.top,bottom:r.bottom,clipTop:top,clipBottom:bottom,x:Math.min(dr.right-30,Math.max(dr.left+30,r.x+r.width/2)),y:Math.max(dr.top+30,Math.min(dr.bottom-30,(top+bottom)/2))};})()`);if(r&&r.top>=r.clipTop&&r.bottom<=r.clipBottom)return;if(r)await getPage().call('Input.dispatchMouseEvent',{type:'mouseWheel',x:r.x,y:r.y,deltaX:0,deltaY:r.bottom>r.clipBottom?Math.min(450,r.bottom-r.clipBottom+80):-Math.min(450,r.clipTop-r.top+80)});await delay(50);}throw new Error(`Agent management control not scrollable: ${selector}`);};
- const menuTraces=[];
- const menu=async(text)=>{for(let i=0;i<40;i++){
-  const r=await evaluate(`(()=>{const m=document.querySelector('[role=menu]'),e=[...document.querySelectorAll('[role=menuitem]')].find(e=>e.textContent.trim()===${JSON.stringify(text)});if(!m||!e)return null;const r=e.getBoundingClientRect(),mr=m.getBoundingClientRect(),min=Math.max(0,mr.top)+1,max=Math.min(innerHeight,mr.bottom)-1,x=Math.max(1,Math.min(innerWidth-1,mr.x+mr.width/2)),y=(min+max)/2,hit=document.elementFromPoint(x,y);return {top:r.top,bottom:r.bottom,min,max,x,y,menuTop:mr.top,menuBottom:mr.bottom,scrollTop:m.scrollTop,scrollHeight:m.scrollHeight,clientHeight:m.clientHeight,overflowY:getComputedStyle(m).overflowY,hitMenu:m.contains(hit),hitTag:hit?.tagName,dialogScroll:document.querySelector('${root}')?.scrollTop};})()`);
-  menuTraces.push({text,attempt:i,geometry:r});writeFileSync(join(output,'agent-management-menu-trace.json'),JSON.stringify(menuTraces,null,2)+'\n');
-  if(r&&r.top>=r.min&&r.bottom<=r.max){await click('menu:'+text);return;}
-  if(r)await getPage().call('Input.dispatchMouseEvent',{type:'mouseWheel',x:r.x,y:r.y,deltaX:0,deltaY:r.bottom>r.max?250:-250});
-  await delay(50);
- }throw new Error('Original menu item not scrollable: '+text);};
- const replace=async(selector,text)=>{await scrollTo(selector);await click(selector);for(const type of ['keyDown','keyUp'])await getPage().call('Input.dispatchKeyEvent',{type,key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:process.platform==='darwin'?4:2,commands:['selectAll']});await getPage().call('Input.insertText',{text});await until(()=>evaluate(`document.querySelector(${JSON.stringify(selector)})?.value===${JSON.stringify(text)}`),'typed field');};
- const select=async(id)=>{const selector=`${root} [data-agent-config-id="${id}"] > button:first-of-type`;await scrollTo(selector);await click(selector);await until(()=>evaluate(`Boolean(document.querySelector('${root} input[id="${id}-command"]'))`),'selected agent fields');};
- const closeEditor=async()=>{await scrollTo(`${root} [data-slot=dialog-close]`);await click(`${root} [data-slot=dialog-close]`);await until(()=>evaluate(`!document.querySelector('${root}')`),'editor closed');};
  const label='Fixture custom manager agent';const countPath=join(workspace.worktreePath,'managed-agent-runs.txt');
  await scrollTo(`${root} button[aria-haspopup="menu"]`);await click(`${root} button[aria-haspopup="menu"]`);await menu('Custom agent…');
  await replace('#new-agent-label',label);
@@ -60,7 +47,6 @@ export async function verifyWorkstationAgentManagementUi({getPage,click,screensh
  await screenshot('agent-management-original-drag-reordered');
  await replace(`${root} input[aria-label="Label"]`,'Temporarily edited Pi');await scrollTo(`${root} h2`);await click(`${root} h2`);
  await until(async()=>(await catalog()).configs.find(c=>c.id===builtin.id)?.label==='Temporarily edited Pi','built-in edit saved');
- const scrollText=async(text)=>{const selector=await evaluate(`(()=>{const e=[...document.querySelectorAll('${root} button')].find(e=>e.textContent.trim()===${JSON.stringify(text)});if(!e)return null;const all=[...document.querySelectorAll('${root} button')];return all.indexOf(e);})()`);assert.ok(Number.isInteger(selector)&&selector>=0);for(let i=0;i<40;i++){const r=await evaluate(`(()=>{const e=[...document.querySelectorAll('${root} button')][${selector}],d=document.querySelector('${root}'),r=e.getBoundingClientRect(),dr=d.getBoundingClientRect();return {top:r.top,bottom:r.bottom,min:dr.top+12,max:dr.bottom-12,x:dr.right-40,y:dr.top+dr.height/2};})()`);if(r.top>=r.min&&r.bottom<=r.max)return;await getPage().call('Input.dispatchMouseEvent',{type:'mouseWheel',x:r.x,y:r.y,deltaX:0,deltaY:r.bottom>r.max?400:-400});await delay(50);}throw new Error('Cannot scroll original action '+text);};
  await scrollText('Restore defaults');await click('text:Restore defaults');await until(()=>evaluate(`Boolean(document.querySelector('[role=alertdialog]'))`),'restore confirmation');await click('text:Confirm');await until(()=>evaluate(`!document.querySelector('[role=alertdialog]')`),'restore complete');
  const restored=(await catalog()).configs.find(c=>c.id===builtin.id);assert.deepEqual(restored,{...builtin,order:reordered.configs.find(c=>c.id===builtin.id).order});
  await screenshot('agent-management-restored-built-in-keeps-id-and-order');
