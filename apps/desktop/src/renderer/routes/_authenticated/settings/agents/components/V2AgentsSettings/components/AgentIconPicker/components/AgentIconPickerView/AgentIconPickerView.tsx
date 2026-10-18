@@ -109,7 +109,7 @@ export function AgentIconPickerView({
 			<DropdownMenuContent align="start" className="w-48">
 				<DropdownMenuItem
 					className="gap-2"
-					disabled={isProcessing}
+					disabled={disabled || isProcessing}
 					onSelect={(e) => {
 						e.preventDefault();
 						void handleUpload();
@@ -122,7 +122,11 @@ export function AgentIconPickerView({
 					{uploaded ? <Check className="size-3.5 shrink-0" /> : null}
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem className="gap-2" onSelect={() => onChange(null)}>
+				<DropdownMenuItem
+					className="gap-2"
+					disabled={disabled || isProcessing}
+					onSelect={() => onChange(null)}
+				>
 					{renderIcon({
 						iconId: null,
 						presetId: "custom",
@@ -138,6 +142,7 @@ export function AgentIconPickerView({
 					<DropdownMenuItem
 						key={option.id}
 						className="gap-2"
+						disabled={disabled || isProcessing}
 						onSelect={() => onChange(option.id)}
 					>
 						{renderIcon({

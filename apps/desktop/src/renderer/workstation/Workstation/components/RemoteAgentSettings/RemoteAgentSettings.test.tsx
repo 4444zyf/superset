@@ -39,7 +39,7 @@ const connection: DirectDescriptor = {
 	generation: 3,
 	capabilities: { workstationAgentSettingsV1: true },
 };
-function fixture(conflict = false) {
+function fixture(conflict: boolean | "iconRejected" = false) {
 	let snapshot = { config, revision: "a".repeat(64) };
 	const calls: DirectRpc[] = [];
 	const changed: HostAgentConfig[] = [];
@@ -47,6 +47,7 @@ function fixture(conflict = false) {
 		rpc: async (r: DirectRpc) => {
 			calls.push(r);
 			if (r.type === "query") return snapshot;
+			if (conflict === "iconRejected") throw new Error("Icon rejected");
 			if (conflict) {
 				snapshot = {
 					config: {
@@ -219,4 +220,56 @@ test("returning a field to its saved value acknowledges without a host mutation"
 	fireEvent.blur(label);
 	expect(Boolean(screen.queryByText("Saved"))).toBe(true);
 	expect(f.calls.filter((r) => r.type === "mutation")).toHaveLength(0);
+});
+
+test("the original icon picker saves an existing agent icon without changing launch permissions", async () => {
+	const f = fixture();
+	await screen.findByRole("textbox", { name: "Label" });
+	fireEvent.pointerDown(
+		await screen.findByRole("button", { name: "No icon" }),
+		{ button: 0, ctrlKey: false },
+	);
+	fireEvent.click(await screen.findByRole("menuitem", { name: "Gemini" }));
+	await waitFor(() => expect(f.changed).toHaveLength(1));
+	expect(f.calls.find((c) => c.type === "mutation")).toMatchObject({
+		connectionId: "ssh",
+		generation: 3,
+		input: {
+			expectedRevision: "a".repeat(64),
+			patch: {
+				iconId: "gemini",
+				command: config.command,
+				args: config.args,
+				env: config.env,
+			},
+		},
+	});
+	expect(f.changed[0]?.iconId).toBe("gemini");
+});
+test("a conflicting icon save keeps the chosen icon and cannot acknowledge another stored icon", async () => {
+	const f = fixture(true);
+	await screen.findByRole("textbox", { name: "Label" });
+	fireEvent.pointerDown(
+		await screen.findByRole("button", { name: "No icon" }),
+		{ button: 0, ctrlKey: false },
+	);
+	fireEvent.click(await screen.findByRole("menuitem", { name: "Gemini" }));
+	await screen.findByText("This configuration changed. Reload before saving.");
+	expect(Boolean(screen.queryByRole("button", { name: "Gemini" }))).toBe(true);
+	expect(f.changed).toHaveLength(0);
+	expect(f.calls.filter((c) => c.type === "mutation")).toHaveLength(1);
+});
+
+test("a rejected icon write cannot be acknowledged by an unchanged readonly row", async () => {
+	const f = fixture("iconRejected");
+	await screen.findByRole("textbox", { name: "Label" });
+	fireEvent.pointerDown(
+		await screen.findByRole("button", { name: "No icon" }),
+		{ button: 0, ctrlKey: false },
+	);
+	fireEvent.click(await screen.findByRole("menuitem", { name: "Gemini" }));
+	await screen.findByText("Icon rejected");
+	expect(f.changed).toHaveLength(0);
+	expect(Boolean(screen.queryByRole("button", { name: "Gemini" }))).toBe(true);
+	expect(f.calls.filter((c) => c.type === "mutation")).toHaveLength(1);
 });

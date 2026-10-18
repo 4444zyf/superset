@@ -31,6 +31,7 @@ import type {
 } from "../../../../../../../shared/direct-workstation";
 import { WorkstationEditorGuardsContext } from "../../../../providers/WorkstationEditorGuards/workstation-editor-guards";
 import { useWorkstationAppearance } from "../../../../providers/WorkstationPreferencesContext/WorkstationPreferencesContext";
+import { WorkstationAgentIconPicker } from "../WorkstationAgentIconPicker/WorkstationAgentIconPicker";
 
 export interface AgentConfigSnapshot {
 	config: HostAgentConfig;
@@ -44,6 +45,7 @@ export interface AgentConfigEditorHandle {
 }
 const fieldsOf = (config: HostAgentConfig) => ({
 	label: config.label,
+	iconId: config.iconId,
 	commandText: getAgentCommandText(config),
 	promptArgsText: joinArgs(config.promptArgs),
 	resumeArgsText: joinArgs(config.resumeArgs),
@@ -53,6 +55,7 @@ const fieldsOf = (config: HostAgentConfig) => ({
 type Fields = ReturnType<typeof fieldsOf>;
 const patchOf = (fields: Fields) => ({
 	label: fields.label.trim(),
+	iconId: fields.iconId,
 	...parseAgentCommandText(fields.commandText),
 	promptArgs: parseArgs(fields.promptArgsText),
 	resumeArgs: parseArgs(fields.resumeArgsText),
@@ -61,6 +64,7 @@ const patchOf = (fields: Fields) => ({
 });
 const matches = (config: HostAgentConfig, patch: ReturnType<typeof patchOf>) =>
 	config.label === patch.label &&
+	config.iconId === patch.iconId &&
 	!isAgentCommandPatchChanged(config, patch) &&
 	config.promptTransport === patch.promptTransport &&
 	JSON.stringify(config.promptArgs) === JSON.stringify(patch.promptArgs) &&
@@ -275,6 +279,16 @@ export function AgentConfigEditor({
 						value={fields.label}
 						onChange={(e) => change("label", e.target.value)}
 						onBlur={() => void save()}
+					/>
+				</Section>
+				<Section title={t({ message: "Icon" })}>
+					<WorkstationAgentIconPicker
+						value={fields.iconId}
+						disabled={busy}
+						onChange={(value) => {
+							change("iconId", value);
+							void save();
+						}}
 					/>
 				</Section>
 				<AgentLaunchFields
