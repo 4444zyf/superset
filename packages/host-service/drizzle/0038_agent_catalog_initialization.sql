@@ -1,0 +1,1 @@
+ALTER TABLE `host_settings` ADD `agent_catalog_initialized` integer DEFAULT false NOT NULL;

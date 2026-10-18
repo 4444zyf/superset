@@ -136,6 +136,11 @@ export const projects = sqliteTable(
  */
 export const hostSettings = sqliteTable("host_settings", {
 	id: integer().primaryKey().default(1),
+	agentCatalogInitialized: integer("agent_catalog_initialized", {
+		mode: "boolean",
+	})
+		.notNull()
+		.default(false),
 	worktreeBaseDir: text("worktree_base_dir"),
 	branchPrefixMode: text("branch_prefix_mode").$type<BranchPrefixMode>(),
 	branchPrefixCustom: text("branch_prefix_custom"),
