@@ -150,6 +150,8 @@ export function AgentConfigEditor({
 		if (matches(base.current.config, patch)) {
 			dirty.current = false;
 			registry?.changed();
+			setSaved(true);
+			setError(null);
 			return true;
 		}
 		setPending(true);

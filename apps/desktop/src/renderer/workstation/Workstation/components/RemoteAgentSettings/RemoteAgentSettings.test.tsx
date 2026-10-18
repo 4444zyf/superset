@@ -210,3 +210,13 @@ test("a failed save while leaving the settings form stays visible in the origina
 		(screen.getByRole("textbox", { name: "Label" }) as HTMLInputElement).value,
 	).toBe("Keep this label");
 });
+
+test("returning a field to its saved value acknowledges without a host mutation", async () => {
+	const f = fixture();
+	const label = await screen.findByRole("textbox", { name: "Label" });
+	fireEvent.change(label, { target: { value: "Temporary label" } });
+	fireEvent.change(label, { target: { value: config.label } });
+	fireEvent.blur(label);
+	expect(Boolean(screen.queryByText("Saved"))).toBe(true);
+	expect(f.calls.filter((r) => r.type === "mutation")).toHaveLength(0);
+});

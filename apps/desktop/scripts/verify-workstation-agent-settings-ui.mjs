@@ -128,9 +128,9 @@ export async function verifyWorkstationAgentSettingsUi({
 	await replace(field("resume-args"), "resume --continue");
 	await blur();
 	await saved((config) => config.resumeArgs.join(" ") === "resume --continue");
-	await replace(field("fork-args"), "fork {sessionId}");
+	await replace(field("fork-args"), "fork --from {sessionId}");
 	await blur();
-	await saved((config) => config.forkArgs.join(" ") === "fork {sessionId}");
+	await saved((config) => config.forkArgs.join(" ") === "fork --from {sessionId}");
 	const mode = `${root} button[aria-label="Prompt transport: stdin"]`;
 	await scrollTo(mode);
 	await click(mode);
@@ -200,7 +200,7 @@ export async function verifyWorkstationAgentSettingsUi({
 	const final = await saved((config) => config.label === finalLabel);
 	assert.deepEqual(final.config.promptArgs, ["--prompt"]);
 	assert.deepEqual(final.config.resumeArgs, ["resume", "--continue"]);
-	assert.deepEqual(final.config.forkArgs, ["fork", "{sessionId}"]);
+	assert.deepEqual(final.config.forkArgs, ["fork", "--from", "{sessionId}"]);
 	assert.equal(final.config.promptTransport, "stdin");
 	assert.equal(final.config.env.REMIX_EDITOR_TEST, "中文 space 🙂");
 	assert.equal(existsSync(countPath), false);
