@@ -764,3 +764,17 @@ Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取�
 
 
 第130轮产品固定f43d544f3、脚本9e2f10a04，真实Linux/Electron/拥有的SSH `--agent-management-only`退出0。原新建表单/关闭Cancel/内置图标选择新增自定义配置，显式启动后中文emoji计数一次且cwd精确为统一worktree；原Add菜单新增Pi，原手柄相邻重排（含往返及停留）持久化，原恢复默认保留ID/order。删除取消不写入，确认删除仅移除配置，已启动终端保持。全量重置确认期间外部更新导致CAS拒绝且原确认/数据保留，Cancel后原Refresh重新审阅、再次明确确认才重置；菜单滚动trace证明独立滚动范围生效。关闭重开后目录/revision完整一致、计数仍一次、没有自动重跑；新PTY10966和原三个PTY10689/10701/10695的执行ID/cwd均保持。九张相关截图均已实际查看，console错误为空。[第130轮完整原始证据](evidence/local-ssh-feature-parity/source-linux-agent-management/130)、[阶段三十七红绿/类型/语言/构建](evidence/local-ssh-feature-parity/stage37)。图标原生文件选择、已有配置图标编辑、空参数/空目录持久化、自定义脚本预设、快捷键、真实供应商Agent和macOS仍继续逐项验收，不将当前确定性shell探针等同完整功能清单完成。
+
+
+### 阶段三十八：显式清空参数和空Agent目录
+
+新增失败测试先复现缺少保留明确选择的新接口（旧41项仍通过、新2项失败）。原V1/list语义包含空表自动播种和内置fork空参数补全，不能用这些读取路径来保留用户清空选择。为运行机器私有SQLite的host_settings增加agent_catalog_initialized布尔标记，使用host-service的Drizzle生成0038迁移，迁移与接口实现分开提交；没有修改packages/db云端迁移。仅增加单行设置的非空false默认列，没有类型转换或数据重写。拥有的内存SQLite从0037迁到0038并再次迁移回放，原worktree/branch-prefix/vendor-profile字段保持，初始化标记默认false且设true后重复迁移保持；原始脚本与日志保留。
+
+新增可选workstationAgentCatalogV2以及catalogWithRevisionV2/applyCatalogChangeV2：在事务内仅首次初始化播种，之后读取不补回用户清空的fork，也不复活被明确删空的目录；显式Reset仍复用原默认值处理。目录集合CAS和稳定ID新增复用同一原处理器。旧list/V1输入、返回、播种和补全语义保持，旧客户端行为不改变。客户端与主进程分别检查V2能力，异步查询后重新验证generation；新工作站预设栏/管理页优先V2，旧后端继续原已支持路径。原AgentSettingsEmptyState提取复用，空目录显示原提示和Add菜单，设置按钮仍可打开，不停在Loading或禁用管理。
+
+前端/主进程相关75项2614断言/9文件、host原设置及新选择44项110断言、额外主进程读/写能力门控32项113断言通过；桌面/host类型、17语言严格编译、插件和lint通过。新保留原机器字段测试最初未收窄可空查询结果导致类型失败，补充明确存在检查后通过，没有修改运行时数据合同。
+
+第131轮产品仍固定f43d544f3、脚本2c6363a6c，真实原Fork字段清空、失焦后显示Saved，但该产品使用的V1目录读取重新补回Claude默认`--resume {sessionId} --fork-session`；只读get与明确选择不一致，断言按预期退出1。失败截图已实际查看，UI输入与实际行的读回JSON均保留；尚未进入目录逐项删除或重开空目录。[第131轮旧构建基线](evidence/local-ssh-feature-parity/source-linux-agent-catalog-choices-baseline/131)。新版本正在构建，再用原控件逐项删除全部默认配置并验空目录重开、原Add只恢复所选一项和已有PTY保持。
+
+
+第132轮产品固定8242be6aa、脚本e6682f193，真实Linux/Electron/拥有的SSH `--agent-catalog-choices-only`退出0：原Fork字段清空、Saved后V2目录/行读回为空，关闭重开仍为空；通过原Delete agent/确认逐项移除全部22个已审阅默认ID，每步计数精确减一，原空状态出现。再次关闭重开后目录仍为空/revision一致，无默认项复活，设置仍可打开。经原Add菜单只新增Pi，关闭重开仅此一项/revision保持；没有启动Agent或新增PTY，原三个PTY13615/13627/13621的执行ID/cwd均保持。五张相关截图均已实际查看。[第132轮完整证据](evidence/local-ssh-feature-parity/source-linux-agent-catalog-choices/132)、[阶段三十八迁移回放/红绿/类型/语言/构建](evidence/local-ssh-feature-parity/stage38)。共享真实输入/原菜单滚动驱动从前一验收提取复用；清空通过真实Backspace，删除循环限定原审阅ID且验证每步减一，不用无限循环掩盖重播种。新V2客户端保留明确选择，旧list/V1的兼容语义仍保留；原CLI本地目标接入与新读取适配继续列在待办。真实供应商Agent、macOS和原生图标文件选择仍未由此验证。

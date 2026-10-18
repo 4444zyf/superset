@@ -1,0 +1,27 @@
+apps/desktop/src/renderer/routes/_authenticated/settings/agents/components/V2AgentsSettings/V2AgentsSettings.tsx:12:8 lint/correctness/noUnusedImports  FIXABLE  ━━━━━━━━━━
+
+  ! This import is unused.
+  
+    10 │ import { useMutation, useQueryClient } from "@tanstack/react-query";
+    11 │ import { useNavigate } from "@tanstack/react-router";
+  > 12 │ import { Bot } from "lucide-react";
+       │        ^^^^^^^
+    13 │ import { useEffect, useRef, useState } from "react";
+    14 │ import {
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+     10  10 │   import { useMutation, useQueryClient } from "@tanstack/react-query";
+     11  11 │   import { useNavigate } from "@tanstack/react-router";
+     12     │ - import·{·Bot·}·from·"lucide-react";
+     13  12 │   import { useEffect, useRef, useState } from "react";
+     14  13 │   import {
+  
+
+Skipped 1 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 50 files in 114ms. Fixed 10 files.
+Found 1 warning.

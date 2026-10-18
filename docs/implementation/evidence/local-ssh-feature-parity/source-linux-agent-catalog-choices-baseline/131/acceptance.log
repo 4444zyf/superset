@@ -1,0 +1,26 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ [
++   '--resume',
++   '{sessionId}',
++   '--fork-session'
++ ]
+- []
+
+    at verifyWorkstationAgentCatalogChoicesUi (file:///workspace/superset/apps/desktop/scripts/verify-workstation-agent-catalog-choices-ui.mjs:17:65)
+    at async verifyWorkspaceRestoreUi (file:///workspace/superset/apps/desktop/scripts/verify-workspace-restore-ui.mjs:500:3)
+    at async <anonymous> (/workspace/superset/apps/desktop/scripts/verify-brand-ui.mjs:504:4) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [ '--resume', '{sessionId}', '--fork-session' ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

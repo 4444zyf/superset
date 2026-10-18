@@ -1,0 +1,601 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.36ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.35ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.12ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.10ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.29ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.19ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.50ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.02ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.07ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.14ms]
+(pass) disconnect and app disposal only close client transports [0.11ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.69ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.67ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.45ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.53ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.52ms]
+(pass) attachment and file event readiness require explicit backend capabilities [0.30ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.13ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.16ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.10ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.44ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.29ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.73ms]
+(pass) project script procedures require their own capability and an explicit project [0.38ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.80ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.50ms]
+(pass) setup status is read only with an explicit workspace and its advertised capability [0.18ms]
+(pass) only the advertised read-only terminal agent catalog is exposed to the workstation [0.17ms]
+(pass) versioned agent settings require a target id, capability and current connection [0.25ms]
+(pass) versioned catalog management is gated separately from row editing and rejects stale connections [0.24ms]
+1019 | 
+1020 | test("preserved agent catalog choices require the V2 capability independently of V1 management",async()=>{
+1021 |  const f=fixture();let enabled=false;const calls:unknown[]=[];
+1022 |  const controller=new WorkstationController({...f.manager,getVerifiedDescription:()=>({capabilities:{workstationAgentManagementV1:true,workstationAgentCatalogV2:enabled}}),invoke:async(_id,r)=>{calls.push(r);return {configs:[],revision:"a".repeat(64)};}});
+1023 |  const request={connectionId:"machine",generation:1,path:"settings.agentConfigs.catalogWithRevisionV2",type:"query" as const};
+1024 |  await expect(controller.invoke(request)).rejects.toThrow("required capability");expect(calls).toHaveLength(0);
+                                                         ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "required capability"
+Received message: "Unsupported workstation procedure"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:1024:51)
+(fail) preserved agent catalog choices require the V2 capability independently of V1 management [0.46ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.management.test.tsx:
+(pass) original custom agent form creates a target config only after explicit submit [258.52ms]
+(pass) removing a reviewed agent requires the original confirmation and cancellation never mutates [90.46ms]
+(pass) a lost create reply is acknowledged by readonly stable ID without duplicating or retrying the mutation [114.80ms]
+(pass) stale deletion stays in the confirmation and needs explicit refresh and review before another write [103.01ms]
+(pass) an unsent custom form participates in close protection and cancelling navigation keeps its fields [112.32ms]
+(pass) explicitly discarding a new draft before refresh clears the form and its close guard [114.87ms]
+158 |   });
+159 | }
+160 | function waitForWrapper(callback, options) {
+161 |   // create the error here so its stack trace is as close to the
+162 |   // calling code as possible
+163 |   const stackTraceError = new Error('STACK_TRACE_MESSAGE');
+                                    ^
+TestingLibraryElementError: Unable to find an element with the text: No agents yet. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-scroll-locked[39m=[32m"1"[39m
+  [33mstyle[39m=[32m"pointer-events: none;"[39m
+[36m>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-slot[39m=[32m"dialog-overlay"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-describedby[39m=[32m"radix-_r_6r_"[39m
+    [33maria-labelledby[39m=[32m"radix-_r_6q_"[39m
+    [33mclass[39m=[32m"bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 grid max-h-[85vh] min-w-0 grid-cols-[minmax(0,1fr)] overflow-y-auto sm:max-w-5xl"[39m
+    [33mdata-slot[39m=[32m"dialog-content"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mdata-workstation-agent-settings[39m=[32m"true"[39m
+    [33mid[39m=[32m"radix-_r_6p_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"flex flex-col gap-2 text-center sm:text-left"[39m
+      [33mdata-slot[39m=[32m"dialog-header"[39m
+    [36m>[39m
+      [36m<h2[39m
+        [33mclass[39m=[32m"text-lg leading-none font-semibold"[39m
+        [33mdata-slot[39m=[32m"dialog-title"[39m
+        [33mid[39m=[32m"radix-_r_6q_"[39m
+      [36m>[39m
+        [0mAgents[0m
+      [36m</h2>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-muted-foreground text-sm"[39m
+        [33mdata-slot[39m=[32m"dialog-description"[39m
+        [33mid[39m=[32m"radix-_r_6r_"[39m
+      [36m>[39m
+        [0mTerminal agent launch configuration[0m
+      [36m</p>[39m
+    [36m</div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"flex items-center gap-2"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+      [36m>[39m
+        [0mRefresh[0m
+      [36m</button>[39m
+    [36m</div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"grid min-w-0 md:grid-cols-[16rem_minmax(0,1fr)]"[39m
+    [36m>[39m
+      [36m<fieldset[39m
+        [33mclass[39m=[32m"min-w-0 [&>div]:w-full [&>div]:max-h-52 md:[&>div]:max-h-none"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"w-64 shrink-0 border-r overflow-y-auto"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"p-3 space-y-3"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-center gap-1.5"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"relative flex-1 min-w-0"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"[39m
+                  [33mfill[39m=[32m"currentColor"[39m
+                  [33mheight[39m=[32m"1em"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-width[39m=[32m"0"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"1em"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33mclip-rule[39m=[32m"evenodd"[39m
+                    [33md[39m=[32m"M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"[39m
+                    [33mfill-rule[39m=[32m"evenodd"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+                [36m<input[39m
+                  [33maria-label[39m=[32m"Filter agents"[39m
+                  [33mclass[39m=[32m"w-full h-8 pl-8 pr-2 text-sm bg-accent/50 rounded-md border-0 outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground"[39m
+                  [33mplaceholder[39m=[32m"Filter agents..."[39m
+                  [33mtype[39m=[32m"text"[39m
+                  [33mvalue[39m=[32m""[39m
+                [36m/>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<button[39m
+              [33maria-expanded[39m=[32m"false"[39m
+              [33maria-haspopup[39m=[32m"menu"[39m
+              [33mclass[39m=[32m"flex h-7 items-center px-2 text-[13px] rounded-md transition-colors text-muted-foreground hover:bg-fill-hover hover:text-foreground gap-2 w-full text-left"[39m
+              [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+              [33mdata-state[39m=[32m"closed"[39m
+              [33mid[39m=[32m"radix-_r_72_"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-plus size-3.5 shrink-0"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M5 12h14"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M12 5v14"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"truncate flex-1"[39m
+              [36m>[39m
+                [0mAdd agent[0m
+              [36m</span>[39m
+            [36m</button>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"px-2 text-sm text-muted-foreground"[39m
+            [36m>[39m
+              [0mNo agents yet.[0m
+            [36m</p>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mid[39m=[32m"DndDescribedBy-6"[39m
+          [33mstyle[39m=[32m"display: none;"[39m
+        [36m>[39m
+          [0m
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  [0m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-atomic[39m=[32m"true"[39m
+          [33maria-live[39m=[32m"assertive"[39m
+          [33mid[39m=[32m"DndLiveRegion-6"[39m
+          [33mrole[39m=[32m"status"[39m
+          [33mstyle[39m=[32m"position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip-path: inset(100%); white-space: nowrap;"[39m
+        [36m/>[39m
+      [36m</fieldset>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"min-w-0"[39m
+      [36m>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"p-4"[39m
+        [36m>[39m
+          [0mLoading...[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"[39m
+      [33mdata-slot[39m=[32m"dialog-close"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [36m<svg[39m
+        [33maria-hidden[39m=[32m"true"[39m
+        [33mclass[39m=[32m"lucide lucide-x"[39m
+        [33mfill[39m=[32m"none"[39m
+        [33mheight[39m=[32m"24"[39m
+        [33mstroke[39m=[32m"currentColor"[39m
+        [33mstroke-linecap[39m=[32m"round"[39m
+        [33mstroke-linejoin[39m=[32m"round"[39m
+        [33mstroke-width[39m=[32m"2"[39m
+        [33mviewBox[39m=[32m"0 0 24 24"[39m
+        [33mwidth[39m=[32m"24"[39m
+        [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+      [36m>[39m
+        [36m<path[39m
+          [33md[39m=[32m"M18 6 6 18"[39m
+        [36m/>[39m
+        [36m<path[39m
+          [33md[39m=[32m"m6 6 12 12"[39m
+        [36m/>[39m
+      [36m</svg>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"sr-only"[39m
+      [36m>[39m
+        [0mClose[0m
+      [36m</span>[39m
+    [36m</button>[39m
+  [36m</div>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mdata-scroll-locked[39m=[32m"1"[39m
+  [33mstyle[39m=[32m"pointer-events: none;"[39m
+[36m>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-slot[39m=[32m"dialog-overlay"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+  [36m/>[39m
+  [36m<div[39m
+    [33maria-describedby[39m=[32m"radix-_r_6r_"[39m
+    [33maria-labelledby[39m=[32m"radix-_r_6q_"[39m
+    [33mclass[39m=[32m"bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 grid max-h-[85vh] min-w-0 grid-cols-[minmax(0,1fr)] overflow-y-auto sm:max-w-5xl"[39m
+    [33mdata-slot[39m=[32m"dialog-content"[39m
+    [33mdata-state[39m=[32m"open"[39m
+    [33mdata-workstation-agent-settings[39m=[32m"true"[39m
+    [33mid[39m=[32m"radix-_r_6p_"[39m
+    [33mrole[39m=[32m"dialog"[39m
+    [33mstyle[39m=[32m"pointer-events: auto;"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"flex flex-col gap-2 text-center sm:text-left"[39m
+      [33mdata-slot[39m=[32m"dialog-header"[39m
+    [36m>[39m
+      [36m<h2[39m
+        [33mclass[39m=[32m"text-lg leading-none font-semibold"[39m
+        [33mdata-slot[39m=[32m"dialog-title"[39m
+        [33mid[39m=[32m"radix-_r_6q_"[39m
+      [36m>[39m
+        [0mAgents[0m
+      [36m</h2>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"text-muted-foreground text-sm"[39m
+        [33mdata-slot[39m=[32m"dialog-description"[39m
+        [33mid[39m=[32m"radix-_r_6r_"[39m
+      [36m>[39m
+        [0mTerminal agent launch configuration[0m
+      [36m</p>[39m
+    [36m</div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"flex items-center gap-2"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"[39m
+        [33mdata-slot[39m=[32m"button"[39m
+      [36m>[39m
+        [0mRefresh[0m
+      [36m</button>[39m
+    [36m</div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"grid min-w-0 md:grid-cols-[16rem_minmax(0,1fr)]"[39m
+    [36m>[39m
+      [36m<fieldset[39m
+        [33mclass[39m=[32m"min-w-0 [&>div]:w-full [&>div]:max-h-52 md:[&>div]:max-h-none"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"w-64 shrink-0 border-r overflow-y-auto"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"p-3 space-y-3"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-center gap-1.5"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"relative flex-1 min-w-0"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"[39m
+                  [33mfill[39m=[32m"currentColor"[39m
+                  [33mheight[39m=[32m"1em"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-width[39m=[32m"0"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"1em"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33mclip-rule[39m=[32m"evenodd"[39m
+                    [33md[39m=[32m"M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z"[39m
+                    [33mfill-rule[39m=[32m"evenodd"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+                [36m<input[39m
+                  [33maria-label[39m=[32m"Filter agents"[39m
+                  [33mclass[39m=[32m"w-full h-8 pl-8 pr-2 text-sm bg-accent/50 rounded-md border-0 outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground"[39m
+                  [33mplaceholder[39m=[32m"Filter agents..."[39m
+                  [33mtype[39m=[32m"text"[39m
+                  [33mvalue[39m=[32m""[39m
+                [36m/>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<button[39m
+              [33maria-expanded[39m=[32m"false"[39m
+              [33maria-haspopup[39m=[32m"menu"[39m
+              [33mclass[39m=[32m"flex h-7 items-center px-2 text-[13px] rounded-md transition-colors text-muted-foreground hover:bg-fill-hover hover:text-foreground gap-2 w-full text-left"[39m
+              [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+              [33mdata-state[39m=[32m"closed"[39m
+              [33mid[39m=[32m"radix-_r_72_"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-plus size-3.5 shrink-0"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M5 12h14"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M12 5v14"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"truncate flex-1"[39m
+              [36m>[39m
+                [0mAdd agent[0m
+              [36m</span>[39m
+            [36m</button>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"px-2 text-sm text-muted-foreground"[39m
+            [36m>[39m
+              [0mNo agents yet.[0m
+            [36m</p>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mid[39m=[32m"DndDescribedBy-6"[39m
+          [33mstyle[39m=[32m"display: none;"[39m
+        [36m>[39m
+          [0m
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  [0m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-atomic[39m=[32m"true"[39m
+          [33maria-live[39m=[32m"assertive"[39m
+          [33mid[39m=[32m"DndLiveRegion-6"[39m
+          [33mrole[39m=[32m"status"[39m
+          [33mstyle[39m=[32m"position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip-path: inset(100%); white-space: nowrap;"[39m
+        [36m/>[39m
+      [36m</fieldset>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"min-w-0"[39m
+      [36m>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"p-4"[39m
+        [36m>[39m
+          [0mLoading...[0m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"[39m
+      [33mdata-slot[39m=[32m"dialog-close"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [36m<svg[39m
+        [33maria-hidden[39m=[32m"true"[39m
+        [33mclass[39m=[32m"lucide lucide-x"[39m
+        [33mfill[39m=[32m"none"[39m
+        [33mheight[39m=[32m"24"[39m
+        [33mstroke[39m=[32m"currentColor"[39m
+        [33mstroke-linecap[39m=[32m"round"[39m
+        [33mstroke-linejoin[39m=[32m"round"[39m
+        [33mstroke-width[39m=[32m"2"[39m
+        [33mviewBox[39m=[32m"0 0 24 24"[39m
+        [33mwidth[39m=[32m"24"[39m
+        [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+      [36m>[39m
+        [36m<path[39m
+          [33md[39m=[32m"M18 6 6 18"[39m
+        [36m/>[39m
+        [36m<path[39m
+          [33md[39m=[32m"m6 6 12 12"[39m
+        [36m/>[39m
+      [36m</svg>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"sr-only"[39m
+      [36m>[39m
+        [0mClose[0m
+      [36m</span>[39m
+    [36m</button>[39m
+  [36m</div>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mdata-aria-hidden[39m=[32m"true"[39m
+    [33mdata-radix-focus-guard[39m=[32m""[39m
+    [33mstyle[39m=[32m"opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+[36m</body>[39m
+      at waitForWrapper (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:31)
+      at /workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.management.test.tsx:279:15
+(fail) an empty V2 target shows the original empty state and original Add menu [1009.20ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:
+(pass) the original default preset surface uses the selected host's config and launches only on an explicit click [12.88ms]
+(pass) older hosts receive no preset queries and late replies cannot populate a different backend [9.04ms]
+(pass) agent settings open the original launch form without launching a terminal [22.15ms]
+(pass) the host's custom configurations remain selectable beyond the first 128 entries [85.07ms]
+42 |   computedStyleSupportsPseudoElements: false
+43 | };
+44 | function runWithExpensiveErrorDiagnosticsDisabled(callback) {
+45 |   try {
+46 |     config._disableExpensiveErrorDiagnostics = true;
+47 |     return callback();
+                ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"Terminal Scripts"[39m
+        [33mclass[39m=[32m"flex min-w-0 shrink-0 flex-wrap items-center gap-1.5 bg-background px-2 py-1"[39m
+        [33mdata-workstation-presets[39m=[32m"true"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33maria-label[39m=[32m"Agent settings"[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 size-8"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+          [33mdisabled[39m=[32m""[39m
+          [33mtitle[39m=[32m"Agent settings"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lucide lucide-settings"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"14"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"14"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"[39m
+            [36m/>[39m
+            [36m<circle[39m
+              [33mcx[39m=[32m"12"[39m
+              [33mcy[39m=[32m"12"[39m
+              [33mr[39m=[32m"3"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33maria-expanded[39m=[32m"false"[39m
+          [33maria-haspopup[39m=[32m"menu"[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"dropdown-menu-trigger"[39m
+          [33mdata-state[39m=[32m"closed"[39m
+          [33mdisabled[39m=[32m""[39m
+          [33mid[39m=[32m"radix-_r_bn_"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mAgents[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"[39m
+          [33mdata-slot[39m=[32m"button"[39m
+        [36m>[39m
+          [0mRefresh[0m
+        [36m</button>[39m
+      [36m</section>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m...
+      at runWithExpensiveErrorDiagnosticsDisabled (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:36)
+(fail) a deliberately empty versioned catalog remains manageable without the legacy reseeding list [1003.73ms]
+
+3 tests failed:
+(fail) preserved agent catalog choices require the V2 capability independently of V1 management [0.46ms]
+(fail) an empty V2 target shows the original empty state and original Add menu [1009.20ms]
+(fail) a deliberately empty versioned catalog remains manageable without the legacy reseeding list [1003.73ms]
+
+ 41 pass
+ 3 fail
+ 157 expect() calls
+Ran 44 tests across 3 files. [3.25s]

@@ -1,0 +1,81 @@
+bun test v1.4.2 (744846f84)
+
+src/trpc/router/settings/agent-configs.test.ts:
+(pass) agentConfigsRouter > list() > seeds bundled defaults on first call [21.57ms]
+(pass) agentConfigsRouter > list() > does not seed Superset [11.73ms]
+(pass) agentConfigsRouter > list() > seeds Claude with its most permissive flag [12.41ms]
+(pass) agentConfigsRouter > list() > seeds Codex with its most permissive flags [10.03ms]
+(pass) agentConfigsRouter > list() > seeds resume args for agents with an id-based resume [11.08ms]
+(pass) agentConfigsRouter > list() > seeds native fork args for every harness whose CLI has them [9.89ms]
+(pass) agentConfigsRouter > list() > backfills fork args onto an install seeded before the preset had them [11.70ms]
+(pass) agentConfigsRouter > list() > leaves a customised agent's fork args alone [10.93ms]
+(pass) agentConfigsRouter > list() > returns existing rows on subsequent calls without re-seeding [10.23ms]
+(pass) agentConfigsRouter > list() > returns rows in displayOrder [13.61ms]
+(pass) agentConfigsRouter > add() > inserts a row with the supplied launch shape and next order [12.16ms]
+(pass) agentConfigsRouter > add() > allows duplicate presetId tags with distinct ids [12.12ms]
+(pass) agentConfigsRouter > add() > accepts a fully custom row and defaults presetId to 'custom' [13.80ms]
+(pass) agentConfigsRouter > add() > stores supplied resumeArgs [9.93ms]
+(pass) agentConfigsRouter > add() > preserves an arbitrary presetId tag verbatim [9.94ms]
+(pass) agentConfigsRouter > add() > defaults iconId to null and stores a supplied iconId [10.40ms]
+(pass) agentConfigsRouter > add() > stores an uploaded data-URI icon [9.30ms]
+(pass) agentConfigsRouter > add() > rejects an oversized iconId [12.94ms]
+(pass) agentConfigsRouter > add() > seeds bundled defaults with a null iconId [9.34ms]
+(pass) agentConfigsRouter > add() > rejects empty label or command [8.77ms]
+(pass) agentConfigsRouter > update() > persists label, command, args, promptTransport, promptArgs, resumeArgs, env [10.78ms]
+(pass) agentConfigsRouter > update() > sets and clears iconId [11.12ms]
+(pass) agentConfigsRouter > update() > rejects invalid promptTransport [9.38ms]
+(pass) agentConfigsRouter > update() > rejects an empty patch [9.07ms]
+(pass) agentConfigsRouter > update() > rejects update for missing id [9.02ms]
+(pass) agentConfigsRouter > update() > rejects whitespace-only label and command [8.79ms]
+(pass) agentConfigsRouter > update() > trims label and command on save [9.17ms]
+(pass) agentConfigsRouter > remove() > deletes a config by id [10.39ms]
+(pass) agentConfigsRouter > remove() > throws NOT_FOUND for an unknown id [11.51ms]
+(pass) agentConfigsRouter > restoreDefault() > repairs a malformed built-in config without replacing its row [13.75ms]
+(pass) agentConfigsRouter > restoreDefault() > rejects custom agents and unknown ids [10.15ms]
+(pass) agentConfigsRouter > reorder() > persists the submitted id order [11.15ms]
+(pass) agentConfigsRouter > reorder() > rejects when ids do not match existing configs [9.36ms]
+(pass) agentConfigsRouter > reorder() > rejects duplicate ids [9.21ms]
+(pass) agentConfigsRouter > resetToDefaults() > replaces current configs with bundled defaults [11.22ms]
+(pass) versioned local agent editing > keeps every original config field and refuses a stale edit after another client changes the launch [10.40ms]
+(pass) versioned local agent editing > explicitly saves a reviewed patch while preserving unrelated permissions, prompt and resume settings [9.64ms]
+(pass) versioned local agent catalog management > adds a stable custom ID once and preserves the full launch shape on readonly recovery [11.74ms]
+(pass) versioned local agent catalog management > refuses stale removal and reset after an external config edit [10.52ms]
+(pass) versioned local agent catalog management > reorders exact IDs atomically and restores a built-in without changing its identity or other rows [13.02ms]
+(pass) versioned local agent catalog management > removes only the reviewed row and resets only after fresh catalog review [13.07ms]
+297 | 				const fullPath = path.join(".");
+298 | 				if (path.length === 1 && path[0] === "_def") return _def;
+299 | 				const procedure = await getProcedureAtPath(router, fullPath);
+300 | 				let ctx = void 0;
+301 | 				try {
+302 | 					if (!procedure) throw new TRPCError({
+                                 ^
+TRPCError: No procedure found on path "catalogWithRevisionV2"
+ cause: undefined,
+  code: "NOT_FOUND"
+
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/tracked-DiE3uR1B.mjs:302:28)
+      at async <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/settings/agent-configs.test.ts:789:57)
+(fail) explicit agent catalog choices survive initialization > initializes defaults once and preserves an explicitly empty built-in fork setting [8.10ms]
+297 | 				const fullPath = path.join(".");
+298 | 				if (path.length === 1 && path[0] === "_def") return _def;
+299 | 				const procedure = await getProcedureAtPath(router, fullPath);
+300 | 				let ctx = void 0;
+301 | 				try {
+302 | 					if (!procedure) throw new TRPCError({
+                                 ^
+TRPCError: No procedure found on path "catalogWithRevisionV2"
+ cause: undefined,
+  code: "NOT_FOUND"
+
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/tracked-DiE3uR1B.mjs:302:28)
+      at async <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/settings/agent-configs.test.ts:796:67)
+(fail) explicit agent catalog choices survive initialization > keeps a deliberately empty catalog across a new caller until explicit reset [8.44ms]
+
+2 tests failed:
+(fail) explicit agent catalog choices survive initialization > initializes defaults once and preserves an explicitly empty built-in fork setting [8.10ms]
+(fail) explicit agent catalog choices survive initialization > keeps a deliberately empty catalog across a new caller until explicit reset [8.44ms]
+
+ 41 pass
+ 2 fail
+ 104 expect() calls
+Ran 43 tests across 1 file. [731.00ms]
