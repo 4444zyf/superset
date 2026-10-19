@@ -12,6 +12,12 @@ import {
 	uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
+export const terminalPresetCatalog = sqliteTable("terminal_preset_catalog", {
+	id: integer().primaryKey(),
+	presetsJson: text("presets_json").notNull(),
+	revision: integer().notNull().default(0),
+});
+
 export const terminalSessions = sqliteTable(
 	"terminal_sessions",
 	{
