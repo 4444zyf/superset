@@ -17,7 +17,8 @@ import { fileURLToPath } from "node:url";
 import { pasteOnOwnedX11Window } from "./verify-native-paste-input.mjs";
 
 const restoreWindows = process.argv.includes("--restore-windows");
-const localWheel = process.argv.includes("--local-wheel-only");
+const localParity = process.argv.includes("--local-parity-only");
+const localWheel = process.argv.includes("--local-wheel-only") || localParity;
 const sourceTest = process.argv.includes("--source-test");
 if (!sourceTest) {
 	assert.equal(process.platform, "darwin");
@@ -402,7 +403,7 @@ try {
 		);
 		await delay(250);
 		const verifyWorkspaceRestoreUi = localWheel
-			? (await import("./verify-workstation-local-wheel-ui.mjs")).verifyWorkstationLocalWheelUi
+			? localParity ? (await import("./verify-workstation-local-parity-ui.mjs")).verifyWorkstationLocalParityUi : (await import("./verify-workstation-local-wheel-ui.mjs")).verifyWorkstationLocalWheelUi
 			: (await import("./verify-workspace-restore-ui.mjs")).verifyWorkspaceRestoreUi;
 		const verifyRestore = (controls) =>
 			verifyWorkspaceRestoreUi({
@@ -497,8 +498,19 @@ try {
 				migrationsFolder: join(application, "dist/resources/host-migrations"),
 				chatMigrationsFolder: join(application, "dist/resources/chat-migrations"),
 			});
-			ownedSourceFixture = {close: () => localBackend.stop()};
-			await verifyRestore();
+			ownedSourceFixture = {close: async () => {
+				for (const row of localBackend.listNamespaces()) {
+					localBackend.selectNamespace(row.id);
+					await localBackend.stop();
+				}
+			}};
+			const {ownedRestoreControls} = await import("./verify-restore-controls.mjs");
+			await verifyRestore({forNamespace(namespaceId) {
+				const row = localBackend.listNamespaces().find(row => row.namespaceId === namespaceId);
+				assert.ok(row);
+				const home = join(profile, "direct-workstation/local-backend", ...(row.isDefault ? [] : ["namespaces", row.id]));
+				return ownedRestoreControls(home, {homeDir: home});
+			}});
 		} else if (sourceTest) {
 			const { sourceSshFixture } = await import(
 				"./verify-source-ssh-fixture.mjs"
