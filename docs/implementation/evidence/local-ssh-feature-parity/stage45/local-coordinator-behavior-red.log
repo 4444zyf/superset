@@ -1,0 +1,29 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workspace-restore-local.test.ts:
+16 |   window:()=>({x:0,y:0,width:1200,height:900,maximized:false}),notify:()=>{},
+17 |   manager:{getLease:()=>descriptor(),getStatus:()=>({generation,state:'ready'}),disconnect:()=>{generation++;},connect:async(_id,options)=>{calls.push(options.mode);return descriptor();}},
+18 |   controller:{describe:descriptor,features:async()=>({capabilities:{workspaceViewRestoreV1:true}}),inspectPending:async()=>[],invoke:async(request)=>((request.input as {refs:unknown[]}).refs).map(ref=>({...ref as object,state:'live'}))},
+19 |  });coordinator.activateOwner(1);
+20 |  const input=()=>{const {schemaVersion:_,revision:__,updatedAt:___,...v}=store.read().snapshot!;return v;};
+21 |  async function addWorkspace(label:string){const v=input(),target=v.targets.find(t=>t.connectionId===id)!;target.activeTabId='tab';target.workspaces=[{tabId:'tab',workspaceId:'workspace',label,activeTool:'terminal',activePaneId:'pane',panes:[{paneId:'pane',kind:'terminal',resourceId:'terminal',executionId:`execution-${label}`}],layout:{type:'pane',paneId:'pane'}}];await coordinator.save(1,{expectedRevision:store.read().revision,navigationRevision:0,view:v});}
+                                                                                                               ^
+TypeError: undefined is not an object (evaluating 'target.activeTabId = "tab"')
+      at addWorkspace (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:21:107)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:27:51)
+(fail) local workspace view survives renderer ownership changes and restores only existing executions [5.36ms]
+16 |   window:()=>({x:0,y:0,width:1200,height:900,maximized:false}),notify:()=>{},
+17 |   manager:{getLease:()=>descriptor(),getStatus:()=>({generation,state:'ready'}),disconnect:()=>{generation++;},connect:async(_id,options)=>{calls.push(options.mode);return descriptor();}},
+18 |   controller:{describe:descriptor,features:async()=>({capabilities:{workspaceViewRestoreV1:true}}),inspectPending:async()=>[],invoke:async(request)=>((request.input as {refs:unknown[]}).refs).map(ref=>({...ref as object,state:'live'}))},
+19 |  });coordinator.activateOwner(1);
+20 |  const input=()=>{const {schemaVersion:_,revision:__,updatedAt:___,...v}=store.read().snapshot!;return v;};
+21 |  async function addWorkspace(label:string){const v=input(),target=v.targets.find(t=>t.connectionId===id)!;target.activeTabId='tab';target.workspaces=[{tabId:'tab',workspaceId:'workspace',label,activeTool:'terminal',activePaneId:'pane',panes:[{paneId:'pane',kind:'terminal',resourceId:'terminal',executionId:`execution-${label}`}],layout:{type:'pane',paneId:'pane'}}];await coordinator.save(1,{expectedRevision:store.read().revision,navigationRevision:0,view:v});}
+                                                                                                               ^
+TypeError: undefined is not an object (evaluating 'target.activeTabId = "tab"')
+      at addWorkspace (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:21:107)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:38:51)
+(fail) namespace A to B to A preserves both views and rejects a queued stale save [0.83ms]
+
+ 0 pass
+ 2 fail
+Ran 2 tests across 1 file. [158.00ms]

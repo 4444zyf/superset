@@ -1,0 +1,35 @@
+bun test v1.4.2 (744846f84)
+
+src/local.test.ts:
+(pass) local backend owns detached runtime and disconnect leaves it running [5.25ms]
+(pass) local identity and owner-only credentials survive client restarts [1.41ms]
+(pass) local credentials cannot be replaced by a symlink [1.04ms]
+(pass) the local backend refuses privileged and unsupported runtimes [0.15ms]
+(pass) explicit local stop keeps data disabled until explicit start [1.89ms]
+(pass) an asynchronous spawn error is reported without an uncaught process event [0.39ms]
+(pass) two callers share backend startup and own independent proxies [11.24ms]
+(pass) stop waits for a pending startup and stops its newly published instance [2.50ms]
+(pass) an offline import lock prevents Start from reenabling the namespace [0.35ms]
+(pass) local import runs only while stopped and serializes with explicit Start [1.71ms]
+(pass) existing-only local attachment never creates a runtime and reuses only an authenticated live socket [1.09ms]
+(pass) existing-only local attachment cannot revive a disabled backend [0.92ms]
+
+src/restore-existing.test.ts:
+(pass) startup restore cannot invoke installation when the existing endpoint is missing [2.68ms]
+(pass) an explicit installation attempt cannot join a pending existing-only restore [0.59ms]
+(pass) local restore selects the existing-only transport without starting or installing [0.70ms]
+
+src/local-namespaces.test.ts:
+(pass) namespace creation preserves the existing identity and switching never stops its workload [1.62ms]
+(pass) a connection that resolves after namespace selection closes only its own provisional proxy [0.63ms]
+(pass) Stop captures the namespace at invocation rather than a later selection [1.51ms]
+(pass) catalog reads reject symlinks instead of following an external file [0.13ms]
+(pass) a cached namespace rejects a replaced linked parent before selection changes [1.15ms]
+(pass) removing an inactive namespace retains its data and refuses unresolved imports [7.60ms]
+(pass) a failed new namespace import withdraws only its empty catalog entry [6.38ms]
+(pass) a live catalog recovery owner excludes another stale-lock recovery [0.73ms]
+
+ 23 pass
+ 0 fail
+ 130 expect() calls
+Ran 23 tests across 3 files. [83.00ms]

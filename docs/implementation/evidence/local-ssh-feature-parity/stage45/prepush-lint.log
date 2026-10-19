@@ -1,0 +1,175 @@
+apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:32:13 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    30 │ 	let generation = 1;
+    31 │ 	const descriptor = () => {
+  > 32 │ 		const p = registry.get(id)!;
+       │ 		          ^^^^^^^^^^^^^^^^^
+    33 │ 		return {
+    34 │ 			connectionId: id,
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:36:15 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    34 │ 			connectionId: id,
+    35 │ 			generation,
+  > 36 │ 			backendId: p.backendId!,
+       │ 			           ^^^^^^^^^^^^
+    37 │ 			namespaceId: p.namespaceId!,
+    38 │ 			instanceId: "running-instance",
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:37:17 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    35 │ 			generation,
+    36 │ 			backendId: p.backendId!,
+  > 37 │ 			namespaceId: p.namespaceId!,
+       │ 			             ^^^^^^^^^^^^^^
+    38 │ 			instanceId: "running-instance",
+    39 │ 			capabilities: { workspaceViewRestoreV1: true },
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:79:7 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    77 │ 			updatedAt: ___,
+    78 │ 			...v
+  > 79 │ 		} = store.read().snapshot!;
+       │ 		    ^^^^^^^^^^^^^^^^^^^^^^
+    80 │ 		return v;
+    81 │ 	};
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:84:13 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    82 │ 	async function addWorkspace(label: string) {
+    83 │ 		const v = input(),
+  > 84 │ 			target = v.targets.find((t) => t.connectionId === id)!;
+       │ 			         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    85 │ 		target.activeTabId = "tab";
+    86 │ 		target.workspaces = [
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.test.tsx:710:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    708 │ 		).toBe(true);
+    709 │ 		expect(remoteCalls).toEqual([]);
+  > 710 │ 		const article = area.closest("article")!;
+        │ 		                ^^^^^^^^^^^^^^^^^^^^^^^^
+    711 │ 		fireEvent.click(
+    712 │ 			within(article).getByRole("button", { name: "Discard changes" }),
+  
+
+packages/direct-connection/src/local-namespaces.ts:459:6 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    457 │ 			throw new Error("Existing-only local attachment is unavailable");
+    458 │ 		const proxy = await (existingOnly
+  > 459 │ 			? backend.connectExisting!()
+        │ 			  ^^^^^^^^^^^^^^^^^^^^^^^^
+    460 │ 			: backend.connect());
+    461 │ 		if (revision !== this.revision || entry.id !== this.selectedId) {
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    457 457 │   			throw new Error("Existing-only local attachment is unavailable");
+    458 458 │   		const proxy = await (existingOnly
+    459     │ - → → → ?·backend.connectExisting!()
+        459 │ + → → → ?·backend.connectExisting?.()
+    460 460 │   			: backend.connect());
+    461 461 │   		if (revision !== this.revision || entry.id !== this.selectedId) {
+  
+
+packages/direct-connection/src/manager.ts:521:7 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    519 │ 				throw new Error("Existing-only local attachment is unavailable");
+    520 │ 			const local = await (mode === "restore-existing"
+  > 521 │ 				? this.options.local.connectExisting!()
+        │ 				  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    522 │ 				: this.options.local.connect());
+    523 │ 			try {
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    519 519 │   				throw new Error("Existing-only local attachment is unavailable");
+    520 520 │   			const local = await (mode === "restore-existing"
+    521     │ - → → → → ?·this.options.local.connectExisting!()
+        521 │ + → → → → ?·this.options.local.connectExisting?.()
+    522 522 │   				: this.options.local.connect());
+    523 523 │   			try {
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.test.tsx format ━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    741 741 │   
+    742 742 │   test("a local workspace opens in the original shared workspace window when restore is supported", async () => {
+    743     │ - → let·snapshot:·import("../../../shared/workspace-view").WorkspaceViewSnapshot·=·{
+    744     │ - → → schemaVersion:·1·as·const,
+    745     │ - → → revision:·1,
+    746     │ - → → updatedAt:·1,
+    747     │ - → → restoreOnLaunch:·false,
+    748     │ - → → activeConnectionId:·"local",
+    749     │ - → → window:·{·x:·0,·y:·0,·width:·1200,·height:·900,·maximized:·false·},
+    750     │ - → → targets:·[
+    751     │ - → → → {
+    752     │ - → → → → connectionId:·"local",
+    753     │ - → → → → targetRevision:·1,
+    754     │ - → → → → backendId:·"backend",
+    755     │ - → → → → namespaceId:·"namespace",
+    756     │ - → → → → serviceUid:·1000,
+    757     │ - → → → → autoConnect:·true,
+    758     │ - → → → → activeTabId:·null·as·string·|·null,
+    759     │ - → → → → workspaces:
+    760     │ - → → → → → []·as·import("../../../shared/workspace-view").WorkspaceView[],
+    761     │ - → → → },
+    762     │ - → → ],
+    763     │ - → };
+        743 │ + → let·snapshot:·import("../../../shared/workspace-view").WorkspaceViewSnapshot·=
+        744 │ + → → {
+        745 │ + → → → schemaVersion:·1·as·const,
+        746 │ + → → → revision:·1,
+        747 │ + → → → updatedAt:·1,
+        748 │ + → → → restoreOnLaunch:·false,
+        749 │ + → → → activeConnectionId:·"local",
+        750 │ + → → → window:·{·x:·0,·y:·0,·width:·1200,·height:·900,·maximized:·false·},
+        751 │ + → → → targets:·[
+        752 │ + → → → → {
+        753 │ + → → → → → connectionId:·"local",
+        754 │ + → → → → → targetRevision:·1,
+        755 │ + → → → → → backendId:·"backend",
+        756 │ + → → → → → namespaceId:·"namespace",
+        757 │ + → → → → → serviceUid:·1000,
+        758 │ + → → → → → autoConnect:·true,
+        759 │ + → → → → → activeTabId:·null·as·string·|·null,
+        760 │ + → → → → → workspaces:
+        761 │ + → → → → → → []·as·import("../../../shared/workspace-view").WorkspaceView[],
+        762 │ + → → → → },
+        763 │ + → → → ],
+        764 │ + → → };
+    764 765 │   	const mutations: string[] = [];
+    765 766 │   	const api = {
+  
+
+Checked 5 files in 24ms. No fixes applied.
+Found 1 error.
+Found 8 warnings.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while running checks.
+  
+

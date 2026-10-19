@@ -1,0 +1,33 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workspace-restore-local.test.ts:
+ 95 | 	for (const field of ["backendId", "namespaceId"]) {
+ 96 | 		if (
+ 97 | 			data[field] !== undefined &&
+ 98 | 			(typeof data[field] !== "string" || !uuidPattern.test(data[field]))
+ 99 | 		)
+100 | 			throw new Error("Invalid backend identity");
+                   ^
+error: Invalid backend identity
+      at validateProfile (/workspace/superset/packages/direct-connection/src/registry.ts:100:14)
+      at save (/workspace/superset/packages/direct-connection/src/registry.ts:139:19)
+      at fixture (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:12:2)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:25:10)
+(fail) local workspace view survives renderer ownership changes and restores only existing executions [1.39ms]
+ 95 | 	for (const field of ["backendId", "namespaceId"]) {
+ 96 | 		if (
+ 97 | 			data[field] !== undefined &&
+ 98 | 			(typeof data[field] !== "string" || !uuidPattern.test(data[field]))
+ 99 | 		)
+100 | 			throw new Error("Invalid backend identity");
+                   ^
+error: Invalid backend identity
+      at validateProfile (/workspace/superset/packages/direct-connection/src/registry.ts:100:14)
+      at save (/workspace/superset/packages/direct-connection/src/registry.ts:139:19)
+      at fixture (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:12:2)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-restore-local.test.ts:36:10)
+(fail) namespace A to B to A preserves both views and rejects a queued stale save [0.61ms]
+
+ 0 pass
+ 2 fail
+Ran 2 tests across 1 file. [172.00ms]

@@ -1,0 +1,24 @@
+bun test v1.4.2 (744846f84)
+
+src/restore-existing.test.ts:
+(pass) startup restore cannot invoke installation when the existing endpoint is missing [3.77ms]
+(pass) an explicit installation attempt cannot join a pending existing-only restore [0.85ms]
+93 |   test:async()=>({platform:'linux',architecture:'x64',uid:1000,user:'agent',homeDir:'/home/agent',installed:true}),
+94 |   connect:async()=>{explicit++;throw new Error('must not start');},
+95 |   connectExisting:async()=>{existing++;throw new Error('existing backend unavailable');},
+96 |  }});
+97 |  try{
+98 |   await expect(manager.connect('00000000-0000-4000-8000-000000000001',{mode:'restore-existing'})).rejects.toThrow('existing backend unavailable');
+                                                                                                               ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "existing backend unavailable"
+Received message: "Automatic window restore requires an existing SSH backend"
+
+      at <anonymous> (/workspace/superset/packages/direct-connection/src/restore-existing.test.ts:98:107)
+(fail) local restore selects the existing-only transport without starting or installing [0.89ms]
+
+ 2 pass
+ 1 fail
+ 7 expect() calls
+Ran 3 tests across 1 file. [28.00ms]

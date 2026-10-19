@@ -858,3 +858,23 @@ TDD包括原目录栏、空目录/项目范围/隐藏、独立严格能力、四
 第156轮产品9a69fd434/脚本c1cd245ba，独立新profile，不创建SSH夹具；通过实际Local Device → Workspaces → New session → Terminal → New terminal进入当前本地WorkspaceEditor。由只读refreshFeatures取得实际连接描述，不重连或修改连接状态；真实本地session路径位于拥有的新profile namespace之内。复用相同raw-mode TUI和真实鼠标滚轮/系统剪贴板验收，退出0。普通normal buffer第一可见行从SHELL HISTORY 182滚到179，输入为空；alternate buffer重绘后可见FIRST/SECOND SCREEN，历史scrollTop3668/scrollHeight4096/clientHeight332。向上、反向/小幅/大幅滚动不增输入；实际鼠标选择/系统复制FIRST SCREEN 中文精确一致，真实系统PNG paste含1个File、目标为查看层，attachments前后均为空且输入仍只有a/n。Esc返回不向TUI发送Escape，原生SGR上下64/65报告保持且无方向键，q结束正常，浏览器错误为空。普通滚动前/后、TUI历史、历史复制粘贴、原生鼠标五张截图均已实际查看；其余截图捕获，未混称全部查看。测试结束通过已有LocalNamespaceBackend.stop停止拥有的新profile backend，未留下config156进程。[156本地完整证据](evidence/local-ssh-feature-parity/source-linux-local-terminal-wheel/156)。
 
 这补齐了共享滚动修复在独立本地窗口的实际验证，不改变阶段四十三指出的本地完整WorkspaceWindow入口缺口；真实macOS触控板/供应商Agent和1.37.7安装包仍未验收。普通终端滚动、无鼠标TUI客户端查看、支持鼠标TUI的原生滚动分别保留，客户端查看只记录有界已显示文本。
+
+## 阶段四十五：本地接入原工作区窗口与 namespace 视图隔离
+
+阶段四十三确认本地仍使用旧WorkspaceEditor。本阶段移除本地的显式排除：有workspaceViewRestoreV1时，本地和SSH都进入已有WorkspaceWindow、原@superset/panes标签/分屏/原预设栏；无能力的旧后端继续已有入口。没有复制一套本地布局或模拟Superset账号。组件测试先固定旧本地入口不出现原窗口的失败，再补接入；真实第158轮也在同一点击路径复现旧界面和断言失败，截图已查看。
+
+本机workspace-views.db新增内部local_namespace_views表，保存离开namespace时的已验证视图；选择时以connection/backend/namespace/UID隔离，将选中namespace视图换回活动快照，SSH目标保留。归档与活动视图替换在同一FULL同步SQLite事务完成，版本递增拒绝旧排队写入；归档仍按原2MiB视图、20工作区及全局pane/树深度约束验证，最多64个归档，不静默驱逐。主进程只接受与当前可信本地身份一致的写入，不能把旧namespace内容重新签为新目标；切换时清除连接授权，返回原namespace仍须明确连接。namespace持久化失败时回滚原选择与可信pin；Forget清除活动及所有归档视图，移除已停止的非当前namespace后也清理其布局元数据，数据文件沿用原保留语义。未修改host/cloud数据库迁移或已有tRPC合同。
+
+本地传输增加connectExisting：只读已有owner-only目录/配置/凭据和已认证私有socket，拒绝缺失、停止、导入中的backend；不创建配置、启动supervisor或复活已停止运行。LocalNamespaceBackend复用原选择revision与晚回复代理关闭检查；旧注入实现没有此能力时拒绝恢复，不能退回普通connect。DirectConnectionManager支持本地现有连接/只连接现有后端，保留原维护状态/frozen检查、身份核验和代际边界；窗口恢复和自动重连均使用existing-only，明确用户连接仍保留原启动路径。原新namespace默认disabled，必须通过现有Start明确启动；没有为了测试绕过这一行为。恢复不会运行预设、创建PTY或重放命令。
+
+TDD覆盖本地原窗口入口、A/B独立布局和持久化、SSH视图保留、晚写拒绝、坏归档拒写、owner边界、Forget及namespace删除清理、切换失败回滚、现有后端复用/不存在不启动/停止不复活和维护状态。初次manager/coordinator测试夹具分别使用了不合法local ID和非UUID身份，原始失败日志保留；修正夹具后分别取得旧manager拒绝本地恢复、旧coordinator不记录本地目标的实际行为失败再转绿，不把夹具错误单独当成功的回归基线。最终本地界面/存储44项154断言/5文件、shared界面/安全61项295断言/4文件、传输53项226断言/4文件通过；desktop及direct-connection类型、插件检查、17语言检查/严格编译及完整CLI/5个PTY marker构建通过，lint无错误并保留既有/测试非空断言提示。[阶段四十五红绿与检查](evidence/local-ssh-feature-parity/stage45)。 推送前检查另发现测试类型标注导致的格式错误；仅格式化该测试后14项53断言回归通过，原始格式失败日志亦保留。
+
+第157轮未进入应用验收：旧X服务已退出，Electron报告Missing X server，退出1。新建拥有的:118测试显示后，第158轮旧产品9a69fd434/脚本0036bc15f通过Local Device/New session显示旧编辑器，原窗口断言退出1。第159轮产品ab68157c4已显示原窗口与分屏，但脚本把Manage误定位成button:first-child；第160轮修正后遇到namespace输入处于视口以下；两轮均原样退出1，失败截图已查看，只修脚本为first-of-type与真实滚轮滚入。第161轮已切换新namespace，但直接Connect按原设计拒绝已停止backend，退出1且截图已查看；后续脚本通过实际Start后连接。[157–161失败原件](evidence/local-ssh-feature-parity/source-linux-local-workspace-failures)。
+
+第162轮A/B独立工作区、切回A的原布局与两边PTY保持通过，但重开后的调试端口被拥有的本地backend/PTY后代继承旧监听FD，脚本不能连接新renderer。ss确认新main38051监听19391，19392仍由旧拥有backend/终端后代持有。只读main inspector诊断严格检查PID和appPath，实际重开窗口restore=ready、两个终端attached；该诊断JSON与capturePage截图保留且已查看。为结束已阻塞的验收，经同一核验PID正常app.quit，没有发送kill信号或改断言；脚本按Application exited原样退出1，不把诊断算完整通过。随后验收器每次启动先独占绑定两个空闲loopback端口再释放给拥有的应用，记录实际端口/renderer URL，原worktree/PID/profile/路由归属检查不变。[162调试阻塞与只读诊断](evidence/local-ssh-feature-parity/source-linux-local-workspace-failures/162)。
+
+第163轮产品daa7d13c7/脚本0fc633631，真实Linux/Electron、无SSH夹具，`--local-parity-only`退出0。实际A新session/原终端/原纵向分屏，A的两个PID39959/39971保持；通过原namespace表单新建中文B、真实Start/Connect，B只有独立工作区/终端PID40059。切回A恢复同一布局，B仍运行；正常关闭重开，A两个终端实际附着，后端instanceId仍为f7fb964b-8c15-406f-a365-a4b0cb3edd9c。接着在A通过原脚本编辑/按钮执行四种启动计划、中文空格目录、sequential原终端先cd /tmp后按脚本目录执行和再次重开无重放；A最终9个执行全部存活，B原PID/执行ID也保持，浏览器错误为空。A返回/重开、B独立工作区三张与六张脚本截图共九张已实际查看；其余本轮捕获。[163本地完整证据](evidence/local-ssh-feature-parity/source-linux-local-workspace/163)。本轮没有要求脚本批次关闭中的额外暂停场景；此前第155轮SSH证据不混记为本地测试。
+
+第164轮同产品/脚本，在新本地原工作区界面复验`--local-wheel-only --wheel-clipboard`退出0：normal历史、无鼠标TUI有界文本查看与上下反向小幅滚动不发键、系统鼠标选区/文字复制、真实PNG粘贴不上传/不发输入、Esc返回及原生SGR上下报告通过。历史scrollTop3426/scrollHeight4016/clientHeight494，浏览器错误为空；历史复制粘贴截图已实际查看，其余捕获。[164新本地界面滚动](evidence/local-ssh-feature-parity/source-linux-local-workspace/164)。第165轮同产品/脚本、拥有的loopback SSH `--pane-tabs-only`退出0，原新标签、组内分屏、中文改名、拥有窗口XTest驱动原HTML5排序、关闭重开及关闭组恢复原三个PTY全部通过；重开/关闭后附着截图已查看，其余捕获，浏览器错误为空。[165SSH回归](evidence/local-ssh-feature-parity/source-linux-local-workspace/165)。测试结束停止所有拥有的新profile namespace backend和SSH夹具。
+
+阶段四十三的本地原WorkspaceWindow入口缺口至此补齐，终端/脚本/恢复有本地实际窗口证据；这不自动证明之前所有文件/Git/聊天细项在本地都已原生验收。原脚本自动触发/Run映射/快捷键/CLI、完整原栏菜单和拖动、全部原侧栏/端口/设置等仍逐项推进。真实macOS触控板/供应商Agent、10秒连接目标与签名安装包仍是独立未满足项目，不宣称已生成1.37.7 DMG。

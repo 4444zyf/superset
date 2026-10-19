@@ -1,0 +1,34 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workspace-view-store.test.ts:
+(pass) three pane order, ratios and focus survive a store reopen with FULL durability [9.60ms]
+(pass) stale owner and revision cannot overwrite the saved layout [1.96ms]
+(pass) bad trees, excessive ratios and forbidden command data leave the previous snapshot untouched [2.87ms]
+(pass) forget advances the revision and cannot be undone by a late save [0.92ms]
+(pass) an unknown future schema cannot be overwritten by normal layout or window saves [0.47ms]
+(pass) a committed file-backed view survives force-killing its writer [58.94ms]
+(pass) original terminal tabs, focused pane and split ratios survive local SQLite reopen [1.58ms]
+(pass) invalid terminal tab partitions or focus cannot overwrite the saved workspace [6.23ms]
+(pass) an intentionally empty terminal tab collection remains empty after reopening [0.55ms]
+(pass) local namespaces keep independent layouts and never replace SSH views on selection [4.48ms]
+(pass) forget removes inactive namespace views as well as the active view [0.94ms]
+(pass) an invalid archived local view cannot replace the active view [1.43ms]
+428 | test('removing an inactive namespace removes only its archived layout',()=>{
+429 |  const db=new Database(':memory:'),store=new WorkspaceViewStore(db);store.activateOwner('owner');
+430 |  const a=view();Object.assign(a.targets[0]!,localIdentity('namespace-a'));
+431 |  store.save({owner:'owner',expectedRevision:0,view:a});store.selectLocalNamespace('owner',localIdentity('namespace-b'));
+432 |  const before=store.read();
+433 |  expect(()=>store.removeLocalNamespace('stale','mac','namespace-a')).toThrow('owner');
+                                                                           ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "owner"
+Received message: "store.removeLocalNamespace is not a function. (In 'store.removeLocalNamespace(\"stale\", \"mac\", \"namespace-a\")', 'store.removeLocalNamespace' is undefined)"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:433:70)
+(fail) removing an inactive namespace removes only its archived layout [4.33ms]
+
+ 12 pass
+ 1 fail
+ 47 expect() calls
+Ran 13 tests across 1 file. [278.00ms]

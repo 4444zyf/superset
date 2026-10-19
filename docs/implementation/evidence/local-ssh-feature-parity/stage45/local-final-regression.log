@@ -1,0 +1,59 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workspace-view-store.test.ts:
+(pass) three pane order, ratios and focus survive a store reopen with FULL durability [10.61ms]
+(pass) stale owner and revision cannot overwrite the saved layout [1.82ms]
+(pass) bad trees, excessive ratios and forbidden command data leave the previous snapshot untouched [2.61ms]
+(pass) forget advances the revision and cannot be undone by a late save [0.83ms]
+(pass) an unknown future schema cannot be overwritten by normal layout or window saves [0.35ms]
+(pass) a committed file-backed view survives force-killing its writer [58.91ms]
+(pass) original terminal tabs, focused pane and split ratios survive local SQLite reopen [1.99ms]
+(pass) invalid terminal tab partitions or focus cannot overwrite the saved workspace [5.32ms]
+(pass) an intentionally empty terminal tab collection remains empty after reopening [0.44ms]
+(pass) local namespaces keep independent layouts and never replace SSH views on selection [4.20ms]
+(pass) forget removes inactive namespace views as well as the active view [0.91ms]
+(pass) an invalid archived local view cannot replace the active view [6.00ms]
+
+src/main/lib/ssh-direct/workspace-restore-coordinator.test.ts:
+(pass) an explicit disconnect disables startup connection while keeping the layout [3.11ms]
+(pass) duplicate startup requests share one existing-only connection and never install [3.32ms]
+(pass) a cancelled late restore cannot disconnect a newer user connection [1.06ms]
+(pass) a disconnected renderer cannot invent a terminal reference or override trusted identity [2.11ms]
+(pass) a renderer reload invalidates queued writes even when its webContents owner ID is unchanged [0.67ms]
+(pass) startup retries only retryable transport failures with bounded existing-only attempts [0.97ms]
+(pass) editing the SSH target pauses restoration without connecting or replacing the old view [1.26ms]
+
+src/main/lib/ssh-direct/workspace-restore-local.test.ts:
+(pass) local workspace view survives renderer ownership changes and restores only existing executions [2.65ms]
+(pass) namespace A to B to A preserves both views and rejects a queued stale save [3.69ms]
+
+src/main/lib/ssh-direct/local-data-controller.test.ts:
+(pass) namespace switch closes the A transport before replacing trusted pins [0.34ms]
+(pass) pending operations prevent selection before any transport closes [0.05ms]
+(pass) an old Stop confirmation cannot act after selection changes A to B to A [0.26ms]
+(pass) manual import captures its target and reserves selection during the operation [0.14ms]
+(pass) cancelled preparation has no disconnect or backend side effects [0.07ms]
+(pass) pending intents created while a dialog waits also prevent its backend action [0.08ms]
+(pass) explicit control can stop the same namespace while its operation needs reconciliation [0.30ms]
+(pass) a namespace view persistence failure restores the previous selection and pins [0.12ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [352.85ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [174.07ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [183.37ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [136.68ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [92.97ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [135.94ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [102.82ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [104.07ms]
+(pass) opening a development server submits its port for forwarding on B [116.40ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [120.65ms]
+(pass) checking an empty operation journal shows a readable result [80.81ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [100.41ms]
+(pass) offline chat drafts remain reviewable and explicitly discardable without a connection or session [136.60ms]
+(pass) a local workspace opens in the original shared workspace window when restore is supported [89.81ms]
+
+ 43 pass
+ 0 fail
+ 151 expect() calls
+Ran 43 tests across 5 files. [2.64s]

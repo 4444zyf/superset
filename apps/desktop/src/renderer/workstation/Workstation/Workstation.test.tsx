@@ -740,27 +740,28 @@ test("offline chat drafts remain reviewable and explicitly discardable without a
 });
 
 test("a local workspace opens in the original shared workspace window when restore is supported", async () => {
-	let snapshot: import("../../../shared/workspace-view").WorkspaceViewSnapshot = {
-		schemaVersion: 1 as const,
-		revision: 1,
-		updatedAt: 1,
-		restoreOnLaunch: false,
-		activeConnectionId: "local",
-		window: { x: 0, y: 0, width: 1200, height: 900, maximized: false },
-		targets: [
-			{
-				connectionId: "local",
-				targetRevision: 1,
-				backendId: "backend",
-				namespaceId: "namespace",
-				serviceUid: 1000,
-				autoConnect: true,
-				activeTabId: null as string | null,
-				workspaces:
-					[] as import("../../../shared/workspace-view").WorkspaceView[],
-			},
-		],
-	};
+	let snapshot: import("../../../shared/workspace-view").WorkspaceViewSnapshot =
+		{
+			schemaVersion: 1 as const,
+			revision: 1,
+			updatedAt: 1,
+			restoreOnLaunch: false,
+			activeConnectionId: "local",
+			window: { x: 0, y: 0, width: 1200, height: 900, maximized: false },
+			targets: [
+				{
+					connectionId: "local",
+					targetRevision: 1,
+					backendId: "backend",
+					namespaceId: "namespace",
+					serviceUid: 1000,
+					autoConnect: true,
+					activeTabId: null as string | null,
+					workspaces:
+						[] as import("../../../shared/workspace-view").WorkspaceView[],
+				},
+			],
+		};
 	const mutations: string[] = [];
 	const api = {
 		platform: "linux",

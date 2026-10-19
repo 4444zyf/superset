@@ -1,0 +1,68 @@
+bun test v1.4.2 (744846f84)
+
+src/local.test.ts:
+(pass) local backend owns detached runtime and disconnect leaves it running [5.53ms]
+(pass) local identity and owner-only credentials survive client restarts [1.57ms]
+(pass) local credentials cannot be replaced by a symlink [1.11ms]
+(pass) the local backend refuses privileged and unsupported runtimes [0.16ms]
+(pass) explicit local stop keeps data disabled until explicit start [2.40ms]
+(pass) an asynchronous spawn error is reported without an uncaught process event [0.68ms]
+(pass) two callers share backend startup and own independent proxies [12.43ms]
+(pass) stop waits for a pending startup and stops its newly published instance [2.42ms]
+(pass) an offline import lock prevents Start from reenabling the namespace [0.46ms]
+(pass) local import runs only while stopped and serializes with explicit Start [1.78ms]
+(pass) existing-only local attachment never creates a runtime and reuses only an authenticated live socket [1.38ms]
+(pass) existing-only local attachment cannot revive a disabled backend [1.24ms]
+
+src/restore-existing.test.ts:
+(pass) startup restore cannot invoke installation when the existing endpoint is missing [2.60ms]
+(pass) an explicit installation attempt cannot join a pending existing-only restore [0.61ms]
+(pass) local restore selects the existing-only transport without starting or installing [0.66ms]
+
+src/local-namespaces.test.ts:
+(pass) namespace creation preserves the existing identity and switching never stops its workload [2.38ms]
+(pass) a connection that resolves after namespace selection closes only its own provisional proxy [1.52ms]
+(pass) Stop captures the namespace at invocation rather than a later selection [1.85ms]
+(pass) catalog reads reject symlinks instead of following an external file [0.15ms]
+(pass) a cached namespace rejects a replaced linked parent before selection changes [0.96ms]
+(pass) removing an inactive namespace retains its data and refuses unresolved imports [2.25ms]
+(pass) a failed new namespace import withdraws only its empty catalog entry [1.85ms]
+(pass) a live catalog recovery owner excludes another stale-lock recovery [0.68ms]
+
+src/connection.test.ts:
+(pass) an unsaved SSH profile probe leaves registry pins, connection state and backend untouched [0.91ms]
+(pass) direct connections > the first explicit connection installs a missing backend before forwarding and reuses it on reconnect [3.52ms]
+(pass) direct connections > SSH failures only allow bounded retries for transport errors: ssh: connect to host mini port 22: Connection timed out [0.56ms]
+(pass) direct connections > SSH failures only allow bounded retries for transport errors: alice@mini: Permission denied (publickey). [0.33ms]
+(pass) direct connections > SSH failures only allow bounded retries for transport errors: Host key verification failed. [0.26ms]
+(pass) direct connections > a local proxy arriving after disconnect is closed without stopping its backend [0.71ms]
+(pass) direct connections > a missing or unexpected private socket blocks before forwarding or sending credentials (%s) [0.40ms]
+(pass) direct connections > a missing or unexpected private socket blocks before forwarding or sending credentials (/tmp/attacker.sock) [0.27ms]
+(pass) direct connections > a missing or unexpected private socket blocks before forwarding or sending credentials (relative.sock) [0.39ms]
+(pass) direct connections > a missing or unexpected private socket blocks before forwarding or sending credentials (/tmp/a
+.sock) [0.91ms]
+(pass) direct connections > SSH only forwards the verified private socket rather than the legacy TCP port [1.00ms]
+(pass) direct connections > streamlocal forwarding uses one safe Unix target argument [0.11ms]
+(pass) direct connections > the local target uses its independent backend without invoking SSH [1.26ms]
+(pass) direct connections > disconnect while an RPC body is pending rejects the stale result [2.27ms]
+(pass) direct connections > edit while an RPC body is pending rejects the stale result [1.55ms]
+(pass) direct connections > pins identity only after authenticated health and never persists PSK [0.58ms]
+(pass) direct connections > renaming a connection preserves its trusted backend identity [0.60ms]
+(pass) direct connections > wrong service identity closes the tunnel instead of publishing readiness [0.39ms]
+(pass) direct connections > tunnel exit revokes lease before another request can use a reused port [1.02ms]
+(pass) direct connections > disconnect during forwarding cannot publish a stale connection [0.49ms]
+(pass) direct connections > concurrent windows share one connection attempt [0.51ms]
+(pass) direct connections > raw transport rejects absolute URLs and cannot replace main-process credentials [0.59ms]
+(pass) direct connections > editing the SSH destination invalidates the old connection before RPC [0.55ms]
+(pass) direct connections > URL normalization cannot turn control characters into an external socket origin [1.20ms]
+(pass) a cached lease cannot bypass a frozen backend during window restoration [0.71ms]
+(pass) connection configuration > private master disables inherited forwards and only its control command adds loopback [0.12ms]
+(pass) connection configuration > registry is SQLite backed and rejects credential fields or SSH option injection [0.35ms]
+(pass) connection configuration > SSH honors config but overrides unsafe tunnel and agent forwarding options [0.10ms]
+(pass) a live local lease is reused only while maintenance is active (frozen=%s) [1.49ms]
+(pass) a live local lease is reused only while maintenance is active (frozen=%s) [0.46ms]
+
+ 53 pass
+ 0 fail
+ 226 expect() calls
+Ran 53 tests across 4 files. [111.00ms]

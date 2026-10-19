@@ -1,0 +1,37 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workspace-view-store.test.ts:
+(pass) three pane order, ratios and focus survive a store reopen with FULL durability [8.12ms]
+(pass) stale owner and revision cannot overwrite the saved layout [2.20ms]
+(pass) bad trees, excessive ratios and forbidden command data leave the previous snapshot untouched [2.84ms]
+(pass) forget advances the revision and cannot be undone by a late save [0.58ms]
+(pass) an unknown future schema cannot be overwritten by normal layout or window saves [0.48ms]
+(pass) a committed file-backed view survives force-killing its writer [58.90ms]
+(pass) original terminal tabs, focused pane and split ratios survive local SQLite reopen [1.44ms]
+(pass) invalid terminal tab partitions or focus cannot overwrite the saved workspace [4.52ms]
+(pass) an intentionally empty terminal tab collection remains empty after reopening [0.38ms]
+329 |  store.activateOwner('owner');
+330 |  const a=view();Object.assign(a.targets[0]!,localIdentity('namespace-a'));
+331 |  a.targets[0]!.workspaces[0]!.label='Local A';
+332 |  a.targets.push({...structuredClone(a.targets[0]!),connectionId:'ssh',backendId:'ssh-backend',namespaceId:'ssh-namespace'});
+333 |  store.save({owner:'owner',expectedRevision:0,view:a});
+334 |  store.selectLocalNamespace('owner',localIdentity('namespace-b'));
+             ^
+TypeError: store.selectLocalNamespace is not a function. (In 'store.selectLocalNamespace("owner", localIdentity("namespace-b"))', 'store.selectLocalNamespace' is undefined)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:334:8)
+(fail) local namespaces keep independent layouts and never replace SSH views on selection [0.80ms]
+352 | 
+353 | test('forget removes inactive namespace views as well as the active view',()=>{
+354 |  const db=new Database(':memory:'),store=new WorkspaceViewStore(db);store.activateOwner('owner');
+355 |  const a=view();Object.assign(a.targets[0]!,localIdentity('namespace-a'));
+356 |  store.save({owner:'owner',expectedRevision:0,view:a});
+357 |  store.selectLocalNamespace('owner',localIdentity('namespace-b'));
+             ^
+TypeError: store.selectLocalNamespace is not a function. (In 'store.selectLocalNamespace("owner", localIdentity("namespace-b"))', 'store.selectLocalNamespace' is undefined)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:357:8)
+(fail) forget removes inactive namespace views as well as the active view [0.43ms]
+
+ 9 pass
+ 2 fail
+ 36 expect() calls
+Ran 11 tests across 1 file. [266.00ms]

@@ -1,0 +1,54 @@
+bun test v1.4.2 (744846f84)
+
+src/local.test.ts:
+(pass) local backend owns detached runtime and disconnect leaves it running [6.24ms]
+(pass) local identity and owner-only credentials survive client restarts [1.36ms]
+(pass) local credentials cannot be replaced by a symlink [1.14ms]
+(pass) the local backend refuses privileged and unsupported runtimes [0.16ms]
+(pass) explicit local stop keeps data disabled until explicit start [1.88ms]
+(pass) an asynchronous spawn error is reported without an uncaught process event [0.47ms]
+(pass) two callers share backend startup and own independent proxies [12.68ms]
+(pass) stop waits for a pending startup and stops its newly published instance [3.08ms]
+(pass) an offline import lock prevents Start from reenabling the namespace [1.00ms]
+(pass) local import runs only while stopped and serializes with explicit Start [1.96ms]
+367 | 	expect(setup.started).toBe(1);
+368 | });
+369 | 
+370 | test("existing-only local attachment never creates a runtime and reuses only an authenticated live socket", async () => {
+371 |  const f=fixture();
+372 |  await expect(f.backend.connectExisting()).rejects.toThrow();
+                              ^
+TypeError: f.backend.connectExisting is not a function. (In 'f.backend.connectExisting()', 'f.backend.connectExisting' is undefined)
+      at <anonymous> (/workspace/superset/packages/direct-connection/src/local.test.ts:372:25)
+(fail) existing-only local attachment never creates a runtime and reuses only an authenticated live socket [0.48ms]
+382 | });
+383 | 
+384 | test("existing-only local attachment cannot revive a disabled backend",async()=>{
+385 |  const f=fixture();(await f.backend.connect()).close();
+386 |  writeFileSync(join(f.dataDir,'state','disabled'),'stopped',{mode:0o600});
+387 |  await expect(f.backend.connectExisting()).rejects.toThrow();
+                              ^
+TypeError: f.backend.connectExisting is not a function. (In 'f.backend.connectExisting()', 'f.backend.connectExisting' is undefined)
+      at <anonymous> (/workspace/superset/packages/direct-connection/src/local.test.ts:387:25)
+(fail) existing-only local attachment cannot revive a disabled backend [1.17ms]
+
+src/restore-existing.test.ts:
+(pass) startup restore cannot invoke installation when the existing endpoint is missing [3.24ms]
+(pass) an explicit installation attempt cannot join a pending existing-only restore [0.72ms]
+58 | 			data.host !== "localhost" ||
+59 | 			data.user !== undefined ||
+60 | 			data.port !== undefined ||
+61 | 			data.identityFile !== undefined)
+62 | 	)
+63 | 		throw new Error("Invalid local connection");
+                 ^
+error: Invalid local connection
+      at validateProfile (/workspace/superset/packages/direct-connection/src/registry.ts:63:13)
+      at save (/workspace/superset/packages/direct-connection/src/registry.ts:139:19)
+      at <anonymous> (/workspace/superset/packages/direct-connection/src/restore-existing.test.ts:90:11)
+(fail) local restore selects the existing-only transport without starting or installing [0.34ms]
+
+ 12 pass
+ 3 fail
+ 88 expect() calls
+Ran 15 tests across 2 files. [73.00ms]

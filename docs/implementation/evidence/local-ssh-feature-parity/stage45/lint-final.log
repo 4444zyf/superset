@@ -1,0 +1,310 @@
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:264:4 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    262 │ 	const mutations: ((w: TabbedWorkspace) => void)[] = [
+    263 │ 		(w) => {
+  > 264 │ 			w.paneTabs[1]!.tabId = w.paneTabs[0]!.tabId;
+        │ 			^^^^^^^^^^^^^^
+    265 │ 		},
+    266 │ 		(w) => {
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:264:27 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    262 │ 	const mutations: ((w: TabbedWorkspace) => void)[] = [
+    263 │ 		(w) => {
+  > 264 │ 			w.paneTabs[1]!.tabId = w.paneTabs[0]!.tabId;
+        │ 			                       ^^^^^^^^^^^^^^
+    265 │ 		},
+    266 │ 		(w) => {
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    262 262 │   	const mutations: ((w: TabbedWorkspace) => void)[] = [
+    263 263 │   		(w) => {
+    264     │ - → → → w.paneTabs[1]!.tabId·=·w.paneTabs[0]!.tabId;
+        264 │ + → → → w.paneTabs[1]!.tabId·=·w.paneTabs[0]?.tabId;
+    265 265 │   		},
+    266 266 │   		(w) => {
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:267:19 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    265 │ 		},
+    266 │ 		(w) => {
+  > 267 │ 			const layout = w.paneTabs[1]!.layout;
+        │ 			               ^^^^^^^^^^^^^^
+    268 │ 			if (layout.type !== "split") throw new Error("expected split");
+    269 │ 			layout.first.paneId = "missing";
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    265 265 │   		},
+    266 266 │   		(w) => {
+    267     │ - → → → const·layout·=·w.paneTabs[1]!.layout;
+        267 │ + → → → const·layout·=·w.paneTabs[1]?.layout;
+    268 268 │   			if (layout.type !== "split") throw new Error("expected split");
+    269 269 │   			layout.first.paneId = "missing";
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:272:19 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    270 │ 		},
+    271 │ 		(w) => {
+  > 272 │ 			const layout = w.paneTabs[1]!.layout;
+        │ 			               ^^^^^^^^^^^^^^
+    273 │ 			if (layout.type !== "split") throw new Error("expected split");
+    274 │ 			layout.first.paneId = "claude";
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    270 270 │   		},
+    271 271 │   		(w) => {
+    272     │ - → → → const·layout·=·w.paneTabs[1]!.layout;
+        272 │ + → → → const·layout·=·w.paneTabs[1]?.layout;
+    273 273 │   			if (layout.type !== "split") throw new Error("expected split");
+    274 274 │   			layout.first.paneId = "claude";
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:285:4 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    283 │ 		},
+    284 │ 		(w) => {
+  > 285 │ 			w.paneTabs[1]!.activePaneId = "claude";
+        │ 			^^^^^^^^^^^^^^
+    286 │ 		},
+    287 │ 		(w) => {
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:296:10 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    294 │ 	for (const mutate of mutations) {
+    295 │ 		const invalid = structuredClone(input);
+  > 296 │ 		mutate(invalid.targets[0]!.workspaces[0]);
+        │ 		       ^^^^^^^^^^^^^^^^^^^
+    297 │ 		expect(() =>
+    298 │ 			store.save({ owner: "renderer", expectedRevision: 1, view: invalid }),
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    294 294 │   	for (const mutate of mutations) {
+    295 295 │   		const invalid = structuredClone(input);
+    296     │ - → → mutate(invalid.targets[0]!.workspaces[0]);
+        296 │ + → → mutate(invalid.targets[0]?.workspaces[0]);
+    297 297 │   		expect(() =>
+    298 298 │   			store.save({ owner: "renderer", expectedRevision: 1, view: invalid }),
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:310:20 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    308 │ 	store.activateOwner("renderer");
+    309 │ 	const input = viewWithPaneTabs();
+  > 310 │ 	const workspace = input.targets[0]!.workspaces[0]!;
+        │ 	                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    311 │ 	workspace.panes = [];
+    312 │ 	workspace.layout = null;
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:310:20 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    308 │ 	store.activateOwner("renderer");
+    309 │ 	const input = viewWithPaneTabs();
+  > 310 │ 	const workspace = input.targets[0]!.workspaces[0]!;
+        │ 	                  ^^^^^^^^^^^^^^^^^
+    311 │ 	workspace.panes = [];
+    312 │ 	workspace.layout = null;
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    308 308 │   	store.activateOwner("renderer");
+    309 309 │   	const input = viewWithPaneTabs();
+    310     │ - → const·workspace·=·input.targets[0]!.workspaces[0]!;
+        310 │ + → const·workspace·=·input.targets[0]?.workspaces[0]!;
+    311 311 │   	workspace.panes = [];
+    312 312 │   	workspace.layout = null;
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:338:16 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    336 │ 	store.activateOwner("owner");
+    337 │ 	const a = view();
+  > 338 │ 	Object.assign(a.targets[0]!, localIdentity("namespace-a"));
+        │ 	              ^^^^^^^^^^^^^
+    339 │ 	a.targets[0]!.workspaces[0]!.label = "Local A";
+    340 │ 	a.targets.push({
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:339:2 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    337 │ 	const a = view();
+    338 │ 	Object.assign(a.targets[0]!, localIdentity("namespace-a"));
+  > 339 │ 	a.targets[0]!.workspaces[0]!.label = "Local A";
+        │ 	^^^^^^^^^^^^^
+    340 │ 	a.targets.push({
+    341 │ 		...structuredClone(a.targets[0]!),
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    337 337 │   	const a = view();
+    338 338 │   	Object.assign(a.targets[0]!, localIdentity("namespace-a"));
+    339     │ - → a.targets[0]!.workspaces[0]!.label·=·"Local·A";
+        339 │ + → a.targets[0]?.workspaces[0]!.label·=·"Local·A";
+    340 340 │   	a.targets.push({
+    341 341 │   		...structuredClone(a.targets[0]!),
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:339:2 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    337 │ 	const a = view();
+    338 │ 	Object.assign(a.targets[0]!, localIdentity("namespace-a"));
+  > 339 │ 	a.targets[0]!.workspaces[0]!.label = "Local A";
+        │ 	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    340 │ 	a.targets.push({
+    341 │ 		...structuredClone(a.targets[0]!),
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:341:22 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    339 │ 	a.targets[0]!.workspaces[0]!.label = "Local A";
+    340 │ 	a.targets.push({
+  > 341 │ 		...structuredClone(a.targets[0]!),
+        │ 		                   ^^^^^^^^^^^^^
+    342 │ 		connectionId: "ssh",
+    343 │ 		backendId: "ssh-backend",
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:348:12 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    346 │ 	store.save({ owner: "owner", expectedRevision: 0, view: a });
+    347 │ 	store.selectLocalNamespace("owner", localIdentity("namespace-b"));
+  > 348 │ 	const b = store.read().snapshot!;
+        │ 	          ^^^^^^^^^^^^^^^^^^^^^^
+    349 │ 	expect(b.activeConnectionId).toBeNull();
+    350 │ 	expect(b.targets.map((t) => t.connectionId)).toEqual(["ssh"]);
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:358:25 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    356 │ 		targets: [
+    357 │ 			...b.targets,
+  > 358 │ 			{ ...structuredClone(a.targets[0]!), ...localIdentity("namespace-b") },
+        │ 			                     ^^^^^^^^^^^^^
+    359 │ 		],
+    360 │ 	};
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:367:2 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    365 │ 		...candidate
+    366 │ 	} = input;
+  > 367 │ 	candidate.targets[1]!.workspaces[0]!.label = "Local B";
+        │ 	^^^^^^^^^^^^^^^^^^^^^
+    368 │ 	candidate.activeConnectionId = "mac";
+    369 │ 	store.save({ owner: "owner", expectedRevision: b.revision, view: candidate });
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    365 365 │   		...candidate
+    366 366 │   	} = input;
+    367     │ - → candidate.targets[1]!.workspaces[0]!.label·=·"Local·B";
+        367 │ + → candidate.targets[1]?.workspaces[0]!.label·=·"Local·B";
+    368 368 │   	candidate.activeConnectionId = "mac";
+    369 369 │   	store.save({ owner: "owner", expectedRevision: b.revision, view: candidate });
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:367:2 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    365 │ 		...candidate
+    366 │ 	} = input;
+  > 367 │ 	candidate.targets[1]!.workspaces[0]!.label = "Local B";
+        │ 	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    368 │ 	candidate.activeConnectionId = "mac";
+    369 │ 	store.save({ owner: "owner", expectedRevision: b.revision, view: candidate });
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:371:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    369 │ 	store.save({ owner: "owner", expectedRevision: b.revision, view: candidate });
+    370 │ 	store.selectLocalNamespace("owner", localIdentity("namespace-a"));
+  > 371 │ 	const restored = store.read().snapshot!;
+        │ 	                 ^^^^^^^^^^^^^^^^^^^^^^
+    372 │ 	expect(restored.targets.find((t) => t.connectionId === "mac")).toEqual({
+    373 │ 		...a.targets[0]!,
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:373:6 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    371 │ 	const restored = store.read().snapshot!;
+    372 │ 	expect(restored.targets.find((t) => t.connectionId === "mac")).toEqual({
+  > 373 │ 		...a.targets[0]!,
+        │ 		   ^^^^^^^^^^^^^
+    374 │ 		autoConnect: false,
+    375 │ 	});
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:397:16 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    395 │ 	store.activateOwner("owner");
+    396 │ 	const a = view();
+  > 397 │ 	Object.assign(a.targets[0]!, localIdentity("namespace-a"));
+        │ 	              ^^^^^^^^^^^^^
+    398 │ 	store.save({ owner: "owner", expectedRevision: 0, view: a });
+    399 │ 	store.selectLocalNamespace("owner", localIdentity("namespace-b"));
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:411:16 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    409 │ 	store.activateOwner("owner");
+    410 │ 	const a = view();
+  > 411 │ 	Object.assign(a.targets[0]!, localIdentity("namespace-a"));
+        │ 	              ^^^^^^^^^^^^^
+    412 │ 	store.save({ owner: "owner", expectedRevision: 0, view: a });
+    413 │ 	store.selectLocalNamespace("owner", localIdentity("namespace-b"));
+  
+
+Skipped 7 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 4.
+Checked 3 files in 61ms. Fixed 1 file.
+Found 24 warnings.

@@ -1,0 +1,19 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workspace-restore-coordinator.test.ts:
+(pass) an explicit disconnect disables startup connection while keeping the layout [7.65ms]
+(pass) duplicate startup requests share one existing-only connection and never install [2.10ms]
+(pass) a cancelled late restore cannot disconnect a newer user connection [1.06ms]
+(pass) a disconnected renderer cannot invent a terminal reference or override trusted identity [4.11ms]
+(pass) a renderer reload invalidates queued writes even when its webContents owner ID is unchanged [1.21ms]
+(pass) startup retries only retryable transport failures with bounded existing-only attempts [1.68ms]
+(pass) editing the SSH target pauses restoration without connecting or replacing the old view [1.00ms]
+
+src/main/lib/ssh-direct/workspace-restore-local.test.ts:
+(pass) local workspace view survives renderer ownership changes and restores only existing executions [3.90ms]
+(pass) namespace A to B to A preserves both views and rejects a queued stale save [5.36ms]
+
+ 9 pass
+ 0 fail
+ 32 expect() calls
+Ran 9 tests across 2 files. [195.00ms]

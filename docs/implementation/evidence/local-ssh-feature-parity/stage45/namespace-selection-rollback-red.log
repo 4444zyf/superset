@@ -1,0 +1,29 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/local-data-controller.test.ts:
+(pass) namespace switch closes the A transport before replacing trusted pins [0.23ms]
+(pass) pending operations prevent selection before any transport closes [0.06ms]
+(pass) an old Stop confirmation cannot act after selection changes A to B to A [0.27ms]
+(pass) manual import captures its target and reserves selection during the operation [0.14ms]
+(pass) cancelled preparation has no disconnect or backend side effects [0.17ms]
+(pass) pending intents created while a dialog waits also prevent its backend action [0.14ms]
+(pass) explicit control can stop the same namespace while its operation needs reconciliation [0.09ms]
+153 | 
+154 | test('a namespace view persistence failure restores the previous selection and pins',()=>{
+155 |  let selected='a';const pins:string[]=[];
+156 |  const row=(id:string)=>({id,label:id,selected:id===selected,isDefault:id==='a',backendId:`backend-${id}`,namespaceId:id});
+157 |  const controller=new LocalDataController({local:{listNamespaces:()=>['a','b'].map(row),getSelectionRevision:()=>0,selectNamespace:id=>{selected=id;return row(id);}},hasPending:()=>false,disconnect:()=>{},pin:namespace=>{pins.push(namespace.id);if(namespace.id==='b')throw new Error('view write failed');}});
+158 |  expect(()=>controller.selectNamespace('b')).toThrow('view write failed');expect(selected).toBe('a');expect(pins).toEqual(['b','a']);
+                                                                                                 ^
+error: expect(received).toBe(expected)
+
+Expected: "a"
+Received: "b"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/local-data-controller.test.ts:158:92)
+(fail) a namespace view persistence failure restores the previous selection and pins [0.18ms]
+
+ 7 pass
+ 1 fail
+ 19 expect() calls
+Ran 8 tests across 1 file. [162.00ms]
