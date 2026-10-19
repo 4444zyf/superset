@@ -751,7 +751,14 @@ export async function startWorkstation(): Promise<void> {
 							});
 							return answer.response === 1;
 						},
-						async () => local.removeNamespace(id),
+						async () => {
+							const result = local.removeNamespace(id);
+							views?.removeLocalNamespace(
+								localConnectionId,
+								target.namespaceId,
+							);
+							return result;
+						},
 						{ disconnect: false },
 					);
 				}

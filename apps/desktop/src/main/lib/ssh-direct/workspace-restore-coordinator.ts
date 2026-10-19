@@ -574,6 +574,14 @@ export class WorkspaceRestoreCoordinator {
 		});
 	}
 
+	removeLocalNamespace(id: string, namespaceId: string): void {
+		if (this.owner !== null)
+			this.options.store.removeLocalNamespace(
+				String(this.owner),
+				id,
+				namespaceId,
+			);
+	}
 	selectLocalNamespace(id: string): void {
 		const profile = this.options.registry.get(id);
 		if (

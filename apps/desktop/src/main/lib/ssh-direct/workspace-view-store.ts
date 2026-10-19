@@ -114,6 +114,18 @@ export class WorkspaceViewStore {
 			this.db.exec("DELETE FROM local_namespace_views");
 		});
 	}
+	removeLocalNamespace(
+		owner: string,
+		connectionId: string,
+		namespaceId: string,
+	): void {
+		if (this.owner !== owner) throw new Error("Workspace view owner changed");
+		this.db
+			.prepare(
+				"DELETE FROM local_namespace_views WHERE json_extract(identity,'$[0]')=? AND json_extract(identity,'$[2]')=?",
+			)
+			.run(connectionId, namespaceId);
+	}
 	selectLocalNamespace(
 		owner: string,
 		identity: Pick<

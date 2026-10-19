@@ -424,3 +424,22 @@ test("an invalid archived local view cannot replace the active view", () => {
 	expect(store.read()).toEqual(before);
 	db.close();
 });
+
+test("removing an inactive namespace removes only its archived layout", () => {
+	const db = new Database(":memory:"),
+		store = new WorkspaceViewStore(db);
+	store.activateOwner("owner");
+	const a = view();
+	Object.assign(a.targets[0]!, localIdentity("namespace-a"));
+	store.save({ owner: "owner", expectedRevision: 0, view: a });
+	store.selectLocalNamespace("owner", localIdentity("namespace-b"));
+	const before = store.read();
+	expect(() =>
+		store.removeLocalNamespace("stale", "mac", "namespace-a"),
+	).toThrow("owner");
+	store.removeLocalNamespace("owner", "mac", "namespace-a");
+	expect(store.read()).toEqual(before);
+	store.selectLocalNamespace("owner", localIdentity("namespace-a"));
+	expect(store.read().snapshot?.targets).toEqual([]);
+	db.close();
+});
