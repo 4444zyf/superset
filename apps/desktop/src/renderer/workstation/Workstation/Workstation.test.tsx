@@ -196,7 +196,6 @@ test("selecting another local namespace clears the old workspace without reconne
 		(
 			screen.getByRole("button", {
 				name: "Start",
-				exact: true,
 			}) as HTMLButtonElement
 		).disabled,
 	).toBe(true);
@@ -256,7 +255,6 @@ test.each([
 	fireEvent.click(
 		screen.getByRole("button", {
 			name: action === "start" ? "Start" : "Stop",
-			exact: true,
 		}),
 	);
 	await waitFor(() =>
