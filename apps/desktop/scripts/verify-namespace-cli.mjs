@@ -7,10 +7,10 @@ import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {DatabaseSync} from 'node:sqlite';
 import {promisify} from 'node:util';
-import {LocalBackend} from '../../direct-connection/src/local.ts';
-import {ownedRestoreControls} from '../../../apps/desktop/scripts/verify-restore-controls.mjs';
+import {LocalBackend} from '../../../packages/direct-connection/src/local.ts';
+import {ownedRestoreControls} from './verify-restore-controls.mjs';
 
-const require=createRequire(new URL('../package.json',import.meta.url));
+const require=createRequire(new URL('../../../packages/cli/package.json',import.meta.url));
 const {createTRPCClient,httpBatchLink}=require('@trpc/client');
 const SuperJSON=require('superjson').default;
 const run=promisify(execFile);
