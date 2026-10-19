@@ -485,6 +485,7 @@ function versionedAgentCatalog(db: Pick<HostDb, "select">) {
 		revision: createHash("sha256").update(JSON.stringify(rows)).digest("hex"),
 	};
 }
+export { versionedAgentCatalog as readAgentConfigCatalog };
 
 const catalogChangeInputSchema = z.object({
 	expectedRevision: z.string().regex(/^[a-f0-9]{64}$/),

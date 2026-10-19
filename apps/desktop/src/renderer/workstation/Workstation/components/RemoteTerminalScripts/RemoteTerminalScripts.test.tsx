@@ -47,6 +47,9 @@ function fixture({
 	lostReply = false,
 	conflict = false,
 	initialized = true,
+	configurationRequest = undefined as
+		| { requestId: string; presetId?: string }
+		| undefined,
 } = {}) {
 	let catalog: HostTerminalPresetCatalog = {
 		initialized,
@@ -133,6 +136,7 @@ function fixture({
 		agents: [],
 		workspaceId: "workspace",
 		busy: false,
+		configurationRequest,
 	};
 	const view = render(
 		<DndProvider backend={HTML5Backend}>
@@ -150,6 +154,23 @@ async function openEditor() {
 	fireEvent.click(await screen.findByText("Safe script"));
 	return await screen.findByLabelText("Name");
 }
+test("Run configuration requests open the original selected script editor without writing or launching", async () => {
+	const f = fixture({
+		configurationRequest: { requestId: "run-edit", presetId: row.id },
+	});
+	const name = await screen.findByLabelText("Name");
+	expect((name as HTMLInputElement).value).toBe(row.name);
+	expect(f.calls.filter((r) => r.type === "mutation")).toEqual([]);
+	expect(f.registry.getUnsaved()).toHaveLength(0);
+});
+test("a deleted Run script opens its existing list without recreating the script", async () => {
+	const f = fixture({
+		configurationRequest: { requestId: "deleted", presetId: "missing" },
+	});
+	await screen.findByText("Safe script");
+	expect(screen.queryByLabelText("Name")).toBeNull();
+	expect(f.calls.filter((r) => r.type === "mutation")).toEqual([]);
+});
 test("uses the original script editor and persists edits through the selected SSH catalog", async () => {
 	const f = fixture();
 	const name = await openEditor();

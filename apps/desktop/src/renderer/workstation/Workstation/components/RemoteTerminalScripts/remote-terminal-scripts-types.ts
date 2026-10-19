@@ -12,5 +12,6 @@ export interface RemoteTerminalScriptsProps {
 	workspaceId: string;
 	agents: HostAgentConfig[];
 	busy: boolean;
+	configurationRequest?: { requestId: string; presetId?: string };
 	onCatalogChanged?(catalog: HostTerminalPresetCatalog): void;
 }

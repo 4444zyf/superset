@@ -24,6 +24,10 @@ export async function verifyWorkstationPresetRunUi(options){
  const preview=await state(scope.w.workspaceId);await screenshot('preset-run-configured');
  assert.equal(preview.definition?.source,'terminal-preset','Run consumes the saved script selected through the original editor');
  assert.equal(preview.definition.presetId,preset.id);
+ await until(()=>evaluate(`Boolean(document.querySelector('[data-workspace-run] button[aria-label="Run workspace command"]:not(:disabled)'))`),'saved script Run control');
+ await click('[data-workspace-run] button[aria-label="Workspace run options"]');await click('text:Edit Run Script');
+ await until(()=>evaluate(`document.querySelector('${editor} #preset-name')?.value===${JSON.stringify(name)}`),'Run options opens the selected original editor');await screenshot('preset-run-original-edit-menu');
+ await scrollText('Done');await click('text:Done');await listing.scrollTo(list+' [data-slot=dialog-close]');await click(list+' [data-slot=dialog-close]');
  const start=async(id)=>{await until(()=>evaluate(`Boolean(document.querySelector('[data-workspace-run] button[aria-label="Run workspace command"]:not(:disabled)'))`),'Run control enabled');await click('[data-workspace-run] button[aria-label="Run workspace command"]');return until(async()=>{const s=await state(id);return s.run?.state==='active'&&s.run.executionId&&s.run;},'Run active');};
  const stop=async(id)=>{await until(()=>evaluate(`Boolean(document.querySelector('[data-workspace-run] button[aria-label="Stop workspace run command"]:not(:disabled)'))`),'Stop enabled');await click('[data-workspace-run] button[aria-label="Stop workspace run command"]');return until(async()=>{const s=await state(id);return s.run?.state==='ended'&&s.run;},'Run ended');};
  const first=await start(scope.w.workspaceId);await until(async()=>await read(scope.w.workspaceId,'preset-run.txt')==='run-once\n','Run marker once');const execution=await controls.inspectPresetTerminal(first.terminalId);await screenshot('preset-run-active');

@@ -88,6 +88,7 @@ function readCatalog(db: Pick<HostDb, "select">): HostTerminalPresetCatalog {
 			.digest("hex"),
 	};
 }
+export { readCatalog as readTerminalPresetCatalog };
 
 export const terminalPresetsRouter = router({
 	catalogWithRevisionV1: protectedProcedure.query(({ ctx }) =>

@@ -152,6 +152,7 @@ export class WorkstationController {
 				"workstationProjectsV1",
 				"workstationProjectScriptsV1",
 				"workstationWorkspaceRunV1",
+				"workstationWorkspaceRunV2",
 				"workstationWorkspaceCleanupV1",
 				"workstationWorkspaceSetupV1",
 			].map((key) => [key, metadata.capabilities?.[key] === true]),
@@ -268,6 +269,7 @@ export class WorkstationController {
 				"git.push": "git.push",
 				"git.syncBranchV1": "git.syncBranchV1",
 				"workspaceRun.startV1": "workspaceRun.startV1",
+				"workspaceRun.startV2": "workspaceRun.startV2",
 				"workspaceCleanup.destroyTrackedV1":
 					"workspaceCleanup.destroyTrackedV1",
 				"workspaceRun.stopV1": "workspaceRun.stopV1",
@@ -279,6 +281,7 @@ export class WorkstationController {
 			request.path === "git.push" ||
 			request.path === "git.syncBranchV1" ||
 			request.path === "workspaceRun.startV1" ||
+			request.path === "workspaceRun.startV2" ||
 			request.path === "workspaceRun.stopV1" ||
 			request.path === "workspaceCleanup.destroyTrackedV1"
 		) {

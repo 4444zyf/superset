@@ -1,6 +1,12 @@
 import { createHash } from "node:crypto";
-import { buildTerminalCommand } from "@superset/shared/terminal-command";
 import { readForegroundProcessState } from "@superset/pty-daemon/process-tree";
+import { resolvePresetLaunchCommands } from "@superset/shared/agent-launch-command";
+import { isProjectTargetedPreset } from "@superset/shared/preset-project-targeting";
+import { buildTerminalCommand } from "@superset/shared/terminal-command";
+import {
+	selectWorkspaceRunDefinition,
+	type WorkspaceRunDefinition,
+} from "@superset/shared/workspace-run-definition";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -10,18 +16,20 @@ import {
 	RunCompletionStore,
 	supportsRunCompletion,
 } from "../../../direct/run-completion";
+import { WorkspaceRunManager } from "../../../direct/workspace-runs";
+import { resolveScript, shellSingleQuote } from "../../../runtime/setup/config";
+import { connectExistingDaemon } from "../../../terminal/daemon-client-singleton";
 import {
 	getTerminalBaseEnv,
 	resolveLaunchShell,
 	waitForTerminalBaseEnv,
 } from "../../../terminal/env";
-import { WorkspaceRunManager } from "../../../direct/workspace-runs";
-import { resolveScript, shellSingleQuote } from "../../../runtime/setup/config";
-import { connectExistingDaemon } from "../../../terminal/daemon-client-singleton";
 import { restoreResources } from "../../../terminal/restore-resources";
 import { createTerminalSessionInternal } from "../../../terminal/terminal";
 import type { HostServiceContext } from "../../../types";
 import { protectedProcedure, router } from "../../index";
+import { readAgentConfigCatalog } from "../settings/agent-configs";
+import { readTerminalPresetCatalog } from "../settings/terminal-presets";
 
 const scope = z.object({ workspaceId: z.string().min(1).max(128) });
 function requireWorkspace(ctx: HostServiceContext, id: string) {
@@ -68,7 +76,43 @@ function definitionFor(target: ReturnType<typeof requireWorkspace>) {
 		...(resolved.cwd ? { cwd: resolved.cwd } : {}),
 	};
 }
-const versionOf = (definition: ReturnType<typeof definitionFor>) =>
+function definitionForV2(
+	ctx: HostServiceContext,
+	target: ReturnType<typeof requireWorkspace>,
+): WorkspaceRunDefinition | null {
+	const catalog = readTerminalPresetCatalog(ctx.db);
+	const agents = catalog.presets.some((p) => p.agentId)
+		? readAgentConfigCatalog(ctx.db).configs
+		: [];
+	const presets = catalog.presets
+		.slice()
+		.sort((a, b) => a.tabOrder - b.tabOrder)
+		.map((p) => ({ ...p, commands: resolvePresetLaunchCommands(p, agents) }));
+	const projectId = target.project?.id ?? null;
+	const targeted = selectWorkspaceRunDefinition({
+		presets: presets.filter(isProjectTargetedPreset),
+		projectId,
+	});
+	const config = targeted ? null : definitionFor(target);
+	const definition =
+		targeted ??
+		selectWorkspaceRunDefinition({
+			presets,
+			projectId,
+			configRunCommands: config?.commands,
+			configCwd: config?.cwd,
+		});
+	if (
+		definition &&
+		Buffer.byteLength(definition.commands.join("\n")) > 128 * 1024
+	)
+		throw new TRPCError({
+			code: "BAD_REQUEST",
+			message: "The run command exceeds 128 KiB.",
+		});
+	return definition;
+}
+const versionOf = (definition: WorkspaceRunDefinition | null) =>
 	definition
 		? createHash("sha256").update(JSON.stringify(definition)).digest("hex")
 		: null;
@@ -162,6 +206,59 @@ function managerFor(
 }
 
 export const workspaceRunRouter = router({
+	getStateV2: protectedProcedure.input(scope).query(async ({ ctx, input }) => {
+		const target = requireWorkspace(ctx, input.workspaceId);
+		const run = await managerFor(ctx, target.store).read(input.workspaceId);
+		let definition: WorkspaceRunDefinition | null = null,
+			definitionError: string | null = null;
+		try {
+			definition = definitionForV2(ctx, target);
+		} catch (error) {
+			definitionError =
+				error instanceof Error
+					? error.message
+					: "The run definition is unavailable.";
+		}
+		return {
+			projectId: target.project?.id ?? null,
+			definition,
+			definitionVersion: versionOf(definition),
+			definitionError,
+			run,
+		};
+	}),
+	startV2: protectedProcedure
+		.input(
+			scope.extend({
+				operationId: z.string().uuid(),
+				definitionVersion: z.string().regex(/^[a-f0-9]{64}$/),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const target = requireWorkspace(ctx, input.workspaceId),
+				definition = definitionForV2(ctx, target);
+			if (!definition || versionOf(definition) !== input.definitionVersion)
+				throw new TRPCError({
+					code: "CONFLICT",
+					message: "The run command changed. Refresh before starting it.",
+				});
+			let completionTracked = false;
+			if (managedRunCompletionRoot()) {
+				await waitForTerminalBaseEnv();
+				completionTracked = supportsRunCompletion(
+					resolveLaunchShell(getTerminalBaseEnv()),
+				);
+			}
+			return managerFor(ctx, target.store).start({
+				completionTracked,
+				workspaceId: input.workspaceId,
+				operationId: input.operationId,
+				terminalId: input.operationId,
+				commands: definition.commands,
+				cwd: definition.cwd,
+				startedAt: Date.now(),
+			});
+		}),
 	getStateV1: protectedProcedure.input(scope).query(async ({ ctx, input }) => {
 		const target = requireWorkspace(ctx, input.workspaceId);
 		const run = await managerFor(ctx, target.store).read(input.workspaceId);

@@ -19,13 +19,14 @@ function displayRunError(error: unknown): string {
 	return errorMessage(message !== raw ? new Error(message) : error);
 }
 
-type Snapshot = inferRouterOutputs<AppRouter>["workspaceRun"]["getStateV1"];
+type Snapshot = inferRouterOutputs<AppRouter>["workspaceRun"]["getStateV2"];
 export type RemoteRun = NonNullable<Snapshot["run"]>;
 export function RemoteWorkspaceRun({
 	api,
 	connection,
 	workspaceId,
 	onConfigure,
+	onConfigureScript,
 	onAttach,
 	canStart = true,
 	pollMs = 1500,
@@ -34,6 +35,7 @@ export function RemoteWorkspaceRun({
 	connection: DirectDescriptor;
 	workspaceId: string;
 	onConfigure(projectId: string): void;
+	onConfigureScript?(presetId?: string): void;
 	onAttach(run: RemoteRun): Promise<void>;
 	canStart?: boolean;
 	pollMs?: number;
@@ -60,18 +62,19 @@ export function RemoteWorkspaceRun({
 		fence = useRef(0),
 		attached = useRef<string | null>(null),
 		requestedRun = useRef<string | null>(null);
-	const callbacks = useRef({ onAttach, onConfigure });
-	callbacks.current = { onAttach, onConfigure };
+	const callbacks = useRef({ onAttach, onConfigure, onConfigureScript });
+	callbacks.current = { onAttach, onConfigure, onConfigureScript };
+	const version2 = connection.capabilities?.workstationWorkspaceRunV2 === true;
 	const capable =
-		connection.capabilities?.workstationWorkspaceRunV1 === true &&
-		connection.capabilities.durableOperations === true;
+		(version2 || connection.capabilities?.workstationWorkspaceRunV1 === true) &&
+		connection.capabilities?.durableOperations === true;
 	const owned = () =>
 		ownerRef.current === owner && mountedOwner.current === owner;
 	const query = () =>
 		api.rpc<Snapshot>({
 			connectionId: connection.connectionId,
 			generation: connection.generation,
-			path: "workspaceRun.getStateV1",
+			path: version2 ? "workspaceRun.getStateV2" : "workspaceRun.getStateV1",
 			type: "query",
 			input: { workspaceId },
 		});
@@ -112,6 +115,7 @@ export function RemoteWorkspaceRun({
 	};
 	const refreshRef = useRef(refresh);
 	refreshRef.current = refresh;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: A replaced API or negotiated Run protocol invalidates pending reads even when the workspace owner is unchanged.
 	useEffect(() => {
 		mountedOwner.current = owner;
 		reading.current = false;
@@ -131,7 +135,7 @@ export function RemoteWorkspaceRun({
 			if (timer) clearInterval(timer);
 			if (mountedOwner.current === owner) mountedOwner.current = null;
 		};
-	}, [api, owner, capable, pollMs]);
+	}, [api, owner, capable, version2, pollMs]);
 	const data = loaded?.owner === owner ? loaded.value : null;
 	const running = !!data?.run && data.run.state !== "ended";
 	const exitCode = data?.run?.state === "ended" ? data.run.exitCode : undefined;
@@ -162,7 +166,11 @@ export function RemoteWorkspaceRun({
 			const result = await api.rpc<RemoteRun>({
 				connectionId: connection.connectionId,
 				generation: connection.generation,
-				path: stopping ? "workspaceRun.stopV1" : "workspaceRun.startV1",
+				path: stopping
+					? "workspaceRun.stopV1"
+					: version2
+						? "workspaceRun.startV2"
+						: "workspaceRun.startV1",
 				type: "mutation",
 				input: stopping
 					? {
@@ -221,7 +229,7 @@ export function RemoteWorkspaceRun({
 	if (!capable) return null;
 	return (
 		<div data-workspace-run className="flex items-center gap-2 min-w-0">
-			{data?.projectId && (
+			{data && (data.projectId || version2) && (
 				<WorkspaceRunControl
 					definition={data.definition}
 					isRunning={running}
@@ -233,6 +241,18 @@ export function RemoteWorkspaceRun({
 					}
 					canForceStop={running && !!data.run?.executionId}
 					onConfigure={() => {
+						if (!owned()) return;
+						if (
+							data.definition?.source === "terminal-preset" ||
+							!data.projectId
+						) {
+							callbacks.current.onConfigureScript?.(
+								data.definition?.source === "terminal-preset"
+									? data.definition.presetId
+									: undefined,
+							);
+							return;
+						}
 						const projectId = data?.projectId;
 						if (owned() && projectId) callbacks.current.onConfigure(projectId);
 					}}
@@ -242,7 +262,6 @@ export function RemoteWorkspaceRun({
 			)}
 			{exitCode !== undefined && (
 				<output
-					role="status"
 					data-run-exit-code={exitCode}
 					className={
 						exitCode === 0

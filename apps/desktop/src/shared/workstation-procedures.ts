@@ -10,12 +10,21 @@ export interface WorkspaceProcedure {
 		| "workstationProjectsV1"
 		| "workstationProjectScriptsV1"
 		| "workstationWorkspaceRunV1"
+		| "workstationWorkspaceRunV2"
 		| "workstationWorkspaceCleanupV1"
 		| "workstationWorkspaceSetupV1"
 		| "workstationTerminalScriptExecutionV1";
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"workspaceRun.getStateV2": {
+		type: "query",
+		capability: "workstationWorkspaceRunV2",
+	},
+	"workspaceRun.startV2": {
+		type: "mutation",
+		capability: "workstationWorkspaceRunV2",
+	},
 	"terminal.runScriptV1": {
 		type: "mutation",
 		capability: "workstationTerminalScriptExecutionV1",

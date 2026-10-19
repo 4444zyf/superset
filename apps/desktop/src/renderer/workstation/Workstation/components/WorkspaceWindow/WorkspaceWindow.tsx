@@ -100,9 +100,21 @@ export function WorkspaceWindow({
 		[tabStore, tabs, target.activeTabId],
 	);
 	const [chatPicker, setChatPicker] = useState(false);
+	const [runScriptRequest, setRunScriptRequest] = useState<{
+		owner: string;
+		requestId: string;
+		presetId?: string;
+	} | null>(null);
 	const workspace = target.workspaces.find(
 		(w) => w.tabId === target.activeTabId,
 	);
+	const scriptOwner = JSON.stringify([
+		connection?.connectionId,
+		connection?.backendId,
+		connection?.namespaceId,
+		connection?.generation,
+		workspace?.workspaceId,
+	]);
 	const restoring =
 		restore?.status === "connecting" || restore?.status === "checking";
 	return (
@@ -306,6 +318,13 @@ export function WorkspaceWindow({
 								workspaceId={workspace.workspaceId}
 								canStart={workspace.panes.length < 64}
 								onConfigure={onProjectSettings}
+								onConfigureScript={(presetId) =>
+									setRunScriptRequest({
+										owner: scriptOwner,
+										requestId: crypto.randomUUID(),
+										presetId,
+									})
+								}
 								onAttach={async (run) => {
 									if (
 										workspace.panes.some(
@@ -369,6 +388,11 @@ export function WorkspaceWindow({
 							connection={connection}
 							workspaceId={workspace.workspaceId}
 							busy={actions.busy}
+							configurationRequest={
+								runScriptRequest?.owner === scriptOwner
+									? runScriptRequest
+									: undefined
+							}
 							onLaunchScript={(preset, agents) => {
 								void actions.launchTerminalPreset(
 									workspace.workspaceId,

@@ -38,6 +38,7 @@ export function RemoteTerminalPresets({
 	busy,
 	onLaunch,
 	onLaunchScript,
+	configurationRequest,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor;
@@ -45,6 +46,7 @@ export function RemoteTerminalPresets({
 	busy: boolean;
 	onLaunch(launch: { initialCommand: string; label: string }): void;
 	onLaunchScript?(preset: HostTerminalPreset, agents: HostAgentConfig[]): void;
+	configurationRequest?: { requestId: string; presetId?: string };
 }) {
 	const { t } = useLingui();
 	const { theme } = useWorkstationAppearance();
@@ -226,6 +228,7 @@ export function RemoteTerminalPresets({
 								workspaceId={workspaceId}
 								busy={busy}
 								onCatalogChanged={publishCatalog}
+								configurationRequest={configurationRequest}
 							/>
 						)}
 						<Button

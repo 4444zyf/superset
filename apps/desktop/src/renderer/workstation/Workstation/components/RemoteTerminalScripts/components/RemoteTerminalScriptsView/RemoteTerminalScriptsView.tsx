@@ -68,6 +68,7 @@ export function RemoteTerminalScriptsView({
 	agents,
 	busy,
 	onCatalogChanged,
+	configurationRequest,
 }: Props) {
 	const changed = useRef(onCatalogChanged);
 	changed.current = onCatalogChanged;
@@ -97,6 +98,26 @@ export function RemoteTerminalScriptsView({
 	const [projects, setProjects] = useState<PresetProjectOption[]>([]),
 		[preferredProjectId, setPreferredProjectId] = useState<string | null>(null);
 	const [localOrder, setLocalOrder] = useState<string[] | null>(null);
+	const handledConfiguration = useRef<string | null>(null);
+	useEffect(() => {
+		if (
+			!configurationRequest ||
+			handledConfiguration.current === configurationRequest.requestId ||
+			!catalog ||
+			working
+		)
+			return;
+		handledConfiguration.current = configurationRequest.requestId;
+		setOpen(true);
+		if (draftRef.current || !configurationRequest.presetId) return;
+		const selected = catalog.presets.find(
+			(p) => p.id === configurationRequest.presetId,
+		);
+		if (selected) {
+			draftRef.current = selected;
+			setDraft(selected);
+		}
+	}, [configurationRequest, catalog, working]);
 	const container = useRef<HTMLDivElement>(null);
 	const [workspacePath, setWorkspacePath] = useState<string | null>(null);
 	const [directoryOpen, setDirectoryOpen] = useState(false),

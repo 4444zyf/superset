@@ -46,6 +46,7 @@ export function describeDirectBackend(
 			workstationProjectsV1: true,
 			workstationProjectScriptsV1: true,
 			workstationWorkspaceRunV1: workspaceViewRestoreV1,
+			workstationWorkspaceRunV2: durableOperations && workspaceViewRestoreV1,
 			workstationTerminalPresetsV1: durableOperations && workspaceViewRestoreV1,
 			workstationAgentSettingsV1: true,
 			workstationAgentManagementV1: true,
@@ -78,6 +79,7 @@ export function describeDirectBackend(
 const directProcedures = z.enum([
 	"workspaceCleanup.destroyTrackedV1",
 	"workspaceRun.startV1",
+	"workspaceRun.startV2",
 	"workspaceRun.stopV1",
 	"project.create",
 	"workspaceCreation.createSession",
@@ -133,6 +135,8 @@ async function dispatch(
 			return caller.workspaceCleanup.destroyTrackedV1(input as never);
 		case "workspaceRun.startV1":
 			return caller.workspaceRun.startV1({ ...input, operationId } as never);
+		case "workspaceRun.startV2":
+			return caller.workspaceRun.startV2({ ...input, operationId } as never);
 		case "workspaceRun.stopV1":
 			return caller.workspaceRun.stopV1({ ...input, operationId } as never);
 		case "git.syncBranchV1":

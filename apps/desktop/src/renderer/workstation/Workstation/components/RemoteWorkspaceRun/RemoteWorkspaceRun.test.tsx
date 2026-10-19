@@ -13,6 +13,7 @@ import type {
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
 import { RemoteWorkspaceRun } from "./RemoteWorkspaceRun";
+
 afterEach(cleanup);
 const connection: DirectDescriptor = {
 	connectionId: "remote",
@@ -33,6 +34,102 @@ const base = {
 	definitionVersion: "version",
 	run: null,
 };
+
+test("a capable backend uses V2 saved script Run for a project-less workspace", async () => {
+	const calls: DirectRpc[] = [];
+	const api = {
+		rpc: async (request: DirectRpc) => {
+			calls.push(request);
+			if (request.type === "query")
+				return {
+					...base,
+					projectId: null,
+					definition: {
+						source: "terminal-preset",
+						presetId: "script",
+						name: "Run script",
+						commands: ["echo preset"],
+					},
+				};
+			return {
+				workspaceId: "workspace",
+				operationId: (request.input as { operationId: string }).operationId,
+				terminalId: "terminal",
+				executionId: "execution",
+				state: "active",
+				foregroundSeen: true,
+				commands: ["echo preset"],
+				startedAt: 1,
+			};
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspaceRun
+			api={api}
+			connection={{
+				...connection,
+				capabilities: {
+					...connection.capabilities,
+					workstationWorkspaceRunV2: true,
+				},
+			}}
+			workspaceId="workspace"
+			onConfigure={() => {}}
+			onAttach={async () => {}}
+		/>,
+	);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Run workspace command" }),
+	);
+	await waitFor(() =>
+		expect(calls.some((r) => r.path === "workspaceRun.startV2")).toBe(true),
+	);
+	expect(
+		calls
+			.filter((r) => r.type === "query")
+			.every((r) => r.path === "workspaceRun.getStateV2"),
+	).toBe(true);
+	expect(calls.find((r) => r.type === "mutation")?.input).toMatchObject({
+		workspaceId: "workspace",
+		definitionVersion: "version",
+	});
+});
+
+test("an empty standalone Run opens existing script configuration without a project", async () => {
+	const configured: Array<string | undefined> = [];
+	const api = {
+		rpc: async () => ({
+			...base,
+			projectId: null,
+			definition: null,
+			definitionVersion: null,
+		}),
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspaceRun
+			api={api}
+			connection={{
+				...connection,
+				capabilities: {
+					...connection.capabilities,
+					workstationWorkspaceRunV2: true,
+				},
+			}}
+			workspaceId="workspace"
+			onConfigure={() => {
+				throw new Error("No project");
+			}}
+			onConfigureScript={(id) => configured.push(id)}
+			onAttach={async () => {}}
+		/>,
+	);
+	fireEvent.click(
+		await screen.findByRole("button", {
+			name: "Configure workspace run command",
+		}),
+	);
+	expect(configured).toEqual([undefined]);
+});
 
 test("a double click creates one durable run and attaches its returned execution", async () => {
 	const calls: DirectRpc[] = [];

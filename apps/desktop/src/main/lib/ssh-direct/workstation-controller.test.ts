@@ -804,6 +804,7 @@ test("project script procedures require their own capability and an explicit pro
 
 test.each([
 	"workspaceRun.startV1",
+	"workspaceRun.startV2",
 	"workspaceCleanup.destroyTrackedV1",
 ])("a lost %s response remains journaled and blocks a second operation", async (path) => {
 	const db = new Database(":memory:"),
@@ -816,6 +817,7 @@ test.each([
 			getVerifiedDescription: () => ({
 				capabilities: {
 					workstationWorkspaceRunV1: true,
+					workstationWorkspaceRunV2: true,
 					workstationWorkspaceCleanupV1: true,
 					durableOperations: true,
 				},
