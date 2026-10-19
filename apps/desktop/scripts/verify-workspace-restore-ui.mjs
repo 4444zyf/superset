@@ -500,6 +500,12 @@ export async function verifyWorkspaceRestoreUi({
 		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, filePreviewsOnly: true }, null, 2) + "\n");
 		return;
 	}
+ if(process.argv.includes("--preset-run-only")){
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationPresetRunUi}=await import("./verify-workstation-preset-run-ui.mjs");
+  await verifyWorkstationPresetRunUi({getPage,click,screenshot,output,closeReopen,controls});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,presetRunOnly:true},null,2)+"\n");return;
+ }
  if(process.argv.includes("--terminal-script-triggers-only")){
   await click("text:Terminal");await ready();
   const {verifyWorkstationTerminalScriptTriggersUi}=await import("./verify-workstation-terminal-script-triggers-ui.mjs");

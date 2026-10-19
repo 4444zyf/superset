@@ -1,0 +1,39 @@
+import assert from 'node:assert/strict';
+import {writeFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {agentUiDriver} from './verify-workstation-agent-ui-driver.mjs';
+
+export async function verifyWorkstationPresetRunUi(options){
+ const {getPage,click,screenshot,output,closeReopen,controls}=options;
+ const list='[data-workstation-terminal-scripts]',editor='[data-terminal-preset-editor]';
+ const driver=agentUiDriver({...options,rootSelector:editor}),listing=agentUiDriver({...options,rootSelector:list});
+ const {evaluate,until,replace,scrollTo,scrollText}=driver;
+ const scope=await evaluate(`(async()=>{const {descriptor:d}=await window.directWorkstation.getWorkspaceRestore();const {snapshot:v}=await window.directWorkstation.getWorkspaceView();const t=v.targets.find(t=>t.connectionId===d.connectionId),w=t.workspaces.find(w=>w.tabId===t.activeTabId);return {d,w};})()`);
+ const query=(path,input)=>evaluate(`(async()=>{const {descriptor:d}=await window.directWorkstation.getWorkspaceRestore();if(d.connectionId!==${JSON.stringify(scope.d.connectionId)}||d.backendId!==${JSON.stringify(scope.d.backendId)}||d.namespaceId!==${JSON.stringify(scope.d.namespaceId)})throw new Error('Run target changed');return window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:${JSON.stringify(path)},type:'query',input:${JSON.stringify(input)}});})()`);
+ const state=id=>query(scope.d.capabilities.workstationWorkspaceRunV2?'workspaceRun.getStateV2':'workspaceRun.getStateV1',{workspaceId:id});
+ const read=async(id,name)=>{const w=await query('workspace.get',{id});try{return (await query('filesystem.readFile',{workspaceId:id,absolutePath:w.worktreePath+'/'+name,maxBytes:65536})).content;}catch{return null;}};
+ const originals=await Promise.all(scope.w.panes.map(p=>controls.inspectPresetTerminal(p.resourceId)));
+ await click('[data-workstation-presets] button[aria-label="Terminal Scripts"]');await until(()=>evaluate(`Boolean(document.querySelector('${list}'))`),'Run script list');await click('text:Add script');await until(()=>evaluate(`Boolean(document.querySelector('${editor} #preset-name'))`),'Run script editor');
+ const set=async(selector,text)=>{await replace(selector,text);await scrollTo(editor+' h2');await click(editor+' h2');};
+ const name='Workspace Run 中文';await set(editor+' #preset-name',name);
+ const catalog=()=>query('settings.terminalPresets.catalogWithRevisionV1');
+ const preset=await until(async()=>(await catalog()).presets.find(p=>p.name===name),'Run preset saved');
+ await set(editor+' input[placeholder="e.g. bun run dev"]',"printf 'run-once\\n' >> preset-run.txt; pwd > preset-run-cwd.txt; while :; do sleep 0.2; done");
+ await scrollTo(editor+' #preset-workspace-run');await click(editor+' #preset-workspace-run');await until(async()=>(await catalog()).presets.find(p=>p.id===preset.id)?.useAsWorkspaceRun===true,'Run flag saved');
+ await scrollText('Done');await click('text:Done');await listing.scrollTo(list+' [data-slot=dialog-close]');await click(list+' [data-slot=dialog-close]');
+ const preview=await state(scope.w.workspaceId);await screenshot('preset-run-configured');
+ assert.equal(preview.definition?.source,'terminal-preset','Run consumes the saved script selected through the original editor');
+ assert.equal(preview.definition.presetId,preset.id);
+ const start=async(id)=>{await until(()=>evaluate(`Boolean(document.querySelector('[data-workspace-run] button[aria-label="Run workspace command"]:not(:disabled)'))`),'Run control enabled');await click('[data-workspace-run] button[aria-label="Run workspace command"]');return until(async()=>{const s=await state(id);return s.run?.state==='active'&&s.run.executionId&&s.run;},'Run active');};
+ const stop=async(id)=>{await until(()=>evaluate(`Boolean(document.querySelector('[data-workspace-run] button[aria-label="Stop workspace run command"]:not(:disabled)'))`),'Stop enabled');await click('[data-workspace-run] button[aria-label="Stop workspace run command"]');return until(async()=>{const s=await state(id);return s.run?.state==='ended'&&s.run;},'Run ended');};
+ const first=await start(scope.w.workspaceId);await until(async()=>await read(scope.w.workspaceId,'preset-run.txt')==='run-once\n','Run marker once');const execution=await controls.inspectPresetTerminal(first.terminalId);await screenshot('preset-run-active');
+ await closeReopen();await until(()=>evaluate(`Boolean(document.querySelector('[data-terminal-id="${first.terminalId}"][data-restore-state="attached"]'))`),'Run reattached');
+ assert.equal((await state(scope.w.workspaceId)).run.operationId,first.operationId);assert.equal((await controls.inspectPresetTerminal(first.terminalId)).pid,execution.pid);assert.equal(await read(scope.w.workspaceId,'preset-run.txt'),'run-once\n');await screenshot('preset-run-reopened-same-execution');
+ const stopped=await stop(scope.w.workspaceId);const second=await start(scope.w.workspaceId);assert.notEqual(second.operationId,first.operationId);assert.equal(second.previousTerminalId,first.terminalId);await until(async()=>await read(scope.w.workspaceId,'preset-run.txt')==='run-once\nrun-once\n','explicit restart once');await stop(scope.w.workspaceId);
+ await click('[data-slot=sidebar-content] button[aria-label="Workspaces"]');await click('text:New session');await click('[role=dialog] input');await getPage().call('Input.insertText',{text:'Preset Run standalone 中文'});await click('[role=dialog] button[type=submit]');
+ const session=await until(()=>evaluate(`(async()=>{const {snapshot:v}=await window.directWorkstation.getWorkspaceView();const t=v.targets.find(t=>t.connectionId===v.activeConnectionId),w=t?.workspaces.find(w=>w.tabId===t.activeTabId);return w&&w.workspaceId!==${JSON.stringify(scope.w.workspaceId)}&&w;})()`),'standalone selected');
+ const standalonePreview=await state(session.workspaceId);assert.equal(standalonePreview.projectId,null);assert.equal(standalonePreview.definition.presetId,preset.id);
+ const standalone=await start(session.workspaceId);await until(async()=>await read(session.workspaceId,'preset-run.txt')==='run-once\n','standalone global Run once');await screenshot('preset-run-standalone-active');await stop(session.workspaceId);
+ for(const p of originals)assert.equal((await controls.inspectPresetTerminal(p.id)).pid,p.pid);
+ writeFileSync(join(output,'preset-run-acceptance.json'),JSON.stringify({preview,first,execution,stopped,second,standalonePreview,standalone,originals:originals.map(({id,executionId,pid})=>({id,executionId,pid})),errors:getPage().errors},null,2)+'\n');assert.deepEqual(getPage().errors,[]);
+}
