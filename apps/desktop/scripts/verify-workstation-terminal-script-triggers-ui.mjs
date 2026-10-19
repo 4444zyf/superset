@@ -44,7 +44,7 @@ export async function verifyWorkstationTerminalScriptTriggersUi({getPage,click,s
   try {
    await click('[role=dialog] button[type=submit]');
    await until(()=>evaluate(`Boolean(document.querySelector('[role=dialog] button[type=submit]')?.disabled)`),'workspace creation request pending');
-   busy=true;await requestClose();await delay(800);alive=await isWindowOpen();
+   busy=true;await screenshot('terminal-trigger-created-request-pending');await requestClose();await delay(800);alive=await isWindowOpen();
    writeFileSync(join(output,'terminal-trigger-created-close-held.json'),JSON.stringify({pid:paused.pid,busy,alive,dwellMs:800},null,2)+'\n');
    assert.equal(alive,true,'normal close must wait for the workspace creation request and its configured scripts');
   } finally {paused.resume();}
