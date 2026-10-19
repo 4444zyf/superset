@@ -52,7 +52,10 @@ export async function verifyWorkstationLocalParityUi(options){
  for(let i=0;i<aExecutions.length;i++)assert.equal((await controlA.inspectPresetTerminal(aWorkspace.panes[i].resourceId)).pid,aExecutions[i].pid);
  await screenshot('local-A-reopened-original-executions');
  writeFileSync(join(output,'local-parity-acceptance.json'),JSON.stringify({a,aDescriptor,aExecutions,b,bExecution,returned,reopened,restore,errors:getPage().errors},null,2)+'\n');
- await verifyWorkstationTerminalScriptExecutionUi({...options,controls:controlA});
+ if(process.argv.includes('--terminal-script-triggers')) {
+  const {verifyWorkstationTerminalScriptTriggersUi}=await import('./verify-workstation-terminal-script-triggers-ui.mjs');
+  await verifyWorkstationTerminalScriptTriggersUi({...options,controls:controlA});
+ } else await verifyWorkstationTerminalScriptExecutionUi({...options,controls:controlA});
  const retainedB=await controlB.inspectPresetTerminal(bWorkspace.panes[0].resourceId);assert.equal(retainedB.pid,bExecution.pid);assert.equal(retainedB.executionId,bExecution.executionId);
  writeFileSync(join(output,'local-parity-final.json'),JSON.stringify({retainedB,errors:getPage().errors},null,2)+'\n');
  assert.deepEqual(getPage().errors,[]);

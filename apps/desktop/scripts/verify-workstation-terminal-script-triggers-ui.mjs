@@ -32,6 +32,7 @@ export async function verifyWorkstationTerminalScriptTriggersUi({getPage,click,s
  const newTabContent=await waitFile(scope.w.workspaceId,'trigger-new-tab.txt');await screenshot('terminal-trigger-new-tab-result');
  const firstLayout=newTab.paneTabs;
  await closeReopen();await until(async()=>(await view())?.panes.length===newTab.panes.length,'new-tab view reopened');
+ await until(()=>evaluate(`(()=>{const rows=[...document.querySelectorAll('[data-terminal-id]')];return rows.length===1&&rows[0].dataset.restoreState==='attached';})()`),'new-tab terminal actually reattached');
  const afterNewTabReopen=await read(scope.w.workspaceId,'trigger-new-tab.txt');assert.deepEqual((await view()).paneTabs,firstLayout);assert.equal(afterNewTabReopen,newTabContent,'reopen never runs new-tab trigger');
  await open();const edit=`${list} [data-terminal-preset-id="${preset.id}"] `;await listing.scrollTo(edit);await click(edit);await until(()=>evaluate(`Boolean(document.querySelector('${editor}'))`),'edit script');
  await toggle(preset.id,'applyOnNewTab',false);await toggle(preset.id,'applyOnWorkspaceCreated',true);await set(`${editor} input[placeholder="e.g. bun run dev"]`,"printf 'created\\n' >> trigger-created.txt; pwd > trigger-cwd.txt");await finish();
