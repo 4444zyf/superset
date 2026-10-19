@@ -15,7 +15,7 @@ export async function verifyWorkstationWheelUi({getPage, click, screenshot, outp
  const text=value=>getPage().call('Input.insertText',{text:value});
  const file=`${scope.root}/wheel-input.json`;
  const program=`import os,sys,tty,termios,json,time\nf=sys.stdin.fileno();old=termios.tcgetattr(f);received=[];stage='normal'\ndef state():\n open(${JSON.stringify(file)},'w').write(json.dumps({'stage':stage,'received':received}))\ndef screen(label):\n sys.stdout.write('\\x1b[2J\\x1b[H'+label+' 中文 🙂\\r\\n'+''.join('TUI line %03d\\r\\n'%i for i in range(1,12)));sys.stdout.flush()\ntry:\n tty.setraw(f)\n sys.stdout.write(''.join('SHELL HISTORY %03d\\r\\n'%i for i in range(1,201)));sys.stdout.flush();state()\n while True:\n  data=os.read(f,4096);received.append(data.hex())\n  if data==b'a':\n   stage='alternate';sys.stdout.write('\\x1b[?1049h');screen('FIRST SCREEN')\n  elif data==b'n':\n   stage='redraw';screen('SECOND SCREEN')\n  elif data==b's':\n   stage='mouse';sys.stdout.write('\\x1b[?1000h\\x1b[?1006h');sys.stdout.flush()\n  elif data==b'q':\n   stage='finished';state();break\n  state()\nfinally:\n sys.stdout.write('\\x1b[?1000l\\x1b[?1006l\\x1b[?1049l');sys.stdout.flush();termios.tcsetattr(f,termios.TCSADRAIN,old)\n`;
- const command="python3 -u -c '"+program.replaceAll("'", "'\\''")+"'";
+ const command="python3 -u -c \"exec(bytes.fromhex('"+Buffer.from(program).toString('hex')+"').decode())\"";
  await text(command);await key('Enter',13);
  const state=async()=>{try{const row=await rpc('filesystem.readFile',{absolutePath:file,maxBytes:64*1024});return JSON.parse(row.content);}catch{return null;}};
  await until(async()=>{const s=await state();return s?.stage==='normal'&&s;},'normal raw terminal fixture');
