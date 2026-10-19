@@ -1168,6 +1168,7 @@ interface SessionMessageInput {
 	db: HostDb;
 	eventBus?: EventBus;
 	signal?: AbortSignal;
+	executionWrite?: (data: string) => void;
 }
 
 interface AgentMessageTarget {
@@ -1188,6 +1189,20 @@ export async function isAgentTerminalAlive(input: {
 
 export function writeFramedInputToSession(input: SessionMessageInput) {
 	return writeSessionMessage(input);
+}
+export function writeFramedInputToExistingExecution(
+	input: SessionMessageInput,
+	write: (data: string) => void,
+	store: Pick<TerminalAgentStore, "get">,
+) {
+	const binding = store.get(input.terminalId);
+	return binding && binding.endedAt === undefined
+		? sendAgentMessage({
+				...input,
+				executionWrite: write,
+				terminalAgentStore: store,
+			})
+		: writeSessionMessage({ ...input, executionWrite: write });
 }
 
 export async function sendAgentMessage({
@@ -1238,6 +1253,7 @@ async function writeSessionMessage(
 		signal,
 		db,
 		eventBus,
+		executionWrite,
 	}: SessionMessageInput,
 	agent?: AgentMessageTarget,
 ): Promise<{ success: true } | TerminalSessionError> {
@@ -1284,7 +1300,11 @@ async function writeSessionMessage(
 					? `\x1b[200~${message}\x1b[201~`
 					: message;
 			const write = (data: string) =>
-				agent ? session.pty.writeOrThrow(data) : session.pty.write(data);
+				executionWrite
+					? executionWrite(data)
+					: agent
+						? session.pty.writeOrThrow(data)
+						: session.pty.write(data);
 			let inputStaged: true | undefined;
 			try {
 				if (!submit) {

@@ -1114,3 +1114,68 @@ test("terminal script storage requires its own strict capability and the current
 	await expect(controller.invoke(write)).rejects.toThrow("Connection changed");
 	expect(calls).toHaveLength(2);
 });
+
+test("existing-terminal scripts require a strict execution capability and durable operation tracking", async () => {
+	const f = fixture(),
+		db = new Database(":memory:"),
+		intents = new OperationIntents(db as unknown as SqliteDatabase);
+	let enabled: unknown = false;
+	const calls: unknown[] = [];
+	const manager = {
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: {
+				durableOperations: true,
+				workstationTerminalScriptExecutionV1: enabled,
+			},
+		}),
+		invoke: async (_id: string, request: unknown) => {
+			calls.push(request);
+			return { status: "completed", result: { submitted: true } };
+		},
+	};
+	const controller = new WorkstationController(manager, intents),
+		request = {
+			connectionId: "machine",
+			generation: 1,
+			path: "terminal.runScriptV1",
+			type: "mutation" as const,
+			input: {
+				workspaceId: "workspace",
+				terminalId: "terminal",
+				executionId: "execution",
+				text: "printf once",
+				operationId: crypto.randomUUID(),
+			},
+		};
+	try {
+		for (const value of [undefined, false, "true", 1]) {
+			enabled = value;
+			await expect(controller.invoke(request)).rejects.toThrow(
+				"required capability",
+			);
+		}
+		expect(calls).toEqual([]);
+		enabled = true;
+		await expect(
+			new WorkstationController(manager).invoke(request),
+		).rejects.toThrow("tracking");
+		await controller.invoke(request);
+		expect(calls).toHaveLength(1);
+		expect(calls[0]).toMatchObject({
+			path: "direct.execute",
+			input: {
+				procedure: "terminal.runScriptV1",
+				operationId: request.input.operationId,
+				input: { executionId: "execution", text: "printf once" },
+			},
+		});
+		f.nextGeneration();
+		await expect(controller.invoke(request)).rejects.toThrow(
+			"Connection changed",
+		);
+		expect(calls).toHaveLength(1);
+	} finally {
+		db.close();
+	}
+});

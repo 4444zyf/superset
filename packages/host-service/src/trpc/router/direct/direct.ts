@@ -9,6 +9,7 @@ import {
 	directMaintenanceStatus,
 } from "../../../direct/maintenance";
 import { managedSetupCompletionRoot } from "../../../direct/managed-paths";
+import { runTerminalScriptOperation } from "../../../direct/terminal-script-operation";
 import { HOST_SERVICE_VERSION } from "../../../install-source";
 import { supportsWorkspaceRestore } from "../../../terminal/restore-resources";
 import type { DirectBackendIdentity, HostServiceContext } from "../../../types";
@@ -50,6 +51,8 @@ export function describeDirectBackend(
 			workstationAgentManagementV1: true,
 			workstationAgentCatalogV2: true,
 			workstationTerminalScriptsV1: true,
+			workstationTerminalScriptExecutionV1:
+				durableOperations && workspaceViewRestoreV1,
 			workstationWorkspaceCleanupV1: durableOperations,
 			workstationWorkspaceSetupV1:
 				durableOperations && managedSetupCompletionRoot() !== null,
@@ -82,6 +85,7 @@ const directProcedures = z.enum([
 	"workspaces.create",
 	"agents.run",
 	"terminal.createSession",
+	"terminal.runScriptV1",
 	"terminal.launchSession",
 	"chat.createSession",
 	"chat.prompt",
@@ -153,6 +157,8 @@ async function dispatch(
 				...input,
 				id: input.id ?? operationId,
 			} as never);
+		case "terminal.runScriptV1":
+			return runTerminalScriptOperation(ctx, input);
 		case "terminal.createSession":
 			return caller.terminal.createSession({
 				...input,

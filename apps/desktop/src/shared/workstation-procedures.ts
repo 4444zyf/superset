@@ -11,10 +11,15 @@ export interface WorkspaceProcedure {
 		| "workstationProjectScriptsV1"
 		| "workstationWorkspaceRunV1"
 		| "workstationWorkspaceCleanupV1"
-		| "workstationWorkspaceSetupV1";
+		| "workstationWorkspaceSetupV1"
+		| "workstationTerminalScriptExecutionV1";
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"terminal.runScriptV1": {
+		type: "mutation",
+		capability: "workstationTerminalScriptExecutionV1",
+	},
 	"workspaceSetup.getStateV1": {
 		type: "query",
 		capability: "workstationWorkspaceSetupV1",
