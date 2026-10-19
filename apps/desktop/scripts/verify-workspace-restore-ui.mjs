@@ -64,6 +64,7 @@ export async function verifyWorkspaceRestoreUi({
 		await getPage().call("Input.insertText", { text });
 	};
 	const saved = () => evaluate("window.directWorkstation.getWorkspaceView()");
+	const activeLayout = workspace => workspace?.paneTabs?.find(tab=>tab.tabId===workspace.activePaneTabId)?.layout ?? workspace?.layout;
 	const terminals = () =>
 		evaluate(
 			"[...document.querySelectorAll('[data-terminal-id]')].map(e=>({id:e.dataset.terminalId,executionId:e.dataset.executionId,state:e.dataset.restoreState}))",
@@ -291,7 +292,7 @@ export async function verifyWorkspaceRestoreUi({
 		});
 	}
 	const beforeDrag = JSON.stringify(
-		(await saved()).snapshot.targets[0].workspaces[0].layout,
+		activeLayout((await saved()).snapshot.targets[0].workspaces[0]),
 	);
 	const dragPoints = await evaluate(
 		`(() => {const titles=[...document.querySelectorAll('[data-pane-title-id]')];const source=titles[2].closest('.cursor-grab').getBoundingClientRect();const target=document.querySelector('[data-pane-id="'+titles[0].dataset.paneTitleId+'"]').getBoundingClientRect();return {start:{x:source.x+10,y:source.y+source.height/2},end:{x:target.x+target.width/2,y:target.bottom-30}};})()`,
@@ -325,7 +326,7 @@ export async function verifyWorkspaceRestoreUi({
 	await until(
 		saved,
 		(v) =>
-			JSON.stringify(v.snapshot.targets[0].workspaces[0].layout) !== beforeDrag,
+			JSON.stringify(activeLayout(v.snapshot.targets[0].workspaces[0])) !== beforeDrag,
 	);
 	const afterDrag = await ready();
 	assert.deepEqual(
@@ -358,7 +359,7 @@ export async function verifyWorkspaceRestoreUi({
 		saved,
 		(v) =>
 			Math.abs(
-				(v.snapshot?.targets[0]?.workspaces[0]?.layout?.ratio ?? 0) - 0.37,
+				(activeLayout(v.snapshot?.targets[0]?.workspaces[0])?.ratio ?? 0) - 0.37,
 			) < 0.02 &&
 			v.snapshot.targets[0].workspaces[0].panes.every((p) => p.label),
 	);
