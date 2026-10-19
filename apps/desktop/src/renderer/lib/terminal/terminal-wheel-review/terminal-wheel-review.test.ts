@@ -77,19 +77,20 @@ describe("terminal wheel review", () => {
 		f.wheel(-51);
 		const review = f.element.querySelector<HTMLElement>(
 			"[data-terminal-scrollback-review]",
-		)!;
+		);
+		if (!review) throw new Error("Expected terminal history review");
 		expect(review.querySelector("pre")?.textContent).toContain("中文 🙂");
 		expect(document.activeElement).toBe(review);
 		const paste = new Event("paste", { cancelable: true, bubbles: true });
 		review.dispatchEvent(paste);
 		expect(paste.defaultPrevented).toBe(true);
-		const escape = new KeyboardEvent("keydown", {
+		const escapeEvent = new KeyboardEvent("keydown", {
 			key: "Escape",
 			cancelable: true,
 			bubbles: true,
 		});
-		review.dispatchEvent(escape);
-		expect(escape.defaultPrevented).toBe(true);
+		review.dispatchEvent(escapeEvent);
+		expect(escapeEvent.defaultPrevented).toBe(true);
 		expect(review.isConnected).toBe(false);
 		expect(f.input).not.toHaveBeenCalled();
 		expect(f.focus).toHaveBeenCalledTimes(1);
@@ -101,7 +102,8 @@ describe("terminal wheel review", () => {
 			f.element.querySelector("[data-terminal-scrollback-review]"),
 		).toBeNull();
 		f.wheel(-34);
-		const pre = f.element.querySelector("pre")!;
+		const pre = f.element.querySelector("pre");
+		if (!pre) throw new Error("Expected scrollable terminal history");
 		Object.defineProperties(pre, {
 			scrollHeight: { value: 1000 },
 			clientHeight: { value: 200 },
