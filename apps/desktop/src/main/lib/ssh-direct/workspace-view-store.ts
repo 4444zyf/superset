@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 import type { SqliteDatabase } from "@superset/direct-connection";
 import BetterSqlite from "better-sqlite3";
 import {
+	type TargetView,
 	validateWorkspaceView,
 	type WorkspaceViewSnapshot,
 } from "../../../shared/workspace-view";
@@ -21,6 +22,9 @@ export class WorkspaceViewStore {
 		} else this.db = database;
 		this.db.exec(
 			"PRAGMA synchronous=FULL; BEGIN IMMEDIATE; CREATE TABLE IF NOT EXISTS workspace_view (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL, snapshot TEXT); INSERT OR IGNORE INTO workspace_view VALUES(1,0,NULL); COMMIT;",
+		);
+		this.db.exec(
+			"CREATE TABLE IF NOT EXISTS local_namespace_views (identity TEXT PRIMARY KEY, snapshot TEXT NOT NULL)",
 		);
 	}
 	activateOwner(owner: string | null): void {
@@ -63,6 +67,7 @@ export class WorkspaceViewStore {
 		owner: string,
 		expectedRevision: number,
 		snapshot: string | null,
+		beforeWrite?: () => void,
 	): number {
 		if (!this.owner || this.owner !== owner)
 			throw new Error("Workspace view owner changed");
@@ -75,6 +80,7 @@ export class WorkspaceViewStore {
 				.get() as { revision: number };
 			if (row.revision !== expectedRevision)
 				throw new Error("Workspace view revision changed");
+			beforeWrite?.();
 			this.db
 				.prepare("UPDATE workspace_view SET revision=?,snapshot=? WHERE id=1")
 				.run(expectedRevision + 1, snapshot);
@@ -104,7 +110,86 @@ export class WorkspaceViewStore {
 		return snapshot;
 	}
 	forget(input: { owner: string; expectedRevision: number }): number {
-		return this.write(input.owner, input.expectedRevision, null);
+		return this.write(input.owner, input.expectedRevision, null, () => {
+			this.db.exec("DELETE FROM local_namespace_views");
+		});
+	}
+	selectLocalNamespace(
+		owner: string,
+		identity: Pick<
+			TargetView,
+			| "connectionId"
+			| "targetRevision"
+			| "backendId"
+			| "namespaceId"
+			| "serviceUid"
+		>,
+	): void {
+		if (this.owner !== owner) throw new Error("Workspace view owner changed");
+		const previous = this.read();
+		if (previous.invalid)
+			throw new Error(
+				"The saved workspace view must be cleared before writing",
+			);
+		if (!previous.snapshot) return;
+		const key = (target: typeof identity) =>
+			JSON.stringify([
+				target.connectionId,
+				target.backendId,
+				target.namespaceId,
+				target.serviceUid,
+			]);
+		const old = previous.snapshot.targets.find(
+			(t) => t.connectionId === identity.connectionId,
+		);
+		if (old && key(old) === key(identity)) return;
+		const archived = this.db
+			.prepare("SELECT snapshot FROM local_namespace_views WHERE identity=?")
+			.get(key(identity)) as { snapshot: string } | undefined;
+		const {
+			schemaVersion: _,
+			revision: __,
+			updatedAt: ___,
+			...input
+		} = previous.snapshot;
+		input.targets = input.targets.filter(
+			(t) => t.connectionId !== identity.connectionId,
+		);
+		if (archived) {
+			const target = JSON.parse(archived.snapshot) as TargetView;
+			if (key(target) !== key(identity))
+				throw new Error("Local view identity changed");
+			input.targets.push({ ...target, ...identity, autoConnect: false });
+		}
+		if (!old && !archived) return;
+		if (input.activeConnectionId === identity.connectionId)
+			input.activeConnectionId = null;
+		const snapshot: WorkspaceViewSnapshot = {
+			...validateWorkspaceView(input),
+			schemaVersion: 1,
+			revision: previous.revision + 1,
+			updatedAt: this.now(),
+		};
+		this.write(owner, previous.revision, JSON.stringify(snapshot), () => {
+			if (!old) return;
+			const count = this.db
+				.prepare("SELECT COUNT(*) AS count FROM local_namespace_views")
+				.get() as { count: number };
+			if (
+				count.count >= 64 &&
+				!this.db
+					.prepare(
+						"SELECT identity FROM local_namespace_views WHERE identity=?",
+					)
+					.get(key(old))
+			)
+				throw new Error("Local namespace view limit exceeded");
+			this.db
+				.prepare(
+					"INSERT INTO local_namespace_views VALUES (?,?) ON CONFLICT(identity) DO UPDATE SET snapshot=excluded.snapshot",
+				)
+				.run(key(old), JSON.stringify(old));
+		});
 	}
 	close(): void {
 		this.db.close();

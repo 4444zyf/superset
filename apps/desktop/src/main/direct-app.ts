@@ -262,10 +262,7 @@ export async function startWorkstation(): Promise<void> {
 			automaticConnections.add(id);
 			try {
 				await manager.connect(id, {
-					mode:
-						registry.get(id)?.kind === "local"
-							? "explicit"
-							: "restore-existing",
+					mode: "restore-existing",
 				});
 				const descriptor = controller.describe(id);
 				const features = await controller.features(id);
@@ -307,7 +304,10 @@ export async function startWorkstation(): Promise<void> {
 						window.webContents.send(DIRECT_RESTORE_CHANNEL, snapshot);
 				},
 				onReady(descriptor) {
-					reconnect.arm(descriptor, "ssh");
+					reconnect.arm(
+						descriptor,
+						registry.get(descriptor.connectionId)?.kind ?? "ssh",
+					);
 				},
 			})
 		: null;
@@ -490,6 +490,7 @@ export async function startWorkstation(): Promise<void> {
 			namespaceId: namespace.namespaceId,
 			serviceUid: process.getuid?.(),
 		});
+		views?.selectLocalNamespace(localConnectionId);
 	};
 	const localData = new LocalDataController({
 		local,

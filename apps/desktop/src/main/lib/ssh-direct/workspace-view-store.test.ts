@@ -319,3 +319,108 @@ test("an intentionally empty terminal tab collection remains empty after reopeni
 	);
 	db.close();
 });
+
+function localIdentity(namespaceId: string) {
+	return {
+		connectionId: "mac",
+		targetRevision: 1,
+		backendId: "backend-local",
+		namespaceId,
+		serviceUid: 501,
+	};
+}
+
+test("local namespaces keep independent layouts and never replace SSH views on selection", () => {
+	const db = new Database(":memory:"),
+		store = new WorkspaceViewStore(db);
+	store.activateOwner("owner");
+	const a = view();
+	Object.assign(a.targets[0]!, localIdentity("namespace-a"));
+	a.targets[0]!.workspaces[0]!.label = "Local A";
+	a.targets.push({
+		...structuredClone(a.targets[0]!),
+		connectionId: "ssh",
+		backendId: "ssh-backend",
+		namespaceId: "ssh-namespace",
+	});
+	store.save({ owner: "owner", expectedRevision: 0, view: a });
+	store.selectLocalNamespace("owner", localIdentity("namespace-b"));
+	const b = store.read().snapshot!;
+	expect(b.activeConnectionId).toBeNull();
+	expect(b.targets.map((t) => t.connectionId)).toEqual(["ssh"]);
+	expect(() =>
+		store.save({ owner: "owner", expectedRevision: 1, view: a }),
+	).toThrow("revision");
+	const input = {
+		...b,
+		targets: [
+			...b.targets,
+			{ ...structuredClone(a.targets[0]!), ...localIdentity("namespace-b") },
+		],
+	};
+	const {
+		schemaVersion: _,
+		revision: __,
+		updatedAt: ___,
+		...candidate
+	} = input;
+	candidate.targets[1]!.workspaces[0]!.label = "Local B";
+	candidate.activeConnectionId = "mac";
+	store.save({ owner: "owner", expectedRevision: b.revision, view: candidate });
+	store.selectLocalNamespace("owner", localIdentity("namespace-a"));
+	const restored = store.read().snapshot!;
+	expect(restored.targets.find((t) => t.connectionId === "mac")).toEqual({
+		...a.targets[0]!,
+		autoConnect: false,
+	});
+	expect(restored.targets.find((t) => t.connectionId === "ssh")).toEqual(
+		a.targets[1],
+	);
+	const reopened = new WorkspaceViewStore(db);
+	reopened.activateOwner("next");
+	reopened.selectLocalNamespace("next", localIdentity("namespace-b"));
+	expect(
+		reopened.read().snapshot?.targets.find((t) => t.connectionId === "mac")
+			?.workspaces[0]?.label,
+	).toBe("Local B");
+	expect(() =>
+		reopened.selectLocalNamespace("owner", localIdentity("namespace-a")),
+	).toThrow("owner");
+	db.close();
+});
+
+test("forget removes inactive namespace views as well as the active view", () => {
+	const db = new Database(":memory:"),
+		store = new WorkspaceViewStore(db);
+	store.activateOwner("owner");
+	const a = view();
+	Object.assign(a.targets[0]!, localIdentity("namespace-a"));
+	store.save({ owner: "owner", expectedRevision: 0, view: a });
+	store.selectLocalNamespace("owner", localIdentity("namespace-b"));
+	store.forget({ owner: "owner", expectedRevision: store.read().revision });
+	store.selectLocalNamespace("owner", localIdentity("namespace-a"));
+	expect(store.read().snapshot).toBeNull();
+	db.close();
+});
+
+test("an invalid archived local view cannot replace the active view", () => {
+	const db = new Database(":memory:"),
+		store = new WorkspaceViewStore(db);
+	store.activateOwner("owner");
+	const a = view();
+	Object.assign(a.targets[0]!, localIdentity("namespace-a"));
+	store.save({ owner: "owner", expectedRevision: 0, view: a });
+	store.selectLocalNamespace("owner", localIdentity("namespace-b"));
+	db.prepare("UPDATE local_namespace_views SET snapshot=?").run(
+		JSON.stringify({
+			...a.targets[0]!,
+			workspaces: [{ command: "untrusted" }],
+		}),
+	);
+	const before = store.read();
+	expect(() =>
+		store.selectLocalNamespace("owner", localIdentity("namespace-a")),
+	).toThrow();
+	expect(store.read()).toEqual(before);
+	db.close();
+});

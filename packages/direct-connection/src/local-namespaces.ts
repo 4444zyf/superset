@@ -59,7 +59,8 @@ interface Catalog {
 type NamespaceBackend = Pick<
 	LocalBackend,
 	"describeNamespace" | "test" | "connect" | "control" | "importLocalData"
->;
+> &
+	Partial<Pick<LocalBackend, "connectExisting">>;
 export interface LocalNamespaceBackendOptions extends LocalBackendOptions {
 	createBackend?: (options: LocalBackendOptions) => NamespaceBackend;
 	queryLocalData?: (
@@ -441,9 +442,22 @@ export class LocalNamespaceBackend {
 		return result;
 	}
 	async connect(): Promise<LocalConnection> {
+		return this.connectSelected(false);
+	}
+	async connectExisting(): Promise<LocalConnection> {
+		return this.connectSelected(true);
+	}
+	private async connectSelected(
+		existingOnly: boolean,
+	): Promise<LocalConnection> {
 		const entry = this.entry(),
 			revision = this.revision;
-		const proxy = await this.backend(entry).connect();
+		const backend = this.backend(entry);
+		if (existingOnly && !backend.connectExisting)
+			throw new Error("Existing-only local attachment is unavailable");
+		const proxy = await (existingOnly
+			? backend.connectExisting!()
+			: backend.connect());
 		if (revision !== this.revision || entry.id !== this.selectedId) {
 			proxy.close();
 			throw new Error("Local namespace selection changed");

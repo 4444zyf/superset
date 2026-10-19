@@ -163,7 +163,8 @@ export class DirectConnectionManager {
 		private readonly options: {
 			registry: ConnectionRegistry;
 			runtime?: SshRuntime;
-			local?: Pick<LocalBackend, "test" | "connect">;
+			local?: Pick<LocalBackend, "test" | "connect"> &
+				Partial<Pick<LocalBackend, "connectExisting">>;
 			install?: (
 				profile: ConnectionProfile,
 				transport: RemoteTransport,
@@ -271,12 +272,6 @@ export class DirectConnectionManager {
 		const live = this.getLease(id);
 		if (live) {
 			if (mode === "explicit") return Promise.resolve(live);
-			if (this.options.registry.get(id)?.kind === "local")
-				return Promise.reject(
-					new Error(
-						"Automatic window restore requires an existing SSH backend",
-					),
-				);
 			const connection = this.live(id);
 			return this.assertRestoreAvailable(
 				connection.lease.url,
@@ -333,10 +328,6 @@ export class DirectConnectionManager {
 		let disposeUnclaimed: (() => void) | undefined;
 		try {
 			const profile = this.profile(id);
-			if (mode === "restore-existing" && profile.kind === "local")
-				throw new Error(
-					"Automatic window restore requires an existing SSH backend",
-				);
 			this.targets.set(id, profileFingerprint(profile));
 			let initialEndpoint: string | undefined;
 			let probe: RemoteProbe;
@@ -524,7 +515,11 @@ export class DirectConnectionManager {
 		if (profile.kind === "local") {
 			if (!this.options.local)
 				throw new Error("The local backend is unavailable");
-			const local = await this.options.local.connect();
+			if (mode === "restore-existing" && !this.options.local.connectExisting)
+				throw new Error("Existing-only local attachment is unavailable");
+			const local = await (mode === "restore-existing"
+				? this.options.local.connectExisting!()
+				: this.options.local.connect());
 			try {
 				this.current(id, generation);
 				return {

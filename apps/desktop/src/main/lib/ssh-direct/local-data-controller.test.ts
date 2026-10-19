@@ -150,3 +150,35 @@ test("explicit control can stop the same namespace while its operation needs rec
 	expect(events).toEqual(["close-A-and-invalidate-generation"]);
 	expect(() => controller.selectNamespace("b")).toThrow("pending");
 });
+
+test("a namespace view persistence failure restores the previous selection and pins", () => {
+	let selected = "a";
+	const pins: string[] = [];
+	const row = (id: string) => ({
+		id,
+		label: id,
+		selected: id === selected,
+		isDefault: id === "a",
+		backendId: `backend-${id}`,
+		namespaceId: id,
+	});
+	const controller = new LocalDataController({
+		local: {
+			listNamespaces: () => ["a", "b"].map(row),
+			getSelectionRevision: () => 0,
+			selectNamespace: (id) => {
+				selected = id;
+				return row(id);
+			},
+		},
+		hasPending: () => false,
+		disconnect: () => {},
+		pin: (namespace) => {
+			pins.push(namespace.id);
+			if (namespace.id === "b") throw new Error("view write failed");
+		},
+	});
+	expect(() => controller.selectNamespace("b")).toThrow("view write failed");
+	expect(selected).toBe("a");
+	expect(pins).toEqual(["b", "a"]);
+});

@@ -68,7 +68,8 @@ function fixture(
 		probeFailure?: string;
 		forward?: SshRuntime["forward"];
 		rpcBody?: ReadableStream<Uint8Array>;
-		local?: Pick<LocalBackend, "test" | "connect">;
+		local?: Pick<LocalBackend, "test" | "connect"> &
+			Partial<Pick<LocalBackend, "connectExisting">>;
 		runtime?: SshRuntime;
 		install?: ConstructorParameters<
 			typeof DirectConnectionManager
@@ -600,4 +601,63 @@ describe("connection configuration", () => {
 		expect(args).toContain("SessionType=default");
 		expect(args.at(-1)).toBe("mini");
 	});
+});
+
+test.each([
+	false,
+	true,
+])("a live local lease is reused only while maintenance is active (frozen=%s)", async (frozen) => {
+	let explicit = 0,
+		existing = 0;
+	const connect = async () => ({
+		descriptor,
+		secret,
+		url: "http://127.0.0.1:45678",
+		close() {},
+	});
+	const f = fixture({
+		maintenance: { mode: "active", frozen },
+		local: {
+			test: async () => ({
+				platform: "linux",
+				architecture: "x64",
+				uid: 501,
+				user: "alice",
+				homeDir: "/home/alice",
+				installed: true,
+			}),
+			connect: async () => {
+				explicit++;
+				return connect();
+			},
+			connectExisting: async () => {
+				existing++;
+				return connect();
+			},
+		},
+	});
+	f.registry.save({
+		id: localConnectionId,
+		kind: "local",
+		name: "Local",
+		host: "localhost",
+	});
+	try {
+		const lease = await f.manager.connect(localConnectionId);
+		if (frozen)
+			await expect(
+				f.manager.connect(localConnectionId, { mode: "restore-existing" }),
+			).rejects.toThrow("unavailable");
+		else
+			expect(
+				await f.manager.connect(localConnectionId, {
+					mode: "restore-existing",
+				}),
+			).toEqual(lease);
+		expect(explicit).toBe(1);
+		expect(existing).toBe(0);
+	} finally {
+		f.manager.dispose();
+		f.registry.close();
+	}
 });

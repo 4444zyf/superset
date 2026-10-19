@@ -84,3 +84,48 @@ test("an explicit installation attempt cannot join a pending existing-only resto
 		registry.close();
 	}
 });
+
+test("local restore selects the existing-only transport without starting or installing", async () => {
+	const registry = new ConnectionRegistry(new Database(":memory:"));
+	registry.save({
+		id: "00000000-0000-4000-8000-000000000001",
+		kind: "local",
+		name: "Local",
+		host: "localhost",
+	});
+	let existing = 0,
+		explicit = 0;
+	const manager = new DirectConnectionManager({
+		registry,
+		local: {
+			test: async () => ({
+				platform: "linux",
+				architecture: "x64",
+				uid: 1000,
+				user: "agent",
+				homeDir: "/home/agent",
+				installed: true,
+			}),
+			connect: async () => {
+				explicit++;
+				throw new Error("must not start");
+			},
+			connectExisting: async () => {
+				existing++;
+				throw new Error("existing backend unavailable");
+			},
+		},
+	});
+	try {
+		await expect(
+			manager.connect("00000000-0000-4000-8000-000000000001", {
+				mode: "restore-existing",
+			}),
+		).rejects.toThrow("existing backend unavailable");
+		expect(existing).toBe(1);
+		expect(explicit).toBe(0);
+	} finally {
+		manager.dispose();
+		registry.close();
+	}
+});

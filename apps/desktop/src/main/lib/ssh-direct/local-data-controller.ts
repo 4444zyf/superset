@@ -52,10 +52,17 @@ export class LocalDataController {
 		this.assertNoPending();
 		if (!this.options.local.listNamespaces().some((row) => row.id === id))
 			throw new Error("The local namespace is missing");
+		const previous = this.capture().namespace;
 		this.options.disconnect();
-		const namespace = this.options.local.selectNamespace(id);
-		this.options.pin(namespace);
-		return namespace;
+		try {
+			const namespace = this.options.local.selectNamespace(id);
+			this.options.pin(namespace);
+			return namespace;
+		} catch (error) {
+			const restored = this.options.local.selectNamespace(previous.id);
+			this.options.pin(restored);
+			throw error;
+		}
 	}
 
 	async runSelected<T>(

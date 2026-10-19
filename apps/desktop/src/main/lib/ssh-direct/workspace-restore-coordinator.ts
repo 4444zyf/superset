@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { DirectConnectionError } from "@superset/direct-connection";
 import type {
+	ConnectionLease,
 	ConnectionProfile,
 	ConnectionRegistry,
-	ConnectionLease,
 } from "@superset/direct-connection";
+import { DirectConnectionError } from "@superset/direct-connection";
 import type {
 	RestoreResourceCheck,
 	RestoreResourceRef,
@@ -15,10 +15,10 @@ import type {
 } from "../../../shared/direct-workstation";
 import {
 	emptyWorkspaceView,
-	validateWorkspaceView,
-	type WorkspaceViewInput,
-	type WorkspaceRestoreSnapshot,
 	type TargetView,
+	validateWorkspaceView,
+	type WorkspaceRestoreSnapshot,
+	type WorkspaceViewInput,
 } from "../../../shared/workspace-view";
 import type { WorkspaceViewStore } from "./workspace-view-store";
 
@@ -80,7 +80,7 @@ export class WorkspaceRestoreCoordinator {
 	constructor(
 		private readonly options: {
 			store: WorkspaceViewStore;
-			registry: Pick<ConnectionRegistry, "get" | "getTargetRevision">;
+			registry: Pick<ConnectionRegistry, "get" | "getTargetRevision" | "list">;
 			manager: RestoreManager;
 			controller: RestoreController;
 			window(): WorkspaceViewInput["window"];
@@ -102,9 +102,7 @@ export class WorkspaceRestoreCoordinator {
 				if (
 					saved.snapshot &&
 					saved.snapshot.targets.some(
-						(t) =>
-							!this.options.registry.get(t.connectionId) ||
-							this.options.registry.get(t.connectionId)?.kind === "local",
+						(t) => !this.options.registry.get(t.connectionId),
 					)
 				) {
 					const {
@@ -115,7 +113,7 @@ export class WorkspaceRestoreCoordinator {
 					} = saved.snapshot;
 					view.targets = view.targets.filter((t) => {
 						const p = this.options.registry.get(t.connectionId);
-						return !!p && p.kind !== "local";
+						return !!p;
 					});
 					if (
 						!view.targets.some(
@@ -128,6 +126,9 @@ export class WorkspaceRestoreCoordinator {
 						expectedRevision: saved.revision,
 						view,
 					});
+				}
+				for (const profile of this.options.registry.list()) {
+					if (profile.kind === "local") this.selectLocalNamespace(profile.id);
 				}
 			} catch {}
 		}
@@ -253,7 +254,6 @@ export class WorkspaceRestoreCoordinator {
 						(!view.restoreOnLaunch || !target.autoConnect))
 				? "disconnected"
 				: !profile ||
-						profile.kind === "local" ||
 						!sameIdentity(
 							target,
 							profile,
@@ -434,8 +434,15 @@ export class WorkspaceRestoreCoordinator {
 				);
 				const profile = this.options.registry.get(target.connectionId);
 				if (!profile) throw new Error("Workspace target is missing");
-				if (profile.kind === "local")
-					throw new Error("Automatic workspace views support SSH targets only");
+				if (
+					profile.kind === "local" &&
+					!sameIdentity(
+						target,
+						profile,
+						this.options.registry.getTargetRevision(target.connectionId),
+					)
+				)
+					throw new Error("Local workspace view identity changed");
 				const lease = this.options.manager.getLease(target.connectionId);
 				const preservePreviousIdentity =
 					!!old &&
@@ -566,16 +573,42 @@ export class WorkspaceRestoreCoordinator {
 			if (t) t.autoConnect = false;
 		});
 	}
+
+	selectLocalNamespace(id: string): void {
+		const profile = this.options.registry.get(id);
+		if (
+			this.owner === null ||
+			profile?.kind !== "local" ||
+			!profile.backendId ||
+			!profile.namespaceId ||
+			!profile.serviceUid
+		)
+			return;
+		const old = this.options.store
+			.read()
+			.snapshot?.targets.find((t) => t.connectionId === id);
+		if (
+			old &&
+			sameIdentity(old, profile, this.options.registry.getTargetRevision(id))
+		)
+			return;
+		this.invalidate();
+		this.explicitConnections.delete(id);
+		this.options.store.selectLocalNamespace(String(this.owner), {
+			connectionId: id,
+			targetRevision: this.options.registry.getTargetRevision(id)!,
+			backendId: profile.backendId,
+			namespaceId: profile.namespaceId,
+			serviceUid: profile.serviceUid,
+		});
+	}
+
 	recordConnect(
 		id: string,
 		allowed: () => boolean = () => true,
 	): Promise<void> {
 		return this.update((v) => {
 			const profile = this.options.registry.get(id);
-			if (profile?.kind === "local") {
-				v.activeConnectionId = null;
-				return;
-			}
 			if (
 				!profile ||
 				!profile.backendId ||

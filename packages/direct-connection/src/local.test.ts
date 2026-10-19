@@ -366,3 +366,29 @@ test("local import runs only while stopped and serializes with explicit Start", 
 	connection.close();
 	expect(setup.started).toBe(1);
 });
+
+test("existing-only local attachment never creates a runtime and reuses only an authenticated live socket", async () => {
+	const f = fixture();
+	await expect(f.backend.connectExisting()).rejects.toThrow();
+	expect(f.started).toBe(0);
+	expect((await f.backend.test()).installed).toBe(false);
+	const first = await f.backend.connect();
+	first.close();
+	const second = await f.backend.connectExisting();
+	expect(second.descriptor).toEqual(first.descriptor);
+	second.close();
+	expect(f.started).toBe(1);
+	rmSync(join(f.dataDir, "state", "endpoint.json"));
+	await expect(f.backend.connectExisting()).rejects.toThrow();
+	expect(f.started).toBe(1);
+});
+
+test("existing-only local attachment cannot revive a disabled backend", async () => {
+	const f = fixture();
+	(await f.backend.connect()).close();
+	writeFileSync(join(f.dataDir, "state", "disabled"), "stopped", {
+		mode: 0o600,
+	});
+	await expect(f.backend.connectExisting()).rejects.toThrow();
+	expect(f.started).toBe(1);
+});

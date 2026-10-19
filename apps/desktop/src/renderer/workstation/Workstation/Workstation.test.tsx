@@ -738,3 +738,86 @@ test("offline chat drafts remain reviewable and explicitly discardable without a
 		browser.setURL(previousUrl);
 	}
 });
+
+test("a local workspace opens in the original shared workspace window when restore is supported", async () => {
+	let snapshot: import("../../../shared/workspace-view").WorkspaceViewSnapshot = {
+		schemaVersion: 1 as const,
+		revision: 1,
+		updatedAt: 1,
+		restoreOnLaunch: false,
+		activeConnectionId: "local",
+		window: { x: 0, y: 0, width: 1200, height: 900, maximized: false },
+		targets: [
+			{
+				connectionId: "local",
+				targetRevision: 1,
+				backendId: "backend",
+				namespaceId: "namespace",
+				serviceUid: 1000,
+				autoConnect: true,
+				activeTabId: null as string | null,
+				workspaces:
+					[] as import("../../../shared/workspace-view").WorkspaceView[],
+			},
+		],
+	};
+	const mutations: string[] = [];
+	const api = {
+		platform: "linux",
+		list: async () => [
+			{ id: "local", kind: "local", name: "Local", host: "localhost" },
+		],
+		connect: async () => ({
+			connectionId: "local",
+			generation: 1,
+			backendId: "backend",
+			namespaceId: "namespace",
+			instanceId: "instance",
+			capabilities: { workspaceViewRestoreV1: true },
+		}),
+		getWorkspaceView: async () => ({
+			revision: snapshot.revision,
+			snapshot,
+			invalid: false,
+			navigationRevision: 0,
+		}),
+		saveWorkspaceView: async (input: {
+			view: import("../../../shared/workspace-view").WorkspaceViewInput;
+		}) => {
+			snapshot = {
+				...snapshot,
+				...input.view,
+				revision: snapshot.revision + 1,
+			};
+			return snapshot;
+		},
+		beginWorkspaceRestore: async () => {
+			throw new Error("no automatic restore");
+		},
+		listPending: async () => [],
+		rpc: async (r: { path: string; type: string }) => {
+			if (r.type === "mutation") mutations.push(r.path);
+			if (r.path === "workspace.list")
+				return [
+					{
+						id: "workspace",
+						name: "Local existing workspace",
+						worktreePath: "/local/workspace",
+					},
+				];
+			if (r.path === "terminal.list") return { sessions: [] };
+			return [];
+		},
+	} as unknown as DirectWorkstationApi;
+	const { container } = render(<Workstation api={api} />);
+	fireEvent.click(await screen.findByRole("button", { name: "Connect" }));
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Local existing workspace" }),
+	);
+	await waitFor(() =>
+		expect(Boolean(container.querySelector(".ws-workspace-window"))).toBe(true),
+	);
+	expect(Boolean(container.querySelector(".ws-workspace-tabs"))).toBe(true);
+	expect(snapshot.targets[0]?.workspaces[0]?.workspaceId).toBe("workspace");
+	expect(mutations).toEqual([]);
+});

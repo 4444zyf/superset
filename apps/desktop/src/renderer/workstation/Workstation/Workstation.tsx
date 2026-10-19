@@ -143,14 +143,12 @@ export function Workstation({
 		},
 		onError: ui.setError,
 	});
+	const localViewNamespace = useRef<string | null>(null);
 	const savedTarget = views.view?.targets.find(
 		(target) => target.connectionId === selectedId,
 	);
 	const managesViews =
-		views.enabled &&
-		ui.connection?.capabilities?.workspaceViewRestoreV1 &&
-		ui.profiles.find((p) => p.id === ui.connection?.connectionId)?.kind !==
-			"local";
+		views.enabled && ui.connection?.capabilities?.workspaceViewRestoreV1;
 	useEffect(() => {
 		if (!ui.profiles.some((p) => p.id === selectedRef.current)) {
 			const id =
@@ -518,9 +516,15 @@ export function Workstation({
 							<LocalDataPanel
 								api={api.localData}
 								onError={ui.setError}
-								onNamespaceSelected={(namespace) =>
-									ui.namespaceSelected(selected.id, namespace)
-								}
+								onNamespaceSelected={(namespace) => {
+									const key = `${selected.id}:${namespace.backendId}:${namespace.namespaceId}`;
+									if (localViewNamespace.current !== key) {
+										localViewNamespace.current = key;
+										views.navigate();
+										void views.read();
+									}
+									ui.namespaceSelected(selected.id, namespace);
+								}}
 							/>
 						) : undefined
 					}

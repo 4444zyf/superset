@@ -102,8 +102,8 @@ interface AuthenticatedLocalBackend {
 	secret: string;
 }
 
-function privateDirectory(path: string): void {
-	mkdirSync(path, { recursive: true, mode: 0o700 });
+function privateDirectory(path: string, create = true): void {
+	if (create) mkdirSync(path, { recursive: true, mode: 0o700 });
 	const stat = lstatSync(path);
 	if (
 		!stat.isDirectory() ||
@@ -206,6 +206,23 @@ export class LocalBackend {
 			this.pending = pending;
 		}
 		return this.pending.then((backend) => this.connectProxy(backend));
+	}
+	connectExisting(): Promise<LocalConnection> {
+		return this.serialize(async () => {
+			await this.test();
+			const { config, secret } = this.prepare(false);
+			if (
+				privateRead(join(this.options.dataDir, "state", "disabled")) !== null ||
+				privateRead(
+					join(this.options.dataDir, "state", "legacy-import.lock"),
+				) !== null
+			)
+				throw new Error("The existing local backend is unavailable");
+			const backend = await this.inspect(config, secret);
+			if (!backend)
+				throw new Error("The existing local backend is unavailable");
+			return this.connectProxy(backend);
+		});
 	}
 	private serialize<T>(action: () => Promise<T>): Promise<T> {
 		const result = this.lifecycle.then(action);
@@ -467,19 +484,20 @@ export class LocalBackend {
 			});
 		});
 	}
-	private prepare(): { config: LocalConfig; secret: string } {
+	private prepare(create = true): { config: LocalConfig; secret: string } {
 		const root = this.options.dataDir;
 		for (const path of [root, join(root, "state"), join(root, "credentials")])
-			privateDirectory(path);
-		createPrivate(
-			join(root, "identity.json"),
-			JSON.stringify(
-				this.options.namespaceIdentity ?? {
-					backendId: randomUUID(),
-					namespaceId: randomUUID(),
-				},
-			),
-		);
+			privateDirectory(path, create);
+		if (create)
+			createPrivate(
+				join(root, "identity.json"),
+				JSON.stringify(
+					this.options.namespaceIdentity ?? {
+						backendId: randomUUID(),
+						namespaceId: randomUUID(),
+					},
+				),
+			);
 		const identity = JSON.parse(
 			privateRead(join(root, "identity.json")) ?? "null",
 		) as LocalIdentity | null;
@@ -496,23 +514,24 @@ export class LocalBackend {
 		)
 			throw new Error("Local namespace identity does not match its catalog");
 		const secretFile = join(root, "credentials", "host-secret");
-		createPrivate(secretFile, randomBytes(32).toString("hex"));
+		if (create) createPrivate(secretFile, randomBytes(32).toString("hex"));
 		const secret = privateRead(secretFile)?.trim();
 		if (!secret || !/^[a-f0-9]{64}$/.test(secret))
 			throw new Error("Invalid local backend credentials");
-		createPrivate(
-			join(root, "service-config.json"),
-			JSON.stringify({
-				...identity,
-				homeDir: root,
-				secretFile,
-				hostServicePath: this.options.hostServicePath,
-				migrationsFolder: this.options.migrationsFolder,
-				chatMigrationsFolder: this.options.chatMigrationsFolder,
-				allowedOrigins: [],
-				installationMode: "local",
-			}),
-		);
+		if (create)
+			createPrivate(
+				join(root, "service-config.json"),
+				JSON.stringify({
+					...identity,
+					homeDir: root,
+					secretFile,
+					hostServicePath: this.options.hostServicePath,
+					migrationsFolder: this.options.migrationsFolder,
+					chatMigrationsFolder: this.options.chatMigrationsFolder,
+					allowedOrigins: [],
+					installationMode: "local",
+				}),
+			);
 		const config = JSON.parse(
 			privateRead(join(root, "service-config.json")) ?? "null",
 		) as LocalConfig | null;
