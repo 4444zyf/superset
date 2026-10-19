@@ -24,7 +24,7 @@ export async function verifyWorkstationTerminalScriptTriggersUi({getPage,click,s
  await set(`${editor} input[placeholder="e.g. bun run dev"]`,"printf 'new-tab\\n' >> trigger-new-tab.txt; pwd > trigger-cwd.txt");
  await scrollText('Add command');await click('text:Add command');await until(()=>evaluate(`document.querySelectorAll('${editor} input[placeholder="e.g. bun run dev"]').length===2`),'second command');await set(`${editor} div[class~="group/command-row"]:nth-child(2) input`,'pwd > trigger-cwd.txt');
  const mode=editor+' button[role=combobox]';await scrollTo(mode);await click(mode);
- const sequential=await until(()=>evaluate(`(()=>{const e=[...document.querySelectorAll('[role=option]')].find(e=>e.textContent.trim()==='All in current tab');return e?.id;})()`),'sequential option');await click('[id='+JSON.stringify(sequential)+']');await until(async()=>(await row(preset.id)).executionMode==='sequential','sequential stored');
+ const sequential=await until(()=>evaluate(`(()=>{const e=[...document.querySelectorAll('[role=option]')].find(e=>e.textContent.trim()==='All in current tab');return e?'[data-slot=select-item]:nth-child('+([...e.parentElement.children].indexOf(e)+1)+')':null;})()`),'sequential option');await click(sequential);await until(async()=>(await row(preset.id)).executionMode==='sequential','sequential stored');
  await toggle(preset.id,'applyOnNewTab',true);await finish();
  await screenshot('terminal-trigger-configured-new-tab');
  await click('text:Split vertically');await until(async()=>(await view()).panes.length===scope.w.panes.length+1,'ordinary split');assert.equal(await read(scope.w.workspaceId,'trigger-new-tab.txt'),null,'split does not run new-tab preset');
