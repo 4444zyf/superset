@@ -65,6 +65,12 @@ export function ownedRestoreControls(home, fixture) {
 			const {DatabaseSync}=await import("node:sqlite");const db=new DatabaseSync(path);
 			try {const result=db.prepare("UPDATE host_agent_configs SET command=?, updated_at=updated_at+1 WHERE id=?").run("/external/agent-not-executable",id);assert.equal(result.changes,1);}finally{db.close();}
 		},
+  async changeFixtureTerminalPreset(id) {
+   assert.equal(process.platform,"linux");assert.match(id,/^[0-9a-f-]{36}$/);
+   const path=join(home,"host",identity.namespaceId,"host.db");assert.equal(lstatSync(path).uid,process.getuid());
+   const {DatabaseSync}=await import("node:sqlite");const db=new DatabaseSync(path);
+   try {db.exec("BEGIN IMMEDIATE");const row=db.prepare("SELECT presets_json FROM terminal_preset_catalog WHERE id=1").get();assert.ok(row);const presets=JSON.parse(row.presets_json);assert.ok(presets.some(p=>p.id===id));const result=db.prepare("UPDATE terminal_preset_catalog SET presets_json=?,revision=revision+1 WHERE id=1").run(JSON.stringify(presets.map(p=>p.id===id?{...p,name:"External terminal script"}:p)));assert.equal(result.changes,1);db.exec("COMMIT");}catch(e){db.exec("ROLLBACK");throw e;}finally{db.close();}
+  },
 		async inspectPresetTerminal(terminalId) {
 			const client = await connectAndHello(socket);
 			let row;

@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import {writeFileSync} from "node:fs";
 import {join} from "node:path";
 import {setTimeout as delay} from "node:timers/promises";
-export function agentUiDriver({getPage,click,screenshot,output}) {
- const evaluate=expression=>getPage().evaluate(expression),root='[data-workstation-agent-settings]';
+export function agentUiDriver({getPage,click,screenshot,output,rootSelector="[data-workstation-agent-settings]"}) {
+ const evaluate=expression=>getPage().evaluate(expression),root=rootSelector;
  const until=async(read,label)=>{for(let i=0;i<200;i++){const value=await read();if(value)return value;await delay(50);}await screenshot('agent-management-failure');throw new Error(`Agent management condition failed: ${label}`);};
  const rect=selector=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)return null;const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,top:r.top,bottom:r.bottom};})()`);
  const scrollTo=async(selector)=>{for(let i=0;i<40;i++){const r=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}),d=document.querySelector('${root}');if(!e||!d)return null;const r=e.getBoundingClientRect(),dr=d.getBoundingClientRect();let top=Math.max(dr.top,0)+12,bottom=Math.min(dr.bottom,innerHeight)-12;for(let p=e.parentElement;p&&p!==d;p=p.parentElement){if(/auto|scroll|hidden/.test(getComputedStyle(p).overflowY)&&p.scrollHeight>p.clientHeight){const pr=p.getBoundingClientRect();top=Math.max(top,pr.top);bottom=Math.min(bottom,pr.bottom);}}return {top:r.top,bottom:r.bottom,clipTop:top,clipBottom:bottom,x:Math.min(dr.right-30,Math.max(dr.left+30,r.x+r.width/2)),y:Math.max(dr.top+30,Math.min(dr.bottom-30,(top+bottom)/2))};})()`);if(r&&r.top>=r.clipTop&&r.bottom<=r.clipBottom)return;if(r)await getPage().call('Input.dispatchMouseEvent',{type:'mouseWheel',x:r.x,y:r.y,deltaX:0,deltaY:r.bottom>r.clipBottom?Math.min(450,r.bottom-r.clipBottom+80):-Math.min(450,r.clipTop-r.top+80)});await delay(50);}throw new Error(`Agent management control not scrollable: ${selector}`);};
