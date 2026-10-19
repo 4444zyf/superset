@@ -26,7 +26,7 @@ export async function verifyWorkstationLocalParityUi(options){
  const a=await view(),aWorkspace=await workspace(),controlA=controls.forNamespace(a.namespaceId);
  const aExecutions=await Promise.all(aWorkspace.panes.map(p=>controlA.inspectPresetTerminal(p.resourceId)));
  await screenshot('local-A-original-split');
- const details=async()=>{await click('[data-slot=sidebar-content] button[aria-label="SSH machines"]');await click('.ws-local-row button:first-child');await click('text:Connection details');await until(()=>evaluate(`Boolean(document.querySelector('select')?.closest('.ws-local-data'))||Boolean(document.querySelector('.ws-local-data select'))`),'local namespace selector');};
+ const details=async()=>{await click('[data-slot=sidebar-content] button[aria-label="SSH machines"]');await click('.ws-local-row button:first-of-type');await click('text:Connection details');await until(()=>evaluate(`Boolean(document.querySelector('select')?.closest('.ws-local-data'))||Boolean(document.querySelector('.ws-local-data select'))`),'local namespace selector');};
  await details();await click('input[aria-label="New namespace name"]');await getPage().call('Input.insertText',{text:'Second local namespace 中文'});await click('text:Create namespace');
  await until(()=>evaluate(`document.querySelector('.ws-local-data select')?.options.length===2`),'second namespace created');
  const select=async(which)=>{await click('.ws-local-data select');await key(which==='first'?'Home':'End',which==='first'?36:35);await key('Enter',13);await until(()=>evaluate(`document.querySelector('.ws-local-data select')?.selectedIndex===${which==='first'?0:1}`),'namespace selected');};

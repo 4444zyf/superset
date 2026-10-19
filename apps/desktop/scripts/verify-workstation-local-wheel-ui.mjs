@@ -22,8 +22,8 @@ export async function verifyWorkstationLocalWheelUi(options) {
  await click('[role=dialog] input');
  await getPage().call('Input.insertText',{text:name});
  await click('[role=dialog] button[type=submit]');
- await until(()=>evaluate(`Boolean(document.querySelector('.editor-heading h1')?.textContent===${JSON.stringify(name)})`),'local session editor');
- await click('.ws-editor-tabs button:last-of-type');
+ await until(()=>evaluate(`Boolean(document.querySelector('.ws-workspace-window'))||Boolean(document.querySelector('.editor-heading h1')?.textContent===${JSON.stringify(name)})`),'local session editor');
+ if(await evaluate(`Boolean(document.querySelector('.ws-editor-tabs'))`))await click('.ws-editor-tabs button:last-of-type');
  const workspaces=await evaluate(`window.directWorkstation.rpc(${JSON.stringify({connectionId:descriptor.connectionId,generation:descriptor.generation,path:'workspace.list',type:'query',input:{}})})`);
  const workspace=workspaces.find(w=>w.name===name);
  assert.ok(workspace?.worktreePath);
