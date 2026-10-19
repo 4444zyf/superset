@@ -499,6 +499,12 @@ export async function verifyWorkspaceRestoreUi({
 		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, filePreviewsOnly: true }, null, 2) + "\n");
 		return;
 	}
+ if(process.argv.includes("--terminal-script-triggers-only")){
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationTerminalScriptTriggersUi}=await import("./verify-workstation-terminal-script-triggers-ui.mjs");
+  await verifyWorkstationTerminalScriptTriggersUi({getPage,click,screenshot,output,closeReopen,controls});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalScriptTriggersOnly:true},null,2)+"\n");return;
+ }
  if(process.argv.includes("--terminal-script-execution-only")){
   await click("text:Terminal");await ready();
   const {verifyWorkstationTerminalScriptExecutionUi}=await import("./verify-workstation-terminal-script-execution-ui.mjs");
