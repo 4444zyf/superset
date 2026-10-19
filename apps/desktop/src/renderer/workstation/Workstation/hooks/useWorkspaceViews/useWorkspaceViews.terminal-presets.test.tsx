@@ -68,10 +68,15 @@ function fixture(
 	};
 	const calls: DirectRpc[] = [];
 	let nextSave: Promise<void> | null = null;
+	let flushHandler: () => Promise<void> = async () => {};
 	let nextCreate: Promise<void> | null = null,
 		createCalls = 0,
 		failCreateAt: number | null = null;
 	const api = {
+		onWorkspaceViewFlush: (listener: () => Promise<void>) => {
+			flushHandler = listener;
+			return () => {};
+		},
 		getWorkspaceView: async () => ({
 			snapshot: structuredClone(backing),
 			revision: backing.revision,
@@ -142,6 +147,7 @@ function fixture(
 		hook,
 		calls,
 		saved: () => backing,
+		flush: () => flushHandler(),
 		pauseNextCreate: () => {
 			let release = () => {};
 			nextCreate = new Promise<void>((resolve) => {
@@ -517,4 +523,45 @@ test("a partial script launch retains confirmed terminals and never replays a lo
 	expect(
 		f.calls.filter((r) => r.path === "terminal.createSession"),
 	).toHaveLength(2);
+});
+
+test("normal window flush waits for the requested script batch and its saved pane layout", async () => {
+	const f = fixture(true);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const release = f.pauseNextCreate();
+	let running: Promise<unknown>;
+	act(() => {
+		running = f.hook.result.current.launchTerminalPreset(
+			"workspace",
+			scriptPreset("new-tab"),
+			[],
+		);
+	});
+	await waitFor(() =>
+		expect(
+			f.calls.filter((r) => r.path === "terminal.createSession"),
+		).toHaveLength(1),
+	);
+	let flushed = false;
+	const flushing = f.flush().then(() => {
+		flushed = true;
+	});
+	try {
+		await act(async () => {
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+		expect(flushed).toBe(false);
+	} finally {
+		await act(async () => {
+			release();
+			await running;
+			await flushing;
+		});
+	}
+	expect(flushed).toBe(true);
+	expect(
+		f.calls.filter((r) => r.path === "terminal.createSession"),
+	).toHaveLength(2);
+	expect(f.saved().targets[0]?.workspaces[0]?.panes).toHaveLength(3);
 });

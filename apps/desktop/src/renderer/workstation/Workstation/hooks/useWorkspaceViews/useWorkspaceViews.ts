@@ -81,6 +81,7 @@ export function useWorkspaceViews(
 	const [resourceRevision, setResourceRevision] = useState(0);
 	const [busy, setBusy] = useState(false);
 	const operationBusy = useRef(false);
+	const launchingScripts = useRef<Promise<void> | null>(null);
 	const [navigationEpoch, setNavigationEpoch] = useState(0);
 	const viewRef = useRef(view);
 	viewRef.current = view;
@@ -170,6 +171,7 @@ export function useWorkspaceViews(
 		const action = deferred.current;
 		deferred.current = null;
 		if (action) await action();
+		await launchingScripts.current;
 		await queue.current;
 	}, []);
 	useEffect(() => {
@@ -659,7 +661,7 @@ export function useWorkspaceViews(
 		},
 		[addPane, api],
 	);
-	const launchTerminalPreset = useCallback(
+	const executeTerminalPreset = useCallback(
 		async (
 			workspaceId: string,
 			preset: HostTerminalPreset,
@@ -890,6 +892,25 @@ export function useWorkspaceViews(
 			}
 		},
 		[api, changeWorkspace],
+	);
+	const launchTerminalPreset = useCallback(
+		(
+			workspaceId: string,
+			preset: HostTerminalPreset,
+			agents: HostAgentConfig[],
+		) => {
+			if (operationBusy.current)
+				return launchingScripts.current ?? Promise.resolve();
+			const pending = executeTerminalPreset(workspaceId, preset, agents);
+			launchingScripts.current = pending;
+			const clear = () => {
+				if (launchingScripts.current === pending)
+					launchingScripts.current = null;
+			};
+			void pending.then(clear, clear);
+			return pending;
+		},
+		[executeTerminalPreset],
 	);
 	const saveLayout = useCallback(
 		(
