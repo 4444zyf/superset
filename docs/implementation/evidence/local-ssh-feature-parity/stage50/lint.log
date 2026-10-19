@@ -1,0 +1,60 @@
+packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts:156:10 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    154 │ 		links: [
+    155 │ 			httpBatchLink({
+  > 156 │ 				url: origin + "/trpc",
+        │ 				     ^^^^^^^^^^^^^^^^
+    157 │ 				transformer: SuperJSON,
+    158 │ 				fetch: async (input, init) => {
+  
+  i Unsafe fix: Use a template literal.
+  
+    154 154 │   		links: [
+    155 155 │   			httpBatchLink({
+    156     │ - → → → → url:·origin·+·"/trpc",
+        156 │ + → → → → url:·`${origin}/trpc`,
+    157 157 │   				transformer: SuperJSON,
+    158 158 │   				fetch: async (input, init) => {
+  
+
+packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts:39:54 lint/suspicious/noControlCharactersInRegex ━━━━━━━━━━
+
+  × Unexpected control character in a regular expression.
+  
+    37 │ 			"Namespace access requires the ordinary backend service user",
+    38 │ 		);
+  > 39 │ 	if (!isAbsolute(input) || input.length > 32768 || /[\x00-\x1f]/.test(input))
+       │ 	                                                    ^^^^
+    40 │ 		throw new Error("An absolute namespace directory is required");
+    41 │ 	const homeDir = resolve(input);
+  
+  i Control characters are unusual and potentially incorrect inputs, so they are disallowed.
+  
+
+packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts:39:59 lint/suspicious/noControlCharactersInRegex ━━━━━━━━━━
+
+  × Unexpected control character in a regular expression.
+  
+    37 │ 			"Namespace access requires the ordinary backend service user",
+    38 │ 		);
+  > 39 │ 	if (!isAbsolute(input) || input.length > 32768 || /[\x00-\x1f]/.test(input))
+       │ 	                                                         ^^^^
+    40 │ 		throw new Error("An absolute namespace directory is required");
+    41 │ 	const homeDir = resolve(input);
+  
+  i Control characters are unusual and potentially incorrect inputs, so they are disallowed.
+  
+
+Skipped 1 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 23 files in 110ms. Fixed 17 files.
+Found 2 errors.
+Found 1 info.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while applying fixes.
+  
+

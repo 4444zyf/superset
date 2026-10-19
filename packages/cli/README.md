@@ -8,7 +8,7 @@ See the [fork build guide](../../DEVELOPMENT.md), [scope inventory](../../docs/d
 
 ## Read an existing Remix namespace
 
-The bundled CLI accepts `--namespace <absolute-directory>` on `agents list`, `projects list`, `workspaces list`, `terminals list`, and `scripts list`. Run the CLI on the machine that owns that directory. For example, from a Remix terminal:
+The bundled CLI accepts `--namespace <absolute-directory>` on `agents list`, `projects list`, `workspaces list`, `terminals list`, and `scripts list`. Run the CLI on the machine that owns that directory. With this CLI installed on PATH, for example from a Remix terminal:
 
 ```sh
 superset agents list --namespace "$SUPERSET_HOME_DIR" --json

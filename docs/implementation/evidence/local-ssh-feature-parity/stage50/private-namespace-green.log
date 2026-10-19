@@ -1,0 +1,15 @@
+bun test v1.4.2 (744846f84)
+
+src/lib/direct-namespace/resolveDirectNamespace.test.ts:
+(pass) an explicit namespace authenticates and reads through its owned Unix socket [33.04ms]
+(pass) read-only namespace access refuses both mutations and the legacy Agent query that can seed defaults [11.60ms]
+(pass) a stopped or absent namespace is never created or started [1.79ms]
+(pass) foreign endpoint identity and a mismatched authenticated description are refused [3.21ms]
+(pass) a query cannot silently cross to a replacement endpoint after verification [4.91ms]
+(pass) a missing read capability is rejected before sending a procedure to an older backend [4.81ms]
+(pass) namespace secrets must remain private regular files [1.95ms]
+
+ 7 pass
+ 0 fail
+ 22 expect() calls
+Ran 7 tests across 1 file. [137.00ms]

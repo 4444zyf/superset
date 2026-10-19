@@ -1,0 +1,19 @@
+bun test v1.4.2 (744846f84)
+
+src/commands/middleware.namespace.test.ts:
+(pass) an explicit namespace skips account and telemetry resolution and cannot use the cloud API [4.43ms]
+(pass) commands without an explicit namespace retain the original account requirement [0.41ms]
+
+src/lib/direct-namespace/resolveDirectNamespace.test.ts:
+(pass) an explicit namespace authenticates and reads through its owned Unix socket [22.89ms]
+(pass) read-only namespace access refuses both mutations and the legacy Agent query that can seed defaults [6.84ms]
+(pass) a stopped or absent namespace is never created or started [1.26ms]
+(pass) foreign endpoint identity and a mismatched authenticated description are refused [2.09ms]
+(pass) a query cannot silently cross to a replacement endpoint after verification [4.77ms]
+(pass) a missing read capability is rejected before sending a procedure to an older backend [4.61ms]
+(pass) namespace secrets must remain private regular files [0.72ms]
+
+ 9 pass
+ 0 fail
+ 29 expect() calls
+Ran 9 tests across 2 files. [121.00ms]

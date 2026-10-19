@@ -1,0 +1,15 @@
+packages/cli/src/commands/middleware.namespace.test.ts(31,21): error TS2352: Conversion of type '() => Promise<never>' to type 'typeof fetch' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'preconnect' is missing in type '() => Promise<never>' but required in type 'typeof fetch'.
+packages/cli/src/lib/direct-namespace/resolveDirectNamespace.test.ts(125,3): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '{ id: string; name: string; }' is missing the following properties from type '{ id: string; tagSettings: TagSettingSnapshot[]; name: string; repoPath: string; repoOwner: string | null; repoName: string | null; repoUrl: string | null; worktreeBaseDir: string | null; icon: string | null; color: string | null; createdAt: number; updatedAt: number; }': tagSettings, repoPath, repoOwner, repoName, and 6 more.
+packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts(158,5): error TS2322: Type '(input: any, init: RequestInit | RequestInitEsque | undefined) => Promise<Response>' is not assignable to type 'FetchEsque'.
+  Type 'Promise<Response>' is not assignable to type 'Promise<ResponseEsque>'.
+    Type 'Response' is not assignable to type 'ResponseEsque'.
+      Types of property 'body' are incompatible.
+        Type 'ReadableStream<any> | null' is not assignable to type 'NodeJSReadableStreamEsque | WebReadableStreamEsque | null | undefined'.
+          Type 'ReadableStream<any>' is not assignable to type 'NodeJSReadableStreamEsque | WebReadableStreamEsque | null | undefined'.
+            Type 'ReadableStream<any>' is not assignable to type 'WebReadableStreamEsque'.
+              Types of property 'getReader' are incompatible.
+                Type '{ (options: { mode: "byob"; }): ReadableStreamBYOBReader; (): ReadableStreamDefaultReader<any>; (options?: ReadableStreamGetReaderOptions | undefined): ReadableStreamReader<...>; }' is not assignable to type '() => ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>'.
+                  Target signature provides too few arguments. Expected 1 or more, but got 0.

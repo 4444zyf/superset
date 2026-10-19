@@ -1,0 +1,26 @@
+packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts:160:10 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    158 │ 		links: [
+    159 │ 			httpBatchLink({
+  > 160 │ 				url: origin + "/trpc",
+        │ 				     ^^^^^^^^^^^^^^^^
+    161 │ 				transformer: SuperJSON,
+    162 │ 				fetch: async (input, init) => {
+  
+  i Unsafe fix: Use a template literal.
+  
+    158 158 │   		links: [
+    159 159 │   			httpBatchLink({
+    160     │ - → → → → url:·origin·+·"/trpc",
+        160 │ + → → → → url:·`${origin}/trpc`,
+    161 161 │   				transformer: SuperJSON,
+    162 162 │   				fetch: async (input, init) => {
+  
+
+Skipped 1 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 1 file in 15ms. Fixed 1 file.
+Found 1 info.

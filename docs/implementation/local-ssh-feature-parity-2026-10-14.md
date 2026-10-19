@@ -954,3 +954,21 @@ beforeClose通过ref读取当前回调，避免root重新渲染导致关闭订�
 第190轮最终产品66788ed0a/相同脚本，独立本地真实窗口退出0。相同选择流程得到selection/start/stop/connectionDisabled四项均true，接受选择后四项恢复false；明确Start时也均true，Completed后恢复false，然后才明确Connect。继续完整A/B namespace隔离、同backend实例重开和预设Run流程：A原PID69290/69302保持，未选B PID69389仍存活，Run PID69521与执行ID重开不变；明确Stop/重启才新增标记，Standalone全局Run一行，浏览器错误为空。选择后的布局及Run重开两张截图已实际查看；其余截图捕获。拥有的测试backend/namespace经原清理路径停止。[190等待状态与Run完整证据](evidence/local-ssh-feature-parity/source-linux-namespace-controls/190)。
 
 本阶段原生点击的是Start，Stop期间selector保护由组件测试覆盖，未将其写成新的原生Stop确认验收。其余CLI/快捷键/原预设栏完整交互与其他功能组继续推进；真实macOS/供应商Agent、10秒连接及1.37.7安装包仍独立待验。
+
+## 阶段五十：原 CLI 列表读取明确选择的现有 namespace
+
+此前随桌面打包的CLI仍从organization/auth/relay或旧本机设置取得数据。本阶段为原agents list、projects list、workspaces list、terminals list、scripts list增加明确--namespace绝对目录参数，执行机器须拥有该目录；原命令、显示/JSON、项目/搜索/tag筛选和无参数旧路径保留。工作区筛选仅提取原函数，由原分支和namespace分支共享。没有注入自动目标环境变量、没有假造organization/user/host身份，没有把CLI写命令宣称已接通。未支持的命令会拒绝新flag，namespace不能和host组合。
+
+配置schema从host原模块提取到@superset/shared，旧模块原样re-export，文件读取/发布逻辑保留；复用direct-install的有界owner-only/O_NOFOLLOW/NONBLOCK文件读取，以及direct-connection现有私有socket传输。读取验证普通服务UID、私有目录/文件、配置/identity/endpoint/home/secret固定位置、socket哈希/权限、认证describe身份和实例；每次查询重新核对endpoint实例，换实例拒绝。只通过拥有的Unix socket发送凭据，不连接endpoint.port或任意URL，不接受重定向；传输只允许五个已知GET列表过程，并逐项核对能力。POST和会补种的旧Agent list即使从typed client调用也拒绝。停止/导入中或不存在的backend拒绝，不创建配置或启动backend。Terminal list沿用原live-session查询的daemon readiness，可能引导该运行backend的daemon，但不创建PTY；未把它写成“完全不启动任何运行时进程”。
+
+检查发现原catalogWithRevisionV2也会首次初始化，所以没有把它当作纯读取。新增protected settings.agentConfigs.readCatalogV1与workstationAgentCatalogReadV1能力，复用阶段四十八已提取的只读versionedAgentCatalog；旧V1/V2和初始化行为保留，新客户端无能力则拒绝，不回退到会播种的接口。无迁移或旧合同变更。根CLI middleware对明确namespace跳过Superset认证/配置/analytics，提供无法调用云服务的API guard；scripts list保留原skipMiddleware，并直接走同一私有读取。其余命令无参数时仍保持旧账号要求或原本机行为。
+
+TDD：旧实际CLI执行新flag返回Unknown option、退出1，保留stdout/stderr/exit；后端新只读过程先44通过1失败；私有目录读取测试先因功能不存在失败；namespace middleware先因原Not logged in失败。随后覆盖私有socket实际HTTP、目录/secret权限与symlink、身份/实例改变、停止/缺失不创建、只读/能力/冲突/无参数旧分支、云fetch与analytics/config不写入、原认证和HTTP错误。最终CLI33项81断言/4文件、host48项121断言/2文件、原socket2项7断言通过；CLI/host/desktop类型、17语言检查/严格编译、完整桌面/打包CLI/5个PTY marker及插件检查通过。Bun/Node Response类型桥接沿用原LinkFetch适配方式，测试fetch补齐Bun preconnect形状；初始类型和控制字符regex lint失败、修复日志保留，最终lint无错误，仅既有提示。[阶段五十检查与CLI基线](evidence/local-ssh-feature-parity/stage50)。
+
+第191轮产品f6c77305c/脚本feeda6706，实际Linux打包CLI在empty-agents第一条调用前，由新参数说明求值触发Lingui无locale异常，退出1。它证明库/类型通过不等于二进制可启动；原错误完整保留，两个拥有fixture都正常清理。修复为尚无locale时同步initI18n，不覆盖已有locale，并保留已有Local namespace消息；无新增未翻译消息。[191实际CLI启动失败](evidence/local-ssh-feature-parity/source-linux-namespace-cli-failures/191)。
+
+第192轮产品/脚本da56e38c3，实际编译CLI对两个独立拥有Unix backend完成27次调用，预期22项成功/5项失败并整体退出0。随后CLI类型检查发现验收MJS放在packages/cli/scripts，因直接导入桌面辅助代码而将跨root JS/PTY测试纳入；没有放宽tsconfig，改放到既有apps/desktop/scripts并修正相对导入，再类型检查通过。第193轮同产品/新位置脚本再次整体退出0，完全相同27次调用通过；CLI版本1.37.7，二进制SHA256两轮均317c241e3294d7bc2b4083f6ca538af63d9274bf21931d3be801efa771f08ec6。两轮是无GUI的实际CLI/真实私有后端验收，没有截图或SSH部署声明。[192–193完整二进制证据](evidence/local-ssh-feature-parity/source-linux-namespace-cli)。
+
+第193轮覆盖版本/帮助启动、空Agent/脚本目录读取后仍0行且初始化标记未写、两个含中文空格的独立目录、五个list及项目名/搜索/tag筛选、返回A仍只见A数据。测试准备通过拥有数据库写入固定读取fixture，并明确经原direct.execute创建各一个实际PTY；CLI自身只读。A PID72401、B PID72504及执行ID在查询后保持，各一个Agent、一行脚本目录、一个终端记录未增加。旧无namespace账号要求、namespace/host冲突、未接写命令未知flag、缺失目录不创建、停止A不启动均按预期退出1；停止A后B仍可读，旧账号/analytics目录为空。所有拥有backend/PTY和临时目录在finally清理。没有用数据库准备来声称CLI创建能力已验收。
+
+CLI在SSH机器的安装/交付、自动选择终端namespace、其他读取/写命令与持久操作核对仍须继续；原预设栏完整交互/快捷键和其他功能组、真实macOS/供应商Agent、10秒连接及1.37.7安装包也继续独立推进。

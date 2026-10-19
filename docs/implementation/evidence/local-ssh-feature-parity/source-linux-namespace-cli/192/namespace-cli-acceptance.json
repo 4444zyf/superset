@@ -1,0 +1,366 @@
+{
+  "sourceRevision": "da56e38c3",
+  "cliSha256": "317c241e3294d7bc2b4083f6ca538af63d9274bf21931d3be801efa771f08ec6",
+  "version": "1.37.7",
+  "mode": "actual compiled Linux CLI and two owned same-machine Unix backends; no GUI or SSH deployment claim",
+  "empty": {
+    "agents": 0,
+    "scripts": 0,
+    "initialized": null,
+    "terminals": 0
+  },
+  "fixtures": [
+    {
+      "label": "A",
+      "namespaceId": "fdd9fd2f-90eb-48f3-aa03-8fd0629131b3",
+      "backendId": "b536286f-26a1-4313-a2f0-99c0e8e641e5",
+      "home": "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文",
+      "execution": {
+        "id": "5ea8f078-034a-4394-8c27-a8e1e7a827cb",
+        "executionId": "eb6bb547-1d19-4fc7-bbba-06533c998825",
+        "pid": 71865
+      },
+      "records": {
+        "agents": 1,
+        "scripts": 1,
+        "initialized": null,
+        "terminals": 1
+      }
+    },
+    {
+      "label": "B",
+      "namespaceId": "6ce87bed-27a0-4c35-a98e-e9e23d2c75eb",
+      "backendId": "a7fa9a25-fcf1-4057-b3e5-a8df39a95c80",
+      "home": "/tmp/remix-cli-actual-vKVUUj/Namespace B 中文",
+      "execution": {
+        "id": "d869f291-ff29-468d-ad39-0f5812b14f65",
+        "executionId": "86e42e69-6746-4b7b-af74-dd34b53ba8e2",
+        "pid": 71968
+      },
+      "records": {
+        "agents": 1,
+        "scripts": 1,
+        "initialized": null,
+        "terminals": 1
+      }
+    }
+  ],
+  "runs": [
+    {
+      "label": "cli-version",
+      "args": [
+        "--version"
+      ],
+      "json": false,
+      "exitCode": 0
+    },
+    {
+      "label": "namespace-help",
+      "args": [
+        "agents",
+        "list",
+        "--help"
+      ],
+      "json": false,
+      "exitCode": 0
+    },
+    {
+      "label": "empty-agents",
+      "args": [
+        "agents",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "empty-scripts",
+      "args": [
+        "scripts",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "A-agents",
+      "args": [
+        "agents",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "A-projects",
+      "args": [
+        "projects",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "A-workspaces",
+      "args": [
+        "workspaces",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "A-project-filter",
+      "args": [
+        "workspaces",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文",
+        "--project",
+        "cli a project"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "A-search-filter",
+      "args": [
+        "workspaces",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文",
+        "--search",
+        "standalone"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "A-tag-filter",
+      "args": [
+        "workspaces",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文",
+        "--tag",
+        "absent"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "A-scripts",
+      "args": [
+        "scripts",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "A-terminals",
+      "args": [
+        "terminals",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文",
+        "--workspace",
+        "d6cdd083-87bb-418f-a4ab-27fc621ef1e8"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "B-agents",
+      "args": [
+        "agents",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace B 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "B-projects",
+      "args": [
+        "projects",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace B 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "B-workspaces",
+      "args": [
+        "workspaces",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace B 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "B-project-filter",
+      "args": [
+        "workspaces",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace B 中文",
+        "--project",
+        "cli b project"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "B-search-filter",
+      "args": [
+        "workspaces",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace B 中文",
+        "--search",
+        "standalone"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "B-tag-filter",
+      "args": [
+        "workspaces",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace B 中文",
+        "--tag",
+        "absent"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "B-scripts",
+      "args": [
+        "scripts",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace B 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "B-terminals",
+      "args": [
+        "terminals",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace B 中文",
+        "--workspace",
+        "95966db1-1392-461a-9261-c2231b23e90d"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "A-agents-return",
+      "args": [
+        "agents",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    },
+    {
+      "label": "legacy-auth",
+      "args": [
+        "agents",
+        "list",
+        "--local"
+      ],
+      "json": true,
+      "exitCode": 1
+    },
+    {
+      "label": "conflicting-target",
+      "args": [
+        "projects",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文",
+        "--host",
+        "other"
+      ],
+      "json": true,
+      "exitCode": 1
+    },
+    {
+      "label": "unsupported-write",
+      "args": [
+        "scripts",
+        "add",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文",
+        "--name",
+        "refused",
+        "--command",
+        "echo refused"
+      ],
+      "json": true,
+      "exitCode": 1
+    },
+    {
+      "label": "missing-target",
+      "args": [
+        "projects",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/never-created"
+      ],
+      "json": true,
+      "exitCode": 1
+    },
+    {
+      "label": "stopped-target",
+      "args": [
+        "agents",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace A 中文"
+      ],
+      "json": true,
+      "exitCode": 1
+    },
+    {
+      "label": "B-after-A-stop",
+      "args": [
+        "agents",
+        "list",
+        "--namespace",
+        "/tmp/remix-cli-actual-vKVUUj/Namespace B 中文"
+      ],
+      "json": true,
+      "exitCode": 0
+    }
+  ],
+  "cloudAccountRequired": false,
+  "macOSVerified": false
+}

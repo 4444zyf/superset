@@ -1,0 +1,23 @@
+bun test v1.4.2 (744846f84)
+
+src/commands/middleware.namespace.test.ts:
+66 | 		// requests for the API, and it names the workspace rather than a
+67 | 		// person. Nothing to send from here, and nothing to refresh.
+68 | 		bearer = "";
+69 | 		authSource = "sandbox";
+70 | 	} else {
+71 | 		throw new CLIError(
+             ^
+CLIError: Not logged in
+ suggestion: "Run: superset auth login (or set SUPERSET_API_KEY)",
+
+      at resolveAuth (/workspace/superset/packages/cli/src/lib/resolve-auth.ts:71:9)
+      at <anonymous> (/workspace/superset/packages/cli/src/commands/middleware.ts:7:52)
+      at <anonymous> (/workspace/superset/packages/cli/src/commands/middleware.namespace.test.ts:20:9)
+(fail) an explicit namespace skips account and telemetry resolution and cannot use the cloud API [0.71ms]
+(pass) commands without an explicit namespace retain the original account requirement [0.10ms]
+
+ 1 pass
+ 1 fail
+ 2 expect() calls
+Ran 2 tests across 1 file. [46.00ms]

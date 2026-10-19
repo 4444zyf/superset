@@ -1,0 +1,69 @@
+bun test v1.4.2 (744846f84)
+
+src/trpc/router/settings/agent-configs.test.ts:
+297 | 				const fullPath = path.join(".");
+298 | 				if (path.length === 1 && path[0] === "_def") return _def;
+299 | 				const procedure = await getProcedureAtPath(router, fullPath);
+300 | 				let ctx = void 0;
+301 | 				try {
+302 | 					if (!procedure) throw new TRPCError({
+                                 ^
+TRPCError: No procedure found on path "readCatalogV1"
+ cause: undefined,
+  code: "NOT_FOUND"
+
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/tracked-DiE3uR1B.mjs:302:28)
+      at async <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/settings/agent-configs.test.ts:57:29)
+(fail) agentConfigsRouter > an explicit read-only namespace catalog does not initialize defaults or change the original V2 behavior [15.94ms]
+(pass) agentConfigsRouter > list() > seeds bundled defaults on first call [18.26ms]
+(pass) agentConfigsRouter > list() > does not seed Superset [12.94ms]
+(pass) agentConfigsRouter > list() > seeds Claude with its most permissive flag [11.22ms]
+(pass) agentConfigsRouter > list() > seeds Codex with its most permissive flags [12.22ms]
+(pass) agentConfigsRouter > list() > seeds resume args for agents with an id-based resume [12.80ms]
+(pass) agentConfigsRouter > list() > seeds native fork args for every harness whose CLI has them [12.04ms]
+(pass) agentConfigsRouter > list() > backfills fork args onto an install seeded before the preset had them [12.42ms]
+(pass) agentConfigsRouter > list() > leaves a customised agent's fork args alone [12.02ms]
+(pass) agentConfigsRouter > list() > returns existing rows on subsequent calls without re-seeding [11.44ms]
+(pass) agentConfigsRouter > list() > returns rows in displayOrder [15.02ms]
+(pass) agentConfigsRouter > add() > inserts a row with the supplied launch shape and next order [11.95ms]
+(pass) agentConfigsRouter > add() > allows duplicate presetId tags with distinct ids [13.02ms]
+(pass) agentConfigsRouter > add() > accepts a fully custom row and defaults presetId to 'custom' [14.45ms]
+(pass) agentConfigsRouter > add() > stores supplied resumeArgs [10.01ms]
+(pass) agentConfigsRouter > add() > preserves an arbitrary presetId tag verbatim [10.80ms]
+(pass) agentConfigsRouter > add() > defaults iconId to null and stores a supplied iconId [16.77ms]
+(pass) agentConfigsRouter > add() > stores an uploaded data-URI icon [16.33ms]
+(pass) agentConfigsRouter > add() > rejects an oversized iconId [18.00ms]
+(pass) agentConfigsRouter > add() > seeds bundled defaults with a null iconId [15.01ms]
+(pass) agentConfigsRouter > add() > rejects empty label or command [14.37ms]
+(pass) agentConfigsRouter > update() > persists label, command, args, promptTransport, promptArgs, resumeArgs, env [14.33ms]
+(pass) agentConfigsRouter > update() > sets and clears iconId [11.58ms]
+(pass) agentConfigsRouter > update() > rejects invalid promptTransport [9.66ms]
+(pass) agentConfigsRouter > update() > rejects an empty patch [9.75ms]
+(pass) agentConfigsRouter > update() > rejects update for missing id [12.31ms]
+(pass) agentConfigsRouter > update() > rejects whitespace-only label and command [10.20ms]
+(pass) agentConfigsRouter > update() > trims label and command on save [11.33ms]
+(pass) agentConfigsRouter > remove() > deletes a config by id [10.99ms]
+(pass) agentConfigsRouter > remove() > throws NOT_FOUND for an unknown id [15.84ms]
+(pass) agentConfigsRouter > restoreDefault() > repairs a malformed built-in config without replacing its row [12.30ms]
+(pass) agentConfigsRouter > restoreDefault() > rejects custom agents and unknown ids [10.06ms]
+(pass) agentConfigsRouter > reorder() > persists the submitted id order [13.43ms]
+(pass) agentConfigsRouter > reorder() > rejects when ids do not match existing configs [11.15ms]
+(pass) agentConfigsRouter > reorder() > rejects duplicate ids [10.24ms]
+(pass) agentConfigsRouter > resetToDefaults() > replaces current configs with bundled defaults [11.95ms]
+(pass) versioned local agent editing > keeps every original config field and refuses a stale edit after another client changes the launch [13.46ms]
+(pass) versioned local agent editing > explicitly saves a reviewed patch while preserving unrelated permissions, prompt and resume settings [12.90ms]
+(pass) versioned local agent catalog management > adds a stable custom ID once and preserves the full launch shape on readonly recovery [16.39ms]
+(pass) versioned local agent catalog management > refuses stale removal and reset after an external config edit [17.48ms]
+(pass) versioned local agent catalog management > reorders exact IDs atomically and restores a built-in without changing its identity or other rows [15.83ms]
+(pass) versioned local agent catalog management > removes only the reviewed row and resets only after fresh catalog review [12.64ms]
+(pass) explicit agent catalog choices survive initialization > initializes defaults once and preserves an explicitly empty built-in fork setting [15.88ms]
+(pass) explicit agent catalog choices survive initialization > keeps a deliberately empty catalog across a new caller until explicit reset [22.65ms]
+(pass) one-time catalog initialization preserves other host settings [11.35ms]
+
+1 tests failed:
+(fail) agentConfigsRouter > an explicit read-only namespace catalog does not initialize defaults or change the original V2 behavior [15.94ms]
+
+ 44 pass
+ 1 fail
+ 110 expect() calls
+Ran 45 tests across 1 file. [861.00ms]

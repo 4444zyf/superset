@@ -1,0 +1,34 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: empty-agents: 134494 |     this._locale = locale;
+134495 |     this._locales = locales;
+134496 |     this.emit("change");
+134497 |   }
+134498 |   _(id, values, options) {
+134499 |       throw new Error("Lingui: Attempted to call a translation function without setting a locale.\nMake sure to call `i18n.activate(locale)` before using Lingui functions.\nThis issue may also occur due to a race condition in your initialization logic.");
+                     ^
+error: Lingui: Attempted to call a translation function without setting a locale.
+Make sure to call `i18n.activate(locale)` before using Lingui functions.
+This issue may also occur due to a race condition in your initialization logic.
+      at _ (/$bunfs/root/superset:134499:13)
+      at namespaceOption (/$bunfs/root/superset:134859:30)
+      at /$bunfs/root/superset:141089:31
+
+Bun v1.4.2 (Linux x64)
+
+
+false !== true
+
+    at invoke (/workspace/superset/packages/cli/scripts/verify-namespace-cli.mjs:30:9)
+    at async <anonymous> (/workspace/superset/packages/cli/scripts/verify-namespace-cli.mjs:65:19) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0
