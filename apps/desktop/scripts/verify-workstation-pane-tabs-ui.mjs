@@ -34,15 +34,19 @@ export async function verifyWorkstationPaneTabsUi({getPage,click,screenshot,outp
  const drag=await nativeDrag(points);writeFileSync(join(output,'pane-tabs-native-drag.json'),JSON.stringify(drag,null,2)+'\n');
  await until(async()=>{const w=await active();return w.paneTabs[0].tabId===newTab;},'original tab drag order persisted');
  await screenshot('pane-tabs-original-reordered');
- const saved=await active();await closeReopen();
+ const saved=await active();
+ const allExecutions=await Promise.all(saved.panes.map(p=>controls.inspectPresetTerminal(p.resourceId)));
+ await closeReopen();
  await until(async()=>{const w=await active();return w?.paneTabs?.length===2&&w.panes.length===5&&w;},'nested tabs restored');
+ await until(()=>evaluate(`(()=>{const rows=[...document.querySelectorAll('${root} [data-terminal-id]')];return rows.length===2&&rows.every(e=>e.dataset.restoreState==='attached');})()`),'both restored terminals attached');
  const reopened=await active();assert.deepEqual(reopened.paneTabs,saved.paneTabs);assert.equal(reopened.activePaneTabId,saved.activePaneTabId);
- for(let i=0;i<original.length;i++)assert.equal((await controls.inspectPresetTerminal(before.panes[i].resourceId)).pid,original[i].pid);
+ for(let i=0;i<allExecutions.length;i++)assert.equal((await controls.inspectPresetTerminal(saved.panes[i].resourceId)).pid,allExecutions[i].pid);
  await screenshot('pane-tabs-reopen-keeps-layouts-and-executions');
  await click(`${root} [data-tab-id="${newTab}"] button[aria-label="Close tab"]`);
  const closed=await until(async()=>{const w=await active();return w.paneTabs.length===1&&w;},'close original terminal tab');
  assert.deepEqual(closed.panes,before.panes);assert.equal(closed.paneTabs[0].tabId,after.paneTabs[0].tabId);
+ await until(()=>evaluate(`(()=>{const rows=[...document.querySelectorAll('${root} [data-terminal-id]')];return rows.length===3&&rows.every(e=>e.dataset.restoreState==='attached');})()`),'remaining original terminals attached');
  await screenshot('pane-tabs-close-preserves-other-group');
- writeFileSync(join(output,'pane-tabs-acceptance.json'),JSON.stringify({before,after,split,saved,reopened,closed,originalPids:original.map(p=>p.pid),errors:getPage().errors},null,2)+'\n');
+ writeFileSync(join(output,'pane-tabs-acceptance.json'),JSON.stringify({before,after,split,saved,reopened,closed,originalPids:original.map(p=>p.pid),allPids:allExecutions.map(p=>p.pid),errors:getPage().errors},null,2)+'\n');
  assert.deepEqual(getPage().errors,[]);
 }
