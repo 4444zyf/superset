@@ -49,6 +49,7 @@ export function describeDirectBackend(
 			workstationAgentSettingsV1: true,
 			workstationAgentManagementV1: true,
 			workstationAgentCatalogV2: true,
+			workstationTerminalScriptsV1: true,
 			workstationWorkspaceCleanupV1: durableOperations,
 			workstationWorkspaceSetupV1:
 				durableOperations && managedSetupCompletionRoot() !== null,

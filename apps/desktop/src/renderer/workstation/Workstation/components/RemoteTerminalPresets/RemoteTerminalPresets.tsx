@@ -20,6 +20,7 @@ import type {
 } from "../../../../../shared/direct-workstation";
 import { useWorkstationAppearance } from "../../providers/WorkstationPreferencesContext/WorkstationPreferencesContext";
 import { RemoteAgentSettings } from "../RemoteAgentSettings/RemoteAgentSettings";
+import { RemoteTerminalScripts } from "../RemoteTerminalScripts/RemoteTerminalScripts";
 
 export function RemoteTerminalPresets({
 	api,
@@ -53,6 +54,7 @@ export function RemoteTerminalPresets({
 		owner: string;
 		agents: HostAgentConfig[];
 		error?: string;
+		loaded?: boolean;
 	}>({ owner, agents: [] });
 	const [reload, setReload] = useState(0);
 	const [editingOwner, setEditingOwner] = useState<string | null>(null);
@@ -76,7 +78,7 @@ export function RemoteTerminalPresets({
 			.then((result) => {
 				const agents = Array.isArray(result) ? result : result.configs;
 				if (active && current.current === requestKey)
-					setState({ owner, agents });
+					setState({ owner, agents, loaded: true });
 			})
 			.catch((error) => {
 				if (active && current.current === requestKey)
@@ -128,6 +130,15 @@ export function RemoteTerminalPresets({
 					</Button>
 				) : (
 					<>
+						{state.owner === owner && state.loaded && (
+							<RemoteTerminalScripts
+								api={api}
+								connection={connection}
+								agents={agents}
+								workspaceId={workspaceId}
+								busy={busy}
+							/>
+						)}
 						<Button
 							variant="ghost"
 							size="icon-sm"

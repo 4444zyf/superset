@@ -43,6 +43,8 @@ const procedures: Record<string, "query" | "mutation"> = {
 	"workspaces.createSession": "mutation",
 	"terminal.list": "query",
 	"settings.agentConfigs.list": "query",
+	"settings.terminalPresets.catalogWithRevisionV1": "query",
+	"settings.terminalPresets.applyCatalogChangeV1": "mutation",
 	"settings.agentConfigs.catalogWithRevisionV1": "query",
 	"settings.agentConfigs.catalogWithRevisionV2": "query",
 	"settings.agentConfigs.applyCatalogChangeV2": "mutation",
@@ -135,6 +137,7 @@ export class WorkstationController {
 				"workstationAgentSettingsV1",
 				"workstationAgentManagementV1",
 				"workstationAgentCatalogV2",
+				"workstationTerminalScriptsV1",
 				"git",
 				"durableOperations",
 				"workspaceViewRestoreV1",
@@ -178,6 +181,17 @@ export class WorkstationController {
 			: undefined;
 		if ((workspaceProcedure?.type ?? procedures[request.path]) !== request.type)
 			throw new Error("Unsupported workstation procedure");
+		if (
+			request.path === "settings.terminalPresets.catalogWithRevisionV1" ||
+			request.path === "settings.terminalPresets.applyCatalogChangeV1"
+		) {
+			const features = await this.features(request.connectionId);
+			this.assertGeneration(request.connectionId, request.generation);
+			if (features.capabilities?.workstationTerminalScriptsV1 !== true)
+				throw new Error(
+					"This backend does not support the required capability",
+				);
+		}
 		if (
 			request.path === "settings.agentConfigs.getWithRevisionV1" ||
 			request.path === "settings.agentConfigs.updateWithRevisionV1"

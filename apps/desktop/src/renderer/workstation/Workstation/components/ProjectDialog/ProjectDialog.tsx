@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { ArrowUp, Folder, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { DirectProfile, RemoteDirectory } from "../../types";
+import { RemoteDirectoryBrowser } from "../RemoteDirectoryBrowser/RemoteDirectoryBrowser";
 import { RemoteProjectCreator } from "../RemoteProjectCreator/RemoteProjectCreator";
 import { WorkstationDialog } from "../WorkstationDialog/WorkstationDialog";
 
@@ -53,51 +54,12 @@ export function ProjectDialog({
 				</label>
 				{connected && directory ? (
 					<>
-						<form
-							className="ws-path-form"
+						<RemoteDirectoryBrowser
 							key={`${selectedId}:${directory.path}`}
-							onSubmit={(e) => {
-								e.preventDefault();
-								onBrowse(String(new FormData(e.currentTarget).get("path")));
-							}}
-						>
-							<label className="ws-field">
-								<Trans>Path</Trans>
-								<input name="path" defaultValue={directory.path} required />
-							</label>
-							<button className="ws-button" disabled={busy} type="submit">
-								<Trans>Open</Trans>
-							</button>
-						</form>
-						<div className="ws-directory-list">
-							{directory.parentPath && (
-								<button
-									type="button"
-									className="ws-button small"
-									disabled={busy}
-									onClick={() =>
-										onBrowse(directory.parentPath ?? directory.path)
-									}
-								>
-									<ArrowUp size={14} />
-									..
-								</button>
-							)}
-							{directory.entries
-								.filter((e) => e.isDirectory || e.isSymlink)
-								.map((e) => (
-									<button
-										type="button"
-										className="ws-button small"
-										disabled={busy}
-										key={e.name}
-										onClick={() => onBrowse(`${directory.path}/${e.name}`)}
-									>
-										<Folder size={14} />
-										{e.name}
-									</button>
-								))}
-						</div>
+							directory={directory}
+							busy={busy}
+							onBrowse={onBrowse}
+						/>
 						<button
 							type="button"
 							className="ws-button primary"

@@ -1063,3 +1063,54 @@ test("preserved agent catalog choices require the V2 capability independently of
 	);
 	expect(calls).toHaveLength(2);
 });
+
+test("terminal script storage requires its own strict capability and the current generation", async () => {
+	const f = fixture();
+	let enabled: unknown = false;
+	const calls: unknown[] = [];
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: {
+				workstationTerminalPresetsV1: true,
+				workstationTerminalScriptsV1: enabled,
+			},
+		}),
+		invoke: async (_id, request) => {
+			calls.push(request);
+			return { initialized: true, presets: [], revision: "a".repeat(64) };
+		},
+	});
+	const read = {
+		connectionId: "machine",
+		generation: 1,
+		path: "settings.terminalPresets.catalogWithRevisionV1",
+		type: "query" as const,
+	};
+	const write = {
+		...read,
+		path: "settings.terminalPresets.applyCatalogChangeV1",
+		type: "mutation" as const,
+		input: {
+			expectedRevision: "a".repeat(64),
+			change: { kind: "initialize", presets: [] },
+		},
+	};
+	for (const value of [undefined, false, "true", 1]) {
+		enabled = value;
+		await expect(controller.invoke(read)).rejects.toThrow(
+			"required capability",
+		);
+		await expect(controller.invoke(write)).rejects.toThrow(
+			"required capability",
+		);
+	}
+	expect(calls).toHaveLength(0);
+	enabled = true;
+	await controller.invoke(read);
+	await controller.invoke(write);
+	expect(calls).toHaveLength(2);
+	f.nextGeneration();
+	await expect(controller.invoke(write)).rejects.toThrow("Connection changed");
+	expect(calls).toHaveLength(2);
+});
