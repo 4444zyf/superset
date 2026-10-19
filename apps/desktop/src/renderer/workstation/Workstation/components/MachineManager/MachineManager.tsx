@@ -389,6 +389,7 @@ export function MachineManager({
 											<button
 												type="button"
 												className="ws-button primary"
+												disabled={busy}
 												onClick={() => onWorkspaces(selected)}
 											>
 												<Trans>Open workspace</Trans>
@@ -448,6 +449,7 @@ export function MachineManager({
 													type="button"
 													className="ws-workspace-item"
 													key={w.id}
+													disabled={busy}
 													onClick={() => onWorkspaces(selected)}
 												>
 													<span>{w.name}</span>

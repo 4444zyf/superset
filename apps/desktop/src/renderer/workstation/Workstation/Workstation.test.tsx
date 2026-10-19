@@ -199,6 +199,13 @@ test("selecting another local namespace clears the old workspace without reconne
 			}) as HTMLButtonElement
 		).disabled,
 	).toBe(true);
+	expect(
+		(
+			screen.getByRole("button", {
+				name: "Open workspace",
+			}) as HTMLButtonElement
+		).disabled,
+	).toBe(true);
 	expect(controls).toEqual([]);
 	await act(async () => {
 		acceptSelection();
