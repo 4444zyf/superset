@@ -11,6 +11,7 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { homedir } from "node:os";
+import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -56,23 +57,27 @@ assert.equal(
 	`UI acceptance requires a fresh profile: ${profile}`,
 );
 mkdirSync(output, { recursive: true });
-for (const port of [19391, 19392]) {
-	let occupied = false;
-	try {
-		await fetch(`http://127.0.0.1:${port}/json/list`, {
-			signal: AbortSignal.timeout(500),
-		});
-		occupied = true;
-	} catch {}
-	assert.equal(occupied, false, `Inspector port ${port} is already occupied`);
+let inspectPorts;
+async function freshInspectPorts() {
+ const servers = [createServer(), createServer()];
+ try {
+  const ports = await Promise.all(servers.map(server => new Promise((resolve, reject) => {
+   server.once('error', reject);
+   server.listen(0, '127.0.0.1', () => resolve(server.address().port));
+  })));
+  return {main: ports[0], renderer: ports[1]};
+ } finally {
+  await Promise.all(servers.map(server => new Promise(resolve => server.close(resolve))));
+ }
 }
 const children = new Set();
-function launch(debug = true) {
+async function launch(debug = true) {
+ if (debug) inspectPorts = await freshInspectPorts();
 	const child = spawn(
 		executable,
 		[
 			...(debug
-				? ["--inspect=127.0.0.1:19391", "--remote-debugging-port=19392"]
+				? [`--inspect=127.0.0.1:${inspectPorts.main}`, `--remote-debugging-port=${inspectPorts.renderer}`]
 				: []),
 			"--lang=en-US",
 			...(sourceTest
@@ -220,7 +225,7 @@ async function screenshot(name) {
 }
 async function attach() {
 	const renderer = await target(
-		19392,
+		inspectPorts.renderer,
 		(entry) => {
 			if (entry.type !== "page" || !entry.url.startsWith("file:")) return false;
 			try {
@@ -239,7 +244,7 @@ async function attach() {
 		child,
 	);
 	main = await connect(
-		await target(19391, (entry) => entry.type === "node", child),
+		await target(inspectPorts.main, (entry) => entry.type === "node", child),
 	);
 	const metadata = await until(() =>
 		main.evaluate(`(() => {
@@ -251,7 +256,7 @@ async function attach() {
 	);
 	writeFileSync(
 		join(output, "observed-identity.json"),
-		`${JSON.stringify(metadata, null, 2)}\n`,
+		`${JSON.stringify({...metadata, inspectPorts, rendererUrl: renderer.url}, null, 2)}\n`,
 	);
 	assert.equal(
 		realpathSync(metadata.appPath),
@@ -281,10 +286,10 @@ async function attach() {
 	assert.equal(await page.evaluate("document.title"), brand.displayName);
 }
 try {
-	child = launch();
+	child = await launch();
 	await attach();
 	await screenshot("workstation");
-	const second = launch(false);
+	const second = await launch(false);
 	await until(async () => second.failure || second.exitCode !== null);
 	assert.equal(second.exitCode, 0, second.log);
 	assert.equal(
@@ -373,7 +378,7 @@ try {
 	await screenshot("about-minimum-window");
 	assert.deepEqual(page.errors, []);
 	await stop();
-	child = launch();
+	child = await launch();
 	await attach();
 	await click(".ws-about-button");
 	await until(
@@ -455,7 +460,7 @@ try {
 						);
 					} else await stop();
 					const closedHeartbeat = await controls?.observeWhileClientClosed();
-					child = launch();
+					child = await launch();
 					await attach();
 					return closedHeartbeat;
 				},
@@ -471,14 +476,14 @@ try {
 						main.close();
 						main = undefined;
 						await until(() => child.exitCode !== null);
-						child = launch();
+						child = await launch();
 						await attach();
 						return;
 					}
 					if (child.exitCode !== null) {
 						main.close();
 						main = undefined;
-						child = launch();
+						child = await launch();
 						await attach();
 					} else {
 						await main.evaluate(`${electron}.app.emit('activate'); true`);
