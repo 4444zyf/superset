@@ -1,5 +1,11 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react";
 import type {
 	DirectLocalDataApi,
 	DirectLocalNamespace,
@@ -15,10 +21,14 @@ export function LocalDataPanel({
 	api,
 	onError,
 	onNamespaceSelected,
+	disabled = false,
+	onBusyChange,
 }: {
 	api: DirectLocalDataApi;
 	onError(message: string): void;
 	onNamespaceSelected(namespace: DirectLocalNamespace): void;
+	disabled?: boolean;
+	onBusyChange?(busy: boolean): void;
 }) {
 	const { t } = useLingui();
 	const [namespaces, setNamespaces] = useState<DirectLocalNamespace[]>([]);
@@ -27,9 +37,16 @@ export function LocalDataPanel({
 	selectionHandler.current = onNamespaceSelected;
 	const [label, setLabel] = useState("");
 	const [notice, setNotice] = useState<string | null>(null);
-	const { busy, run } = useScopedAsync(selected?.id ?? "", (error) =>
+	const { busy: pending, run } = useScopedAsync(selected?.id ?? "", (error) =>
 		onError(error instanceof Error ? error.message : String(error)),
 	);
+	const busy = pending || disabled;
+	const busyHandler = useRef(onBusyChange);
+	busyHandler.current = onBusyChange;
+	useLayoutEffect(() => {
+		busyHandler.current?.(pending);
+		return () => busyHandler.current?.(false);
+	}, [pending]);
 	const applyNamespaces = useCallback((rows: DirectLocalNamespace[]) => {
 		setNamespaces(rows);
 		const selection = rows.find((row) => row.selected);
@@ -42,7 +59,10 @@ export function LocalDataPanel({
 		reload();
 	}, [reload]);
 	return (
-		<section className="mt-3 min-w-0 rounded border border-zinc-700 p-3 space-y-3">
+		<fieldset
+			disabled={busy}
+			className="mt-3 min-w-0 rounded border border-zinc-700 p-3 space-y-3"
+		>
 			<h3 className="text-sm font-medium">
 				<Trans>Local data</Trans>
 			</h3>
@@ -55,6 +75,7 @@ export function LocalDataPanel({
 							value={selected.id}
 							disabled={busy}
 							onChange={(event) => {
+								if (busy) return;
 								const id = event.target.value;
 								void run(
 									() => api.selectNamespace(id),
@@ -97,7 +118,7 @@ export function LocalDataPanel({
 				className="flex gap-2 flex-wrap"
 				onSubmit={(event) => {
 					event.preventDefault();
-					if (!label.trim()) return;
+					if (busy || !label.trim()) return;
 					void run(
 						async () => {
 							await api.createNamespace(label.trim());
@@ -194,6 +215,6 @@ export function LocalDataPanel({
 					/>
 				</>
 			)}
-		</section>
+		</fieldset>
 	);
 }

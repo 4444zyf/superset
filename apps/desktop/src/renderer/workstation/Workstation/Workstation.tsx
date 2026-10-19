@@ -1,7 +1,15 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { I18nProvider } from "@superset/i18n/react";
 import { darkTheme, getBuiltInTheme } from "@superset/shared/themes";
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import {
+	lazy,
+	Suspense,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import {
 	applyUIColors,
 	updateThemeClass,
@@ -93,6 +101,12 @@ export function Workstation({
 		document.documentElement.style.colorScheme = theme.type;
 	}, [theme]);
 	const [page, setPage] = useState<"machines" | "workspaces">("machines");
+	const [localDataBusy, setLocalDataBusy] = useState(false);
+	const localDataBusyRef = useRef(false);
+	const onLocalDataBusy = useCallback((busy: boolean) => {
+		localDataBusyRef.current = busy;
+		setLocalDataBusy(busy);
+	}, []);
 	const [selectedId, setSelectedId] = useState("");
 	const selectedRef = useRef("");
 	const navigationRevision = useRef(0);
@@ -185,6 +199,7 @@ export function Workstation({
 				ui.setDirectory(directory);
 		});
 	const connect = async (profile: DirectProfile, open = true) => {
+		if (profile.kind === "local" && localDataBusyRef.current) return;
 		views.navigate();
 		const navigation = navigationRevision.current;
 		select(profile.id);
@@ -496,7 +511,7 @@ export function Workstation({
 					profiles={ui.profiles}
 					selectedId={selectedId}
 					activeId={ui.connection?.connectionId}
-					busy={disabled}
+					busy={disabled || localDataBusy}
 					reconnecting={ui.reconnecting}
 					snapshots={ui.snapshots}
 					probes={ui.probes}
@@ -520,7 +535,10 @@ export function Workstation({
 						setForm("add");
 					}}
 					onRemove={setRemove}
-					onControl={(p, a) => void ui.control(p, a)}
+					onControl={(p, a) => {
+						if (p.kind === "local" && localDataBusyRef.current) return;
+						void ui.control(p, a);
+					}}
 					onTest={(p) => void ui.testProfile(p)}
 					onRelease={(p) =>
 						void ui.operation(async () => {
@@ -535,6 +553,8 @@ export function Workstation({
 						api.platform !== "win32" ? (
 							<LocalDataPanel
 								api={api.localData}
+								disabled={ui.controlling}
+								onBusyChange={onLocalDataBusy}
 								onError={ui.setError}
 								onNamespaceSelected={(namespace) => {
 									const key = `${selected.id}:${namespace.backendId}:${namespace.namespaceId}`;

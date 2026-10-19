@@ -93,6 +93,10 @@ test.each([
 
 test("selecting another local namespace clears the old workspace without reconnecting or stopping workloads", async () => {
 	let selected = "old";
+	let acceptSelection!: () => void;
+	const selectionReply = new Promise<void>((resolve) => {
+		acceptSelection = resolve;
+	});
 	let connects = 0;
 	const controls: string[] = [];
 	const namespaces = [
@@ -118,6 +122,7 @@ test("selecting another local namespace clears the old workspace without reconne
 			namespaces.map((row) => ({ ...row, selected: row.id === selected })),
 		selectNamespace: async (id) => {
 			selected = id;
+			await selectionReply;
 			const namespace = namespaces.find((row) => row.id === id);
 			if (!namespace) throw new Error("Unknown namespace");
 			return {
@@ -188,11 +193,82 @@ test("selecting another local namespace clears the old workspace without reconne
 		fireEvent.change(selector, { target: { value: "new" } }),
 	);
 	expect(
+		(
+			screen.getByRole("button", {
+				name: "Start",
+				exact: true,
+			}) as HTMLButtonElement
+		).disabled,
+	).toBe(true);
+	expect(controls).toEqual([]);
+	await act(async () => {
+		acceptSelection();
+		await selectionReply;
+	});
+	expect(
 		Boolean(screen.queryByRole("button", { name: "Old local session" })),
 	).toBe(false);
 	expect(Boolean(screen.queryByText("Old local project"))).toBe(false);
 	expect(connects).toBe(1);
 	expect(controls).toEqual([]);
+});
+
+test.each([
+	"start",
+	"stop",
+])("a pending local %s disables namespace changes until control completes", async (action) => {
+	let complete!: () => void;
+	const reply = new Promise<void>((resolve) => {
+		complete = resolve;
+	});
+	const rows = [
+		{
+			id: "one",
+			label: "Original",
+			backendId: "backend",
+			namespaceId: "one",
+			selected: true,
+			isDefault: true,
+		},
+	];
+	const api = {
+		platform: "linux",
+		list: async () => [
+			{ id: "local", kind: "local", name: "Local Device", host: "localhost" },
+		],
+		control: async () => {
+			await reply;
+		},
+		localData: {
+			listNamespaces: async () => rows,
+			listLegacyHistory: async () => ({ entries: [], total: 0 }),
+			discoverLegacySources: async () => ({ sources: [], issues: [] }),
+		},
+	} as unknown as DirectWorkstationApi;
+	render(<Workstation api={api} />);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Connection details" }),
+	);
+	const selector = await screen.findByLabelText("Local namespace");
+	await waitFor(() =>
+		expect((selector as HTMLSelectElement).disabled).toBe(false),
+	);
+	fireEvent.click(
+		screen.getByRole("button", {
+			name: action === "start" ? "Start" : "Stop",
+			exact: true,
+		}),
+	);
+	await waitFor(() =>
+		expect((selector as HTMLSelectElement).disabled).toBe(true),
+	);
+	await act(async () => {
+		complete();
+		await reply;
+	});
+	await waitFor(() =>
+		expect((selector as HTMLSelectElement).disabled).toBe(false),
+	);
 });
 
 test("a pending local connection cannot return after namespace selection changed away and back", async () => {

@@ -69,6 +69,7 @@ export function useWorkstation(api: DirectWorkstationApi) {
 	const [terminalId, setTerminalId] = useState<string | null>(null);
 	const [directory, setDirectory] = useState<RemoteDirectory | null>(null);
 	const [busy, setBusy] = useState(false);
+	const [controlling, setControlling] = useState(false);
 	const [reconnecting, setReconnecting] = useState<
 		false | "reconnecting" | "blocked"
 	>(false);
@@ -359,32 +360,47 @@ export function useWorkstation(api: DirectWorkstationApi) {
 		action: "install" | "activate" | "start" | "stop" | "repair" | "uninstall",
 	) =>
 		operation(async () => {
-			const oneTimePassword = password.current?.value || undefined;
-			if (password.current) password.current.value = "";
-			const result = await api.control(profile.id, action, oneTimePassword);
-			setNotice(t({ message: "Completed" }));
-			if (
-				result &&
-				typeof result === "object" &&
-				"status" in result &&
-				result.status === "cancelled"
-			) {
-				setNotice(t({ message: "Cancelled" }));
-				return;
-			}
-			if (action !== "install" && active.current?.connectionId === profile.id) {
-				active.current = null;
-				setReconnecting(false);
-				selectedWorkspace.current = null;
-				setConnection(null);
-				setWorkspaceId(null);
-				setTerminalId(null);
-				setTerminalIds([]);
-				setDirectory(null);
-				setProjects([]);
-				setWorkspaces([]);
-				setForward(null);
-				setPending([]);
+			const selectionEpoch = localSelection.current?.epoch ?? 0;
+			const currentSelection = () =>
+				profile.kind !== "local" ||
+				(localSelection.current?.epoch ?? 0) === selectionEpoch;
+			setControlling(true);
+			try {
+				const oneTimePassword = password.current?.value || undefined;
+				if (password.current) password.current.value = "";
+				const result = await api.control(profile.id, action, oneTimePassword);
+				if (!currentSelection()) return;
+				setNotice(t({ message: "Completed" }));
+				if (
+					result &&
+					typeof result === "object" &&
+					"status" in result &&
+					result.status === "cancelled"
+				) {
+					setNotice(t({ message: "Cancelled" }));
+					return;
+				}
+				if (
+					action !== "install" &&
+					active.current?.connectionId === profile.id
+				) {
+					active.current = null;
+					setReconnecting(false);
+					selectedWorkspace.current = null;
+					setConnection(null);
+					setWorkspaceId(null);
+					setTerminalId(null);
+					setTerminalIds([]);
+					setDirectory(null);
+					setProjects([]);
+					setWorkspaces([]);
+					setForward(null);
+					setPending([]);
+				}
+			} catch (error) {
+				if (currentSelection()) throw error;
+			} finally {
+				setControlling(false);
 			}
 		});
 
@@ -522,6 +538,7 @@ export function useWorkstation(api: DirectWorkstationApi) {
 		terminalId,
 		directory,
 		busy,
+		controlling,
 		reconnecting,
 		error,
 		notice,

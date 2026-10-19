@@ -7,6 +7,58 @@ import type {
 import { useWorkstation } from "./useWorkstation";
 
 afterEach(cleanup);
+test("late local control completion cannot clear a newly selected namespace or publish its notice", async () => {
+	let complete!: () => void;
+	const pending = new Promise<void>((resolve) => {
+		complete = resolve;
+	});
+	const api = {
+		list: async () => [],
+		control: async () => {
+			await pending;
+		},
+	} as unknown as DirectWorkstationApi;
+	const hook = renderHook(() => useWorkstation(api));
+	await act(async () => {
+		for (let n = 0; n < 5; n++) await Promise.resolve();
+	});
+	const profile: DirectProfile = {
+		id: "local",
+		kind: "local",
+		name: "Local",
+		host: "localhost",
+	};
+	const namespace = (namespaceId: string) => ({
+		id: namespaceId,
+		label: namespaceId,
+		selected: true,
+		isDefault: false,
+		backendId: "backend",
+		namespaceId,
+	});
+	act(() => hook.result.current.namespaceSelected(profile.id, namespace("A")));
+	let operation!: Promise<unknown>;
+	act(() => {
+		operation = hook.result.current.control(profile, "start");
+	});
+	const next = {
+		connectionId: profile.id,
+		backendId: "backend",
+		namespaceId: "B",
+		instanceId: "instance",
+		generation: 2,
+	};
+	act(() => {
+		hook.result.current.namespaceSelected(profile.id, namespace("B"));
+		hook.result.current.active.current = next;
+	});
+	await act(async () => {
+		complete();
+		await operation;
+	});
+	expect(hook.result.current.active.current).toBe(next);
+	expect(hook.result.current.notice).toBeNull();
+});
 test("removing a connection waits for local draft persistence and retains the connection when that save fails", async () => {
 	const profile: DirectProfile = {
 		id: "machine",

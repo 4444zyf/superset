@@ -92,6 +92,48 @@ test("selecting a namespace reports the accepted selection without connecting or
 	expect((selector as HTMLSelectElement).value).toBe("second");
 });
 
+test("a namespace panel releases its shared busy state when it unmounts before a reply", async () => {
+	const { api } = fixture();
+	let reply!: (rows: DirectLocalNamespace[]) => void;
+	api.listNamespaces = () =>
+		new Promise((resolve) => {
+			reply = resolve;
+		});
+	const busy: boolean[] = [],
+		selected: DirectLocalNamespace[] = [];
+	const view = render(
+		<LocalDataPanel
+			api={api}
+			onError={() => {}}
+			onNamespaceSelected={(row) => selected.push(row)}
+			onBusyChange={(value) => busy.push(value)}
+		/>,
+	);
+	await waitFor(() => expect(busy.at(-1)).toBe(true));
+	view.unmount();
+	expect(busy.at(-1)).toBe(false);
+	await act(async () => {
+		reply([first, second]);
+	});
+	expect(selected).toEqual([]);
+});
+
+test("pending external backend control blocks a synthetic namespace change as well as normal input", async () => {
+	const { api, selections } = fixture();
+	render(
+		<LocalDataPanel
+			api={api}
+			onError={() => {}}
+			onNamespaceSelected={() => {}}
+			disabled
+		/>,
+	);
+	const selector = await screen.findByLabelText("Local namespace");
+	expect((selector as HTMLSelectElement).disabled).toBe(true);
+	fireEvent.change(selector, { target: { value: "second" } });
+	expect(selections).toEqual([]);
+});
+
 test("cancelling native namespace removal keeps its row and selection", async () => {
 	const { api } = fixture();
 	api.removeNamespace = async () => ({ status: "cancelled" });
