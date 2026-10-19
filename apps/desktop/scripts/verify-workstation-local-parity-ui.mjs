@@ -33,6 +33,7 @@ export async function verifyWorkstationLocalParityUi(options){
  await until(()=>evaluate(`document.querySelector('.ws-local-data select')?.options.length===2`),'second namespace created');
  const select=async(which)=>{await bodyClick('.ws-local-data select');await key(which==='first'?'Home':'End',which==='first'?36:35);await key('Enter',13);await until(()=>evaluate(`document.querySelector('.ws-local-data select')?.selectedIndex===${which==='first'?0:1}`),'namespace selected');};
  await select('last');await screenshot('local-B-selected-disconnected');
+ await bodyClick('.ws-local-data .ws-service-actions button:nth-of-type(2)');
  await bodyClick('.ws-detail-actions button.primary');
  await until(()=>evaluate(`Boolean([...document.querySelectorAll('.ws-heading-actions button')].find(b=>b.textContent.trim()==='New session'&&!b.disabled))`),'namespace B explicitly connected');
  assert.equal(await evaluate(`Boolean(document.querySelector('.ws-workspace-window'))`),false,'namespace B cannot display A workspace');
