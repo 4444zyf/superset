@@ -1,0 +1,20 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [64.96ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [58.32ms]
+148 | });
+149 | 
+150 | test("New terminal opens an original tab and subsequent splits stay inside that active tab",async()=>{
+151 |  const f=fixture(true);await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));const original=f.saved().targets[0]!.workspaces[0]!;
+152 |  await act(async()=>f.hook.result.current.newTerminal("workspace","horizontal",undefined,{placement:"new-tab"}));
+153 |  const first=f.saved().targets[0]!.workspaces[0]!;expect(first.paneTabs).toHaveLength(2);expect(first.paneTabs?.[0]?.layout).toEqual(original.layout);expect(first.paneTabs?.[0]?.activePaneId).toBe("original");expect(first.activePaneTabId).toBe(first.paneTabs?.[1]?.tabId);
+                                                                               ^
+error: Received value does not have a length property: undefined
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:153:74)
+(fail) New terminal opens an original tab and subsequent splits stay inside that active tab [53.83ms]
+
+ 2 pass
+ 1 fail
+ 16 expect() calls
+Ran 3 tests across 1 file. [380.00ms]

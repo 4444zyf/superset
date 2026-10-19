@@ -1,0 +1,24 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/utils/pane-adapter/pane-adapter.test.ts:
+(pass) upstream pane moves and resize preserve remote execution references [1.48ms]
+(pass) empty workspace remains empty without creating a terminal [0.02ms]
+69 | });
+70 | 
+71 | test("restored terminal tabs use the original pane store without merging their layouts",()=>{
+72 |  const workspace={tabId:"workspace-tab",workspaceId:"workspace",activeTool:"terminal" as const,activePaneId:"b",panes:[{paneId:"a",kind:"terminal" as const,resourceId:"session-a",executionId:"execution-a",label:"Claude"},{paneId:"b",kind:"terminal" as const,resourceId:"session-b",executionId:"execution-b",label:"Codex"}],layout:{type:"split" as const,axis:"horizontal" as const,ratio:0.5,first:{type:"pane" as const,paneId:"a"},second:{type:"pane" as const,paneId:"b"}},activePaneTabId:"terminal-b",paneTabs:[{tabId:"terminal-a",label:"First",createdAt:10,activePaneId:"a",layout:{type:"pane" as const,paneId:"a"}},{tabId:"terminal-b",label:"Second",createdAt:20,activePaneId:"b",layout:{type:"pane" as const,paneId:"b"}}]};
+73 |  const state=toPaneState(workspace);
+74 |  expect(state.activeTabId).toBe("terminal-b");expect(state.tabs.map(tab=>({id:tab.id,title:tab.titleOverride,createdAt:tab.createdAt,paneIds:Object.keys(tab.panes)}))).toEqual([{id:"terminal-a",title:"First",createdAt:10,paneIds:["a"]},{id:"terminal-b",title:"Second",createdAt:20,paneIds:["b"]}]);
+                                ^
+error: expect(received).toBe(expected)
+
+Expected: "terminal-b"
+Received: "workspace-tab"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/utils/pane-adapter/pane-adapter.test.ts:74:28)
+(fail) restored terminal tabs use the original pane store without merging their layouts [0.39ms]
+
+ 2 pass
+ 1 fail
+ 7 expect() calls
+Ran 3 tests across 1 file. [227.00ms]

@@ -814,3 +814,17 @@ Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取�
 真实 Linux/Electron 与拥有的 loopback SSH：第142轮多行夹具命令被终端合并、第143轮文件 API 返回 bytes 而脚本未解码，两轮均退出1；失败截图已查看，仅修验收脚本，未调整产品或放宽断言。第144轮产品9c294109a、脚本4709b71b4成功运行同一 raw-mode TUI 夹具，向上滚动实际向远端发送六次 ESC[A，输入字节断言退出1；普通终端滚动前后及 TUI 失败截图已查看。[142–144原始失败](evidence/local-ssh-feature-parity/source-linux-terminal-wheel-failures)。
 
 第145轮产品491b19174、脚本fe0ccd54f，真实桌面 `--wheel-only`退出0：普通终端滚动无输入，TUI 完整重绘后向上查看可见前一屏与 shell 历史；只读查看scrollTop3431、scrollHeight4016、clientHeight489，与截图一致。反向/小幅/大幅滚动后远端输入保持只有明确键入的a/n，Esc返回亦不发送Escape；继续输入s后启用原生SGR，上下滚动收到正确64/65报告而无方向键，输入q正常结束。五张滚动截图均已实际查看，浏览器错误数组为空。[145完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-wheel/145)。这是源码桌面和SSH协议夹具验收；尚未独立执行本地连接原生窗口、真实供应商Agent或macOS触控板/安装包验收，不能由夹具结果推断这些测试已经完成。此前阶段四十一的原终端标签页工作暂存后独立构建此修复，未作为本轮产品内容发布。
+
+## 阶段四十一完成记录：复用原终端标签页与每标签布局
+
+本阶段先开始，中途按用户新增要求优先独立完成阶段四十二滚动修复，再恢复暂存工作。原WorkspaceWindow每个workspace只有一个平铺layout，无法表达脚本的new-tab/new-tab-split-pane模式。恢复模型增加可选paneTabs/activePaneTabId，每组保存原布局树、稳定标签ID、名称、创建时间和焦点，原panes资源列表继续用于恢复核验。主进程严格验证组成员对panes恰好完整分区、无重复/未知引用、全局与活动组焦点一致、64组/64pane、树深度和原总量上限；无效写入不覆盖已有记录，明确空组保持空。未增加云端数据源或迁移旧预览数据。
+
+promote原pane-adapter后，本地元数据与原@superset/panes store共用；直接渲染原Workspace、TabBar、改名、关闭、HTML5拖动和原WorkspaceTab。原紧凑窗口布局保留，按当前终端标签的实际可用空间判断；未显示组不误附着另一组终端。New terminal明确新建终端标签，Split留在所选标签；原store移动/排序/聚焦/名称/布局变化写入本机SQLite视图，不发新终端RPC。原Workspace新增两个可选显示/拖入过滤参数，旧调用保持默认行为；阻止跨workspace/机器拖入外部资源。每次创建的ID/时间在元数据乐观写入与CAS重试回调外生成，创建命令仍由现有持久操作仅发送一次。保存以运行资源/执行ID为界，晚回复不能覆写新执行，过期同字段修改拒绝；不同字段的名称、焦点和resize按原值检查后合并，保留新焦点/新标题/新布局。乐观标题在异步保存期间保留，不被独立终端focus写回旧值。
+
+TDD包括视图SQLite持久化、非法分组原子拒写、原store标签分离/改名/关闭、执行边界、延迟resize绑定原组，以及New terminal真实按钮参数。最初按钮用文字定位与空状态重名，保留该脚本失败；改为工具栏真实按钮后取得旧行为失败，再接新标签参数通过。第146轮发现并发元数据拒写与焦点丢失，补延迟改名/焦点重叠行为测试6通过1失败，再补逐字段合并和乐观写回通过；暂停实际save的hook测试证明输入标题在排队focus期间保持。最终桌面33项145断言/7文件、原panes包121项260断言/5文件通过；桌面与panes类型通过，完整构建CLI/5个PTY marker通过。lint无错误，既有及新增测试有非空断言提示，原始输出保留。[阶段四十一检查](evidence/local-ssh-feature-parity/stage41)。
+
+第141轮产品9c294109a/脚本c3078f649：原窗口New terminal仍加入同一平铺布局，独立标签断言退出1，失败截图已查看。[141基线](evidence/local-ssh-feature-parity/source-linux-terminal-pane-tabs-failures/141)。第146轮产品200e31e37/脚本3e7adece1：新模型已进入公共恢复夹具，但连续改名/focus出现保存错误和输入失焦；同时公共拖动检查仍观察已经改为兼容投影的旧全局layout，而不是屏幕显示组layout，最终退出1。失败截图已查看。产品补元数据合并/乐观标题，脚本只把布局观测改到活动终端组，原拖动/0.37比例/PTY断言保留。[146原始失败](evidence/local-ssh-feature-parity/source-linux-terminal-pane-tabs-failures/146)。
+
+第147轮产品bae7e375f/脚本e9b1c1912退出0，实际新建标签/组内分屏、中文改名、原生拖动顺序、SQLite重开和后端PID保持通过，七张相关截图已查看；但重开/关闭两图仍在Reconnecting/Session status unavailable阶段，故这一轮不接受为终端重新附着的证据。保留原始退出0，不改造失败结论；增强脚本要求重开组两个终端、关闭后原组三个终端均实际attached，并校验全部五个PID后再截图。[147观测不足记录](evidence/local-ssh-feature-parity/source-linux-terminal-pane-tabs-failures/147)。
+
+第148轮同产品bae7e375f/脚本f171ced24，实际Linux/Electron/拥有的SSH `--pane-tabs-only`退出0。真实New terminal创建独立原标签且保留原组三pane布局；Split vertically只向选中组增加一pane；原标签双击输入SSH tools 中文保存，验证窗口归属/PID/scale的XTest鼠标完成原HTML5标签拖动排序；关闭重开标签顺序、名称、活动组、组内布局、五个PTY19764/19770/19776/20028/20038及执行ID保持，两个恢复终端实际附着。关闭新组后原三个终端实际附着且继续输出原心跳。全部七张相关截图已实际查看，浏览器错误为空。[148完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-pane-tabs/148)。这不等于真实macOS、供应商Agent、所有跨标签合并/分离/固定功能或自定义脚本执行已验收；关闭标签仅沿用已有视图移除语义，不以此证明后端进程终止。脚本目录管理虽已完成，原条目按钮/快捷键/触发与完整启动计划/CLI仍继续接入。

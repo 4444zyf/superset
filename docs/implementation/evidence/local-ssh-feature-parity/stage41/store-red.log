@@ -1,0 +1,98 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workspace-view-store.test.ts:
+(pass) three pane order, ratios and focus survive a store reopen with FULL durability [9.23ms]
+(pass) stale owner and revision cannot overwrite the saved layout [2.05ms]
+(pass) bad trees, excessive ratios and forbidden command data leave the previous snapshot untouched [2.79ms]
+(pass) forget advances the revision and cannot be undone by a late save [0.86ms]
+(pass) an unknown future schema cannot be overwritten by normal layout or window saves [0.75ms]
+(pass) a committed file-backed view survives force-killing its writer [56.26ms]
+13 |             throw new core.$ZodAsyncError();
+14 |         }
+15 |         if (result.issues.length) {
+16 |             const e = new (_params?.Err ?? _Err)(result.issues.map((iss) => util.finalizeIssue(iss, ctx, core.config())));
+17 |             util.captureStackTrace(e, _params?.callee ?? fn);
+18 |             throw e;
+                       ^
+ZodError: [
+  {
+    "code": "unrecognized_keys",
+    "keys": [
+      "activePaneTabId",
+      "paneTabs"
+    ],
+    "path": [
+      "targets",
+      0,
+      "workspaces",
+      0
+    ],
+    "message": "Unrecognized keys: \"activePaneTabId\", \"paneTabs\""
+  }
+]
+      at fn (/workspace/superset/node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/parse.js:18:19)
+      at validateWorkspaceView (/workspace/superset/apps/desktop/src/shared/workspace-view.ts:145:40)
+      at save (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-view-store.ts:98:7)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:212:8)
+(fail) original terminal tabs, focused pane and split ratios survive local SQLite reopen [0.94ms]
+13 |             throw new core.$ZodAsyncError();
+14 |         }
+15 |         if (result.issues.length) {
+16 |             const e = new (_params?.Err ?? _Err)(result.issues.map((iss) => util.finalizeIssue(iss, ctx, core.config())));
+17 |             util.captureStackTrace(e, _params?.callee ?? fn);
+18 |             throw e;
+                       ^
+ZodError: [
+  {
+    "code": "unrecognized_keys",
+    "keys": [
+      "activePaneTabId",
+      "paneTabs"
+    ],
+    "path": [
+      "targets",
+      0,
+      "workspaces",
+      0
+    ],
+    "message": "Unrecognized keys: \"activePaneTabId\", \"paneTabs\""
+  }
+]
+      at fn (/workspace/superset/node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/parse.js:18:19)
+      at validateWorkspaceView (/workspace/superset/apps/desktop/src/shared/workspace-view.ts:145:40)
+      at save (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-view-store.ts:98:7)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:218:144)
+(fail) invalid terminal tab partitions or focus cannot overwrite the saved workspace [0.47ms]
+13 |             throw new core.$ZodAsyncError();
+14 |         }
+15 |         if (result.issues.length) {
+16 |             const e = new (_params?.Err ?? _Err)(result.issues.map((iss) => util.finalizeIssue(iss, ctx, core.config())));
+17 |             util.captureStackTrace(e, _params?.callee ?? fn);
+18 |             throw e;
+                       ^
+ZodError: [
+  {
+    "code": "unrecognized_keys",
+    "keys": [
+      "activePaneTabId",
+      "paneTabs"
+    ],
+    "path": [
+      "targets",
+      0,
+      "workspaces",
+      0
+    ],
+    "message": "Unrecognized keys: \"activePaneTabId\", \"paneTabs\""
+  }
+]
+      at fn (/workspace/superset/node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/parse.js:18:19)
+      at validateWorkspaceView (/workspace/superset/apps/desktop/src/shared/workspace-view.ts:145:40)
+      at save (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-view-store.ts:98:7)
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:236:8)
+(fail) an intentionally empty terminal tab collection remains empty after reopening [0.63ms]
+
+ 6 pass
+ 3 fail
+ 18 expect() calls
+Ran 9 tests across 1 file. [256.00ms]

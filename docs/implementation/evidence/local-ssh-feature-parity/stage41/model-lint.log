@@ -1,0 +1,80 @@
+apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/utils/pane-adapter/pane-adapter.test.ts:37:24 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    35 │ 	};
+    36 │ 	const store = createWorkspaceStore({ initialState: toPaneState(view) });
+  > 37 │ 	expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toEqual(
+       │ 	                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    38 │ 		view.layout!,
+    39 │ 	);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     35  35 │   	};
+     36  36 │   	const store = createWorkspaceStore({ initialState: toPaneState(view) });
+     37     │ - → expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toEqual(
+         37 │ + → expect(fromPaneLayout(store.getState().tabs[0]?.layout)).toEqual(
+     38  38 │   		view.layout!,
+     39  39 │   	);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/utils/pane-adapter/pane-adapter.test.ts:38:3 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    36 │ 	const store = createWorkspaceStore({ initialState: toPaneState(view) });
+    37 │ 	expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toEqual(
+  > 38 │ 		view.layout!,
+       │ 		^^^^^^^^^^^^
+    39 │ 	);
+    40 │ 	store
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/utils/pane-adapter/pane-adapter.test.ts:43:24 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    41 │ 		.getState()
+    42 │ 		.resizeSplit({ tabId: "tab", path: [], splitPercentage: 150 });
+  > 43 │ 	expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toMatchObject({
+       │ 	                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    44 │ 		ratio: 0.9,
+    45 │ 	});
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     41  41 │   		.getState()
+     42  42 │   		.resizeSplit({ tabId: "tab", path: [], splitPercentage: 150 });
+     43     │ - → expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toMatchObject({
+         43 │ + → expect(fromPaneLayout(store.getState().tabs[0]?.layout)).toMatchObject({
+     44  44 │   		ratio: 0.9,
+     45  45 │   	});
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/utils/pane-adapter/pane-adapter.test.ts:51:24 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    49 │ 		position: "bottom",
+    50 │ 	});
+  > 51 │ 	expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toMatchObject({
+       │ 	                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    52 │ 		axis: "vertical",
+    53 │ 	});
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     49  49 │   		position: "bottom",
+     50  50 │   	});
+     51     │ - → expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toMatchObject({
+         51 │ + → expect(fromPaneLayout(store.getState().tabs[0]?.layout)).toMatchObject({
+     52  52 │   		axis: "vertical",
+     53  53 │   	});
+  
+
+Skipped 3 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 3 files in 24ms. Fixed 3 files.
+Found 4 warnings.

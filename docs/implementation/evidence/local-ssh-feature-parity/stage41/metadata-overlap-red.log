@@ -1,0 +1,28 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:
+(pass) original pane-to-tab movement preserves each remote resource and execution ID [1.62ms]
+(pass) original tab and pane rename, focus and split operations persist their display state [0.31ms]
+(pass) closing the final original tab clears the view without issuing any resource operation [0.15ms]
+(pass) late layout metadata cannot replace a newer execution [0.09ms]
+(pass) stale tab metadata cannot overwrite a newer saved title [0.09ms]
+(pass) a foreign resource, duplicate pane, or incomplete group layout is rejected atomically [0.40ms]
+157 | 
+158 | test("a delayed rename preserves a newer focus and a delayed focus preserves a newer rename", () => {
+159 |  const workspace=fixture(),before=toPaneState(workspace),rename=createWorkspaceStore({initialState:before});
+160 |  rename.getState().setPaneTitleOverride({tabId:"terminals",paneId:"a",titleOverride:"Typed title"});
+161 |  workspace.activePaneId="b"; workspace.paneTabs![0]!.activePaneId="b";
+162 |  expect(applyWorkspacePaneState(workspace,rename.getState(),before)).toBe(true);
+                                                                           ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:162:70)
+(fail) a delayed rename preserves a newer focus and a delayed focus preserves a newer rename [0.27ms]
+
+ 6 pass
+ 1 fail
+ 26 expect() calls
+Ran 7 tests across 1 file. [232.00ms]

@@ -1,0 +1,33 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.test.tsx:
+87 | 	);
+88 | 	expect(first()).toBe("New terminal");
+89 | 	const button = view.container.querySelectorAll(".ws-window-toolbar")[1]?.querySelector("button");
+90 | 	if (!button) throw new Error("Missing New terminal action");
+91 | 	fireEvent.click(button);
+92 | 	expect(terminals).toEqual([["workspace", "horizontal", undefined, {placement:"new-tab"}]]);
+                        ^
+error: expect(received).toEqual(expected)
+
+  [
+    [
+      "workspace",
+      "horizontal",
+-     undefined,
+-     {
+-       "placement": "new-tab",
+-     },
+    ],
+  ]
+
+- Expected  - 4
++ Received  + 0
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.test.tsx:92:20)
+(fail) loading Run state does not insert an action before New terminal [60.11ms]
+
+ 0 pass
+ 1 fail
+ 4 expect() calls
+Ran 1 test across 1 file. [579.00ms]

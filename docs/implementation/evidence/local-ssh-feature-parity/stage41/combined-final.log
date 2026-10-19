@@ -1,0 +1,51 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workspace-view-store.test.ts:
+(pass) three pane order, ratios and focus survive a store reopen with FULL durability [8.23ms]
+(pass) stale owner and revision cannot overwrite the saved layout [1.38ms]
+(pass) bad trees, excessive ratios and forbidden command data leave the previous snapshot untouched [2.63ms]
+(pass) forget advances the revision and cannot be undone by a late save [0.80ms]
+(pass) an unknown future schema cannot be overwritten by normal layout or window saves [0.30ms]
+(pass) a committed file-backed view survives force-killing its writer [54.09ms]
+(pass) original terminal tabs, focused pane and split ratios survive local SQLite reopen [1.93ms]
+(pass) invalid terminal tab partitions or focus cannot overwrite the saved workspace [5.60ms]
+(pass) an intentionally empty terminal tab collection remains empty after reopening [0.42ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [65.25ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [53.52ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [56.05ms]
+(pass) existing focus and close actions select the owning terminal tab and remove empty groups [55.35ms]
+(pass) original pane store tab rename and close persist with no extra terminal RPC or replay [55.12ms]
+(pass) a delayed split resize updates its captured terminal tab after the user selects another tab [58.24ms]
+
+src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:
+(pass) original pane-to-tab movement preserves each remote resource and execution ID [0.45ms]
+(pass) original tab and pane rename, focus and split operations persist their display state [0.21ms]
+(pass) closing the final original tab clears the view without issuing any resource operation [0.06ms]
+(pass) late layout metadata cannot replace a newer execution [0.10ms]
+(pass) stale tab metadata cannot overwrite a newer saved title [0.07ms]
+(pass) a foreign resource, duplicate pane, or incomplete group layout is rejected atomically [0.55ms]
+
+src/renderer/workstation/Workstation/utils/pane-adapter/pane-adapter.test.ts:
+(pass) upstream pane moves and resize preserve remote execution references [0.32ms]
+(pass) empty workspace remains empty without creating a terminal [0.02ms]
+(pass) restored terminal tabs use the original pane store without merging their layouts [0.15ms]
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.test.tsx:
+(pass) loading Run state does not insert an action before New terminal [59.15ms]
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/components/PaneGrid/PaneGrid.test.tsx:
+(pass) replacing a failed run resource in the same pane resets failure without creating a terminal [51.19ms]
+(pass) original terminal tabs switch the visible group and persist metadata without creating a session [31.13ms]
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/components/PaneGrid/utils/isCompactPaneLayout/isCompactPaneLayout.test.ts:
+(pass) the existing three-pane layout stays expanded when its actual content area fits [0.08ms]
+(pass) adding chat uses the compact switcher when a nested split cannot fit the original minimum widths [0.02ms]
+(pass) a wider content area can display the same persisted four-pane layout
+(pass) vertical splits also respect the original minimum height
+
+ 31 pass
+ 0 fail
+ 133 expect() calls
+Ran 31 tests across 7 files. [1101.00ms]

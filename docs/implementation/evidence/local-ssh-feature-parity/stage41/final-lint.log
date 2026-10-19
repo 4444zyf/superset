@@ -1,0 +1,366 @@
+apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/components/PaneGrid/PaneGrid.test.tsx:72:19 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    70 │ 					kind: "terminal",
+    71 │ 					resourceId,
+  > 72 │ 					executionId: resourceId + "-execution",
+       │ 					             ^^^^^^^^^^^^^^^^^^^^^^^^^
+    73 │ 				},
+    74 │ 			],
+  
+  i Unsafe fix: Use a template literal.
+  
+     70  70 │   					kind: "terminal",
+     71  71 │   					resourceId,
+     72     │ - → → → → → executionId:·resourceId·+·"-execution",
+         72 │ + → → → → → executionId:·`${resourceId}-execution`,
+     73  73 │   				},
+     74  74 │   			],
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/components/PaneGrid/PaneGrid.test.tsx:89:22 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    87 │ 								kind: "terminal",
+    88 │ 								resourceId,
+  > 89 │ 								executionId: resourceId + "-execution",
+       │ 								             ^^^^^^^^^^^^^^^^^^^^^^^^^
+    90 │ 								state: "live",
+    91 │ 							},
+  
+  i Unsafe fix: Use a template literal.
+  
+     87  87 │   								kind: "terminal",
+     88  88 │   								resourceId,
+     89     │ - → → → → → → → → executionId:·resourceId·+·"-execution",
+         89 │ + → → → → → → → → executionId:·`${resourceId}-execution`,
+     90  90 │   								state: "live",
+     91  91 │   							},
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:264:4 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    262 │ 	const mutations: ((w: TabbedWorkspace) => void)[] = [
+    263 │ 		(w) => {
+  > 264 │ 			w.paneTabs[1]!.tabId = w.paneTabs[0]!.tabId;
+        │ 			^^^^^^^^^^^^^^
+    265 │ 		},
+    266 │ 		(w) => {
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:264:27 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    262 │ 	const mutations: ((w: TabbedWorkspace) => void)[] = [
+    263 │ 		(w) => {
+  > 264 │ 			w.paneTabs[1]!.tabId = w.paneTabs[0]!.tabId;
+        │ 			                       ^^^^^^^^^^^^^^
+    265 │ 		},
+    266 │ 		(w) => {
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    262 262 │   	const mutations: ((w: TabbedWorkspace) => void)[] = [
+    263 263 │   		(w) => {
+    264     │ - → → → w.paneTabs[1]!.tabId·=·w.paneTabs[0]!.tabId;
+        264 │ + → → → w.paneTabs[1]!.tabId·=·w.paneTabs[0]?.tabId;
+    265 265 │   		},
+    266 266 │   		(w) => {
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:267:19 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    265 │ 		},
+    266 │ 		(w) => {
+  > 267 │ 			const layout = w.paneTabs[1]!.layout;
+        │ 			               ^^^^^^^^^^^^^^
+    268 │ 			if (layout.type !== "split") throw new Error("expected split");
+    269 │ 			layout.first.paneId = "missing";
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    265 265 │   		},
+    266 266 │   		(w) => {
+    267     │ - → → → const·layout·=·w.paneTabs[1]!.layout;
+        267 │ + → → → const·layout·=·w.paneTabs[1]?.layout;
+    268 268 │   			if (layout.type !== "split") throw new Error("expected split");
+    269 269 │   			layout.first.paneId = "missing";
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:272:19 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    270 │ 		},
+    271 │ 		(w) => {
+  > 272 │ 			const layout = w.paneTabs[1]!.layout;
+        │ 			               ^^^^^^^^^^^^^^
+    273 │ 			if (layout.type !== "split") throw new Error("expected split");
+    274 │ 			layout.first.paneId = "claude";
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    270 270 │   		},
+    271 271 │   		(w) => {
+    272     │ - → → → const·layout·=·w.paneTabs[1]!.layout;
+        272 │ + → → → const·layout·=·w.paneTabs[1]?.layout;
+    273 273 │   			if (layout.type !== "split") throw new Error("expected split");
+    274 274 │   			layout.first.paneId = "claude";
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:285:4 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    283 │ 		},
+    284 │ 		(w) => {
+  > 285 │ 			w.paneTabs[1]!.activePaneId = "claude";
+        │ 			^^^^^^^^^^^^^^
+    286 │ 		},
+    287 │ 		(w) => {
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:296:10 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    294 │ 	for (const mutate of mutations) {
+    295 │ 		const invalid = structuredClone(input);
+  > 296 │ 		mutate(invalid.targets[0]!.workspaces[0]);
+        │ 		       ^^^^^^^^^^^^^^^^^^^
+    297 │ 		expect(() =>
+    298 │ 			store.save({ owner: "renderer", expectedRevision: 1, view: invalid }),
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    294 294 │   	for (const mutate of mutations) {
+    295 295 │   		const invalid = structuredClone(input);
+    296     │ - → → mutate(invalid.targets[0]!.workspaces[0]);
+        296 │ + → → mutate(invalid.targets[0]?.workspaces[0]);
+    297 297 │   		expect(() =>
+    298 298 │   			store.save({ owner: "renderer", expectedRevision: 1, view: invalid }),
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:310:20 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    308 │ 	store.activateOwner("renderer");
+    309 │ 	const input = viewWithPaneTabs();
+  > 310 │ 	const workspace = input.targets[0]!.workspaces[0]!;
+        │ 	                  ^^^^^^^^^^^^^^^^^
+    311 │ 	workspace.panes = [];
+    312 │ 	workspace.layout = null;
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    308 308 │   	store.activateOwner("renderer");
+    309 309 │   	const input = viewWithPaneTabs();
+    310     │ - → const·workspace·=·input.targets[0]!.workspaces[0]!;
+        310 │ + → const·workspace·=·input.targets[0]?.workspaces[0]!;
+    311 311 │   	workspace.panes = [];
+    312 312 │   	workspace.layout = null;
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:310:20 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    308 │ 	store.activateOwner("renderer");
+    309 │ 	const input = viewWithPaneTabs();
+  > 310 │ 	const workspace = input.targets[0]!.workspaces[0]!;
+        │ 	                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    311 │ 	workspace.panes = [];
+    312 │ 	workspace.layout = null;
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/components/PaneGrid/PaneGrid.test.tsx:120:15 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    118 │ 		for (const listener of listeners)
+    119 │ 			listener({
+  > 120 │ 				socketId: opened[0]!.socketId,
+        │ 				          ^^^^^^^^^^
+    121 │ 				kind: "message",
+    122 │ 				data: JSON.stringify({ type: "error", code: "EXECUTION_CHANGED" }),
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    118 118 │   		for (const listener of listeners)
+    119 119 │   			listener({
+    120     │ - → → → → socketId:·opened[0]!.socketId,
+        120 │ + → → → → socketId:·opened[0]?.socketId,
+    121 121 │   				kind: "message",
+    122 122 │   				data: JSON.stringify({ type: "error", code: "EXECUTION_CHANGED" }),
+  
+
+apps/desktop/src/renderer/workstation/Workstation/utils/pane-adapter/pane-adapter.test.ts:37:24 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    35 │ 	};
+    36 │ 	const store = createWorkspaceStore({ initialState: toPaneState(view) });
+  > 37 │ 	expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toEqual(
+       │ 	                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    38 │ 		view.layout!,
+    39 │ 	);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     35  35 │   	};
+     36  36 │   	const store = createWorkspaceStore({ initialState: toPaneState(view) });
+     37     │ - → expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toEqual(
+         37 │ + → expect(fromPaneLayout(store.getState().tabs[0]?.layout)).toEqual(
+     38  38 │   		view.layout!,
+     39  39 │   	);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/utils/pane-adapter/pane-adapter.test.ts:38:3 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    36 │ 	const store = createWorkspaceStore({ initialState: toPaneState(view) });
+    37 │ 	expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toEqual(
+  > 38 │ 		view.layout!,
+       │ 		^^^^^^^^^^^^
+    39 │ 	);
+    40 │ 	store
+  
+
+apps/desktop/src/renderer/workstation/Workstation/utils/pane-adapter/pane-adapter.test.ts:43:24 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    41 │ 		.getState()
+    42 │ 		.resizeSplit({ tabId: "tab", path: [], splitPercentage: 150 });
+  > 43 │ 	expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toMatchObject({
+       │ 	                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+    44 │ 		ratio: 0.9,
+    45 │ 	});
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     41  41 │   		.getState()
+     42  42 │   		.resizeSplit({ tabId: "tab", path: [], splitPercentage: 150 });
+     43     │ - → expect(fromPaneLayout(store.getState().tabs[0]!.layout)).toMatchObject({
+         43 │ + → expect(fromPaneLayout(store.getState().tabs[0]?.layout)).toMatchObject({
+     44  44 │   		ratio: 0.9,
+     45  45 │   	});
+  
+
+apps/desktop/src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:125:2 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    123 │ 		.getState()
+    124 │ 		.setTabTitleOverride({ tabId: "terminals", titleOverride: "Late title" });
+  > 125 │ 	workspace.panes[0]!.executionId = "new-execution";
+        │ 	^^^^^^^^^^^^^^^^^^^
+    126 │ 	const current = structuredClone(workspace);
+    127 │ 	expect(applyWorkspacePaneState(workspace, store.getState(), before)).toBe(
+  
+
+apps/desktop/src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:139:2 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    137 │ 		.getState()
+    138 │ 		.setTabTitleOverride({ tabId: "terminals", titleOverride: "Old client" });
+  > 139 │ 	workspace.paneTabs![0]!.label = "New client";
+        │ 	^^^^^^^^^^^^^^^^^^^
+    140 │ 	const current = structuredClone(workspace);
+    141 │ 	expect(applyWorkspacePaneState(workspace, store.getState(), before)).toBe(
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    137 137 │   		.getState()
+    138 138 │   		.setTabTitleOverride({ tabId: "terminals", titleOverride: "Old client" });
+    139     │ - → workspace.paneTabs![0]!.label·=·"New·client";
+        139 │ + → workspace.paneTabs?.[0]!.label·=·"New·client";
+    140 140 │   	const current = structuredClone(workspace);
+    141 141 │   	expect(applyWorkspacePaneState(workspace, store.getState(), before)).toBe(
+  
+
+apps/desktop/src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:139:2 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    137 │ 		.getState()
+    138 │ 		.setTabTitleOverride({ tabId: "terminals", titleOverride: "Old client" });
+  > 139 │ 	workspace.paneTabs![0]!.label = "New client";
+        │ 	^^^^^^^^^^^^^^^^^^^^^^^
+    140 │ 	const current = structuredClone(workspace);
+    141 │ 	expect(applyWorkspacePaneState(workspace, store.getState(), before)).toBe(
+  
+
+apps/desktop/src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:151:17 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    149 │ 			before = toPaneState(workspace),
+    150 │ 			after = structuredClone(before);
+  > 151 │ 		const group = after.tabs[0]!;
+        │ 		              ^^^^^^^^^^^^^^
+    152 │ 		if (corrupt === "foreign")
+    153 │ 			group.panes.a!.data.resourceId = "foreign-session";
+  
+
+apps/desktop/src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:153:4 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    151 │ 		const group = after.tabs[0]!;
+    152 │ 		if (corrupt === "foreign")
+  > 153 │ 			group.panes.a!.data.resourceId = "foreign-session";
+        │ 			^^^^^^^^^^^^^^
+    154 │ 		if (corrupt === "duplicate")
+    155 │ 			after.tabs.push({ ...structuredClone(group), id: "duplicate-group" });
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    151 151 │   		const group = after.tabs[0]!;
+    152 152 │   		if (corrupt === "foreign")
+    153     │ - → → → group.panes.a!.data.resourceId·=·"foreign-session";
+        153 │ + → → → group.panes.a?.data.resourceId·=·"foreign-session";
+    154 154 │   		if (corrupt === "duplicate")
+    155 155 │   			after.tabs.push({ ...structuredClone(group), id: "duplicate-group" });
+  
+
+apps/desktop/src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:4:2 lint/correctness/noUnusedImports  FIXABLE  ━━━━━━━━━━
+
+  ! Several of these imports are unused.
+  
+    2 │ import { createWorkspaceStore } from "@superset/panes";
+    3 │ import type {
+  > 4 │ 	WorkspacePane,
+      │ 	^^^^^^^^^^^^^
+    5 │ 	WorkspaceView,
+    6 │ } from "../../../../../shared/workspace-view";
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+      2   2 │   import { createWorkspaceStore } from "@superset/panes";
+      3   3 │   import type {
+      4     │ - → WorkspacePane,
+      5   4 │   	WorkspaceView,
+      6   5 │   } from "../../../../../shared/workspace-view";
+  
+
+Skipped 40 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 40.
+Checked 20 files in 100ms. Fixed 10 files.
+Found 58 warnings.
+Found 2 infos.

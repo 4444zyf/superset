@@ -1,0 +1,39 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [68.29ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [53.18ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [57.44ms]
+159 | 
+160 | test("existing focus and close actions select the owning terminal tab and remove empty groups",async()=>{
+161 |  const f=fixture(true);await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));await act(async()=>f.hook.result.current.newTerminal("workspace","horizontal",undefined,{placement:"new-tab"}));
+162 |  const added=f.saved().targets[0]!.workspaces[0]!.panes[1]!.paneId;
+163 |  await act(async()=>f.hook.result.current.focusPane("workspace","original"));
+164 |  let workspace=f.saved().targets[0]!.workspaces[0]!;expect(workspace.activePaneTabId).toBe(workspace.paneTabs?.[0]?.tabId);
+                                                                                            ^
+error: expect(received).toBe(expected)
+
+Expected: "tab"
+Received: "82696b1c-bfba-48e3-9b42-05ce695beb9f"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:164:87)
+(fail) existing focus and close actions select the owning terminal tab and remove empty groups [53.89ms]
+166 | });
+167 | 
+168 | test("original pane store tab rename and close persist with no extra terminal RPC or replay",async()=>{
+169 |  const f=fixture(true);await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));await act(async()=>f.hook.result.current.newTerminal("workspace","horizontal",undefined,{placement:"new-tab"}));
+170 |  let before=toPaneState(f.saved().targets[0]!.workspaces[0]!);const store=createWorkspaceStore({initialState:before});const id=store.getState().activeTabId!;store.getState().setTabTitleOverride({tabId:id,titleOverride:"Retained group"});
+171 |  await act(async()=>f.hook.result.current.savePaneState("workspace",store.getState(),before));expect(f.saved().targets[0]!.workspaces[0]!.paneTabs?.[1]?.label).toBe("Retained group");
+                                                ^
+TypeError: f.hook.result.current.savePaneState is not a function. (In 'f.hook.result.current.savePaneState("workspace", store.getState(), before)', 'f.hook.result.current.savePaneState' is undefined)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:171:43)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:48:24)
+      at <anonymous> (/workspace/superset/node_modules/.bun/react@19.2.3/node_modules/react/cjs/react.development.js:814:22)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:47:25)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:171:8)
+(fail) original pane store tab rename and close persist with no extra terminal RPC or replay [55.73ms]
+
+ 3 pass
+ 2 fail
+ 30 expect() calls
+Ran 5 tests across 1 file. [583.00ms]

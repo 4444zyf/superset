@@ -1,0 +1,146 @@
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:264:4 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    262 │ 	const mutations: ((w: TabbedWorkspace) => void)[] = [
+    263 │ 		(w) => {
+  > 264 │ 			w.paneTabs[1]!.tabId = w.paneTabs[0]!.tabId;
+        │ 			^^^^^^^^^^^^^^
+    265 │ 		},
+    266 │ 		(w) => {
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:264:27 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    262 │ 	const mutations: ((w: TabbedWorkspace) => void)[] = [
+    263 │ 		(w) => {
+  > 264 │ 			w.paneTabs[1]!.tabId = w.paneTabs[0]!.tabId;
+        │ 			                       ^^^^^^^^^^^^^^
+    265 │ 		},
+    266 │ 		(w) => {
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    262 262 │   	const mutations: ((w: TabbedWorkspace) => void)[] = [
+    263 263 │   		(w) => {
+    264     │ - → → → w.paneTabs[1]!.tabId·=·w.paneTabs[0]!.tabId;
+        264 │ + → → → w.paneTabs[1]!.tabId·=·w.paneTabs[0]?.tabId;
+    265 265 │   		},
+    266 266 │   		(w) => {
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:267:19 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    265 │ 		},
+    266 │ 		(w) => {
+  > 267 │ 			const layout = w.paneTabs[1]!.layout;
+        │ 			               ^^^^^^^^^^^^^^
+    268 │ 			if (layout.type !== "split") throw new Error("expected split");
+    269 │ 			layout.first.paneId = "missing";
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    265 265 │   		},
+    266 266 │   		(w) => {
+    267     │ - → → → const·layout·=·w.paneTabs[1]!.layout;
+        267 │ + → → → const·layout·=·w.paneTabs[1]?.layout;
+    268 268 │   			if (layout.type !== "split") throw new Error("expected split");
+    269 269 │   			layout.first.paneId = "missing";
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:272:19 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    270 │ 		},
+    271 │ 		(w) => {
+  > 272 │ 			const layout = w.paneTabs[1]!.layout;
+        │ 			               ^^^^^^^^^^^^^^
+    273 │ 			if (layout.type !== "split") throw new Error("expected split");
+    274 │ 			layout.first.paneId = "claude";
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    270 270 │   		},
+    271 271 │   		(w) => {
+    272     │ - → → → const·layout·=·w.paneTabs[1]!.layout;
+        272 │ + → → → const·layout·=·w.paneTabs[1]?.layout;
+    273 273 │   			if (layout.type !== "split") throw new Error("expected split");
+    274 274 │   			layout.first.paneId = "claude";
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:285:4 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    283 │ 		},
+    284 │ 		(w) => {
+  > 285 │ 			w.paneTabs[1]!.activePaneId = "claude";
+        │ 			^^^^^^^^^^^^^^
+    286 │ 		},
+    287 │ 		(w) => {
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:296:10 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    294 │ 	for (const mutate of mutations) {
+    295 │ 		const invalid = structuredClone(input);
+  > 296 │ 		mutate(invalid.targets[0]!.workspaces[0]);
+        │ 		       ^^^^^^^^^^^^^^^^^^^
+    297 │ 		expect(() =>
+    298 │ 			store.save({ owner: "renderer", expectedRevision: 1, view: invalid }),
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    294 294 │   	for (const mutate of mutations) {
+    295 295 │   		const invalid = structuredClone(input);
+    296     │ - → → mutate(invalid.targets[0]!.workspaces[0]);
+        296 │ + → → mutate(invalid.targets[0]?.workspaces[0]);
+    297 297 │   		expect(() =>
+    298 298 │   			store.save({ owner: "renderer", expectedRevision: 1, view: invalid }),
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:310:20 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    308 │ 	store.activateOwner("renderer");
+    309 │ 	const input = viewWithPaneTabs();
+  > 310 │ 	const workspace = input.targets[0]!.workspaces[0]!;
+        │ 	                  ^^^^^^^^^^^^^^^^^
+    311 │ 	workspace.panes = [];
+    312 │ 	workspace.layout = null;
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    308 308 │   	store.activateOwner("renderer");
+    309 309 │   	const input = viewWithPaneTabs();
+    310     │ - → const·workspace·=·input.targets[0]!.workspaces[0]!;
+        310 │ + → const·workspace·=·input.targets[0]?.workspaces[0]!;
+    311 311 │   	workspace.panes = [];
+    312 312 │   	workspace.layout = null;
+  
+
+apps/desktop/src/main/lib/ssh-direct/workspace-view-store.test.ts:310:20 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    308 │ 	store.activateOwner("renderer");
+    309 │ 	const input = viewWithPaneTabs();
+  > 310 │ 	const workspace = input.targets[0]!.workspaces[0]!;
+        │ 	                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    311 │ 	workspace.panes = [];
+    312 │ 	workspace.layout = null;
+  
+
+Skipped 5 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 1 file in 27ms. Fixed 1 file.
+Found 8 warnings.

@@ -1,0 +1,17 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workspace-view-store.test.ts:
+(pass) three pane order, ratios and focus survive a store reopen with FULL durability [7.59ms]
+(pass) stale owner and revision cannot overwrite the saved layout [1.85ms]
+(pass) bad trees, excessive ratios and forbidden command data leave the previous snapshot untouched [2.54ms]
+(pass) forget advances the revision and cannot be undone by a late save [0.61ms]
+(pass) an unknown future schema cannot be overwritten by normal layout or window saves [0.31ms]
+(pass) a committed file-backed view survives force-killing its writer [51.36ms]
+(pass) original terminal tabs, focused pane and split ratios survive local SQLite reopen [1.31ms]
+(pass) invalid terminal tab partitions or focus cannot overwrite the saved workspace [4.29ms]
+(pass) an intentionally empty terminal tab collection remains empty after reopening [0.39ms]
+
+ 9 pass
+ 0 fail
+ 36 expect() calls
+Ran 9 tests across 1 file. [219.00ms]

@@ -1,0 +1,53 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:
+4 | import {toPaneState} from "../pane-adapter/pane-adapter";
+5 | import {applyWorkspacePaneState} from "./workspace-pane-state";
+6 | function fixture():WorkspaceView {return {workspaceId:"workspace",tabId:"workspace-tab",activeTool:"terminal",activePaneId:"a",panes:[{paneId:"a",kind:"terminal",resourceId:"session-a",executionId:"execution-a",label:"First"},{paneId:"b",kind:"terminal",resourceId:"session-b",executionId:"execution-b",label:"Second"}],layout:{type:"split",axis:"horizontal",ratio:0.37,first:{type:"pane",paneId:"a"},second:{type:"pane",paneId:"b"}},paneTabs:[{tabId:"terminals",createdAt:10,activePaneId:"a",layout:{type:"split",axis:"horizontal",ratio:0.37,first:{type:"pane",paneId:"a"},second:{type:"pane",paneId:"b"}}}],activePaneTabId:"terminals"};}
+7 | test("original pane-to-tab movement preserves each remote resource and execution ID",()=>{
+8 |  const workspace=fixture(),before=toPaneState(workspace),store=createWorkspaceStore({initialState:before});store.getState().movePaneToNewTab({paneId:"b"});
+9 |  expect(applyWorkspacePaneState(workspace,store.getState(),before)).toBe(true);
+                                                                        ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:9:69)
+(fail) original pane-to-tab movement preserves each remote resource and execution ID [0.94ms]
+ 9 |  expect(applyWorkspacePaneState(workspace,store.getState(),before)).toBe(true);
+10 |  expect(workspace.paneTabs).toHaveLength(2);expect(workspace.panes).toEqual(fixture().panes);expect(workspace.activePaneId).toBe("b");expect(workspace.activePaneTabId).not.toBe("terminals");expect(workspace.paneTabs?.[0]?.layout).toEqual({type:"pane",paneId:"a"});
+11 | });
+12 | test("original tab and pane rename, focus, pin and split operations persist their display state",()=>{
+13 |  const workspace=fixture(),before=toPaneState(workspace),store=createWorkspaceStore({initialState:before});store.getState().setTabTitleOverride({tabId:"terminals",titleOverride:"Renamed group"});store.getState().setPaneTitleOverride({tabId:"terminals",paneId:"b",titleOverride:"Renamed terminal"});store.getState().setActivePane({tabId:"terminals",paneId:"b"});store.getState().resizeSplit({tabId:"terminals",path:[],splitPercentage:62});
+14 |  expect(applyWorkspacePaneState(workspace,store.getState(),before)).toBe(true);expect(workspace.paneTabs?.[0]).toMatchObject({label:"Renamed group",activePaneId:"b",layout:{ratio:0.62}});expect(workspace.panes[1]?.label).toBe("Renamed terminal");
+                                                                         ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:14:69)
+(fail) original tab and pane rename, focus, pin and split operations persist their display state [0.34ms]
+12 | test("original tab and pane rename, focus, pin and split operations persist their display state",()=>{
+13 |  const workspace=fixture(),before=toPaneState(workspace),store=createWorkspaceStore({initialState:before});store.getState().setTabTitleOverride({tabId:"terminals",titleOverride:"Renamed group"});store.getState().setPaneTitleOverride({tabId:"terminals",paneId:"b",titleOverride:"Renamed terminal"});store.getState().setActivePane({tabId:"terminals",paneId:"b"});store.getState().resizeSplit({tabId:"terminals",path:[],splitPercentage:62});
+14 |  expect(applyWorkspacePaneState(workspace,store.getState(),before)).toBe(true);expect(workspace.paneTabs?.[0]).toMatchObject({label:"Renamed group",activePaneId:"b",layout:{ratio:0.62}});expect(workspace.panes[1]?.label).toBe("Renamed terminal");
+15 | });
+16 | test("closing the final original tab clears the view without issuing any resource operation",()=>{
+17 |  const workspace=fixture(),before=toPaneState(workspace),store=createWorkspaceStore({initialState:before});store.getState().removeTab("terminals");expect(applyWorkspacePaneState(workspace,store.getState(),before)).toBe(true);expect(workspace.paneTabs).toEqual([]);expect(workspace.panes).toEqual([]);expect(workspace.activePaneTabId).toBeNull();expect(workspace.activePaneId).toBeNull();expect(workspace.layout).toBeNull();
+                                                                                                                                                                                                                           ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/utils/workspace-pane-state/workspace-pane-state.test.ts:17:215)
+(fail) closing the final original tab clears the view without issuing any resource operation [0.22ms]
+(pass) late layout metadata cannot replace a newer execution or a newly added resource [0.11ms]
+(pass) stale tab metadata cannot overwrite a newer saved title [2.80ms]
+(pass) a foreign resource, duplicate pane, or incomplete group layout is rejected atomically [0.19ms]
+
+ 3 pass
+ 3 fail
+ 13 expect() calls
+Ran 6 tests across 1 file. [252.00ms]
