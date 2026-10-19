@@ -1,13 +1,18 @@
 import { boolean, CLIError, string, table } from "@superset/cli-framework";
-import { normalizeWorkspaceTag } from "@superset/shared/workspace-tags";
 import { resolveWorkspaceHost } from "../../../lib/cloud-workspaces";
 import { command } from "../../../lib/command";
+import {
+	namespaceOption,
+	readFromDirectNamespace,
+} from "../../../lib/direct-namespace";
 import { listWorkspacesOnHost } from "../../../lib/host-workspaces";
+import { filterListedWorkspaces } from "./filter-workspaces";
 
 export default command({
 	description:
 		"List workspaces: cloud workspaces by default if your account has them, else this machine's; --local or --host picks a host",
 	options: {
+		namespace: namespaceOption(),
 		host: string().desc("List workspaces on this host (machineId)"),
 		local: boolean().desc("List workspaces on this machine"),
 		project: string().desc("Filter by project name (case-insensitive) or id"),
@@ -36,6 +41,10 @@ export default command({
 		);
 	},
 	run: async ({ ctx, options }) => {
+		const direct = await readFromDirectNamespace(options, (target) =>
+			target.client.workspace.list.query(),
+		);
+		if (direct) return filterListedWorkspaces(direct.value, options);
 		const organizationId = ctx.config.organizationId;
 		if (!organizationId) {
 			throw new CLIError("No active organization", "Run: superset auth login");
@@ -77,40 +86,6 @@ export default command({
 			hostId,
 		});
 
-		const projectInput = options.project?.toLowerCase();
-		const search = options.search?.toLowerCase();
-		// Normalize both sides — `--tag Perf` must match a workspace tagged
-		// "perf". Rows served by an older host carry no tags field.
-		const tagFilter = normalizeWorkspaceTag(options.tag);
-		if (options.tag !== undefined && tagFilter == null) {
-			throw new CLIError(
-				"Invalid --tag value",
-				"Tags are 1-64 characters after trimming",
-			);
-		}
-		return workspaces
-			.filter(
-				(workspace) =>
-					!projectInput ||
-					workspace.projectId?.toLowerCase() === projectInput ||
-					workspace.projectName?.toLowerCase() === projectInput,
-			)
-			.filter(
-				(workspace) =>
-					!search ||
-					workspace.name.toLowerCase().includes(search) ||
-					workspace.branch.toLowerCase().includes(search),
-			)
-			.filter(
-				(workspace) =>
-					tagFilter == null || (workspace.tags ?? []).includes(tagFilter),
-			)
-			.map((workspace) => ({
-				...workspace,
-				// Orphaned projectIds fall back to the raw id; project-less
-				// session workspaces render as "session".
-				projectName: workspace.projectName ?? workspace.projectId ?? "session",
-				tags: (workspace.tags ?? []).join(", "),
-			}));
+		return filterListedWorkspaces(workspaces, options);
 	},
 });

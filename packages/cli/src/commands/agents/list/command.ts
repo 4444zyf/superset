@@ -1,10 +1,15 @@
 import { boolean, CLIError, string, table } from "@superset/cli-framework";
 import { command } from "../../../lib/command";
+import {
+	namespaceOption,
+	readFromDirectNamespace,
+} from "../../../lib/direct-namespace";
 import { requireHostTarget, resolveHostTarget } from "../../../lib/host-target";
 
 export default command({
 	description: "List agents configured on a host",
 	options: {
+		namespace: namespaceOption(),
 		host: string().desc("Target host machineId (required unless --local)"),
 		local: boolean().desc("Target this machine (required unless --host)"),
 	},
@@ -15,6 +20,13 @@ export default command({
 			["LABEL", "PRESET", "COMMAND", "ID"],
 		),
 	run: async ({ ctx, options }) => {
+		const direct = await readFromDirectNamespace(
+			options,
+			async (target) =>
+				(await target.client.settings.agentConfigs.readCatalogV1.query())
+					.configs,
+		);
+		if (direct) return direct.value;
 		const organizationId = ctx.config.organizationId;
 		if (!organizationId) {
 			throw new CLIError("No active organization", "Run: superset auth login");

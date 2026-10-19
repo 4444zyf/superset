@@ -52,6 +52,17 @@ const DEFAULT_PRESET_IDS = getDefaultSeedPresets().map((p) => p.presetId);
 const DEFAULT_PRESET_ORDERS = DEFAULT_PRESET_IDS.map((_, i) => i);
 
 describe("agentConfigsRouter", () => {
+	it("an explicit read-only namespace catalog does not initialize defaults or change the original V2 behavior", async () => {
+		const { caller, db } = createCallerWithDb();
+		const before = await caller.readCatalogV1();
+		expect(before.configs).toEqual([]);
+		expect(db.select().from(schema.hostAgentConfigs).all()).toEqual([]);
+		expect(db.select().from(schema.hostSettings).all()).toEqual([]);
+		expect(await caller.readCatalogV1()).toEqual(before);
+		const explicit = await caller.catalogWithRevisionV2();
+		expect(explicit.configs.length).toBeGreaterThan(0);
+		expect((await caller.readCatalogV1()).configs).toEqual(explicit.configs);
+	});
 	describe("list()", () => {
 		it("seeds bundled defaults on first call", async () => {
 			const caller = createCaller();
@@ -834,7 +845,7 @@ it("one-time catalog initialization preserves other host settings", async () => 
 		})
 		.run();
 	const before = db.select().from(schema.hostSettings).get();
- if(!before)throw new Error("Expected original host settings");
+	if (!before) throw new Error("Expected original host settings");
 	await caller.catalogWithRevisionV2();
 	expect(db.select().from(schema.hostSettings).get()).toEqual({
 		...before,

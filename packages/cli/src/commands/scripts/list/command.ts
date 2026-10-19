@@ -1,6 +1,10 @@
 import { table } from "@superset/cli-framework";
 import { command } from "../../../lib/command";
 import {
+	namespaceOption,
+	readFromDirectNamespace,
+} from "../../../lib/direct-namespace";
+import {
 	listTerminalScripts,
 	type PublicTerminalScript,
 	toPublicTerminalScript,
@@ -9,6 +13,7 @@ import {
 export default command({
 	description: "List terminal scripts on this machine",
 	skipMiddleware: true,
+	options: { namespace: namespaceOption() },
 	display: (data) =>
 		table(
 			(data as PublicTerminalScript[]).map((script) => ({
@@ -25,7 +30,14 @@ export default command({
 			["ID", "NAME", "COMMANDS", "PROJECTS", "PINNED", "STATUS"],
 			[36, 24, 60, 10, 6, 9],
 		),
-	run: async () => ({
-		data: listTerminalScripts().map(toPublicTerminalScript),
-	}),
+	run: async ({ options }) => {
+		const direct = await readFromDirectNamespace(options, (target) =>
+			target.client.settings.terminalPresets.catalogWithRevisionV1.query(),
+		);
+		return {
+			data: direct
+				? direct.value.presets.map((p) => ({ ...p, status: "ready" as const }))
+				: listTerminalScripts().map(toPublicTerminalScript),
+		};
+	},
 });

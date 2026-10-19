@@ -9,7 +9,7 @@ import {
 	writeConfig,
 } from "./config";
 
-export type AuthSource = "override" | "config" | "oauth" | "sandbox";
+export type AuthSource = "override" | "config" | "oauth" | "sandbox" | "direct";
 
 export type ResolvedAuth = {
 	config: SupersetConfig;

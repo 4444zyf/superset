@@ -8,6 +8,22 @@ import { env } from "./env";
 
 export type ApiClient = TRPCClient<AppRouter>;
 
+export function createUnavailableApiClient(): ApiClient {
+	return createTRPCClient<AppRouter>({
+		links: [
+			httpBatchLink({
+				url: "http://superset-remix.invalid/unavailable",
+				transformer: SuperJSON,
+				fetch: async () => {
+					throw new Error(
+						"Cloud services are unavailable for a namespace target",
+					);
+				},
+			}),
+		],
+	});
+}
+
 /**
  * A non-JSON error response from whatever sits in front of the API: Vercel's
  * 413 page, a gateway's HTML 502. tRPC would otherwise report these as

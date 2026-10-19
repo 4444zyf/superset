@@ -1,6 +1,10 @@
 import { boolean, CLIError, string, table } from "@superset/cli-framework";
 import { getHostId } from "@superset/shared/host-info";
 import { command } from "../../../lib/command";
+import {
+	namespaceOption,
+	readFromDirectNamespace,
+} from "../../../lib/direct-namespace";
 import { resolveHostFilter, resolveHostTarget } from "../../../lib/host-target";
 
 export default command({
@@ -12,28 +16,38 @@ export default command({
 			["NAME", "REPO", "PATH", "ID"],
 		),
 	options: {
+		namespace: namespaceOption(),
 		host: string().desc("List projects on a specific host machineId"),
 		local: boolean().desc("List projects on this machine (the default)"),
 	},
 	run: async ({ ctx, options }) => {
-		const organizationId = ctx.config.organizationId;
-		if (!organizationId) {
-			throw new CLIError("No active organization", "Run: superset auth login");
+		const direct = await readFromDirectNamespace(options, (target) =>
+			target.client.project.list.query(),
+		);
+		let projects = direct?.value;
+		if (!projects) {
+			const organizationId = ctx.config.organizationId;
+			if (!organizationId) {
+				throw new CLIError(
+					"No active organization",
+					"Run: superset auth login",
+				);
+			}
+
+			const hostId =
+				resolveHostFilter({
+					host: options.host ?? undefined,
+					local: options.local ?? undefined,
+				}) ?? getHostId();
+
+			const target = await resolveHostTarget({
+				requestedHostId: hostId,
+				organizationId,
+				userJwt: ctx.bearer,
+				api: ctx.api,
+			});
+			projects = await target.client.project.list.query();
 		}
-
-		const hostId =
-			resolveHostFilter({
-				host: options.host ?? undefined,
-				local: options.local ?? undefined,
-			}) ?? getHostId();
-
-		const target = await resolveHostTarget({
-			requestedHostId: hostId,
-			organizationId,
-			userJwt: ctx.bearer,
-			api: ctx.api,
-		});
-		const projects = await target.client.project.list.query();
 
 		return projects
 			.map((project) => ({

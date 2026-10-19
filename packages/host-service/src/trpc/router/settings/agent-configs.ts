@@ -558,6 +558,9 @@ function initializeAgentCatalog(db: AgentConfigDb) {
 }
 
 export const agentConfigsRouter = router({
+	readCatalogV1: protectedProcedure.query(({ ctx }) =>
+		versionedAgentCatalog(ctx.db),
+	),
 	catalogWithRevisionV1: protectedProcedure.query(({ ctx }) => {
 		backfillPresetForkArgs(ctx.db, seedDefaultsIfEmpty(ctx.db));
 		return versionedAgentCatalog(ctx.db);

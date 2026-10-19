@@ -51,6 +51,7 @@ export function describeDirectBackend(
 			workstationAgentSettingsV1: true,
 			workstationAgentManagementV1: true,
 			workstationAgentCatalogV2: true,
+			workstationAgentCatalogReadV1: true,
 			workstationTerminalScriptsV1: true,
 			workstationTerminalScriptExecutionV1:
 				durableOperations && workspaceViewRestoreV1,
