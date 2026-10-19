@@ -17,6 +17,7 @@ const SuperJSON=require('superjson').default;
 const run=promisify(execFile);
 const arg=name=>{const value=process.argv.find(a=>a.startsWith('--'+name+'='))?.slice(name.length+3);assert.ok(value,'Missing --'+name);return resolve(value);};
 const application=arg('application'),output=arg('output'),cli=arg('cli');
+const backendRevision=process.argv.find(value=>value.startsWith('--backend-revision='))?.slice('--backend-revision='.length)??process.env.GITHUB_SHA;
 const executable=join(application,'node_modules/electron/dist/electron');
 assert.equal(process.platform,'linux');assert.ok(process.getuid()>0);assert.ok(existsSync(cli));mkdirSync(output,{recursive:true});
 const root=mkdtempSync(join(tmpdir(),'remix-cli-actual-'));
@@ -102,6 +103,9 @@ try{
  }
  await invoke('B-cannot-read-A',['terminals','read','--namespace',b.home,'--workspace',a.workspaceId,'--terminal',a.terminalId],false);
  assert.deepEqual(stats(a),a.before);assert.deepEqual(stats(b),b.before);
+ const restarted=await a.controls.restartHost();
+ const adopted=await invoke('A-screen-adopted',['terminals','read','--namespace',a.home,'--workspace',a.workspaceId,'--terminal',a.terminalId]);assert.ok(adopted.text.includes('CLI A TUI 中文'));assert.equal(adopted.terminalId,a.terminalId);
+ const executionAfterRestart=await a.controls.inspectPresetTerminal(a.terminalId);assert.equal(executionAfterRestart.pid,a.execution.pid);assert.equal(executionAfterRestart.executionId,a.execution.executionId);assert.deepEqual(stats(a),a.before);
  assert.equal((await invoke('A-agents-return',['agents','list','--namespace',a.home]))[0].id,a.agentId);
  assert.match(await invoke('legacy-auth',['agents','list','--local'],false),/Not logged in/);
  assert.match(await invoke('conflicting-target',['projects','list','--namespace',a.home,'--host','other'],false),/either --namespace or --host/);
@@ -111,7 +115,7 @@ try{
  assert.match(await invoke('stopped-target',['agents','list','--namespace',a.home],false),/stopped|unavailable/);
  assert.equal((await invoke('B-after-A-stop',['agents','list','--namespace',b.home]))[0].id,b.agentId);
  assert.deepEqual(await promisify((await import('node:fs')).readdir)(legacyHome),[],'namespace commands and legacy auth failure write no account or telemetry state');
- writeFileSync(join(output,'namespace-cli-acceptance.json'),JSON.stringify({sourceRevision:process.env.GITHUB_SHA,cliSha256,version:version.trim(),mode:'actual compiled Linux CLI and two owned same-machine Unix backends; no GUI or SSH deployment claim',empty,fixtures:fixtures.map(f=>({label:f.label,namespaceId:f.identity.namespaceId,backendId:f.identity.backendId,home:f.home,execution:{id:f.execution.id,executionId:f.execution.executionId,pid:f.execution.pid},records:f.before})),runs,cloudAccountRequired:false,macOSVerified:false},null,2)+'\n');
+ writeFileSync(join(output,'namespace-cli-acceptance.json'),JSON.stringify({sourceRevision:process.env.GITHUB_SHA,backendSourceRevision:backendRevision,cliSha256,version:version.trim(),mode:'actual compiled Linux CLI and two owned same-machine Unix backends; no GUI or SSH deployment claim',empty,restarted,fixtures:fixtures.map(f=>({label:f.label,namespaceId:f.identity.namespaceId,backendId:f.identity.backendId,home:f.home,execution:{id:f.execution.id,executionId:f.execution.executionId,pid:f.execution.pid},records:f.before})),runs,cloudAccountRequired:false,macOSVerified:false},null,2)+'\n');
 }finally{
  const cleanup=await Promise.allSettled(fixtures.map(async f=>{try{if(!f.stopped)await f.backend.stop();}finally{f.connection.close();}}));
  const failed=cleanup.filter(result=>result.status==='rejected');
