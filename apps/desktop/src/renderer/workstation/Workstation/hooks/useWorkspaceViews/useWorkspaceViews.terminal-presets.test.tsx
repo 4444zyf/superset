@@ -1,5 +1,8 @@
 import { afterEach, expect, test } from "bun:test";
-import type { HostTerminalPreset } from "@superset/host-service/settings";
+import type {
+	HostAgentConfig,
+	HostTerminalPreset,
+} from "@superset/host-service/settings";
 import { createWorkspaceStore } from "@superset/panes";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import type {
@@ -16,6 +19,7 @@ function fixture(
 	advertised: boolean,
 	captureError?: (message: string) => void,
 	triggerPresets?: HostTerminalPreset[],
+	triggerAgents?: HostAgentConfig[],
 ) {
 	let connection: DirectDescriptor = {
 		connectionId: "ssh",
@@ -29,6 +33,7 @@ function fixture(
 			workstationTerminalPresetsV1: advertised,
 			workstationTerminalScriptExecutionV1: advertised,
 			workstationTerminalScriptsV1: triggerPresets !== undefined,
+			workstationAgentCatalogV2: triggerAgents !== undefined,
 		},
 	};
 	let backing: WorkspaceViewSnapshot = {
@@ -106,6 +111,11 @@ function fixture(
 		},
 		rpc: async (r: DirectRpc) => {
 			calls.push(r);
+			if (r.path === "settings.agentConfigs.catalogWithRevisionV2")
+				return {
+					configs: structuredClone(triggerAgents ?? []),
+					revision: "b".repeat(64),
+				};
 			if (r.path === "settings.terminalPresets.catalogWithRevisionV1") {
 				await catalogGate;
 				if (catalogFailure) throw new Error("Catalog unavailable");
@@ -892,4 +902,62 @@ test("a failed first preset layout save prevents later triggered launches", asyn
 	);
 	expect(f.calls.filter((r) => r.type === "mutation")).toHaveLength(1);
 	expect(errors.length).toBeGreaterThan(0);
+});
+
+test("linked trigger commands use the versioned selected backend agent catalog without legacy reseeding", async () => {
+	const agent = {
+		id: "agent",
+		presetId: "custom",
+		command: "/usr/bin/printf",
+		args: ["linked 中文"],
+		env: {},
+	} as HostAgentConfig;
+	const f = fixture(
+		true,
+		undefined,
+		[
+			{
+				...scriptPreset("sequential"),
+				agentId: "agent",
+				applyOnNewTab: true,
+				commands: ["old snapshot"],
+			},
+		],
+		[agent],
+	);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	expect(f.calls.filter((r) => r.type === "mutation")[0]?.input).toMatchObject({
+		initialCommand: "/usr/bin/printf 'linked 中文'",
+	});
+	expect(
+		f.calls.some(
+			(r) => r.path === "settings.agentConfigs.catalogWithRevisionV2",
+		),
+	).toBe(true);
+	expect(f.calls.some((r) => r.path === "settings.agentConfigs.list")).toBe(
+		false,
+	);
+});
+
+test("a linked trigger on a backend without the V2 agent catalog cannot fall back to a reseeding read", async () => {
+	const errors: string[] = [];
+	const f = fixture(true, (e) => errors.push(e), [
+		{ ...scriptPreset("sequential"), agentId: "agent", applyOnNewTab: true },
+	]);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	expect(f.calls.filter((r) => r.type === "mutation")).toEqual([]);
+	expect(f.calls.some((r) => r.path === "settings.agentConfigs.list")).toBe(
+		false,
+	);
+	expect(errors).toHaveLength(1);
 });
