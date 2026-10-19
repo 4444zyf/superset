@@ -3,9 +3,9 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { agentUiDriver } from "./verify-workstation-agent-ui-driver.mjs";
-export async function verifyWorkstationWheelUi({getPage, click, screenshot, output, setClipboard, pasteClipboard, readClipboardText}) {
+export async function verifyWorkstationWheelUi({getPage, click, screenshot, output, setClipboard, pasteClipboard, readClipboardText, scope: suppliedScope}) {
  const {evaluate, until} = agentUiDriver({getPage,click,screenshot,output});
- const scope = await evaluate(`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const {snapshot:v}=await window.directWorkstation.getWorkspaceView();const t=v.targets.find(t=>t.connectionId===d.connectionId),w=t.workspaces.find(w=>w.tabId===t.activeTabId);const row=await window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:'workspace.get',type:'query',input:{id:w.workspaceId}});return {d,w,root:row.worktreePath};})()`);
+ const scope = suppliedScope ?? await evaluate(`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const {snapshot:v}=await window.directWorkstation.getWorkspaceView();const t=v.targets.find(t=>t.connectionId===d.connectionId),w=t.workspaces.find(w=>w.tabId===t.activeTabId);const row=await window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:'workspace.get',type:'query',input:{id:w.workspaceId}});return {d,w,root:row.worktreePath};})()`);
  const rpc=(path,input)=>evaluate(`window.directWorkstation.rpc(${JSON.stringify({connectionId:scope.d.connectionId,generation:scope.d.generation,path,type:'query',input:{workspaceId:scope.w.workspaceId,...input}})})`);
  await click('text:New terminal');
  const terminal=await until(()=>evaluate(`[...document.querySelectorAll('[data-terminal-id]')].map(e=>({id:e.dataset.terminalId,state:e.dataset.restoreState})).find(e=>e.state==='attached'&&!${JSON.stringify(scope.w.panes.map(p=>p.resourceId))}.includes(e.id))`),'new terminal attached');

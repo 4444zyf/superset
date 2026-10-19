@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import { pasteOnOwnedX11Window } from "./verify-native-paste-input.mjs";
 
 const restoreWindows = process.argv.includes("--restore-windows");
+const localWheel = process.argv.includes("--local-wheel-only");
 const sourceTest = process.argv.includes("--source-test");
 if (!sourceTest) {
 	assert.equal(process.platform, "darwin");
@@ -382,7 +383,7 @@ try {
 	assert.deepEqual(page.errors, []);
 	evidence.reopen = true;
 	await screenshot("reopened-about");
-	if (!sourceTest || restoreWindows) {
+	if (!sourceTest || restoreWindows || localWheel) {
 		await page.call("Input.dispatchKeyEvent", {
 			type: "keyDown",
 			key: "Escape",
@@ -400,9 +401,9 @@ try {
 			`${electron}.BrowserWindow.getAllWindows()[0].setSize(1200,900); true`,
 		);
 		await delay(250);
-		const { verifyWorkspaceRestoreUi } = await import(
-			"./verify-workspace-restore-ui.mjs"
-		);
+		const verifyWorkspaceRestoreUi = localWheel
+			? (await import("./verify-workstation-local-wheel-ui.mjs")).verifyWorkstationLocalWheelUi
+			: (await import("./verify-workspace-restore-ui.mjs")).verifyWorkspaceRestoreUi;
 		const verifyRestore = (controls) =>
 			verifyWorkspaceRestoreUi({
 				controls,
@@ -486,7 +487,19 @@ try {
 					}
 				},
 			});
-		if (sourceTest) {
+		if (sourceTest && localWheel) {
+			const { LocalNamespaceBackend } = await import("../../../packages/direct-connection/src/local-namespaces.ts");
+			const localBackend = new LocalNamespaceBackend({
+				dataDir: join(profile, "direct-workstation/local-backend"),
+				execPath: executable,
+				supervisorPath: join(application, "dist/main/direct-supervisor.js"),
+				hostServicePath: join(application, "dist/main/direct-backend.js"),
+				migrationsFolder: join(application, "dist/resources/host-migrations"),
+				chatMigrationsFolder: join(application, "dist/resources/chat-migrations"),
+			});
+			ownedSourceFixture = {close: () => localBackend.stop()};
+			await verifyRestore();
+		} else if (sourceTest) {
 			const { sourceSshFixture } = await import(
 				"./verify-source-ssh-fixture.mjs"
 			);
