@@ -81,7 +81,7 @@ export function useWorkspaceViews(
 	const [resourceRevision, setResourceRevision] = useState(0);
 	const [busy, setBusy] = useState(false);
 	const operationBusy = useRef(false);
-	const launchingScripts = useRef<Promise<void> | null>(null);
+	const pendingTerminalAction = useRef<Promise<void> | null>(null);
 	const [navigationEpoch, setNavigationEpoch] = useState(0);
 	const viewRef = useRef(view);
 	viewRef.current = view;
@@ -171,8 +171,20 @@ export function useWorkspaceViews(
 		const action = deferred.current;
 		deferred.current = null;
 		if (action) await action();
-		await launchingScripts.current;
+		await pendingTerminalAction.current;
 		await queue.current;
+	}, []);
+	const trackTerminalAction = useCallback((action: () => Promise<void>) => {
+		if (operationBusy.current)
+			return pendingTerminalAction.current ?? Promise.resolve();
+		const pending = action();
+		pendingTerminalAction.current = pending;
+		const clear = () => {
+			if (pendingTerminalAction.current === pending)
+				pendingTerminalAction.current = null;
+		};
+		void pending.then(clear, clear);
+		return pending;
 	}, []);
 	useEffect(() => {
 		mounted.current = true;
@@ -589,7 +601,7 @@ export function useWorkspaceViews(
 		},
 		[changeWorkspace],
 	);
-	const newTerminal = useCallback(
+	const executeNewTerminal = useCallback(
 		async (
 			workspaceId: string,
 			axis: "horizontal" | "vertical",
@@ -660,6 +672,11 @@ export function useWorkspaceViews(
 			}
 		},
 		[addPane, api],
+	);
+	const newTerminal = useCallback(
+		(...args: Parameters<typeof executeNewTerminal>) =>
+			trackTerminalAction(() => executeNewTerminal(...args)),
+		[executeNewTerminal, trackTerminalAction],
 	);
 	const executeTerminalPreset = useCallback(
 		async (
@@ -894,23 +911,9 @@ export function useWorkspaceViews(
 		[api, changeWorkspace],
 	);
 	const launchTerminalPreset = useCallback(
-		(
-			workspaceId: string,
-			preset: HostTerminalPreset,
-			agents: HostAgentConfig[],
-		) => {
-			if (operationBusy.current)
-				return launchingScripts.current ?? Promise.resolve();
-			const pending = executeTerminalPreset(workspaceId, preset, agents);
-			launchingScripts.current = pending;
-			const clear = () => {
-				if (launchingScripts.current === pending)
-					launchingScripts.current = null;
-			};
-			void pending.then(clear, clear);
-			return pending;
-		},
-		[executeTerminalPreset],
+		(...args: Parameters<typeof executeTerminalPreset>) =>
+			trackTerminalAction(() => executeTerminalPreset(...args)),
+		[executeTerminalPreset, trackTerminalAction],
 	);
 	const saveLayout = useCallback(
 		(

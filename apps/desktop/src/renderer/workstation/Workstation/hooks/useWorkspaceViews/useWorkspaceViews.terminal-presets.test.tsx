@@ -565,3 +565,43 @@ test("normal window flush waits for the requested script batch and its saved pan
 	).toHaveLength(2);
 	expect(f.saved().targets[0]?.workspaces[0]?.panes).toHaveLength(3);
 });
+
+test("normal window flush also waits for an ordinary terminal launch and its view reference", async () => {
+	const f = fixture(true);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const release = f.pauseNextCreate();
+	let running: Promise<unknown>;
+	act(() => {
+		running = f.hook.result.current.newTerminal("workspace", "horizontal", {
+			initialCommand: "printf once",
+			label: "Agent",
+		});
+	});
+	await waitFor(() =>
+		expect(
+			f.calls.filter((r) => r.path === "terminal.createSession"),
+		).toHaveLength(1),
+	);
+	let flushed = false;
+	const flushing = f.flush().then(() => {
+		flushed = true;
+	});
+	try {
+		await act(async () => {
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+		expect(flushed).toBe(false);
+	} finally {
+		await act(async () => {
+			release();
+			await running;
+			await flushing;
+		});
+	}
+	expect(flushed).toBe(true);
+	expect(f.saved().targets[0]?.workspaces[0]?.panes).toHaveLength(2);
+	expect(
+		f.calls.filter((r) => r.path === "terminal.createSession"),
+	).toHaveLength(1);
+});

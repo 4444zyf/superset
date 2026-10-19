@@ -6,14 +6,14 @@ import { writeFramedInputToExistingExecution } from "../terminal/terminal";
 import type { HostServiceContext } from "../types";
 import { deliverExistingTerminalScript } from "./terminal-script-delivery";
 
-const inputSchema = z.strictObject({
+export const terminalScriptInputSchema = z.strictObject({
 	workspaceId: z.string().min(1).max(128),
 	terminalId: z.string().min(1).max(128),
 	executionId: z.string().min(1).max(128),
 	text: z
 		.string()
 		.min(1)
-		.max(256 * 1024),
+		.max(4 * 1024 * 1024 + 65536),
 });
 export async function runTerminalScriptOperation(
 	ctx: HostServiceContext,
@@ -24,7 +24,7 @@ export async function runTerminalScriptOperation(
 			code: "PRECONDITION_FAILED",
 			message: "Durable direct operations are unavailable on this host",
 		});
-	const input = inputSchema.parse(value);
+	const input = terminalScriptInputSchema.parse(value);
 	return deliverExistingTerminalScript(input, {
 		inspect: async () => {
 			const [resource] = await restoreResources(ctx, [
