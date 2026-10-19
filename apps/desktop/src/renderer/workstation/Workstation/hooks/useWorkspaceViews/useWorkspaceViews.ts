@@ -1,8 +1,21 @@
 import { useLingui } from "@lingui/react/macro";
+import type {
+	HostAgentConfig,
+	HostTerminalPreset,
+} from "@superset/host-service/settings";
 import { formatNumber } from "@superset/i18n/format";
 import { createWorkspaceStore, type WorkspaceState } from "@superset/panes";
+import { buildTerminalCommand } from "@superset/shared/terminal-command";
 import type { RestoreResourceCheck } from "@superset/shared/workspace-restore";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { resolvePresetLaunchCommands } from "renderer/lib/agent-launch-command";
+import {
+	buildFocusedTerminalCommand,
+	getPresetLaunchPlan,
+	shouldApplyPresetPaneName,
+} from "renderer/stores/tabs/preset-launch";
+import { toAbsoluteWorkspacePath } from "shared/absolute-paths";
+import { presetMatchesProjectId } from "shared/preset-project-targeting";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -646,6 +659,238 @@ export function useWorkspaceViews(
 		},
 		[addPane, api],
 	);
+	const launchTerminalPreset = useCallback(
+		async (
+			workspaceId: string,
+			preset: HostTerminalPreset,
+			agents: HostAgentConfig[],
+		) => {
+			const descriptor = connectionRef.current;
+			if (
+				!descriptor?.capabilities?.durableOperations ||
+				!descriptor.capabilities.terminals ||
+				descriptor.capabilities.workstationTerminalScriptExecutionV1 !== true ||
+				operationBusy.current
+			)
+				return;
+			const workspace = viewRef.current?.targets
+				.find((t) => t.connectionId === descriptor.connectionId)
+				?.workspaces.find((w) => w.workspaceId === workspaceId);
+			if (!workspace) return;
+			const captured = navigation.current;
+			const current = () =>
+				mounted.current &&
+				captured === navigation.current &&
+				connectionRef.current === descriptor;
+			const state = toPaneState(workspace),
+				activeTabId = state.activeTabId;
+			const activeTerminal = workspace.panes.find(
+				(p) =>
+					p.paneId === workspace.activePaneId &&
+					p.kind === "terminal" &&
+					p.executionId,
+			);
+			const commands = resolvePresetLaunchCommands(preset, agents);
+			const launchCommands =
+				preset.executionMode === "sequential"
+					? [buildTerminalCommand(commands)].flatMap((command) =>
+							command === null ? [] : [command],
+						)
+					: commands;
+			const plan = getPresetLaunchPlan({
+				mode: preset.executionMode,
+				target:
+					preset.executionMode === "split-pane" ||
+					preset.executionMode === "sequential"
+						? "active-tab"
+						: "new-tab",
+				commandCount: launchCommands.length,
+				hasActiveTab: !!activeTabId,
+				hasActiveTerminal: !!activeTerminal,
+			});
+			const count =
+				plan === "active-terminal" ? 0 : Math.max(1, launchCommands.length);
+			const existingCount =
+				viewRef.current?.targets.flatMap((t) =>
+					t.workspaces.flatMap((w) => w.panes),
+				).length ?? 0;
+			if (existingCount + count > 64) {
+				callbacksRef.current.onError(labelsRef.current.saveFailed);
+				return;
+			}
+			operationBusy.current = true;
+			setBusy(true);
+			try {
+				const metadata = await api.rpc<{
+					projectId: string;
+					worktreePath: string;
+				}>({
+					connectionId: descriptor.connectionId,
+					generation: descriptor.generation,
+					path: "workspace.get",
+					type: "query",
+					input: { id: workspaceId },
+				});
+				if (!current() || !presetMatchesProjectId(preset, metadata.projectId))
+					return;
+				const cwd = preset.cwd.trim()
+					? toAbsoluteWorkspacePath(metadata.worktreePath, preset.cwd.trim())
+					: undefined;
+				if (plan === "active-terminal" && activeTerminal?.executionId) {
+					const text = buildFocusedTerminalCommand({ commands, cwd });
+					if (!text) return;
+					const [checked] = await api.rpc<RestoreResourceCheck[]>({
+						connectionId: descriptor.connectionId,
+						generation: descriptor.generation,
+						path: "workspace.restoreResources",
+						type: "query",
+						input: {
+							refs: [
+								{
+									workspaceId,
+									kind: "terminal",
+									resourceId: activeTerminal.resourceId,
+									executionId: activeTerminal.executionId,
+								},
+							],
+						},
+					});
+					if (!current()) return;
+					if (
+						checked?.state !== "live" ||
+						checked.executionId !== activeTerminal.executionId
+					)
+						throw new Error("The terminal execution is no longer current");
+					await api.rpc({
+						connectionId: descriptor.connectionId,
+						generation: descriptor.generation,
+						path: "terminal.runScriptV1",
+						type: "mutation",
+						input: {
+							workspaceId,
+							terminalId: activeTerminal.resourceId,
+							executionId: activeTerminal.executionId,
+							text,
+							operationId: crypto.randomUUID(),
+						},
+					});
+					if (current())
+						await changeWorkspace(workspaceId, (w) => {
+							const pane = w.panes.find(
+								(p) =>
+									p.paneId === activeTerminal.paneId &&
+									p.resourceId === activeTerminal.resourceId &&
+									p.executionId === activeTerminal.executionId,
+							);
+							if (
+								pane &&
+								shouldApplyPresetPaneName({
+									currentName: pane.label,
+									presetName: preset.name,
+								})
+							)
+								pane.label = preset.name.slice(0, 128);
+						});
+					return;
+				}
+				const launches = Array.from({ length: count }, (_, index) => ({
+					command: launchCommands[index],
+					terminalId: crypto.randomUUID(),
+					paneId: crypto.randomUUID(),
+					operationId: crypto.randomUUID(),
+				}));
+				const created: WorkspacePane[] = [];
+				let failure: unknown;
+				for (const launch of launches) {
+					if (!current()) return;
+					try {
+						await api.rpc({
+							connectionId: descriptor.connectionId,
+							generation: descriptor.generation,
+							path: "terminal.createSession",
+							type: "mutation",
+							input: {
+								workspaceId,
+								terminalId: launch.terminalId,
+								operationId: launch.operationId,
+								...(launch.command === undefined
+									? {}
+									: { initialCommand: launch.command }),
+								...(cwd ? { cwd } : {}),
+							},
+						});
+						created.push({
+							paneId: launch.paneId,
+							kind: "terminal",
+							resourceId: launch.terminalId,
+							label: (preset.name || labelsRef.current.terminal).slice(0, 128),
+						});
+					} catch (error) {
+						failure = error;
+						break;
+					}
+				}
+				if (!current()) return;
+				if (created.length) {
+					const prepared = createWorkspaceStore<WorkspacePane>();
+					const inputs = created.map((pane) => ({
+						id: pane.paneId,
+						kind: pane.kind,
+						titleOverride: pane.label,
+						data: { ...pane },
+					}));
+					if (plan === "new-tab-per-command")
+						for (const pane of inputs)
+							prepared.getState().addTab({
+								id: crypto.randomUUID(),
+								titleOverride: preset.name.slice(0, 128),
+								panes: [pane],
+							});
+					else
+						prepared.getState().addTab({
+							id: crypto.randomUUID(),
+							titleOverride: preset.name.slice(0, 128),
+							panes: inputs as [(typeof inputs)[number], ...typeof inputs],
+						});
+					let rejected = false;
+					await changeWorkspace(workspaceId, (w) => {
+						const before = toPaneState(w),
+							store = createWorkspaceStore({ initialState: before });
+						if (
+							plan === "active-tab-single" ||
+							plan === "active-tab-multi-pane"
+						) {
+							if (!activeTabId || !store.getState().getTab(activeTabId)) {
+								rejected = true;
+								return;
+							}
+							for (const pane of inputs)
+								store
+									.getState()
+									.addPane({ tabId: activeTabId, pane, position: "right" });
+						} else
+							for (const tab of prepared.getState().tabs)
+								store.getState().insertTab({ tab });
+						const original = w.panes;
+						w.panes = [...original, ...created];
+						if (!applyWorkspacePaneState(w, store.getState(), before)) {
+							w.panes = original;
+							rejected = true;
+						}
+					});
+					if (rejected)
+						callbacksRef.current.onError(labelsRef.current.saveFailed);
+				}
+				if (failure) throw failure;
+			} catch (error) {
+				if (current()) callbacksRef.current.onError(String(error));
+			} finally {
+				operationBusy.current = false;
+				if (mounted.current) setBusy(false);
+			}
+		},
+		[api, changeWorkspace],
+	);
 	const saveLayout = useCallback(
 		(
 			workspaceId: string,
@@ -773,6 +1018,7 @@ export function useWorkspaceViews(
 		openWorkspace,
 		addPane,
 		newTerminal,
+		launchTerminalPreset,
 		saveLayout,
 		savePaneState,
 		restoreManual,

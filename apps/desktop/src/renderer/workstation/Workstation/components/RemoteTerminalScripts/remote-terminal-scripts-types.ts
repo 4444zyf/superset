@@ -1,4 +1,7 @@
-import type { HostAgentConfig } from "@superset/host-service/settings";
+import type {
+	HostAgentConfig,
+	HostTerminalPresetCatalog,
+} from "@superset/host-service/settings";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -9,4 +12,5 @@ export interface RemoteTerminalScriptsProps {
 	workspaceId: string;
 	agents: HostAgentConfig[];
 	busy: boolean;
+	onCatalogChanged?(catalog: HostTerminalPresetCatalog): void;
 }

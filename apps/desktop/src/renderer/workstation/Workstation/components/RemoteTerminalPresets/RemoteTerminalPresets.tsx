@@ -1,5 +1,9 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import type { HostAgentConfig } from "@superset/host-service/settings";
+import type {
+	HostAgentConfig,
+	HostTerminalPreset,
+	HostTerminalPresetCatalog,
+} from "@superset/host-service/settings";
 import { errorMessage } from "@superset/i18n/errors";
 import { Button } from "@superset/ui/button";
 import {
@@ -10,10 +14,15 @@ import {
 } from "@superset/ui/dropdown-menu";
 import { getPresetIcon } from "@superset/ui/icons/preset-icons";
 import { Settings } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { getAgentCommandText } from "renderer/lib/agent-launch-command";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+	getAgentCommandText,
+	resolvePresetLaunchCommands,
+} from "renderer/lib/agent-launch-command";
+import { resolveV2PresetIconKey } from "renderer/lib/preset-icon-key";
 import { PresetBarButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/V2PresetsBar/components/PresetBarButton/PresetBarButton";
 import { createDefaultV2TerminalPresetRows } from "renderer/routes/_authenticated/components/AgentHooks/hooks/useDefaultV2TerminalPresets/default-v2-terminal-presets";
+import { filterMatchingPresetsForProject } from "shared/preset-project-targeting";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -28,12 +37,14 @@ export function RemoteTerminalPresets({
 	workspaceId,
 	busy,
 	onLaunch,
+	onLaunchScript,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor;
 	workspaceId: string;
 	busy: boolean;
 	onLaunch(launch: { initialCommand: string; label: string }): void;
+	onLaunchScript?(preset: HostTerminalPreset, agents: HostAgentConfig[]): void;
 }) {
 	const { t } = useLingui();
 	const { theme } = useWorkstationAppearance();
@@ -96,6 +107,83 @@ export function RemoteTerminalPresets({
 		requestKey,
 		versionedCatalog,
 	]);
+	const executionCapable =
+		connection.capabilities?.workstationTerminalScriptExecutionV1 === true;
+	const scriptsCapable =
+		connection.capabilities?.workstationTerminalScriptsV1 === true;
+	const [scriptState, setScriptState] = useState<{
+		owner: string;
+		catalog: HostTerminalPresetCatalog;
+	} | null>(null);
+	const [projectState, setProjectState] = useState<{
+		owner: string;
+		projectId: string;
+	} | null>(null);
+	const [scriptError, setScriptError] = useState<{
+		owner: string;
+		message: string;
+	} | null>(null);
+	const catalogEpoch = useRef(0);
+	const publishCatalog = useCallback(
+		(catalog: HostTerminalPresetCatalog) => {
+			catalogEpoch.current++;
+			setScriptState({ owner, catalog });
+		},
+		[owner],
+	);
+	useEffect(() => {
+		if (!capable || !scriptsCapable || state.owner !== owner || !state.loaded)
+			return;
+		let active = true;
+		const epoch = catalogEpoch.current;
+		const query = <T,>(path: string, input?: unknown) =>
+			api.rpc<T>({
+				connectionId: connection.connectionId,
+				generation: connection.generation,
+				path,
+				type: "query",
+				input,
+			});
+		void Promise.all([
+			query<HostTerminalPresetCatalog>(
+				"settings.terminalPresets.catalogWithRevisionV1",
+			),
+			query<{ projectId: string }>("workspace.get", { id: workspaceId }),
+		])
+			.then(([catalog, workspace]) => {
+				if (!active || current.current !== requestKey) return;
+				setProjectState({ owner, projectId: workspace.projectId });
+				if (catalogEpoch.current === epoch) setScriptState({ owner, catalog });
+				setScriptError(null);
+			})
+			.catch((error) => {
+				if (active && current.current === requestKey)
+					setScriptError({ owner, message: errorMessage(error) });
+			});
+		return () => {
+			active = false;
+		};
+	}, [
+		api,
+		capable,
+		scriptsCapable,
+		state.owner,
+		state.loaded,
+		owner,
+		requestKey,
+		connection.connectionId,
+		connection.generation,
+		workspaceId,
+	]);
+	const scripts =
+		scriptState?.owner === owner &&
+		projectState?.owner === owner &&
+		scriptState.catalog.initialized
+			? filterMatchingPresetsForProject(
+					scriptState.catalog.presets,
+					projectState.projectId,
+				).filter((preset) => preset.pinnedToBar !== false)
+			: [];
 	let index = 0;
 	const presets = createDefaultV2TerminalPresetRows({
 		agents,
@@ -137,6 +225,7 @@ export function RemoteTerminalPresets({
 								agents={agents}
 								workspaceId={workspaceId}
 								busy={busy}
+								onCatalogChanged={publishCatalog}
 							/>
 						)}
 						<Button
@@ -184,22 +273,46 @@ export function RemoteTerminalPresets({
 								))}
 							</DropdownMenuContent>
 						</DropdownMenu>
-						{presets.map((preset) => {
-							const agent = agents.find((a) => a.id === preset.agentId);
-							return agent ? (
-								<PresetBarButton
-									key={agent.id}
-									name={preset.name}
-									icon={getPresetIcon(
-										agent.iconId ?? agent.presetId,
-										theme.type === "dark",
-									)}
-									title={getAgentCommandText(agent)}
-									disabled={busy}
-									onClick={() => launch(agent)}
-								/>
-							) : null;
-						})}
+						{scriptsCapable
+							? scripts.map((preset) => {
+									const key = resolveV2PresetIconKey(preset, agents);
+									return (
+										<div key={preset.id} data-workstation-script-id={preset.id}>
+											<PresetBarButton
+												name={preset.name}
+												icon={
+													key
+														? getPresetIcon(key, theme.type === "dark")
+														: undefined
+												}
+												title={resolvePresetLaunchCommands(preset, agents).join(
+													" && ",
+												)}
+												disabled={busy || !executionCapable || !onLaunchScript}
+												onClick={() => {
+													if (!busy && executionCapable)
+														onLaunchScript?.(preset, agents);
+												}}
+											/>
+										</div>
+									);
+								})
+							: presets.map((preset) => {
+									const agent = agents.find((a) => a.id === preset.agentId);
+									return agent ? (
+										<PresetBarButton
+											key={agent.id}
+											name={preset.name}
+											icon={getPresetIcon(
+												agent.iconId ?? agent.presetId,
+												theme.type === "dark",
+											)}
+											title={getAgentCommandText(agent)}
+											disabled={busy}
+											onClick={() => launch(agent)}
+										/>
+									) : null;
+								})}
 						<Button
 							size="sm"
 							variant="ghost"
@@ -208,6 +321,11 @@ export function RemoteTerminalPresets({
 						>
 							<Trans>Refresh</Trans>
 						</Button>
+						{scriptError?.owner === owner && (
+							<p role="alert" className="text-xs text-destructive">
+								{scriptError.message}
+							</p>
+						)}
 						{state.owner === owner && state.error && (
 							<p role="alert" className="text-xs text-destructive">
 								{state.error}

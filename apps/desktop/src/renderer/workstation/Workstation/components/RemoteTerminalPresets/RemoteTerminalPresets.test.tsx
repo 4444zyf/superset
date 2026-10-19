@@ -131,7 +131,9 @@ test("older hosts receive no preset queries and late replies cannot populate a d
 		</TooltipProvider>,
 	);
 	await act(async () => reply([config]));
-	expect(screen.queryByRole("button", { name: "Remote Codex" })).toBeNull();
+	expect(Boolean(screen.queryByRole("button", { name: "Remote Codex" }))).toBe(
+		false,
+	);
 });
 
 test("agent settings open the original launch form without launching a terminal", async () => {
@@ -242,4 +244,182 @@ test("a deliberately empty versioned catalog remains manageable without the lega
 	expect(calls.map((c) => c.path)).toEqual([
 		"settings.agentConfigs.catalogWithRevisionV2",
 	]);
+});
+
+test("the script bar uses the selected host catalog order, visibility and project scope", async () => {
+	const rows = [
+		{
+			id: "11111111-1111-4111-8111-111111111111",
+			name: "Build project",
+			projectIds: ["project"],
+			pinnedToBar: true,
+		},
+		{
+			id: "22222222-2222-4222-8222-222222222222",
+			name: "Hidden script",
+			projectIds: null,
+			pinnedToBar: false,
+		},
+		{
+			id: "33333333-3333-4333-8333-333333333333",
+			name: "Other project",
+			projectIds: ["other"],
+			pinnedToBar: true,
+		},
+		{
+			id: "44444444-4444-4444-8444-444444444444",
+			name: "Global script",
+			projectIds: null,
+			pinnedToBar: true,
+		},
+	].map((row, index) => ({
+		...row,
+		cwd: ".",
+		commands: ["printf first", "printf second"],
+		executionMode: "new-tab-split-pane" as const,
+		tabOrder: index,
+		createdAt: new Date(0),
+	}));
+	const launched: unknown[] = [];
+	const api = {
+		rpc: async (request: DirectRpc) => {
+			if (request.path === "settings.agentConfigs.list") return [config];
+			if (request.path === "settings.terminalPresets.catalogWithRevisionV1")
+				return { initialized: true, revision: "a".repeat(64), presets: rows };
+			if (request.path === "workspace.get")
+				return {
+					id: "workspace",
+					projectId: "project",
+					worktreePath: "/remote/project",
+				};
+			throw new Error("Unexpected procedure " + request.path);
+		},
+	} as unknown as DirectWorkstationApi;
+	const view = render(
+		<TooltipProvider>
+			<RemoteTerminalPresets
+				api={api}
+				connection={{
+					...connection,
+					capabilities: {
+						...connection.capabilities,
+						workstationTerminalScriptsV1: true,
+						workstationTerminalScriptExecutionV1: true,
+					},
+				}}
+				workspaceId="workspace"
+				busy={false}
+				onLaunch={() => {
+					throw new Error("Script must retain its launch mode");
+				}}
+				onLaunchScript={(preset) => launched.push(preset)}
+			/>
+		</TooltipProvider>,
+	);
+	const button = await screen.findByRole("button", { name: "Build project" });
+	expect(
+		[...view.container.querySelectorAll("[data-workstation-script-id]")].map(
+			(e) => e.getAttribute("data-workstation-script-id"),
+		),
+	).toEqual([rows[0]?.id, rows[3]?.id]);
+	expect(Boolean(screen.queryByRole("button", { name: "Remote Codex" }))).toBe(
+		false,
+	);
+	expect(launched).toEqual([]);
+	fireEvent.click(button);
+	expect(launched).toEqual([rows[0]]);
+});
+
+test("an explicitly empty script catalog keeps the bar empty instead of recreating default agent buttons", async () => {
+	let loaded = false;
+	const api = {
+		rpc: async (request: DirectRpc) => {
+			if (request.path === "settings.agentConfigs.list") return [config];
+			if (request.path === "settings.terminalPresets.catalogWithRevisionV1") {
+				loaded = true;
+				return { initialized: true, revision: "b".repeat(64), presets: [] };
+			}
+			if (request.path === "workspace.get")
+				return {
+					id: "workspace",
+					projectId: "project",
+					worktreePath: "/remote/project",
+				};
+			throw new Error("Unexpected procedure " + request.path);
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<TooltipProvider>
+			<RemoteTerminalPresets
+				api={api}
+				connection={{
+					...connection,
+					capabilities: {
+						...connection.capabilities,
+						workstationTerminalScriptsV1: true,
+					},
+				}}
+				workspaceId="workspace"
+				busy={false}
+				onLaunch={() => {
+					throw new Error("No automatic launch");
+				}}
+			/>
+		</TooltipProvider>,
+	);
+	await waitFor(() => expect(loaded).toBe(true));
+	expect(Boolean(screen.queryByRole("button", { name: "Remote Codex" }))).toBe(
+		false,
+	);
+	expect(screen.getByRole("button", { name: "Terminal Scripts" })).toBeTruthy();
+});
+
+test("hosts with script management but no execution capability cannot launch catalog scripts", async () => {
+	const row = {
+		id: "11111111-1111-4111-8111-111111111111",
+		name: "Stored script",
+		commands: ["printf once"],
+		cwd: ".",
+		projectIds: null,
+		executionMode: "new-tab" as const,
+		createdAt: new Date(0),
+		tabOrder: 0,
+	};
+	let launches = 0;
+	const api = {
+		rpc: async (request: DirectRpc) =>
+			request.path === "settings.agentConfigs.list"
+				? [config]
+				: request.path === "workspace.get"
+					? {
+							id: "workspace",
+							projectId: "project",
+							worktreePath: "/remote/project",
+						}
+					: { initialized: true, presets: [row], revision: "c".repeat(64) },
+	} as unknown as DirectWorkstationApi;
+	render(
+		<TooltipProvider>
+			<RemoteTerminalPresets
+				api={api}
+				connection={{
+					...connection,
+					capabilities: {
+						...connection.capabilities,
+						workstationTerminalScriptsV1: true,
+					},
+				}}
+				workspaceId="workspace"
+				busy={false}
+				onLaunch={() => {}}
+				onLaunchScript={() => {
+					launches++;
+				}}
+			/>
+		</TooltipProvider>,
+	);
+	const button = await screen.findByRole("button", { name: "Stored script" });
+	expect(button.hasAttribute("disabled")).toBe(true);
+	fireEvent.click(button);
+	expect(launches).toBe(0);
 });

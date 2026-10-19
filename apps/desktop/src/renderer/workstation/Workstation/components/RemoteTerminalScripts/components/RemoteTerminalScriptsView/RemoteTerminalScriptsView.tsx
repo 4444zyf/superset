@@ -67,7 +67,10 @@ export function RemoteTerminalScriptsView({
 	workspaceId,
 	agents,
 	busy,
+	onCatalogChanged,
 }: Props) {
+	const changed = useRef(onCatalogChanged);
+	changed.current = onCatalogChanged;
 	const { t } = useLingui();
 	const { theme } = useWorkstationAppearance();
 	const registry = useContext(WorkstationEditorGuardsContext),
@@ -147,6 +150,7 @@ export function RemoteTerminalScriptsView({
 	const acknowledge = (value: HostTerminalPresetCatalog) => {
 		catalogRef.current = value;
 		setCatalog(value);
+		changed.current?.(value);
 		blocked.current = false;
 		setError(null);
 		setSaved(true);
@@ -292,6 +296,7 @@ export function RemoteTerminalScriptsView({
 				if (value) {
 					catalogRef.current = value;
 					setCatalog(value);
+					changed.current?.(value);
 				}
 			})
 			.catch((e) => {

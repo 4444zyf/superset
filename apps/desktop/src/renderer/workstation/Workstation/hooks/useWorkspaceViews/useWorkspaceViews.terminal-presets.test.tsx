@@ -1,4 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
+import type { HostTerminalPreset } from "@superset/host-service/settings";
 import { createWorkspaceStore } from "@superset/panes";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import type {
@@ -11,8 +12,11 @@ import { toPaneState } from "../../utils/pane-adapter/pane-adapter";
 import { useWorkspaceViews } from "./useWorkspaceViews";
 
 afterEach(cleanup);
-function fixture(advertised: boolean) {
-	const connection: DirectDescriptor = {
+function fixture(
+	advertised: boolean,
+	captureError?: (message: string) => void,
+) {
+	let connection: DirectDescriptor = {
 		connectionId: "ssh",
 		backendId: "backend",
 		namespaceId: "namespace",
@@ -22,6 +26,7 @@ function fixture(advertised: boolean) {
 			durableOperations: true,
 			terminals: true,
 			workstationTerminalPresetsV1: advertised,
+			workstationTerminalScriptExecutionV1: advertised,
 		},
 	};
 	let backing: WorkspaceViewSnapshot = {
@@ -63,6 +68,9 @@ function fixture(advertised: boolean) {
 	};
 	const calls: DirectRpc[] = [];
 	let nextSave: Promise<void> | null = null;
+	let nextCreate: Promise<void> | null = null,
+		createCalls = 0,
+		failCreateAt: number | null = null;
 	const api = {
 		getWorkspaceView: async () => ({
 			snapshot: structuredClone(backing),
@@ -87,6 +95,29 @@ function fixture(advertised: boolean) {
 		},
 		rpc: async (r: DirectRpc) => {
 			calls.push(r);
+			if (r.path === "terminal.createSession") {
+				createCalls++;
+				const gate = nextCreate;
+				nextCreate = null;
+				if (gate) await gate;
+				if (createCalls === failCreateAt) throw new Error("Response lost");
+			}
+			if (r.path === "workspace.get")
+				return {
+					id: "workspace",
+					projectId: "project",
+					worktreePath: "/remote/project",
+				};
+			if (r.path === "workspace.restoreResources")
+				return [
+					{
+						workspaceId: "workspace",
+						resourceId: "retained",
+						executionId: "retained-execution",
+						kind: "terminal",
+						state: "live",
+					},
+				];
 			return {
 				terminalId: (r.input as { terminalId: string }).terminalId,
 				status: "active",
@@ -99,6 +130,10 @@ function fixture(advertised: boolean) {
 			onDescriptor: async () => {},
 			onForget: () => {},
 			onError: (message) => {
+				if (captureError) {
+					captureError(message);
+					return;
+				}
 				throw new Error(message);
 			},
 		}),
@@ -107,6 +142,20 @@ function fixture(advertised: boolean) {
 		hook,
 		calls,
 		saved: () => backing,
+		pauseNextCreate: () => {
+			let release = () => {};
+			nextCreate = new Promise<void>((resolve) => {
+				release = resolve;
+			});
+			return release;
+		},
+		failCreate: (index: number) => {
+			failCreateAt = index;
+		},
+		switchTarget: () => {
+			connection = { ...connection, connectionId: "other", generation: 9 };
+			hook.rerender();
+		},
 		pauseNextSave: () => {
 			let release = () => {};
 			nextSave = new Promise<void>((resolve) => {
@@ -326,4 +375,146 @@ test("pending metadata saves keep typed titles visible while a terminal focus up
 	expect(f.saved().targets[0]?.workspaces[0]?.panes[0]?.label).toBe(
 		"Typing is retained",
 	);
+});
+
+function scriptPreset(
+	mode: HostTerminalPreset["executionMode"],
+): HostTerminalPreset {
+	return {
+		id: "11111111-1111-4111-8111-111111111111",
+		name: "Project tools",
+		commands: ["printf first", "printf second"],
+		cwd: "scripts",
+		projectIds: ["project"],
+		executionMode: mode,
+		createdAt: new Date(0),
+		tabOrder: 0,
+	};
+}
+test.each([
+	"split-pane",
+	"new-tab",
+	"new-tab-split-pane",
+] as const)("script mode %s keeps the original terminal layout and one command per new session", async (mode) => {
+	const f = fixture(true);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () =>
+		f.hook.result.current.launchTerminalPreset(
+			"workspace",
+			scriptPreset(mode),
+			[],
+		),
+	);
+	const creates = f.calls.filter((r) => r.path === "terminal.createSession");
+	expect(creates).toHaveLength(2);
+	expect(
+		creates.map((r) => (r.input as { initialCommand: string }).initialCommand),
+	).toEqual(["printf first", "printf second"]);
+	expect(
+		creates.every(
+			(r) => (r.input as { cwd: string }).cwd === "/remote/project/scripts",
+		),
+	).toBe(true);
+	const w = f.saved().targets[0]!.workspaces[0]!;
+	expect(w.panes).toHaveLength(3);
+	expect(w.panes[0]?.resourceId).toBe("retained");
+	expect(w.paneTabs).toHaveLength(
+		mode === "new-tab" ? 3 : mode === "split-pane" ? 1 : 2,
+	);
+	if (mode !== "split-pane")
+		expect(w.paneTabs?.[0]?.layout).toEqual({
+			type: "pane",
+			paneId: "original",
+		});
+	f.hook.rerender();
+	expect(
+		f.calls.filter((r) => r.path === "terminal.createSession"),
+	).toHaveLength(2);
+});
+test("sequential scripts use the captured terminal execution once and preserve its custom title", async () => {
+	const f = fixture(true);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () =>
+		f.hook.result.current.launchTerminalPreset(
+			"workspace",
+			scriptPreset("sequential"),
+			[],
+		),
+	);
+	const sends = f.calls.filter((r) => r.path === "terminal.runScriptV1");
+	expect(sends).toHaveLength(1);
+	expect(sends[0]).toMatchObject({
+		connectionId: "ssh",
+		generation: 2,
+		input: {
+			workspaceId: "workspace",
+			terminalId: "retained",
+			executionId: "retained-execution",
+			text: "cd /remote/project/scripts && printf first && printf second",
+		},
+	});
+	expect(
+		f.calls.filter((r) => r.path === "terminal.createSession"),
+	).toHaveLength(0);
+	expect(f.saved().targets[0]?.workspaces[0]?.panes[0]?.label).toBe(
+		"My terminal",
+	);
+	f.hook.rerender();
+	expect(f.calls.filter((r) => r.path === "terminal.runScriptV1")).toHaveLength(
+		1,
+	);
+});
+
+test("a target switch during creation never launches the remaining script commands or appends foreign panes", async () => {
+	const f = fixture(true);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const release = f.pauseNextCreate();
+	let running: Promise<unknown>;
+	act(() => {
+		running = f.hook.result.current.launchTerminalPreset(
+			"workspace",
+			scriptPreset("new-tab"),
+			[],
+		);
+	});
+	await waitFor(() =>
+		expect(
+			f.calls.filter((r) => r.path === "terminal.createSession"),
+		).toHaveLength(1),
+	);
+	act(() => f.switchTarget());
+	await act(async () => {
+		release();
+		await running;
+	});
+	expect(
+		f.calls.filter((r) => r.path === "terminal.createSession"),
+	).toHaveLength(1);
+	expect(f.saved().targets[0]?.workspaces[0]?.panes).toHaveLength(1);
+});
+test("a partial script launch retains confirmed terminals and never replays a lost creation reply", async () => {
+	const errors: string[] = [],
+		f = fixture(true, (message) => errors.push(message));
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	f.failCreate(2);
+	await act(async () =>
+		f.hook.result.current.launchTerminalPreset(
+			"workspace",
+			scriptPreset("new-tab-split-pane"),
+			[],
+		),
+	);
+	expect(errors.some((message) => message.includes("Response lost"))).toBe(
+		true,
+	);
+	expect(f.saved().targets[0]?.workspaces[0]?.panes).toHaveLength(2);
+	const creates = f.calls.filter((r) => r.path === "terminal.createSession");
+	expect(creates).toHaveLength(2);
+	expect(f.saved().targets[0]?.workspaces[0]?.panes[1]?.resourceId).toBe(
+		(creates[0]?.input as { terminalId: string }).terminalId,
+	);
+	f.hook.rerender();
+	expect(
+		f.calls.filter((r) => r.path === "terminal.createSession"),
+	).toHaveLength(2);
 });

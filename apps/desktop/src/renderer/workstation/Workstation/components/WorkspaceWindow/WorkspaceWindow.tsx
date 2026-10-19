@@ -369,6 +369,13 @@ export function WorkspaceWindow({
 							connection={connection}
 							workspaceId={workspace.workspaceId}
 							busy={actions.busy}
+							onLaunchScript={(preset, agents) => {
+								void actions.launchTerminalPreset(
+									workspace.workspaceId,
+									preset,
+									agents,
+								);
+							}}
 							onLaunch={(launch) => {
 								void actions.newTerminal(
 									workspace.workspaceId,
