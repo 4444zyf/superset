@@ -828,3 +828,9 @@ TDD包括视图SQLite持久化、非法分组原子拒写、原store标签分离
 第147轮产品bae7e375f/脚本e9b1c1912退出0，实际新建标签/组内分屏、中文改名、原生拖动顺序、SQLite重开和后端PID保持通过，七张相关截图已查看；但重开/关闭两图仍在Reconnecting/Session status unavailable阶段，故这一轮不接受为终端重新附着的证据。保留原始退出0，不改造失败结论；增强脚本要求重开组两个终端、关闭后原组三个终端均实际attached，并校验全部五个PID后再截图。[147观测不足记录](evidence/local-ssh-feature-parity/source-linux-terminal-pane-tabs-failures/147)。
 
 第148轮同产品bae7e375f/脚本f171ced24，实际Linux/Electron/拥有的SSH `--pane-tabs-only`退出0。真实New terminal创建独立原标签且保留原组三pane布局；Split vertically只向选中组增加一pane；原标签双击输入SSH tools 中文保存，验证窗口归属/PID/scale的XTest鼠标完成原HTML5标签拖动排序；关闭重开标签顺序、名称、活动组、组内布局、五个PTY19764/19770/19776/20028/20038及执行ID保持，两个恢复终端实际附着。关闭新组后原三个终端实际附着且继续输出原心跳。全部七张相关截图已实际查看，浏览器错误为空。[148完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-pane-tabs/148)。这不等于真实macOS、供应商Agent、所有跨标签合并/分离/固定功能或自定义脚本执行已验收；关闭标签仅沿用已有视图移除语义，不以此证明后端进程终止。脚本目录管理虽已完成，原条目按钮/快捷键/触发与完整启动计划/CLI仍继续接入。
+
+### 阶段四十二补充：只读历史的真实选区、复制与图片粘贴
+
+联检发现初版只拦截查看层自身的bubble事件，原终端图片粘贴使用父层capture，仍可能先上传附件；原xterm鼠标选择/旧选区的copy处理也可能覆盖历史文字选择。因此不能把初版查看层的事件单测当作完整剪贴板边界证明。补实际DOM父层capture集成与copy传播测试，2通过2失败；在父层图片粘贴入口先检查只读历史目标并拒绝，历史层隔离mousedown/mousemove/mouseup/copy/contextmenu，同时保留浏览器的默认文字选择/复制。退出历史后原终端处理继续使用。相关历史/真实VT/原图片粘贴27项69断言通过；终端/输入/RemoteTerminal/复制回归91项247断言/10文件、桌面类型、lint及完整CLI/5个PTY marker构建通过。[补充红绿与检查](evidence/local-ssh-feature-parity/stage42-clipboard)。
+
+第149轮产品bae7e375f/脚本310786752，真实鼠标在可见FIRST SCREEN 中文位置拖选，实际浏览器选区却是底层TUI line 011，断言退出1，失败截图已查看；尚未到达图片粘贴步骤，不把它记成原生图片上传失败证明。[149原始失败](evidence/local-ssh-feature-parity/source-linux-terminal-wheel-clipboard-failures/149)。第150轮产品ce2173fce/同一验收逻辑，真实桌面 `--wheel-only --wheel-clipboard`退出0：相同坐标的鼠标拖选得到FIRST SCREEN 中文，系统剪贴板精确读回该文字；再从真实系统剪贴板粘贴PNG，document实际收到位于历史层且包含1个File的paste，远端attachments前后为空、输入仍只有明确键入的a/n。随后反向/小幅滚动、Esc返回、原生SGR上下滚轮和q结束全部通过，浏览器错误为空。只读历史复制/图片粘贴截图已实际查看，其余截图本轮捕获；此前第145轮相关滚动截图已查看。[150完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-wheel-clipboard/150)。真实macOS触控板/系统剪贴板、独立本地连接窗口和供应商Agent仍是单独验收项；本轮不生成或宣称1.37.7 DMG。

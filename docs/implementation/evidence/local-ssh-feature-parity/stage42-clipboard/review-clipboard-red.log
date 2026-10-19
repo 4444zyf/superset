@@ -1,0 +1,38 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.test.ts:
+(pass) terminal wheel review > opens selectable client history, blocks paste and closes on Escape without remote input [9.18ms]
+(pass) terminal wheel review > returns to live terminal at the bottom and releases history on buffer exit/disposal [4.93ms]
+130 |  cleanups.push(installImagePasteFallback({input:f.input},f.element,()=>upload,{preferFiles:true}));
+131 |  f.wheel(-34);const review=f.element.querySelector("[data-terminal-scrollback-review]");if(!review)throw new Error("Missing review");
+132 |  const event=new Event("paste",{bubbles:true,cancelable:true});
+133 |  Object.defineProperty(event,"clipboardData",{value:{files:[new File(["pixels"],"clipboard.png",{type:"image/png"})],types:["Files"],getData:()=>""}});
+134 |  review.dispatchEvent(event);
+135 |  expect(event.defaultPrevented).toBe(true);expect(upload).not.toHaveBeenCalled();expect(f.input).not.toHaveBeenCalled();
+                                                                    ^
+error: expect(received).not.toHaveBeenCalled()
+
+Expected number of calls: 0
+Received number of calls: 1
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.test.ts:135:63)
+(fail) history review prevents the ancestor image paste handler from uploading or sending Ctrl+V [1.91ms]
+137 | 
+138 | test("copying history uses the browser selection without an old xterm selection overriding it",()=>{
+139 |  const f=fixture(); f.element.addEventListener("copy",event=>event.preventDefault());
+140 |  f.wheel(-34);const review=f.element.querySelector("[data-terminal-scrollback-review]");if(!review)throw new Error("Missing review");
+141 |  const event=new Event("copy",{bubbles:true,cancelable:true});review.dispatchEvent(event);
+142 |  expect(event.defaultPrevented).toBe(false);
+                                      ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.test.ts:142:33)
+(fail) copying history uses the browser selection without an old xterm selection overriding it [1.44ms]
+
+ 2 pass
+ 2 fail
+ 15 expect() calls
+Ran 4 tests across 1 file. [175.00ms]
