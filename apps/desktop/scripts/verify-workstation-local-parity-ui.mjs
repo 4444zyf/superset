@@ -8,6 +8,8 @@ import {verifyWorkstationTerminalScriptExecutionUi} from './verify-workstation-t
 export async function verifyWorkstationLocalParityUi(options){
  const {getPage,click,output,screenshot,closeReopen,controls}=options;
  const {evaluate,until}=agentUiDriver(options);
+ const body=agentUiDriver({...options,rootSelector:'.ws-main-body'});
+ const bodyClick=async selector=>{await body.scrollTo(selector);await click(selector);};
  const key=async(key,code)=>{for(const type of ['keyDown','keyUp'])await getPage().call('Input.dispatchKeyEvent',{type,key,code:key,windowsVirtualKeyCode:code});};
  const view=()=>evaluate(`(async()=>{const {snapshot}=await window.directWorkstation.getWorkspaceView();return snapshot?.targets.find(t=>t.connectionId===snapshot.activeConnectionId);})()`);
  const workspace=async()=>{const t=await view();return t?.workspaces.find(w=>w.tabId===t.activeTabId);};
@@ -26,18 +28,18 @@ export async function verifyWorkstationLocalParityUi(options){
  const a=await view(),aWorkspace=await workspace(),controlA=controls.forNamespace(a.namespaceId);
  const aExecutions=await Promise.all(aWorkspace.panes.map(p=>controlA.inspectPresetTerminal(p.resourceId)));
  await screenshot('local-A-original-split');
- const details=async()=>{await click('[data-slot=sidebar-content] button[aria-label="SSH machines"]');await click('.ws-local-row button:first-of-type');await click('text:Connection details');await until(()=>evaluate(`Boolean(document.querySelector('select')?.closest('.ws-local-data'))||Boolean(document.querySelector('.ws-local-data select'))`),'local namespace selector');};
- await details();await click('input[aria-label="New namespace name"]');await getPage().call('Input.insertText',{text:'Second local namespace 中文'});await click('text:Create namespace');
+ const details=async()=>{await click('[data-slot=sidebar-content] button[aria-label="SSH machines"]');await bodyClick('.ws-local-row button:first-of-type');await bodyClick('.ws-detail-tabs button:last-child');await until(()=>evaluate(`Boolean(document.querySelector('select')?.closest('.ws-local-data'))||Boolean(document.querySelector('.ws-local-data select'))`),'local namespace selector');};
+ await details();await bodyClick('input[aria-label="New namespace name"]');await getPage().call('Input.insertText',{text:'Second local namespace 中文'});await bodyClick('.ws-local-data form button[type=submit]');
  await until(()=>evaluate(`document.querySelector('.ws-local-data select')?.options.length===2`),'second namespace created');
- const select=async(which)=>{await click('.ws-local-data select');await key(which==='first'?'Home':'End',which==='first'?36:35);await key('Enter',13);await until(()=>evaluate(`document.querySelector('.ws-local-data select')?.selectedIndex===${which==='first'?0:1}`),'namespace selected');};
+ const select=async(which)=>{await bodyClick('.ws-local-data select');await key(which==='first'?'Home':'End',which==='first'?36:35);await key('Enter',13);await until(()=>evaluate(`document.querySelector('.ws-local-data select')?.selectedIndex===${which==='first'?0:1}`),'namespace selected');};
  await select('last');await screenshot('local-B-selected-disconnected');
- await click('.ws-detail-actions button.primary');
+ await bodyClick('.ws-detail-actions button.primary');
  await until(()=>evaluate(`Boolean([...document.querySelectorAll('.ws-heading-actions button')].find(b=>b.textContent.trim()==='New session'&&!b.disabled))`),'namespace B explicitly connected');
  assert.equal(await evaluate(`Boolean(document.querySelector('.ws-workspace-window'))`),false,'namespace B cannot display A workspace');
  await create('B');await click('text:New terminal');await attached(1);
  const b=await view(),bWorkspace=await workspace(),controlB=controls.forNamespace(b.namespaceId),bExecution=await controlB.inspectPresetTerminal(bWorkspace.panes[0].resourceId);
  assert.notEqual(a.namespaceId,b.namespaceId);await screenshot('local-B-independent-workspace');
- await details();await select('first');await click('.ws-detail-actions button.primary');await attached(2);
+ await details();await select('first');await bodyClick('.ws-detail-actions button.primary');await attached(2);
  const returned=await workspace();assert.deepEqual(returned,aWorkspace);
  for(let i=0;i<aExecutions.length;i++)assert.equal((await controlA.inspectPresetTerminal(aWorkspace.panes[i].resourceId)).pid,aExecutions[i].pid);
  assert.equal((await controlB.inspectPresetTerminal(bWorkspace.panes[0].resourceId)).pid,bExecution.pid);
