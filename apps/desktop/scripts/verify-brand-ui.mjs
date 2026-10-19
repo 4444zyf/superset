@@ -1,3 +1,4 @@
+import {dragOnOwnedX11Window} from "./verify-native-drag-input.mjs";
 import {driveOwnedX11FileDialog} from "./verify-native-file-dialog-input.mjs";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -414,6 +415,11 @@ try {
 								pasteOnOwnedX11Window(id);
 							}
 						: undefined,
+ nativeDrag: process.platform==='linux'?async(points)=>{
+  const owner=await main.evaluate(`({ownerWindowId:${electron}.BrowserWindow.getAllWindows()[0].getNativeWindowHandle().readUInt32LE(),ownerPid:process.pid,contentBounds:${electron}.BrowserWindow.getAllWindows()[0].getContentBounds()})`);
+  const viewport=await page.evaluate(`({width:innerWidth,height:innerHeight,scale:devicePixelRatio})`);
+  return dragOnOwnedX11Window({...owner,viewport,points});
+ }:undefined,
  nativeFileDialog: process.platform==='linux'?async(action)=>{
  const owner=await main.evaluate(`({ownerWindowId:${electron}.BrowserWindow.getAllWindows()[0].getNativeWindowHandle().readUInt32LE(),ownerPid:process.pid})`);
  return driveOwnedX11FileDialog({...owner,action});

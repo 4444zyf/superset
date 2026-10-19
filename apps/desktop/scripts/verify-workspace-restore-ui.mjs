@@ -32,6 +32,7 @@ import { verifyWorkstationRunUi } from "./verify-workstation-run-ui.mjs";
 import { verifyWorkstationProjectSettingsUi } from "./verify-workstation-project-settings-ui.mjs";
 
 export async function verifyWorkspaceRestoreUi({
+ nativeDrag,
 	getPage,
 	click,
 	screenshot,
@@ -500,7 +501,7 @@ export async function verifyWorkspaceRestoreUi({
  if (process.argv.includes("--terminal-script-management-only")) {
   await click("text:Terminal");await ready();
   const {verifyWorkstationTerminalScriptManagementUi}=await import("./verify-workstation-terminal-script-management-ui.mjs");
-  await verifyWorkstationTerminalScriptManagementUi({getPage,click,screenshot,closeReopen,controls,output});
+  await verifyWorkstationTerminalScriptManagementUi({getPage,click,screenshot,closeReopen,controls,output,nativeDrag});
   writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalScriptManagementOnly:true},null,2)+"\n");return;
  }
  if (process.argv.includes("--agent-icons-only")) {
