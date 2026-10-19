@@ -15,6 +15,7 @@ afterEach(cleanup);
 function fixture(
 	advertised: boolean,
 	captureError?: (message: string) => void,
+	triggerPresets?: HostTerminalPreset[],
 ) {
 	let connection: DirectDescriptor = {
 		connectionId: "ssh",
@@ -27,6 +28,7 @@ function fixture(
 			terminals: true,
 			workstationTerminalPresetsV1: advertised,
 			workstationTerminalScriptExecutionV1: advertised,
+			workstationTerminalScriptsV1: triggerPresets !== undefined,
 		},
 	};
 	let backing: WorkspaceViewSnapshot = {
@@ -67,7 +69,10 @@ function fixture(
 		],
 	};
 	const calls: DirectRpc[] = [];
+	let catalogGate: Promise<void> | null = null;
+	let catalogFailure = false;
 	let nextSave: Promise<void> | null = null;
+	let failLayoutSave = false;
 	let flushHandler: () => Promise<void> = async () => {};
 	let nextCreate: Promise<void> | null = null,
 		createCalls = 0,
@@ -84,6 +89,7 @@ function fixture(
 			navigationRevision: 0,
 		}),
 		saveWorkspaceView: async ({ view }: { view: WorkspaceViewSnapshot }) => {
+			if (failLayoutSave) throw new Error("Layout save failed");
 			const gate = nextSave;
 			nextSave = null;
 			if (gate) await gate;
@@ -100,6 +106,15 @@ function fixture(
 		},
 		rpc: async (r: DirectRpc) => {
 			calls.push(r);
+			if (r.path === "settings.terminalPresets.catalogWithRevisionV1") {
+				await catalogGate;
+				if (catalogFailure) throw new Error("Catalog unavailable");
+				return {
+					initialized: true,
+					presets: structuredClone(triggerPresets ?? []),
+					revision: "a".repeat(64),
+				};
+			}
 			if (r.path === "terminal.createSession") {
 				createCalls++;
 				const gate = nextCreate;
@@ -148,6 +163,19 @@ function fixture(
 		calls,
 		saved: () => backing,
 		flush: () => flushHandler(),
+		failLayoutSave: () => {
+			failLayoutSave = true;
+		},
+		failCatalog: () => {
+			catalogFailure = true;
+		},
+		pauseCatalog: () => {
+			let release = () => {};
+			catalogGate = new Promise<void>((resolve) => {
+				release = resolve;
+			});
+			return release;
+		},
 		pauseNextCreate: () => {
 			let release = () => {};
 			nextCreate = new Promise<void>((resolve) => {
@@ -604,4 +632,264 @@ test("normal window flush also waits for an ordinary terminal launch and its vie
 	expect(
 		f.calls.filter((r) => r.path === "terminal.createSession"),
 	).toHaveLength(1);
+});
+
+test("an explicit new terminal tab runs only the original project trigger choices in bar order as fresh tabs", async () => {
+	const presets = [
+		{
+			...scriptPreset("new-tab"),
+			id: "global",
+			commands: ["global"],
+			applyOnNewTab: true,
+			projectIds: null,
+			tabOrder: 0,
+		},
+		{
+			...scriptPreset("split-pane"),
+			id: "later",
+			name: "Later",
+			commands: ["second"],
+			applyOnNewTab: true,
+			projectIds: ["project"],
+			tabOrder: 9,
+			pinnedToBar: false,
+		},
+		{
+			...scriptPreset("sequential"),
+			id: "first",
+			name: "First",
+			commands: ["first"],
+			applyOnNewTab: true,
+			projectIds: ["project"],
+			tabOrder: 2,
+		},
+		{
+			...scriptPreset("new-tab"),
+			id: "other",
+			commands: ["wrong project"],
+			applyOnNewTab: true,
+			projectIds: ["other-project"],
+			tabOrder: 1,
+		},
+	];
+	const f = fixture(true, undefined, presets);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	const mutations = f.calls.filter((r) => r.type === "mutation");
+	expect(
+		mutations.map(
+			(r) => (r.input as { initialCommand: string }).initialCommand,
+		),
+	).toEqual(["first", "second"]);
+	expect(mutations.every((r) => r.path === "terminal.createSession")).toBe(
+		true,
+	);
+	const w = f.saved().targets[0]!.workspaces[0]!;
+	expect(w.panes[0]?.resourceId).toBe("retained");
+	expect(w.paneTabs?.map((t) => t.label).slice(1)).toEqual(["First", "Later"]);
+});
+
+test("split and explicit agent launches do not evaluate new-tab triggers", async () => {
+	const f = fixture(true, undefined, [
+		{ ...scriptPreset("new-tab"), applyOnNewTab: true },
+	]);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "vertical"),
+	);
+	await act(async () =>
+		f.hook.result.current.newTerminal(
+			"workspace",
+			"horizontal",
+			{ initialCommand: "explicit agent", label: "Agent" },
+			{ placement: "new-tab" },
+		),
+	);
+	expect(
+		f.calls.some(
+			(r) => r.path === "settings.terminalPresets.catalogWithRevisionV1",
+		),
+	).toBe(false);
+	expect(f.calls.filter((r) => r.type === "mutation")).toHaveLength(2);
+});
+
+test("an intentionally empty script catalog still opens one ordinary terminal without reseeding presets", async () => {
+	const f = fixture(true, undefined, []);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	expect(
+		f.calls.filter((r) => r.type === "mutation").map((r) => r.path),
+	).toEqual(["terminal.createSession"]);
+	expect(
+		f.calls.filter(
+			(r) => r.path === "settings.terminalPresets.catalogWithRevisionV1",
+		),
+	).toHaveLength(1);
+});
+
+test("close waits for the trigger lookup and a target switch prevents all late trigger commands", async () => {
+	const f = fixture(true, undefined, [
+		{ ...scriptPreset("new-tab"), applyOnNewTab: true },
+	]);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const release = f.pauseCatalog();
+	let run: Promise<unknown>,
+		closed = false;
+	act(() => {
+		run = f.hook.result.current.newTerminal(
+			"workspace",
+			"horizontal",
+			undefined,
+			{ placement: "new-tab" },
+		);
+	});
+	await waitFor(() =>
+		expect(
+			f.calls.some(
+				(r) => r.path === "settings.terminalPresets.catalogWithRevisionV1",
+			),
+		).toBe(true),
+	);
+	const closing = f.flush().then(() => {
+		closed = true;
+	});
+	await Promise.resolve();
+	expect(closed).toBe(false);
+	act(() => f.switchTarget());
+	await act(async () => {
+		release();
+		await run;
+		await closing;
+	});
+	expect(f.calls.filter((r) => r.type === "mutation")).toEqual([]);
+	expect(closed).toBe(true);
+});
+
+test("workspace creation presets run only through their explicit trigger and never type into an existing terminal", async () => {
+	const f = fixture(true, undefined, [
+		{
+			...scriptPreset("sequential"),
+			applyOnWorkspaceCreated: true,
+			commands: ["creation"],
+		},
+		{
+			...scriptPreset("new-tab"),
+			id: "empty",
+			applyOnWorkspaceCreated: true,
+			commands: [],
+		},
+	]);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	expect(f.calls).toEqual([]);
+	await act(async () =>
+		f.hook.result.current.runWorkspaceCreationPresets("workspace"),
+	);
+	const writes = f.calls.filter((r) => r.type === "mutation");
+	expect(writes).toHaveLength(1);
+	expect(writes[0]?.path).toBe("terminal.createSession");
+	expect(writes[0]?.input).toMatchObject({ initialCommand: "creation" });
+});
+
+test("two new-tab clicks during a trigger lookup share one action and never create an extra shell", async () => {
+	const f = fixture(true, undefined, [
+		{ ...scriptPreset("sequential"), applyOnNewTab: true, commands: ["one"] },
+	]);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const release = f.pauseCatalog();
+	let first: Promise<unknown>, second: Promise<unknown>;
+	act(() => {
+		first = f.hook.result.current.newTerminal(
+			"workspace",
+			"horizontal",
+			undefined,
+			{ placement: "new-tab" },
+		);
+		second = f.hook.result.current.newTerminal(
+			"workspace",
+			"horizontal",
+			undefined,
+			{ placement: "new-tab" },
+		);
+	});
+	expect(second!).toBe(first!);
+	await act(async () => {
+		release();
+		await first;
+		await second;
+	});
+	expect(f.calls.filter((r) => r.type === "mutation")).toHaveLength(1);
+});
+
+test("a lost trigger creation response stops later presets without retrying the unresolved command", async () => {
+	const errors: string[] = [];
+	const f = fixture(true, (e) => errors.push(e), [
+		{
+			...scriptPreset("new-tab"),
+			applyOnNewTab: true,
+			commands: ["first"],
+			tabOrder: 0,
+		},
+		{
+			...scriptPreset("new-tab"),
+			id: "next",
+			applyOnNewTab: true,
+			commands: ["must not start"],
+			tabOrder: 1,
+		},
+	]);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	f.failCreate(1);
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	expect(f.calls.filter((r) => r.type === "mutation")).toHaveLength(1);
+	expect(errors.some((e) => e.includes("Response lost"))).toBe(true);
+	expect(f.saved().targets[0]?.workspaces[0]?.panes).toHaveLength(1);
+});
+
+test("a failed trigger catalog read keeps the requested action explicit and never substitutes a blank shell", async () => {
+	const errors: string[] = [];
+	const f = fixture(true, (e) => errors.push(e), []);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	f.failCatalog();
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	expect(f.calls.filter((r) => r.type === "mutation")).toEqual([]);
+	expect(errors.some((e) => e.includes("Catalog unavailable"))).toBe(true);
+});
+
+test("a failed first preset layout save prevents later triggered launches", async () => {
+	const errors: string[] = [];
+	const f = fixture(true, (e) => errors.push(e), [
+		{ ...scriptPreset("new-tab"), commands: ["first"], applyOnNewTab: true },
+		{
+			...scriptPreset("new-tab"),
+			id: "later",
+			commands: ["later"],
+			applyOnNewTab: true,
+			tabOrder: 1,
+		},
+	]);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	f.failLayoutSave();
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	expect(f.calls.filter((r) => r.type === "mutation")).toHaveLength(1);
+	expect(errors.length).toBeGreaterThan(0);
 });

@@ -2,6 +2,7 @@ import { useLingui } from "@lingui/react/macro";
 import type {
 	HostAgentConfig,
 	HostTerminalPreset,
+	HostTerminalPresetCatalog,
 } from "@superset/host-service/settings";
 import { formatNumber } from "@superset/i18n/format";
 import { createWorkspaceStore, type WorkspaceState } from "@superset/panes";
@@ -16,6 +17,7 @@ import {
 } from "renderer/stores/tabs/preset-launch";
 import { toAbsoluteWorkspacePath } from "shared/absolute-paths";
 import { presetMatchesProjectId } from "shared/preset-project-targeting";
+import { getPresetsForTriggerField } from "shared/preset-trigger-selection";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -80,7 +82,6 @@ export function useWorkspaceViews(
 	const [resources, setResources] = useState<RestoreResourceCheck[]>([]);
 	const [resourceRevision, setResourceRevision] = useState(0);
 	const [busy, setBusy] = useState(false);
-	const operationBusy = useRef(false);
 	const pendingTerminalAction = useRef<Promise<void> | null>(null);
 	const [navigationEpoch, setNavigationEpoch] = useState(0);
 	const viewRef = useRef(view);
@@ -175,17 +176,19 @@ export function useWorkspaceViews(
 		await queue.current;
 	}, []);
 	const trackTerminalAction = useCallback((action: () => Promise<void>) => {
-		if (operationBusy.current)
-			return pendingTerminalAction.current ?? Promise.resolve();
+		if (pendingTerminalAction.current) return pendingTerminalAction.current;
+		setBusy(true);
 		const pending = action();
 		pendingTerminalAction.current = pending;
 		const clear = () => {
-			if (pendingTerminalAction.current === pending)
-				pendingTerminalAction.current = null;
+			if (pendingTerminalAction.current !== pending) return;
+			pendingTerminalAction.current = null;
+			if (mounted.current) setBusy(false);
 		};
 		void pending.then(clear, clear);
 		return pending;
 	}, []);
+
 	useEffect(() => {
 		mounted.current = true;
 		if (!enabled)
@@ -613,8 +616,7 @@ export function useWorkspaceViews(
 				!descriptor?.capabilities?.durableOperations ||
 				!descriptor.capabilities.terminals ||
 				(launch &&
-					descriptor.capabilities.workstationTerminalPresetsV1 !== true) ||
-				operationBusy.current
+					descriptor.capabilities.workstationTerminalPresetsV1 !== true)
 			)
 				return;
 			if (
@@ -625,8 +627,6 @@ export function useWorkspaceViews(
 				callbacksRef.current.onError(labelsRef.current.saveFailed);
 				return;
 			}
-			operationBusy.current = true;
-			setBusy(true);
 			const captured = navigation.current;
 			const id = crypto.randomUUID();
 			try {
@@ -666,36 +666,28 @@ export function useWorkspaceViews(
 			} catch (error) {
 				if (mounted.current && captured === navigation.current)
 					callbacksRef.current.onError(String(error));
-			} finally {
-				operationBusy.current = false;
-				if (mounted.current) setBusy(false);
 			}
 		},
 		[addPane, api],
-	);
-	const newTerminal = useCallback(
-		(...args: Parameters<typeof executeNewTerminal>) =>
-			trackTerminalAction(() => executeNewTerminal(...args)),
-		[executeNewTerminal, trackTerminalAction],
 	);
 	const executeTerminalPreset = useCallback(
 		async (
 			workspaceId: string,
 			preset: HostTerminalPreset,
 			agents: HostAgentConfig[],
+			options?: { target: "new-tab" },
 		) => {
 			const descriptor = connectionRef.current;
 			if (
 				!descriptor?.capabilities?.durableOperations ||
 				!descriptor.capabilities.terminals ||
-				descriptor.capabilities.workstationTerminalScriptExecutionV1 !== true ||
-				operationBusy.current
+				descriptor.capabilities.workstationTerminalScriptExecutionV1 !== true
 			)
-				return;
+				return false;
 			const workspace = viewRef.current?.targets
 				.find((t) => t.connectionId === descriptor.connectionId)
 				?.workspaces.find((w) => w.workspaceId === workspaceId);
-			if (!workspace) return;
+			if (!workspace) return false;
 			const captured = navigation.current;
 			const current = () =>
 				mounted.current &&
@@ -719,10 +711,11 @@ export function useWorkspaceViews(
 			const plan = getPresetLaunchPlan({
 				mode: preset.executionMode,
 				target:
-					preset.executionMode === "split-pane" ||
+					options?.target ??
+					(preset.executionMode === "split-pane" ||
 					preset.executionMode === "sequential"
 						? "active-tab"
-						: "new-tab",
+						: "new-tab"),
 				commandCount: launchCommands.length,
 				hasActiveTab: !!activeTabId,
 				hasActiveTerminal: !!activeTerminal,
@@ -735,10 +728,8 @@ export function useWorkspaceViews(
 				).length ?? 0;
 			if (existingCount + count > 64) {
 				callbacksRef.current.onError(labelsRef.current.saveFailed);
-				return;
+				return false;
 			}
-			operationBusy.current = true;
-			setBusy(true);
 			try {
 				const metadata = await api.rpc<{
 					projectId: string;
@@ -751,13 +742,13 @@ export function useWorkspaceViews(
 					input: { id: workspaceId },
 				});
 				if (!current() || !presetMatchesProjectId(preset, metadata.projectId))
-					return;
+					return false;
 				const cwd = preset.cwd.trim()
 					? toAbsoluteWorkspacePath(metadata.worktreePath, preset.cwd.trim())
 					: undefined;
 				if (plan === "active-terminal" && activeTerminal?.executionId) {
 					const text = buildFocusedTerminalCommand({ commands, cwd });
-					if (!text) return;
+					if (!text) return false;
 					const [checked] = await api.rpc<RestoreResourceCheck[]>({
 						connectionId: descriptor.connectionId,
 						generation: descriptor.generation,
@@ -774,7 +765,7 @@ export function useWorkspaceViews(
 							],
 						},
 					});
-					if (!current()) return;
+					if (!current()) return false;
 					if (
 						checked?.state !== "live" ||
 						checked.executionId !== activeTerminal.executionId
@@ -810,7 +801,7 @@ export function useWorkspaceViews(
 							)
 								pane.label = preset.name.slice(0, 128);
 						});
-					return;
+					return current();
 				}
 				const launches = Array.from({ length: count }, (_, index) => ({
 					command: launchCommands[index],
@@ -821,7 +812,7 @@ export function useWorkspaceViews(
 				const created: WorkspacePane[] = [];
 				let failure: unknown;
 				for (const launch of launches) {
-					if (!current()) return;
+					if (!current()) return false;
 					try {
 						await api.rpc({
 							connectionId: descriptor.connectionId,
@@ -849,7 +840,7 @@ export function useWorkspaceViews(
 						break;
 					}
 				}
-				if (!current()) return;
+				if (!current()) return false;
 				if (created.length) {
 					const prepared = createWorkspaceStore<WorkspacePane>();
 					const inputs = created.map((pane) => ({
@@ -872,7 +863,7 @@ export function useWorkspaceViews(
 							panes: inputs as [(typeof inputs)[number], ...typeof inputs],
 						});
 					let rejected = false;
-					await changeWorkspace(workspaceId, (w) => {
+					const saved = await changeWorkspace(workspaceId, (w) => {
 						const before = toPaneState(w),
 							store = createWorkspaceStore({ initialState: before });
 						if (
@@ -881,7 +872,7 @@ export function useWorkspaceViews(
 						) {
 							if (!activeTabId || !store.getState().getTab(activeTabId)) {
 								rejected = true;
-								return;
+								return false;
 							}
 							for (const pane of inputs)
 								store
@@ -897,22 +888,128 @@ export function useWorkspaceViews(
 							rejected = true;
 						}
 					});
-					if (rejected)
+					if (!saved) return false;
+					if (rejected) {
 						callbacksRef.current.onError(labelsRef.current.saveFailed);
+						return false;
+					}
 				}
 				if (failure) throw failure;
+				return current();
 			} catch (error) {
 				if (current()) callbacksRef.current.onError(String(error));
-			} finally {
-				operationBusy.current = false;
-				if (mounted.current) setBusy(false);
+				return false;
 			}
 		},
 		[api, changeWorkspace],
 	);
+	const executePresetTrigger = useCallback(
+		async (
+			workspaceId: string,
+			field: "applyOnNewTab" | "applyOnWorkspaceCreated",
+		): Promise<"none" | "handled" | "cancelled"> => {
+			const descriptor = connectionRef.current;
+			if (
+				!descriptor?.capabilities?.durableOperations ||
+				!descriptor.capabilities.terminals ||
+				descriptor.capabilities.workstationTerminalScriptsV1 !== true ||
+				descriptor.capabilities.workstationTerminalScriptExecutionV1 !== true
+			)
+				return "none";
+			const captured = navigation.current;
+			const current = () =>
+				mounted.current &&
+				connectionRef.current === descriptor &&
+				navigation.current === captured;
+			const query = <T>(path: string, input?: unknown) =>
+				api.rpc<T>({
+					connectionId: descriptor.connectionId,
+					generation: descriptor.generation,
+					path,
+					type: "query",
+					...(input === undefined ? {} : { input }),
+				});
+			try {
+				const metadata = await query<{ projectId: string | null }>(
+					"workspace.get",
+					{ id: workspaceId },
+				);
+				if (!current()) return "cancelled";
+				const catalog = await query<HostTerminalPresetCatalog>(
+					"settings.terminalPresets.catalogWithRevisionV1",
+				);
+				if (!current()) return "cancelled";
+				const presets = getPresetsForTriggerField(
+					catalog.presets,
+					field,
+					metadata.projectId,
+				).sort((a, b) => a.tabOrder - b.tabOrder);
+				if (!presets.length) return "none";
+				let agents: HostAgentConfig[] = [];
+				if (presets.some((p) => p.agentId)) {
+					if (descriptor.capabilities.workstationAgentCatalogV2 !== true) {
+						callbacksRef.current.onError(labelsRef.current.saveFailed);
+						return "cancelled";
+					}
+					agents = (
+						await query<{ configs: HostAgentConfig[] }>(
+							"settings.agentConfigs.catalogWithRevisionV2",
+						)
+					).configs;
+					if (!current()) return "cancelled";
+				}
+				for (const preset of presets) {
+					if (!current()) return "cancelled";
+					if (
+						field === "applyOnWorkspaceCreated" &&
+						!resolvePresetLaunchCommands(preset, agents).length
+					)
+						continue;
+					if (
+						!(await executeTerminalPreset(workspaceId, preset, agents, {
+							target: "new-tab",
+						}))
+					)
+						return "cancelled";
+				}
+				return "handled";
+			} catch (error) {
+				if (current()) callbacksRef.current.onError(String(error));
+				return "cancelled";
+			}
+		},
+		[api, executeTerminalPreset],
+	);
+	const newTerminal = useCallback(
+		(...args: Parameters<typeof executeNewTerminal>) =>
+			trackTerminalAction(async () => {
+				const owner = connectionRef.current,
+					captured = navigation.current;
+				if (
+					!args[2] &&
+					args[3]?.placement === "new-tab" &&
+					(await executePresetTrigger(args[0], "applyOnNewTab")) !== "none"
+				)
+					return;
+				if (connectionRef.current !== owner || navigation.current !== captured)
+					return;
+				await executeNewTerminal(...args);
+			}),
+		[executeNewTerminal, executePresetTrigger, trackTerminalAction],
+	);
+	const runWorkspaceCreationPresets = useCallback(
+		(workspaceId: string) =>
+			trackTerminalAction(async () => {
+				await executePresetTrigger(workspaceId, "applyOnWorkspaceCreated");
+			}),
+		[executePresetTrigger, trackTerminalAction],
+	);
+
 	const launchTerminalPreset = useCallback(
 		(...args: Parameters<typeof executeTerminalPreset>) =>
-			trackTerminalAction(() => executeTerminalPreset(...args)),
+			trackTerminalAction(async () => {
+				await executeTerminalPreset(...args);
+			}),
 		[executeTerminalPreset, trackTerminalAction],
 	);
 	const saveLayout = useCallback(
@@ -1043,6 +1140,7 @@ export function useWorkspaceViews(
 		addPane,
 		newTerminal,
 		launchTerminalPreset,
+		runWorkspaceCreationPresets,
 		saveLayout,
 		savePaneState,
 		restoreManual,

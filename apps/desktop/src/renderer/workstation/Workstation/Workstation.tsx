@@ -208,9 +208,12 @@ export function Workstation({
 	) => {
 		const workspace = created ?? ui.workspaces.find((w) => w.id === id);
 		if (managesViews && workspace) {
-			if (await views.openWorkspace(workspace, terminals))
-				ui.restoreWorkspaceSelection(id);
-		} else await ui.selectWorkspace(id);
+			const opened = await views.openWorkspace(workspace, terminals);
+			if (opened) ui.restoreWorkspaceSelection(id);
+			return opened;
+		}
+		await ui.selectWorkspace(id);
+		return true;
 	};
 	const changeTarget = (id: string) => {
 		const profile = ui.profiles.find((p) => p.id === id);
@@ -281,7 +284,12 @@ export function Workstation({
 				return;
 			setCreate(null);
 			await ui.refresh(target);
-			await openWorkspace(
+			if (
+				ui.active.current !== target ||
+				selectedRef.current !== target.connectionId
+			)
+				return;
+			const opened = await openWorkspace(
 				result.workspace.id,
 				result.workspace,
 				result.terminals?.map((terminal) => ({
@@ -292,6 +300,14 @@ export function Workstation({
 							: terminal.label,
 				})),
 			);
+			if (
+				opened &&
+				managesViews &&
+				ui.active.current === target &&
+				selectedRef.current === target.connectionId
+			) {
+				await views.runWorkspaceCreationPresets(result.workspace.id);
+			}
 			if (
 				ui.active.current === target &&
 				Array.isArray(result.setupWarnings) &&
