@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {execFile} from 'node:child_process';
-import {existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
+import {createReadStream,existsSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
@@ -18,17 +19,18 @@ const application=arg('application'),output=arg('output'),cli=arg('cli');
 const executable=join(application,'node_modules/electron/dist/electron');
 assert.equal(process.platform,'linux');assert.ok(process.getuid()>0);assert.ok(existsSync(cli));mkdirSync(output,{recursive:true});
 const root=mkdtempSync(join(tmpdir(),'remix-cli-actual-'));
+const cliHash=createHash('sha256');for await(const chunk of createReadStream(cli))cliHash.update(chunk);const cliSha256=cliHash.digest('hex');
 const legacyHome=join(root,'legacy-config');mkdirSync(legacyHome,{mode:0o700});
 const cliEnv={PATH:process.env.PATH,LANG:'C.UTF-8',LC_ALL:'C.UTF-8',SUPERSET_HOME_DIR:legacyHome};
 const fixtures=[],runs=[];
-async function invoke(label,args,success=true){
+async function invoke(label,args,success=true,json=true){
  let stdout='',stderr='',exitCode=0;
- try{const result=await run(cli,[...args,'--json'],{env:cliEnv,timeout:20000,maxBuffer:4*1024*1024});stdout=result.stdout;stderr=result.stderr;}
+ try{const result=await run(cli,json?[...args,'--json']:args,{env:cliEnv,timeout:20000,maxBuffer:4*1024*1024});stdout=result.stdout;stderr=result.stderr;}
  catch(error){stdout=error.stdout??'';stderr=error.stderr??'';exitCode=typeof error.code==='number'?error.code:-1;}
  writeFileSync(join(output,label+'.stdout'),stdout);writeFileSync(join(output,label+'.stderr'),stderr);
- const record={label,args,exitCode};runs.push(record);writeFileSync(join(output,'cli-runs.json'),JSON.stringify(runs,null,2)+'\n');
+ const record={label,args,json,exitCode};runs.push(record);writeFileSync(join(output,'cli-runs.json'),JSON.stringify(runs,null,2)+'\n');
  assert.equal(exitCode===0,success,label+': '+stderr);
- return success?JSON.parse(stdout):stderr;
+ return success?(json?JSON.parse(stdout):stdout):stderr;
 }
 function stats(f){
  const db=new DatabaseSync(f.dbPath,{readOnly:true});
@@ -60,6 +62,8 @@ function seed(f){
  Object.assign(f,{projectId,workspaceId,sessionId,agentId,scriptId,repo});
 }
 try{
+ const version=await invoke('cli-version',['--version'],true,false);assert.equal(version.trim(),JSON.parse(readFileSync(join(application,'package.json'),'utf8')).version);
+ assert.ok((await invoke('namespace-help',['agents','list','--help'],true,false)).includes('--namespace'));
  const a=await fixture('A'),b=await fixture('B');
  const empty=stats(a);
  assert.deepEqual(await invoke('empty-agents',['agents','list','--namespace',a.home]),[]);
@@ -83,12 +87,13 @@ try{
  assert.equal((await invoke('A-agents-return',['agents','list','--namespace',a.home]))[0].id,a.agentId);
  assert.match(await invoke('legacy-auth',['agents','list','--local'],false),/Not logged in/);
  assert.match(await invoke('conflicting-target',['projects','list','--namespace',a.home,'--host','other'],false),/either --namespace or --host/);
+ assert.match(await invoke('unsupported-write',['scripts','add','--namespace',a.home,'--name','refused','--command','echo refused'],false),/Unknown option: --namespace/);
  const missing=join(root,'never-created');await invoke('missing-target',['projects','list','--namespace',missing],false);assert.equal(existsSync(missing),false);
  await a.backend.stop();a.stopped=true;
  assert.match(await invoke('stopped-target',['agents','list','--namespace',a.home],false),/stopped|unavailable/);
  assert.equal((await invoke('B-after-A-stop',['agents','list','--namespace',b.home]))[0].id,b.agentId);
  assert.deepEqual(await promisify((await import('node:fs')).readdir)(legacyHome),[],'namespace commands and legacy auth failure write no account or telemetry state');
- writeFileSync(join(output,'namespace-cli-acceptance.json'),JSON.stringify({sourceRevision:process.env.GITHUB_SHA,mode:'actual compiled Linux CLI and two owned same-machine Unix backends; no GUI or SSH deployment claim',empty,fixtures:fixtures.map(f=>({label:f.label,namespaceId:f.identity.namespaceId,backendId:f.identity.backendId,home:f.home,execution:{id:f.execution.id,executionId:f.execution.executionId,pid:f.execution.pid},records:f.before})),runs,cloudAccountRequired:false,macOSVerified:false},null,2)+'\n');
+ writeFileSync(join(output,'namespace-cli-acceptance.json'),JSON.stringify({sourceRevision:process.env.GITHUB_SHA,cliSha256,version:version.trim(),mode:'actual compiled Linux CLI and two owned same-machine Unix backends; no GUI or SSH deployment claim',empty,fixtures:fixtures.map(f=>({label:f.label,namespaceId:f.identity.namespaceId,backendId:f.identity.backendId,home:f.home,execution:{id:f.execution.id,executionId:f.execution.executionId,pid:f.execution.pid},records:f.before})),runs,cloudAccountRequired:false,macOSVerified:false},null,2)+'\n');
 }finally{
  const cleanup=await Promise.allSettled(fixtures.map(async f=>{try{if(!f.stopped)await f.backend.stop();}finally{f.connection.close();}}));
  const failed=cleanup.filter(result=>result.status==='rejected');
