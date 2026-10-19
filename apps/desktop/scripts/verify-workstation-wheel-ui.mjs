@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { agentUiDriver } from "./verify-workstation-agent-ui-driver.mjs";
-export async function verifyWorkstationWheelUi({getPage, click, screenshot, output}) {
+export async function verifyWorkstationWheelUi({getPage, click, screenshot, output, setClipboard, pasteClipboard, readClipboardText}) {
  const {evaluate, until} = agentUiDriver({getPage,click,screenshot,output});
  const scope = await evaluate(`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const {snapshot:v}=await window.directWorkstation.getWorkspaceView();const t=v.targets.find(t=>t.connectionId===d.connectionId),w=t.workspaces.find(w=>w.tabId===t.activeTabId);const row=await window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:'workspace.get',type:'query',input:{id:w.workspaceId}});return {d,w,root:row.worktreePath};})()`);
  const rpc=(path,input)=>evaluate(`window.directWorkstation.rpc(${JSON.stringify({connectionId:scope.d.connectionId,generation:scope.d.generation,path,type:'query',input:{workspaceId:scope.w.workspaceId,...input}})})`);
@@ -32,6 +32,26 @@ export async function verifyWorkstationWheelUi({getPage, click, screenshot, outp
  const review=await until(()=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}+' [data-terminal-scrollback-review]'),p=e?.querySelector('pre');return p&&{text:p.textContent,scrollTop:p.scrollTop,scrollHeight:p.scrollHeight,clientHeight:p.clientHeight};})()`),'client history review visible');
  assert.ok(review.text.includes('FIRST SCREEN')&&review.text.includes('SECOND SCREEN')&&review.text.includes('SHELL HISTORY 001'));
  assert.ok(review.scrollTop < review.scrollHeight-review.clientHeight);
+ if(process.argv.includes('--wheel-clipboard')) {
+  const selectionRect=await evaluate(`(()=>{const p=document.querySelector(${JSON.stringify(selector)}+' [data-terminal-scrollback-review] pre'),n=p.firstChild,i=n.textContent.indexOf('FIRST SCREEN');const range=document.createRange();range.setStart(n,i);range.setEnd(n,i+'FIRST SCREEN 中文'.length);const r=range.getBoundingClientRect();return {x:r.x+1,y:r.y+r.height/2,endX:r.right-1};})()`);
+  await getPage().call('Input.dispatchMouseEvent',{type:'mousePressed',x:selectionRect.x,y:selectionRect.y,button:'left',clickCount:1});
+  await getPage().call('Input.dispatchMouseEvent',{type:'mouseMoved',x:selectionRect.endX,y:selectionRect.y,button:'left',buttons:1});
+  await getPage().call('Input.dispatchMouseEvent',{type:'mouseReleased',x:selectionRect.endX,y:selectionRect.y,button:'left',clickCount:1});
+  const selection=await evaluate(`window.getSelection()?.toString()`);
+  writeFileSync(join(output,'wheel-history-selection.json'),JSON.stringify({selectionRect,selection},null,2)+'\n');
+  assert.ok(selection?.includes('FIRST SCREEN'),'mouse drag selects visible client history text');
+  for(const type of ['keyDown','keyUp'])await getPage().call('Input.dispatchKeyEvent',{type,key:'c',code:'KeyC',windowsVirtualKeyCode:67,modifiers:process.platform==='darwin'?4:2});
+  assert.equal(await readClipboardText(),selection,'native copy preserves the history selection');
+  await evaluate(`(()=>{window.wheelReviewPastes=[];document.addEventListener('paste',e=>window.wheelReviewPastes.push({review:Boolean(e.target.closest?.('[data-terminal-scrollback-review]')),files:e.clipboardData.files.length}),true);return true;})()`);
+  const files=async()=>{try{return (await rpc('filesystem.listDirectory',{absolutePath:scope.root+'/.superset/attachments'})).entries.map(e=>e.name).sort();}catch{return [];}};
+  const filesBefore=await files();
+  await setClipboard({imageBase64:readFileSync(join(output,'wheel-tui-after.png')).toString('base64')});await pasteClipboard();
+  const pasted=await until(()=>evaluate('window.wheelReviewPastes.length&&window.wheelReviewPastes'),'real image paste dispatched');
+  await delay(250);const filesAfter=await files(),inputAfter=await state();
+  writeFileSync(join(output,'wheel-review-clipboard.json'),JSON.stringify({pasted,filesBefore,filesAfter,inputAfter},null,2)+'\n');
+  assert.equal(pasted[0].review,true);assert.ok(pasted[0].files>0);assert.deepEqual(filesAfter,filesBefore,'history image paste must not upload an attachment');assert.deepEqual(inputAfter.received,before.received);
+  await screenshot('wheel-readonly-history-copy-and-paste');
+ }
  for(const delta of [-1,-3,1,-80,40,-150,20])await wheel(delta);
  assert.deepEqual((await state()).received,before.received);
  await key('Escape',27);await until(()=>evaluate(`!document.querySelector(${JSON.stringify(selector)}+' [data-terminal-scrollback-review]')`),'escape closes review');
