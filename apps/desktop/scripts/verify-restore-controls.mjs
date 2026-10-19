@@ -371,6 +371,15 @@ export function ownedRestoreControls(home, fixture) {
 			}
 		},
 		setAvailable: (value) => fixture.setAvailable(value),
+  pauseOwnedBackend() {
+   assert.equal(process.platform,"linux");
+   const lock=join(home,"state/backend.lock");assert.equal(lstatSync(lock).uid,process.getuid());
+   const match=/^superset-direct-lock-(\d+)-[a-f0-9-]{36}$/.exec(readlinkSync(lock));assert.ok(match);
+   const pid=Number(match[1]);assert.ok(Number.isSafeInteger(pid)&&pid>0&&pid!==process.pid);assert.equal(lstatSync(`/proc/${pid}`).uid,process.getuid());
+   const argv=readFileSync(`/proc/${pid}/cmdline`,"utf8");assert.ok(argv.includes("direct-backend")&&argv.includes(home));
+   process.kill(pid,"SIGSTOP");let resumed=false;
+   return {pid,resume(){if(!resumed){resumed=true;process.kill(pid,"SIGCONT");}}};
+  },
 		async restartHost() {
 			const before = endpoint();
 			const lock = join(home, "state/backend.lock");

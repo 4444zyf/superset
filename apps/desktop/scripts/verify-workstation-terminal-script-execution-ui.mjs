@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import {writeFileSync} from "node:fs";
 import {join} from "node:path";
+import {setTimeout as delay} from "node:timers/promises";
 import {agentUiDriver} from "./verify-workstation-agent-ui-driver.mjs";
-export async function verifyWorkstationTerminalScriptExecutionUi({getPage,click,screenshot,output,closeReopen,controls}){
+export async function verifyWorkstationTerminalScriptExecutionUi({getPage,click,screenshot,output,closeReopen,requestClose,controls}){
  const list='[data-workstation-terminal-scripts]',editor='[data-terminal-preset-editor]';
  const driver=agentUiDriver({getPage,click,screenshot,output,rootSelector:editor}),listing=agentUiDriver({getPage,click,screenshot,output,rootSelector:list});
  const {evaluate,until,replace,scrollTo,scrollText}=driver;
@@ -56,5 +57,23 @@ export async function verifyWorkstationTerminalScriptExecutionUi({getPage,click,
  const contents={a:await read('preset-a.txt'),b:await read('preset-b.txt')};await closeReopen();await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(button)}+':not(:disabled)'))`),'script bar restored');
  assert.equal(await read('preset-a.txt'),contents.a);assert.equal(await read('preset-b.txt'),contents.b);
  const restored=await view();assert.deepEqual(restored.paneTabs,last.paneTabs);for(let i=0;i<pids.length;i++)assert.equal((await controls.inspectPresetTerminal(last.panes[i].resourceId)).pid,pids[i].pid);
- await screenshot('terminal-script-execution-reopen-no-replay');writeFileSync(join(output,'terminal-script-execution.json'),JSON.stringify({presetId:preset.id,folder,snapshots,contents,pids:pids.map(p=>p.pid),restored,errors:getPage().errors},null,2)+'\n');assert.deepEqual(getPage().errors,[]);
+ await screenshot('terminal-script-execution-reopen-no-replay');
+ let closeWhileLaunching=null;
+ if(process.argv.includes('--terminal-script-close-inflight')){
+  await open();await listing.scrollTo(`${list} [data-terminal-preset-id="${preset.id}"]`);await click(`${list} [data-terminal-preset-id="${preset.id}"]`);await until(()=>evaluate(`Boolean(document.querySelector('${editor} #preset-directory'))`),'close test script editor');
+  await set(`${editor} div[class~="group/command-row"]:nth-child(1) input`,"printf 'A window-close\\n' >> preset-a.txt");await set(`${editor} div[class~="group/command-row"]:nth-child(2) input`,"printf 'B window-close\\n' >> preset-b.txt");await setMode('new-tab');await done();await closeList();
+  const paused=controls.pauseOwnedBackend();let alive=false,busy=false;
+  try{
+   await click(button);busy=await evaluate(`document.querySelector(${JSON.stringify(button)}).disabled`);assert.equal(busy,true,'script launch began before close');
+   await requestClose('window');await delay(200);
+   try{alive=await evaluate('document.readyState!==undefined');}catch{alive=false;}
+   writeFileSync(join(output,'terminal-script-close-held.json'),JSON.stringify({pid:paused.pid,busy,alive},null,2)+'\n');
+  }finally{paused.resume();}
+  assert.equal(alive,true,'normal window close waits for the requested script launch and saved layout');
+  await closeReopen(true);await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(button)}+':not(:disabled)'))`),'in-flight launch restored');
+  const afterClose=await view();assert.equal(afterClose.panes.length,last.panes.length+2);assert.equal(await read('preset-a.txt'),contents.a+'A window-close\n');assert.equal(await read('preset-b.txt'),contents.b+'B window-close\n');
+  await until(()=>evaluate(`(()=>{const rows=[...document.querySelectorAll('[data-terminal-id]')];return rows.length>0&&rows.every(e=>e.dataset.restoreState==='attached');})()`),'in-flight launched terminal attached');
+  closeWhileLaunching={busy,alive,afterClose,a:await read('preset-a.txt'),b:await read('preset-b.txt')};await screenshot('terminal-script-close-waits-for-launch-and-layout');
+ }
+ writeFileSync(join(output,'terminal-script-execution.json'),JSON.stringify({presetId:preset.id,folder,snapshots,contents,pids:pids.map(p=>p.pid),restored,closeWhileLaunching,errors:getPage().errors},null,2)+'\n');assert.deepEqual(getPage().errors,[]);
 }

@@ -502,7 +502,7 @@ export async function verifyWorkspaceRestoreUi({
  if(process.argv.includes("--terminal-script-execution-only")){
   await click("text:Terminal");await ready();
   const {verifyWorkstationTerminalScriptExecutionUi}=await import("./verify-workstation-terminal-script-execution-ui.mjs");
-  await verifyWorkstationTerminalScriptExecutionUi({getPage,click,screenshot,output,closeReopen,controls});
+  await verifyWorkstationTerminalScriptExecutionUi({getPage,click,screenshot,output,closeReopen,requestClose,controls});
   writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalScriptExecutionOnly:true},null,2)+"\n");return;
  }
  if (process.argv.includes("--wheel-only")) {
