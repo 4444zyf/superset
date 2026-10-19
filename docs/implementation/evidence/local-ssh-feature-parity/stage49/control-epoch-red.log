@@ -1,0 +1,31 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkstation/useWorkstation.test.tsx:
+19 | 	let operation!:Promise<unknown>;
+20 | 	act(()=>{operation=hook.result.current.control(profile,"start");});
+21 | 	const next={connectionId:profile.id,backendId:"backend",namespaceId:"B",instanceId:"instance",generation:2};
+22 | 	act(()=>{hook.result.current.namespaceSelected(profile.id,namespace("B"));hook.result.current.active.current=next;});
+23 | 	await act(async()=>{complete();await operation;});
+24 | 	expect(hook.result.current.active.current).toBe(next);
+                                                 ^
+error: expect(received).toBe(expected)
+
+Expected: {
+  connectionId: "local",
+  backendId: "backend",
+  namespaceId: "B",
+  instanceId: "instance",
+  generation: 2,
+}
+Received: null
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkstation/useWorkstation.test.tsx:24:45)
+(fail) late local control completion cannot clear a newly selected namespace or publish its notice [12.70ms]
+(pass) removing a connection waits for local draft persistence and retains the connection when that save fails [1.63ms]
+(pass) requested creation work remains pending through its follow-up actions until close can proceed [3.53ms]
+(pass) ordinary connection work retains its existing close behavior [7.23ms]
+
+ 3 pass
+ 1 fail
+ 7 expect() calls
+Ran 4 tests across 1 file. [251.00ms]

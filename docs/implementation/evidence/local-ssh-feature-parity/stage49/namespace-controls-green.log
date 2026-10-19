@@ -1,0 +1,35 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [322.39ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [187.71ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [197.10ms]
+(pass) a pending local start disables namespace changes until control completes [97.96ms]
+(pass) a pending local stop disables namespace changes until control completes [131.39ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [142.58ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [75.13ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [109.49ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [103.51ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [96.96ms]
+(pass) opening a development server submits its port for forwarding on B [108.06ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [94.06ms]
+(pass) checking an empty operation journal shows a readable result [62.12ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [89.34ms]
+(pass) offline chat drafts remain reviewable and explicitly discardable without a connection or session [141.16ms]
+(pass) a local workspace opens in the original shared workspace window when restore is supported [99.19ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkstation/useWorkstation.test.tsx:
+(pass) late local control completion cannot clear a newly selected namespace or publish its notice [2.07ms]
+(pass) removing a connection waits for local draft persistence and retains the connection when that save fails [1.10ms]
+(pass) requested creation work remains pending through its follow-up actions until close can proceed [1.06ms]
+(pass) ordinary connection work retains its existing close behavior [0.76ms]
+
+src/renderer/workstation/Workstation/components/LocalDataPanel/LocalDataPanel.test.tsx:
+(pass) selecting a namespace reports the accepted selection without connecting or starting it [8.22ms]
+(pass) cancelling native namespace removal keeps its row and selection [14.01ms]
+(pass) namespace removal targets only an unselected additional row [18.62ms]
+
+ 23 pass
+ 0 fail
+ 78 expect() calls
+Ran 23 tests across 3 files. [2.66s]

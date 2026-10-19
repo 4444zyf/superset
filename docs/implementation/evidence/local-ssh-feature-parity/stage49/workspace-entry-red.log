@@ -1,0 +1,37 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [339.46ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [171.23ms]
+197 | 			screen.getByRole("button", {
+198 | 				name: "Start",
+199 | 			}) as HTMLButtonElement
+200 | 		).disabled,
+201 | 	).toBe(true);
+202 | 	expect((screen.getByRole("button",{name:"Open workspace"}) as HTMLButtonElement).disabled).toBe(true);
+                                                                                                  ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/Workstation.test.tsx:202:93)
+(fail) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [166.69ms]
+(pass) a pending local start disables namespace changes until control completes [103.23ms]
+(pass) a pending local stop disables namespace changes until control completes [115.73ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [132.99ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [71.88ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [133.91ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [143.11ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [107.16ms]
+(pass) opening a development server submits its port for forwarding on B [97.40ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [101.20ms]
+(pass) checking an empty operation journal shows a readable result [80.88ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [142.25ms]
+(pass) offline chat drafts remain reviewable and explicitly discardable without a connection or session [154.90ms]
+(pass) a local workspace opens in the original shared workspace window when restore is supported [95.59ms]
+
+ 15 pass
+ 1 fail
+ 57 expect() calls
+Ran 16 tests across 1 file. [2.84s]

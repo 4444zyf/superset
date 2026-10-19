@@ -940,3 +940,17 @@ beforeClose通过ref读取当前回调，避免root重新渲染导致关闭订�
 第187轮同最终产品/脚本6bbfe08e6，确认所选B及明确Start完成后，本地A/B隔离、切回A、同backend实例重开和完整预设Run/Stop/明确重启/Standalone流程退出0。A原PID66596/66608、未选B PID66694继续存活，Run PID66824及执行ID重开不变，标记满足仅明确操作增加，错误为空；重开/Standalone两张截图已实际查看。全部拥有的测试backend/namespace及SSH夹具经原清理路径停止。[187最终本地预设Run](evidence/local-ssh-feature-parity/source-linux-preset-run/187)。
 
 此阶段完成Run映射与原独立标签恢复，不将CLI、完整预设栏菜单/快捷键、跨控件快速namespace选择与Start保护或其余功能组算作完成；真实macOS/供应商Agent、10秒连接及1.37.7安装包仍需分别验收。
+
+## 阶段四十九：namespace 选择与后端控制共享等待状态
+
+阶段四十八第186轮暴露快速操作边界，本阶段独立复现并修复，不把增加验收前置条件当产品修复。LocalDataPanel复用原useScopedAsync，通过layout effect将自己的等待状态传给机器管理页；选择/创建/刷新请求等待时，Start/Stop、连接及工作区入口禁用，入口回调也检查当前等待ref。原backend control单独暴露controlling，控制等待时namespace表单及子控件通过原生fieldset禁用，选择/提交处理器另拒绝合成事件。等待结束或面板卸载时释放共享状态。普通连接不被算作controlling，原等待中连接仍可通过切换namespace取消，原epoch和晚回复拒绝语义保持。
+
+控制请求额外捕获本地选择epoch，旧成功回复不发布Completed或清除新namespace连接，旧失败不覆盖新目标错误；原主进程LocalDataController的确认/选择身份/导入/停止边界保持，没有改后端协议、迁移、停止默认行为或自动Start/Connect。机器管理页原已连接Open workspace按钮与工作区列表入口补齐既有busy属性，不复制新布局。
+
+组件TDD首先13通过3失败，固定选择等待时Start仍可点，以及Start/Stop等待时selector未禁用；另一个hook测试先3通过1失败，固定旧control完成会清空新namespace。加卸载释放busy、晚列表不回填、外部控制期间合成选择不写API测试；初修23项通过，综合48项176断言通过。随后真实窗口发现Open workspace仍漏禁用，补行为断言得到15通过1失败，再修原按钮与列表入口。最终48项177断言/7文件、桌面类型、17语言严格编译、完整桌面/CLI/5个PTY marker构建及插件检查通过；测试中ByRole不支持exact的类型错误已保留原日志并改用原默认字符串匹配，最终类型和20项工作站/hook复查通过。lint无错误，有既有/测试提示。[阶段四十九红绿与检查](evidence/local-ssh-feature-parity/stage49)。
+
+原生验收只用有界只读MutationObserver（最多128条）观测实际点击/键盘导致的disabled变化，不延迟回复、不注入选择、不修改产品DOM或放宽超时。第188轮旧产品e1fb39db3/脚本44e4bb35a，选择等待的记录为selectionDisabled=true、start/stop/connectionDisabled=false，原断言退出1。第189轮产品2b267ed1d同脚本，Start/Stop已true，但已连接的Open workspace入口仍false，原断言继续退出1。两轮截图已实际查看，截图时选择已结束；短暂等待状态由对应trace记录，未声称截到等待中的画面。[188–189真实输入失败证据](evidence/local-ssh-feature-parity/source-linux-namespace-controls-failures)。
+
+第190轮最终产品66788ed0a/相同脚本，独立本地真实窗口退出0。相同选择流程得到selection/start/stop/connectionDisabled四项均true，接受选择后四项恢复false；明确Start时也均true，Completed后恢复false，然后才明确Connect。继续完整A/B namespace隔离、同backend实例重开和预设Run流程：A原PID69290/69302保持，未选B PID69389仍存活，Run PID69521与执行ID重开不变；明确Stop/重启才新增标记，Standalone全局Run一行，浏览器错误为空。选择后的布局及Run重开两张截图已实际查看；其余截图捕获。拥有的测试backend/namespace经原清理路径停止。[190等待状态与Run完整证据](evidence/local-ssh-feature-parity/source-linux-namespace-controls/190)。
+
+本阶段原生点击的是Start，Stop期间selector保护由组件测试覆盖，未将其写成新的原生Stop确认验收。其余CLI/快捷键/原预设栏完整交互与其他功能组继续推进；真实macOS/供应商Agent、10秒连接及1.37.7安装包仍独立待验。

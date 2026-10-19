@@ -1,0 +1,50 @@
+apps/desktop/src/renderer/workstation/Workstation/Workstation.test.tsx:786:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    784 │ 		).toBe(true);
+    785 │ 		expect(remoteCalls).toEqual([]);
+  > 786 │ 		const article = area.closest("article")!;
+        │ 		                ^^^^^^^^^^^^^^^^^^^^^^^^
+    787 │ 		fireEvent.click(
+    788 │ 			within(article).getByRole("button", { name: "Discard changes" }),
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:973:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    971 │ 									hasUnsavedChanges={() =>
+    972 │ 										documents
+  > 973 │ 											.getDocuments(ui.connection!, deleteWorkspace.id)
+        │ 											              ^^^^^^^^^^^^^^
+    974 │ 											.some((d) => d.dirty || d.pendingSave) ||
+    975 │ 										chatDrafts.hasDrafts({
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:976:15 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    974 │ 											.some((d) => d.dirty || d.pendingSave) ||
+    975 │ 										chatDrafts.hasDrafts({
+  > 976 │ 											...ui.connection!,
+        │ 											   ^^^^^^^^^^^^^^
+    977 │ 											workspaceId: deleteWorkspace.id,
+    978 │ 										})
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:981:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    979 │ 									}
+    980 │ 									onDeleted={(warnings) => {
+  > 981 │ 										const target = ui.connection!;
+        │ 										               ^^^^^^^^^^^^^^
+    982 │ 										setDeleteWorkspace(null);
+    983 │ 
+  
+
+Checked 5 files in 55ms. Fixed 5 files.
+Found 4 warnings.

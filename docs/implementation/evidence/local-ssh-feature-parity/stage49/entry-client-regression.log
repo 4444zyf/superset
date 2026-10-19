@@ -1,0 +1,68 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/local-data-controller.test.ts:
+(pass) namespace switch closes the A transport before replacing trusted pins [0.31ms]
+(pass) pending operations prevent selection before any transport closes [0.36ms]
+(pass) an old Stop confirmation cannot act after selection changes A to B to A [0.25ms]
+(pass) manual import captures its target and reserves selection during the operation [0.32ms]
+(pass) cancelled preparation has no disconnect or backend side effects [0.38ms]
+(pass) pending intents created while a dialog waits also prevent its backend action [0.19ms]
+(pass) explicit control can stop the same namespace while its operation needs reconciliation [0.37ms]
+(pass) a namespace view persistence failure restores the previous selection and pins [0.13ms]
+
+src/renderer/components/RendererLayout/renderer-safety.test.ts:
+(pass) emergency UI has no transitive dependency on router, app providers, or UI libraries [30.73ms]
+(pass) production renderer roots cannot bypass RendererRouter [1466.31ms]
+(pass) every production failure boundary is included in the renderer audit [1244.28ms]
+(pass) settings and dashboard outlets retain their surrounding layout on render errors [2.84ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [271.81ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [145.37ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [154.26ms]
+(pass) a pending local start disables namespace changes until control completes [96.71ms]
+(pass) a pending local stop disables namespace changes until control completes [90.61ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [112.63ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [59.18ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [131.78ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [120.18ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [83.43ms]
+(pass) opening a development server submits its port for forwarding on B [71.24ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [84.75ms]
+(pass) checking an empty operation journal shows a readable result [76.17ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [100.61ms]
+(pass) offline chat drafts remain reviewable and explicitly discardable without a connection or session [124.11ms]
+(pass) a local workspace opens in the original shared workspace window when restore is supported [91.69ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkstation/useWorkstation.test.tsx:
+(pass) late local control completion cannot clear a newly selected namespace or publish its notice [2.07ms]
+(pass) removing a connection waits for local draft persistence and retains the connection when that save fails [1.13ms]
+(pass) requested creation work remains pending through its follow-up actions until close can proceed [1.20ms]
+(pass) ordinary connection work retains its existing close behavior [0.96ms]
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [21.87ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [22.00ms]
+(pass) a clean document permits close immediately and unmounting with a dirty prompt cancels the old request [7.15ms]
+(pass) chat draft storage failure blocks a clean-file window close until an explicit successful Save All retry [10.92ms]
+(pass) unmounting while chat draft storage is loading cannot approve the departed renderer's close request [1.02ms]
+(pass) a late chat-draft flush after the close dialog unmounts cannot start a file save [7.69ms]
+(pass) a transient settings draft shares the original window guard and failed Save All cannot approve close [18.16ms]
+(pass) the original close guard waits for requested work before approving a clean window close [1.34ms]
+(pass) a pending requested action cannot approve close after its window guard unmounts [0.70ms]
+
+src/renderer/workstation/Workstation/components/LocalDataPanel/LocalDataPanel.test.tsx:
+(pass) selecting a namespace reports the accepted selection without connecting or starting it [7.31ms]
+(pass) a namespace panel releases its shared busy state when it unmounts before a reply [2.45ms]
+(pass) pending external backend control blocks a synthetic namespace change as well as normal input [4.07ms]
+(pass) cancelling native namespace removal keeps its row and selection [12.45ms]
+(pass) namespace removal targets only an unselected additional row [9.34ms]
+
+src/renderer/workstation/Workstation/components/LocalDataPanel/hooks/useScopedAsync/useScopedAsync.test.ts:
+(pass) returning to a scope cannot revive an old result or clear a newer operation [1.08ms]
+(pass) unmounting ignores a late failure without retrying its operation [0.87ms]
+
+ 48 pass
+ 0 fail
+ 177 expect() calls
+Ran 48 tests across 7 files. [5.51s]

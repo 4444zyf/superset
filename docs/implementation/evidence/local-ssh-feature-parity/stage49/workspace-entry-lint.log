@@ -1,0 +1,14 @@
+apps/desktop/src/renderer/workstation/Workstation/Workstation.test.tsx:791:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    789 │ 		).toBe(true);
+    790 │ 		expect(remoteCalls).toEqual([]);
+  > 791 │ 		const article = area.closest("article")!;
+        │ 		                ^^^^^^^^^^^^^^^^^^^^^^^^
+    792 │ 		fireEvent.click(
+    793 │ 			within(article).getByRole("button", { name: "Discard changes" }),
+  
+
+Checked 2 files in 53ms. Fixed 1 file.
+Found 1 warning.
