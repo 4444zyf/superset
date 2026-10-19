@@ -92,5 +92,8 @@ export async function verifyWorkstationTerminalScriptExecutionUi({getPage,click,
   ordinaryClose={busy,alive,beforeOrdinary,afterOrdinary};await screenshot('terminal-ordinary-close-waits-for-creation-and-layout');
  }
 
- writeFileSync(join(output,'terminal-script-execution.json'),JSON.stringify({presetId:preset.id,folder,snapshots,contents,pids:pids.map(p=>p.pid),restored,closeWhileLaunching,ordinaryClose,errors:getPage().errors},null,2)+'\n');assert.deepEqual(getPage().errors,[]);
+ const finalView=await view(),finalExecutions=await Promise.all(finalView.panes.map(p=>controls.inspectPresetTerminal(p.resourceId)));
+ for(let index=0;index<pids.length;index++){const current=finalExecutions.find(row=>row.id===pids[index].id);assert.equal(current?.pid,pids[index].pid);assert.equal(current?.executionId,pids[index].executionId);}
+
+ writeFileSync(join(output,'terminal-script-execution.json'),JSON.stringify({presetId:preset.id,folder,snapshots,contents,pids:pids.map(p=>p.pid),restored,closeWhileLaunching,ordinaryClose,finalExecutions:finalExecutions.map(({id,executionId,pid,alive,cwd})=>({id,executionId,pid,alive,cwd})),errors:getPage().errors},null,2)+'\n');assert.deepEqual(getPage().errors,[]);
 }
