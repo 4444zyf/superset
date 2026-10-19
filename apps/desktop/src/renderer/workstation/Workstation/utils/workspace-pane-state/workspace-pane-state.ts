@@ -43,22 +43,99 @@ function layoutMembers(
 	}
 	return result;
 }
+function resourceStructureKey(state: WorkspaceState<WorkspacePane>): string {
+	return JSON.stringify(
+		state.tabs.map((tab) => [
+			tab.id,
+			tab.createdAt,
+			Object.values(tab.panes)
+				.sort((a, b) => a.id.localeCompare(b.id))
+				.map((pane) => [
+					pane.id,
+					pane.kind,
+					pane.data.resourceId,
+					pane.data.executionId,
+				]),
+		]),
+	);
+}
+function mergeField<T>(current: T, before: T, next: T): T {
+	const key = (value: T) => JSON.stringify(value);
+	if (key(next) === key(before)) return current;
+	if (key(current) === key(before) || key(current) === key(next)) return next;
+	throw new Error("Terminal tab field changed in another edit");
+}
+function mergePaneState(
+	current: WorkspaceState<WorkspacePane>,
+	before: WorkspaceState<WorkspacePane>,
+	next: WorkspaceState<WorkspacePane>,
+): WorkspaceState<WorkspacePane> {
+	if (resourceStructureKey(current) !== resourceStructureKey(before)) {
+		if (paneStateMetadataKey(current) === paneStateMetadataKey(next))
+			return current;
+		throw new Error("Terminal tab resources changed");
+	}
+	return {
+		...next,
+		activeTabId: mergeField(
+			current.activeTabId,
+			before.activeTabId,
+			next.activeTabId,
+		),
+		tabs: next.tabs.map((tab) => {
+			const previous = before.tabs.find((t) => t.id === tab.id),
+				saved = current.tabs.find((t) => t.id === tab.id);
+			if (!previous || !saved) return tab;
+			return {
+				...tab,
+				titleOverride: mergeField(
+					saved.titleOverride,
+					previous.titleOverride,
+					tab.titleOverride,
+				),
+				activePaneId: mergeField(
+					saved.activePaneId,
+					previous.activePaneId,
+					tab.activePaneId,
+				),
+				layout: mergeField(saved.layout, previous.layout, tab.layout),
+				panes: Object.fromEntries(
+					Object.entries(tab.panes).map(([id, pane]) => {
+						const oldPane = previous.panes[id],
+							savedPane = saved.panes[id];
+						return [
+							id,
+							oldPane && savedPane
+								? {
+										...pane,
+										titleOverride: mergeField(
+											savedPane.titleOverride,
+											oldPane.titleOverride,
+											pane.titleOverride,
+										),
+									}
+								: pane,
+						];
+					}),
+				),
+			};
+		}),
+	};
+}
 export function applyWorkspacePaneState(
 	workspace: WorkspaceView,
 	next: WorkspaceState<WorkspacePane>,
 	before: WorkspaceState<WorkspacePane>,
 ): boolean {
-	if (
-		paneStateMetadataKey(toPaneState(workspace)) !==
-			paneStateMetadataKey(before) ||
-		next.tabs.length > 64
-	)
-		return false;
+	if (next.tabs.length > 64) return false;
 	const known = new Map(workspace.panes.map((p) => [p.paneId, p])),
 		labels = new Map<string, string | undefined>(),
 		seen = new Set<string>(),
 		tabIds = new Set<string>();
 	try {
+		const current = toPaneState(workspace);
+		next = mergePaneState(current, before, next);
+		before = current;
 		const paneTabs = next.tabs.map((tab) => {
 			if (tabIds.has(tab.id)) throw new Error("Duplicate terminal tab");
 			tabIds.add(tab.id);

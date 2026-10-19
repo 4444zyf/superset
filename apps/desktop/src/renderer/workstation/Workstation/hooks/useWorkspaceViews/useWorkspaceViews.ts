@@ -718,14 +718,10 @@ export function useWorkspaceViews(
 			clearTimeout(debounce.current);
 			deferred.current = null;
 			let rejected = false;
-			const result = await changeWorkspace(
-				workspaceId,
-				(w) => {
-					if (!applyWorkspacePaneState(w, capturedNext, capturedBefore))
-						rejected = true;
-				},
-				false,
-			);
+			const result = await changeWorkspace(workspaceId, (w) => {
+				if (!applyWorkspacePaneState(w, capturedNext, capturedBefore))
+					rejected = true;
+			});
 			if (rejected) {
 				callbacksRef.current.onError(labelsRef.current.saveFailed);
 				return null;

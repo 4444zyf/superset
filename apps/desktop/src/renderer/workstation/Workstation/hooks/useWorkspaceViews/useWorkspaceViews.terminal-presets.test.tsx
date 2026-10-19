@@ -62,6 +62,7 @@ function fixture(advertised: boolean) {
 		],
 	};
 	const calls: DirectRpc[] = [];
+	let nextSave: Promise<void> | null = null;
 	const api = {
 		getWorkspaceView: async () => ({
 			snapshot: structuredClone(backing),
@@ -70,6 +71,9 @@ function fixture(advertised: boolean) {
 			navigationRevision: 0,
 		}),
 		saveWorkspaceView: async ({ view }: { view: WorkspaceViewSnapshot }) => {
+			const gate = nextSave;
+			nextSave = null;
+			if (gate) await gate;
 			backing = {
 				...view,
 				schemaVersion: 1,
@@ -99,7 +103,18 @@ function fixture(advertised: boolean) {
 			},
 		}),
 	);
-	return { hook, calls, saved: () => backing };
+	return {
+		hook,
+		calls,
+		saved: () => backing,
+		pauseNextSave: () => {
+			let release = () => {};
+			nextSave = new Promise<void>((resolve) => {
+				release = resolve;
+			});
+			return release;
+		},
+	};
 }
 test("a terminal preset sends its original command once to the selected SSH backend and keeps original terminals", async () => {
 	const f = fixture(true);
@@ -266,4 +281,49 @@ test("a delayed split resize updates its captured terminal tab after the user se
 		paneId: "original",
 	});
 	expect(f.calls).toHaveLength(2);
+});
+
+test("pending metadata saves keep typed titles visible while a terminal focus update is queued", async () => {
+	const f = fixture(true);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	const w = f.saved().targets[0]!.workspaces[0]!,
+		before = toPaneState(w),
+		store = createWorkspaceStore({ initialState: before });
+	store.getState().setPaneTitleOverride({
+		tabId: store.getState().getPane("original")!.tabId,
+		paneId: "original",
+		titleOverride: "Typing is retained",
+	});
+	const release = f.pauseNextSave();
+	let saving: Promise<unknown>;
+	act(() => {
+		saving = f.hook.result.current.savePaneState(
+			"workspace",
+			store.getState(),
+			before,
+		);
+	});
+	expect(
+		f.hook.result.current.view?.targets[0]?.workspaces[0]?.panes[0]?.label,
+	).toBe("Typing is retained");
+	let focus: Promise<unknown>;
+	act(() => {
+		focus = f.hook.result.current.focusPane("workspace", "original");
+	});
+	expect(
+		f.hook.result.current.view?.targets[0]?.workspaces[0]?.panes[0]?.label,
+	).toBe("Typing is retained");
+	await act(async () => {
+		release();
+		await saving;
+		await focus;
+	});
+	expect(f.saved().targets[0]?.workspaces[0]?.panes[0]?.label).toBe(
+		"Typing is retained",
+	);
 });

@@ -1,8 +1,6 @@
 import { expect, test } from "bun:test";
 import { createWorkspaceStore } from "@superset/panes";
-import type {
-	WorkspaceView,
-} from "../../../../../shared/workspace-view";
+import type { WorkspaceView } from "../../../../../shared/workspace-view";
 import { toPaneState } from "../pane-adapter/pane-adapter";
 import { applyWorkspacePaneState } from "./workspace-pane-state";
 
@@ -153,4 +151,31 @@ test("a foreign resource, duplicate pane, or incomplete group layout is rejected
 		expect(applyWorkspacePaneState(workspace, after, before)).toBe(false);
 		expect(workspace).toEqual(fixture());
 	}
+});
+
+test("a delayed rename preserves a newer focus and a delayed focus preserves a newer rename", () => {
+	const workspace = fixture(),
+		before = toPaneState(workspace),
+		rename = createWorkspaceStore({ initialState: before });
+	rename.getState().setPaneTitleOverride({
+		tabId: "terminals",
+		paneId: "a",
+		titleOverride: "Typed title",
+	});
+	if(workspace.paneTabs?.[0]?.layout.type==="split")workspace.paneTabs[0].layout.ratio=0.62;
+	workspace.activePaneId = "b";
+	workspace.paneTabs![0]!.activePaneId = "b";
+	expect(applyWorkspacePaneState(workspace, rename.getState(), before)).toBe(
+		true,
+	);
+	expect(workspace.activePaneId).toBe("b");
+	expect(workspace.panes[0]?.label).toBe("Typed title");
+	expect(workspace.paneTabs?.[0]?.layout).toMatchObject({ratio:0.62});
+	const focus = createWorkspaceStore({ initialState: before });
+	focus.getState().setActivePane({ tabId: "terminals", paneId: "b" });
+	expect(applyWorkspacePaneState(workspace, focus.getState(), before)).toBe(
+		true,
+	);
+	expect(workspace.panes[0]?.label).toBe("Typed title");
+	expect(workspace.activePaneId).toBe("b");
 });
