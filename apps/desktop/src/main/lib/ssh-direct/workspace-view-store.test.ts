@@ -1,9 +1,9 @@
+import { Database } from "bun:sqlite";
+import { expect, test } from "bun:test";
 import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Database } from "bun:sqlite";
-import { expect, test } from "bun:test";
 import type { WorkspaceViewInput } from "../../../shared/workspace-view";
 import { WorkspaceViewStore } from "./workspace-view-store";
 
@@ -200,4 +200,122 @@ test("a committed file-backed view survives force-killing its writer", async () 
 			child.kill("SIGKILL");
 		rmSync(root, { recursive: true, force: true });
 	}
+});
+
+function viewWithPaneTabs() {
+	const input = view();
+	return {
+		...input,
+		targets: input.targets.map((target) => ({
+			...target,
+			workspaces: target.workspaces.map((workspace) => ({
+				...workspace,
+				activePaneTabId: "terminal-tab-2" as string | null,
+				paneTabs: [
+					{
+						tabId: "terminal-tab-1",
+						label: "Pair",
+						createdAt: 1,
+						activePaneId: "claude",
+						layout: { type: "pane" as const, paneId: "claude" },
+					},
+					{
+						tabId: "terminal-tab-2",
+						label: "Grouped",
+						createdAt: 2,
+						activePaneId: "codex",
+						layout: {
+							type: "split" as const,
+							axis: "vertical" as const,
+							ratio: 0.64,
+							first: { type: "pane" as const, paneId: "codex" },
+							second: { type: "pane" as const, paneId: "omp" },
+						},
+					},
+				],
+			})),
+		})),
+	};
+}
+
+test("original terminal tabs, focused pane and split ratios survive local SQLite reopen", () => {
+	const db = new Database(":memory:");
+	const store = new WorkspaceViewStore(db, () => 100);
+	store.activateOwner("renderer");
+	const input = viewWithPaneTabs();
+	store.save({ owner: "renderer", expectedRevision: 0, view: input });
+	expect(
+		new WorkspaceViewStore(db, () => 200).read().snapshot?.targets,
+	).toEqual(input.targets);
+	db.close();
+});
+
+test("invalid terminal tab partitions or focus cannot overwrite the saved workspace", () => {
+	const db = new Database(":memory:");
+	const store = new WorkspaceViewStore(db);
+	store.activateOwner("renderer");
+	const input = viewWithPaneTabs();
+	store.save({ owner: "renderer", expectedRevision: 0, view: input });
+	type TabbedWorkspace = ReturnType<
+		typeof viewWithPaneTabs
+	>["targets"][number]["workspaces"][number];
+	const mutations: ((w: TabbedWorkspace) => void)[] = [
+		(w) => {
+			w.paneTabs[1]!.tabId = w.paneTabs[0]!.tabId;
+		},
+		(w) => {
+			const layout = w.paneTabs[1]!.layout;
+			if (layout.type !== "split") throw new Error("expected split");
+			layout.first.paneId = "missing";
+		},
+		(w) => {
+			const layout = w.paneTabs[1]!.layout;
+			if (layout.type !== "split") throw new Error("expected split");
+			layout.first.paneId = "claude";
+		},
+		(w) => {
+			w.paneTabs.pop();
+			w.activePaneTabId = "terminal-tab-1";
+			w.activePaneId = "claude";
+		},
+		(w) => {
+			w.activePaneTabId = "missing";
+		},
+		(w) => {
+			w.paneTabs[1]!.activePaneId = "claude";
+		},
+		(w) => {
+			w.activePaneId = "claude";
+		},
+		(w) => {
+			Reflect.deleteProperty(w, "activePaneTabId");
+		},
+	];
+	for (const mutate of mutations) {
+		const invalid = structuredClone(input);
+		mutate(invalid.targets[0]!.workspaces[0]);
+		expect(() =>
+			store.save({ owner: "renderer", expectedRevision: 1, view: invalid }),
+		).toThrow();
+		expect(store.read().snapshot?.targets).toEqual(input.targets);
+	}
+	db.close();
+});
+
+test("an intentionally empty terminal tab collection remains empty after reopening", () => {
+	const db = new Database(":memory:");
+	const store = new WorkspaceViewStore(db);
+	store.activateOwner("renderer");
+	const input = viewWithPaneTabs();
+	const workspace = input.targets[0]!.workspaces[0]!;
+	workspace.panes = [];
+	workspace.layout = null;
+	workspace.activePaneId = null;
+	workspace.paneTabs = [];
+	workspace.activePaneTabId = null;
+	store.save({ owner: "renderer", expectedRevision: 0, view: input });
+	expect(new WorkspaceViewStore(db).read().snapshot?.targets).toEqual(
+		input.targets,
+	);
+	db.close();
 });

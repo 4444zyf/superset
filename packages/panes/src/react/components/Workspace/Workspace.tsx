@@ -15,6 +15,8 @@ export function Workspace<TData>({
 	store,
 	registry,
 	className,
+	canDropItem,
+	transformDisplayedTab,
 	renderTabAccessory,
 	renderTabIcon,
 	renderEmptyState,
@@ -82,6 +84,9 @@ export function Workspace<TData>({
 		previousPanesRef.current = current;
 	}, [tabs, registry]);
 
+	const visibleTab = displayedTab
+		? (transformDisplayedTab?.(displayedTab) ?? displayedTab)
+		: null;
 	const closeTab = async (tabId: string) => {
 		const tab = store.getState().getTab(tabId);
 		if (!tab) return;
@@ -107,6 +112,7 @@ export function Workspace<TData>({
 			)}
 		>
 			<TabBar
+				canDropItem={canDropItem}
 				store={store}
 				tabs={tabs}
 				registry={registry}
@@ -139,10 +145,10 @@ export function Workspace<TData>({
 				renderTabAccessory={renderTabAccessory}
 			/>
 			{renderBelowTabBar?.()}
-			{displayedTab ? (
+			{visibleTab ? (
 				<Tab
 					store={store}
-					tab={displayedTab}
+					tab={visibleTab}
 					registry={registry}
 					paneActions={paneActions}
 					contextMenuActions={contextMenuActions}

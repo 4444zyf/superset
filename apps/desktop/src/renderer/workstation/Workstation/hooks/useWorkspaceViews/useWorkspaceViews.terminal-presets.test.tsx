@@ -1,4 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
+import { createWorkspaceStore } from "@superset/panes";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import type {
 	DirectDescriptor,
@@ -6,6 +7,7 @@ import type {
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
 import type { WorkspaceViewSnapshot } from "../../../../../shared/workspace-view";
+import { toPaneState } from "../../utils/pane-adapter/pane-adapter";
 import { useWorkspaceViews } from "./useWorkspaceViews";
 
 afterEach(cleanup);
@@ -145,4 +147,123 @@ test("an older backend does not receive a preset command but can still create an
 	);
 	expect(f.calls).toHaveLength(1);
 	expect(f.calls[0]?.input).not.toHaveProperty("initialCommand");
+});
+
+test("New terminal opens an original tab and subsequent splits stay inside that active tab", async () => {
+	const f = fixture(true);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const original = f.saved().targets[0]!.workspaces[0]!;
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	const first = f.saved().targets[0]!.workspaces[0]!;
+	expect(first.paneTabs).toHaveLength(2);
+	expect(first.paneTabs?.[0]?.layout).toEqual(original.layout!);
+	expect(first.paneTabs?.[0]?.activePaneId).toBe("original");
+	expect(first.activePaneTabId).toBe(first.paneTabs?.[1]?.tabId);
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "vertical"),
+	);
+	const split = f.saved().targets[0]!.workspaces[0]!;
+	expect(split.paneTabs).toHaveLength(2);
+	expect(split.paneTabs?.[0]?.layout).toEqual(original.layout!);
+	expect(split.paneTabs?.[1]?.layout).toMatchObject({
+		type: "split",
+		axis: "vertical",
+	});
+	expect(split.panes[0]).toEqual(original.panes[0]);
+	expect(f.calls).toHaveLength(2);
+	f.hook.rerender();
+	expect(f.calls).toHaveLength(2);
+});
+
+test("existing focus and close actions select the owning terminal tab and remove empty groups", async () => {
+	const f = fixture(true);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	const added = f.saved().targets[0]!.workspaces[0]!.panes[1]!.paneId;
+	await act(async () =>
+		f.hook.result.current.focusPane("workspace", "original"),
+	);
+	let workspace = f.saved().targets[0]!.workspaces[0]!;
+	expect(workspace.activePaneTabId).toBe(workspace.paneTabs?.[0]?.tabId);
+	await act(async () => f.hook.result.current.closePane("workspace", added));
+	workspace = f.saved().targets[0]!.workspaces[0]!;
+	expect(workspace.paneTabs).toHaveLength(1);
+	expect(workspace.panes).toHaveLength(1);
+	expect(workspace.panes[0]?.executionId).toBe("retained-execution");
+	expect(f.calls).toHaveLength(1);
+});
+
+test("original pane store tab rename and close persist with no extra terminal RPC or replay", async () => {
+	const f = fixture(true);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	let before = toPaneState(f.saved().targets[0]!.workspaces[0]!);
+	const store = createWorkspaceStore({ initialState: before });
+	const id = store.getState().activeTabId!;
+	store
+		.getState()
+		.setTabTitleOverride({ tabId: id, titleOverride: "Retained group" });
+	await act(async () =>
+		f.hook.result.current.savePaneState("workspace", store.getState(), before),
+	);
+	expect(f.saved().targets[0]!.workspaces[0]!.paneTabs?.[1]?.label).toBe(
+		"Retained group",
+	);
+	before = toPaneState(f.saved().targets[0]!.workspaces[0]!);
+	store.getState().replaceState(before);
+	store.getState().removeTab(id);
+	await act(async () =>
+		f.hook.result.current.savePaneState("workspace", store.getState(), before),
+	);
+	expect(f.saved().targets[0]!.workspaces[0]!.paneTabs).toHaveLength(1);
+	expect(f.saved().targets[0]!.workspaces[0]!.panes[0]?.resourceId).toBe(
+		"retained",
+	);
+	expect(f.calls).toHaveLength(1);
+});
+
+test("a delayed split resize updates its captured terminal tab after the user selects another tab", async () => {
+	const f = fixture(true);
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+			placement: "new-tab",
+		}),
+	);
+	await act(async () =>
+		f.hook.result.current.newTerminal("workspace", "vertical"),
+	);
+	const group = f.saved().targets[0]!.workspaces[0]!.paneTabs![1]!;
+	if (group.layout.type !== "split") throw new Error("expected grouped split");
+	const resized = { ...group.layout, ratio: 0.61 };
+	await act(async () =>
+		f.hook.result.current.focusPane("workspace", "original"),
+	);
+	await act(async () => {
+		f.hook.result.current.saveLayout("workspace", resized, true, group.tabId);
+	});
+	await waitFor(() =>
+		expect(
+			f.saved().targets[0]!.workspaces[0]!.paneTabs?.[1]?.layout,
+		).toMatchObject({ ratio: 0.61 }),
+	);
+	const workspace = f.saved().targets[0]!.workspaces[0]!;
+	expect(workspace.activePaneTabId).toBe(workspace.paneTabs?.[0]?.tabId);
+	expect(workspace.paneTabs?.[0]?.layout).toEqual({
+		type: "pane",
+		paneId: "original",
+	});
+	expect(f.calls).toHaveLength(2);
 });

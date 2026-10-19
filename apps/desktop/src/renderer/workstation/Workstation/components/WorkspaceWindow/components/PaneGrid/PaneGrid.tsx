@@ -1,10 +1,13 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import {
+	type ContextMenuActionConfig,
 	createWorkspaceStore,
 	type PaneRegistry,
+	Workspace,
 	WorkspaceTab,
 } from "@superset/panes";
 import type { RestoreResourceCheck } from "@superset/shared/workspace-restore";
+import { DropdownMenuItem } from "@superset/ui/dropdown-menu";
 import { Columns2, Rows2, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "zustand";
@@ -17,11 +20,12 @@ import type {
 	WorkspaceView,
 } from "../../../../../../../shared/workspace-view";
 import type { WorkspaceViewActions } from "../../../../hooks/useWorkspaceViews/useWorkspaceViews";
-import type { TerminalEmulator } from "../../../RemoteTerminal/RemoteTerminal";
 import {
 	fromPaneLayout,
 	toPaneState,
-} from "../../utils/pane-adapter/pane-adapter";
+} from "../../../../utils/pane-adapter/pane-adapter";
+import { paneStateMetadataKey } from "../../../../utils/workspace-pane-state/workspace-pane-state";
+import type { TerminalEmulator } from "../../../RemoteTerminal/RemoteTerminal";
 
 import { WorkspacePaneView } from "../WorkspacePaneView/WorkspacePaneView";
 import { isCompactPaneLayout } from "./utils/isCompactPaneLayout/isCompactPaneLayout";
@@ -58,6 +62,7 @@ export function PaneGrid({
 				if (store.getState().getTab(args.tabId)?.activePaneId === args.paneId)
 					return;
 				original.setActivePane(args);
+				if (current.current.workspace.paneTabs) return;
 				void current.current.actions.focusPane(
 					current.current.workspace.workspaceId,
 					args.paneId,
@@ -65,6 +70,7 @@ export function PaneGrid({
 			},
 			setPaneTitleOverride: (args) => {
 				original.setPaneTitleOverride(args);
+				if (current.current.workspace.paneTabs) return;
 				void current.current.actions.renamePane(
 					current.current.workspace.workspaceId,
 					args.paneId,
@@ -72,6 +78,10 @@ export function PaneGrid({
 				);
 			},
 			closePane: (args) => {
+				if (current.current.workspace.paneTabs) {
+					original.closePane(args);
+					return;
+				}
 				void current.current.actions.closePane(
 					current.current.workspace.workspaceId,
 					args.paneId,
@@ -80,7 +90,9 @@ export function PaneGrid({
 		});
 		return store;
 	}, [paneScope]);
-	const tab = useStore(store, (s) => s.tabs[0]);
+	const tab = useStore(store, (s) =>
+		s.tabs.find((t) => t.id === s.activeTabId),
+	);
 	const syncing = useRef(false);
 	useLayoutEffect(() => {
 		syncing.current = true;
@@ -91,6 +103,31 @@ export function PaneGrid({
 		() =>
 			store.subscribe((state, previous) => {
 				if (syncing.current) return;
+				if (current.current.workspace.paneTabs) {
+					if (paneStateMetadataKey(state) !== paneStateMetadataKey(previous)) {
+						void current.current.actions.savePaneState(
+							current.current.workspace.workspaceId,
+							state,
+							previous,
+						);
+						return;
+					}
+					for (const next of state.tabs) {
+						if (
+							JSON.stringify(next.layout) !==
+							JSON.stringify(
+								previous.tabs.find((t) => t.id === next.id)?.layout,
+							)
+						)
+							current.current.actions.saveLayout(
+								current.current.workspace.workspaceId,
+								fromPaneLayout(next.layout),
+								false,
+								next.id,
+							);
+					}
+					return;
+				}
 				const next = state.tabs[0];
 				if (
 					!next ||
@@ -146,18 +183,29 @@ export function PaneGrid({
 			window.removeEventListener("resize", resized);
 		};
 	}, []);
+	const groupPanes = workspace.paneTabs
+		? workspace.panes.filter((p) => Boolean(tab?.panes[p.paneId]))
+		: workspace.panes;
+	const groupLayout = workspace.paneTabs
+		? tab
+			? fromPaneLayout(tab.layout)
+			: null
+		: workspace.layout;
+	const groupSize =
+		workspace.paneTabs && availableSize
+			? { ...availableSize, height: Math.max(0, availableSize.height - 36) }
+			: availableSize;
 	const compact = isCompactPaneLayout({
 		viewportWidth: width,
-		paneCount: workspace.panes.length,
-		layout: workspace.layout,
-		availableSize,
+		paneCount: groupPanes.length,
+		layout: groupLayout,
+		availableSize: groupSize,
 	});
 	const visible = compact
-		? workspace.panes.filter(
-				(p) =>
-					p.paneId === (workspace.activePaneId ?? workspace.panes[0]?.paneId),
+		? groupPanes.filter(
+				(p) => p.paneId === (tab?.activePaneId ?? groupPanes[0]?.paneId),
 			)
-		: workspace.panes;
+		: groupPanes;
 	const checkFor = (paneId: string) => {
 		const pane = workspace.panes.find((p) => p.paneId === paneId);
 		return (
@@ -365,84 +413,135 @@ export function PaneGrid({
 			onClick: ({ actions }: { actions: { close(): void } }) => actions.close(),
 		},
 	];
+	const contextMenuActions: ContextMenuActionConfig<WorkspacePane>[] = [
+		{
+			key: "horizontal",
+			label: t({ message: "Split horizontally" }),
+			onSelect: () => {
+				if (connection?.capabilities?.durableOperations && !actions.busy)
+					void actions.newTerminal(workspace.workspaceId, "horizontal");
+			},
+			disabled: !connection?.capabilities?.durableOperations || actions.busy,
+		},
+		{
+			key: "vertical",
+			label: t({ message: "Split vertically" }),
+			onSelect: () => {
+				if (connection?.capabilities?.durableOperations && !actions.busy)
+					void actions.newTerminal(workspace.workspaceId, "vertical");
+			},
+			disabled: !connection?.capabilities?.durableOperations || actions.busy,
+		},
+		{
+			key: "close",
+			label: t({ message: "Close pane" }),
+			onSelect: ({ actions }) => actions.close(),
+		},
+	];
+
+	const compactNavigation = compact && (
+		<nav className="ws-compact-panes">
+			{groupPanes.map((p) => (
+				<button
+					type="button"
+					key={p.paneId}
+					className={tab?.activePaneId === p.paneId ? "active" : ""}
+					onClick={() =>
+						store.getState().setActivePane({
+							tabId: tab?.id ?? workspace.tabId,
+							paneId: p.paneId,
+						})
+					}
+				>
+					{p.label ?? <Trans>Terminal</Trans>}
+				</button>
+			))}
+		</nav>
+	);
+
 	return (
 		<div ref={gridRef} className="ws-pane-grid">
-			{compact && (
-				<nav className="ws-compact-panes">
-					{workspace.panes.map((p) => (
-						<button
-							type="button"
-							key={p.paneId}
-							className={tab?.activePaneId === p.paneId ? "active" : ""}
-							onClick={() =>
-								store
-									.getState()
-									.setActivePane({ tabId: workspace.tabId, paneId: p.paneId })
-							}
-						>
-							{p.label ?? <Trans>Terminal</Trans>}
-						</button>
-					))}
-				</nav>
-			)}
-			<div className="ws-pane-layout">
-				{tab ? (
-					<WorkspaceTab
+			{workspace.paneTabs ? (
+				<div
+					data-workstation-pane-tabs
+					className="flex min-h-0 flex-1 flex-col"
+				>
+					<Workspace
 						store={store}
-						tab={
-							compact && tab.activePaneId
-								? { ...tab, layout: { type: "pane", paneId: tab.activePaneId } }
-								: tab
-						}
 						registry={{ terminal: definition, chat: definition }}
+						canDropItem={(item) => item.store === store}
+						transformDisplayedTab={(displayed) =>
+							isCompactPaneLayout({
+								viewportWidth: width,
+								paneCount: Object.keys(displayed.panes).length,
+								layout: fromPaneLayout(displayed.layout),
+								availableSize: groupSize,
+							}) && displayed.activePaneId
+								? {
+										...displayed,
+										layout: { type: "pane", paneId: displayed.activePaneId },
+									}
+								: displayed
+						}
+						renderBelowTabBar={() => compactNavigation}
+						renderTabIcon={() => <Columns2 size={14} />}
+						renderAddTabMenu={() => (
+							<DropdownMenuItem
+								disabled={
+									!connection?.capabilities?.durableOperations || actions.busy
+								}
+								onSelect={() =>
+									void actions.newTerminal(
+										workspace.workspaceId,
+										"horizontal",
+										undefined,
+										{ placement: "new-tab" },
+									)
+								}
+							>
+								<Trans>New terminal</Trans>
+							</DropdownMenuItem>
+						)}
+						renderEmptyState={() => <Trans>New terminal</Trans>}
 						paneActions={
 							connection?.capabilities?.durableOperations && !actions.busy
 								? paneActions
 								: paneActions.filter((a) => a.key === "close")
 						}
-						contextMenuActions={[
-							{
-								key: "horizontal",
-								label: t({ message: "Split horizontally" }),
-								onSelect: () => {
-									if (
-										connection?.capabilities?.durableOperations &&
-										!actions.busy
-									)
-										void actions.newTerminal(
-											workspace.workspaceId,
-											"horizontal",
-										);
-								},
-								disabled:
-									!connection?.capabilities?.durableOperations || actions.busy,
-							},
-							{
-								key: "vertical",
-								label: t({ message: "Split vertically" }),
-								onSelect: () => {
-									if (
-										connection?.capabilities?.durableOperations &&
-										!actions.busy
-									)
-										void actions.newTerminal(workspace.workspaceId, "vertical");
-								},
-								disabled:
-									!connection?.capabilities?.durableOperations || actions.busy,
-							},
-							{
-								key: "close",
-								label: t({ message: "Close pane" }),
-								onSelect: ({ actions }) => actions.close(),
-							},
-						]}
+						contextMenuActions={contextMenuActions}
 					/>
-				) : (
-					<div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-						<Trans>New terminal</Trans>
+				</div>
+			) : (
+				<>
+					{compactNavigation}
+					<div className="ws-pane-layout">
+						{tab ? (
+							<WorkspaceTab
+								store={store}
+								tab={
+									compact && tab.activePaneId
+										? {
+												...tab,
+												layout: { type: "pane", paneId: tab.activePaneId },
+											}
+										: tab
+								}
+								registry={{ terminal: definition, chat: definition }}
+								paneActions={
+									connection?.capabilities?.durableOperations && !actions.busy
+										? paneActions
+										: paneActions.filter((a) => a.key === "close")
+								}
+								contextMenuActions={contextMenuActions}
+							/>
+						) : (
+							<div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+								<Trans>New terminal</Trans>
+							</div>
+						)}
 					</div>
-				)}
-			</div>
+				</>
+			)}
 		</div>
 	);
 }

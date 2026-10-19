@@ -1,13 +1,21 @@
 import { afterEach, expect, test } from "bun:test";
-import { act, cleanup, render, waitFor } from "@testing-library/react";
 import { TooltipProvider } from "@superset/ui/tooltip";
+import {
+	act,
+	cleanup,
+	fireEvent,
+	render,
+	waitFor,
+} from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import type { ComponentProps } from "react";
 import { WorkspaceWindow } from "./WorkspaceWindow";
+
 afterEach(cleanup);
 test("loading Run state does not insert an action before New terminal", async () => {
 	let resolve!: (value: unknown) => void;
+	const terminals: unknown[][] = [];
 	const props = {
 		api: {
 			rpc: () =>
@@ -51,7 +59,12 @@ test("loading Run state does not insert an action before New terminal", async ()
 		checks: [],
 		resourceRevision: 0,
 		restore: null,
-		actions: { busy: false },
+		actions: {
+			busy: false,
+			newTerminal: (...args: unknown[]) => {
+				terminals.push(args);
+			},
+		},
 		onNewSession() {},
 		onRefresh() {},
 		onPending() {},
@@ -85,4 +98,12 @@ test("loading Run state does not insert an action before New terminal", async ()
 		}),
 	);
 	expect(first()).toBe("New terminal");
+	const button = view.container
+		.querySelectorAll(".ws-window-toolbar")[1]
+		?.querySelector("button");
+	if (!button) throw new Error("Missing New terminal action");
+	fireEvent.click(button);
+	expect(terminals).toEqual([
+		["workspace", "horizontal", undefined, { placement: "new-tab" }],
+	]);
 });

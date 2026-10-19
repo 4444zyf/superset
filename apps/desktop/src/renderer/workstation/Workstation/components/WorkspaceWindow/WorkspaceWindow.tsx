@@ -192,7 +192,12 @@ export function WorkspaceWindow({
 								!connection?.capabilities?.durableOperations || actions.busy
 							}
 							onClick={() => {
-								void actions.newTerminal(workspace.workspaceId, "horizontal");
+								void actions.newTerminal(
+									workspace.workspaceId,
+									"horizontal",
+									undefined,
+									{ placement: "new-tab" },
+								);
 							}}
 						>
 							<Trans>New terminal</Trans>

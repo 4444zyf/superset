@@ -1,5 +1,5 @@
-import { z } from "zod";
 import type { RestoreResourceCheck } from "@superset/shared/workspace-restore";
+import { z } from "zod";
 import type { DirectDescriptor } from "./direct-workstation";
 
 const id = z
@@ -53,6 +53,19 @@ const workspace = z.strictObject({
 	activePaneId: id.nullable(),
 	panes: z.array(pane).max(64),
 	layout: tree.nullable(),
+	paneTabs: z
+		.array(
+			z.strictObject({
+				tabId: id,
+				label,
+				createdAt: z.number().int().nonnegative(),
+				activePaneId: id.nullable(),
+				layout: tree,
+			}),
+		)
+		.max(64)
+		.optional(),
+	activePaneTabId: id.nullable().optional(),
 });
 const target = z.strictObject({
 	connectionId: id,
@@ -141,7 +154,11 @@ export function validateWorkspaceView(value: unknown): WorkspaceViewInput {
 	)
 		for (const t of input.targets)
 			if (Array.isArray(t?.workspaces))
-				for (const w of t.workspaces) checkDepth(w?.layout, 1);
+				for (const w of t.workspaces) {
+					checkDepth(w?.layout, 1);
+					if (Array.isArray(w?.paneTabs))
+						for (const tab of w.paneTabs) checkDepth(tab?.layout, 1);
+				}
 	const view = workspaceViewInputSchema.parse(input);
 	let tabs = 0;
 	let panes = 0;
@@ -184,6 +201,47 @@ export function validateWorkspaceView(value: unknown): WorkspaceViewInput {
 				(w.activePaneId !== null && !paneIds.has(w.activePaneId))
 			)
 				throw new Error("Invalid workspace pane references");
+			if ((w.paneTabs === undefined) !== (w.activePaneTabId === undefined))
+				throw new Error(
+					"Terminal tabs and their active tab must be saved together",
+				);
+			if (w.paneTabs !== undefined) {
+				const groupIds = new Set<string>(),
+					groupedPanes = new Set<string>();
+				for (const tab of w.paneTabs) {
+					if (groupIds.has(tab.tabId))
+						throw new Error("Duplicate terminal tab");
+					groupIds.add(tab.tabId);
+					const members = new Set<string>();
+					const walkGroup = (node: PaneTree): void => {
+						if (node.type === "split") {
+							walkGroup(node.first);
+							walkGroup(node.second);
+							return;
+						}
+						if (!paneIds.has(node.paneId) || groupedPanes.has(node.paneId))
+							throw new Error("Invalid terminal tab pane reference");
+						members.add(node.paneId);
+						groupedPanes.add(node.paneId);
+					};
+					walkGroup(tab.layout);
+					if (tab.activePaneId === null || !members.has(tab.activePaneId))
+						throw new Error("Invalid terminal tab focus");
+				}
+				if (groupedPanes.size !== paneIds.size)
+					throw new Error(
+						"Terminal tabs must contain every workspace pane exactly once",
+					);
+				const active = w.paneTabs.find(
+					(tab) => tab.tabId === w.activePaneTabId,
+				);
+				if (
+					w.paneTabs.length === 0
+						? w.activePaneTabId !== null || w.activePaneId !== null
+						: !active || active.activePaneId !== w.activePaneId
+				)
+					throw new Error("Invalid active terminal tab");
+			}
 		}
 		if (t.activeTabId !== null && !tabIds.has(t.activeTabId))
 			throw new Error("Invalid active tab");

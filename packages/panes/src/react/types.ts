@@ -115,6 +115,12 @@ export interface WorkspaceProps<TData> {
 	store: StoreApi<WorkspaceStore<TData>>;
 	registry: PaneRegistry<TData>;
 	className?: string;
+	canDropItem?: (item: {
+		tabId?: string;
+		paneId?: string;
+		store?: unknown;
+	}) => boolean;
+	transformDisplayedTab?: (tab: Tab<TData>) => Tab<TData>;
 	renderTabAccessory?: (tab: Tab<TData>) => ReactNode;
 	renderTabIcon?: (tab: Tab<TData>) => ReactNode;
 	renderEmptyState?: () => ReactNode;
