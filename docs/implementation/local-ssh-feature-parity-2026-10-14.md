@@ -847,7 +847,7 @@ TDD包括原目录栏、空目录/项目范围/隐藏、独立严格能力、四
 
 第151轮产品ce2173fce/脚本5b55e1ee1，真实Linux/Electron/拥有的loopback SSH通过原编辑器保存自定义脚本后，栏中缺少启动入口，退出1；保存后截图已查看。[151原始失败](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution-failures/151)。第152轮产品2a36063d7，四种模式依次实际点击，pane/标签总数为6/4、8/5、10/5、10/5；每条命令只写入一次模式标记且pwd为统一worktree下的中文空格目录。sequential前在原终端明确cd /tmp，仍按脚本目录执行；关闭重开标记不增加、10个执行/PID保持，六张相关截图均已实际查看，浏览器错误为空。[152四模式与重开](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution/152)。
 
-第153轮同产品、脚本f80fcbf49，通过PID/UID/fixture路径/命令行严格核验后暂挂拥有的测试backend，在实际点击启动请求仍忙时正常关闭窗口。200ms后窗口已关闭，busy=true/alive=false，断言退出1；finally恢复backend，没有强杀或放宽断言。关闭前原模式重开截图已查看，失败后窗口不存在，没有伪造关闭中截图。[153实际关闭失败](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution-failures/153)。先补flush行为失败测试，再让正常关闭等待终端启动和元数据保存。第154轮产品93554c545，同一场景busy=true/alive=true，释放backend后关闭重开恢复12个pane，窗口关闭脚本A/B只各增加一行；退出0，等待中的截图已查看。[154脚本关闭等待](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution/154)。
+第153轮同产品、脚本f80fcbf49，通过PID/UID/fixture路径/命令行严格核验后暂挂拥有的测试backend，在实际点击启动请求仍忙时正常关闭窗口。200ms后窗口已关闭，busy=true/alive=false，断言退出1；finally恢复backend，没有强杀或放宽断言。关闭前原模式重开截图已查看，失败后窗口不存在，没有伪造关闭中截图。[153实际关闭失败](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution-failures/153)。先补flush行为失败测试，再让正常关闭等待终端启动和元数据保存。第154轮产品93554c545，同一场景busy=true/alive=true，释放backend后关闭重开恢复12个pane，窗口关闭脚本A/B只各增加一行；退出0，恢复后附着截图已查看；暂停期间窗口存活由held JSON记录。[154脚本关闭等待](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution/154)。
 
 进一步将普通New terminal也纳入同一等待流程，先增加实际失败测试再修复。第155轮产品/脚本9a69fd434，四模式、重开、脚本批次关闭中和普通终端创建中正常关闭全部退出0。拥有backend31638暂挂期间两次窗口均保持busy且存活；恢复后最终13个pane/8个原标签、13个执行都存活，之前10个PID和执行ID不变，A/B各五行且普通创建/重开没有重放脚本；浏览器错误为空。脚本及普通终端关闭等待两张截图已实际查看，其余六张本轮捕获；四模式截图已在152轮查看。[155最终完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution/155)。强制杀死客户端不承诺提交尚未发送的命令。
 
@@ -878,3 +878,25 @@ TDD覆盖本地原窗口入口、A/B独立布局和持久化、SSH视图保留�
 第164轮同产品/脚本，在新本地原工作区界面复验`--local-wheel-only --wheel-clipboard`退出0：normal历史、无鼠标TUI有界文本查看与上下反向小幅滚动不发键、系统鼠标选区/文字复制、真实PNG粘贴不上传/不发输入、Esc返回及原生SGR上下报告通过。历史scrollTop3426/scrollHeight4016/clientHeight494，浏览器错误为空；历史复制粘贴截图已实际查看，其余捕获。[164新本地界面滚动](evidence/local-ssh-feature-parity/source-linux-local-workspace/164)。第165轮同产品/脚本、拥有的loopback SSH `--pane-tabs-only`退出0，原新标签、组内分屏、中文改名、拥有窗口XTest驱动原HTML5排序、关闭重开及关闭组恢复原三个PTY全部通过；重开/关闭后附着截图已查看，其余捕获，浏览器错误为空。[165SSH回归](evidence/local-ssh-feature-parity/source-linux-local-workspace/165)。测试结束停止所有拥有的新profile namespace backend和SSH夹具。
 
 阶段四十三的本地原WorkspaceWindow入口缺口至此补齐，终端/脚本/恢复有本地实际窗口证据；这不自动证明之前所有文件/Git/聊天细项在本地都已原生验收。原脚本自动触发/Run映射/快捷键/CLI、完整原栏菜单和拖动、全部原侧栏/端口/设置等仍逐项推进。真实macOS触控板/供应商Agent、10秒连接目标与签名安装包仍是独立未满足项目，不宣称已生成1.37.7 DMG。
+
+## 阶段四十六：复用原脚本的新标签页与新工作区触发规则
+
+原编辑器已保存applyOnNewTab/applyOnWorkspaceCreated，但工作区入口没有消费。本阶段直接复用getPresetsForTriggerField：匹配项目中有该触发标记的专属脚本优先，否则回退全局脚本，按tabOrder顺序；隐藏只影响栏显示，不取消已配置触发。New terminal/原标签栏新建按钮在用户明确创建终端标签时读取所选后端脚本目录；没有配置时保留普通空终端。Split与明确Agent启动不查/不触发新标签规则；手动执行脚本产生的新标签也不会递归触发。创建工作区的原操作成功、原视图打开且所选连接仍一致后，明确调用创建触发；普通打开、连接、恢复、重新挂载和重开不会调用它。
+
+触发继续复用同一执行计划/命令构造和原pane store，强制target=new-tab；sequential也创建独立终端，不能把命令输入正在工作的Agent TUI。工作区创建规则沿用原空命令跳过，新标签的空命令脚本保留原空终端语义。关联Agent从所选后端V2目录解析，不使用可能重新播种的旧list；缺少对应能力时拒绝关联启动，普通终端与旧后端保持原能力守卫。目录显式空保持空，没有自动初始化/恢复默认的副作用。未修改任何host/tRPC合同或新增迁移。
+
+所有终端动作共用同一pending action与busy边界，覆盖目录/项目/Agent只读查找、顺序执行和视图保存；同步捕获用户选择，重复点击共享当前动作，正常关闭等待整个动作。跨目标/导航的晚回复丢弃；查询失败不替换成意外空终端；丢失创建确认、目标变化或布局保存失败后停止尚未提交的后续脚本，不重试命令。元数据本身仍使用原有有界CAS重试，不重放PTY创建。原手动四模式和已有执行写入路径继续使用。
+
+新增行为测试旧实现得到16通过4失败，固定新标签仍为空、缺少创建触发、目录读取未纳入关闭等待。增加双击/目标变化/显式空目录/分屏与Agent排除、V2关联解析/旧后端拒绝、查询失败和创建失去确认保护。另发现首个脚本布局保存失败后仍继续启动下一条，23通过1失败后补确认保存结果再继续，转绿。最终客户端65项275断言/6文件通过，包含原触发选择、原启动计划、工作区入口、共享手动模式、关闭等待、原工具栏和renderer-safety；桌面类型、插件检查、17语言严格编译及完整CLI/5个PTY marker构建通过。lint无错误，有既有/测试非空断言提示，原始日志保留。[阶段四十六红绿与检查](evidence/local-ssh-feature-parity/stage46)。
+
+第166轮旧产品daa7d13c7/脚本1191750e8，原Radix选项有文字但没有可用DOM id，脚本在模式选择退出1；失败截图已查看，仅改为原执行验收已用的DOM位置选择器。第167轮同旧产品/脚本abaabfafe，在原编辑器实际保存sequential双命令、新标签标记，然后Split、新标签、重开，再改为工作区创建标记并新建Standalone；两个标记文件均缺失，最终新标签执行断言退出1，两个结果截图已查看，原三个PID保持。[166–167基线与脚本失败](evidence/local-ssh-feature-parity/source-linux-terminal-script-triggers-failures)。
+
+第168轮产品b68ccb24a/旧脚本，新标签已实际运行一次；但首次重开只等SQLite布局，没有等实际附着，Reconnecting时只读文件查询失败返回null，退出1。失败及运行截图已查看，不把这个观测当作“文件被删除”或重放证明。给脚本增加原10秒有界条件内的实际attached前置，文件/布局/PID断言保留，未延长超时。[168观测不足记录](evidence/local-ssh-feature-parity/source-linux-terminal-script-triggers-failures/168)。
+
+第169轮产品b68ccb24a/脚本ea7a9de12，真实Linux/Electron/拥有的loopback SSH `--terminal-script-triggers-only`退出0。原Switch保存新标签标记，组内Split不运行；New terminal在独立原标签执行sequential组合命令，new-tab标记只一行，重开实际附着后仍一行、布局保持。再通过原编辑器关闭新标签标记、开启创建标记，明确New session创建Standalone后created标记只一行；随后普通New terminal不触发创建规则，正常重开仍一行。原三个PTY46241/46247/46253保持，浏览器错误为空。配置后/新标签/新工作区/重开四张截图均已实际查看。[169SSH触发完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-script-triggers/169)。
+
+第170轮同产品/脚本，独立本地`--local-parity-only --terminal-script-triggers`退出0。先执行原A/B namespace隔离、显式Start、切回A和同backend实例重开，再执行完全相同的两个触发与恢复流程，new-tab/created各仅一行；原A两个PID47176/47188保持，未选中的B执行d9ad7e91-e5f1-4c95-97c4-31166a111fde/PID47275在整个流程后仍存活，浏览器错误为空。本地创建触发/重开两张截图已实际查看，其他捕获。[170本地触发完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-script-triggers/170)。
+
+第171轮同产品/脚本、拥有的SSH，手动四模式和原脚本/普通新终端创建中的正常关闭回归退出0。拥有backend47884两次暂停时窗口均busy=true且alive=true；解除暂停后关闭重开，最终13个执行全部存活，原执行身份保持，脚本A/B仍仅对应五次明确执行，普通创建与恢复不增加标记；浏览器错误为空。两张关闭恢复后的附着截图已实际查看，暂停期间存活由held JSON记录，其余截图捕获。[171手动与关闭回归](evidence/local-ssh-feature-parity/source-linux-terminal-script-triggers/171)。所有拥有的测试backend/namespace与SSH夹具均已停止清理。
+
+这里完成的是两个明确新建动作的触发接入，不提供强制杀死客户端后重放尚未提交脚本的机制；工作区创建请求本身尚未返回时的关闭等待仍需独立覆盖。Run映射、原栏菜单/拖动/快捷键/CLI、其他完整功能组及真实macOS/供应商Agent继续推进；1.37.7安装包尚未生成。

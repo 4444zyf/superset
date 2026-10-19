@@ -1,0 +1,95 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [65.04ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [53.60ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [55.75ms]
+(pass) existing focus and close actions select the owning terminal tab and remove empty groups [55.06ms]
+(pass) original pane store tab rename and close persist with no extra terminal RPC or replay [54.87ms]
+(pass) a delayed split resize updates its captured terminal tab after the user selects another tab [57.89ms]
+(pass) pending metadata saves keep typed titles visible while a terminal focus update is queued [54.96ms]
+(pass) script mode split-pane keeps the original terminal layout and one command per new session [55.67ms]
+(pass) script mode new-tab keeps the original terminal layout and one command per new session [53.92ms]
+(pass) script mode new-tab-split-pane keeps the original terminal layout and one command per new session [53.47ms]
+(pass) sequential scripts use the captured terminal execution once and preserve its custom title [54.50ms]
+(pass) a target switch during creation never launches the remaining script commands or appends foreign panes [113.83ms]
+(pass) a partial script launch retains confirmed terminals and never replays a lost creation reply [55.48ms]
+(pass) normal window flush waits for the requested script batch and its saved pane layout [105.75ms]
+(pass) normal window flush also waits for an ordinary terminal launch and its view reference [59.97ms]
+618 |   {...scriptPreset('sequential'),id:'first',name:'First',commands:['first'],applyOnNewTab:true,projectIds:['project'],tabOrder:2},
+619 |   {...scriptPreset('new-tab'),id:'other',commands:['wrong project'],applyOnNewTab:true,projectIds:['other-project'],tabOrder:1},
+620 |  ];
+621 |  const f=fixture(true,undefined,presets);await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));
+622 |  await act(async()=>f.hook.result.current.newTerminal('workspace','horizontal',undefined,{placement:'new-tab'}));
+623 |  const mutations=f.calls.filter(r=>r.type==='mutation');expect(mutations.map(r=>(r.input as {initialCommand:string}).initialCommand)).toEqual(['first','second']);
+                                                                                                                                            ^
+error: expect(received).toEqual(expected)
+
+  [
+-   "first",
+-   "second",
++   undefined,
+  ]
+
+- Expected  - 2
++ Received  + 1
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:623:135)
+(fail) an explicit new terminal tab runs only the original project trigger choices in bar order as fresh tabs [54.55ms]
+(pass) split and explicit agent launches do not evaluate new-tab triggers [54.47ms]
+635 | 
+636 | test('an intentionally empty script catalog still opens one ordinary terminal without reseeding presets',async()=>{
+637 |  const f=fixture(true,undefined,[]);await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));
+638 |  await act(async()=>f.hook.result.current.newTerminal('workspace','horizontal',undefined,{placement:'new-tab'}));
+639 |  expect(f.calls.filter(r=>r.type==='mutation').map(r=>r.path)).toEqual(['terminal.createSession']);
+640 |  expect(f.calls.filter(r=>r.path==='settings.terminalPresets.catalogWithRevisionV1')).toHaveLength(1);
+                                                                                            ^
+error: expect(received).toHaveLength(expected)
+
+Expected length: 1
+Received length: 0
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:640:87)
+(fail) an intentionally empty script catalog still opens one ordinary terminal without reseeding presets [53.88ms]
+42 |   computedStyleSupportsPseudoElements: false
+43 | };
+44 | function runWithExpensiveErrorDiagnosticsDisabled(callback) {
+45 |   try {
+46 |     config._disableExpensiveErrorDiagnostics = true;
+47 |     return callback();
+                ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div />[39m
+  [36m</body>[39m
+[36m</html>[39m
+      at runWithExpensiveErrorDiagnosticsDisabled (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12)
+      at checkCallback (/workspace/superset/node_modules/.bun/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:36)
+(fail) close waits for the trigger lookup and a target switch prevents all late trigger commands [1056.75ms]
+651 | });
+652 | 
+653 | test('workspace creation presets run only through their explicit trigger and never type into an existing terminal',async()=>{
+654 |  const f=fixture(true,undefined,[{...scriptPreset('sequential'),applyOnWorkspaceCreated:true,commands:['creation']},{...scriptPreset('new-tab'),id:'empty',applyOnWorkspaceCreated:true,commands:[]}]);
+655 |  await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));expect(f.calls).toEqual([]);
+656 |  await act(async()=>f.hook.result.current.runWorkspaceCreationPresets('workspace'));
+                                                ^
+TypeError: f.hook.result.current.runWorkspaceCreationPresets is not a function. (In 'f.hook.result.current.runWorkspaceCreationPresets("workspace")', 'f.hook.result.current.runWorkspaceCreationPresets' is undefined)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:656:43)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:48:24)
+      at <anonymous> (/workspace/superset/node_modules/.bun/react@19.2.3/node_modules/react/cjs/react.development.js:814:22)
+      at <anonymous> (/workspace/superset/node_modules/.bun/@testing-library+react@16.3.0+5cb2bc9a67ec1957/node_modules/@testing-library/react/dist/act-compat.js:47:25)
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:656:8)
+(fail) workspace creation presets run only through their explicit trigger and never type into an existing terminal [53.19ms]
+
+ 16 pass
+ 4 fail
+ 149 expect() calls
+Ran 20 tests across 1 file. [2.54s]

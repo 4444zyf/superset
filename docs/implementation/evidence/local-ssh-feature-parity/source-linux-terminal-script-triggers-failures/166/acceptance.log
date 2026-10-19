@@ -1,0 +1,11 @@
+file:///workspace/superset/apps/desktop/scripts/verify-workstation-agent-ui-driver.mjs:7
+ const until=async(read,label)=>{for(let i=0;i<200;i++){const value=await read();if(value)return value;await delay(50);}await screenshot('agent-management-failure');throw new Error(`Agent management condition failed: ${label}`);};
+                                                                                                                                                                           ^
+
+Error: Agent management condition failed: sequential option
+    at until (file:///workspace/superset/apps/desktop/scripts/verify-workstation-agent-ui-driver.mjs:7:172)
+    at async verifyWorkstationTerminalScriptTriggersUi (file:///workspace/superset/apps/desktop/scripts/verify-workstation-terminal-script-triggers-ui.mjs:27:19)
+    at async verifyWorkspaceRestoreUi (/workspace/superset/apps/desktop/scripts/verify-workspace-restore-ui.mjs:505:3)
+    at async <anonymous> (/workspace/superset/apps/desktop/scripts/verify-brand-ui.mjs:545:4)
+
+Node.js v24.19.0

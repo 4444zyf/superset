@@ -1,0 +1,83 @@
+bun test v1.4.2 (744846f84)
+
+src/shared/preset-trigger-selection.test.ts:
+(pass) getPresetsForTriggerField > prefers matching project presets over all-project presets [0.23ms]
+(pass) getPresetsForTriggerField > falls back to all-project presets when no project preset matches [0.05ms]
+(pass) getPresetsForTriggerField > only honours the requested trigger field [0.03ms]
+(pass) getPresetsForTriggerField > returns no presets when no explicit trigger is set [0.02ms]
+
+src/renderer/components/RendererLayout/renderer-safety.test.ts:
+(pass) emergency UI has no transitive dependency on router, app providers, or UI libraries [34.65ms]
+(pass) production renderer roots cannot bypass RendererRouter [2995.34ms]
+(pass) every production failure boundary is included in the renderer audit [2413.83ms]
+(pass) settings and dashboard outlets retain their surrounding layout on render errors [2.59ms]
+
+src/renderer/stores/tabs/preset-launch.test.ts:
+(pass) normalizeExecutionMode > returns new-tab for new-tab mode [0.04ms]
+(pass) normalizeExecutionMode > returns new-tab-split-pane for new-tab-split-pane mode
+(pass) normalizeExecutionMode > keeps sequential, maps legacy parallel to split-pane, and defaults unknown modes to new-tab [0.02ms]
+(pass) shouldApplyPresetPaneName > allows preset names for default terminal panes [0.05ms]
+(pass) shouldApplyPresetPaneName > preserves existing pane labels [0.02ms]
+(pass) shouldApplyPresetPaneName > ignores blank preset names
+(pass) buildFocusedTerminalCommand > prepends an explicit cd when a current terminal launch has a cwd [0.32ms]
+(pass) buildFocusedTerminalCommand > leaves commands unchanged when cwd is blank [0.04ms]
+(pass) buildFocusedTerminalCommand > returns null when no runnable command exists [0.01ms]
+(pass) getPresetLaunchPlan > uses active tab split mode for active-tab target + split-pane + multiple commands [0.04ms]
+(pass) getPresetLaunchPlan > falls back to new-tab path when active tab is unavailable [0.01ms]
+(pass) getPresetLaunchPlan > uses new-tab path when mode is new-tab even if target is active-tab
+(pass) getPresetLaunchPlan > uses new-tab multi-pane path when mode is new-tab-split-pane
+(pass) getPresetLaunchPlan > defaults new-tab target with split-pane mode to tab multi-pane for multiple commands
+(pass) getPresetLaunchPlan > uses the active terminal for sequential commands [0.01ms]
+(pass) getPresetLaunchPlan > uses one new-tab pane for sequential commands without an active terminal
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [560.01ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [313.50ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [225.60ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [193.99ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [129.43ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [175.90ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [132.88ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [133.95ms]
+(pass) opening a development server submits its port for forwarding on B [120.56ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [130.51ms]
+(pass) checking an empty operation journal shows a readable result [96.44ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [136.64ms]
+(pass) offline chat drafts remain reviewable and explicitly discardable without a connection or session [177.47ms]
+(pass) a local workspace opens in the original shared workspace window when restore is supported [113.00ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [56.67ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [53.35ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [56.24ms]
+(pass) existing focus and close actions select the owning terminal tab and remove empty groups [56.88ms]
+(pass) original pane store tab rename and close persist with no extra terminal RPC or replay [60.43ms]
+(pass) a delayed split resize updates its captured terminal tab after the user selects another tab [60.92ms]
+(pass) pending metadata saves keep typed titles visible while a terminal focus update is queued [55.31ms]
+(pass) script mode split-pane keeps the original terminal layout and one command per new session [56.76ms]
+(pass) script mode new-tab keeps the original terminal layout and one command per new session [55.19ms]
+(pass) script mode new-tab-split-pane keeps the original terminal layout and one command per new session [53.96ms]
+(pass) sequential scripts use the captured terminal execution once and preserve its custom title [54.23ms]
+(pass) a target switch during creation never launches the remaining script commands or appends foreign panes [105.65ms]
+(pass) a partial script launch retains confirmed terminals and never replays a lost creation reply [55.35ms]
+(pass) normal window flush waits for the requested script batch and its saved pane layout [115.52ms]
+(pass) normal window flush also waits for an ordinary terminal launch and its view reference [55.36ms]
+(pass) an explicit new terminal tab runs only the original project trigger choices in bar order as fresh tabs [54.57ms]
+(pass) split and explicit agent launches do not evaluate new-tab triggers [54.53ms]
+(pass) an intentionally empty script catalog still opens one ordinary terminal without reseeding presets [55.26ms]
+(pass) close waits for the trigger lookup and a target switch prevents all late trigger commands [105.38ms]
+(pass) workspace creation presets run only through their explicit trigger and never type into an existing terminal [53.78ms]
+(pass) two new-tab clicks during a trigger lookup share one action and never create an extra shell [53.64ms]
+(pass) a lost trigger creation response stops later presets without retrying the unresolved command [53.54ms]
+(pass) a failed trigger catalog read keeps the requested action explicit and never substitutes a blank shell [53.27ms]
+(pass) a failed first preset layout save prevents later triggered launches [54.31ms]
+(pass) linked trigger commands use the versioned selected backend agent catalog without legacy reseeding [54.34ms]
+(pass) a linked trigger on a backend without the V2 agent catalog cannot fall back to a reseeding read [52.85ms]
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.test.tsx:
+(pass) loading Run state does not insert an action before New terminal [16.99ms]
+
+ 65 pass
+ 0 fail
+ 275 expect() calls
+Ran 65 tests across 6 files. [10.78s]

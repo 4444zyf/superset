@@ -1,0 +1,30 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [66.45ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [55.63ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [57.41ms]
+(pass) existing focus and close actions select the owning terminal tab and remove empty groups [54.93ms]
+(pass) original pane store tab rename and close persist with no extra terminal RPC or replay [55.52ms]
+(pass) a delayed split resize updates its captured terminal tab after the user selects another tab [59.56ms]
+(pass) pending metadata saves keep typed titles visible while a terminal focus update is queued [55.88ms]
+(pass) script mode split-pane keeps the original terminal layout and one command per new session [56.80ms]
+(pass) script mode new-tab keeps the original terminal layout and one command per new session [54.31ms]
+(pass) script mode new-tab-split-pane keeps the original terminal layout and one command per new session [54.13ms]
+(pass) sequential scripts use the captured terminal execution once and preserve its custom title [54.60ms]
+(pass) a target switch during creation never launches the remaining script commands or appends foreign panes [109.12ms]
+(pass) a partial script launch retains confirmed terminals and never replays a lost creation reply [54.82ms]
+(pass) normal window flush waits for the requested script batch and its saved pane layout [105.75ms]
+(pass) normal window flush also waits for an ordinary terminal launch and its view reference [54.95ms]
+(pass) an explicit new terminal tab runs only the original project trigger choices in bar order as fresh tabs [57.51ms]
+(pass) split and explicit agent launches do not evaluate new-tab triggers [54.45ms]
+(pass) an intentionally empty script catalog still opens one ordinary terminal without reseeding presets [53.51ms]
+(pass) close waits for the trigger lookup and a target switch prevents all late trigger commands [105.38ms]
+(pass) workspace creation presets run only through their explicit trigger and never type into an existing terminal [53.58ms]
+(pass) two new-tab clicks during a trigger lookup share one action and never create an extra shell [54.04ms]
+(pass) a lost trigger creation response stops later presets without retrying the unresolved command [53.30ms]
+
+ 22 pass
+ 0 fail
+ 149 expect() calls
+Ran 22 tests across 1 file. [1.73s]

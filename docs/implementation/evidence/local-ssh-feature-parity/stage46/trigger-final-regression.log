@@ -1,0 +1,72 @@
+bun test v1.4.2 (744846f84)
+
+src/shared/preset-trigger-selection.test.ts:
+(pass) getPresetsForTriggerField > prefers matching project presets over all-project presets [0.18ms]
+(pass) getPresetsForTriggerField > falls back to all-project presets when no project preset matches [0.04ms]
+(pass) getPresetsForTriggerField > only honours the requested trigger field [0.02ms]
+(pass) getPresetsForTriggerField > returns no presets when no explicit trigger is set [0.02ms]
+
+src/renderer/stores/tabs/preset-launch.test.ts:
+(pass) normalizeExecutionMode > returns new-tab for new-tab mode [0.03ms]
+(pass) normalizeExecutionMode > returns new-tab-split-pane for new-tab-split-pane mode [0.01ms]
+(pass) normalizeExecutionMode > keeps sequential, maps legacy parallel to split-pane, and defaults unknown modes to new-tab [0.02ms]
+(pass) shouldApplyPresetPaneName > allows preset names for default terminal panes [0.05ms]
+(pass) shouldApplyPresetPaneName > preserves existing pane labels [0.02ms]
+(pass) shouldApplyPresetPaneName > ignores blank preset names [0.01ms]
+(pass) buildFocusedTerminalCommand > prepends an explicit cd when a current terminal launch has a cwd [0.31ms]
+(pass) buildFocusedTerminalCommand > leaves commands unchanged when cwd is blank [0.04ms]
+(pass) buildFocusedTerminalCommand > returns null when no runnable command exists [0.02ms]
+(pass) getPresetLaunchPlan > uses active tab split mode for active-tab target + split-pane + multiple commands [0.05ms]
+(pass) getPresetLaunchPlan > falls back to new-tab path when active tab is unavailable [0.01ms]
+(pass) getPresetLaunchPlan > uses new-tab path when mode is new-tab even if target is active-tab [0.01ms]
+(pass) getPresetLaunchPlan > uses new-tab multi-pane path when mode is new-tab-split-pane [0.01ms]
+(pass) getPresetLaunchPlan > defaults new-tab target with split-pane mode to tab multi-pane for multiple commands [0.01ms]
+(pass) getPresetLaunchPlan > uses the active terminal for sequential commands [0.01ms]
+(pass) getPresetLaunchPlan > uses one new-tab pane for sequential commands without an active terminal [0.01ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [378.45ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [210.93ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [169.90ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [84.26ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [72.72ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [165.15ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [157.68ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [130.71ms]
+(pass) opening a development server submits its port for forwarding on B [225.32ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [135.13ms]
+(pass) checking an empty operation journal shows a readable result [96.95ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [123.03ms]
+(pass) offline chat drafts remain reviewable and explicitly discardable without a connection or session [345.15ms]
+(pass) a local workspace opens in the original shared workspace window when restore is supported [232.57ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [54.69ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [62.60ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [79.01ms]
+(pass) existing focus and close actions select the owning terminal tab and remove empty groups [58.31ms]
+(pass) original pane store tab rename and close persist with no extra terminal RPC or replay [56.97ms]
+(pass) a delayed split resize updates its captured terminal tab after the user selects another tab [84.10ms]
+(pass) pending metadata saves keep typed titles visible while a terminal focus update is queued [59.69ms]
+(pass) script mode split-pane keeps the original terminal layout and one command per new session [57.77ms]
+(pass) script mode new-tab keeps the original terminal layout and one command per new session [53.41ms]
+(pass) script mode new-tab-split-pane keeps the original terminal layout and one command per new session [53.39ms]
+(pass) sequential scripts use the captured terminal execution once and preserve its custom title [72.72ms]
+(pass) a target switch during creation never launches the remaining script commands or appends foreign panes [106.87ms]
+(pass) a partial script launch retains confirmed terminals and never replays a lost creation reply [55.24ms]
+(pass) normal window flush waits for the requested script batch and its saved pane layout [109.91ms]
+(pass) normal window flush also waits for an ordinary terminal launch and its view reference [133.12ms]
+(pass) an explicit new terminal tab runs only the original project trigger choices in bar order as fresh tabs [55.02ms]
+(pass) split and explicit agent launches do not evaluate new-tab triggers [57.20ms]
+(pass) an intentionally empty script catalog still opens one ordinary terminal without reseeding presets [53.42ms]
+(pass) close waits for the trigger lookup and a target switch prevents all late trigger commands [105.87ms]
+(pass) workspace creation presets run only through their explicit trigger and never type into an existing terminal [56.21ms]
+(pass) two new-tab clicks during a trigger lookup share one action and never create an extra shell [69.71ms]
+(pass) a lost trigger creation response stops later presets without retrying the unresolved command [56.45ms]
+(pass) a failed trigger catalog read keeps the requested action explicit and never substitutes a blank shell [52.92ms]
+(pass) a failed first preset layout save prevents later triggered launches [55.89ms]
+
+ 58 pass
+ 0 fail
+ 236 expect() calls
+Ran 58 tests across 4 files. [4.84s]

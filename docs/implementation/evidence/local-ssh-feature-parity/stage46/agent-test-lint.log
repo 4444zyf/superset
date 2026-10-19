@@ -1,0 +1,346 @@
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:263:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    261 │ 	const f = fixture(true);
+    262 │ 	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+  > 263 │ 	const original = f.saved().targets[0]!.workspaces[0]!;
+        │ 	                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    264 │ 	await act(async () =>
+    265 │ 		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:263:19 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    261 │ 	const f = fixture(true);
+    262 │ 	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+  > 263 │ 	const original = f.saved().targets[0]!.workspaces[0]!;
+        │ 	                 ^^^^^^^^^^^^^^^^^^^^^
+    264 │ 	await act(async () =>
+    265 │ 		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    261 261 │   	const f = fixture(true);
+    262 262 │   	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+    263     │ - → const·original·=·f.saved().targets[0]!.workspaces[0]!;
+        263 │ + → const·original·=·f.saved().targets[0]?.workspaces[0]!;
+    264 264 │   	await act(async () =>
+    265 265 │   		f.hook.result.current.newTerminal("workspace", "horizontal", undefined, {
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:269:16 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    267 │ 		}),
+    268 │ 	);
+  > 269 │ 	const first = f.saved().targets[0]!.workspaces[0]!;
+        │ 	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    270 │ 	expect(first.paneTabs).toHaveLength(2);
+    271 │ 	expect(first.paneTabs?.[0]?.layout).toEqual(original.layout!);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:269:16 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    267 │ 		}),
+    268 │ 	);
+  > 269 │ 	const first = f.saved().targets[0]!.workspaces[0]!;
+        │ 	              ^^^^^^^^^^^^^^^^^^^^^
+    270 │ 	expect(first.paneTabs).toHaveLength(2);
+    271 │ 	expect(first.paneTabs?.[0]?.layout).toEqual(original.layout!);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    267 267 │   		}),
+    268 268 │   	);
+    269     │ - → const·first·=·f.saved().targets[0]!.workspaces[0]!;
+        269 │ + → const·first·=·f.saved().targets[0]?.workspaces[0]!;
+    270 270 │   	expect(first.paneTabs).toHaveLength(2);
+    271 271 │   	expect(first.paneTabs?.[0]?.layout).toEqual(original.layout!);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:271:46 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    269 │ 	const first = f.saved().targets[0]!.workspaces[0]!;
+    270 │ 	expect(first.paneTabs).toHaveLength(2);
+  > 271 │ 	expect(first.paneTabs?.[0]?.layout).toEqual(original.layout!);
+        │ 	                                            ^^^^^^^^^^^^^^^^
+    272 │ 	expect(first.paneTabs?.[0]?.activePaneId).toBe("original");
+    273 │ 	expect(first.activePaneTabId).toBe(first.paneTabs?.[1]?.tabId);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:277:16 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    275 │ 		f.hook.result.current.newTerminal("workspace", "vertical"),
+    276 │ 	);
+  > 277 │ 	const split = f.saved().targets[0]!.workspaces[0]!;
+        │ 	              ^^^^^^^^^^^^^^^^^^^^^
+    278 │ 	expect(split.paneTabs).toHaveLength(2);
+    279 │ 	expect(split.paneTabs?.[0]?.layout).toEqual(original.layout!);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    275 275 │   		f.hook.result.current.newTerminal("workspace", "vertical"),
+    276 276 │   	);
+    277     │ - → const·split·=·f.saved().targets[0]!.workspaces[0]!;
+        277 │ + → const·split·=·f.saved().targets[0]?.workspaces[0]!;
+    278 278 │   	expect(split.paneTabs).toHaveLength(2);
+    279 279 │   	expect(split.paneTabs?.[0]?.layout).toEqual(original.layout!);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:277:16 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    275 │ 		f.hook.result.current.newTerminal("workspace", "vertical"),
+    276 │ 	);
+  > 277 │ 	const split = f.saved().targets[0]!.workspaces[0]!;
+        │ 	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    278 │ 	expect(split.paneTabs).toHaveLength(2);
+    279 │ 	expect(split.paneTabs?.[0]?.layout).toEqual(original.layout!);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:279:46 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    277 │ 	const split = f.saved().targets[0]!.workspaces[0]!;
+    278 │ 	expect(split.paneTabs).toHaveLength(2);
+  > 279 │ 	expect(split.paneTabs?.[0]?.layout).toEqual(original.layout!);
+        │ 	                                            ^^^^^^^^^^^^^^^^
+    280 │ 	expect(split.paneTabs?.[1]?.layout).toMatchObject({
+    281 │ 		type: "split",
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:298:16 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    296 │ 		}),
+    297 │ 	);
+  > 298 │ 	const added = f.saved().targets[0]!.workspaces[0]!.panes[1]!.paneId;
+        │ 	              ^^^^^^^^^^^^^^^^^^^^^
+    299 │ 	await act(async () =>
+    300 │ 		f.hook.result.current.focusPane("workspace", "original"),
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    296 296 │   		}),
+    297 297 │   	);
+    298     │ - → const·added·=·f.saved().targets[0]!.workspaces[0]!.panes[1]!.paneId;
+        298 │ + → const·added·=·f.saved().targets[0]?.workspaces[0]!.panes[1]!.paneId;
+    299 299 │   	await act(async () =>
+    300 300 │   		f.hook.result.current.focusPane("workspace", "original"),
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:298:16 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    296 │ 		}),
+    297 │ 	);
+  > 298 │ 	const added = f.saved().targets[0]!.workspaces[0]!.panes[1]!.paneId;
+        │ 	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    299 │ 	await act(async () =>
+    300 │ 		f.hook.result.current.focusPane("workspace", "original"),
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    296 296 │   		}),
+    297 297 │   	);
+    298     │ - → const·added·=·f.saved().targets[0]!.workspaces[0]!.panes[1]!.paneId;
+        298 │ + → const·added·=·f.saved().targets[0]!.workspaces[0]?.panes[1]!.paneId;
+    299 299 │   	await act(async () =>
+    300 300 │   		f.hook.result.current.focusPane("workspace", "original"),
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:298:16 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    296 │ 		}),
+    297 │ 	);
+  > 298 │ 	const added = f.saved().targets[0]!.workspaces[0]!.panes[1]!.paneId;
+        │ 	              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    299 │ 	await act(async () =>
+    300 │ 		f.hook.result.current.focusPane("workspace", "original"),
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    296 296 │   		}),
+    297 297 │   	);
+    298     │ - → const·added·=·f.saved().targets[0]!.workspaces[0]!.panes[1]!.paneId;
+        298 │ + → const·added·=·f.saved().targets[0]!.workspaces[0]!.panes[1]?.paneId;
+    299 299 │   	await act(async () =>
+    300 300 │   		f.hook.result.current.focusPane("workspace", "original"),
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:302:18 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    300 │ 		f.hook.result.current.focusPane("workspace", "original"),
+    301 │ 	);
+  > 302 │ 	let workspace = f.saved().targets[0]!.workspaces[0]!;
+        │ 	                ^^^^^^^^^^^^^^^^^^^^^
+    303 │ 	expect(workspace.activePaneTabId).toBe(workspace.paneTabs?.[0]?.tabId);
+    304 │ 	await act(async () => f.hook.result.current.closePane("workspace", added));
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    300 300 │   		f.hook.result.current.focusPane("workspace", "original"),
+    301 301 │   	);
+    302     │ - → let·workspace·=·f.saved().targets[0]!.workspaces[0]!;
+        302 │ + → let·workspace·=·f.saved().targets[0]?.workspaces[0]!;
+    303 303 │   	expect(workspace.activePaneTabId).toBe(workspace.paneTabs?.[0]?.tabId);
+    304 304 │   	await act(async () => f.hook.result.current.closePane("workspace", added));
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:302:18 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    300 │ 		f.hook.result.current.focusPane("workspace", "original"),
+    301 │ 	);
+  > 302 │ 	let workspace = f.saved().targets[0]!.workspaces[0]!;
+        │ 	                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    303 │ 	expect(workspace.activePaneTabId).toBe(workspace.paneTabs?.[0]?.tabId);
+    304 │ 	await act(async () => f.hook.result.current.closePane("workspace", added));
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:305:14 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    303 │ 	expect(workspace.activePaneTabId).toBe(workspace.paneTabs?.[0]?.tabId);
+    304 │ 	await act(async () => f.hook.result.current.closePane("workspace", added));
+  > 305 │ 	workspace = f.saved().targets[0]!.workspaces[0]!;
+        │ 	            ^^^^^^^^^^^^^^^^^^^^^
+    306 │ 	expect(workspace.paneTabs).toHaveLength(1);
+    307 │ 	expect(workspace.panes).toHaveLength(1);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    303 303 │   	expect(workspace.activePaneTabId).toBe(workspace.paneTabs?.[0]?.tabId);
+    304 304 │   	await act(async () => f.hook.result.current.closePane("workspace", added));
+    305     │ - → workspace·=·f.saved().targets[0]!.workspaces[0]!;
+        305 │ + → workspace·=·f.saved().targets[0]?.workspaces[0]!;
+    306 306 │   	expect(workspace.paneTabs).toHaveLength(1);
+    307 307 │   	expect(workspace.panes).toHaveLength(1);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:305:14 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    303 │ 	expect(workspace.activePaneTabId).toBe(workspace.paneTabs?.[0]?.tabId);
+    304 │ 	await act(async () => f.hook.result.current.closePane("workspace", added));
+  > 305 │ 	workspace = f.saved().targets[0]!.workspaces[0]!;
+        │ 	            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    306 │ 	expect(workspace.paneTabs).toHaveLength(1);
+    307 │ 	expect(workspace.panes).toHaveLength(1);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:320:27 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    318 │ 		}),
+    319 │ 	);
+  > 320 │ 	let before = toPaneState(f.saved().targets[0]!.workspaces[0]!);
+        │ 	                         ^^^^^^^^^^^^^^^^^^^^^
+    321 │ 	const store = createWorkspaceStore({ initialState: before });
+    322 │ 	const id = store.getState().activeTabId!;
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    318 318 │   		}),
+    319 319 │   	);
+    320     │ - → let·before·=·toPaneState(f.saved().targets[0]!.workspaces[0]!);
+        320 │ + → let·before·=·toPaneState(f.saved().targets[0]?.workspaces[0]!);
+    321 321 │   	const store = createWorkspaceStore({ initialState: before });
+    322 322 │   	const id = store.getState().activeTabId!;
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:320:27 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    318 │ 		}),
+    319 │ 	);
+  > 320 │ 	let before = toPaneState(f.saved().targets[0]!.workspaces[0]!);
+        │ 	                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    321 │ 	const store = createWorkspaceStore({ initialState: before });
+    322 │ 	const id = store.getState().activeTabId!;
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:322:13 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    320 │ 	let before = toPaneState(f.saved().targets[0]!.workspaces[0]!);
+    321 │ 	const store = createWorkspaceStore({ initialState: before });
+  > 322 │ 	const id = store.getState().activeTabId!;
+        │ 	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    323 │ 	store
+    324 │ 		.getState()
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:329:9 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    327 │ 		f.hook.result.current.savePaneState("workspace", store.getState(), before),
+    328 │ 	);
+  > 329 │ 	expect(f.saved().targets[0]!.workspaces[0]!.paneTabs?.[1]?.label).toBe(
+        │ 	       ^^^^^^^^^^^^^^^^^^^^^
+    330 │ 		"Retained group",
+    331 │ 	);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    327 327 │   		f.hook.result.current.savePaneState("workspace", store.getState(), before),
+    328 328 │   	);
+    329     │ - → expect(f.saved().targets[0]!.workspaces[0]!.paneTabs?.[1]?.label).toBe(
+        329 │ + → expect(f.saved().targets[0]?.workspaces[0]!.paneTabs?.[1]?.label).toBe(
+    330 330 │   		"Retained group",
+    331 331 │   	);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:329:9 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    327 │ 		f.hook.result.current.savePaneState("workspace", store.getState(), before),
+    328 │ 	);
+  > 329 │ 	expect(f.saved().targets[0]!.workspaces[0]!.paneTabs?.[1]?.label).toBe(
+        │ 	       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    330 │ 		"Retained group",
+    331 │ 	);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    327 327 │   		f.hook.result.current.savePaneState("workspace", store.getState(), before),
+    328 328 │   	);
+    329     │ - → expect(f.saved().targets[0]!.workspaces[0]!.paneTabs?.[1]?.label).toBe(
+        329 │ + → expect(f.saved().targets[0]!.workspaces[0]?.paneTabs?.[1]?.label).toBe(
+    330 330 │   		"Retained group",
+    331 331 │   	);
+  
+
+Skipped 26 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 23.
+Checked 1 file in 125ms. Fixed 1 file.
+Found 43 warnings.

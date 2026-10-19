@@ -1,0 +1,48 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [65.38ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [54.36ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [56.54ms]
+(pass) existing focus and close actions select the owning terminal tab and remove empty groups [56.32ms]
+(pass) original pane store tab rename and close persist with no extra terminal RPC or replay [56.07ms]
+(pass) a delayed split resize updates its captured terminal tab after the user selects another tab [59.10ms]
+(pass) pending metadata saves keep typed titles visible while a terminal focus update is queued [56.62ms]
+(pass) script mode split-pane keeps the original terminal layout and one command per new session [56.18ms]
+(pass) script mode new-tab keeps the original terminal layout and one command per new session [54.83ms]
+(pass) script mode new-tab-split-pane keeps the original terminal layout and one command per new session [53.68ms]
+(pass) sequential scripts use the captured terminal execution once and preserve its custom title [55.11ms]
+(pass) a target switch during creation never launches the remaining script commands or appends foreign panes [109.87ms]
+(pass) a partial script launch retains confirmed terminals and never replays a lost creation reply [55.62ms]
+(pass) normal window flush waits for the requested script batch and its saved pane layout [106.49ms]
+(pass) normal window flush also waits for an ordinary terminal launch and its view reference [57.32ms]
+(pass) an explicit new terminal tab runs only the original project trigger choices in bar order as fresh tabs [55.25ms]
+(pass) split and explicit agent launches do not evaluate new-tab triggers [54.33ms]
+(pass) an intentionally empty script catalog still opens one ordinary terminal without reseeding presets [53.95ms]
+(pass) close waits for the trigger lookup and a target switch prevents all late trigger commands [106.04ms]
+(pass) workspace creation presets run only through their explicit trigger and never type into an existing terminal [53.83ms]
+(pass) two new-tab clicks during a trigger lookup share one action and never create an extra shell [54.03ms]
+(pass) a lost trigger creation response stops later presets without retrying the unresolved command [53.81ms]
+(pass) a failed trigger catalog read keeps the requested action explicit and never substitutes a blank shell [53.15ms]
+870 | });
+871 | 
+872 | test('a failed first preset layout save prevents later triggered launches',async()=>{
+873 |  const errors:string[]=[];const f=fixture(true,e=>errors.push(e),[{...scriptPreset('new-tab'),commands:['first'],applyOnNewTab:true},{...scriptPreset('new-tab'),id:'later',commands:['later'],applyOnNewTab:true,tabOrder:1}]);await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));f.failLayoutSave();
+874 |  await act(async()=>f.hook.result.current.newTerminal('workspace','horizontal',undefined,{placement:'new-tab'}));
+875 |  expect(f.calls.filter(r=>r.type==='mutation')).toHaveLength(1);expect(errors.length).toBeGreaterThan(0);
+                                                      ^
+error: expect(received).toHaveLength(expected)
+
+Expected length: 1
+Received length: 2
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:875:49)
+(fail) a failed first preset layout save prevents later triggered launches [59.39ms]
+
+1 tests failed:
+(fail) a failed first preset layout save prevents later triggered launches [59.39ms]
+
+ 23 pass
+ 1 fail
+ 156 expect() calls
+Ran 24 tests across 1 file. [1.85s]
