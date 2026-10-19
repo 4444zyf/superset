@@ -26,6 +26,7 @@ export async function verifyWorkstationLocalParityUi(options){
  await click('.xterm-screen');await getPage().call('Input.insertText',{text:"i=0; while true; do printf 'LOCAL A heartbeat %s\\n' \"$i\"; i=$((i+1)); sleep 0.2; done"});await key('Enter',13);
  await click('text:Split vertically');await attached(2);
  const a=await view(),aWorkspace=await workspace(),controlA=controls.forNamespace(a.namespaceId);
+ const aDescriptor=await evaluate(`window.directWorkstation.refreshFeatures({connectionId:${JSON.stringify(a.connectionId)},generation:1})`);
  const aExecutions=await Promise.all(aWorkspace.panes.map(p=>controlA.inspectPresetTerminal(p.resourceId)));
  await screenshot('local-A-original-split');
  const details=async()=>{await click('[data-slot=sidebar-content] button[aria-label="SSH machines"]');await bodyClick('.ws-local-row button:first-of-type');await bodyClick('.ws-detail-tabs button:last-child');await until(()=>evaluate(`Boolean(document.querySelector('select')?.closest('.ws-local-data'))||Boolean(document.querySelector('.ws-local-data select'))`),'local namespace selector');};
@@ -47,10 +48,12 @@ export async function verifyWorkstationLocalParityUi(options){
  await screenshot('local-A-restored-after-namespace-switch');
  await closeReopen();await attached(2);
  const reopened=await workspace();assert.deepEqual(reopened,aWorkspace);
- const restore=await until(()=>evaluate(`window.directWorkstation.getWorkspaceRestore()`),'local restore descriptor');assert.equal(restore.status,'ready');assert.equal(restore.descriptor.namespaceId,a.namespaceId);
+ const restore=await until(()=>evaluate(`window.directWorkstation.getWorkspaceRestore()`),'local restore descriptor');assert.equal(restore.status,'ready');assert.equal(restore.descriptor.namespaceId,a.namespaceId);assert.equal(restore.descriptor.instanceId,aDescriptor.instanceId,'restore retains the actual local backend instance');
  for(let i=0;i<aExecutions.length;i++)assert.equal((await controlA.inspectPresetTerminal(aWorkspace.panes[i].resourceId)).pid,aExecutions[i].pid);
  await screenshot('local-A-reopened-original-executions');
- writeFileSync(join(output,'local-parity-acceptance.json'),JSON.stringify({a,aExecutions,b,bExecution,returned,reopened,restore,errors:getPage().errors},null,2)+'\n');
+ writeFileSync(join(output,'local-parity-acceptance.json'),JSON.stringify({a,aDescriptor,aExecutions,b,bExecution,returned,reopened,restore,errors:getPage().errors},null,2)+'\n');
  await verifyWorkstationTerminalScriptExecutionUi({...options,controls:controlA});
+ const retainedB=await controlB.inspectPresetTerminal(bWorkspace.panes[0].resourceId);assert.equal(retainedB.pid,bExecution.pid);assert.equal(retainedB.executionId,bExecution.executionId);
+ writeFileSync(join(output,'local-parity-final.json'),JSON.stringify({retainedB,errors:getPage().errors},null,2)+'\n');
  assert.deepEqual(getPage().errors,[]);
 }
