@@ -1,0 +1,43 @@
+bun test v1.4.2 (744846f84)
+
+apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/screen-history.test.ts:
+ 5 |  it("keeps earlier TUI screens while skipping repeated renders and joining actual scrolling", () => {
+ 6 |   const history = new ScreenHistory();
+ 7 |   history.capture(["one", "two", "three"]);
+ 8 |   history.capture(["one", "two", "three"]);
+ 9 |   history.capture(["two", "three", "four"]);
+10 |   expect(history.lines()).toEqual(["one", "two", "three", "four"]);
+                               ^
+error: expect(received).toEqual(expected)
+
+  [
+-   "one",
+    "two",
+    "three",
+    "four",
+  ]
+
+- Expected  - 1
++ Received  + 0
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/screen-history.test.ts:10:27)
+(fail) alternate screen history > keeps earlier TUI screens while skipping repeated renders and joining actual scrolling [0.60ms]
+14 |  it("bounds retained text even for repeated full-screen redraws and huge lines", () => {
+15 |   const history = new ScreenHistory({ maxLines: 5, maxChars: 20 });
+16 |   history.capture(["old", "screen"]);
+17 |   history.capture(["next", "screen"]);
+18 |   history.capture(["x".repeat(40)]);
+19 |   expect(history.lines().join("\n").length).toBeLessThanOrEqual(20);
+                                                 ^
+error: expect(received).toBeLessThanOrEqual(expected)
+
+Expected: <= 20
+Received: 40
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/screen-history.test.ts:19:45)
+(fail) alternate screen history > bounds retained text even for repeated full-screen redraws and huge lines [0.13ms]
+
+ 0 pass
+ 2 fail
+ 2 expect() calls
+Ran 2 tests across 1 file. [50.00ms]

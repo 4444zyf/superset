@@ -1,0 +1,36 @@
+bun test v1.4.2 (744846f84)
+
+packages/shared/src/terminal-wheel-handler/terminal-identity-coupling.test.ts:
+(pass) terminal identity ↔ wheel handler coupling > TERM_PROGRAM claims a kitty-class terminal while the full-fidelity wheel handler ships [0.02ms]
+
+packages/shared/src/terminal-wheel-handler/terminal-wheel-handler.test.ts:
+(pass) consumeWheelLines > maps one cell height of pixels to one line without damping [0.13ms]
+(pass) consumeWheelLines > accumulates fractional deltas across events instead of dropping them [0.02ms]
+(pass) consumeWheelLines > preserves the remainder after emitting whole lines [0.01ms]
+(pass) consumeWheelLines > emits multiple lines for a single large event (flick momentum)
+(pass) consumeWheelLines > handles scrolling up with negative deltas [0.01ms]
+(pass) consumeWheelLines > lets opposite-direction residue cancel naturally [0.02ms]
+(pass) consumeWheelLines > resets the accumulator when the context changes [0.01ms]
+(pass) consumeWheelLines > treats DOM_DELTA_LINE deltas as lines directly [0.01ms]
+(pass) consumeWheelLines > treats DOM_DELTA_PAGE deltas as pages of rows [0.01ms]
+(pass) consumeWheelLines > applies fast-scroll sensitivity when alt or ctrl is held [0.01ms]
+(pass) consumeWheelLines > caps a single event at one page of lines [0.01ms]
+(pass) sequence builders > builds SGR wheel reports with direction and modifiers [0.03ms]
+(pass) sequence builders > builds cursor sequences honoring application cursor keys mode [0.02ms]
+(pass) createTerminalWheelEventHandler > defers to stock xterm in the normal buffer without mouse tracking (scrollback) [0.32ms]
+(pass) createTerminalWheelEventHandler > sends SGR reports for normal-buffer mouse tracking (Claude Code) [0.12ms]
+(pass) createTerminalWheelEventHandler > defers to viewport scrollback for x10 tracking in the normal buffer [0.03ms]
+(pass) createTerminalWheelEventHandler > uses client review for shift-wheel instead of stock alternate-buffer arrows [0.03ms]
+(pass) createTerminalWheelEventHandler > reviews alternate-buffer content without generating direction keys [0.04ms]
+(pass) createTerminalWheelEventHandler > does not turn wheel gestures into application cursor keys [0.05ms]
+(pass) createTerminalWheelEventHandler > accumulates small trackpad deltas for client review without input [0.04ms]
+(pass) createTerminalWheelEventHandler > sends SGR wheel reports when mouse tracking + SGR encoding are active [0.03ms]
+(pass) createTerminalWheelEventHandler > defers to stock xterm when mouse tracking is active without SGR encoding [0.02ms]
+(pass) createTerminalWheelEventHandler > reviews content for x10 tracking, which never reports wheel [0.02ms]
+(pass) createTerminalWheelEventHandler > never falls back to arrow input when cell dimensions are unavailable [0.02ms]
+(pass) createTerminalWheelEventHandler > honors the stock-wheel escape hatch per event, without reinstall [0.06ms]
+
+ 26 pass
+ 0 fail
+ 53 expect() calls
+Ran 26 tests across 2 files. [60.00ms]

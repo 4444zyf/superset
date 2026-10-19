@@ -1,0 +1,30 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/lib/terminal/terminal-wheel-review/screen-history.test.ts:
+(pass) alternate screen history > keeps earlier TUI screens while skipping repeated renders and joining actual scrolling [0.25ms]
+(pass) alternate screen history > bounds retained text even for repeated full-screen redraws and huge lines [0.10ms]
+
+src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.test.ts:
+(pass) terminal wheel review > opens selectable client history, blocks paste and closes on Escape without remote input [10.28ms]
+(pass) terminal wheel review > returns to live terminal at the bottom and releases history on buffer exit/disposal [5.59ms]
+
+src/renderer/lib/terminal/terminal-wheel-review/wheel-protocol.test.ts:
+17 |  try {
+18 |   await write("shell history\r\n\x1b[?1049h\x1b[?1hTUI 中文 🙂");
+19 |   expect(wheel(-34)).toBe(false);expect(data).toEqual([]);expect(reviewed).toEqual([-2]);
+20 |   await write("\x1b[?1000h\x1b[?1006h");
+21 |   wheel(-34);wheel(17);expect(data).toEqual(["\x1b[<64;1;1M\x1b[<64;1;1M", "\x1b[<65;1;1M"]);
+22 |   const count=data.length;wheel(-17,true);expect(data).toHaveLength(count);expect(reviewed).toEqual([-2,-1]);
+                                                            ^
+error: expect(received).toHaveLength(expected)
+
+Expected length: 2
+Received length: 3
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/wheel-protocol.test.ts:22:56)
+(fail) real VT mode transitions preserve TUI mouse reports and never synthesize cursor keys [7.41ms]
+
+ 4 pass
+ 1 fail
+ 23 expect() calls
+Ran 5 tests across 3 files. [220.00ms]

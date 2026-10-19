@@ -1,0 +1,25 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: TUI wheel must review content without emitting cursor keys
++ actual - expected
+
+  [
+    '61',
+    '6e',
++   '1b5b411b5b411b5b411b5b411b5b411b5b41'
+  ]
+
+    at verifyWorkstationWheelUi (file:///workspace/superset/apps/desktop/scripts/verify-workstation-wheel-ui.mjs:31:9)
+    at async verifyWorkspaceRestoreUi (/workspace/superset/apps/desktop/scripts/verify-workspace-restore-ui.mjs:504:3)
+    at async <anonymous> (/workspace/superset/apps/desktop/scripts/verify-brand-ui.mjs:515:4) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [ '61', '6e', '1b5b411b5b411b5b411b5b411b5b411b5b41' ],
+  expected: [ '61', '6e' ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

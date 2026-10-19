@@ -1,0 +1,669 @@
+apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.test.ts:28:16 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    26 │  it("opens selectable client history, blocks paste and closes on Escape without remote input", () => {
+    27 │   const f=fixture(); f.wheel(-51);
+  > 28 │   const review=f.element.querySelector<HTMLElement>("[data-terminal-scrollback-review]")!;
+       │                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    29 │   expect(review.querySelector("pre")?.textContent).toContain("中文 🙂");
+    30 │   expect(document.activeElement).toBe(review);
+  
+
+apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.test.ts:37:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    35 │  it("returns to live terminal at the bottom and releases history on buffer exit/disposal", () => {
+    36 │   const f=fixture(); f.wheel(17);expect(f.element.querySelector("[data-terminal-scrollback-review]")).toBeNull();
+  > 37 │   f.wheel(-34);const pre=f.element.querySelector("pre")!;
+       │                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    38 │   Object.defineProperties(pre,{scrollHeight:{value:1000},clientHeight:{value:200}});pre.scrollTop=790;
+    39 │   pre.dispatchEvent(new WheelEvent("wheel",{deltaY:30,bubbles:true,cancelable:true}));expect(f.element.querySelector("pre")).toBeNull();
+  
+
+apps/desktop/src/renderer/lib/terminal/createTerminalSurface/createTerminalSurface.ts:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+
+  × The imports and exports are not sorted.
+  
+  > 1 │ import { installTerminalWheelReview } from "renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ import { ClipboardAddon } from "@xterm/addon-clipboard";
+    3 │ import { FitAddon } from "@xterm/addon-fit";
+  
+  i Safe fix: Organize Imports (Biome)
+  
+      1     │ - import·{·installTerminalWheelReview·}·from·"renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review";
+      2     │ - import·{·ClipboardAddon·}·from·"@xterm/addon-clipboard";
+      3     │ - import·{·FitAddon·}·from·"@xterm/addon-fit";
+      4     │ - import·{·ImageAddon·}·from·"@xterm/addon-image";
+      5     │ - import·{·LigaturesAddon·}·from·"@xterm/addon-ligatures";
+      6     │ - import·{·SearchAddon·}·from·"@xterm/addon-search";
+      7     │ - import·{·Unicode11Addon·}·from·"@xterm/addon-unicode11";
+      8     │ - import·{·WebglAddon·}·from·"@xterm/addon-webgl";
+      9     │ - import·type·{·ITheme·}·from·"@xterm/xterm";
+     10     │ - import·{·Terminal·as·XTerm·}·from·"@xterm/xterm";
+     11     │ - import·type·{·TerminalAppearance·}·from·"renderer/lib/terminal/appearance";
+     12     │ - import·{·applyTerminalFontFamilyCssVariable·}·from·"renderer/lib/terminal/appearance";
+     13     │ - import·{·Utf8Base64·}·from·"renderer/lib/terminal/clipboard-base64";
+     14     │ - import·{·FocusAwareClipboardProvider·}·from·"renderer/lib/terminal/clipboard-provider";
+     15     │ - import·{·scheduleFontSettleRefit·}·from·"renderer/lib/terminal/font-settle";
+     16     │ - import·{
+     17     │ - → createParserIdleGate,
+     18     │ - → type·ParserIdleGate,
+     19     │ - → wrapWrite,
+     20     │ - }·from·"renderer/lib/terminal/parser-idle-gate";
+     21     │ - import·{·TerminalLinkManager·}·from·"renderer/lib/terminal/terminal-link-manager";
+          1 │ + import·{·ClipboardAddon·}·from·"@xterm/addon-clipboard";
+          2 │ + import·{·FitAddon·}·from·"@xterm/addon-fit";
+          3 │ + import·{·ImageAddon·}·from·"@xterm/addon-image";
+          4 │ + import·{·LigaturesAddon·}·from·"@xterm/addon-ligatures";
+          5 │ + import·{·SearchAddon·}·from·"@xterm/addon-search";
+          6 │ + import·{·Unicode11Addon·}·from·"@xterm/addon-unicode11";
+          7 │ + import·{·WebglAddon·}·from·"@xterm/addon-webgl";
+          8 │ + import·type·{·ITheme·}·from·"@xterm/xterm";
+          9 │ + import·{·Terminal·as·XTerm·}·from·"@xterm/xterm";
+         10 │ + import·type·{·TerminalAppearance·}·from·"renderer/lib/terminal/appearance";
+         11 │ + import·{·applyTerminalFontFamilyCssVariable·}·from·"renderer/lib/terminal/appearance";
+         12 │ + import·{·Utf8Base64·}·from·"renderer/lib/terminal/clipboard-base64";
+         13 │ + import·{·FocusAwareClipboardProvider·}·from·"renderer/lib/terminal/clipboard-provider";
+         14 │ + import·{·scheduleFontSettleRefit·}·from·"renderer/lib/terminal/font-settle";
+         15 │ + import·{
+         16 │ + → createParserIdleGate,
+         17 │ + → type·ParserIdleGate,
+         18 │ + → wrapWrite,
+         19 │ + }·from·"renderer/lib/terminal/parser-idle-gate";
+         20 │ + import·{·TerminalLinkManager·}·from·"renderer/lib/terminal/terminal-link-manager";
+         21 │ + import·{·installTerminalWheelReview·}·from·"renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review";
+     22  22 │   import { installInputModeReclaimer } from "renderer/lib/terminal/terminalInputModeReclaimer";
+     23  23 │   
+  
+
+apps/desktop/src/renderer/lib/terminal/terminal-runtime.ts:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+
+  × The imports and exports are not sorted.
+  
+  > 1 │ import { FRESH_SHELL_INPUT_MODE_RESET } from "@superset/shared/leaked-input-mode-reclaim";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ import { installTerminalWheelReview } from "renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review";
+    3 │ import { FitAddon } from "@xterm/addon-fit";
+  
+  i Safe fix: Organize Imports (Biome)
+  
+      1   1 │   import { FRESH_SHELL_INPUT_MODE_RESET } from "@superset/shared/leaked-input-mode-reclaim";
+      2     │ - import·{·installTerminalWheelReview·}·from·"renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review";
+      3     │ - import·{·FitAddon·}·from·"@xterm/addon-fit";
+      4     │ - import·type·{·ProgressAddon·}·from·"@xterm/addon-progress";
+      5     │ - import·type·{·SearchAddon·}·from·"@xterm/addon-search";
+      6     │ - import·{·SerializeAddon·}·from·"@xterm/addon-serialize";
+      7     │ - import·{·Terminal·as·XTerm·}·from·"@xterm/xterm";
+          2 │ + import·{·FitAddon·}·from·"@xterm/addon-fit";
+          3 │ + import·type·{·ProgressAddon·}·from·"@xterm/addon-progress";
+          4 │ + import·type·{·SearchAddon·}·from·"@xterm/addon-search";
+          5 │ + import·{·SerializeAddon·}·from·"@xterm/addon-serialize";
+          6 │ + import·{·Terminal·as·XTerm·}·from·"@xterm/xterm";
+          7 │ + import·{·installTerminalWheelReview·}·from·"renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review";
+      8   8 │   import { DEFAULT_TERMINAL_SCROLLBACK } from "shared/constants";
+      9   9 │   import {
+  
+
+apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/screen-history.test.ts format ━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     3  3 │   
+     4  4 │   describe("alternate screen history", () => {
+     5    │ - ·it("keeps·earlier·TUI·screens·while·skipping·repeated·renders·and·joining·actual·scrolling",·()·=>·{
+     6    │ - ··const·history·=·new·ScreenHistory();
+     7    │ - ··history.capture(["one",·"two",·"three"]);
+     8    │ - ··history.capture(["one",·"two",·"three"]);
+     9    │ - ··history.capture(["two",·"three",·"four"]);
+    10    │ - ··expect(history.lines()).toEqual(["one",·"two",·"three",·"four"]);
+    11    │ - ··history.capture(["new·screen",·"input"]);
+    12    │ - ··expect(history.lines()).toEqual(["one",·"two",·"three",·"four",·"",·"new·screen",·"input"]);
+    13    │ - ·});
+    14    │ - ·it("bounds·retained·text·even·for·repeated·full-screen·redraws·and·huge·lines",·()·=>·{
+    15    │ - ··const·history·=·new·ScreenHistory({·maxLines:·5,·maxChars:·20·});
+    16    │ - ··history.capture(["old",·"screen"]);
+    17    │ - ··history.capture(["next",·"screen"]);
+    18    │ - ··history.capture(["x".repeat(40)]);
+    19    │ - ··expect(history.lines().join("\n").length).toBeLessThanOrEqual(20);
+    20    │ - ··expect(history.lines().length).toBeLessThanOrEqual(5);
+    21    │ - ··expect(history.lines().join("\n")).not.toContain("old");
+    22    │ - ··history.clear();
+    23    │ - ··expect(history.lines()).toEqual([]);
+    24    │ - ·});
+        5 │ + → it("keeps·earlier·TUI·screens·while·skipping·repeated·renders·and·joining·actual·scrolling",·()·=>·{
+        6 │ + → → const·history·=·new·ScreenHistory();
+        7 │ + → → history.capture(["one",·"two",·"three"]);
+        8 │ + → → history.capture(["one",·"two",·"three"]);
+        9 │ + → → history.capture(["two",·"three",·"four"]);
+       10 │ + → → expect(history.lines()).toEqual(["one",·"two",·"three",·"four"]);
+       11 │ + → → history.capture(["new·screen",·"input"]);
+       12 │ + → → expect(history.lines()).toEqual([
+       13 │ + → → → "one",
+       14 │ + → → → "two",
+       15 │ + → → → "three",
+       16 │ + → → → "four",
+       17 │ + → → → "",
+       18 │ + → → → "new·screen",
+       19 │ + → → → "input",
+       20 │ + → → ]);
+       21 │ + → });
+       22 │ + → it("bounds·retained·text·even·for·repeated·full-screen·redraws·and·huge·lines",·()·=>·{
+       23 │ + → → const·history·=·new·ScreenHistory({·maxLines:·5,·maxChars:·20·});
+       24 │ + → → history.capture(["old",·"screen"]);
+       25 │ + → → history.capture(["next",·"screen"]);
+       26 │ + → → history.capture(["x".repeat(40)]);
+       27 │ + → → expect(history.lines().join("\n").length).toBeLessThanOrEqual(20);
+       28 │ + → → expect(history.lines().length).toBeLessThanOrEqual(5);
+       29 │ + → → expect(history.lines().join("\n")).not.toContain("old");
+       30 │ + → → history.clear();
+       31 │ + → → expect(history.lines()).toEqual([]);
+       32 │ + → });
+    25 33 │   });
+    26 34 │   
+  
+
+apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/screen-history.ts format ━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1  1 │   export class ScreenHistory {
+     2    │ - ·private·retained:·string[]·=·[];
+     3    │ - ·private·previous:·string[]·=·[];
+     4    │ - ·constructor(private·readonly·limits·=·{·maxLines:·10000,·maxChars:·1024·*·1024·})·{}
+     5    │ - ·capture(input:·string[])·{
+     6    │ - ··const·lines·=·input.slice(-Math.min(1000,·this.limits.maxLines)).map(line·=>·line.slice(-this.limits.maxChars));
+     7    │ - ··if·(!lines.some(line·=>·line.length))·return;
+     8    │ - ··if·(lines.length·===·this.previous.length·&&·lines.every((line,·i)·=>·line·===·this.previous[i]))·return;
+     9    │ - ··let·overlap·=·Math.min(lines.length,·this.previous.length);
+    10    │ - ··for·(;·overlap·>·0;·overlap--)·{
+    11    │ - ···if·(lines.slice(0,·overlap).every((line,·i)·=>·line·===·this.previous[this.previous.length·-·overlap·+·i]))·break;
+    12    │ - ··}
+    13    │ - ··if·(!overlap·&&·this.retained.length)·this.retained.push("");
+    14    │ - ··this.retained.push(...lines.slice(overlap));
+    15    │ - ··this.retained·=·this.retained.slice(-this.limits.maxLines);
+    16    │ - ··let·budget·=·this.limits.maxChars;
+    17    │ - ··for·(let·i·=·this.retained.length·-·1;·i·>=·0;·i--)·{
+    18    │ - ···const·line·=·this.retained[i];
+    19    │ - ···if·(line.length·+·1·>·budget)·{
+    20    │ - ····this.retained·=·this.retained.slice(i·+·1);
+    21    │ - ····if·(budget·>·1)·this.retained.unshift(line.slice(-(budget·-·1)));
+    22    │ - ····break;
+    23    │ - ···}
+    24    │ - ···budget·-=·line.length·+·1;
+    25    │ - ··}
+    26    │ - ··this.previous·=·lines;
+    27    │ - ·}
+    28    │ - ·lines()·{·return·this.retained.slice();·}
+    29    │ - ·clear()·{·this.retained·=·[];·this.previous·=·[];·}
+        2 │ + → private·retained:·string[]·=·[];
+        3 │ + → private·previous:·string[]·=·[];
+        4 │ + → constructor(
+        5 │ + → → private·readonly·limits·=·{·maxLines:·10000,·maxChars:·1024·*·1024·},
+        6 │ + → )·{}
+        7 │ + → capture(input:·string[])·{
+        8 │ + → → const·lines·=·input
+        9 │ + → → → .slice(-Math.min(1000,·this.limits.maxLines))
+       10 │ + → → → .map((line)·=>·line.slice(-this.limits.maxChars));
+       11 │ + → → if·(!lines.some((line)·=>·line.length))·return;
+       12 │ + → → if·(
+       13 │ + → → → lines.length·===·this.previous.length·&&
+       14 │ + → → → lines.every((line,·i)·=>·line·===·this.previous[i])
+       15 │ + → → )
+       16 │ + → → → return;
+       17 │ + → → let·overlap·=·Math.min(lines.length,·this.previous.length);
+       18 │ + → → for·(;·overlap·>·0;·overlap--)·{
+       19 │ + → → → if·(
+       20 │ + → → → → lines
+       21 │ + → → → → → .slice(0,·overlap)
+       22 │ + → → → → → .every(
+       23 │ + → → → → → → (line,·i)·=>
+       24 │ + → → → → → → → line·===·this.previous[this.previous.length·-·overlap·+·i],
+       25 │ + → → → → → )
+       26 │ + → → → )
+       27 │ + → → → → break;
+       28 │ + → → }
+       29 │ + → → if·(!overlap·&&·this.retained.length)·this.retained.push("");
+       30 │ + → → this.retained.push(...lines.slice(overlap));
+       31 │ + → → this.retained·=·this.retained.slice(-this.limits.maxLines);
+       32 │ + → → let·budget·=·this.limits.maxChars;
+       33 │ + → → for·(let·i·=·this.retained.length·-·1;·i·>=·0;·i--)·{
+       34 │ + → → → const·line·=·this.retained[i];
+       35 │ + → → → if·(line.length·+·1·>·budget)·{
+       36 │ + → → → → this.retained·=·this.retained.slice(i·+·1);
+       37 │ + → → → → if·(budget·>·1)·this.retained.unshift(line.slice(-(budget·-·1)));
+       38 │ + → → → → break;
+       39 │ + → → → }
+       40 │ + → → → budget·-=·line.length·+·1;
+       41 │ + → → }
+       42 │ + → → this.previous·=·lines;
+       43 │ + → }
+       44 │ + → lines()·{
+       45 │ + → → return·this.retained.slice();
+       46 │ + → }
+       47 │ + → clear()·{
+       48 │ + → → this.retained·=·[];
+       49 │ + → → this.previous·=·[];
+       50 │ + → }
+    30 51 │   }
+    31 52 │   
+  
+
+apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.test.ts:32:9 lint/suspicious/noShadowRestrictedNames ━━━━━━━━━━
+
+  × Do not shadow the global "escape" property.
+  
+    30 │   expect(document.activeElement).toBe(review);
+    31 │   const paste=new Event("paste",{cancelable:true,bubbles:true}); review.dispatchEvent(paste);expect(paste.defaultPrevented).toBe(true);
+  > 32 │   const escape=new KeyboardEvent("keydown",{key:"Escape",cancelable:true,bubbles:true});review.dispatchEvent(escape);
+       │         ^^^^^^
+    33 │   expect(escape.defaultPrevented).toBe(true);expect(review.isConnected).toBe(false);expect(f.input).not.toHaveBeenCalled();expect(f.focus).toHaveBeenCalledTimes(1);
+    34 │  });
+  
+  i Consider renaming this variable. It's easy to confuse the origin of variables when they're named after a known global.
+  
+
+apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.test.ts format ━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     4   4 │   
+     5   5 │   const cleanups: (() => void)[] = [];
+     6     │ - afterEach(()·=>·{·for·(const·dispose·of·cleanups.splice(0))·dispose();·document.body.replaceChildren();·});
+         6 │ + afterEach(()·=>·{
+         7 │ + → for·(const·dispose·of·cleanups.splice(0))·dispose();
+         8 │ + → document.body.replaceChildren();
+         9 │ + });
+     7  10 │   function fixture() {
+     8     │ - ·let·handler:·(event:·WheelEvent)·=>·boolean·=·()·=>·true;
+     9     │ - ·let·changed:·(buffer:·{·type:·string·})·=>·void·=·()·=>·{};
+    10     │ - ·const·focus·=·mock(()·=>·{}),·input·=·mock(()·=>·{}),·scrollLines·=·mock(()·=>·{});
+    11     │ - ·const·element·=·document.createElement("div");·document.body.append(element);
+    12     │ - ·const·lines·=·Array.from({length:·20},·(_,i)·=>·`terminal·line·${i}·中文·🙂`);
+    13     │ - ·const·active·=·{·type:·"alternate",·length:·20,·getLine:·(i:·number)·=>·({translateToString:·()·=>·lines[i]})·};
+    14     │ - ·const·terminal·=·{·rows:·20,·cols:·80,·element,·options:·{fontSize:·14},·modes:·{mouseTrackingMode:·"none"},
+    15     │ - ··buffer:·{active,·normal:·active,·onBufferChange:·(fn:·typeof·changed)·=>·{·changed=fn;·return·{dispose:mock(()·=>·{})};·}},
+    16     │ - ··parser:·{registerCsiHandler:·()·=>·({dispose:mock(()·=>·{})})},
+    17     │ - ··_core:·{_renderService:{dimensions:{css:{cell:{height:17,width:8}}}}},
+    18     │ - ··onWriteParsed:·()·=>·({dispose:mock(()·=>·{})}),·loadAddon:·()·=>·{},·focus,·input,·scrollLines,
+    19     │ - ··attachCustomWheelEventHandler:·(fn:·typeof·handler)·=>·{handler=fn;},
+    20     │ - ·}·as·unknown·as·Terminal;
+    21     │ - ·const·dispose=installTerminalWheelReview(terminal);·cleanups.push(dispose);
+    22     │ - ·const·wheel·=·(deltaY:·number)·=>·handler(new·WheelEvent("wheel",·{deltaY,cancelable:true}));
+    23     │ - ·return·{element,terminal,wheel,input,focus,dispose,changed:()=>changed({type:"normal"})};
+        11 │ + → let·handler:·(event:·WheelEvent)·=>·boolean·=·()·=>·true;
+        12 │ + → let·changed:·(buffer:·{·type:·string·})·=>·void·=·()·=>·{};
+        13 │ + → const·focus·=·mock(()·=>·{}),
+        14 │ + → → input·=·mock(()·=>·{}),
+        15 │ + → → scrollLines·=·mock(()·=>·{});
+        16 │ + → const·element·=·document.createElement("div");
+        17 │ + → document.body.append(element);
+        18 │ + → const·lines·=·Array.from(
+        19 │ + → → {·length:·20·},
+        20 │ + → → (_,·i)·=>·`terminal·line·${i}·中文·🙂`,
+        21 │ + → );
+        22 │ + → const·active·=·{
+        23 │ + → → type:·"alternate",
+        24 │ + → → length:·20,
+        25 │ + → → getLine:·(i:·number)·=>·({·translateToString:·()·=>·lines[i]·}),
+        26 │ + → };
+        27 │ + → const·terminal·=·{
+        28 │ + → → rows:·20,
+        29 │ + → → cols:·80,
+        30 │ + → → element,
+        31 │ + → → options:·{·fontSize:·14·},
+        32 │ + → → modes:·{·mouseTrackingMode:·"none"·},
+        33 │ + → → buffer:·{
+        34 │ + → → → active,
+        35 │ + → → → normal:·active,
+        36 │ + → → → onBufferChange:·(fn:·typeof·changed)·=>·{
+        37 │ + → → → → changed·=·fn;
+        38 │ + → → → → return·{·dispose:·mock(()·=>·{})·};
+        39 │ + → → → },
+        40 │ + → → },
+        41 │ + → → parser:·{·registerCsiHandler:·()·=>·({·dispose:·mock(()·=>·{})·})·},
+        42 │ + → → _core:·{
+        43 │ + → → → _renderService:·{
+        44 │ + → → → → dimensions:·{·css:·{·cell:·{·height:·17,·width:·8·}·}·},
+        45 │ + → → → },
+        46 │ + → → },
+        47 │ + → → onWriteParsed:·()·=>·({·dispose:·mock(()·=>·{})·}),
+        48 │ + → → loadAddon:·()·=>·{},
+        49 │ + → → focus,
+        50 │ + → → input,
+        51 │ + → → scrollLines,
+        52 │ + → → attachCustomWheelEventHandler:·(fn:·typeof·handler)·=>·{
+        53 │ + → → → handler·=·fn;
+        54 │ + → → },
+        55 │ + → }·as·unknown·as·Terminal;
+        56 │ + → const·dispose·=·installTerminalWheelReview(terminal);
+        57 │ + → cleanups.push(dispose);
+        58 │ + → const·wheel·=·(deltaY:·number)·=>
+        59 │ + → → handler(new·WheelEvent("wheel",·{·deltaY,·cancelable:·true·}));
+        60 │ + → return·{
+        61 │ + → → element,
+        62 │ + → → terminal,
+        63 │ + → → wheel,
+        64 │ + → → input,
+        65 │ + → → focus,
+        66 │ + → → dispose,
+        67 │ + → → changed:·()·=>·changed({·type:·"normal"·}),
+        68 │ + → };
+    24  69 │   }
+    25  70 │   describe("terminal wheel review", () => {
+    26     │ - ·it("opens·selectable·client·history,·blocks·paste·and·closes·on·Escape·without·remote·input",·()·=>·{
+    27     │ - ··const·f=fixture();·f.wheel(-51);
+    28     │ - ··const·review=f.element.querySelector<HTMLElement>("[data-terminal-scrollback-review]")!;
+    29     │ - ··expect(review.querySelector("pre")?.textContent).toContain("中文·🙂");
+    30     │ - ··expect(document.activeElement).toBe(review);
+    31     │ - ··const·paste=new·Event("paste",{cancelable:true,bubbles:true});·review.dispatchEvent(paste);expect(paste.defaultPrevented).toBe(true);
+    32     │ - ··const·escape=new·KeyboardEvent("keydown",{key:"Escape",cancelable:true,bubbles:true});review.dispatchEvent(escape);
+    33     │ - ··expect(escape.defaultPrevented).toBe(true);expect(review.isConnected).toBe(false);expect(f.input).not.toHaveBeenCalled();expect(f.focus).toHaveBeenCalledTimes(1);
+    34     │ - ·});
+    35     │ - ·it("returns·to·live·terminal·at·the·bottom·and·releases·history·on·buffer·exit/disposal",·()·=>·{
+    36     │ - ··const·f=fixture();·f.wheel(17);expect(f.element.querySelector("[data-terminal-scrollback-review]")).toBeNull();
+    37     │ - ··f.wheel(-34);const·pre=f.element.querySelector("pre")!;
+    38     │ - ··Object.defineProperties(pre,{scrollHeight:{value:1000},clientHeight:{value:200}});pre.scrollTop=790;
+    39     │ - ··pre.dispatchEvent(new·WheelEvent("wheel",{deltaY:30,bubbles:true,cancelable:true}));expect(f.element.querySelector("pre")).toBeNull();
+    40     │ - ··f.wheel(-34);f.changed();expect(f.element.querySelector("pre")).toBeNull();
+    41     │ - ··f.wheel(-34);f.dispose();f.wheel(-34);expect(f.element.querySelector("pre")).toBeNull();expect(f.input).not.toHaveBeenCalled();
+    42     │ - ·});
+        71 │ + → it("opens·selectable·client·history,·blocks·paste·and·closes·on·Escape·without·remote·input",·()·=>·{
+        72 │ + → → const·f·=·fixture();
+        73 │ + → → f.wheel(-51);
+        74 │ + → → const·review·=·f.element.querySelector<HTMLElement>(
+        75 │ + → → → "[data-terminal-scrollback-review]",
+        76 │ + → → )!;
+        77 │ + → → expect(review.querySelector("pre")?.textContent).toContain("中文·🙂");
+        78 │ + → → expect(document.activeElement).toBe(review);
+        79 │ + → → const·paste·=·new·Event("paste",·{·cancelable:·true,·bubbles:·true·});
+        80 │ + → → review.dispatchEvent(paste);
+        81 │ + → → expect(paste.defaultPrevented).toBe(true);
+        82 │ + → → const·escape·=·new·KeyboardEvent("keydown",·{
+        83 │ + → → → key:·"Escape",
+        84 │ + → → → cancelable:·true,
+        85 │ + → → → bubbles:·true,
+        86 │ + → → });
+        87 │ + → → review.dispatchEvent(escape);
+        88 │ + → → expect(escape.defaultPrevented).toBe(true);
+        89 │ + → → expect(review.isConnected).toBe(false);
+        90 │ + → → expect(f.input).not.toHaveBeenCalled();
+        91 │ + → → expect(f.focus).toHaveBeenCalledTimes(1);
+        92 │ + → });
+        93 │ + → it("returns·to·live·terminal·at·the·bottom·and·releases·history·on·buffer·exit/disposal",·()·=>·{
+        94 │ + → → const·f·=·fixture();
+        95 │ + → → f.wheel(17);
+        96 │ + → → expect(
+        97 │ + → → → f.element.querySelector("[data-terminal-scrollback-review]"),
+        98 │ + → → ).toBeNull();
+        99 │ + → → f.wheel(-34);
+       100 │ + → → const·pre·=·f.element.querySelector("pre")!;
+       101 │ + → → Object.defineProperties(pre,·{
+       102 │ + → → → scrollHeight:·{·value:·1000·},
+       103 │ + → → → clientHeight:·{·value:·200·},
+       104 │ + → → });
+       105 │ + → → pre.scrollTop·=·790;
+       106 │ + → → pre.dispatchEvent(
+       107 │ + → → → new·WheelEvent("wheel",·{·deltaY:·30,·bubbles:·true,·cancelable:·true·}),
+       108 │ + → → );
+       109 │ + → → expect(f.element.querySelector("pre")).toBeNull();
+       110 │ + → → f.wheel(-34);
+       111 │ + → → f.changed();
+       112 │ + → → expect(f.element.querySelector("pre")).toBeNull();
+       113 │ + → → f.wheel(-34);
+       114 │ + → → f.dispose();
+       115 │ + → → f.wheel(-34);
+       116 │ + → → expect(f.element.querySelector("pre")).toBeNull();
+       117 │ + → → expect(f.input).not.toHaveBeenCalled();
+       118 │ + → });
+    43 119 │   });
+  1 more lines truncated
+  
+
+apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.ts format ━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1   1 │   import { msg } from "@lingui/core/macro";
+     2   2 │   import { i18n } from "@superset/i18n";
+     3     │ - import·{·getCellDimensions,·installTerminalWheelEventHandler·}·from·"@superset/shared/terminal-wheel-handler";
+         3 │ + import·{
+         4 │ + → getCellDimensions,
+         5 │ + → installTerminalWheelEventHandler,
+         6 │ + }·from·"@superset/shared/terminal-wheel-handler";
+     4   7 │   import type { IBuffer, Terminal } from "@xterm/xterm";
+     5   8 │   import { ScreenHistory } from "./screen-history";
+     6   9 │   
+     7  10 │   function readLines(buffer: IBuffer, maxLines: number) {
+     8     │ - ·const·lines:·string[]·=·[];
+     9     │ - ·let·budget·=·1024·*·1024;
+    10     │ - ·for·(let·i·=·buffer.length·-·1;·i·>=·Math.max(0,·buffer.length·-·maxLines)·&&·budget·>·0;·i--)·{
+    11     │ - ··const·line·=·buffer.getLine(i)?.translateToString(true)·??·"";
+    12     │ - ··lines.push(line.slice(-budget));
+    13     │ - ··budget·-=·line.length·+·1;
+    14     │ - ·}
+    15     │ - ·lines.reverse();
+    16     │ - ·while·(lines.length·&&·!lines[lines.length·-·1])·lines.pop();
+    17     │ - ·return·lines;
+        11 │ + → const·lines:·string[]·=·[];
+        12 │ + → let·budget·=·1024·*·1024;
+        13 │ + → for·(
+        14 │ + → → let·i·=·buffer.length·-·1;
+        15 │ + → → i·>=·Math.max(0,·buffer.length·-·maxLines)·&&·budget·>·0;
+        16 │ + → → i--
+        17 │ + → )·{
+        18 │ + → → const·line·=·buffer.getLine(i)?.translateToString(true)·??·"";
+        19 │ + → → lines.push(line.slice(-budget));
+        20 │ + → → budget·-=·line.length·+·1;
+        21 │ + → }
+        22 │ + → lines.reverse();
+        23 │ + → while·(lines.length·&&·!lines[lines.length·-·1])·lines.pop();
+        24 │ + → return·lines;
+    18  25 │   }
+    19  26 │   
+    20  27 │   export function installTerminalWheelReview(terminal: Terminal): () => void {
+    21     │ - ·const·history·=·new·ScreenHistory();
+    22     │ - ·let·timer:·ReturnType<typeof·setTimeout>·|·undefined;
+    23     │ - ·let·review:·HTMLDivElement·|·undefined;
+    24     │ - ·let·viewport:·HTMLPreElement·|·undefined;
+    25     │ - ·let·disposed·=·false;
+    26     │ - ·const·capture·=·()·=>·{
+    27     │ - ··if·(!disposed·&&·terminal.buffer.active.type·===·"alternate")·history.capture(readLines(terminal.buffer.active,·terminal.rows));
+    28     │ - ·};
+    29     │ - ·const·close·=·(focus·=·true)·=>·{
+    30     │ - ··review?.remove();·review·=·undefined;·viewport·=·undefined;
+    31     │ - ··if·(focus·&&·!disposed)·terminal.focus();
+    32     │ - ·};
+    33     │ - ·const·move·=·(pixels:·number)·=>·{
+    34     │ - ··if·(!viewport)·return;
+    35     │ - ··viewport.scrollTop·+=·pixels;
+    36     │ - ··if·(pixels·>·0·&&·viewport.scrollTop·>=·viewport.scrollHeight·-·viewport.clientHeight·-·1)·close();
+    37     │ - ·};
+    38     │ - ·const·scroll·=·(lines:·number)·=>·{
+    39     │ - ··if·(disposed·||·!terminal.element·||·!lines)·return;
+    40     │ - ··const·cellHeight·=·getCellDimensions(terminal)?.height·??·terminal.options.fontSize·??·14;
+    41     │ - ··if·(!review)·{
+    42     │ - ···if·(lines·>·0)·return;
+    43     │ - ···capture();
+    44     │ - ···review·=·document.createElement("div");
+    45     │ - ···review.dataset.terminalScrollbackReview·=·"true";
+    46     │ - ···review.tabIndex·=·0;
+    47     │ - ···review.setAttribute("role",·"region");
+    48     │ - ···review.setAttribute("aria-label",·i18n._(msg({·message:·"Terminal"·})));
+    49     │ - ···Object.assign(review.style,·{·position:·"absolute",·inset:·"0",·zIndex:·"10",·background:·terminal.options.theme?.background·??·"#1e1e1e",·color:·terminal.options.theme?.foreground·??·"#ffffff",·overflow:·"hidden"·});
+    50     │ - ···viewport·=·document.createElement("pre");
+    51     │ - ···Object.assign(viewport.style,·{·margin:·"0",·padding:·"8px",·height:·"100%",·boxSizing:·"border-box",·overflow:·"auto",·overscrollBehavior:·"contain",·whiteSpace:·"pre",·fontFamily:·terminal.options.fontFamily·??·"monospace",·fontSize:·`${terminal.options.fontSize·??·14}px`,·lineHeight:·`${cellHeight}px`,·letterSpacing:·`${terminal.options.letterSpacing·??·0}px`,·userSelect:·"text"·});
+    52     │ - ···const·normal·=·readLines(terminal.buffer.normal,·10000);
+    53     │ - ···viewport.textContent·=·[...normal,·...(normal.length·?·[""]·:·[]),·...history.lines()].join("\n");
+    54     │ - ···const·button·=·document.createElement("button");
+    55     │ - ···button.type·=·"button";
+    56     │ - ···button.textContent·=·"×";
+    57     │ - ···button.setAttribute("aria-label",·i18n._(msg({·message:·"Close"·})));
+    58     │ - ···Object.assign(button.style,·{·position:·"absolute",·right:·"12px",·top:·"4px",·fontSize:·"24px",·padding:·"0·6px",·cursor:·"pointer",·background:·"inherit",·color:·"inherit"·});
+    59     │ - ···button.addEventListener("click",·()·=>·close());
+    60     │ - ···review.append(viewport,·button);
+    61     │ - ···review.addEventListener("wheel",·(event)·=>·{
+    62     │ - ····event.preventDefault();·event.stopImmediatePropagation();
+    63     │ - ····move(event.deltaY·*·(event.deltaMode·===·1·?·cellHeight·:·event.deltaMode·===·2·?·viewport?.clientHeight·??·cellHeight·:·1));
+    64     │ - ···},·{·passive:·false·});
+    65     │ - ···review.addEventListener("keydown",·(event)·=>·{
+    66     │ - ····if·(event.key·===·"Escape"·||·event.key·===·"End")·{·event.preventDefault();·event.stopImmediatePropagation();·close();·}
+    67     │ - ····else·if·(["ArrowUp",·"ArrowDown",·"PageUp",·"PageDown",·"Home"].includes(event.key))·{
+    68     │ - ·····event.preventDefault();·event.stopImmediatePropagation();
+    69     │ - ·····if·(event.key·===·"Home"·&&·viewport)·viewport.scrollTop·=·0;
+    70     │ - ·····else·move((event.key.endsWith("Up")·?·-1·:·1)·*·(event.key.startsWith("Page")·?·viewport?.clientHeight·??·cellHeight·:·cellHeight));
+    71     │ - ····}·else·if·(!event.metaKey·&&·!event.ctrlKey)·event.stopPropagation();
+    72     │ - ···});
+    73     │ - ···for·(const·name·of·["paste",·"drop"]·as·const)·review.addEventListener(name,·event·=>·{·event.preventDefault();·event.stopImmediatePropagation();·});
+    74     │ - ···terminal.element.append(review);
+    75     │ - ···review.focus({·preventScroll:·true·});
+    76     │ - ···viewport.scrollTop·=·viewport.scrollHeight;
+    77     │ - ··}
+    78     │ - ··move(lines·*·cellHeight);
+    79     │ - ·};
+    80     │ - ·const·parsed·=·terminal.onWriteParsed(()·=>·{
+    81     │ - ··if·(terminal.buffer.active.type·!==·"alternate"·||·timer·!==·undefined)·return;
+    82     │ - ··timer·=·setTimeout(()·=>·{·timer·=·undefined;·capture();·},·100);
+    83     │ - ·});
+    84     │ - ·const·changed·=·terminal.buffer.onBufferChange(buffer·=>·{
+    85     │ - ··if·(timer·!==·undefined)·clearTimeout(timer);
+    86     │ - ··timer·=·undefined;
+    87     │ - ··if·(buffer.type·===·"normal")·{·close(false);·history.clear();·}
+    88     │ - ·});
+    89     │ - ·const·uninstall·=·installTerminalWheelEventHandler(terminal,·scroll);
+    90     │ - ·const·dispose·=·()·=>·{
+    91     │ - ··if·(disposed)·return;
+    92     │ - ··disposed·=·true;
+    93     │ - ··if·(timer·!==·undefined)·clearTimeout(timer);
+    94     │ - ··parsed.dispose();·changed.dispose();·uninstall();·close(false);·history.clear();
+    95     │ - ·};
+    96     │ - ·terminal.loadAddon({·activate()·{},·dispose·});
+    97     │ - ·return·dispose;
+        28 │ + → const·history·=·new·ScreenHistory();
+        29 │ + → let·timer:·ReturnType<typeof·setTimeout>·|·undefined;
+        30 │ + → let·review:·HTMLDivElement·|·undefined;
+        31 │ + → let·viewport:·HTMLPreElement·|·undefined;
+        32 │ + → let·disposed·=·false;
+        33 │ + → const·capture·=·()·=>·{
+        34 │ + → → if·(!disposed·&&·terminal.buffer.active.type·===·"alternate")
+        35 │ + → → → history.capture(readLines(terminal.buffer.active,·terminal.rows));
+        36 │ + → };
+        37 │ + → const·close·=·(focus·=·true)·=>·{
+        38 │ + → → review?.remove();
+        39 │ + → → review·=·undefined;
+        40 │ + → → viewport·=·undefined;
+        41 │ + → → if·(focus·&&·!disposed)·terminal.focus();
+        42 │ + → };
+        43 │ + → const·move·=·(pixels:·number)·=>·{
+        44 │ + → → if·(!viewport)·return;
+        45 │ + → → viewport.scrollTop·+=·pixels;
+        46 │ + → → if·(
+        47 │ + → → → pixels·>·0·&&
+        48 │ + → → → viewport.scrollTop·>=·viewport.scrollHeight·-·viewport.clientHeight·-·1
+        49 │ + → → )
+        50 │ + → → → close();
+        51 │ + → };
+        52 │ + → const·scroll·=·(lines:·number)·=>·{
+        53 │ + → → if·(disposed·||·!terminal.element·||·!lines)·return;
+        54 │ + → → const·cellHeight·=
+        55 │ + → → → getCellDimensions(terminal)?.height·??·terminal.options.fontSize·??·14;
+        56 │ + → → if·(!review)·{
+        57 │ + → → → if·(lines·>·0)·return;
+        58 │ + → → → capture();
+        59 │ + → → → review·=·document.createElement("div");
+        60 │ + → → → review.dataset.terminalScrollbackReview·=·"true";
+        61 │ + → → → review.tabIndex·=·0;
+        62 │ + → → → review.setAttribute("role",·"region");
+  126 more lines truncated
+  
+
+packages/shared/src/terminal-wheel-handler/terminal-wheel-handler.test.ts format ━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    251 251 │   		const { terminal, input } = makeFakeTerminal();
+    252 252 │   		const review = mock((_lines: number) => {});
+    253     │ - → → const·handler·=·createTerminalWheelEventHandler(terminal,·isSgrActive,·review);
+        253 │ + → → const·handler·=·createTerminalWheelEventHandler(
+        254 │ + → → → terminal,
+        255 │ + → → → isSgrActive,
+        256 │ + → → → review,
+        257 │ + → → );
+    254 258 │   		const event = wheelEvent(-51);
+    255 259 │   		expect(handler(event)).toBe(false);
+    ······· │ 
+    260 264 │   
+    261 265 │   	it("does not turn wheel gestures into application cursor keys", () => {
+    262     │ - → → const·{·terminal,·input,·scrollLines·}·=·makeFakeTerminal({·applicationCursorKeysMode:·true·});
+        266 │ + → → const·{·terminal,·input,·scrollLines·}·=·makeFakeTerminal({
+        267 │ + → → → applicationCursorKeysMode:·true,
+        268 │ + → → });
+    263 269 │   		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
+    264 270 │   		handler(wheelEvent(-17));
+    ······· │ 
+    270 276 │   		const { terminal, input } = makeFakeTerminal();
+    271 277 │   		const review = mock((_lines: number) => {});
+    272     │ - → → const·handler·=·createTerminalWheelEventHandler(terminal,·isSgrActive,·review);
+    273     │ - → → handler(wheelEvent(-6));·handler(wheelEvent(-6));
+        278 │ + → → const·handler·=·createTerminalWheelEventHandler(
+        279 │ + → → → terminal,
+        280 │ + → → → isSgrActive,
+        281 │ + → → → review,
+        282 │ + → → );
+        283 │ + → → handler(wheelEvent(-6));
+        284 │ + → → handler(wheelEvent(-6));
+    274 285 │   		expect(review).not.toHaveBeenCalled();
+    275 286 │   		handler(wheelEvent(-6));
+    ······· │ 
+    296 307 │   
+    297 308 │   	it("reviews content for x10 tracking, which never reports wheel", () => {
+    298     │ - → → const·{·terminal,·input,·scrollLines·}·=·makeFakeTerminal({·mouseTrackingMode:·"x10"·});
+        309 │ + → → const·{·terminal,·input,·scrollLines·}·=·makeFakeTerminal({
+        310 │ + → → → mouseTrackingMode:·"x10",
+        311 │ + → → });
+    299 312 │   		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
+    300 313 │   		expect(handler(wheelEvent(17))).toBe(false);
+  
+
+packages/shared/src/terminal-wheel-handler/terminal-wheel-handler.ts format ━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    201 201 │   	xterm: XTerm,
+    202 202 │   	isSgrMouseModeActive: () => boolean,
+    203     │ - → scrollAlternateBuffer:·(lines:·number)·=>·void·=·(lines)·=>·xterm.scrollLines(lines),
+        203 │ + → scrollAlternateBuffer:·(lines:·number)·=>·void·=·(lines)·=>
+        204 │ + → → xterm.scrollLines(lines),
+    204 205 │   ): (event: WheelEvent) => boolean {
+    205 206 │   	const state = createWheelLineState();
+    ······· │ 
+    215 216 │   		// x10 tracking never reports wheel.
+    216 217 │   		const wantsMouseReports =
+    217     │ - → → → !event.shiftKey·&&·(tracking·===·"vt200"·||·tracking·===·"drag"·||·tracking·===·"any");
+        218 │ + → → → !event.shiftKey·&&
+        219 │ + → → → (tracking·===·"vt200"·||·tracking·===·"drag"·||·tracking·===·"any");
+    218 220 │   
+    219 221 │   		if (wantsMouseReports) {
+    ······· │ 
+    287 289 │   	const sgrTracker = createSgrMouseModeTracker(xterm);
+    288 290 │   	xterm.attachCustomWheelEventHandler(
+    289     │ - → → createTerminalWheelEventHandler(xterm,·sgrTracker.isActive,·scrollAlternateBuffer),
+        291 │ + → → createTerminalWheelEventHandler(
+        292 │ + → → → xterm,
+        293 │ + → → → sgrTracker.isActive,
+        294 │ + → → → scrollAlternateBuffer,
+        295 │ + → → ),
+    290 296 │   	);
+    291 297 │   
+  
+
+Checked 11 files in 106ms. No fixes applied.
+Found 9 errors.
+Found 2 warnings.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while running checks.
+  
+

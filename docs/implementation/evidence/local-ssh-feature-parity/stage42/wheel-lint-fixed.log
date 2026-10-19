@@ -1,0 +1,49 @@
+apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.test.ts:78:18 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    76 │ 		const f = fixture();
+    77 │ 		f.wheel(-51);
+  > 78 │ 		const review = f.element.querySelector<HTMLElement>(
+       │ 		               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  > 79 │ 			"[data-terminal-scrollback-review]",
+  > 80 │ 		)!;
+       │ 		^^
+    81 │ 		expect(review.querySelector("pre")?.textContent).toContain("中文 🙂");
+    82 │ 		expect(document.activeElement).toBe(review);
+  
+
+apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.test.ts:104:15 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    102 │ 		).toBeNull();
+    103 │ 		f.wheel(-34);
+  > 104 │ 		const pre = f.element.querySelector("pre")!;
+        │ 		            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    105 │ 		Object.defineProperties(pre, {
+    106 │ 			scrollHeight: { value: 1000 },
+  
+
+apps/desktop/src/renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review.test.ts:86:9 lint/suspicious/noShadowRestrictedNames ━━━━━━━━━━
+
+  × Do not shadow the global "escape" property.
+  
+    84 │ 		review.dispatchEvent(paste);
+    85 │ 		expect(paste.defaultPrevented).toBe(true);
+  > 86 │ 		const escape = new KeyboardEvent("keydown", {
+       │ 		      ^^^^^^
+    87 │ 			key: "Escape",
+    88 │ 			cancelable: true,
+  
+  i Consider renaming this variable. It's easy to confuse the origin of variables when they're named after a known global.
+  
+
+Checked 11 files in 39ms. Fixed 8 files.
+Found 1 error.
+Found 2 warnings.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while applying fixes.
+  
+

@@ -1,0 +1,112 @@
+bun test v1.4.2 (744846f84)
+
+packages/shared/src/terminal-wheel-handler/terminal-identity-coupling.test.ts:
+(pass) terminal identity ↔ wheel handler coupling > TERM_PROGRAM claims a kitty-class terminal while the full-fidelity wheel handler ships [0.08ms]
+
+packages/shared/src/terminal-wheel-handler/terminal-wheel-handler.test.ts:
+(pass) consumeWheelLines > maps one cell height of pixels to one line without damping [0.54ms]
+(pass) consumeWheelLines > accumulates fractional deltas across events instead of dropping them [0.03ms]
+(pass) consumeWheelLines > preserves the remainder after emitting whole lines [0.03ms]
+(pass) consumeWheelLines > emits multiple lines for a single large event (flick momentum) [0.02ms]
+(pass) consumeWheelLines > handles scrolling up with negative deltas [0.03ms]
+(pass) consumeWheelLines > lets opposite-direction residue cancel naturally [0.05ms]
+(pass) consumeWheelLines > resets the accumulator when the context changes [0.02ms]
+(pass) consumeWheelLines > treats DOM_DELTA_LINE deltas as lines directly [0.01ms]
+(pass) consumeWheelLines > treats DOM_DELTA_PAGE deltas as pages of rows [0.02ms]
+(pass) consumeWheelLines > applies fast-scroll sensitivity when alt or ctrl is held [0.03ms]
+(pass) consumeWheelLines > caps a single event at one page of lines [0.01ms]
+(pass) sequence builders > builds SGR wheel reports with direction and modifiers [0.09ms]
+(pass) sequence builders > builds cursor sequences honoring application cursor keys mode [0.02ms]
+(pass) createTerminalWheelEventHandler > defers to stock xterm in the normal buffer without mouse tracking (scrollback) [0.92ms]
+(pass) createTerminalWheelEventHandler > sends SGR reports for normal-buffer mouse tracking (Claude Code) [0.22ms]
+(pass) createTerminalWheelEventHandler > defers to viewport scrollback for x10 tracking in the normal buffer [0.05ms]
+242 | 	});
+243 | 
+244 | 	it("uses client review for shift-wheel instead of stock alternate-buffer arrows", () => {
+245 | 		const { terminal } = makeFakeTerminal();
+246 | 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
+247 | 		expect(handler(wheelEvent(40, { shiftKey: true }))).toBe(false);
+                                                            ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/packages/shared/src/terminal-wheel-handler/terminal-wheel-handler.test.ts:247:55)
+(fail) createTerminalWheelEventHandler > uses client review for shift-wheel instead of stock alternate-buffer arrows [0.91ms]
+251 | 		const { terminal, input } = makeFakeTerminal();
+252 | 		const review = mock((_lines: number) => {});
+253 | 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive, review);
+254 | 		const event = wheelEvent(-51);
+255 | 		expect(handler(event)).toBe(false);
+256 | 		expect(review).toHaveBeenCalledWith(-3);
+                       ^
+error: expect(received).toHaveBeenCalledWith(...expected)
+
+Expected: [ -3 ]
+But it was not called.
+      at <anonymous> (/workspace/superset/packages/shared/src/terminal-wheel-handler/terminal-wheel-handler.test.ts:256:18)
+(fail) createTerminalWheelEventHandler > reviews alternate-buffer content without generating direction keys [0.30ms]
+260 | 
+261 | 	it("does not turn wheel gestures into application cursor keys", () => {
+262 | 		const { terminal, input, scrollLines } = makeFakeTerminal({ applicationCursorKeysMode: true });
+263 | 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
+264 | 		handler(wheelEvent(-17));
+265 | 		expect(input).not.toHaveBeenCalled();
+                          ^
+error: expect(received).not.toHaveBeenCalled()
+
+Expected number of calls: 0
+Received number of calls: 1
+
+      at <anonymous> (/workspace/superset/packages/shared/src/terminal-wheel-handler/terminal-wheel-handler.test.ts:265:21)
+(fail) createTerminalWheelEventHandler > does not turn wheel gestures into application cursor keys [0.13ms]
+271 | 		const review = mock((_lines: number) => {});
+272 | 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive, review);
+273 | 		handler(wheelEvent(-6)); handler(wheelEvent(-6));
+274 | 		expect(review).not.toHaveBeenCalled();
+275 | 		handler(wheelEvent(-6));
+276 | 		expect(review).toHaveBeenCalledWith(-1);
+                       ^
+error: expect(received).toHaveBeenCalledWith(...expected)
+
+Expected: [ -1 ]
+But it was not called.
+      at <anonymous> (/workspace/superset/packages/shared/src/terminal-wheel-handler/terminal-wheel-handler.test.ts:276:18)
+(fail) createTerminalWheelEventHandler > accumulates small trackpad deltas for client review without input [0.13ms]
+(pass) createTerminalWheelEventHandler > sends SGR wheel reports when mouse tracking + SGR encoding are active [0.06ms]
+(pass) createTerminalWheelEventHandler > defers to stock xterm when mouse tracking is active without SGR encoding [0.03ms]
+296 | 
+297 | 	it("reviews content for x10 tracking, which never reports wheel", () => {
+298 | 		const { terminal, input, scrollLines } = makeFakeTerminal({ mouseTrackingMode: "x10" });
+299 | 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
+300 | 		expect(handler(wheelEvent(17))).toBe(false);
+301 | 		expect(input).not.toHaveBeenCalled();
+                          ^
+error: expect(received).not.toHaveBeenCalled()
+
+Expected number of calls: 0
+Received number of calls: 1
+
+      at <anonymous> (/workspace/superset/packages/shared/src/terminal-wheel-handler/terminal-wheel-handler.test.ts:301:21)
+(fail) createTerminalWheelEventHandler > reviews content for x10 tracking, which never reports wheel [0.07ms]
+304 | 
+305 | 	it("never falls back to arrow input when cell dimensions are unavailable", () => {
+306 | 		const { terminal, input } = makeFakeTerminal();
+307 | 		(terminal as unknown as { _core: unknown })._core = undefined;
+308 | 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
+309 | 		expect(handler(wheelEvent(40))).toBe(false);
+                                        ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/packages/shared/src/terminal-wheel-handler/terminal-wheel-handler.test.ts:309:35)
+(fail) createTerminalWheelEventHandler > never falls back to arrow input when cell dimensions are unavailable [0.06ms]
+(pass) createTerminalWheelEventHandler > honors the stock-wheel escape hatch per event, without reinstall [0.11ms]
+
+ 20 pass
+ 6 fail
+ 47 expect() calls
+Ran 26 tests across 2 files. [82.00ms]

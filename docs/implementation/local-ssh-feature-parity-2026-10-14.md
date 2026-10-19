@@ -802,3 +802,15 @@ Markdown继续复用原SafeImage/MarkdownResourceProvider及现有有界读取�
 第140轮产品固定9c294109a、脚本419f00584，真实Linux/Electron/拥有的SSH `--terminal-script-management-only`退出0。新增脚本稳定ID，原名称/描述/双命令/项目范围/目录`.`/新标签分屏模式/三个启动标记/隐藏选择均存到所选SSH目录。对同一拥有窗口验证PID、窗口归属、内容边界和scale后使用XTest系统鼠标拖动；原HTML5 dragstart/dragover/drop/dragend实际产生，反向小幅移动与500ms停留后顺序在SQLite读回正确。关闭重开目录/revision/字段保持；外部目录版本变化后名称修改拒写且本地草稿保留，Reload取消保留、确认只读恢复；删除先取消再确认，然后通过原确认逐项移除8个已审阅默认脚本，重开仍为空且管理/Add可用。原三个PTY8605/8618/8612、执行ID及统一worktree cwd保持，没有启动任何脚本或Agent；十张相关截图均已实际查看。CDP按值返回Date在原始诊断JSON中表现为`{}`，此轮不独立证明时间戳；日期持久化由host的类型化路由测试验证。[第140轮完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-script-management/140)。这仍是管理验收；真实macOS、供应商执行和后续启动接入不由它推断。
 
 后续启动接入的前置缺口已明确：当前恢复模型每个workspace只有一个pane layout，并禁止重复workspace标签，不能直接表达原版同一workspace内的多个终端标签页。需先保留并恢复原终端标签页语义，再复用getPresetLaunchPlan/resolvePresetLaunchCommands；sequential向已有PTY写入还需持久操作确认，不能通过重试直接send重跑命令。管理里保存的scope/模式/隐藏/触发标记及快捷键/CLI接入继续留待办，不把当前默认Agent按钮当作完整脚本功能。
+
+## 阶段四十二：终端触控板滚动与 TUI 客户端历史查看
+
+用户新增要求：本地和 SSH 终端、coding agent TUI 内，上下滑动应查看内容，不能把滚动误作方向键字符。沿用原 shared wheel handler、cell dimensions、像素余量累计及 SGR 鼠标编码；发现原无鼠标模式的 alternate buffer 明确发送方向键，stock xterm 同样回退发送方向键。先更新行为测试，得到20通过6失败，再移除这条输入路径；普通 normal buffer 保留原 viewport 滚动，支持鼠标的 TUI 保留正确原生滚轮报告，Shift 可绕过应用鼠标捕获。新客户端历史查看接入 createTerminalSurface 和原 terminal-runtime，因此本地/SSH 与原终端运行时共用；键盘方向键不受此修改影响。
+
+无鼠标模式的 alternate buffer 没有 xterm 原生 scrollback，新历史查看保留已显示文本：每100ms至多采集一次当前屏幕，重复画面跳过、实际行滚动按后缀/前缀重叠合并，完整重绘以空行分隔；每实例最多10000行、1MiB历史与1MiB上一屏，不落 localStorage 或磁盘。向上滑动打开可选择复制的只读文本查看，包含已有 normal buffer 历史与已采集 TUI 屏幕；向下到底、Esc、End 或关闭按钮返回实时终端。查看期间粘贴/拖入不会误发到后端；尺寸改变关闭查看；退出 alternate buffer、清屏历史、终端 reset 清空历史；dispose 释放查看、历史、监听器和定时器。它是有界、采样的已显示文本记录，不是 TUI 内部完整会话或图像/颜色重放；不能恢复客户端附着前已经丢弃的画面。应用支持鼠标时继续让应用自己滚动其完整历史。
+
+历史无操作基线2项实际失败后补实现通过；最终shared wheel 26项/53断言，客户端历史及真实 headless VT 模式解析5项/26断言通过。真实 VT 测试覆盖 DEC1049/DECCKM/1000/1006 切换、SGR 上下滚动、Shift 查看以及回到 normal buffer；不以 mock 的 mode 值代替协议测试。相关本地输入/图片粘贴/RemoteTerminal/运行时回归62项/213断言通过；桌面与shared类型、插件检查、17语言检查及严格编译、含 CLI 与5个PTY marker的完整构建通过；新代码 lint 最终无错误。中间 lint 的 restricted global 名称错误修在测试中，原始失败日志保留。[阶段四十二红绿与检查](evidence/local-ssh-feature-parity/stage42)。
+
+真实 Linux/Electron 与拥有的 loopback SSH：第142轮多行夹具命令被终端合并、第143轮文件 API 返回 bytes 而脚本未解码，两轮均退出1；失败截图已查看，仅修验收脚本，未调整产品或放宽断言。第144轮产品9c294109a、脚本4709b71b4成功运行同一 raw-mode TUI 夹具，向上滚动实际向远端发送六次 ESC[A，输入字节断言退出1；普通终端滚动前后及 TUI 失败截图已查看。[142–144原始失败](evidence/local-ssh-feature-parity/source-linux-terminal-wheel-failures)。
+
+第145轮产品491b19174、脚本fe0ccd54f，真实桌面 `--wheel-only`退出0：普通终端滚动无输入，TUI 完整重绘后向上查看可见前一屏与 shell 历史；只读查看scrollTop3431、scrollHeight4016、clientHeight489，与截图一致。反向/小幅/大幅滚动后远端输入保持只有明确键入的a/n，Esc返回亦不发送Escape；继续输入s后启用原生SGR，上下滚动收到正确64/65报告而无方向键，输入q正常结束。五张滚动截图均已实际查看，浏览器错误数组为空。[145完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-wheel/145)。这是源码桌面和SSH协议夹具验收；尚未独立执行本地连接原生窗口、真实供应商Agent或macOS触控板/安装包验收，不能由夹具结果推断这些测试已经完成。此前阶段四十一的原终端标签页工作暂存后独立构建此修复，未作为本轮产品内容发布。
