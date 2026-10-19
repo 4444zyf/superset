@@ -1,0 +1,83 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.33ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.27ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.14ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.09ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.54ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.15ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.54ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.03ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.10ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.15ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.17ms]
+(pass) disconnect and app disposal only close client transports [0.07ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.71ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.71ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.51ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [1.03ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.57ms]
+(pass) attachment and file event readiness require explicit backend capabilities [0.31ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.22ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.17ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.08ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.37ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.34ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.90ms]
+(pass) project script procedures require their own capability and an explicit project [0.37ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.89ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.48ms]
+(pass) setup status is read only with an explicit workspace and its advertised capability [0.19ms]
+(pass) only the advertised read-only terminal agent catalog is exposed to the workstation [0.18ms]
+(pass) versioned agent settings require a target id, capability and current connection [0.21ms]
+(pass) versioned catalog management is gated separately from row editing and rejects stale connections [0.20ms]
+(pass) preserved agent catalog choices require the V2 capability independently of V1 management [0.24ms]
+(pass) terminal script storage requires its own strict capability and the current generation [0.28ms]
+(pass) existing-terminal scripts require a strict execution capability and durable operation tracking [0.73ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [120.74ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [61.22ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [60.69ms]
+(pass) existing focus and close actions select the owning terminal tab and remove empty groups [79.21ms]
+(pass) original pane store tab rename and close persist with no extra terminal RPC or replay [64.61ms]
+(pass) a delayed split resize updates its captured terminal tab after the user selects another tab [70.50ms]
+(pass) pending metadata saves keep typed titles visible while a terminal focus update is queued [69.93ms]
+(pass) script mode split-pane keeps the original terminal layout and one command per new session [124.03ms]
+(pass) script mode new-tab keeps the original terminal layout and one command per new session [74.84ms]
+(pass) script mode new-tab-split-pane keeps the original terminal layout and one command per new session [56.46ms]
+(pass) sequential scripts use the captured terminal execution once and preserve its custom title [56.40ms]
+(pass) a target switch during creation never launches the remaining script commands or appends foreign panes [107.55ms]
+(pass) a partial script launch retains confirmed terminals and never replays a lost creation reply [62.08ms]
+(pass) normal window flush waits for the requested script batch and its saved pane layout [125.46ms]
+(pass) normal window flush also waits for an ordinary terminal launch and its view reference [64.80ms]
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.test.tsx:
+(pass) loading Run state does not insert an action before New terminal [222.64ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminalScripts/RemoteTerminalScripts.test.tsx:
+(pass) uses the original script editor and persists edits through the selected SSH catalog [108.03ms]
+(pass) a lost save response is acknowledged only after matching readback and is never replayed [74.54ms]
+(pass) conflicts retain the draft and prevent Save All or repeated blur from overwriting another client [120.23ms]
+(pass) initialization is explicit, happens once, and intentionally empty catalogs stay empty [14.80ms]
+(pass) unsupported hosts do not receive new terminal script procedures [0.49ms]
+(pass) a failed initial catalog read leaves a visible management entry with an explicit retry [14.54ms]
+(pass) new scripts keep a stable ID, clear the last command, and delete only after confirmation [191.60ms]
+(pass) directory browsing uses the SSH filesystem and stores the original workspace-relative value [97.49ms]
+(pass) closing a dirty original editor keeps the draft on Cancel and saves explicitly on Save & Continue [119.19ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:
+(pass) the original default preset surface uses the selected host's config and launches only on an explicit click [29.87ms]
+(pass) older hosts receive no preset queries and late replies cannot populate a different backend [5.02ms]
+(pass) agent settings open the original launch form without launching a terminal [42.41ms]
+(pass) the host's custom configurations remain selectable beyond the first 128 entries [209.49ms]
+(pass) a deliberately empty versioned catalog remains manageable without the legacy reseeding list [14.86ms]
+(pass) the script bar uses the selected host catalog order, visibility and project scope [12.88ms]
+(pass) an explicitly empty script catalog keeps the bar empty instead of recreating default agent buttons [7.61ms]
+(pass) hosts with script management but no execution capability cannot launch catalog scripts [14.91ms]
+
+ 67 pass
+ 0 fail
+ 314 expect() calls
+Ran 67 tests across 5 files. [3.92s]

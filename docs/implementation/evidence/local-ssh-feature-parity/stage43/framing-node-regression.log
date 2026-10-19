@@ -1,0 +1,260 @@
+✖ agent sends reject persisted terminal death even while the memory binding survives (38.948037ms)
+▶ writeFramedInputToSession / snapshotSession
+  ✖ replay failure is typed and a retry preserves the PTY: Replay timed out
+  ✖ replay failure is typed and a retry preserves the PTY: Disconnected during replay
+  ✖ replay failure is typed and a retry preserves the PTY: Invalid replay checkpoint
+  ✖ concurrent adoption failure returns typed errors and retries with a fresh checkpoint
+  ✖ send delivers text + Enter into a live shell
+  ✖ submit: false stages text without executing it
+  ✖ snapshot returns screen text and respects maxLines
+  ✖ multi-line send is paste-framed only when the program enabled bracketed paste
+  ✖ agent feedback stays paste-framed when replay has lost paste mode
+  ✖ concurrent pages stay isolated across terminals after adoption without paste-mode history
+  ✖ daemon write failures reject agent delivery while websocket input stays contained
+  ✖ delivery reservation is acquired at queue head and denied is fenced
+  ✖ delivery reservation is acquired at queue head and expired is fenced
+  ✖ delivery reservation is acquired at queue head and replaced is fenced
+  ✖ delivery reservation is acquired at queue head and write-failed is fenced
+  ✖ delivery reservation is acquired at queue head and accepted is fenced
+  ✖ queued agent delivery revalidates cancel without poisoning later sends
+  ✖ queued agent delivery revalidates replace without poisoning later sends
+  ✖ queued agent delivery revalidates session without poisoning later sends
+  ✖ queued agent delivery revalidates end without poisoning later sends
+  ✖ queued agent delivery revalidates progress without poisoning later sends
+  ✖ agent delivery revalidates cancel after the paste and before Enter
+  ✖ agent delivery revalidates replace after the paste and before Enter
+  ✖ agent delivery rejects a replaced launch captured before polling
+  ✖ submit Enter is a separate write, delayed past the paste burst
+  ✖ concurrent sends serialize: a staged draft cannot ride another send's Enter
+  ✖ concurrent sends racing a fresh adoption share one session and serialize
+  ✖ snapshot reads the alt-screen buffer while a TUI is active
+  ✖ send and snapshot adopt a daemon session after host-service restart simulation
+  ✖ unknown terminal id returns a not-active error (no spawn)
+  ✖ send into an exited session fails; snapshot still serves the final screen
+  ✖ cross-workspace targeting is rejected
+✖ writeFramedInputToSession / snapshotSession (0.113391ms)
+▶ terminal.send / terminal.snapshot tRPC procedures
+  ✖ send preserves paste framing after startup output is evicted and the host restarts
+  ✖ manual agent sends sanitize and stage a complete paste without mode history
+  ✖ send defaults submit to true and snapshot round-trips
+  ✖ maps errors to TRPC codes: NOT_FOUND, FORBIDDEN, BAD_REQUEST
+  ✖ rejects unauthenticated callers
+✖ terminal.send / terminal.snapshot tRPC procedures (0.063176ms)
+ℹ tests 38
+ℹ suites 2
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 37
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4946.029628
+
+✖ failing tests:
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:1:1573
+✖ agent sends reject persisted terminal death even while the memory binding survives (38.948037ms)
+  Error: The module '/workspace/superset/node_modules/.bun/better-sqlite3@12.11.1/node_modules/better-sqlite3/build/Release/better_sqlite3.node'
+  was compiled against a different Node.js version using
+  NODE_MODULE_VERSION 145. This version of Node.js requires
+  NODE_MODULE_VERSION 137. Please try re-compiling or re-installing
+  the module (for instance, using `npm rebuild` or `npm install`).
+      at Object..node (node:internal/modules/cjs/loader:2030:18)
+      at Module.load (node:internal/modules/cjs/loader:1594:32)
+      at Module._load (node:internal/modules/cjs/loader:1396:12)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1617:12)
+      at require (node:internal/modules/helpers:153:16)
+      at bindings (/workspace/superset/node_modules/.bun/bindings@1.5.0/node_modules/bindings/bindings.js:112:48)
+      at new Database (/workspace/superset/node_modules/.bun/better-sqlite3@12.11.1/node_modules/better-sqlite3/lib/database.js:48:64)
+      at createDb (/workspace/superset/packages/host-service/src/db/db.ts:35:17)
+      at TestContext.<anonymous> (/workspace/superset/packages/host-service/src/terminal/terminal.send-snapshot.node-test.ts:155:7) {
+    code: 'ERR_DLOPEN_FAILED'
+  }
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:1:4488
+✖ replay failure is typed and a retry preserves the PTY: Replay timed out
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:1:4488
+✖ replay failure is typed and a retry preserves the PTY: Disconnected during replay
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:1:4488
+✖ replay failure is typed and a retry preserves the PTY: Invalid replay checkpoint
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:1:5685
+✖ concurrent adoption failure returns typed errors and retries with a fresh checkpoint
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:1:6907
+✖ send delivers text + Enter into a live shell
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:1:7507
+✖ submit: false stages text without executing it
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:1:8363
+✖ snapshot returns screen text and respects maxLines
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:1:9278
+✖ multi-line send is paste-framed only when the program enabled bracketed paste
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:3:468
+✖ agent feedback stays paste-framed when replay has lost paste mode
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:49
+✖ concurrent pages stay isolated across terminals after adoption without paste-mode history
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:1943
+✖ daemon write failures reject agent delivery while websocket input stays contained
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:2872
+✖ delivery reservation is acquired at queue head and denied is fenced
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:2872
+✖ delivery reservation is acquired at queue head and expired is fenced
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:2872
+✖ delivery reservation is acquired at queue head and replaced is fenced
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:2872
+✖ delivery reservation is acquired at queue head and write-failed is fenced
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:2872
+✖ delivery reservation is acquired at queue head and accepted is fenced
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:4741
+✖ queued agent delivery revalidates cancel without poisoning later sends
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:4741
+✖ queued agent delivery revalidates replace without poisoning later sends
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:4741
+✖ queued agent delivery revalidates session without poisoning later sends
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:4741
+✖ queued agent delivery revalidates end without poisoning later sends
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:4741
+✖ queued agent delivery revalidates progress without poisoning later sends
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:6529
+✖ agent delivery revalidates cancel after the paste and before Enter
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:6529
+✖ agent delivery revalidates replace after the paste and before Enter
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:7403
+✖ agent delivery rejects a replaced launch captured before polling
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:7847
+✖ submit Enter is a separate write, delayed past the paste burst
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:9724
+✖ concurrent sends serialize: a staged draft cannot ride another send's Enter
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:10669
+✖ concurrent sends racing a fresh adoption share one session and serialize
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:12321
+✖ snapshot reads the alt-screen buffer while a TUI is active
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:12953
+✖ send and snapshot adopt a daemon session after host-service restart simulation
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:14053
+✖ unknown terminal id returns a not-active error (no spawn)
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:14617
+✖ send into an exited session fails; snapshot still serves the final screen
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:15424
+✖ cross-workspace targeting is rejected
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:1:4262
+✖ writeFramedInputToSession / snapshotSession (0.113391ms)
+  Error: The module '/workspace/superset/node_modules/.bun/better-sqlite3@12.11.1/node_modules/better-sqlite3/build/Release/better_sqlite3.node'
+  was compiled against a different Node.js version using
+  NODE_MODULE_VERSION 145. This version of Node.js requires
+  NODE_MODULE_VERSION 137. Please try re-compiling or re-installing
+  the module (for instance, using `npm rebuild` or `npm install`).
+      at Object..node (node:internal/modules/cjs/loader:2030:18)
+      at Module.load (node:internal/modules/cjs/loader:1594:32)
+      at Module._load (node:internal/modules/cjs/loader:1396:12)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1617:12)
+      at require (node:internal/modules/helpers:153:16)
+      at bindings (/workspace/superset/node_modules/.bun/bindings@1.5.0/node_modules/bindings/bindings.js:112:48)
+      at new Database (/workspace/superset/node_modules/.bun/better-sqlite3@12.11.1/node_modules/better-sqlite3/lib/database.js:48:64)
+      at createDb (/workspace/superset/packages/host-service/src/db/db.ts:35:17)
+      at TestContext.<anonymous> (/workspace/superset/packages/host-service/src/terminal/terminal.send-snapshot.node-test.ts:155:7) {
+    code: 'ERR_DLOPEN_FAILED'
+  }
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:16808
+✖ send preserves paste framing after startup output is evicted and the host restarts
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:7:353
+✖ manual agent sends sanitize and stage a complete paste without mode history
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:7:1689
+✖ send defaults submit to true and snapshot round-trips
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:7:2585
+✖ maps errors to TRPC codes: NOT_FOUND, FORBIDDEN, BAD_REQUEST
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:7:3456
+✖ rejects unauthenticated callers
+  'test did not finish before its parent and was cancelled'
+
+test at src/terminal/terminal.send-snapshot.node-test.ts:4:16086
+✖ terminal.send / terminal.snapshot tRPC procedures (0.063176ms)
+  Error: The module '/workspace/superset/node_modules/.bun/better-sqlite3@12.11.1/node_modules/better-sqlite3/build/Release/better_sqlite3.node'
+  was compiled against a different Node.js version using
+  NODE_MODULE_VERSION 145. This version of Node.js requires
+  NODE_MODULE_VERSION 137. Please try re-compiling or re-installing
+  the module (for instance, using `npm rebuild` or `npm install`).
+      at Object..node (node:internal/modules/cjs/loader:2030:18)
+      at Module.load (node:internal/modules/cjs/loader:1594:32)
+      at Module._load (node:internal/modules/cjs/loader:1396:12)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1617:12)
+      at require (node:internal/modules/helpers:153:16)
+      at bindings (/workspace/superset/node_modules/.bun/bindings@1.5.0/node_modules/bindings/bindings.js:112:48)
+      at new Database (/workspace/superset/node_modules/.bun/better-sqlite3@12.11.1/node_modules/better-sqlite3/lib/database.js:48:64)
+      at createDb (/workspace/superset/packages/host-service/src/db/db.ts:35:17)
+      at TestContext.<anonymous> (/workspace/superset/packages/host-service/src/terminal/terminal.send-snapshot.node-test.ts:155:7) {
+    code: 'ERR_DLOPEN_FAILED'
+  }

@@ -1,0 +1,21 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/terminal-script-operation.test.ts:
+1 | import { expect, test } from "bun:test";
+2 | import { terminalScriptInputSchema } from "./terminal-script-operation";
+3 | test("a sequential script within the stored catalog budget remains an accepted command",()=>{
+4 |  const text="#".repeat(300*1024)+"\nprintf done";
+5 |  expect(terminalScriptInputSchema.safeParse({workspaceId:"workspace",terminalId:"terminal",executionId:"execution",text}).success).toBe(true);
+                                                                                                                                       ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/terminal-script-operation.test.ts:5:132)
+(fail) a sequential script within the stored catalog budget remains an accepted command [2.18ms]
+
+ 0 pass
+ 1 fail
+ 1 expect() calls
+Ran 1 test across 1 file. [83.00ms]

@@ -1,0 +1,68 @@
+[host-service:db] Initialized at /tmp/host-svc-sendsnap-25557/host.db, migrations from /workspace/superset/packages/host-service/drizzle
+✔ agent sends reject persisted terminal death even while the memory binding survives (99.883356ms)
+[terminal] adopted existing daemon session e2e-retry-192b04fd pid=25604
+▶ writeFramedInputToSession / snapshotSession
+  ✔ replay failure is typed and a retry preserves the PTY: Replay timed out (578.668173ms)
+[terminal] adopted existing daemon session e2e-retry-25d21e20 pid=25618
+  ✔ replay failure is typed and a retry preserves the PTY: Disconnected during replay (562.708464ms)
+[terminal] adopted existing daemon session e2e-retry-198b0727 pid=25631
+  ✔ replay failure is typed and a retry preserves the PTY: Invalid replay checkpoint (599.596564ms)
+[terminal] adopted existing daemon session e2e-adopt-retry-eccef5ad pid=25644
+[terminal] adopted existing daemon session e2e-adopt-retry-eccef5ad pid=25644
+[terminal] adopted existing daemon session e2e-adopt-retry-eccef5ad pid=25644
+  ✔ concurrent adoption failure returns typed errors and retries with a fresh checkpoint (66.034216ms)
+  ✔ send delivers text + Enter into a live shell (549.503497ms)
+  ✔ submit: false stages text without executing it (373.936607ms)
+  ✔ snapshot returns screen text and respects maxLines (525.099904ms)
+  ✔ multi-line send is paste-framed only when the program enabled bracketed paste (3103.037842ms)
+  ✔ agent feedback stays paste-framed when replay has lost paste mode (2566.648193ms)
+[terminal] adopted existing daemon session e2e-watchburst-53e68fbb pid=25744
+[terminal] adopted existing daemon session e2e-watchburst-10863c25 pid=25755
+  ✔ concurrent pages stay isolated across terminals after adoption without paste-mode history (4099.018065ms)
+  ✔ daemon write failures reject agent delivery while websocket input stays contained (27.415241ms)
+  ✔ delivery reservation is acquired at queue head and denied is fenced (543.989402ms)
+  ✔ delivery reservation is acquired at queue head and expired is fenced (1044.099309ms)
+  ✔ delivery reservation is acquired at queue head and replaced is fenced (542.767772ms)
+  ✔ delivery reservation is acquired at queue head and write-failed is fenced (1041.692682ms)
+  ✔ delivery reservation is acquired at queue head and accepted is fenced (1043.431533ms)
+  ✔ queued agent delivery revalidates cancel without poisoning later sends (1580.623676ms)
+  ✔ queued agent delivery revalidates replace without poisoning later sends (1579.689422ms)
+  ✔ queued agent delivery revalidates session without poisoning later sends (1577.735581ms)
+  ✔ queued agent delivery revalidates end without poisoning later sends (1575.43396ms)
+  ✔ queued agent delivery revalidates progress without poisoning later sends (2079.608814ms)
+  ✔ agent delivery revalidates cancel after the paste and before Enter (518.773412ms)
+  ✔ agent delivery revalidates replace after the paste and before Enter (515.682521ms)
+  ✔ agent delivery rejects a replaced launch captured before polling (0.424992ms)
+  ✔ submit Enter is a separate write, delayed past the paste burst (2589.381934ms)
+  ✔ concurrent sends serialize: a staged draft cannot ride another send's Enter (518.289174ms)
+Unhandled pty write error [Error: EBADF: bad file descriptor, write] {
+  errno: -9,
+  code: 'EBADF',
+  syscall: 'write'
+}
+[terminal] adopted existing daemon session e2e-adoptrace-329a6845 pid=25929
+  ✔ concurrent sends racing a fresh adoption share one session and serialize (2576.998028ms)
+  ✔ snapshot reads the alt-screen buffer while a TUI is active (1032.369397ms)
+[terminal] adopted existing daemon session e2e-sendadopt-8f35b767 pid=25952
+  ✔ send and snapshot adopt a daemon session after host-service restart simulation (1058.805743ms)
+  ✔ unknown terminal id returns a not-active error (no spawn) (3.587937ms)
+  ✔ send into an exited session fails; snapshot still serves the final screen (1019.829286ms)
+  ✔ cross-workspace targeting is rejected (15.258165ms)
+✔ writeFramedInputToSession / snapshotSession (35512.892874ms)
+[terminal] adopted existing daemon session e2e-evicted-mode-cf1dcdec pid=25981
+▶ terminal.send / terminal.snapshot tRPC procedures
+  ✔ send preserves paste framing after startup output is evicted and the host restarts (3794.381529ms)
+  ✔ manual agent sends sanitize and stage a complete paste without mode history (1082.839482ms)
+  ✔ send defaults submit to true and snapshot round-trips (546.685643ms)
+  ✔ maps errors to TRPC codes: NOT_FOUND, FORBIDDEN, BAD_REQUEST (19.474131ms)
+  ✔ rejects unauthenticated callers (1.827349ms)
+✔ terminal.send / terminal.snapshot tRPC procedures (5445.566566ms)
+[host-service] pty-daemon disconnected: 
+ℹ tests 38
+ℹ suites 2
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 43606.186073

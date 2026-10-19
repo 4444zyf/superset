@@ -834,3 +834,21 @@ TDD包括视图SQLite持久化、非法分组原子拒写、原store标签分离
 联检发现初版只拦截查看层自身的bubble事件，原终端图片粘贴使用父层capture，仍可能先上传附件；原xterm鼠标选择/旧选区的copy处理也可能覆盖历史文字选择。因此不能把初版查看层的事件单测当作完整剪贴板边界证明。补实际DOM父层capture集成与copy传播测试，2通过2失败；在父层图片粘贴入口先检查只读历史目标并拒绝，历史层隔离mousedown/mousemove/mouseup/copy/contextmenu，同时保留浏览器的默认文字选择/复制。退出历史后原终端处理继续使用。相关历史/真实VT/原图片粘贴27项69断言通过；终端/输入/RemoteTerminal/复制回归91项247断言/10文件、桌面类型、lint及完整CLI/5个PTY marker构建通过。[补充红绿与检查](evidence/local-ssh-feature-parity/stage42-clipboard)。
 
 第149轮产品bae7e375f/脚本310786752，真实鼠标在可见FIRST SCREEN 中文位置拖选，实际浏览器选区却是底层TUI line 011，断言退出1，失败截图已查看；尚未到达图片粘贴步骤，不把它记成原生图片上传失败证明。[149原始失败](evidence/local-ssh-feature-parity/source-linux-terminal-wheel-clipboard-failures/149)。第150轮产品ce2173fce/同一验收逻辑，真实桌面 `--wheel-only --wheel-clipboard`退出0：相同坐标的鼠标拖选得到FIRST SCREEN 中文，系统剪贴板精确读回该文字；再从真实系统剪贴板粘贴PNG，document实际收到位于历史层且包含1个File的paste，远端attachments前后为空、输入仍只有明确键入的a/n。随后反向/小幅滚动、Esc返回、原生SGR上下滚轮和q结束全部通过，浏览器错误为空。只读历史复制/图片粘贴截图已实际查看，其余截图本轮捕获；此前第145轮相关滚动截图已查看。[150完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-wheel-clipboard/150)。真实macOS触控板/系统剪贴板、独立本地连接窗口和供应商Agent仍是单独验收项；本轮不生成或宣称1.37.7 DMG。
+
+## 阶段四十三：原自定义终端脚本的手动启动与关闭等待
+
+脚本栏接所选后端已保存的原目录，复用原项目筛选、图标和PresetBarButton；项目专属优先、条目顺序、隐藏和明确空目录保持。管理器保存成功直接更新脚本栏，旧目标晚回复不能覆盖当前目录。新增独立可选workstationTerminalScriptExecutionV1；只有管理能力的旧后端可以管理但不能启动，不退回未经确认的命令写入。第三方Agent菜单与设置继续保留。
+
+启动复用getPresetLaunchPlan、resolvePresetLaunchCommands、原命令构造、原pane store和统一worktree路径。new-tab每条命令一个原标签；new-tab-split-pane在一个新标签分屏；split-pane向启动时选中的原组增加pane；sequential向捕获的现有执行提交组合命令，无可用终端时按原计划创建终端。中文/空格相对目录通过引用后的绝对cd执行，不依赖当前shell临时目录。创建请求顺序提交以遵守已有单个待确认操作约束，已启动进程可并行运行；目标切换停止尚未提交的命令，部分失败保留已确认终端，丢失回复不重试。
+
+现有终端增加terminal.runScriptV1持久操作，经所选workspace归属/执行ID检查、已有daemon连接、写前再次检查、每个frame绑定原执行、写后确认；复用原framing、队列、Agent绑定和输入处理。已有操作账本在副作用前记录接受，完成结果可读回；中断或失去确认保持未决，不自动重放。确认表示输入已提交，不表示shell命令完成。输入预算与原4MiB脚本目录及命令包装开销一致，合法300KiB命令的失败测试先红再绿。原程序/路由合同保持，不新增数据库迁移。
+
+TDD包括原目录栏、空目录/项目范围/隐藏、独立严格能力、四种启动计划、已有执行绑定、重复/失去确认保护、目标切换、部分创建和窗口关闭。原无操作hook/交付基线均实际失败后补实现。最终客户端67项314断言/5文件、后端17项41断言/4文件通过；desktop/host类型、renderer-safety、后端导入隔离、插件检查、17语言严格检查及完整CLI/5个PTY marker构建通过。普通Node运行原PTY回归因Electron native addon ABI不同退出1，原始日志保留；没有重编全局addon，改用实际随应用分发的Electron Node运行同一套38项真实PTY测试通过。最初HappyDOM失败对象输出约230MiB，原始文件保留在执行环境，仓库保存无损xz与原大小/SHA256，不删除失败或截断替换。[阶段四十三检查与红绿](evidence/local-ssh-feature-parity/stage43)。
+
+第151轮产品ce2173fce/脚本5b55e1ee1，真实Linux/Electron/拥有的loopback SSH通过原编辑器保存自定义脚本后，栏中缺少启动入口，退出1；保存后截图已查看。[151原始失败](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution-failures/151)。第152轮产品2a36063d7，四种模式依次实际点击，pane/标签总数为6/4、8/5、10/5、10/5；每条命令只写入一次模式标记且pwd为统一worktree下的中文空格目录。sequential前在原终端明确cd /tmp，仍按脚本目录执行；关闭重开标记不增加、10个执行/PID保持，六张相关截图均已实际查看，浏览器错误为空。[152四模式与重开](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution/152)。
+
+第153轮同产品、脚本f80fcbf49，通过PID/UID/fixture路径/命令行严格核验后暂挂拥有的测试backend，在实际点击启动请求仍忙时正常关闭窗口。200ms后窗口已关闭，busy=true/alive=false，断言退出1；finally恢复backend，没有强杀或放宽断言。关闭前原模式重开截图已查看，失败后窗口不存在，没有伪造关闭中截图。[153实际关闭失败](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution-failures/153)。先补flush行为失败测试，再让正常关闭等待终端启动和元数据保存。第154轮产品93554c545，同一场景busy=true/alive=true，释放backend后关闭重开恢复12个pane，窗口关闭脚本A/B只各增加一行；退出0，等待中的截图已查看。[154脚本关闭等待](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution/154)。
+
+进一步将普通New terminal也纳入同一等待流程，先增加实际失败测试再修复。第155轮产品/脚本9a69fd434，四模式、重开、脚本批次关闭中和普通终端创建中正常关闭全部退出0。拥有backend31638暂挂期间两次窗口均保持busy且存活；恢复后最终13个pane/8个原标签、13个执行都存活，之前10个PID和执行ID不变，A/B各五行且普通创建/重开没有重放脚本；浏览器错误为空。脚本及普通终端关闭等待两张截图已实际查看，其余六张本轮捕获；四模式截图已在152轮查看。[155最终完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution/155)。强制杀死客户端不承诺提交尚未发送的命令。
+
+本阶段仍不等于全部终端脚本对齐：applyOnNewTab/applyOnWorkspaceCreated/useAsWorkspaceRun、关联Agent编辑选项、原栏上下文菜单/拖动显隐/快捷键/CLI仍待接入。另确认当前Workstation的视图管理明确排除了local连接，本地仍用旧WorkspaceEditor；共享backend和终端surface测试不证明原WorkspaceWindow这些新功能已在本地界面可用，后续必须补齐本地入口和namespace恢复隔离。真实macOS/供应商Agent、独立本地连接原生窗口和1.37.7 DMG均未由本轮验证。

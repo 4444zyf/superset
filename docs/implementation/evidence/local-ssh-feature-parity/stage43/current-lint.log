@@ -1,0 +1,47 @@
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:293:20 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    291 │ 					worktreePath: "/remote/project",
+    292 │ 				};
+  > 293 │ 			throw new Error("Unexpected procedure " + request.path);
+        │ 			                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    294 │ 		},
+    295 │ 	} as unknown as DirectWorkstationApi;
+  
+  i Unsafe fix: Use a template literal.
+  
+    291 291 │   					worktreePath: "/remote/project",
+    292 292 │   				};
+    293     │ - → → → throw·new·Error("Unexpected·procedure·"·+·request.path);
+        293 │ + → → → throw·new·Error(`Unexpected·procedure·${request.path}`);
+    294 294 │   		},
+    295 295 │   	} as unknown as DirectWorkstationApi;
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:343:20 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    341 │ 					worktreePath: "/remote/project",
+    342 │ 				};
+  > 343 │ 			throw new Error("Unexpected procedure " + request.path);
+        │ 			                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    344 │ 		},
+    345 │ 	} as unknown as DirectWorkstationApi;
+  
+  i Unsafe fix: Use a template literal.
+  
+    341 341 │   					worktreePath: "/remote/project",
+    342 342 │   				};
+    343     │ - → → → throw·new·Error("Unexpected·procedure·"·+·request.path);
+        343 │ + → → → throw·new·Error(`Unexpected·procedure·${request.path}`);
+    344 344 │   		},
+    345 345 │   	} as unknown as DirectWorkstationApi;
+  
+
+Skipped 2 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 13 files in 138ms. Fixed 11 files.
+Found 2 infos.

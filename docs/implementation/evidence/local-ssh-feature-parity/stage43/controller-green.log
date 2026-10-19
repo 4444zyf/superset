@@ -1,0 +1,58 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/workstation-controller.test.ts:
+(pass) project settings require an explicit project and an advertised backend capability [1.34ms]
+(pass) workspace file search and Git staging reach the selected backend without cloud calls [0.31ms]
+(pass) new file and Git actions are unavailable on an older backend before any mutation [0.10ms]
+(pass) new workspace actions reject a missing scope and wrong procedure type [0.07ms]
+(pass) a lost Git commit response remains journaled and prevents a second commit [2.43ms]
+(pass) restoration capabilities from a changed backend cannot authorize attachment [0.11ms]
+(pass) window restore inspects pending work without resolving the operation journal or replaying a mutation [0.78ms]
+(pass) renderer connection descriptors omit endpoint credentials and addresses [0.02ms]
+(pass) a stale renderer cannot issue a mutation after reconnect [0.07ms]
+(pass) renderer RPC cannot call destructive daemon or official account procedures [0.10ms]
+(pass) chat requests use the local chat router without serializing a host secret [0.20ms]
+(pass) disconnect and app disposal only close client transports [0.08ms]
+(pass) lost mutation responses remain pending across controller restart and prevent duplicate agents [0.74ms]
+(pass) retrying the same operation with reordered object keys keeps its input identity [0.76ms]
+(pass) acknowledging an unresolved action clears only local blocking and never replays the operation [0.51ms]
+(pass) a stale completed mutation leaves its durable receipt pending for reconciliation [0.53ms]
+(pass) a stale reconciliation reply cannot clear an intent on the new connection [0.55ms]
+(pass) attachment and file event readiness require explicit backend capabilities [0.29ms]
+(pass) backend capabilities are checked after the response body finishes parsing [0.19ms]
+(pass) chat replies parsed after reconnect cannot update the renderer [0.22ms]
+(pass) host replies completed after reconnect cannot update the renderer [0.09ms]
+(pass) malformed operation IDs fail before creating a durable local blocker [0.33ms]
+(pass) repository history needs its own optional capability and reaches only the explicit workspace [0.25ms]
+(pass) branch synchronization needs its optional capability and journals a lost reply [0.91ms]
+(pass) project script procedures require their own capability and an explicit project [0.27ms]
+(pass) a lost workspaceRun.startV1 response remains journaled and blocks a second operation [0.88ms]
+(pass) a lost workspaceCleanup.destroyTrackedV1 response remains journaled and blocks a second operation [0.46ms]
+(pass) setup status is read only with an explicit workspace and its advertised capability [0.22ms]
+(pass) only the advertised read-only terminal agent catalog is exposed to the workstation [0.17ms]
+(pass) versioned agent settings require a target id, capability and current connection [0.19ms]
+(pass) versioned catalog management is gated separately from row editing and rejects stale connections [0.24ms]
+(pass) preserved agent catalog choices require the V2 capability independently of V1 management [0.33ms]
+(pass) terminal script storage requires its own strict capability and the current generation [0.27ms]
+1118 | test("existing-terminal scripts require a strict execution capability and durable operation tracking",async()=>{
+1119 |  const f=fixture(),db=new Database(":memory:"),intents=new OperationIntents(db as unknown as SqliteDatabase);let enabled:unknown=false;const calls:unknown[]=[];
+1120 |  const manager={...f.manager,getVerifiedDescription:()=>({capabilities:{durableOperations:true,workstationTerminalScriptExecutionV1:enabled}}),invoke:async(_id:string,request:unknown)=>{calls.push(request);return {status:"completed",result:{submitted:true}};}};
+1121 |  const controller=new WorkstationController(manager,intents),request={connectionId:"machine",generation:1,path:"terminal.runScriptV1",type:"mutation" as const,input:{workspaceId:"workspace",terminalId:"terminal",executionId:"execution",text:"printf once",operationId:crypto.randomUUID()}};
+1122 |  try{
+1123 |   for(const value of [undefined,false,"true",1]){enabled=value;await expect(controller.invoke(request)).rejects.toThrow("required capability");}
+                                                                                                                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "required capability"
+Received message: "Unsupported workstation procedure"
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/main/lib/ssh-direct/workstation-controller.test.ts:1123:113)
+(fail) existing-terminal scripts require a strict execution capability and durable operation tracking [0.66ms]
+
+1 tests failed:
+(fail) existing-terminal scripts require a strict execution capability and durable operation tracking [0.66ms]
+
+ 33 pass
+ 1 fail
+ 126 expect() calls
+Ran 34 tests across 1 file. [188.00ms]

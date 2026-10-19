@@ -1,0 +1,21 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [64.52ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [53.77ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [57.66ms]
+(pass) existing focus and close actions select the owning terminal tab and remove empty groups [55.39ms]
+(pass) original pane store tab rename and close persist with no extra terminal RPC or replay [55.17ms]
+(pass) a delayed split resize updates its captured terminal tab after the user selects another tab [57.80ms]
+(pass) pending metadata saves keep typed titles visible while a terminal focus update is queued [55.28ms]
+(pass) script mode split-pane keeps the original terminal layout and one command per new session [55.38ms]
+(pass) script mode new-tab keeps the original terminal layout and one command per new session [53.58ms]
+(pass) script mode new-tab-split-pane keeps the original terminal layout and one command per new session [53.67ms]
+(pass) sequential scripts use the captured terminal execution once and preserve its custom title [54.69ms]
+(pass) a target switch during creation never launches the remaining script commands or appends foreign panes [105.36ms]
+(pass) a partial script launch retains confirmed terminals and never replays a lost creation reply [61.00ms]
+
+ 13 pass
+ 0 fail
+ 98 expect() calls
+Ran 13 tests across 1 file. [1074.00ms]

@@ -1,0 +1,36 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [69.69ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [54.76ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [56.92ms]
+(pass) existing focus and close actions select the owning terminal tab and remove empty groups [56.34ms]
+(pass) original pane store tab rename and close persist with no extra terminal RPC or replay [56.18ms]
+(pass) a delayed split resize updates its captured terminal tab after the user selects another tab [59.08ms]
+(pass) pending metadata saves keep typed titles visible while a terminal focus update is queued [57.99ms]
+(pass) script mode split-pane keeps the original terminal layout and one command per new session [56.42ms]
+(pass) script mode new-tab keeps the original terminal layout and one command per new session [54.60ms]
+(pass) script mode new-tab-split-pane keeps the original terminal layout and one command per new session [53.61ms]
+(pass) sequential scripts use the captured terminal execution once and preserve its custom title [55.27ms]
+(pass) a target switch during creation never launches the remaining script commands or appends foreign panes [111.16ms]
+(pass) a partial script launch retains confirmed terminals and never replays a lost creation reply [55.19ms]
+(pass) normal window flush waits for the requested script batch and its saved pane layout [105.85ms]
+568 | 
+569 | test("normal window flush also waits for an ordinary terminal launch and its view reference",async()=>{
+570 |  const f=fixture(true);await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));const release=f.pauseNextCreate();let running:Promise<unknown>;
+571 |  act(()=>{running=f.hook.result.current.newTerminal("workspace","horizontal",{initialCommand:"printf once",label:"Agent"});});
+572 |  await waitFor(()=>expect(f.calls.filter(r=>r.path==="terminal.createSession")).toHaveLength(1));let flushed=false;const flushing=f.flush().then(()=>{flushed=true;});
+573 |  try{await act(async()=>{await Promise.resolve();await Promise.resolve();});expect(flushed).toBe(false);}
+                                                                                                  ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:573:93)
+(fail) normal window flush also waits for an ordinary terminal launch and its view reference [56.04ms]
+
+ 14 pass
+ 1 fail
+ 110 expect() calls
+Ran 15 tests across 1 file. [1333.00ms]

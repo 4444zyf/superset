@@ -1,0 +1,25 @@
+packages/host-service/src/direct/terminal-script-operation.test.ts:5:15 lint/style/useTemplate  FIXABLE  ━━━━━━━━━━
+
+  i Template literals are preferred over string concatenation.
+  
+    4 │ test("a sequential script within the stored catalog budget remains an accepted command", () => {
+  > 5 │ 	const text = "#".repeat(300 * 1024) + "\nprintf done";
+      │ 	             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    6 │ 	expect(
+    7 │ 		terminalScriptInputSchema.safeParse({
+  
+  i Unsafe fix: Use a template literal.
+  
+     3  3 │   
+     4  4 │   test("a sequential script within the stored catalog budget remains an accepted command", () => {
+     5    │ - → const·text·=·"#".repeat(300·*·1024)·+·"\nprintf·done";
+        5 │ + → const·text·=·`${"#".repeat(300·*·1024)}\nprintf·done`;
+     6  6 │   	expect(
+     7  7 │   		terminalScriptInputSchema.safeParse({
+  
+
+Skipped 1 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 2 files in 8ms. Fixed 1 file.
+Found 1 info.

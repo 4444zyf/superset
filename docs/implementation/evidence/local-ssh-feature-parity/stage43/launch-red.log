@@ -1,0 +1,71 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [66.27ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [54.31ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [56.65ms]
+(pass) existing focus and close actions select the owning terminal tab and remove empty groups [56.05ms]
+(pass) original pane store tab rename and close persist with no extra terminal RPC or replay [55.26ms]
+(pass) a delayed split resize updates its captured terminal tab after the user selects another tab [59.09ms]
+(pass) pending metadata saves keep typed titles visible while a terminal focus update is queued [55.95ms]
+336 |  return {id:"11111111-1111-4111-8111-111111111111",name:"Project tools",commands:["printf first","printf second"],cwd:"scripts",projectIds:["project"],executionMode:mode,createdAt:new Date(0),tabOrder:0};
+337 | }
+338 | test.each(["split-pane","new-tab","new-tab-split-pane"] as const)("script mode %s keeps the original terminal layout and one command per new session",async mode=>{
+339 |  const f=fixture(true);await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));
+340 |  await act(async()=>f.hook.result.current.launchTerminalPreset("workspace",scriptPreset(mode),[]));
+341 |  const creates=f.calls.filter(r=>r.path==="terminal.createSession");expect(creates).toHaveLength(2);expect(creates.map(r=>(r.input as {initialCommand:string}).initialCommand)).toEqual(["printf first","printf second"]);expect(creates.every(r=>(r.input as {cwd:string}).cwd==="/remote/project/scripts")).toBe(true);
+                                                                                          ^
+error: expect(received).toHaveLength(expected)
+
+Expected length: 2
+Received length: 0
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:341:85)
+(fail) script mode split-pane keeps the original terminal layout and one command per new session [53.45ms]
+336 |  return {id:"11111111-1111-4111-8111-111111111111",name:"Project tools",commands:["printf first","printf second"],cwd:"scripts",projectIds:["project"],executionMode:mode,createdAt:new Date(0),tabOrder:0};
+337 | }
+338 | test.each(["split-pane","new-tab","new-tab-split-pane"] as const)("script mode %s keeps the original terminal layout and one command per new session",async mode=>{
+339 |  const f=fixture(true);await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));
+340 |  await act(async()=>f.hook.result.current.launchTerminalPreset("workspace",scriptPreset(mode),[]));
+341 |  const creates=f.calls.filter(r=>r.path==="terminal.createSession");expect(creates).toHaveLength(2);expect(creates.map(r=>(r.input as {initialCommand:string}).initialCommand)).toEqual(["printf first","printf second"]);expect(creates.every(r=>(r.input as {cwd:string}).cwd==="/remote/project/scripts")).toBe(true);
+                                                                                          ^
+error: expect(received).toHaveLength(expected)
+
+Expected length: 2
+Received length: 0
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:341:85)
+(fail) script mode new-tab keeps the original terminal layout and one command per new session [53.29ms]
+336 |  return {id:"11111111-1111-4111-8111-111111111111",name:"Project tools",commands:["printf first","printf second"],cwd:"scripts",projectIds:["project"],executionMode:mode,createdAt:new Date(0),tabOrder:0};
+337 | }
+338 | test.each(["split-pane","new-tab","new-tab-split-pane"] as const)("script mode %s keeps the original terminal layout and one command per new session",async mode=>{
+339 |  const f=fixture(true);await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));
+340 |  await act(async()=>f.hook.result.current.launchTerminalPreset("workspace",scriptPreset(mode),[]));
+341 |  const creates=f.calls.filter(r=>r.path==="terminal.createSession");expect(creates).toHaveLength(2);expect(creates.map(r=>(r.input as {initialCommand:string}).initialCommand)).toEqual(["printf first","printf second"]);expect(creates.every(r=>(r.input as {cwd:string}).cwd==="/remote/project/scripts")).toBe(true);
+                                                                                          ^
+error: expect(received).toHaveLength(expected)
+
+Expected length: 2
+Received length: 0
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:341:85)
+(fail) script mode new-tab-split-pane keeps the original terminal layout and one command per new session [53.09ms]
+344 |  f.hook.rerender();expect(f.calls.filter(r=>r.path==="terminal.createSession")).toHaveLength(2);
+345 | });
+346 | test("sequential scripts use the captured terminal execution once and preserve its custom title",async()=>{
+347 |  const f=fixture(true);await waitFor(()=>expect(f.hook.result.current.view?.revision).toBe(1));
+348 |  await act(async()=>f.hook.result.current.launchTerminalPreset("workspace",scriptPreset("sequential"),[]));
+349 |  const sends=f.calls.filter(r=>r.path==="terminal.runScriptV1");expect(sends).toHaveLength(1);expect(sends[0]).toMatchObject({connectionId:"ssh",generation:2,input:{workspaceId:"workspace",terminalId:"retained",executionId:"retained-execution",text:"cd /remote/project/scripts && printf first && printf second"}});
+                                                                                    ^
+error: expect(received).toHaveLength(expected)
+
+Expected length: 1
+Received length: 0
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:349:79)
+(fail) sequential scripts use the captured terminal execution once and preserve its custom title [53.17ms]
+
+ 7 pass
+ 4 fail
+ 61 expect() calls
+Ran 11 tests across 1 file. [940.00ms]

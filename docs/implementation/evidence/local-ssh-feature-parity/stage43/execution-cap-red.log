@@ -1,0 +1,29 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:
+(pass) the original default preset surface uses the selected host's config and launches only on an explicit click [72.98ms]
+(pass) older hosts receive no preset queries and late replies cannot populate a different backend [15.66ms]
+(pass) agent settings open the original launch form without launching a terminal [87.79ms]
+(pass) the host's custom configurations remain selectable beyond the first 128 entries [124.09ms]
+(pass) a deliberately empty versioned catalog remains manageable without the legacy reseeding list [6.31ms]
+(pass) the script bar uses the selected host catalog order, visibility and project scope [16.75ms]
+(pass) an explicitly empty script catalog keeps the bar empty instead of recreating default agent buttons [6.12ms]
+370 | 
+371 | test("hosts with script management but no execution capability cannot launch catalog scripts",async()=>{
+372 |  const row={id:"11111111-1111-4111-8111-111111111111",name:"Stored script",commands:["printf once"],cwd:".",projectIds:null,executionMode:"new-tab" as const,createdAt:new Date(0),tabOrder:0};let launches=0;
+373 |  const api={rpc:async(request:DirectRpc)=>request.path==="settings.agentConfigs.list"?[config]:request.path==="workspace.get"?{id:"workspace",projectId:"project",worktreePath:"/remote/project"}:{initialized:true,presets:[row],revision:"c".repeat(64)}} as unknown as DirectWorkstationApi;
+374 |  render(<TooltipProvider><RemoteTerminalPresets api={api} connection={{...connection,capabilities:{...connection.capabilities,workstationTerminalScriptsV1:true}}} workspaceId="workspace" busy={false} onLaunch={()=>{}} onLaunchScript={()=>{launches++;}}/></TooltipProvider>);
+375 |  const button=await screen.findByRole("button",{name:"Stored script"});expect(button.hasAttribute("disabled")).toBe(true);fireEvent.click(button);expect(launches).toBe(0);
+                                                                                                                     ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:375:112)
+(fail) hosts with script management but no execution capability cannot launch catalog scripts [10.64ms]
+
+ 7 pass
+ 1 fail
+ 21 expect() calls
+Ran 8 tests across 1 file. [676.00ms]

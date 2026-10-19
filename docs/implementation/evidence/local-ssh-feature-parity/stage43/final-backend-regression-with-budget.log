@@ -1,0 +1,31 @@
+bun test v1.4.2 (744846f84)
+
+src/terminal/restore-resources.test.ts:
+(pass) an authoritative exited original execution remains ended without respawning [0.43ms]
+(pass) an active DB row is unknown when the authoritative daemon cannot be reached [0.10ms]
+(pass) the same terminal ID with a different execution cannot be marked live [0.07ms]
+(pass) resource ownership and archived workspaces are checked before daemon results [0.10ms]
+
+src/direct/terminal-script-operation.test.ts:
+(pass) a sequential script within the stored catalog budget remains an accepted command [1.92ms]
+
+src/direct/terminal-script-delivery.test.ts:
+(pass) existing script input uses the checked execution for every frame and confirms submission [0.48ms]
+(pass) an unavailable or replaced execution receives no script text [0.27ms]
+(pass) the daemon is checked again before input instead of trusting an earlier resource reply [0.14ms]
+(pass) a lost input confirmation leaves the durable command unresolved and cannot resend it [2.82ms]
+
+src/direct/operations.test.ts:
+(pass) a completed direct command is returned after backend restart without repeating side effects [1.43ms]
+(pass) an operation ID cannot be reused for different inputs [0.59ms]
+(pass) accepted operations from a crashed backend are unresolved and never automatically replayed [0.90ms]
+(pass) concurrent retries share one accepted operation and its final result [0.78ms]
+(pass) an exception after a side effect remains unresolved and cannot be replayed [0.56ms]
+(pass) maintenance drain persists and blocks new work until its owner commits [1.05ms]
+(pass) freeze persists across restart and only its maintenance owner can release it [0.38ms]
+(pass) a failed freeze write cannot leave a partially persisted maintenance transition [0.65ms]
+
+ 17 pass
+ 0 fail
+ 41 expect() calls
+Ran 17 tests across 4 files. [102.00ms]

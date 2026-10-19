@@ -1,0 +1,81 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/terminal-script-delivery.test.ts:
+11 |  const delivery:TerminalScriptDelivery={inspect:async()=>inspected,connect:async()=>({list:async()=>{enumerations++;if(failConfirmation&&enumerations>1)throw new Error("confirmation lost");return [listed];},inputExisting:(id,executionId,data)=>{writes.push({id,executionId,text:data.toString()});},dispose:async()=>{disposed++;}}),frame:async write=>{frames++;write(input.text);write("\r");return {success:true};}};
+12 |  return {delivery,writes,changed:()=>{inspected={state:"interrupted",executionId:"new-execution"};},staleDaemon:()=>{listed={...listed,executionId:"new-execution"};},loseConfirmation:()=>{failConfirmation=true;},frames:()=>frames,disposed:()=>disposed};
+13 | }
+14 | test("existing script input uses the checked execution for every frame and confirms submission",async()=>{
+15 |  const f=fixture();expect(await deliverExistingTerminalScript(input,f.delivery)).toEqual({terminalId:"terminal",executionId:"execution",submitted:true});
+16 |  expect(f.writes).toEqual([{id:"terminal",executionId:"execution",text:input.text},{id:"terminal",executionId:"execution",text:"\r"}]);expect(f.disposed()).toBe(1);
+                       ^
+error: expect(received).toEqual(expected)
+
+- [
+-   {
+-     "executionId": "execution",
+-     "id": "terminal",
+-     "text": "printf '中文'",
+-   },
+-   {
+-     "executionId": "execution",
+-     "id": "terminal",
+-     "text": 
+- "
+- "
+- ,
+-   },
+- ]
++ []
+
+- Expected  - 15
++ Received  + 1
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/terminal-script-delivery.test.ts:16:19)
+(fail) existing script input uses the checked execution for every frame and confirms submission [0.34ms]
+14 | test("existing script input uses the checked execution for every frame and confirms submission",async()=>{
+15 |  const f=fixture();expect(await deliverExistingTerminalScript(input,f.delivery)).toEqual({terminalId:"terminal",executionId:"execution",submitted:true});
+16 |  expect(f.writes).toEqual([{id:"terminal",executionId:"execution",text:input.text},{id:"terminal",executionId:"execution",text:"\r"}]);expect(f.disposed()).toBe(1);
+17 | });
+18 | test("an unavailable or replaced execution receives no script text",async()=>{
+19 |  const f=fixture();f.changed();await expect(deliverExistingTerminalScript(input,f.delivery)).rejects.toThrow();expect(f.frames()).toBe(0);expect(f.writes).toEqual([]);
+                                                                                                          ^
+error: expect(received).rejects.toThrow(expected)
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/terminal-script-delivery.test.ts:19:102)
+(fail) an unavailable or replaced execution receives no script text [0.11ms]
+17 | });
+18 | test("an unavailable or replaced execution receives no script text",async()=>{
+19 |  const f=fixture();f.changed();await expect(deliverExistingTerminalScript(input,f.delivery)).rejects.toThrow();expect(f.frames()).toBe(0);expect(f.writes).toEqual([]);
+20 | });
+21 | test("the daemon is checked again before input instead of trusting an earlier resource reply",async()=>{
+22 |  const f=fixture();f.staleDaemon();await expect(deliverExistingTerminalScript(input,f.delivery)).rejects.toThrow();expect(f.frames()).toBe(0);expect(f.disposed()).toBe(1);
+                                                                                                              ^
+error: expect(received).rejects.toThrow(expected)
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/terminal-script-delivery.test.ts:22:106)
+(fail) the daemon is checked again before input instead of trusting an earlier resource reply [0.10ms]
+22 |  const f=fixture();f.staleDaemon();await expect(deliverExistingTerminalScript(input,f.delivery)).rejects.toThrow();expect(f.frames()).toBe(0);expect(f.disposed()).toBe(1);
+23 | });
+24 | test("a lost input confirmation leaves the durable command unresolved and cannot resend it",async()=>{
+25 |  const db=new Database(":memory:");close.push(()=>db.close());const operations=new DirectOperationStore(db as unknown as OperationDatabase,"instance");
+26 |  const f=fixture();f.loseConfirmation();const id=crypto.randomUUID();
+27 |  await expect(operations.execute(id,"terminal.runScriptV1",input,()=>deliverExistingTerminalScript(input,f.delivery))).rejects.toThrow("confirmation lost");
+                                                                                                                                    ^
+error: expect(received).rejects.toThrow(expected)
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/direct/terminal-script-delivery.test.ts:27:128)
+(fail) a lost input confirmation leaves the durable command unresolved and cannot resend it [3.03ms]
+
+ 0 pass
+ 4 fail
+ 5 expect() calls
+Ran 4 tests across 1 file. [22.00ms]
