@@ -13,6 +13,7 @@ import { createServer, type Server } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { directBackendSocketPath } from "@superset/shared/direct-backend-socket";
+import readTerminal from "../../commands/terminals/read/command";
 import { readFromDirectNamespace } from "./readFromDirectNamespace";
 import { resolveDirectNamespace } from "./resolveDirectNamespace";
 
@@ -91,6 +92,25 @@ async function fixture() {
 			response.end(JSON.stringify(description));
 			return;
 		}
+		if (request.url?.startsWith("/trpc/terminal.snapshot?")) {
+			response.end(
+				JSON.stringify([
+					{
+						result: {
+							data: {
+								json: {
+									terminalId: "terminal-a",
+									text: "Agent 输出\nlast line",
+									rows: 2,
+									cols: 80,
+								},
+							},
+						},
+					},
+				]),
+			);
+			return;
+		}
 		response.end(
 			JSON.stringify([
 				{
@@ -130,6 +150,77 @@ test("an explicit namespace authenticates and reads through its owned Unix socke
 	).toEqual([{ id: "project", name: "Only this namespace" }]);
 	expect(f.requests.every((r) => r.authenticated)).toBe(true);
 	expect(f.requests[1]?.path.startsWith("/trpc/project.list")).toBe(true);
+});
+
+test("the original terminal read command reads the selected namespace without organization credentials", async () => {
+	const f = await fixture();
+	const result = await readTerminal.run({
+		ctx: { config: {}, bearer: "", authSource: "direct" } as never,
+		args: {} as never,
+		options: {
+			namespace: f.homeDir,
+			workspace: "workspace-a",
+			terminal: "terminal-a",
+			maxLines: 2,
+		} as never,
+		signal: new AbortController().signal,
+	});
+	expect(result).toEqual({
+		data: {
+			terminalId: "terminal-a",
+			text: "Agent 输出\nlast line",
+			rows: 2,
+			cols: 80,
+		},
+		message: "Agent 输出\nlast line",
+	});
+	const url = new URL(f.requests[1]!.path, "http://fixture.invalid");
+	expect(url.pathname).toBe("/trpc/terminal.snapshot");
+	expect(JSON.parse(url.searchParams.get("input")!)).toEqual({
+		"0": {
+			json: {
+				terminalId: "terminal-a",
+				workspaceId: "workspace-a",
+				maxLines: 2,
+			},
+		},
+	});
+	expect(f.requests.every((request) => request.authenticated)).toBe(true);
+});
+
+test("terminal read rejects a missing terminal capability before making a snapshot request", async () => {
+	const f = await fixture();
+	f.setDescription({ capabilities: { terminals: false } as never });
+	const target = await resolveDirectNamespace(f.homeDir);
+	await expect(
+		target.client.terminal.snapshot.query({
+			terminalId: "terminal-a",
+			workspaceId: "workspace-a",
+		}),
+	).rejects.toThrow("capability");
+	expect(f.requests.map((request) => request.path)).toEqual([
+		"/direct/describe",
+	]);
+});
+
+test("terminal read keeps the legacy organization requirement and refuses conflicting explicit targets", async () => {
+	const f = await fixture();
+	const invoke = (options: object) =>
+		readTerminal.run({
+			ctx: { config: {}, bearer: "", authSource: "direct" } as never,
+			args: {} as never,
+			options: {
+				workspace: "workspace-a",
+				terminal: "terminal-a",
+				...options,
+			} as never,
+			signal: new AbortController().signal,
+		});
+	await expect(invoke({})).rejects.toThrow("No active organization");
+	await expect(invoke({ namespace: f.homeDir, host: "other" })).rejects.toThrow(
+		"either --namespace or --host",
+	);
+	expect(f.requests).toEqual([]);
 });
 
 test("read-only namespace access refuses both mutations and the legacy Agent query that can seed defaults", async () => {

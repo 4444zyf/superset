@@ -14,6 +14,7 @@ const readProcedures = new Map([
 	["project.list", "projects"],
 	["workspace.list", "sessions"],
 	["terminal.list", "terminals"],
+	["terminal.snapshot", "terminals"],
 	[
 		"settings.terminalPresets.catalogWithRevisionV1",
 		"workstationTerminalScriptsV1",

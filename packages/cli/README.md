@@ -8,14 +8,17 @@ See the [fork build guide](../../DEVELOPMENT.md), [scope inventory](../../docs/d
 
 ## Read an existing Remix namespace
 
-The bundled CLI accepts `--namespace <absolute-directory>` on `agents list`, `projects list`, `workspaces list`, `terminals list`, and `scripts list`. Run the CLI on the machine that owns that directory. With this CLI installed on PATH, for example from a Remix terminal:
+The bundled CLI accepts `--namespace <absolute-directory>` on `agents list`, `projects list`, `workspaces list`, `terminals list`, `terminals read`, and `scripts list`. Run the CLI on the machine that owns that directory. With this CLI installed on PATH, for example from a Remix terminal:
 
 ```sh
 superset agents list --namespace "$SUPERSET_HOME_DIR" --json
 superset workspaces list --namespace "$SUPERSET_HOME_DIR" --search feature --json
 superset terminals list --namespace "$SUPERSET_HOME_DIR" --workspace <workspace-id> --json
+superset terminals read --namespace "$SUPERSET_HOME_DIR" --workspace <workspace-id> --terminal <terminal-id> --json
 ```
 
 This explicit mode reads the selected existing backend through its authenticated private Unix socket. It requires no Superset login, leaves empty Agent/script catalogs empty, and refuses a stopped or missing backend. Workspace project/search/tag filters retain the original rules. Terminal listing retains the existing live-session behavior, including daemon readiness; it does not create a terminal.
 
-`--namespace` is currently available only on these five list commands. It is not an implicit default and cannot be combined with `--host`; unsupported commands reject the flag. Existing command behavior without the flag is retained. Remote CLI installation, automatic terminal target selection, and additional CLI commands are still being connected; this does not claim full CLI parity or a new macOS installer.
+Terminal reading uses the original plain-text screen snapshot, including the current alternate screen for a TUI. It retains `--max-lines` and text/JSON output. A missing terminal is refused; it never creates a PTY. An existing detached PTY can be adopted through the original backend path.
+
+`--namespace` is currently available only on these six commands. It is not an implicit default and cannot be combined with `--host`; unsupported commands reject the flag. Existing command behavior without the flag is retained. Remote CLI installation, automatic terminal target selection, and additional CLI commands are still being connected; this does not claim full CLI parity or a new macOS installer.

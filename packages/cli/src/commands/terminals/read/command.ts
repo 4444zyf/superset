@@ -1,10 +1,15 @@
 import { boolean, CLIError, number, string } from "@superset/cli-framework";
 import { command } from "../../../lib/command";
+import {
+	namespaceOption,
+	readFromDirectNamespace,
+} from "../../../lib/direct-namespace";
 import { resolveWorkspaceTarget } from "../../../lib/host-workspaces";
 
 export default command({
 	description: "Read a terminal's current screen back as text",
 	options: {
+		namespace: namespaceOption(),
 		workspace: string().required().desc("Workspace ID"),
 		host: string().desc(
 			"Host the workspace lives on (default: the cloud if your account has cloud workspaces, else this machine)",
@@ -14,6 +19,14 @@ export default command({
 		maxLines: number().int().desc("Cap returned rows from the bottom"),
 	},
 	run: async ({ ctx, options }) => {
+		const direct = await readFromDirectNamespace(options, (target) =>
+			target.client.terminal.snapshot.query({
+				terminalId: options.terminal,
+				workspaceId: options.workspace,
+				maxLines: options.maxLines ?? undefined,
+			}),
+		);
+		if (direct) return { data: direct.value, message: direct.value.text };
 		const organizationId = ctx.config.organizationId;
 		if (!organizationId) {
 			throw new CLIError("No active organization", "Run: superset auth login");

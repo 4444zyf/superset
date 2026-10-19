@@ -7,6 +7,7 @@ import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {DatabaseSync} from 'node:sqlite';
 import {promisify} from 'node:util';
+import {setTimeout as delay} from 'node:timers/promises';
 import {LocalBackend} from '../../../packages/direct-connection/src/local.ts';
 import {ownedRestoreControls} from './verify-restore-controls.mjs';
 
@@ -46,6 +47,10 @@ async function fixture(label){
  const client=createTRPCClient({links:[httpBatchLink({url:connection.url+'/trpc',transformer:SuperJSON,headers:{Authorization:'Bearer '+connection.secret}})]});
  const f={label,home,backend,connection,identity,dbPath,client};fixtures.push(f);return f;
 }
+async function waitForScreen(f,marker){
+ const deadline=Date.now()+5000;
+ for(;;){const screen=await f.client.terminal.snapshot.query({workspaceId:f.workspaceId,terminalId:f.terminalId});if(screen.text.includes(marker))return screen;assert.ok(Date.now()<deadline,'Owned terminal output did not become readable');await delay(50);}
+}
 function seed(f){
  const projectId=crypto.randomUUID(),workspaceId=crypto.randomUUID(),sessionId=crypto.randomUUID(),agentId=crypto.randomUUID(),scriptId=crypto.randomUUID();
  const repo=join(f.home,'fixture-repo'),standalone=join(f.home,'fixture-session');
@@ -71,7 +76,7 @@ try{
  assert.deepEqual(stats(a),empty,'read-only catalogs do not initialize or seed settings');
  for(const f of [a,b]){
   seed(f);await run('git',['init','--quiet','-b','main',f.repo]);const operationId=crypto.randomUUID();
-  const created=await f.client.direct.execute.mutate({operationId,procedure:'terminal.createSession',input:{terminalId:operationId,workspaceId:f.workspaceId}});assert.equal(created.status,'completed');
+  const created=await f.client.direct.execute.mutate({operationId,procedure:'terminal.createSession',input:{terminalId:operationId,workspaceId:f.workspaceId,cols:80,rows:24,initialCommand:`printf '\\033[2J\\033[HCLI ${f.label} normal 输出\\n'`}});assert.equal(created.status,'completed');
   f.terminalId=operationId;f.controls=ownedRestoreControls(f.home,{homeDir:f.home,root});f.execution=await f.controls.inspectPresetTerminal(f.terminalId);f.before=stats(f);
   assert.equal((await invoke(f.label+'-agents',['agents','list','--namespace',f.home]))[0].id,f.agentId);
   assert.equal((await invoke(f.label+'-projects',['projects','list','--namespace',f.home]))[0].path,f.repo);
@@ -81,9 +86,22 @@ try{
   assert.deepEqual(await invoke(f.label+'-tag-filter',['workspaces','list','--namespace',f.home,'--tag','absent']),[]);
   assert.equal((await invoke(f.label+'-scripts',['scripts','list','--namespace',f.home]))[0].id,f.scriptId);
   const terminals=await invoke(f.label+'-terminals',['terminals','list','--namespace',f.home,'--workspace',f.workspaceId]);assert.deepEqual(terminals.sessions.map(t=>t.terminalId),[f.terminalId]);
+  await waitForScreen(f,'CLI '+f.label+' normal 输出');
+  const readArgs=['terminals','read','--namespace',f.home,'--workspace',f.workspaceId,'--terminal',f.terminalId];
+  const normal=await invoke(f.label+'-screen-normal',readArgs);assert.equal(normal.terminalId,f.terminalId);assert.ok(normal.text.includes('CLI '+f.label+' normal 输出'));assert.equal(normal.cols,80);assert.equal(normal.rows,24);
+  const capped=await invoke(f.label+'-screen-capped',[...readArgs,'--max-lines','1']);assert.ok(capped.text.split('\n').length<=1);assert.equal(capped.terminalId,f.terminalId);
+  await f.client.terminal.send.mutate({workspaceId:f.workspaceId,terminalId:f.terminalId,text:`printf '\\033[?1049h\\033[2J\\033[HCLI ${f.label} TUI 中文\\n'`,submit:true});
+  await waitForScreen(f,'CLI '+f.label+' TUI 中文');
+  const alternate=await invoke(f.label+'-screen-tui',readArgs);assert.ok(alternate.text.includes('CLI '+f.label+' TUI 中文'));assert.equal(alternate.text.includes('normal 输出'),false);
+  assert.ok((await invoke(f.label+'-screen-text',readArgs,true,false)).includes('CLI '+f.label+' TUI 中文'));
+  await invoke(f.label+'-screen-wrong-workspace',['terminals','read','--namespace',f.home,'--workspace',f.sessionId,'--terminal',f.terminalId],false);
+  await invoke(f.label+'-screen-missing',['terminals','read','--namespace',f.home,'--workspace',f.workspaceId,'--terminal',crypto.randomUUID()],false);
+  await invoke(f.label+'-screen-invalid-limit',[...readArgs,'--max-lines','0'],false);
   assert.deepEqual(stats(f),f.before,'listing does not create or modify persisted records');
   const execution=await f.controls.inspectPresetTerminal(f.terminalId);assert.equal(execution.pid,f.execution.pid);assert.equal(execution.executionId,f.execution.executionId);
  }
+ await invoke('B-cannot-read-A',['terminals','read','--namespace',b.home,'--workspace',a.workspaceId,'--terminal',a.terminalId],false);
+ assert.deepEqual(stats(a),a.before);assert.deepEqual(stats(b),b.before);
  assert.equal((await invoke('A-agents-return',['agents','list','--namespace',a.home]))[0].id,a.agentId);
  assert.match(await invoke('legacy-auth',['agents','list','--local'],false),/Not logged in/);
  assert.match(await invoke('conflicting-target',['projects','list','--namespace',a.home,'--host','other'],false),/either --namespace or --host/);
