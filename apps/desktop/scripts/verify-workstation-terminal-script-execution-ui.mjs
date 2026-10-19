@@ -75,5 +75,22 @@ export async function verifyWorkstationTerminalScriptExecutionUi({getPage,click,
   await until(()=>evaluate(`(()=>{const rows=[...document.querySelectorAll('[data-terminal-id]')];return rows.length>0&&rows.every(e=>e.dataset.restoreState==='attached');})()`),'in-flight launched terminal attached');
   closeWhileLaunching={busy,alive,afterClose,a:await read('preset-a.txt'),b:await read('preset-b.txt')};await screenshot('terminal-script-close-waits-for-launch-and-layout');
  }
- writeFileSync(join(output,'terminal-script-execution.json'),JSON.stringify({presetId:preset.id,folder,snapshots,contents,pids:pids.map(p=>p.pid),restored,closeWhileLaunching,errors:getPage().errors},null,2)+'\n');assert.deepEqual(getPage().errors,[]);
+ let ordinaryClose=null;
+ if(process.argv.includes('--terminal-script-ordinary-close')){
+  const beforeOrdinary=await view(),paused=controls.pauseOwnedBackend();let alive=false,busy=false;
+  try{
+   await click('text:New terminal');busy=await evaluate(`(()=>{const e=[...document.querySelectorAll('.ws-window-toolbar button')].find(e=>e.textContent.trim()==='New terminal');return e?.disabled;})()`);assert.equal(busy,true);
+   await requestClose('window');await delay(200);try{alive=await evaluate('document.readyState!==undefined');}catch{alive=false;}
+   writeFileSync(join(output,'terminal-ordinary-close-held.json'),JSON.stringify({pid:paused.pid,busy,alive},null,2)+'\n');
+  }finally{paused.resume();}
+  assert.equal(alive,true,'normal window close waits for ordinary terminal creation');
+  await closeReopen(true);await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(button)}+':not(:disabled)'))`),'ordinary terminal creation restored');
+  const afterOrdinary=await view();assert.equal(afterOrdinary.panes.length,beforeOrdinary.panes.length+1);
+  const newPane=afterOrdinary.panes.find(p=>!beforeOrdinary.panes.some(old=>old.paneId===p.paneId));assert.ok(newPane);
+  await until(()=>evaluate(`document.querySelector('[data-terminal-id="${newPane.resourceId}"]')?.dataset.restoreState==='attached'`),'ordinary restored terminal attached');
+  assert.equal(await read('preset-a.txt'),closeWhileLaunching?.a??contents.a);assert.equal(await read('preset-b.txt'),closeWhileLaunching?.b??contents.b);
+  ordinaryClose={busy,alive,beforeOrdinary,afterOrdinary};await screenshot('terminal-ordinary-close-waits-for-creation-and-layout');
+ }
+
+ writeFileSync(join(output,'terminal-script-execution.json'),JSON.stringify({presetId:preset.id,folder,snapshots,contents,pids:pids.map(p=>p.pid),restored,closeWhileLaunching,ordinaryClose,errors:getPage().errors},null,2)+'\n');assert.deepEqual(getPage().errors,[]);
 }
