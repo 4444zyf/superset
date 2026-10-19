@@ -37,7 +37,8 @@ function stats(f){
 async function fixture(label){
  const home=join(root,'Namespace '+label+' 中文');
  const backend=new LocalBackend({dataDir:home,execPath:executable,supervisorPath:join(application,'dist/main/direct-supervisor.js'),hostServicePath:join(application,'dist/main/direct-backend.js'),migrationsFolder:join(application,'dist/resources/host-migrations'),chatMigrationsFolder:join(application,'dist/resources/chat-migrations'),environment:{HOME:root,PATH:process.env.PATH,LANG:'C.UTF-8'}});
- const connection=await backend.connect();
+ let connection;
+ try{connection=await backend.connect();}catch(error){await backend.stop().catch(()=>{});throw error;}
  const identity=JSON.parse(readFileSync(join(home,'identity.json'),'utf8'));
  const dbPath=join(home,'host',identity.namespaceId,'host.db');assert.equal(lstatSync(dbPath).uid,process.getuid());
  const client=createTRPCClient({links:[httpBatchLink({url:connection.url+'/trpc',transformer:SuperJSON,headers:{Authorization:'Bearer '+connection.secret}})]});
@@ -89,6 +90,8 @@ try{
  assert.deepEqual(await promisify((await import('node:fs')).readdir)(legacyHome),[],'namespace commands and legacy auth failure write no account or telemetry state');
  writeFileSync(join(output,'namespace-cli-acceptance.json'),JSON.stringify({sourceRevision:process.env.GITHUB_SHA,mode:'actual compiled Linux CLI and two owned same-machine Unix backends; no GUI or SSH deployment claim',empty,fixtures:fixtures.map(f=>({label:f.label,namespaceId:f.identity.namespaceId,backendId:f.identity.backendId,home:f.home,execution:{id:f.execution.id,executionId:f.execution.executionId,pid:f.execution.pid},records:f.before})),runs,cloudAccountRequired:false,macOSVerified:false},null,2)+'\n');
 }finally{
- for(const f of fixtures.reverse()){try{if(!f.stopped)await f.backend.stop();}finally{f.connection.close();}}
+ const cleanup=await Promise.allSettled(fixtures.map(async f=>{try{if(!f.stopped)await f.backend.stop();}finally{f.connection.close();}}));
+ const failed=cleanup.filter(result=>result.status==='rejected');
+ if(failed.length){writeFileSync(join(output,'cleanup-error.json'),JSON.stringify({root,errors:failed.map(result=>String(result.reason))},null,2)+'\n');throw new Error('Owned fixture cleanup did not complete; retained its files');}
  rmSync(root,{recursive:true,force:true});
 }
