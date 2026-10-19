@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it, mock } from "bun:test";
+import { afterEach, describe, expect, it, mock, test } from "bun:test";
 import type { Terminal } from "@xterm/xterm";
+import { installImagePasteFallback } from "../terminal-image-paste-fallback";
 import { installTerminalWheelReview } from "./terminal-wheel-review";
 
 const cleanups: (() => void)[] = [];
@@ -122,4 +123,40 @@ describe("terminal wheel review", () => {
 		expect(f.element.querySelector("pre")).toBeNull();
 		expect(f.input).not.toHaveBeenCalled();
 	});
+});
+
+test("history review prevents the ancestor image paste handler from uploading or sending Ctrl+V", () => {
+	const f = fixture(),
+		upload = mock(() => {});
+	cleanups.push(
+		installImagePasteFallback({ input: f.input }, f.element, () => upload, {
+			preferFiles: true,
+		}),
+	);
+	f.wheel(-34);
+	const review = f.element.querySelector("[data-terminal-scrollback-review]");
+	if (!review) throw new Error("Missing review");
+	const event = new Event("paste", { bubbles: true, cancelable: true });
+	Object.defineProperty(event, "clipboardData", {
+		value: {
+			files: [new File(["pixels"], "clipboard.png", { type: "image/png" })],
+			types: ["Files"],
+			getData: () => "",
+		},
+	});
+	review.dispatchEvent(event);
+	expect(event.defaultPrevented).toBe(true);
+	expect(upload).not.toHaveBeenCalled();
+	expect(f.input).not.toHaveBeenCalled();
+});
+
+test("copying history uses the browser selection without an old xterm selection overriding it", () => {
+	const f = fixture();
+	f.element.addEventListener("copy", (event) => event.preventDefault());
+	f.wheel(-34);
+	const review = f.element.querySelector("[data-terminal-scrollback-review]");
+	if (!review) throw new Error("Missing review");
+	const event = new Event("copy", { bubbles: true, cancelable: true });
+	review.dispatchEvent(event);
+	expect(event.defaultPrevented).toBe(false);
 });

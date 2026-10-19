@@ -123,6 +123,16 @@ export function installTerminalWheelReview(terminal: Terminal): () => void {
 				},
 				{ passive: false },
 			);
+			for (const name of [
+				"mousedown",
+				"mousemove",
+				"mouseup",
+				"copy",
+				"contextmenu",
+			] as const)
+				review.addEventListener(name, (event) =>
+					event.stopImmediatePropagation(),
+				);
 			review.addEventListener("keydown", (event) => {
 				if (event.key === "Escape" || event.key === "End") {
 					event.preventDefault();

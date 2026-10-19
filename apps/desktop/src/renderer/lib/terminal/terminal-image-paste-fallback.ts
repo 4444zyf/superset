@@ -1,5 +1,5 @@
-import type { Terminal as XTerm } from "@xterm/xterm";
 import { getClipboardFiles } from "@superset/ui/lib/clipboard-files";
+import type { Terminal as XTerm } from "@xterm/xterm";
 
 // For file/image clipboard payloads (screenshot, copied file, web image),
 // xterm.js's built-in paste handler reads an empty string from
@@ -65,6 +65,14 @@ export function installImagePasteFallback(
 	options?: { preferFiles?: boolean },
 ): () => void {
 	const handler = (event: ClipboardEvent) => {
+		if (
+			event.target instanceof Element &&
+			event.target.closest("[data-terminal-scrollback-review]")
+		) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+			return;
+		}
 		handleImagePasteFallback(event, terminal, getOverride, options);
 	};
 
