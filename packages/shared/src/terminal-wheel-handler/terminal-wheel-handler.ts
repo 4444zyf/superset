@@ -183,8 +183,8 @@ function getReportCoords(
 
 /**
  * Custom wheel handler restoring full-fidelity scrolling for TUIs that
- * capture the wheel: mouse-tracking apps in any buffer (Claude Code, vim
- * with mouse=a, htop, tmux) and alt-buffer apps without tracking (less).
+ * capture the wheel. Alternate-buffer apps without mouse tracking use client
+ * review instead of generating cursor-key input.
  *
  * Stock xterm.js damps trackpad wheel deltas to 30% and emits at most one
  * report/arrow per DOM wheel event ("scrolling samples every third tick").
@@ -200,21 +200,23 @@ function getReportCoords(
 export function createTerminalWheelEventHandler(
 	xterm: XTerm,
 	isSgrMouseModeActive: () => boolean,
+	scrollAlternateBuffer: (lines: number) => void = (lines) =>
+		xterm.scrollLines(lines),
 ): (event: WheelEvent) => boolean {
 	const state = createWheelLineState();
 
 	return (event: WheelEvent): boolean => {
 		if (isStockWheelForced()) return true;
 
-		// Shift is xterm's mouse-capture bypass (selection); keep stock behavior.
-		if (event.deltaY === 0 || event.shiftKey) return true;
+		// Shift bypasses application mouse tracking.
+		if (event.deltaY === 0) return true;
 
 		const bufferType = xterm.buffer.active.type;
 		const tracking = xterm.modes.mouseTrackingMode;
-		// x10 tracking never reports wheel; in the alt buffer it falls through
-		// to arrows below, in the normal buffer to viewport scrollback.
+		// x10 tracking never reports wheel.
 		const wantsMouseReports =
-			tracking === "vt200" || tracking === "drag" || tracking === "any";
+			!event.shiftKey &&
+			(tracking === "vt200" || tracking === "drag" || tracking === "any");
 
 		if (wantsMouseReports) {
 			// Without SGR encoding we cannot safely synthesize reports — legacy
@@ -226,7 +228,12 @@ export function createTerminalWheelEventHandler(
 		}
 
 		const cell = getCellDimensions(xterm);
-		if (!cell) return true;
+		if (!cell) {
+			if (wantsMouseReports) return true;
+			event.preventDefault();
+			event.stopPropagation();
+			return false;
+		}
 
 		const applicationCursorKeys = xterm.modes.applicationCursorKeysMode;
 		const lines = consumeWheelLines(
@@ -257,9 +264,10 @@ export function createTerminalWheelEventHandler(
 				);
 				sequence = buildSgrWheelReport(event.deltaY, col, row, event);
 			} else {
-				sequence = buildArrowSequence(event.deltaY, applicationCursorKeys);
+				scrollAlternateBuffer(lines);
+				sequence = "";
 			}
-			xterm.input(sequence.repeat(Math.abs(lines)), true);
+			if (sequence) xterm.input(sequence.repeat(Math.abs(lines)), true);
 		}
 
 		// Consumed (possibly into the fractional accumulator): stop the event so
@@ -274,10 +282,17 @@ export function createTerminalWheelEventHandler(
  * Install the full-fidelity wheel handler on a terminal. Returns an
  * uninstaller; xterm.dispose() also cleans everything up implicitly.
  */
-export function installTerminalWheelEventHandler(xterm: XTerm): () => void {
+export function installTerminalWheelEventHandler(
+	xterm: XTerm,
+	scrollAlternateBuffer?: (lines: number) => void,
+): () => void {
 	const sgrTracker = createSgrMouseModeTracker(xterm);
 	xterm.attachCustomWheelEventHandler(
-		createTerminalWheelEventHandler(xterm, sgrTracker.isActive),
+		createTerminalWheelEventHandler(
+			xterm,
+			sgrTracker.isActive,
+			scrollAlternateBuffer,
+		),
 	);
 
 	return () => {

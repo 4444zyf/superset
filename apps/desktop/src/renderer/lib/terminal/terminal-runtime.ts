@@ -1,10 +1,10 @@
 import { FRESH_SHELL_INPUT_MODE_RESET } from "@superset/shared/leaked-input-mode-reclaim";
-import { installTerminalWheelEventHandler } from "@superset/shared/terminal-wheel-handler";
 import { FitAddon } from "@xterm/addon-fit";
 import type { ProgressAddon } from "@xterm/addon-progress";
 import type { SearchAddon } from "@xterm/addon-search";
 import { SerializeAddon } from "@xterm/addon-serialize";
 import { Terminal as XTerm } from "@xterm/xterm";
+import { installTerminalWheelReview } from "renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review";
 import { DEFAULT_TERMINAL_SCROLLBACK } from "shared/constants";
 import {
 	applyTerminalFontFamilyCssVariable,
@@ -323,7 +323,7 @@ export function createRuntime(
 	terminal.open(wrapper);
 
 	installTerminalKeyEventHandler(terminal);
-	installTerminalWheelEventHandler(terminal);
+	installTerminalWheelReview(terminal);
 	const disposeCopyHandler = installTerminalCopyHandler(terminal);
 
 	// Activate Unicode 11 widths (inside loadAddons) before restoring the buffer,

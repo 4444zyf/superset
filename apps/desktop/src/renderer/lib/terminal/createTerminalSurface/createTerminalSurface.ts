@@ -1,4 +1,3 @@
-import { installTerminalWheelEventHandler } from "@superset/shared/terminal-wheel-handler";
 import { ClipboardAddon } from "@xterm/addon-clipboard";
 import { FitAddon } from "@xterm/addon-fit";
 import { ImageAddon } from "@xterm/addon-image";
@@ -19,6 +18,7 @@ import {
 	wrapWrite,
 } from "renderer/lib/terminal/parser-idle-gate";
 import { TerminalLinkManager } from "renderer/lib/terminal/terminal-link-manager";
+import { installTerminalWheelReview } from "renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review";
 import { installInputModeReclaimer } from "renderer/lib/terminal/terminalInputModeReclaimer";
 
 import {
@@ -136,7 +136,7 @@ export function createTerminalSurface(options: { initialTheme: ITheme }): {
 	});
 
 	const cleanupQuerySuppression = suppressQueryResponses(xterm);
-	const uninstallWheelHandler = installTerminalWheelEventHandler(xterm);
+	const uninstallWheelHandler = installTerminalWheelReview(xterm);
 	// Disarm TUI-only input modes (kitty keyboard / mouse / focus) leaked into a
 	// live shell prompt by a TUI killed while attached (#4949) — keyed on the
 	// OSC 777 shell-ready marker, same as v2's terminal-runtime.

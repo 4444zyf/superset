@@ -159,8 +159,10 @@ interface FakeTerminalOptions {
 
 function makeFakeTerminal(options: FakeTerminalOptions = {}) {
 	const input = mock((_data: string, _userInput?: boolean) => {});
+	const scrollLines = mock((_lines: number) => {});
 	const terminal = {
 		input,
+		scrollLines,
 		cols: 80,
 		rows: 40,
 		options: { scrollSensitivity: 1, fastScrollSensitivity: 5 },
@@ -178,7 +180,7 @@ function makeFakeTerminal(options: FakeTerminalOptions = {}) {
 			},
 		},
 	};
-	return { terminal: terminal as unknown as XTerm, input };
+	return { terminal: terminal as unknown as XTerm, input, scrollLines };
 }
 
 function wheelEvent(
@@ -239,38 +241,51 @@ describe("createTerminalWheelEventHandler", () => {
 		expect(input).not.toHaveBeenCalled();
 	});
 
-	it("defers to stock xterm when shift is held (selection bypass)", () => {
+	it("uses client review for shift-wheel instead of stock alternate-buffer arrows", () => {
 		const { terminal } = makeFakeTerminal();
 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
-		expect(handler(wheelEvent(40, { shiftKey: true }))).toBe(true);
+		expect(handler(wheelEvent(40, { shiftKey: true }))).toBe(false);
 	});
 
-	it("sends one arrow per line in the alt buffer without mouse tracking", () => {
+	it("reviews alternate-buffer content without generating direction keys", () => {
 		const { terminal, input } = makeFakeTerminal();
-		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
-		const event = wheelEvent(51); // 3 lines at 17px cells
+		const review = mock((_lines: number) => {});
+		const handler = createTerminalWheelEventHandler(
+			terminal,
+			isSgrActive,
+			review,
+		);
+		const event = wheelEvent(-51);
 		expect(handler(event)).toBe(false);
-		expect(input).toHaveBeenCalledWith("\x1b[B\x1b[B\x1b[B", true);
+		expect(review).toHaveBeenCalledWith(-3);
+		expect(input).not.toHaveBeenCalled();
 		expect(event.defaultPrevented).toBe(true);
 	});
 
-	it("uses application cursor sequences when DECCKM is set", () => {
-		const { terminal, input } = makeFakeTerminal({
+	it("does not turn wheel gestures into application cursor keys", () => {
+		const { terminal, input, scrollLines } = makeFakeTerminal({
 			applicationCursorKeysMode: true,
 		});
 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
 		handler(wheelEvent(-17));
-		expect(input).toHaveBeenCalledWith("\x1bOA", true);
+		expect(input).not.toHaveBeenCalled();
+		expect(scrollLines).toHaveBeenCalledWith(-1);
 	});
 
-	it("consumes sub-line deltas without emitting, then fires on accumulation", () => {
+	it("accumulates small trackpad deltas for client review without input", () => {
 		const { terminal, input } = makeFakeTerminal();
-		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
-		expect(handler(wheelEvent(6))).toBe(false);
-		expect(handler(wheelEvent(6))).toBe(false);
+		const review = mock((_lines: number) => {});
+		const handler = createTerminalWheelEventHandler(
+			terminal,
+			isSgrActive,
+			review,
+		);
+		handler(wheelEvent(-6));
+		handler(wheelEvent(-6));
+		expect(review).not.toHaveBeenCalled();
+		handler(wheelEvent(-6));
+		expect(review).toHaveBeenCalledWith(-1);
 		expect(input).not.toHaveBeenCalled();
-		expect(handler(wheelEvent(6))).toBe(false);
-		expect(input).toHaveBeenCalledWith("\x1b[B", true);
 	});
 
 	it("sends SGR wheel reports when mouse tracking + SGR encoding are active", () => {
@@ -290,18 +305,22 @@ describe("createTerminalWheelEventHandler", () => {
 		expect(input).not.toHaveBeenCalled();
 	});
 
-	it("falls back to arrows for x10 tracking, which never reports wheel", () => {
-		const { terminal, input } = makeFakeTerminal({ mouseTrackingMode: "x10" });
+	it("reviews content for x10 tracking, which never reports wheel", () => {
+		const { terminal, input, scrollLines } = makeFakeTerminal({
+			mouseTrackingMode: "x10",
+		});
 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
 		expect(handler(wheelEvent(17))).toBe(false);
-		expect(input).toHaveBeenCalledWith("\x1b[B", true);
+		expect(input).not.toHaveBeenCalled();
+		expect(scrollLines).toHaveBeenCalledWith(1);
 	});
 
-	it("defers to stock xterm when cell dimensions are unavailable", () => {
-		const { terminal } = makeFakeTerminal();
+	it("never falls back to arrow input when cell dimensions are unavailable", () => {
+		const { terminal, input } = makeFakeTerminal();
 		(terminal as unknown as { _core: unknown })._core = undefined;
 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
-		expect(handler(wheelEvent(40))).toBe(true);
+		expect(handler(wheelEvent(40))).toBe(false);
+		expect(input).not.toHaveBeenCalled();
 	});
 
 	it("honors the stock-wheel escape hatch per event, without reinstall", () => {
@@ -321,7 +340,7 @@ describe("createTerminalWheelEventHandler", () => {
 			// parked/reused terminal instances must not need a window reload.
 			globals.localStorage = { getItem: () => null };
 			expect(handler(wheelEvent(51))).toBe(false);
-			expect(input).toHaveBeenCalled();
+			expect(input).not.toHaveBeenCalled();
 		} finally {
 			globals.localStorage = original;
 		}
