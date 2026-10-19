@@ -3,7 +3,7 @@ import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {setTimeout as delay} from 'node:timers/promises';
 import {agentUiDriver} from './verify-workstation-agent-ui-driver.mjs';
-export async function verifyWorkstationTerminalScriptTriggersUi({getPage,click,screenshot,output,closeReopen,controls}){
+export async function verifyWorkstationTerminalScriptTriggersUi({getPage,click,screenshot,output,closeReopen,controls,requestClose,isWindowOpen}){
  const list='[data-workstation-terminal-scripts]',editor='[data-terminal-preset-editor]';
  const driver=agentUiDriver({getPage,click,screenshot,output,rootSelector:editor}),listing=agentUiDriver({getPage,click,screenshot,output,rootSelector:list});
  const {evaluate,until,replace,scrollTo,scrollText}=driver;
@@ -37,7 +37,20 @@ export async function verifyWorkstationTerminalScriptTriggersUi({getPage,click,s
  await open();const edit=`${list} [data-terminal-preset-id="${preset.id}"] `;await listing.scrollTo(edit);await click(edit);await until(()=>evaluate(`Boolean(document.querySelector('${editor}'))`),'edit script');
  await toggle(preset.id,'applyOnNewTab',false);await toggle(preset.id,'applyOnWorkspaceCreated',true);await set(`${editor} input[placeholder="e.g. bun run dev"]`,"printf 'created\\n' >> trigger-created.txt; pwd > trigger-cwd.txt");await finish();
  await click('[data-slot=sidebar-content] button[aria-label="Workspaces"]');
- await click('text:New session');await click('[role=dialog] input');await getPage().call('Input.insertText',{text:'Triggered standalone 中文'});await click('[role=dialog] button[type=submit]');
+ await click('text:New session');await click('[role=dialog] input');await getPage().call('Input.insertText',{text:'Triggered standalone 中文'});
+ if(process.argv.includes('--terminal-script-created-close')) {
+  assert.equal(typeof requestClose,'function');assert.equal(typeof isWindowOpen,'function');
+  const paused=controls.pauseOwnedBackend();let alive=false,busy=false;
+  try {
+   await click('[role=dialog] button[type=submit]');
+   await until(()=>evaluate(`Boolean(document.querySelector('[role=dialog] button[type=submit]')?.disabled)`),'workspace creation request pending');
+   busy=true;await requestClose();await delay(800);alive=await isWindowOpen();
+   writeFileSync(join(output,'terminal-trigger-created-close-held.json'),JSON.stringify({pid:paused.pid,busy,alive,dwellMs:800},null,2)+'\n');
+   assert.equal(alive,true,'normal close must wait for the workspace creation request and its configured scripts');
+  } finally {paused.resume();}
+  await closeReopen(true);
+  await until(()=>evaluate(`(()=>{const rows=[...document.querySelectorAll('[data-terminal-id]')];return rows.length===1&&rows[0].dataset.restoreState==='attached';})()`),'created-close terminal reattached');
+ } else await click('[role=dialog] button[type=submit]');
  const created=await until(async()=>{const w=await view();return w?.workspaceId!==scope.w.workspaceId&&w;},'new workspace selected');
  const createdContent=await waitFile(created.workspaceId,'trigger-created.txt');await screenshot('terminal-trigger-created-workspace-result');
  await until(()=>evaluate(`Boolean([...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='New terminal'&&!b.disabled))`),'creation action completed');const beforePlain=await view();

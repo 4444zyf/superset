@@ -464,6 +464,7 @@ try {
 					await attach();
 					return closedHeartbeat;
 				},
+				isWindowOpen: async () => {if (!child || child.exitCode !== null || child.signalCode !== null || !main) return false;return main.evaluate(`(()=>{if(process.pid!==${child.pid})throw new Error('Wrong owned app');return ${electron}.BrowserWindow.getAllWindows().length===1;})()`);},
 				requestClose: async (kind) => main.evaluate(`${kind==="both"?`${electron}.BrowserWindow.getAllWindows()[0].close();${electron}.app.quit()` : kind==="quit"?`${electron}.app.quit()` : `${electron}.BrowserWindow.getAllWindows()[0].close()`};true`),
     closeReopen: async (alreadyClosed = false) => {
 					if (!alreadyClosed) await main.evaluate(

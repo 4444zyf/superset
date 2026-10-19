@@ -39,6 +39,7 @@ export async function verifyWorkspaceRestoreUi({
 	restart,
 	closeReopen,
  requestClose,
+ isWindowOpen,
 	controls,
 	nativeFileDialog,
 	setClipboard,
@@ -502,7 +503,7 @@ export async function verifyWorkspaceRestoreUi({
  if(process.argv.includes("--terminal-script-triggers-only")){
   await click("text:Terminal");await ready();
   const {verifyWorkstationTerminalScriptTriggersUi}=await import("./verify-workstation-terminal-script-triggers-ui.mjs");
-  await verifyWorkstationTerminalScriptTriggersUi({getPage,click,screenshot,output,closeReopen,controls});
+  await verifyWorkstationTerminalScriptTriggersUi({getPage,click,screenshot,output,closeReopen,controls,requestClose,isWindowOpen});
   writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalScriptTriggersOnly:true},null,2)+"\n");return;
  }
  if(process.argv.includes("--terminal-script-execution-only")){
