@@ -347,6 +347,7 @@ export function WorkspaceWindow({
 										{
 											connection,
 											placement: "root",
+											newTab: true,
 											replaceResourceId: run.previousTerminalId,
 										},
 									);

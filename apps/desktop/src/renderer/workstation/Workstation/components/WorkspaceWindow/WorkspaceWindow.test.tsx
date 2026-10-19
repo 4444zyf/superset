@@ -13,6 +13,88 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { WorkspaceWindow } from "./WorkspaceWindow";
 
 afterEach(cleanup);
+test("Run attaches in an original dedicated tab and reuses the prior Run resource on restart", async () => {
+	const attachments: unknown[][] = [];
+	const connection = {
+		connectionId: "remote",
+		backendId: "backend",
+		namespaceId: "namespace",
+		instanceId: "instance",
+		generation: 1,
+		capabilities: { workstationWorkspaceRunV1: true, durableOperations: true },
+	};
+	const props = {
+		api: {
+			rpc: async () => ({
+				projectId: "project",
+				definition: null,
+				definitionVersion: null,
+				definitionError: null,
+				run: {
+					workspaceId: "workspace",
+					operationId: "run",
+					terminalId: "run-terminal",
+					previousTerminalId: "previous-run",
+					executionId: "execution",
+					state: "active",
+					commands: ["echo run"],
+					foregroundSeen: true,
+					startedAt: 1,
+				},
+			}),
+		},
+		connection,
+		target: {
+			connectionId: "remote",
+			targetRevision: 1,
+			backendId: "backend",
+			namespaceId: "namespace",
+			serviceUid: 1000,
+			autoConnect: true,
+			activeTabId: "tab",
+			workspaces: [
+				{
+					tabId: "tab",
+					workspaceId: "workspace",
+					activeTool: "terminal",
+					activePaneId: null,
+					panes: [],
+					layout: null,
+				},
+			],
+		},
+		checks: [],
+		resourceRevision: 0,
+		restore: null,
+		actions: {
+			busy: false,
+			addPane: async (...args: unknown[]) => {
+				attachments.push(args);
+			},
+		},
+		ports: { busy: false, forward: null, onOpen() {}, onClose() {} },
+		onNewSession() {},
+		onRefresh() {},
+		onPending() {},
+		onProjectSettings() {},
+		onBrowse() {},
+		onMachines() {},
+		onError() {},
+	} as unknown as ComponentProps<typeof WorkspaceWindow>;
+	render(
+		<DndProvider backend={HTML5Backend}>
+			<TooltipProvider>
+				<WorkspaceWindow {...props} />
+			</TooltipProvider>
+		</DndProvider>,
+	);
+	await waitFor(() => expect(attachments).toHaveLength(1));
+	expect(attachments[0]?.[3]).toMatchObject({
+		connection,
+		newTab: true,
+		replaceResourceId: "previous-run",
+	});
+});
 test("loading Run state does not insert an action before New terminal", async () => {
 	let resolve!: (value: unknown) => void;
 	const terminals: unknown[][] = [];
