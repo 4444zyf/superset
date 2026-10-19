@@ -1,0 +1,27 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteTerminalScripts/RemoteTerminalScripts.test.tsx:
+(pass) uses the original script editor and persists edits through the selected SSH catalog [121.79ms]
+(pass) a lost save response is acknowledged only after matching readback and is never replayed [51.08ms]
+(pass) conflicts retain the draft and prevent Save All or repeated blur from overwriting another client [77.60ms]
+(pass) initialization is explicit, happens once, and intentionally empty catalogs stay empty [15.22ms]
+(pass) unsupported hosts do not receive new terminal script procedures [0.70ms]
+230 | test("a failed initial catalog read leaves a visible management entry with an explicit retry", async () => {
+231 |  let reads=0;
+232 |  const api={rpc:async(r:DirectRpc)=>{if(r.path.endsWith("catalogWithRevisionV1")){if(++reads===1)throw new Error("Storage temporarily unavailable");return {initialized:true,presets:[],revision:"a".repeat(64)};}if(r.path==="project.list")return [];return {projectId:"project-a"};}} as unknown as DirectWorkstationApi;
+233 |  render(<DndProvider backend={HTML5Backend}><RemoteTerminalScripts api={api} connection={connection} workspaceId="workspace" agents={[]} busy={false}/></DndProvider>);
+234 |  await screen.findByText("Storage temporarily unavailable");
+235 |  const entry=screen.getByRole("button",{name:"Terminal Scripts"});expect((entry as HTMLButtonElement).disabled).toBe(false);
+                                                                                                                      ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteTerminalScripts/RemoteTerminalScripts.test.tsx:235:113)
+(fail) a failed initial catalog read leaves a visible management entry with an explicit retry [4.34ms]
+
+ 5 pass
+ 1 fail
+ 22 expect() calls
+Ran 6 tests across 1 file. [577.00ms]

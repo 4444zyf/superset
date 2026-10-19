@@ -1,0 +1,29 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [64.08ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [53.98ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.test.tsx:
+(pass) original agent launch fields save a label to the selected host and keep permissions and prompt settings [114.02ms]
+(pass) a conflicting edit keeps the original input until explicit confirmed reload [121.90ms]
+(pass) a replacement connection loads its own fields and ignores the previous save reply [46.55ms]
+(pass) a failed save while leaving the settings form stays visible in the original unsaved dialog [61.28ms]
+(pass) returning a field to its saved value acknowledges without a host mutation [37.41ms]
+(pass) the original icon picker saves an existing agent icon without changing launch permissions [87.85ms]
+(pass) a conflicting icon save keeps the chosen icon and cannot acknowledge another stored icon [92.71ms]
+(pass) a rejected icon write cannot be acknowledged by an unchanged readonly row [99.63ms]
+
+src/renderer/workstation/Workstation/components/RemoteAgentSettings/RemoteAgentSettings.management.test.tsx:
+(pass) original custom agent form creates a target config only after explicit submit [165.14ms]
+(pass) removing a reviewed agent requires the original confirmation and cancellation never mutates [70.93ms]
+(pass) a lost create reply is acknowledged by readonly stable ID without duplicating or retrying the mutation [122.97ms]
+(pass) stale deletion stays in the confirmation and needs explicit refresh and review before another write [114.34ms]
+(pass) an unsent custom form participates in close protection and cancelling navigation keeps its fields [98.37ms]
+(pass) explicitly discarding a new draft before refresh clears the form and its close guard [110.30ms]
+(pass) an empty V2 target shows the original empty state and original Add menu [13.18ms]
+
+ 17 pass
+ 0 fail
+ 61 expect() calls
+Ran 17 tests across 3 files. [1.78s]

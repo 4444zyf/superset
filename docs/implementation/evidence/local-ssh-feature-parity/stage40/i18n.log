@@ -1,0 +1,116 @@
+$ bun run --cwd packages/i18n check
+$ bun run extract && bun run compile
+$ bun x --bun lingui extract --clean --overwrite --workers 1
+✔ Done in 29s
+Catalog statistics for locales/{locale}/messages: 
+┌─────────────┬─────────────┬─────────┐
+│[32m Language    [39m│[32m Total count [39m│[32m Missing [39m│
+├─────────────┼─────────────┼─────────┤
+│ en (source) │    6507     │    -    │
+│ cs          │    6507     │    2    │
+│ de          │    6507     │    2    │
+│ es          │    6507     │    2    │
+│ fr          │    6507     │    2    │
+│ id          │    6507     │    2    │
+│ it          │    6507     │    2    │
+│ ja          │    6507     │    2    │
+│ ko          │    6507     │    2    │
+│ nl          │    6507     │    2    │
+│ pl          │    6507     │    2    │
+│ pt-BR       │    6507     │    2    │
+│ ru          │    6507     │    2    │
+│ tr          │    6507     │    2    │
+│ vi          │    6507     │    2    │
+│ zh-CN       │    6507     │    2    │
+│ zh-TW       │    6507     │    2    │
+└─────────────┴─────────────┴─────────┘
+
+(Use "npm run extract" to update catalogs with new messages.)
+(Use "npm run compile" to compile catalogs for production. Alternatively, use bundler plugins: https://lingui.dev/ref/cli#compiling-catalogs-in-ci)
+$ bun x --bun lingui compile --strict --verbose --workers 1
+Compiling message catalogs…
+en ⇒ locales/en/messages.ts
+Error: Failed to compile catalog for locale ja!
+Missing translations after applying fallbackLocales:
+locales/ja/messages.po: -t5kKw: (Discard & Continue)
+locales/ja/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale zh-CN!
+Missing translations after applying fallbackLocales:
+locales/zh-CN/messages.po: -t5kKw: (Discard & Continue)
+locales/zh-CN/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale fr!
+Missing translations after applying fallbackLocales:
+locales/fr/messages.po: -t5kKw: (Discard & Continue)
+locales/fr/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale ko!
+Missing translations after applying fallbackLocales:
+locales/ko/messages.po: -t5kKw: (Discard & Continue)
+locales/ko/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale zh-TW!
+Missing translations after applying fallbackLocales:
+locales/zh-TW/messages.po: -t5kKw: (Discard & Continue)
+locales/zh-TW/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale es!
+Missing translations after applying fallbackLocales:
+locales/es/messages.po: -t5kKw: (Discard & Continue)
+locales/es/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale de!
+Missing translations after applying fallbackLocales:
+locales/de/messages.po: -t5kKw: (Discard & Continue)
+locales/de/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale pt-BR!
+Missing translations after applying fallbackLocales:
+locales/pt-BR/messages.po: -t5kKw: (Discard & Continue)
+locales/pt-BR/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale it!
+Missing translations after applying fallbackLocales:
+locales/it/messages.po: -t5kKw: (Discard & Continue)
+locales/it/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale ru!
+Missing translations after applying fallbackLocales:
+locales/ru/messages.po: -t5kKw: (Discard & Continue)
+locales/ru/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale tr!
+Missing translations after applying fallbackLocales:
+locales/tr/messages.po: -t5kKw: (Discard & Continue)
+locales/tr/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale pl!
+Missing translations after applying fallbackLocales:
+locales/pl/messages.po: -t5kKw: (Discard & Continue)
+locales/pl/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale nl!
+Missing translations after applying fallbackLocales:
+locales/nl/messages.po: -t5kKw: (Discard & Continue)
+locales/nl/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale id!
+Missing translations after applying fallbackLocales:
+locales/id/messages.po: -t5kKw: (Discard & Continue)
+locales/id/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale cs!
+Missing translations after applying fallbackLocales:
+locales/cs/messages.po: -t5kKw: (Discard & Continue)
+locales/cs/messages.po: i_FBLv: (Select folder)
+
+Error: Failed to compile catalog for locale vi!
+Missing translations after applying fallbackLocales:
+locales/vi/messages.po: -t5kKw: (Discard & Continue)
+locales/vi/messages.po: i_FBLv: (Select folder)
+
+Done in 3s
+error: script "compile" exited with code 1
+error: script "check" exited with code 1
+error: script "check:i18n" exited with code 1

@@ -1,0 +1,17 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteTerminalScripts/RemoteTerminalScripts.test.tsx:
+(pass) uses the original script editor and persists edits through the selected SSH catalog [129.09ms]
+(pass) a lost save response is acknowledged only after matching readback and is never replayed [65.36ms]
+(pass) conflicts retain the draft and prevent Save All or repeated blur from overwriting another client [75.02ms]
+(pass) initialization is explicit, happens once, and intentionally empty catalogs stay empty [18.32ms]
+(pass) unsupported hosts do not receive new terminal script procedures [0.63ms]
+(pass) a failed initial catalog read leaves a visible management entry with an explicit retry [18.27ms]
+(pass) new scripts keep a stable ID, clear the last command, and delete only after confirmation [145.75ms]
+(pass) directory browsing uses the SSH filesystem and stores the original workspace-relative value [69.52ms]
+(pass) closing a dirty original editor keeps the draft on Cancel and saves explicitly on Save & Continue [64.35ms]
+
+ 9 pass
+ 0 fail
+ 39 expect() calls
+Ran 9 tests across 1 file. [906.00ms]

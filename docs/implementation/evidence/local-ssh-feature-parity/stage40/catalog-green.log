@@ -1,0 +1,16 @@
+bun test v1.4.2 (744846f84)
+
+packages/host-service/src/trpc/router/settings/terminal-presets.test.ts:
+(pass) catalog reads are read-only and initialization preserves the original preset fields [23.49ms]
+(pass) stale additions and edits cannot overwrite the latest catalog [14.65ms]
+(pass) remove-all remains intentionally empty and cannot be initialized again [12.84ms]
+(pass) stable preset IDs prevent duplicate inserts after an uncertain response [13.83ms]
+(pass) reorder validates the complete catalog atomically and stores contiguous positions [15.05ms]
+(pass) clear optional fields and commands without restoring old snapshots or flags [10.87ms]
+(pass) revisions reject ABA writes even when the original fields are restored [12.49ms]
+(pass) missing IDs, oversized catalogs, and unknown fields leave storage unchanged [22.97ms]
+
+ 8 pass
+ 0 fail
+ 32 expect() calls
+Ran 8 tests across 1 file. [378.00ms]

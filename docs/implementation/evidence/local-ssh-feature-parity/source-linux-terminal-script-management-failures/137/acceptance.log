@@ -1,0 +1,11 @@
+file:///workspace/superset/apps/desktop/scripts/verify-workstation-agent-ui-driver.mjs:7
+ const until=async(read,label)=>{for(let i=0;i<200;i++){const value=await read();if(value)return value;await delay(50);}await screenshot('agent-management-failure');throw new Error(`Agent management condition failed: ${label}`);};
+                                                                                                                                                                           ^
+
+Error: Agent management condition failed: original launch mode option
+    at until (file:///workspace/superset/apps/desktop/scripts/verify-workstation-agent-ui-driver.mjs:7:172)
+    at async verifyWorkstationTerminalScriptManagementUi (file:///workspace/superset/apps/desktop/scripts/verify-workstation-terminal-script-management-ui.mjs:33:15)
+    at async verifyWorkspaceRestoreUi (/workspace/superset/apps/desktop/scripts/verify-workspace-restore-ui.mjs:503:3)
+    at async <anonymous> (/workspace/superset/apps/desktop/scripts/verify-brand-ui.mjs:509:4)
+
+Node.js v24.19.0

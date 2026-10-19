@@ -1,0 +1,14 @@
+packages/host-service/src/trpc/router/settings/terminal-presets.ts:137:39 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    135 │ 							message: "Reorder requires every terminal script exactly once.",
+    136 │ 						});
+  > 137 │ 					presets = change.ids.map((id) => byId.get(id)!);
+        │ 					                                 ^^^^^^^^^^^^^
+    138 │ 				} else {
+    139 │ 					if (!presets.some((row) => row.id === change.id))
+  
+
+Checked 32 files in 98ms. Fixed 1 file.
+Found 1 warning.

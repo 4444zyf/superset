@@ -1,0 +1,30 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteTerminalScripts/RemoteTerminalScripts.test.tsx:
+(pass) uses the original script editor and persists edits through the selected SSH catalog [130.04ms]
+(pass) a lost save response is acknowledged only after matching readback and is never replayed [57.36ms]
+(pass) conflicts retain the draft and prevent Save All or repeated blur from overwriting another client [91.97ms]
+(pass) initialization is explicit, happens once, and intentionally empty catalogs stay empty [19.75ms]
+(pass) unsupported hosts do not receive new terminal script procedures [0.62ms]
+(pass) a failed initial catalog read leaves a visible management entry with an explicit retry [15.32ms]
+(pass) new scripts keep a stable ID, clear the last command, and delete only after confirmation [122.83ms]
+271 |  await waitFor(()=>expect(f.catalog().presets).toHaveLength(1));expect(f.calls.filter(r=>(r.input as {change?:{kind:string}})?.change?.kind==="add")).toHaveLength(1);
+272 | });
+273 | 
+274 | test("directory browsing uses the SSH filesystem and stores the original workspace-relative value", async () => {
+275 |  const f=fixture();await openEditor();fireEvent.click(screen.getByRole("button",{name:"Browse for directory"}));
+276 |  const path=await screen.findByLabelText("Path");expect((path as HTMLInputElement).value).toBe("/remote/worktree");
+                                                                                                ^
+error: expect(received).toBe(expected)
+
+Expected: "/remote/worktree"
+Received: "/remote/worktree/."
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/RemoteTerminalScripts/RemoteTerminalScripts.test.tsx:276:91)
+(fail) directory browsing uses the SSH filesystem and stores the original workspace-relative value [57.54ms]
+(pass) closing a dirty original editor keeps the draft on Cancel and saves explicitly on Save & Continue [75.90ms]
+
+ 8 pass
+ 1 fail
+ 35 expect() calls
+Ran 9 tests across 1 file. [901.00ms]

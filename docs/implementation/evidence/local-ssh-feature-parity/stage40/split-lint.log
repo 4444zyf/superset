@@ -1,0 +1,68 @@
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteTerminalScripts/components/RemoteTerminalScriptsView/RemoteTerminalScriptsView.tsx:3:2 lint/correctness/noUnusedImports  FIXABLE  ━━━━━━━━━━
+
+  ! Several of these imports are unused.
+  
+    1 │ import { Trans, useLingui } from "@lingui/react/macro";
+    2 │ import type {
+  > 3 │ 	HostAgentConfig,
+      │ 	^^^^^^^^^^^^^^^
+    4 │ 	HostTerminalPreset,
+    5 │ 	HostTerminalPresetCatalog,
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+      1   1 │   import { Trans, useLingui } from "@lingui/react/macro";
+      2   2 │   import type {
+      3     │ - → HostAgentConfig,
+      4   3 │   	HostTerminalPreset,
+      5   4 │   	HostTerminalPresetCatalog,
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteTerminalScripts/components/RemoteTerminalScriptsView/RemoteTerminalScriptsView.tsx:34:13 lint/correctness/noUnusedImports  FIXABLE  ━━━━━━━━━━
+
+  ! This import is unused.
+  
+    32 │ import type { PresetProjectOption } from "renderer/routes/_authenticated/settings/terminal/components/TerminalSettings/components/PresetsSection/preset-project-options";
+    33 │ import { UnsavedChangesDialog } from "renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/TabView/FileViewerPane/UnsavedChangesDialog";
+  > 34 │ import type {
+       │             ^
+  > 35 │ 	DirectDescriptor,
+  > 36 │ 	DirectWorkstationApi,
+  > 37 │ } from "../../../../../../../shared/direct-workstation";
+       │ ^
+    38 │ import { WorkstationEditorGuardsContext } from "../../../../providers/WorkstationEditorGuards/workstation-editor-guards";
+    39 │ import { useWorkstationAppearance } from "../../../../providers/WorkstationPreferencesContext/WorkstationPreferencesContext";
+  
+  i Unused imports might be the result of an incomplete refactoring.
+  
+  i Unsafe fix: Remove the unused imports.
+  
+     32  32 │   import type { PresetProjectOption } from "renderer/routes/_authenticated/settings/terminal/components/TerminalSettings/components/PresetsSection/preset-project-options";
+     33  33 │   import { UnsavedChangesDialog } from "renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/TabView/FileViewerPane/UnsavedChangesDialog";
+     34     │ - import·type·{
+     35     │ - → DirectDescriptor,
+     36     │ - → DirectWorkstationApi,
+     37     │ - }·from·"../../../../../../../shared/direct-workstation";
+     38  34 │   import { WorkstationEditorGuardsContext } from "../../../../providers/WorkstationEditorGuards/workstation-editor-guards";
+     39  35 │   import { useWorkstationAppearance } from "../../../../providers/WorkstationPreferencesContext/WorkstationPreferencesContext";
+  
+
+packages/host-service/src/trpc/router/settings/terminal-presets.ts:137:39 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    135 │ 							message: "Reorder requires every terminal script exactly once.",
+    136 │ 						});
+  > 137 │ 					presets = change.ids.map((id) => byId.get(id)!);
+        │ 					                                 ^^^^^^^^^^^^^
+    138 │ 				} else {
+    139 │ 					if (!presets.some((row) => row.id === change.id))
+  
+
+Skipped 2 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 12 files in 67ms. Fixed 5 files.
+Found 3 warnings.

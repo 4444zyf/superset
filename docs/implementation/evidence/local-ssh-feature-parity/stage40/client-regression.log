@@ -1,0 +1,44 @@
+bun test v1.4.2 (744846f84)
+
+src/main/lib/ssh-direct/accountless-boot.test.ts:
+(pass) default main, preload and renderer cannot import the legacy cloud bootstrap [304.49ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminalScripts/RemoteTerminalScripts.test.tsx:
+(pass) uses the original script editor and persists edits through the selected SSH catalog [154.00ms]
+(pass) a lost save response is acknowledged only after matching readback and is never replayed [65.06ms]
+(pass) conflicts retain the draft and prevent Save All or repeated blur from overwriting another client [98.00ms]
+(pass) initialization is explicit, happens once, and intentionally empty catalogs stay empty [15.88ms]
+(pass) unsupported hosts do not receive new terminal script procedures [0.65ms]
+(pass) a failed initial catalog read leaves a visible management entry with an explicit retry [18.38ms]
+(pass) new scripts keep a stable ID, clear the last command, and delete only after confirmation [111.42ms]
+(pass) directory browsing uses the SSH filesystem and stores the original workspace-relative value [70.13ms]
+(pass) closing a dirty original editor keeps the draft on Cancel and saves explicitly on Save & Continue [73.29ms]
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [15.13ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [14.82ms]
+(pass) a clean document permits close immediately and unmounting with a dirty prompt cancels the old request [5.53ms]
+(pass) chat draft storage failure blocks a clean-file window close until an explicit successful Save All retry [17.13ms]
+(pass) unmounting while chat draft storage is loading cannot approve the departed renderer's close request [1.00ms]
+(pass) a late chat-draft flush after the close dialog unmounts cannot start a file save [6.09ms]
+(pass) a transient settings draft shares the original window guard and failed Save All cannot approve close [15.13ms]
+
+src/renderer/workstation/Workstation/components/RemoteTerminalPresets/RemoteTerminalPresets.test.tsx:
+(pass) the original default preset surface uses the selected host's config and launches only on an explicit click [16.55ms]
+(pass) older hosts receive no preset queries and late replies cannot populate a different backend [5.24ms]
+(pass) agent settings open the original launch form without launching a terminal [43.37ms]
+(pass) the host's custom configurations remain selectable beyond the first 128 entries [99.73ms]
+(pass) a deliberately empty versioned catalog remains manageable without the legacy reseeding list [5.41ms]
+
+src/renderer/routes/_authenticated/settings/terminal/components/TerminalSettings/components/PresetRow/PresetRow.utils.test.ts:
+(pass) getPresetModeLabel > does not describe sequential presets as split panes [0.03ms]
+(pass) getPresetModeLabel > keeps split-pane labels for split-pane presets [0.02ms]
+
+src/renderer/routes/_authenticated/settings/terminal/components/TerminalSettings/components/PresetsSection/preset-project-options.test.ts:
+(pass) getPresetProjectTargetLabel > returns the project name when exactly one known project is targeted [0.07ms]
+(pass) getPresetProjectTargetLabel > keeps the multi-project count when some targeted projects are stale [0.02ms]
+
+ 26 pass
+ 0 fail
+ 2595 expect() calls
+Ran 26 tests across 6 files. [1.71s]

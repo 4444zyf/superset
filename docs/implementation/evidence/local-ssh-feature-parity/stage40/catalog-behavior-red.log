@@ -1,0 +1,136 @@
+bun test v1.4.2 (744846f84)
+
+packages/host-service/src/trpc/router/settings/terminal-presets.test.ts:
+26 | 	expect(before.initialized).toBe(false);
+27 | 	expect(before.presets).toEqual([]);
+28 | 	expect(f.sqlite.query("SELECT count(*) AS n FROM terminal_preset_catalog").get()).toEqual({ n: 0 });
+29 | 	const row = preset();
+30 | 	const saved = await api.applyCatalogChangeV1({ expectedRevision: before.revision, change: { kind: "initialize", presets: [row] } });
+31 | 	expect(saved.initialized).toBe(true);
+                                ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/settings/terminal-presets.test.ts:31:28)
+(fail) catalog reads are read-only and initialization preserves the original preset fields [16.39ms]
+37 | test("stale additions and edits cannot overwrite the latest catalog", async () => {
+38 | 	const f = fixture(); const api = f.caller(); const row = preset();
+39 | 	const initial = await api.catalogWithRevisionV1();
+40 | 	const seeded = await api.applyCatalogChangeV1({ expectedRevision: initial.revision, change: { kind: "initialize", presets: [row] } });
+41 | 	const changed = await api.applyCatalogChangeV1({ expectedRevision: seeded.revision, change: { kind: "update", id: row.id, patch: { name: "Other client", commands: [] } } });
+42 | 	await expect(api.applyCatalogChangeV1({ expectedRevision: seeded.revision, change: { kind: "update", id: row.id, patch: { name: "Stale" } } })).rejects.toMatchObject({ code: "CONFLICT" });
+                                                                                                                                                              ^
+error: expect(received).rejects.toMatchObject(expected)
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/settings/terminal-presets.test.ts:42:154)
+(fail) stale additions and edits cannot overwrite the latest catalog [10.17ms]
+48 | 	const f = fixture(); const api = f.caller(); const row = preset();
+49 | 	const initial = await api.catalogWithRevisionV1();
+50 | 	const seeded = await api.applyCatalogChangeV1({ expectedRevision: initial.revision, change: { kind: "initialize", presets: [row] } });
+51 | 	const empty = await api.applyCatalogChangeV1({ expectedRevision: seeded.revision, change: { kind: "remove", id: row.id } });
+52 | 	expect(empty.presets).toEqual([]);
+53 | 	expect(empty.initialized).toBe(true);
+                                ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/settings/terminal-presets.test.ts:53:28)
+(fail) remove-all remains intentionally empty and cannot be initialized again [9.67ms]
+58 | test("stable preset IDs prevent duplicate inserts after an uncertain response", async () => {
+59 | 	const api = fixture().caller(); const initial = await api.catalogWithRevisionV1();
+60 | 	const initialized = await api.applyCatalogChangeV1({ expectedRevision: initial.revision, change: { kind: "initialize", presets: [] } });
+61 | 	const row = preset();
+62 | 	const saved = await api.applyCatalogChangeV1({ expectedRevision: initialized.revision, change: { kind: "add", preset: row } });
+63 | 	await expect(api.applyCatalogChangeV1({ expectedRevision: saved.revision, change: { kind: "add", preset: row } })).rejects.toMatchObject({ code: "CONFLICT" });
+                                                                                                                                 ^
+error: expect(received).rejects.toMatchObject(expected)
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/settings/terminal-presets.test.ts:63:125)
+(fail) stable preset IDs prevent duplicate inserts after an uncertain response [9.41ms]
+67 | test("reorder validates the complete catalog atomically and stores contiguous positions", async () => {
+68 | 	const api = fixture().caller(); const a = preset(); const b = { ...preset(), tabOrder: 1 };
+69 | 	const initial = await api.catalogWithRevisionV1();
+70 | 	const seeded = await api.applyCatalogChangeV1({ expectedRevision: initial.revision, change: { kind: "initialize", presets: [a, b] } });
+71 | 	for (const ids of [[a.id], [a.id, a.id], [a.id, randomUUID()]]) {
+72 | 		await expect(api.applyCatalogChangeV1({ expectedRevision: seeded.revision, change: { kind: "reorder", ids } })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+                                                                                                                               ^
+error: expect(received).rejects.toMatchObject(expected)
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/settings/terminal-presets.test.ts:72:123)
+(fail) reorder validates the complete catalog atomically and stores contiguous positions [10.33ms]
+78 | 
+79 | test("clear optional fields and commands without restoring old snapshots or flags", async () => {
+80 | 	const api = fixture().caller(); const row = preset(); const initial = await api.catalogWithRevisionV1();
+81 | 	const seeded = await api.applyCatalogChangeV1({ expectedRevision: initial.revision, change: { kind: "initialize", presets: [row] } });
+82 | 	const saved = await api.applyCatalogChangeV1({ expectedRevision: seeded.revision, change: { kind: "update", id: row.id, patch: { description: "", commands: [], projectIds: null, cwd: "", applyOnNewTab: false, useAsWorkspaceRun: false, pinnedToBar: true, executionMode: "sequential" } } });
+83 | 	expect(saved.presets[0]).toEqual({ ...row, description: "", commands: [], projectIds: null, cwd: "", applyOnNewTab: false, useAsWorkspaceRun: false, pinnedToBar: true, executionMode: "sequential" });
+                               ^
+error: expect(received).toEqual(expected)
+
+- {
+-   "applyOnNewTab": false,
+-   "applyOnWorkspaceCreated": false,
+-   "commands": [],
+-   "createdAt": 1970-01-01T00:00:00.000Z,
+-   "cwd": "",
+-   "description": "",
+-   "executionMode": "sequential",
+-   "id": "e6dc0994-bb50-4837-8562-fe30e37d9e77",
+-   "name": "Dev 中文 🙂",
+-   "pinnedToBar": true,
+-   "projectIds": null,
+-   "tabOrder": 0,
+-   "useAsWorkspaceRun": false,
+- }
++ undefined
+
+- Expected  - 15
++ Received  + 1
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/settings/terminal-presets.test.ts:83:27)
+(fail) clear optional fields and commands without restoring old snapshots or flags [8.30ms]
+87 | 	const api = fixture().caller(); const row = preset(); const initial = await api.catalogWithRevisionV1();
+88 | 	const seeded = await api.applyCatalogChangeV1({ expectedRevision: initial.revision, change: { kind: "initialize", presets: [row] } });
+89 | 	const edited = await api.applyCatalogChangeV1({ expectedRevision: seeded.revision, change: { kind: "update", id: row.id, patch: { name: "Temporary" } } });
+90 | 	const restored = await api.applyCatalogChangeV1({ expectedRevision: edited.revision, change: { kind: "update", id: row.id, patch: { name: row.name } } });
+91 | 	expect(restored.presets).toEqual(seeded.presets);
+92 | 	expect(restored.revision).not.toBe(seeded.revision);
+                                    ^
+error: expect(received).not.toBe(expected)
+
+Expected: not "0000000000000000000000000000000000000000000000000000000000000000"
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/settings/terminal-presets.test.ts:92:32)
+(fail) revisions reject ABA writes even when the original fields are restored [8.60ms]
+94 | });
+95 | 
+96 | test("missing IDs, oversized catalogs, and unknown fields leave storage unchanged", async () => {
+97 | 	const api = fixture().caller(); const initial = await api.catalogWithRevisionV1();
+98 | 	const initialized = await api.applyCatalogChangeV1({ expectedRevision: initial.revision, change: { kind: "initialize", presets: [] } });
+99 | 	await expect(api.applyCatalogChangeV1({ expectedRevision: initialized.revision, change: { kind: "remove", id: randomUUID() } })).rejects.toMatchObject({ code: "NOT_FOUND" });
+                                                                                                                                               ^
+error: expect(received).rejects.toMatchObject(expected)
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/settings/terminal-presets.test.ts:99:139)
+(fail) missing IDs, oversized catalogs, and unknown fields leave storage unchanged [8.93ms]
+
+ 0 pass
+ 8 fail
+ 9 expect() calls
+Ran 8 tests across 1 file. [569.00ms]
