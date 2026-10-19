@@ -498,6 +498,12 @@ export async function verifyWorkspaceRestoreUi({
 		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, filePreviewsOnly: true }, null, 2) + "\n");
 		return;
 	}
+ if (process.argv.includes("--pane-tabs-only")) {
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationPaneTabsUi}=await import("./verify-workstation-pane-tabs-ui.mjs");
+  await verifyWorkstationPaneTabsUi({getPage,click,screenshot,closeReopen,controls,output,nativeDrag});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,paneTabsOnly:true},null,2)+"\n");return;
+ }
  if (process.argv.includes("--terminal-script-management-only")) {
   await click("text:Terminal");await ready();
   const {verifyWorkstationTerminalScriptManagementUi}=await import("./verify-workstation-terminal-script-management-ui.mjs");
