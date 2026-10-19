@@ -25,7 +25,7 @@ export async function verifyWorkstationPresetRunUi(options){
  assert.equal(preview.definition?.source,'terminal-preset','Run consumes the saved script selected through the original editor');
  assert.equal(preview.definition.presetId,preset.id);
  await until(()=>evaluate(`Boolean(document.querySelector('[data-workspace-run] button[aria-label="Run workspace command"]:not(:disabled)'))`),'saved script Run control');
- await click('[data-workspace-run] button[aria-label="Workspace run options"]');await click('text:Edit Run Script');
+ await click('[data-workspace-run] button[aria-label="Workspace run options"]');await click('menu:Edit Run Script');
  await until(()=>evaluate(`document.querySelector('${editor} #preset-name')?.value===${JSON.stringify(name)}`),'Run options opens the selected original editor');await screenshot('preset-run-original-edit-menu');
  await scrollText('Done');await click('text:Done');await listing.scrollTo(list+' [data-slot=dialog-close]');await click(list+' [data-slot=dialog-close]');
  const start=async(id)=>{await until(()=>evaluate(`Boolean(document.querySelector('[data-workspace-run] button[aria-label="Run workspace command"]:not(:disabled)'))`),'Run control enabled');await click('[data-workspace-run] button[aria-label="Run workspace command"]');return until(async()=>{const s=await state(id);return s.run?.state==='active'&&s.run.executionId&&s.run;},'Run active');};
