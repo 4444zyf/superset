@@ -475,6 +475,12 @@ export async function verifyWorkspaceRestoreUi({
 		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, fileEventsOnly: true }, null, 2) + "\n");
 		return;
 	}
+	if (process.argv.includes("--workspace-run-only")) {
+		await click("text:Terminal");await ready();
+		await verifyWorkstationRunUi({getPage,click,screenshot,closeReopen,controls,output});
+		await verifyWorkstationInstantRunUi({getPage,click,screenshot,closeReopen,controls,output});
+		writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,workspaceRunOnly:true},null,2)+"\n");return;
+	}
 	if (process.argv.includes("--lifecycle-only")) {
 		await click("text:Terminal");
 		await ready();
