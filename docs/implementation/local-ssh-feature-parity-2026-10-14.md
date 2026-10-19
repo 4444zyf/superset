@@ -972,3 +972,15 @@ TDD：旧实际CLI执行新flag返回Unknown option、退出1，保留stdout/std
 第193轮覆盖版本/帮助启动、空Agent/脚本目录读取后仍0行且初始化标记未写、两个含中文空格的独立目录、五个list及项目名/搜索/tag筛选、返回A仍只见A数据。测试准备通过拥有数据库写入固定读取fixture，并明确经原direct.execute创建各一个实际PTY；CLI自身只读。A PID72401、B PID72504及执行ID在查询后保持，各一个Agent、一行脚本目录、一个终端记录未增加。旧无namespace账号要求、namespace/host冲突、未接写命令未知flag、缺失目录不创建、停止A不启动均按预期退出1；停止A后B仍可读，旧账号/analytics目录为空。所有拥有backend/PTY和临时目录在finally清理。没有用数据库准备来声称CLI创建能力已验收。
 
 CLI在SSH机器的安装/交付、自动选择终端namespace、其他读取/写命令与持久操作核对仍须继续；原预设栏完整交互/快捷键和其他功能组、真实macOS/供应商Agent、10秒连接及1.37.7安装包也继续独立推进。
+
+## 阶段五十一：原 CLI 读取已有终端屏幕
+
+为原terminals read增加同一个明确--namespace参数与前置读取分支，保留原terminal.snapshot查询、文本/JSON输出和max-lines参数。私有传输只额外允许这一已有GET过程并要求terminals能力，不增加后端过程或改变合同。没有namespace时仍走原账号/目标解析；host冲突在读取凭据之前拒绝。快照复用原工作区归属检查、现有headless emulator和getOrAdoptSession/adoptOnly，读取不存在终端不会创建PTY；已有detached执行可由原后端路径接回。CLI不记录客户端滚动历史，不把当前屏幕快照称为完整TUI会话。
+
+先新增两个失败测试，初轮8通过2失败：命令测试未提供原ctx.config，错误来自无效测试上下文，随后改为真实空config；缺少terminal读取能力的拒绝测试实际暴露尚未允许snapshot。修复后补无参数旧账号要求、host冲突与凭据未读取，最终36项90断言/4文件通过，CLI类型及相关lint通过（1项既有info）。无新增翻译消息、后端/UI源码或迁移，只重新构建实际打包CLI，未重复全桌面构建；插件检查通过。测试初始日志完整保留，不将错误测试上下文当作产品账号报错证明。[阶段五十一检查](evidence/local-ssh-feature-parity/stage51)。
+
+第194轮CLI/后端均为da56e38c3，验收脚本25885a097，在实际A-screen-normal调用明确返回Unknown option --namespace、退出1；拥有fixture在finally清理。这是独立的真实旧二进制基线。[194旧CLI失败](evidence/local-ssh-feature-parity/source-linux-namespace-terminal-read-failures/194)。
+
+第195轮CLI25885a097、后端仍为阶段五十da56e38c3、脚本8f41d8e06，实际Linux二进制退出0：43次调用，31项成功/12项明确拒绝。原五列表/目录为空不初始化/项目搜索tag筛选/两namespace往返隔离同时回归；明确fixture创建的两个80×24 PTY，普通中文输出、max-lines保持原从buffer底部裁切语义、DEC1049当前TUI中文屏幕及非JSON输出均正确。错误工作区、缺失终端、max-lines=0、B读取A终端均退出1，记录数量不增加。原A PID74029、B PID74222及执行ID保持；使用既有owned控制重启A backend，instance变化后新CLI读取原TUI输出，adopt后仍PID74029且无新PTY。停止A后B列表可用，旧账号/analytics目录仍为空；全部拥有后端/PTY和临时目录清理。[195完整证据](evidence/local-ssh-feature-parity/source-linux-namespace-terminal-read/195)。CLI SHA256为e646bae52aa4d74d4103834b54afea64cffdcf631cf8a00b9bf9a32807f35aec。
+
+这是同机私有Unix后端与实际CLI的无GUI验收，不涉及真实SSH机器安装CLI、真实供应商Agent或macOS安装包。其他原CLI读取/写命令、自动目标/交付、原预设完整交互及其余功能组仍按总清单继续。

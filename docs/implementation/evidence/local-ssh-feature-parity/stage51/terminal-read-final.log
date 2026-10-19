@@ -1,0 +1,50 @@
+bun test v1.4.2 (744846f84)
+
+src/commands/middleware.namespace.test.ts:
+(pass) an explicit namespace skips account and telemetry resolution and cannot use the cloud API [5.14ms]
+(pass) commands without an explicit namespace retain the original account requirement [0.28ms]
+
+src/lib/api-client.test.ts:
+(pass) fetchRejectingNonJsonErrors > turns Vercel's 413 page into an error carrying status and body [2.90ms]
+(pass) fetchRejectingNonJsonErrors > leaves JSON error responses to tRPC [0.39ms]
+(pass) fetchRejectingNonJsonErrors > passes successful responses through untouched [0.25ms]
+(pass) API HTTP errors through the CLI formatter > formats a plain JSON 401 as an expired session [3.19ms]
+(pass) API HTTP errors through the CLI formatter > formats a non-JSON 401 as an expired session [1.83ms]
+(pass) API HTTP errors through the CLI formatter > preserves native tRPC unauthorized errors [1.93ms]
+(pass) API HTTP errors through the CLI formatter > preserves native tRPC non-auth errors [1.84ms]
+(pass) API HTTP errors through the CLI formatter > prefers native tRPC codes over the HTTP status [1.89ms]
+(pass) API HTTP errors through the CLI formatter > preserves non-401 JSON transformation errors [1.56ms]
+(pass) API HTTP errors through the CLI formatter > preserves non-401 HTTP status and body [1.63ms]
+(pass) API HTTP errors through the CLI formatter > deserializes successful tRPC responses [1.86ms]
+
+src/lib/resolve-auth.test.ts:
+(pass) resolveAuth > throws when no override and no stored credentials [0.42ms]
+(pass) resolveAuth > uses an override api key with 'override' source [0.23ms]
+(pass) resolveAuth > uses a stored apiKey from config with 'config' source [0.18ms]
+(pass) resolveAuth > uses a stored OAuth session when present and unexpired [0.23ms]
+(pass) resolveAuth > throws when OAuth session is expired and there is no refresh token [0.20ms]
+(pass) resolveAuth > prefers an override over a stored apiKey [0.17ms]
+(pass) resolveAuth > uses SUPERSET_API_KEY env as an override when no flag is passed [0.12ms]
+(pass) resolveAuth > prefers the --api-key flag over SUPERSET_API_KEY env [0.17ms]
+(pass) resolveAuth > prefers SUPERSET_API_KEY env over a stored apiKey and OAuth [0.28ms]
+(pass) resolveAuth > overrides the stored org with SUPERSET_ORGANIZATION_ID [0.24ms]
+(pass) resolveAuth > keeps the stored org when SUPERSET_ORGANIZATION_ID is unset [0.19ms]
+(pass) resolveAuth > prefers a stored apiKey over a stored OAuth session [0.22ms]
+
+src/lib/direct-namespace/resolveDirectNamespace.test.ts:
+(pass) an explicit namespace authenticates and reads through its owned Unix socket [23.84ms]
+(pass) the original terminal read command reads the selected namespace without organization credentials [7.64ms]
+(pass) terminal read rejects a missing terminal capability before making a snapshot request [8.13ms]
+(pass) terminal read keeps the legacy organization requirement and refuses conflicting explicit targets [1.60ms]
+(pass) read-only namespace access refuses both mutations and the legacy Agent query that can seed defaults [4.91ms]
+(pass) a stopped or absent namespace is never created or started [1.73ms]
+(pass) foreign endpoint identity and a mismatched authenticated description are refused [3.48ms]
+(pass) a query cannot silently cross to a replacement endpoint after verification [4.06ms]
+(pass) a missing read capability is rejected before sending a procedure to an older backend [8.05ms]
+(pass) namespace secrets must remain private regular files [2.25ms]
+(pass) an absent namespace keeps the old command branch and conflicting targets never read credentials [1.08ms]
+
+ 36 pass
+ 0 fail
+ 90 expect() calls
+Ran 36 tests across 4 files. [175.00ms]

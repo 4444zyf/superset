@@ -1,0 +1,41 @@
+bun test v1.4.2 (744846f84)
+
+src/lib/direct-namespace/resolveDirectNamespace.test.ts:
+(pass) an explicit namespace authenticates and reads through its owned Unix socket [24.46ms]
+12 | 		local: boolean().desc("The workspace is on this machine"),
+13 | 		terminal: string().required().desc("Terminal ID to read"),
+14 | 		maxLines: number().int().desc("Cap returned rows from the bottom"),
+15 | 	},
+16 | 	run: async ({ ctx, options }) => {
+17 | 		const organizationId = ctx.config.organizationId;
+                                  ^
+TypeError: undefined is not an object (evaluating 'ctx.config.organizationId')
+      at <anonymous> (/workspace/superset/packages/cli/src/commands/terminals/read/command.ts:17:30)
+      at <anonymous> (/workspace/superset/packages/cli/src/lib/direct-namespace/resolveDirectNamespace.test.ts:146:36)
+(fail) the original terminal read command reads the selected namespace without organization credentials [2.43ms]
+161 | 
+162 | test("terminal read rejects a missing terminal capability before making a snapshot request", async () => {
+163 | 	const f = await fixture();
+164 | 	f.setDescription({ capabilities: { terminals: false } as never });
+165 | 	const target = await resolveDirectNamespace(f.homeDir);
+166 | 	await expect(target.client.terminal.snapshot.query({ terminalId: "terminal-a", workspaceId: "workspace-a" })).rejects.toThrow("capability");
+                                                                                                                             ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "capability"
+Received message: "Only read-only namespace procedures are allowed"
+
+      at <anonymous> (/workspace/superset/packages/cli/src/lib/direct-namespace/resolveDirectNamespace.test.ts:166:120)
+(fail) terminal read rejects a missing terminal capability before making a snapshot request [5.52ms]
+(pass) read-only namespace access refuses both mutations and the legacy Agent query that can seed defaults [5.53ms]
+(pass) a stopped or absent namespace is never created or started [1.46ms]
+(pass) foreign endpoint identity and a mismatched authenticated description are refused [2.58ms]
+(pass) a query cannot silently cross to a replacement endpoint after verification [4.19ms]
+(pass) a missing read capability is rejected before sending a procedure to an older backend [4.33ms]
+(pass) namespace secrets must remain private regular files [1.63ms]
+(pass) an absent namespace keeps the old command branch and conflicting targets never read credentials [0.96ms]
+
+ 8 pass
+ 2 fail
+ 27 expect() calls
+Ran 10 tests across 1 file. [108.00ms]
