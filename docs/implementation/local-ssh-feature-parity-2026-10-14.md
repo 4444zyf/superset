@@ -900,3 +900,21 @@ TDD覆盖本地原窗口入口、A/B独立布局和持久化、SSH视图保留�
 第171轮同产品/脚本、拥有的SSH，手动四模式和原脚本/普通新终端创建中的正常关闭回归退出0。拥有backend47884两次暂停时窗口均busy=true且alive=true；解除暂停后关闭重开，最终13个执行全部存活，原执行身份保持，脚本A/B仍仅对应五次明确执行，普通创建与恢复不增加标记；浏览器错误为空。两张关闭恢复后的附着截图已实际查看，暂停期间存活由held JSON记录，其余截图捕获。[171手动与关闭回归](evidence/local-ssh-feature-parity/source-linux-terminal-script-triggers/171)。所有拥有的测试backend/namespace与SSH夹具均已停止清理。
 
 这里完成的是两个明确新建动作的触发接入，不提供强制杀死客户端后重放尚未提交脚本的机制；工作区创建请求本身尚未返回时的关闭等待仍需独立覆盖。Run映射、原栏菜单/拖动/快捷键/CLI、其他完整功能组及真实macOS/供应商Agent继续推进；1.37.7安装包尚未生成。
+
+## 阶段四十七：创建请求和后续动作完成后才批准正常关闭
+
+阶段四十六仅覆盖创建回复后已经开始的终端动作。本阶段实际暂停拥有的后端，在New session请求等待中正常关闭窗口，发现旧产品会提前退出；主进程500ms仅用于元数据flush兜底，不能代替完整操作的关闭保护。复用现有单一WorkstationCloseGuard，增加beforeClose等待；明确createSession通过原ui.operation的可选waitOnClose记录完整创建、刷新、打开视图和创建触发。随后等待原views.flush的终端动作和元数据队列，再处理原文件/聊天/设置草稿。普通连接/其他操作不自动加入等待，没有增加第二个IPC关闭guard或flush订阅，没有修改500ms兜底或自动重放命令。
+
+beforeClose通过ref读取当前回调，避免root重新渲染导致关闭订阅重建和旧请求失效；原无回调路径不增加额外await，保留原卸载/晚回复测试的时序。Save All重试也等待，并检查同一请求仍有效。TDD初始9通过3失败，固定缺少flushOperations和干净窗口提前批准；首次修复10通过2失败，原未挂新回调的卸载测试发现额外微任务改变时序，保留断言修复后12项通过。最终工作区/关闭/操作hook/原脚本栏/renderer-safety共56项293断言/5文件、桌面类型检查通过；17语言严格编译、完整桌面/打包CLI及5个PTY marker构建、插件检查通过。lint无错误并保留既有/测试提示。[阶段四十七红绿与检查](evidence/local-ssh-feature-parity/stage47)。
+
+第172轮旧产品b68ccb24a/脚本8841a9947，窗口提前退出后只读inspector探测得到Cannot find context，原样退出1；这条是观测器错误，不单独作为行为断言基线。增强观测器为严格拥有main PID/唯一窗口检查，销毁context按不存活记录诊断；创建等待截图在请求关闭前捕获。第173轮同旧产品/脚本9946cb9ab，实际Create disabled、后端50809暂停，800ms后busy=true、alive=false，正常关闭必须等待创建的原断言退出1；该等待截图已实际查看。两轮均在finally恢复拥有后端，夹具正常清理。[172–173失败原件](evidence/local-ssh-feature-parity/source-linux-creation-close-failures)。
+
+第174轮产品/脚本9fedfac61，拥有loopback SSH、相同创建等待流程退出0。后端52565暂停800ms时busy=true、alive=true；恢复后完成创建/触发、正常关闭、重开并实际附着，新标签与创建标记各一行，原三个PTY身份保持，浏览器错误为空。请求等待及最终重开两张截图已实际查看。[174SSH创建关闭证据](evidence/local-ssh-feature-parity/source-linux-creation-close/174)。
+
+第175轮同产品/脚本，SSH手动四模式、批次创建及普通新终端正常关闭退出0。后端53750两次暂停均busy=true、alive=true、dwellMs=800，超过原元数据兜底时长而不延长断言超时；恢复后关闭重开，13个执行全部存活，原执行身份不变，标记不因恢复增加，错误为空。两张恢复后实际附着截图已查看；暂停期间存活由两个held JSON记录。[175长动作关闭回归](evidence/local-ssh-feature-parity/source-linux-creation-close/175)。
+
+第176轮同产品/脚本、独立本地无SSH夹具退出0：原A/B namespace隔离、明确Start、切回A和同backend实例重开后，执行同样创建关闭流程。后端55023暂停800ms仍busy/alive；恢复后两个触发各一行且不重放，A原PID55055/55067保持、未选中B的PID55158仍存活，错误为空。创建等待及最终重开两张截图已实际查看。[176本地创建关闭证据](evidence/local-ssh-feature-parity/source-linux-creation-close/176)。
+
+第177轮同产品/脚本、拥有SSH，原未保存文件窗口关闭回归退出0：后台草稿保护、Cancel保留、window/quit同时请求合并、Save All保留CRLF、磁盘冲突继续保留窗口和草稿、明确Don't Save不写盘、重开读原盘均通过，原PID55983/55989/55995保持。原关闭提示与冲突提示两张截图已实际查看，其余截图捕获。[177原文件关闭回归](evidence/local-ssh-feature-parity/source-linux-creation-close/177)。全部拥有测试backend/namespace及SSH夹具均经原清理路径停止。
+
+正常关闭会等待已经明确请求的创建及后续动作；强制结束进程/机器掉电不自动补跑尚未提交脚本。这里不宣称真实macOS触控板、供应商Agent、10秒连接目标或1.37.7 DMG已验收；Run映射、完整原栏交互/快捷键/CLI及其余功能组继续实施。

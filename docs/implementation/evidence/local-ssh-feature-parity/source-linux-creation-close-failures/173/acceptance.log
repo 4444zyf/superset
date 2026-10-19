@@ -1,0 +1,21 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: normal close must wait for the workspace creation request and its configured scripts
+
+false !== true
+
+    at verifyWorkstationTerminalScriptTriggersUi (file:///workspace/superset/apps/desktop/scripts/verify-workstation-terminal-script-triggers-ui.mjs:49:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async verifyWorkspaceRestoreUi (/workspace/superset/apps/desktop/scripts/verify-workspace-restore-ui.mjs:506:3)
+    at async <anonymous> (/workspace/superset/apps/desktop/scripts/verify-brand-ui.mjs:546:4) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

@@ -1,0 +1,72 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/components/RendererLayout/renderer-safety.test.ts:
+(pass) emergency UI has no transitive dependency on router, app providers, or UI libraries [27.74ms]
+(pass) production renderer roots cannot bypass RendererRouter [2572.84ms]
+(pass) every production failure boundary is included in the renderer audit [1804.44ms]
+(pass) settings and dashboard outlets retain their surrounding layout on render errors [3.04ms]
+
+src/renderer/workstation/Workstation/Workstation.test.tsx:
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [398.84ms]
+(pass) creating a project workspace respects the selected backend's managed worktree capability (%s) [511.08ms]
+(pass) selecting another local namespace clears the old workspace without reconnecting or stopping workloads [179.76ms]
+(pass) a pending local connection cannot return after namespace selection changed away and back [147.09ms]
+(pass) workstation opens without a Superset account and saves only SSH connection settings [98.33ms]
+(pass) refresh rechecks remote CLI readiness without reconnecting the SSH backend [158.90ms]
+(pass) a manually entered project path is browsed on the selected SSH backend [298.01ms]
+(pass) automatic reconnect retains the workspace and rejects stale connection events without replaying mutations [198.37ms]
+(pass) opening a development server submits its port for forwarding on B [87.48ms]
+(pass) local data import waits for an explicit stop and never starts the backend automatically [80.38ms]
+(pass) checking an empty operation journal shows a readable result [59.45ms]
+(pass) pending actions show their purpose and retain unresolved work when acknowledgement is cancelled [105.60ms]
+(pass) offline chat drafts remain reviewable and explicitly discardable without a connection or session [125.47ms]
+(pass) a local workspace opens in the original shared workspace window when restore is supported [83.00ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.terminal-presets.test.tsx:
+(pass) a terminal preset sends its original command once to the selected SSH backend and keeps original terminals [55.28ms]
+(pass) an older backend does not receive a preset command but can still create an ordinary shell [53.61ms]
+(pass) New terminal opens an original tab and subsequent splits stay inside that active tab [66.17ms]
+(pass) existing focus and close actions select the owning terminal tab and remove empty groups [54.77ms]
+(pass) original pane store tab rename and close persist with no extra terminal RPC or replay [54.40ms]
+(pass) a delayed split resize updates its captured terminal tab after the user selects another tab [56.88ms]
+(pass) pending metadata saves keep typed titles visible while a terminal focus update is queued [54.89ms]
+(pass) script mode split-pane keeps the original terminal layout and one command per new session [55.69ms]
+(pass) script mode new-tab keeps the original terminal layout and one command per new session [53.98ms]
+(pass) script mode new-tab-split-pane keeps the original terminal layout and one command per new session [53.26ms]
+(pass) sequential scripts use the captured terminal execution once and preserve its custom title [53.62ms]
+(pass) a target switch during creation never launches the remaining script commands or appends foreign panes [104.98ms]
+(pass) a partial script launch retains confirmed terminals and never replays a lost creation reply [54.47ms]
+(pass) normal window flush waits for the requested script batch and its saved pane layout [105.79ms]
+(pass) normal window flush also waits for an ordinary terminal launch and its view reference [54.46ms]
+(pass) an explicit new terminal tab runs only the original project trigger choices in bar order as fresh tabs [59.66ms]
+(pass) split and explicit agent launches do not evaluate new-tab triggers [54.57ms]
+(pass) an intentionally empty script catalog still opens one ordinary terminal without reseeding presets [53.74ms]
+(pass) close waits for the trigger lookup and a target switch prevents all late trigger commands [110.89ms]
+(pass) workspace creation presets run only through their explicit trigger and never type into an existing terminal [54.33ms]
+(pass) two new-tab clicks during a trigger lookup share one action and never create an extra shell [54.04ms]
+(pass) a lost trigger creation response stops later presets without retrying the unresolved command [53.53ms]
+(pass) a failed trigger catalog read keeps the requested action explicit and never substitutes a blank shell [53.07ms]
+(pass) a failed first preset layout save prevents later triggered launches [54.01ms]
+(pass) linked trigger commands use the versioned selected backend agent catalog without legacy reseeding [53.88ms]
+(pass) a linked trigger on a backend without the V2 agent catalog cannot fall back to a reseeding read [52.98ms]
+
+src/renderer/workstation/Workstation/hooks/useWorkstation/useWorkstation.test.tsx:
+(pass) removing a connection waits for local draft persistence and retains the connection when that save fails [1.24ms]
+(pass) requested creation work remains pending through its follow-up actions until close can proceed [1.04ms]
+(pass) ordinary connection work retains its existing close behavior [0.76ms]
+
+src/renderer/workstation/Workstation/components/WorkstationCloseGuard/WorkstationCloseGuard.test.tsx:
+(pass) a background file draft blocks close until cancel or an explicit Don't Save action without writing the disk [21.98ms]
+(pass) Save All keeps the original dialog and window after a conflict and permits close only after an explicit successful retry [22.98ms]
+(pass) a clean document permits close immediately and unmounting with a dirty prompt cancels the old request [6.36ms]
+(pass) chat draft storage failure blocks a clean-file window close until an explicit successful Save All retry [14.49ms]
+(pass) unmounting while chat draft storage is loading cannot approve the departed renderer's close request [1.22ms]
+(pass) a late chat-draft flush after the close dialog unmounts cannot start a file save [9.55ms]
+(pass) a transient settings draft shares the original window guard and failed Save All cannot approve close [23.92ms]
+(pass) the original close guard waits for requested work before approving a clean window close [1.28ms]
+(pass) a pending requested action cannot approve close after its window guard unmounts [0.80ms]
+
+ 56 pass
+ 0 fail
+ 293 expect() calls
+Ran 56 tests across 5 files. [9.48s]

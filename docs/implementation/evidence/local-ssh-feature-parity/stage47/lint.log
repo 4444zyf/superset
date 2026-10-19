@@ -1,0 +1,137 @@
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:953:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    951 │ 									hasUnsavedChanges={() =>
+    952 │ 										documents
+  > 953 │ 											.getDocuments(ui.connection!, deleteWorkspace.id)
+        │ 											              ^^^^^^^^^^^^^^
+    954 │ 											.some((d) => d.dirty || d.pendingSave) ||
+    955 │ 										chatDrafts.hasDrafts({
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:956:15 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    954 │ 											.some((d) => d.dirty || d.pendingSave) ||
+    955 │ 										chatDrafts.hasDrafts({
+  > 956 │ 											...ui.connection!,
+        │ 											   ^^^^^^^^^^^^^^
+    957 │ 											workspaceId: deleteWorkspace.id,
+    958 │ 										})
+  
+
+apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx:961:26 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    959 │ 									}
+    960 │ 									onDeleted={(warnings) => {
+  > 961 │ 										const target = ui.connection!;
+        │ 										               ^^^^^^^^^^^^^^
+    962 │ 										setDeleteWorkspace(null);
+    963 │ 
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts:137:32 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    135 │ 			if (snapshot.status === "ready" && snapshot.descriptor) {
+    136 │ 				const target = viewRef.current?.targets.find(
+  > 137 │ 					(t) => t.connectionId === snapshot.descriptor!.connectionId,
+        │ 					                          ^^^^^^^^^^^^^^^^^^^^
+    138 │ 				);
+    139 │ 				if (target?.autoConnect === false)
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     135  135 │   			if (snapshot.status === "ready" && snapshot.descriptor) {
+     136  136 │   				const target = viewRef.current?.targets.find(
+     137      │ - → → → → → (t)·=>·t.connectionId·===·snapshot.descriptor!.connectionId,
+          137 │ + → → → → → (t)·=>·t.connectionId·===·snapshot.descriptor?.connectionId,
+     138  138 │   				);
+     139  139 │   				if (target?.autoConnect === false)
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts:213:29 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    211 │ 				if (saved?.restoreOnLaunch && saved.activeConnectionId) {
+    212 │ 					callbacksRef.current.onSkeleton(saved.activeConnectionId);
+  > 213 │ 					const snapshot = await api.beginWorkspaceRestore!({
+        │ 					                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    214 │ 						reason: "launch",
+    215 │ 						navigationRevision: navigation.current,
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     211  211 │   				if (saved?.restoreOnLaunch && saved.activeConnectionId) {
+     212  212 │   					callbacksRef.current.onSkeleton(saved.activeConnectionId);
+     213      │ - → → → → → const·snapshot·=·await·api.beginWorkspaceRestore!({
+          213 │ + → → → → → const·snapshot·=·await·api.beginWorkspaceRestore?.({
+     214  214 │   						reason: "launch",
+     215  215 │   						navigationRevision: navigation.current,
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts:266:28 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    264 │ 				for (let attempt = 0; attempt < 2; attempt++) {
+    265 │ 					if (!mounted.current || captured !== navigation.current) return null;
+  > 266 │ 					const current = await api.getWorkspaceView!();
+        │ 					                      ^^^^^^^^^^^^^^^^^^^^^
+    267 │ 					if (!mounted.current || captured !== navigation.current) return null;
+    268 │ 					const input = inputFor(current.snapshot);
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     264  264 │   				for (let attempt = 0; attempt < 2; attempt++) {
+     265  265 │   					if (!mounted.current || captured !== navigation.current) return null;
+     266      │ - → → → → → const·current·=·await·api.getWorkspaceView!();
+          266 │ + → → → → → const·current·=·await·api.getWorkspaceView?.();
+     267  267 │   					if (!mounted.current || captured !== navigation.current) return null;
+     268  268 │   					const input = inputFor(current.snapshot);
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts:271:27 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    269 │ 					change(input);
+    270 │ 					try {
+  > 271 │ 						const saved = await api.saveWorkspaceView!({
+        │ 						                    ^^^^^^^^^^^^^^^^^^^^^^
+    272 │ 							expectedRevision: current.revision,
+    273 │ 							navigationRevision: captured,
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+     269  269 │   					change(input);
+     270  270 │   					try {
+     271      │ - → → → → → → const·saved·=·await·api.saveWorkspaceView!({
+          271 │ + → → → → → → const·saved·=·await·api.saveWorkspaceView?.({
+     272  272 │   							expectedRevision: current.revision,
+     273  273 │   							navigationRevision: captured,
+  
+
+apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts:469:16 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    467 │ 				}
+    468 │ 				const currentTarget =
+  > 469 │ 					target ?? input.targets.find((t) => t.connectionId === id)!;
+        │ 					          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    470 │ 				const duplicate = currentTarget.workspaces.find(
+    471 │ 					(w) => w.workspaceId === workspace.id,
+  
+
+Skipped 4 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 6 files in 89ms. Fixed 4 files.
+Found 8 warnings.
