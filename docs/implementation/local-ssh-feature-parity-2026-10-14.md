@@ -852,3 +852,9 @@ TDD包括原目录栏、空目录/项目范围/隐藏、独立严格能力、四
 进一步将普通New terminal也纳入同一等待流程，先增加实际失败测试再修复。第155轮产品/脚本9a69fd434，四模式、重开、脚本批次关闭中和普通终端创建中正常关闭全部退出0。拥有backend31638暂挂期间两次窗口均保持busy且存活；恢复后最终13个pane/8个原标签、13个执行都存活，之前10个PID和执行ID不变，A/B各五行且普通创建/重开没有重放脚本；浏览器错误为空。脚本及普通终端关闭等待两张截图已实际查看，其余六张本轮捕获；四模式截图已在152轮查看。[155最终完整证据](evidence/local-ssh-feature-parity/source-linux-terminal-script-execution/155)。强制杀死客户端不承诺提交尚未发送的命令。
 
 本阶段仍不等于全部终端脚本对齐：applyOnNewTab/applyOnWorkspaceCreated/useAsWorkspaceRun、关联Agent编辑选项、原栏上下文菜单/拖动显隐/快捷键/CLI仍待接入。另确认当前Workstation的视图管理明确排除了local连接，本地仍用旧WorkspaceEditor；共享backend和终端surface测试不证明原WorkspaceWindow这些新功能已在本地界面可用，后续必须补齐本地入口和namespace恢复隔离。真实macOS/供应商Agent、独立本地连接原生窗口和1.37.7 DMG均未由本轮验证。
+
+### 阶段四十二补充：独立本地设备入口的实际窗口滚动验收
+
+第156轮产品9a69fd434/脚本c1cd245ba，独立新profile，不创建SSH夹具；通过实际Local Device → Workspaces → New session → Terminal → New terminal进入当前本地WorkspaceEditor。由只读refreshFeatures取得实际连接描述，不重连或修改连接状态；真实本地session路径位于拥有的新profile namespace之内。复用相同raw-mode TUI和真实鼠标滚轮/系统剪贴板验收，退出0。普通normal buffer第一可见行从SHELL HISTORY 182滚到179，输入为空；alternate buffer重绘后可见FIRST/SECOND SCREEN，历史scrollTop3668/scrollHeight4096/clientHeight332。向上、反向/小幅/大幅滚动不增输入；实际鼠标选择/系统复制FIRST SCREEN 中文精确一致，真实系统PNG paste含1个File、目标为查看层，attachments前后均为空且输入仍只有a/n。Esc返回不向TUI发送Escape，原生SGR上下64/65报告保持且无方向键，q结束正常，浏览器错误为空。普通滚动前/后、TUI历史、历史复制粘贴、原生鼠标五张截图均已实际查看；其余截图捕获，未混称全部查看。测试结束通过已有LocalNamespaceBackend.stop停止拥有的新profile backend，未留下config156进程。[156本地完整证据](evidence/local-ssh-feature-parity/source-linux-local-terminal-wheel/156)。
+
+这补齐了共享滚动修复在独立本地窗口的实际验证，不改变阶段四十三指出的本地完整WorkspaceWindow入口缺口；真实macOS触控板/供应商Agent和1.37.7安装包仍未验收。普通终端滚动、无鼠标TUI客户端查看、支持鼠标TUI的原生滚动分别保留，客户端查看只记录有界已显示文本。
