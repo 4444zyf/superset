@@ -355,3 +355,56 @@ test("a transient settings draft shares the original window guard and failed Sav
 	expect(saves).toBe(2);
 	expect(f.writes).toEqual([]);
 });
+
+test("the original close guard waits for requested work before approving a clean window close", async () => {
+	const f = fixture();
+	await settle();
+	let release!: () => void;
+	const work = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	let resolved = false;
+	render(
+		<WorkstationCloseGuard
+			api={f.api}
+			documents={f.manager}
+			beforeClose={() => work}
+		/>,
+	);
+	let close!: Promise<boolean>;
+	await act(async () => {
+		close = f.request();
+		void close.then(() => {
+			resolved = true;
+		});
+		await settle();
+	});
+	expect(resolved).toBe(false);
+	expect(screen.queryByRole("alertdialog")).toBeNull();
+	await act(async () => {
+		release();
+		await close;
+	});
+	expect(await close).toBe(true);
+});
+
+test("a pending requested action cannot approve close after its window guard unmounts", async () => {
+	const f = fixture();
+	await settle();
+	let release!: () => void;
+	const work = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	const view = render(
+		<WorkstationCloseGuard
+			api={f.api}
+			documents={f.manager}
+			beforeClose={() => work}
+		/>,
+	);
+	const closing = f.request();
+	view.unmount();
+	release();
+	expect(await closing).toBe(false);
+	expect(f.writes).toEqual([]);
+});

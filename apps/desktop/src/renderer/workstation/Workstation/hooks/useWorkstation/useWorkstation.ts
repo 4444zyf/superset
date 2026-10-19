@@ -56,6 +56,10 @@ export function useWorkstation(api: DirectWorkstationApi) {
 	);
 	const [probes, setProbes] = useState<Record<string, MachineProbe>>({});
 	const operationBusy = useRef(false);
+	const closeOperation = useRef<Promise<unknown> | null>(null);
+	const flushOperations = useCallback(async () => {
+		await closeOperation.current;
+	}, []);
 	const [profiles, setProfiles] = useState<DirectProfile[]>([]);
 	const [connection, setConnection] = useState<DirectDescriptor | null>(null);
 	const [projects, setProjects] = useState<RemoteProject[]>([]);
@@ -109,20 +113,31 @@ export function useWorkstation(api: DirectWorkstationApi) {
 	const password = useRef<HTMLInputElement>(null);
 	const operation = async <T>(
 		execute: () => Promise<T>,
+		options?: { waitOnClose?: boolean },
 	): Promise<T | undefined> => {
 		if (operationBusy.current) return;
 		operationBusy.current = true;
 		setBusy(true);
 		setError(null);
 		setNotice(null);
-		try {
-			return await execute();
-		} catch (error) {
-			setError(error instanceof Error ? error.message : String(error));
-		} finally {
-			setBusy(false);
-			operationBusy.current = false;
+		const pending = (async () => {
+			try {
+				return await execute();
+			} catch (error) {
+				setError(error instanceof Error ? error.message : String(error));
+			} finally {
+				setBusy(false);
+				operationBusy.current = false;
+			}
+		})();
+		if (options?.waitOnClose) {
+			closeOperation.current = pending;
+			const clear = () => {
+				if (closeOperation.current === pending) closeOperation.current = null;
+			};
+			void pending.then(clear, clear);
 		}
+		return pending;
 	};
 	const rpc = useCallback(
 		<T>(
@@ -519,6 +534,7 @@ export function useWorkstation(api: DirectWorkstationApi) {
 		procedureLabel,
 		statusLabel,
 		operation,
+		flushOperations,
 		rpc,
 		refresh,
 		selectWorkspace,

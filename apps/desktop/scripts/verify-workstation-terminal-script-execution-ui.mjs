@@ -3,7 +3,11 @@ import {writeFileSync} from "node:fs";
 import {join} from "node:path";
 import {setTimeout as delay} from "node:timers/promises";
 import {agentUiDriver} from "./verify-workstation-agent-ui-driver.mjs";
-export async function verifyWorkstationTerminalScriptExecutionUi({getPage,click,screenshot,output,closeReopen,requestClose,controls}){
+export async function verifyWorkstationTerminalScriptExecutionUi({getPage,click,screenshot,output,closeReopen,requestClose,isWindowOpen,controls}){
+ const dwellArg=process.argv.find(arg=>arg.startsWith('--terminal-close-dwell-ms='));
+ const dwellMs=dwellArg?Number(dwellArg.split('=')[1]):200;
+ assert.ok(Number.isInteger(dwellMs)&&dwellMs>=200&&dwellMs<=2000,'close dwell must be between 200 and 2000ms');
+ const windowAlive=async()=>{if(isWindowOpen)return isWindowOpen();try{return await evaluate('document.readyState!==undefined');}catch{return false;}};
  const list='[data-workstation-terminal-scripts]',editor='[data-terminal-preset-editor]';
  const driver=agentUiDriver({getPage,click,screenshot,output,rootSelector:editor}),listing=agentUiDriver({getPage,click,screenshot,output,rootSelector:list});
  const {evaluate,until,replace,scrollTo,scrollText}=driver;
@@ -65,9 +69,9 @@ export async function verifyWorkstationTerminalScriptExecutionUi({getPage,click,
   const paused=controls.pauseOwnedBackend();let alive=false,busy=false;
   try{
    await click(button);busy=await evaluate(`document.querySelector(${JSON.stringify(button)}).disabled`);assert.equal(busy,true,'script launch began before close');
-   await requestClose('window');await delay(200);
-   try{alive=await evaluate('document.readyState!==undefined');}catch{alive=false;}
-   writeFileSync(join(output,'terminal-script-close-held.json'),JSON.stringify({pid:paused.pid,busy,alive},null,2)+'\n');
+   await requestClose('window');await delay(dwellMs);
+   alive=await windowAlive();
+   writeFileSync(join(output,'terminal-script-close-held.json'),JSON.stringify({pid:paused.pid,busy,alive,dwellMs},null,2)+'\n');
   }finally{paused.resume();}
   assert.equal(alive,true,'normal window close waits for the requested script launch and saved layout');
   await closeReopen(true);await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(button)}+':not(:disabled)'))`),'in-flight launch restored');
@@ -80,8 +84,8 @@ export async function verifyWorkstationTerminalScriptExecutionUi({getPage,click,
   const beforeOrdinary=await view(),paused=controls.pauseOwnedBackend();let alive=false,busy=false;
   try{
    await click('text:New terminal');busy=await evaluate(`(()=>{const e=[...document.querySelectorAll('.ws-window-toolbar button')].find(e=>e.textContent.trim()==='New terminal');return e?.disabled;})()`);assert.equal(busy,true);
-   await requestClose('window');await delay(200);try{alive=await evaluate('document.readyState!==undefined');}catch{alive=false;}
-   writeFileSync(join(output,'terminal-ordinary-close-held.json'),JSON.stringify({pid:paused.pid,busy,alive},null,2)+'\n');
+   await requestClose('window');await delay(dwellMs);alive=await windowAlive();
+   writeFileSync(join(output,'terminal-ordinary-close-held.json'),JSON.stringify({pid:paused.pid,busy,alive,dwellMs},null,2)+'\n');
   }finally{paused.resume();}
   assert.equal(alive,true,'normal window close waits for ordinary terminal creation');
   await closeReopen(true);await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(button)}+':not(:disabled)'))`),'ordinary terminal creation restored');

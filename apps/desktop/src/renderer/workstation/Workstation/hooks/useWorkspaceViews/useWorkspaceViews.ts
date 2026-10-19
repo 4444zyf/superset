@@ -1135,6 +1135,7 @@ export function useWorkspaceViews(
 		resourceRevision,
 		busy,
 		read,
+		flush,
 		navigate,
 		openWorkspace,
 		addPane,

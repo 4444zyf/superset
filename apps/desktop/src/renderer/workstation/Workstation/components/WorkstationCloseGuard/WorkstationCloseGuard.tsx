@@ -13,16 +13,20 @@ export function WorkstationCloseGuard({
 	documents,
 	chatDrafts,
 	editors = EMPTY_EDITORS,
+	beforeClose,
 }: {
 	api: DirectWorkstationApi;
 	documents: WorkstationFileDocuments;
 	chatDrafts?: Pick<WorkstationChatDraftStore, "flush">;
+	beforeClose?(): Promise<void>;
 	editors?: Pick<
 		WorkstationEditorGuards,
 		"getUnsaved" | "getVersion" | "subscribe"
 	>;
 }) {
 	const { t } = useLingui();
+	const beforeCloseRef = useRef(beforeClose);
+	beforeCloseRef.current = beforeClose;
 	useSyncExternalStore(
 		documents.subscribe,
 		documents.getVersion,
@@ -52,6 +56,10 @@ export function WorkstationCloseGuard({
 		const stop = api.onWindowCloseRequest?.(async () => {
 			let draftError = "";
 			try {
+				if (beforeCloseRef.current) {
+					await beforeCloseRef.current();
+					if (!current) return false;
+				}
 				await chatDrafts?.flush();
 			} catch (error) {
 				draftError = errorMessage(error);
@@ -94,6 +102,10 @@ export function WorkstationCloseGuard({
 		setSaving(true);
 		setSaveError("");
 		try {
+			if (beforeCloseRef.current) {
+				await beforeCloseRef.current();
+				if (pending.current !== request) return;
+			}
 			await chatDrafts?.flush();
 			if (pending.current !== request) return;
 			for (const document of documents.getUnsavedDocuments()) {

@@ -243,86 +243,90 @@ export function Workstation({
 		checkout: "worktree" | "local",
 		runSetup: boolean,
 	) =>
-		void ui.operation(async () => {
-			const target = ui.active.current;
-			if (
-				!target ||
-				target.connectionId !== selectedRef.current ||
-				ui.reconnecting ||
-				!target.capabilities?.durableOperations ||
-				!target.capabilities?.sessions
-			)
-				return;
-			if (chosenProject && !ui.projects.some((p) => p.id === chosenProject))
-				throw new Error(t({ message: "Connect to view workspaces" }));
-			const input = {
-				id: crypto.randomUUID(),
-				operationId: crypto.randomUUID(),
-				name,
-			};
-			const result = await ui.rpc<{
-				workspace: RemoteWorkspace;
-				terminals?: { terminalId: string; label?: string }[];
-				setupWarnings?: string[];
-			}>(
-				chosenProject ? "workspaces.create" : "workspaces.createSession",
-				"mutation",
-				chosenProject
-					? {
-							...input,
-							projectId: chosenProject,
-							checkout,
-							runSetup: runSetup && checkout === "worktree",
-						}
-					: input,
-				target,
-			);
-			if (
-				ui.active.current !== target ||
-				selectedRef.current !== target.connectionId
-			)
-				return;
-			setCreate(null);
-			await ui.refresh(target);
-			if (
-				ui.active.current !== target ||
-				selectedRef.current !== target.connectionId
-			)
-				return;
-			const opened = await openWorkspace(
-				result.workspace.id,
-				result.workspace,
-				result.terminals?.map((terminal) => ({
-					...terminal,
-					label:
-						terminal.label === "Workspace Setup"
-							? t({ message: "Setup" })
-							: terminal.label,
-				})),
-			);
-			if (
-				opened &&
-				managesViews &&
-				ui.active.current === target &&
-				selectedRef.current === target.connectionId
-			) {
-				await views.runWorkspaceCreationPresets(result.workspace.id);
-			}
-			if (
-				ui.active.current === target &&
-				Array.isArray(result.setupWarnings) &&
-				result.setupWarnings.length
-			)
-				ui.setNotice(
-					t({ message: "Setup" }) +
-						" " +
-						result.setupWarnings
-							.filter((w) => typeof w === "string")
-							.slice(0, 8)
-							.map((w) => w.slice(0, 8192))
-							.join("\n"),
+		void ui.operation(
+			async () => {
+				const target = ui.active.current;
+				if (
+					!target ||
+					target.connectionId !== selectedRef.current ||
+					ui.reconnecting ||
+					!target.capabilities?.durableOperations ||
+					!target.capabilities?.sessions
+				)
+					return;
+				if (chosenProject && !ui.projects.some((p) => p.id === chosenProject))
+					throw new Error(t({ message: "Connect to view workspaces" }));
+				const input = {
+					id: crypto.randomUUID(),
+					operationId: crypto.randomUUID(),
+					name,
+				};
+				const result = await ui.rpc<{
+					workspace: RemoteWorkspace;
+					terminals?: { terminalId: string; label?: string }[];
+					setupWarnings?: string[];
+				}>(
+					chosenProject ? "workspaces.create" : "workspaces.createSession",
+					"mutation",
+					chosenProject
+						? {
+								...input,
+								projectId: chosenProject,
+								checkout,
+								runSetup: runSetup && checkout === "worktree",
+							}
+						: input,
+					target,
 				);
-		});
+				if (
+					ui.active.current !== target ||
+					selectedRef.current !== target.connectionId
+				)
+					return;
+				setCreate(null);
+				await ui.refresh(target);
+				if (
+					ui.active.current !== target ||
+					selectedRef.current !== target.connectionId
+				)
+					return;
+				const opened = await openWorkspace(
+					result.workspace.id,
+					result.workspace,
+					result.terminals?.map((terminal) => ({
+						...terminal,
+						label:
+							terminal.label === "Workspace Setup"
+								? t({ message: "Setup" })
+								: terminal.label,
+					})),
+				);
+				if (
+					opened &&
+					managesViews &&
+					ui.active.current === target &&
+					selectedRef.current === target.connectionId
+				) {
+					await views.runWorkspaceCreationPresets(result.workspace.id);
+				}
+				if (
+					ui.active.current === target &&
+					Array.isArray(result.setupWarnings) &&
+					result.setupWarnings.length
+				)
+					ui.setNotice(
+						t({ message: "Setup" }) +
+							" " +
+							result.setupWarnings
+								.filter((w) => typeof w === "string")
+								.slice(0, 8)
+								.map((w) => w.slice(0, 8192))
+								.join("\n"),
+					);
+			},
+			{ waitOnClose: true },
+		);
+
 	const projectMutation = (input: unknown) =>
 		ui.operation(async () => {
 			const target = ui.active.current;
@@ -910,6 +914,10 @@ export function Workstation({
 								documents={documents}
 								chatDrafts={chatDrafts}
 								editors={editorGuards}
+								beforeClose={async () => {
+									await ui.flushOperations();
+									await views.flush();
+								}}
 							/>
 							{ui.connection && (
 								<WorkstationDocumentEvents
