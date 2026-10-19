@@ -918,3 +918,25 @@ beforeClose通过ref读取当前回调，避免root重新渲染导致关闭订�
 第177轮同产品/脚本、拥有SSH，原未保存文件窗口关闭回归退出0：后台草稿保护、Cancel保留、window/quit同时请求合并、Save All保留CRLF、磁盘冲突继续保留窗口和草稿、明确Don't Save不写盘、重开读原盘均通过，原PID55983/55989/55995保持。原关闭提示与冲突提示两张截图已实际查看，其余截图捕获。[177原文件关闭回归](evidence/local-ssh-feature-parity/source-linux-creation-close/177)。全部拥有测试backend/namespace及SSH夹具均经原清理路径停止。
 
 正常关闭会等待已经明确请求的创建及后续动作；强制结束进程/机器掉电不自动补跑尚未提交脚本。这里不宣称真实macOS触控板、供应商Agent、10秒连接目标或1.37.7 DMG已验收；Run映射、完整原栏交互/快捷键/CLI及其余功能组继续实施。
+
+## 阶段四十八：原终端脚本映射到工作区 Run
+
+原脚本编辑器已保存useAsWorkspaceRun，但工作站Run仅读取项目配置。本阶段将原selectWorkspaceRunDefinition、项目匹配、argv和关联Agent命令构造原样提取到@superset/shared，桌面旧路径保留re-export，原账号版本与工作站复用同一实现。共享包显式声明既有shell-quote及类型的同版本依赖；锁文件同时同步三个已为1.37.7的工作区包版本，不升级第三方依赖。后端从所选namespace的现有私有脚本/Agent目录只读解析，不调用会播种的旧Agent list；明确空目录保持空。原规则为可用项目专属脚本优先，再项目配置，最后全局脚本；按tabOrder取首个有命令的匹配项，隐藏仍可作Run，空命令跳过。Standalone只匹配全局脚本，目录沿用原trim和工作区默认语义，关联Agent仍用原参数/环境引用构造。
+
+新增workspaceRun.getStateV2/startV2及workstationWorkspaceRunV2能力，旧getStateV1/startV1/stopV1合同及配置行为保留。客户端只有明确新能力才用V2，旧后端仍走V1；不要求抬高旧host最低版本，不向无能力后端试发新过程。预览与明确启动前后端重算同一命令定义版本，脚本/关联Agent改变后拒绝旧确认。继续使用原WorkspaceRunManager、持久Run记录、完成标记、信号/停止和资源附着，启动仍走原durable journal；丢失回复保留待核对，不重发命令。没有新增数据库迁移。控件沿用原WorkspaceRunControl，原Edit Run Script菜单以拥有的连接/namespace/工作区请求打开已有脚本编辑器，删除项只打开列表，不自动补建；空Standalone的Set Run也打开原列表。
+
+后端先2通过4失败，固定缺少V2读取/启动；客户端先8通过2失败，固定Standalone没有Run/设置入口。补优先级、旧V1行为、空目录不初始化、关联Agent引用和变更拒绝、无关/空项目脚本、被覆盖的坏配置、原编辑器直接打开/删除项不重建，以及durable丢失回复测试。首次综合99通过1失败，查到新能力未从主进程转发；补能力转发、启动journal映射和durable要求后通过。原输出使用语义output并移除冗余role，保留协议/API改变时清理旧读取的effect依赖说明。最终客户端107项337断言/9文件、后端30项86断言/4文件、desktop及host类型、17语言严格编译、完整桌面/CLI/5个PTY marker构建及插件检查通过。lint无错误，有既有/测试提示。缺少新共享依赖链接的一次构建前测试错误、初始类型/格式失败及其修复日志均保留。[阶段四十八红绿与检查](evidence/local-ssh-feature-parity/stage48)。
+
+第178轮旧产品9fedfac61/脚本81e4f7efd，在真实原脚本编辑器新增命令、勾选Run并保存；界面仍Set Run，读取定义未选脚本，原断言退出1。配置后截图已实际查看。[178原生缺口基线](evidence/local-ssh-feature-parity/source-linux-preset-run-failures/178)。第179轮产品763ee01f0/脚本694fb519e已显示Run和Edit Run Script，但验收把menuitem当作text按钮查找，退出1；第180轮改用menu driver后打开原编辑器并实际启动Run，但验收未解码filesystem的bytes/base64内容，标记断言等待失败，退出1。两张失败截图均已查看，只修菜单选择器和字节解码并新增原始kind/解码内容记录，没有改变产品、断言或超时，也不将第180轮当作标记确实未生成的证据。[179–180观测器错误](evidence/local-ssh-feature-parity/source-linux-preset-run-failures)。
+
+第181轮同产品/脚本0e70ec553，SSH预设Run完整流程退出0：原Edit菜单打开同一脚本；首次Run、同执行重开、Stop、明确重启使标记从一行变两行、Standalone全局Run单行均通过。原PID60909/60915/60921保持，Run PID61189重开不变，错误为空，编辑/重开两张截图已查看。第182轮独立本地同流程退出0，A两个原PID61720/61732、未选B PID61820存活，Run PID61973重开保持，错误为空；重开/Standalone两张截图已查看。这两轮当时仍使用旧底部分屏，不能代表最后的独立标签布局已验收。[181–182初次执行证据](evidence/local-ssh-feature-parity/source-linux-preset-run)。
+
+第183轮同产品/脚本，原项目配置Run回归得到真实REMIX_RUN_ACTUAL_OUTPUT且cwd正确，但Run分屏只有940×155.25，不满足原高度160断言，退出1；失败截图与几何记录均保留且已查看。核对上游useV2WorkspaceRun，首次Run本就addTab，后续替换原Run pane。本阶段将onAttach接回既有addPane(newTab:true)，替换previousTerminalId的原路径保留，未修改最小尺寸断言。新增窗口行为测试先1通过1失败，修复后窗口/原view hook共8项48断言通过，再完整客户端107项回归与构建。[183布局实际失败](evidence/local-ssh-feature-parity/source-linux-preset-run-failures/183)。
+
+第184轮最终产品e1fb39db3/脚本0e70ec553，原项目Run/瞬时Run真实SSH回归退出0。原配置编辑、从Files启动、前台输出、正常Stop保留父shell、同pane复用、窗口/后端重启同执行、Force Stop、原布局/焦点恢复均通过；Run输出区940×504，未放宽160要求。瞬时成功0/失败17、输出附着、原pane复用、重开同PID且标记仅once/failed两行、实际Ctrl+C结束子命令而父shell存活均通过，原配置/布局恢复。原Run输出与瞬时完成两张截图已实际查看。[184原配置与瞬时Run回归](evidence/local-ssh-feature-parity/source-linux-preset-run/184)。
+
+第185轮同最终产品/脚本，SSH预设Run全流程在独立标签重跑退出0：原PID65189/65195/65201保持，Run PID65528及执行ID重开保持；明确停止重启才新增一行，Standalone仅一行，错误为空；重开/Standalone两张截图已查看。[185最终SSH预设Run](evidence/local-ssh-feature-parity/source-linux-preset-run/185)。第186轮独立本地在进入Run之前连接B失败，后端明确仍停止，旧选择查询也返回selection changed；脚本没有确认选择已被主进程接受及Start完成，原样退出1，失败截图已查看。这不算Run执行失败，也不据此声称快速选择/Start竞态已修复。后续仅加只读选择确认、原10秒有界条件内的UI Completed确认及记录，仍只点击一次Start/Connect，不重试或绕过停止保护。[186未确认Start的失败](evidence/local-ssh-feature-parity/source-linux-preset-run-failures/186)。
+
+第187轮同最终产品/脚本6bbfe08e6，确认所选B及明确Start完成后，本地A/B隔离、切回A、同backend实例重开和完整预设Run/Stop/明确重启/Standalone流程退出0。A原PID66596/66608、未选B PID66694继续存活，Run PID66824及执行ID重开不变，标记满足仅明确操作增加，错误为空；重开/Standalone两张截图已实际查看。全部拥有的测试backend/namespace及SSH夹具经原清理路径停止。[187最终本地预设Run](evidence/local-ssh-feature-parity/source-linux-preset-run/187)。
+
+此阶段完成Run映射与原独立标签恢复，不将CLI、完整预设栏菜单/快捷键、跨控件快速namespace选择与Start保护或其余功能组算作完成；真实macOS/供应商Agent、10秒连接及1.37.7安装包仍需分别验收。

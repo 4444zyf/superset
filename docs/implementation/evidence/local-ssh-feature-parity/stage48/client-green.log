@@ -1,0 +1,18 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:
+(pass) a capable backend uses V2 saved script Run for a project-less workspace [74.46ms]
+(pass) an empty standalone Run opens existing script configuration without a project [12.94ms]
+(pass) a double click creates one durable run and attaches its returned execution [77.62ms]
+(pass) remounting an existing run reads and attaches it without launching again [8.65ms]
+(pass) an older backend without run capability receives no run request [0.94ms]
+(pass) a lost start reply is read back without replay and requires journal reconciliation [27.66ms]
+(pass) a launch reply from the previous backend cannot attach or unlock a new backend's launch [123.95ms]
+(pass) Run reads a just-saved definition before submitting its single start [8.31ms]
+(pass) a run completed before its first reply still attaches its output without launching again [10.53ms]
+(pass) restoring a completed run never reopens a console the user closed [5.20ms]
+
+ 10 pass
+ 0 fail
+ 36 expect() calls
+Ran 10 tests across 1 file. [683.00ms]

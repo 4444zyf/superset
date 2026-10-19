@@ -1,0 +1,44 @@
+bun test v1.4.2 (744846f84)
+
+src/direct/script-input.test.ts:
+(pass) a scoped Ctrl+C cancels queued delivery and releases a run only after its execution is idle [4.08ms]
+(pass) a Ctrl+C for another execution or ordinary pasted text cannot cancel a queued setup [1.48ms]
+(pass) an explicitly interrupted setup is cancelled on idle without inventing an exit code [1.72ms]
+
+src/direct/workspace-runs.test.ts:
+(pass) an active run survives manager replacement and blocks a second operation [1.50ms]
+(pass) an uncertain launch remains blocked rather than retrying the command [4.71ms]
+(pass) a stop request with unknown foreground state cannot authorize another launch [2.10ms]
+(pass) a changed execution is never signalled by a stale stop request [0.41ms]
+(pass) a status read during launch cannot prevent its confirmed execution becoming active [1.05ms]
+(pass) the next confirmed run retains the preceding terminal identity for pane reuse [1.16ms]
+(pass) an instant command with a completion result ends even when foreground was never observed [3.70ms]
+(pass) an idle shell without its tracked completion cannot release a run for another launch [0.71ms]
+(pass) workspace deletion releases its bounded run slot without removing another workspace [0.38ms]
+(pass) a stop arriving after completion does not signal an idle or reused console [0.67ms]
+
+src/trpc/router/settings/terminal-presets.test.ts:
+(pass) catalog reads are read-only and initialization preserves the original preset fields [80.34ms]
+(pass) stale additions and edits cannot overwrite the latest catalog [26.65ms]
+(pass) remove-all remains intentionally empty and cannot be initialized again [37.41ms]
+(pass) stable preset IDs prevent duplicate inserts after an uncertain response [25.94ms]
+(pass) reorder validates the complete catalog atomically and stores contiguous positions [27.58ms]
+(pass) clear optional fields and commands without restoring old snapshots or flags [21.22ms]
+(pass) revisions reject ABA writes even when the original fields are restored [32.62ms]
+(pass) missing IDs, oversized catalogs, and unknown fields leave storage unchanged [54.23ms]
+
+src/trpc/router/workspace-run/workspace-run.test.ts:
+(pass) run preview reuses original worktree-over-project resolution and rejects a stale definition before launch [60.05ms]
+(pass) V2 Run reuses project script priority without changing the V1 configuration contract [23.75ms]
+(pass) V2 Run keeps project configuration ahead of global scripts and skips empty or unrelated project scripts [27.62ms]
+(pass) V2 Run supports project-less sessions with only global presets and does not initialize agent settings [47.26ms]
+(pass) V2 Run rejects a script changed after preview before creating any terminal [23.00ms]
+(pass) V2 Run reads an explicitly empty catalog without creating defaults or replacing its revision [24.87ms]
+(pass) V2 Run uses original linked agent command quoting and refuses a changed linked command [44.08ms]
+(pass) V2 Run keeps a targeted script usable when overridden project configuration is invalid [22.19ms]
+(pass) invalid oversized run configuration does not make run status unavailable [29.24ms]
+
+ 30 pass
+ 0 fail
+ 86 expect() calls
+Ran 30 tests across 4 files. [1051.00ms]

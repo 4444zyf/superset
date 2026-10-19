@@ -1,0 +1,189 @@
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:164:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    162 │ 			onConfigure={() => {}}
+    163 │ 			onAttach={async (run) => {
+  > 164 │ 				attached.push(run.executionId!);
+        │ 				              ^^^^^^^^^^^^^^^^
+    165 │ 			}}
+    166 │ 		/>,
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:432:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    430 │ 			onConfigure={() => {}}
+    431 │ 			onAttach={async (value) => {
+  > 432 │ 				attached.push(value.executionId!);
+        │ 				              ^^^^^^^^^^^^^^^^^^
+    433 │ 			}}
+    434 │ 		/>,
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:472:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    470 │ 			onConfigure={() => {}}
+    471 │ 			onAttach={async (value) => {
+  > 472 │ 				attached.push(value.executionId!);
+        │ 				              ^^^^^^^^^^^^^^^^^^
+    473 │ 			}}
+    474 │ 		/>,
+  
+
+packages/host-service/src/trpc/router/settings/terminal-presets.ts:138:39 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    136 │ 							message: "Reorder requires every terminal script exactly once.",
+    137 │ 						});
+  > 138 │ 					presets = change.ids.map((id) => byId.get(id)!);
+        │ 					                                 ^^^^^^^^^^^^^
+    139 │ 				} else {
+    140 │ 					if (!presets.some((row) => row.id === change.id))
+  
+
+packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:87:23 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    85 │ 			workspaceId,
+    86 │ 			operationId: crypto.randomUUID(),
+  > 87 │ 			definitionVersion: preview.definitionVersion!,
+       │ 			                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    88 │ 		}),
+    89 │ 	).rejects.toMatchObject({ code: "CONFLICT" });
+  
+
+packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:184:8 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    182 │ 		change: {
+    183 │ 			kind: "update",
+  > 184 │ 			id: catalog.presets[0]!.id,
+        │ 			    ^^^^^^^^^^^^^^^^^^^
+    185 │ 			patch: { commands: ["echo changed"] },
+    186 │ 		},
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    182 182 │   		change: {
+    183 183 │   			kind: "update",
+    184     │ - → → → id:·catalog.presets[0]!.id,
+        184 │ + → → → id:·catalog.presets[0]?.id,
+    185 185 │   			patch: { commands: ["echo changed"] },
+    186 186 │   		},
+  
+
+packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:192:23 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    190 │ 			workspaceId,
+    191 │ 			operationId: crypto.randomUUID(),
+  > 192 │ 			definitionVersion: preview.definitionVersion!,
+        │ 			                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    193 │ 		}),
+    194 │ 	).rejects.toMatchObject({ code: "CONFLICT" });
+  
+
+packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:234:23 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    232 │ 			workspaceId,
+    233 │ 			operationId: crypto.randomUUID(),
+  > 234 │ 			definitionVersion: preview.definitionVersion!,
+        │ 			                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    235 │ 		}),
+    236 │ 	).rejects.toMatchObject({ code: "CONFLICT" });
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.tsx:264:6 lint/a11y/useSemanticElements ━━━━━━━━━━
+
+  × The elements with this role can be changed to the following elements:
+    <output>
+  
+    262 │ 			{exitCode !== undefined && (
+    263 │ 				<output
+  > 264 │ 					role="status"
+        │ 					^^^^^^^^^^^^^
+    265 │ 					data-run-exit-code={exitCode}
+    266 │ 					className={
+  
+  i For examples and more information, see WAI-ARIA Roles
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.tsx:264:11 lint/a11y/noRedundantRoles  FIXABLE  ━━━━━━━━━━
+
+  × Using the role attribute 'status' on the 'output' element is redundant, because it is implied by its semantic.
+  
+    262 │ 			{exitCode !== undefined && (
+    263 │ 				<output
+  > 264 │ 					role="status"
+        │ 					     ^^^^^^^^
+    265 │ 					data-run-exit-code={exitCode}
+    266 │ 					className={
+  
+  i Unsafe fix: Remove the role attribute.
+  
+    262 262 │   			{exitCode !== undefined && (
+    263 263 │   				<output
+    264     │ - → → → → → role="status"
+    265 264 │   					data-run-exit-code={exitCode}
+    266 265 │   					className={
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.tsx:118:2 lint/correctness/useExhaustiveDependencies  FIXABLE  ━━━━━━━━━━
+
+  × This hook specifies more dependencies than necessary: api, version2.
+  
+    116 │ 	const refreshRef = useRef(refresh);
+    117 │ 	refreshRef.current = refresh;
+  > 118 │ 	useEffect(() => {
+        │ 	^^^^^^^^^
+    119 │ 		mountedOwner.current = owner;
+    120 │ 		reading.current = false;
+  
+  i Outer scope values aren't valid dependencies because mutating them doesn't re-render the component.
+  
+    135 │ 			if (mountedOwner.current === owner) mountedOwner.current = null;
+    136 │ 		};
+  > 137 │ 	}, [api, owner, capable, version2, pollMs]);
+        │ 	    ^^^
+    138 │ 	const data = loaded?.owner === owner ? loaded.value : null;
+    139 │ 	const running = !!data?.run && data.run.state !== "ended";
+  
+  i This dependency can be removed from the list.
+  
+    135 │ 			if (mountedOwner.current === owner) mountedOwner.current = null;
+    136 │ 		};
+  > 137 │ 	}, [api, owner, capable, version2, pollMs]);
+        │ 	                         ^^^^^^^^
+    138 │ 	const data = loaded?.owner === owner ? loaded.value : null;
+    139 │ 	const running = !!data?.run && data.run.state !== "ended";
+  
+  i React relies on hook dependencies to determine when to re-compute Effects.
+    Specifying more dependencies than required can lead to unnecessary re-rendering
+    and degraded performance.
+  
+  i Unsafe fix: Remove the extra dependencies from the list.
+  
+    137 │ → },·[api,·owner,·capable,·version2,·pollMs]);
+        │       -----              ----------           
+
+Skipped 3 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 24 files in 98ms. Fixed 8 files.
+Found 3 errors.
+Found 8 warnings.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while applying fixes.
+  
+

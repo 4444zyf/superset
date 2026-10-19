@@ -1,0 +1,66 @@
+bun test v1.4.2 (744846f84)
+
+src/trpc/router/workspace-run/workspace-run.test.ts:
+(pass) run preview reuses original worktree-over-project resolution and rejects a stale definition before launch [28.49ms]
+297 | 				const fullPath = path.join(".");
+298 | 				if (path.length === 1 && path[0] === "_def") return _def;
+299 | 				const procedure = await getProcedureAtPath(router, fullPath);
+300 | 				let ctx = void 0;
+301 | 				try {
+302 | 					if (!procedure) throw new TRPCError({
+                                 ^
+TRPCError: No procedure found on path "getStateV2"
+ cause: undefined,
+  code: "NOT_FOUND"
+
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/tracked-DiE3uR1B.mjs:302:28)
+      at async <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:110:30)
+(fail) V2 Run reuses project script priority without changing the V1 configuration contract [17.00ms]
+297 | 				const fullPath = path.join(".");
+298 | 				if (path.length === 1 && path[0] === "_def") return _def;
+299 | 				const procedure = await getProcedureAtPath(router, fullPath);
+300 | 				let ctx = void 0;
+301 | 				try {
+302 | 					if (!procedure) throw new TRPCError({
+                                 ^
+TRPCError: No procedure found on path "getStateV2"
+ cause: undefined,
+  code: "NOT_FOUND"
+
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/tracked-DiE3uR1B.mjs:302:28)
+      at async <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:119:25)
+(fail) V2 Run keeps project configuration ahead of global scripts and skips empty or unrelated project scripts [12.37ms]
+297 | 				const fullPath = path.join(".");
+298 | 				if (path.length === 1 && path[0] === "_def") return _def;
+299 | 				const procedure = await getProcedureAtPath(router, fullPath);
+300 | 				let ctx = void 0;
+301 | 				try {
+302 | 					if (!procedure) throw new TRPCError({
+                                 ^
+TRPCError: No procedure found on path "getStateV2"
+ cause: undefined,
+  code: "NOT_FOUND"
+
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/tracked-DiE3uR1B.mjs:302:28)
+      at async <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:126:30)
+(fail) V2 Run supports project-less sessions with only global presets and does not initialize agent settings [12.19ms]
+297 | 				const fullPath = path.join(".");
+298 | 				if (path.length === 1 && path[0] === "_def") return _def;
+299 | 				const procedure = await getProcedureAtPath(router, fullPath);
+300 | 				let ctx = void 0;
+301 | 				try {
+302 | 					if (!procedure) throw new TRPCError({
+                                 ^
+TRPCError: No procedure found on path "getStateV2"
+ cause: undefined,
+  code: "NOT_FOUND"
+
+      at <anonymous> (/workspace/superset/node_modules/.bun/@trpc+server@11.16.0+ff0372d108591aba/node_modules/@trpc/server/dist/tracked-DiE3uR1B.mjs:302:28)
+      at async <anonymous> (/workspace/superset/packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:136:33)
+(fail) V2 Run rejects a script changed after preview before creating any terminal [11.45ms]
+(pass) invalid oversized run configuration does not make run status unavailable [11.24ms]
+
+ 2 pass
+ 4 fail
+ 7 expect() calls
+Ran 6 tests across 1 file. [362.00ms]

@@ -1,0 +1,40 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.test.tsx:
+22 | 		checks:[],resourceRevision:0,restore:null,actions:{busy:false,addPane:async(...args:unknown[])=>{attachments.push(args);}},
+23 | 		ports:{busy:false,forward:null,onOpen(){},onClose(){}},onNewSession(){},onRefresh(){},onPending(){},onProjectSettings(){},onBrowse(){},onMachines(){},onError(){},
+24 | 	} as unknown as ComponentProps<typeof WorkspaceWindow>;
+25 | 	render(<DndProvider backend={HTML5Backend}><TooltipProvider><WorkspaceWindow {...props}/></TooltipProvider></DndProvider>);
+26 | 	await waitFor(()=>expect(attachments).toHaveLength(1));
+27 | 	expect(attachments[0]?.[3]).toMatchObject({connection,newTab:true,replaceResourceId:"previous-run"});
+                                  ^
+error: expect(received).toMatchObject(expected)
+
+  {
+    "connection": {
+      "backendId": "backend",
+      "capabilities": {
+        "durableOperations": true,
+        "workstationWorkspaceRunV1": true,
+      },
+      "connectionId": "remote",
+      "generation": 1,
+      "instanceId": "instance",
+      "namespaceId": "namespace",
+    },
+-   "newTab": true,
++   "placement": "root",
+    "replaceResourceId": "previous-run",
+  }
+
+- Expected  - 1
++ Received  + 1
+
+      at <anonymous> (/workspace/superset/apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.test.tsx:27:30)
+(fail) Run attaches in an original dedicated tab and reuses the prior Run resource on restart [62.32ms]
+(pass) loading Run state does not insert an action before New terminal [24.98ms]
+
+ 1 pass
+ 1 fail
+ 7 expect() calls
+Ran 2 tests across 1 file. [678.00ms]

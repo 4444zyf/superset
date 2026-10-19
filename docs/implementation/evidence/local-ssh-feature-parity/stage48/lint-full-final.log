@@ -1,0 +1,107 @@
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:164:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    162 │ 			onConfigure={() => {}}
+    163 │ 			onAttach={async (run) => {
+  > 164 │ 				attached.push(run.executionId!);
+        │ 				              ^^^^^^^^^^^^^^^^
+    165 │ 			}}
+    166 │ 		/>,
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:432:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    430 │ 			onConfigure={() => {}}
+    431 │ 			onAttach={async (value) => {
+  > 432 │ 				attached.push(value.executionId!);
+        │ 				              ^^^^^^^^^^^^^^^^^^
+    433 │ 			}}
+    434 │ 		/>,
+  
+
+apps/desktop/src/renderer/workstation/Workstation/components/RemoteWorkspaceRun/RemoteWorkspaceRun.test.tsx:472:19 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    470 │ 			onConfigure={() => {}}
+    471 │ 			onAttach={async (value) => {
+  > 472 │ 				attached.push(value.executionId!);
+        │ 				              ^^^^^^^^^^^^^^^^^^
+    473 │ 			}}
+    474 │ 		/>,
+  
+
+packages/host-service/src/trpc/router/settings/terminal-presets.ts:138:39 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    136 │ 							message: "Reorder requires every terminal script exactly once.",
+    137 │ 						});
+  > 138 │ 					presets = change.ids.map((id) => byId.get(id)!);
+        │ 					                                 ^^^^^^^^^^^^^
+    139 │ 				} else {
+    140 │ 					if (!presets.some((row) => row.id === change.id))
+  
+
+packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:87:23 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    85 │ 			workspaceId,
+    86 │ 			operationId: crypto.randomUUID(),
+  > 87 │ 			definitionVersion: preview.definitionVersion!,
+       │ 			                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    88 │ 		}),
+    89 │ 	).rejects.toMatchObject({ code: "CONFLICT" });
+  
+
+packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:184:8 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    182 │ 		change: {
+    183 │ 			kind: "update",
+  > 184 │ 			id: catalog.presets[0]!.id,
+        │ 			    ^^^^^^^^^^^^^^^^^^^
+    185 │ 			patch: { commands: ["echo changed"] },
+    186 │ 		},
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    182 182 │   		change: {
+    183 183 │   			kind: "update",
+    184     │ - → → → id:·catalog.presets[0]!.id,
+        184 │ + → → → id:·catalog.presets[0]?.id,
+    185 185 │   			patch: { commands: ["echo changed"] },
+    186 186 │   		},
+  
+
+packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:192:23 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    190 │ 			workspaceId,
+    191 │ 			operationId: crypto.randomUUID(),
+  > 192 │ 			definitionVersion: preview.definitionVersion!,
+        │ 			                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    193 │ 		}),
+    194 │ 	).rejects.toMatchObject({ code: "CONFLICT" });
+  
+
+packages/host-service/src/trpc/router/workspace-run/workspace-run.test.ts:234:23 lint/style/noNonNullAssertion ━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    232 │ 			workspaceId,
+    233 │ 			operationId: crypto.randomUUID(),
+  > 234 │ 			definitionVersion: preview.definitionVersion!,
+        │ 			                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    235 │ 		}),
+    236 │ 	).rejects.toMatchObject({ code: "CONFLICT" });
+  
+
+Checked 24 files in 58ms. No fixes applied.
+Found 8 warnings.
