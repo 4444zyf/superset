@@ -1,5 +1,11 @@
 # Releasing
 
+Superset Remix requires an explicit user request before generating or publishing
+release artifacts. Its upstream automatic release workflows are archived and
+the retained CI/preview entry points are manual only. Follow the
+[fork workflow policy](../../docs/workflow-policy.md) first; the upstream
+release toolchain below does not override that policy.
+
 The release toolchain is `scripts/release/*.ts` (TypeScript, run by Bun — no build
 step). One entry point: **`bun run release`**. Design/rationale lives in
 [`plans/20260709-unified-version-bumping.md`](../../plans/20260709-unified-version-bumping.md).

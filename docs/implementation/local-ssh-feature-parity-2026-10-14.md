@@ -984,3 +984,13 @@ CLI在SSH机器的安装/交付、自动选择终端namespace、其他读取/写
 第195轮CLI25885a097、后端仍为阶段五十da56e38c3、脚本8f41d8e06，实际Linux二进制退出0：43次调用，31项成功/12项明确拒绝。原五列表/目录为空不初始化/项目搜索tag筛选/两namespace往返隔离同时回归；明确fixture创建的两个80×24 PTY，普通中文输出、max-lines保持原从buffer底部裁切语义、DEC1049当前TUI中文屏幕及非JSON输出均正确。错误工作区、缺失终端、max-lines=0、B读取A终端均退出1，记录数量不增加。原A PID74029、B PID74222及执行ID保持；使用既有owned控制重启A backend，instance变化后新CLI读取原TUI输出，adopt后仍PID74029且无新PTY。停止A后B列表可用，旧账号/analytics目录仍为空；全部拥有后端/PTY和临时目录清理。[195完整证据](evidence/local-ssh-feature-parity/source-linux-namespace-terminal-read/195)。CLI SHA256为e646bae52aa4d74d4103834b54afea64cffdcf631cf8a00b9bf9a32807f35aec。
 
 这是同机私有Unix后端与实际CLI的无GUI验收，不涉及真实SSH机器安装CLI、真实供应商Agent或macOS安装包。其他原CLI读取/写命令、自动目标/交付、原预设完整交互及其余功能组仍按总清单继续。
+
+## 阶段五十二：工作流用量控制与明确打包授权
+
+2026-10-20按用户新约束暂停生成请求：以后只有明确要求时才生成本地或Actions安装包，不将功能开发、TDD、推送、上游同步、tag或自动目标续接当作授权；额度/Actions受限后不自动重试或重新启用。已写入根AGENTS、开发和发布说明，以及[工作流策略](../workflow-policy.md)。没有修改GitHub付费额度，也不将停用工作流解释为额度已恢复。
+
+实际API停用仓库当时登记的CI、Deploy Preview、Sandbox、Release SSH Desktop Preview共4个工作流，读回全部disabled_manually；查询queued与in_progress均0。仓库级停用保护所有分支中的旧定义；当前源码修改仍在1.37.7分支，未直接改main。最近可见运行主要为手动预览，不能据此认定GitHub限制是上游自动任务导致。
+
+先加入策略回归，旧配置1通过2失败，实际检测到push/PR/schedule/release/issues触发和重复基准默认true。14份上游云/移动端/Sandbox/issue/PR/自动发布流程原样移至非发现目录.github/upstream-workflows，逐字节与旧版本一致；当前仅保留手动CI、手动Remix预览和4个workflow_call定义。CI不响应push/PR，预览不响应分支push，publish及三类重复基准均默认false，发布job仅由手动publish选择。签名校验、原生构建、安装包验证及复用调用合同保留。
+
+最终3项15断言、相关lint/插件检查通过；6个有效定义和14个归档定义均YAML解析通过，所有有效本地workflow_call引用可解析，diff无空白错误。源码检查不等同远端执行，本轮没有启用或派发工作流、生成安装包或执行发布。[原始红绿与停用证据](evidence/workflow-policy-20261020)。原功能对齐目标继续有效，但不得因此自动生成发行物。

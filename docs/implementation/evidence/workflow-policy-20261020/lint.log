@@ -1,0 +1,91 @@
+scripts/workflow-policy.test.ts:38:18 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━━━━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    37 │ test("manual previews default to no publication or repeated benchmarks", () => {
+  > 38 │ 	const preview = workflows.find(
+       │ 	                ^^^^^^^^^^^^^^^
+  > 39 │ 		({ name }) => name === "release-desktop-preview.yml",
+  > 40 │ 	)!.workflow;
+       │ 	^^
+    41 │ 	const dispatch = preview.on.workflow_dispatch as {
+    42 │ 		inputs: Record<string, { default: boolean }>;
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    38 38 │   	const preview = workflows.find(
+    39 39 │   		({ name }) => name === "release-desktop-preview.yml",
+    40    │ - → )!.workflow;
+       40 │ + → )?.workflow;
+    41 41 │   	const dispatch = preview.on.workflow_dispatch as {
+    42 42 │   		inputs: Record<string, { default: boolean }>;
+  
+
+scripts/workflow-policy.test.ts:50:10 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━━━━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    48 │ 		"balanced_benchmark",
+    49 │ 	])
+  > 50 │ 		expect(dispatch.inputs[flag]!.default).toBe(false);
+       │ 		       ^^^^^^^^^^^^^^^^^^^^^^
+    51 │ 	expect(preview.jobs.release!.if).toBe("inputs.publish");
+    52 │ });
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    48 48 │   		"balanced_benchmark",
+    49 49 │   	])
+    50    │ - → → expect(dispatch.inputs[flag]!.default).toBe(false);
+       50 │ + → → expect(dispatch.inputs[flag]?.default).toBe(false);
+    51 51 │   	expect(preview.jobs.release!.if).toBe("inputs.publish");
+    52 52 │   });
+  
+
+scripts/workflow-policy.test.ts:51:9 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━━━━━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    49 │ 	])
+    50 │ 		expect(dispatch.inputs[flag]!.default).toBe(false);
+  > 51 │ 	expect(preview.jobs.release!.if).toBe("inputs.publish");
+       │ 	       ^^^^^^^^^^^^^^^^^^^^^
+    52 │ });
+    53 │ 
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    49 49 │   	])
+    50 50 │   		expect(dispatch.inputs[flag]!.default).toBe(false);
+    51    │ - → expect(preview.jobs.release!.if).toBe("inputs.publish");
+       51 │ + → expect(preview.jobs.release?.if).toBe("inputs.publish");
+    52 52 │   });
+    53 53 │   
+  
+
+scripts/workflow-policy.test.ts:63:6 lint/style/noNonNullAssertion  FIXABLE  ━━━━━━━━━━━━━━━━━━━━━━━
+
+  ! Forbidden non-null assertion.
+  
+    61 │ 			expect(
+    62 │ 				Object.hasOwn(
+  > 63 │ 					workflows.find((entry) => entry.name === name)!.workflow.on,
+       │ 					^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    64 │ 					"workflow_call",
+    65 │ 				),
+  
+  i Unsafe fix: Replace with optional chain operator ?. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator
+  
+    61 61 │   			expect(
+    62 62 │   				Object.hasOwn(
+    63    │ - → → → → → workflows.find((entry)·=>·entry.name·===·name)!.workflow.on,
+       63 │ + → → → → → workflows.find((entry)·=>·entry.name·===·name)?.workflow.on,
+    64 64 │   					"workflow_call",
+    65 65 │   				),
+  
+
+Skipped 4 suggested fixes.
+If you wish to apply the suggested (unsafe) fixes, use the command biome check --write --unsafe
+
+Checked 2 files in 16ms. Fixed 1 file.
+Found 4 warnings.

@@ -1,10 +1,7 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    types: [opened, synchronize]
+  workflow_dispatch:
 
 jobs:
   sherif:
@@ -86,6 +83,9 @@ jobs:
 
       - name: Test release scripts
         run: bun run test:release
+
+      - name: Check manual workflow policy
+        run: bun run check:workflows
 
       - name: Check unified versions (desktop == host-service == cli)
         run: bun run check:versions

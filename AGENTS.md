@@ -92,6 +92,23 @@ explicit user confirmation, and never apply migrations against a shared or produ
 
 ## Releases
 
+For this fork, generate installer/release artifacts locally or through GitHub
+Actions only when the user explicitly requests that build. Feature work, TDD,
+routine verification, pushes, tags, upstream syncs, and automatic goal continuation
+do not authorize packaging or publication. A previous build request is not
+standing authorization for future builds. Do not automatically retry or re-enable
+remote builds after a quota or Actions restriction. Use local tests and targeted
+compilation for normal development; do not generate DMG/ZIP/AppImage installers
+or sealed backend release archives as a routine check.
+
+Fork workflows are manual only. CI and the Remix preview entry point remain;
+reusable build workflows run only through an explicitly requested entry point.
+Upstream cloud, mobile, scheduled and automatic release workflows are preserved
+outside the Actions discovery directory in `.github/upstream-workflows/`.
+Do not restore automatic triggers or enable workflows without an explicit request.
+Run `bun run check:workflows` before pushing workflow changes. See
+`docs/workflow-policy.md` for the current remote disable state and manual process.
+
 Desktop, host-service, and cli share one version; cut releases on a dedicated branch. Runbook:
 `scripts/release/README.md`. A *canary* is a separate thing: `bash scripts/release-canary.sh
 [commit]` builds the rolling internal `desktop-canary` prerelease, not a versioned release.
@@ -195,8 +212,9 @@ in the commit message and the PR.
 
 ## Tests
 
-CI runs every suite on each push, and the whole run is meant to stay near two minutes. A test
-earns its place by catching a regression quickly.
+CI runs manually in this fork, and the whole suite is meant to stay near two minutes.
+Run relevant tests locally during development. A test earns its place by catching a
+regression quickly.
 
 - **No real waiting.** A test that needs more than bun's default 5 s timeout is too slow. Do not
   raise the timeout: pass the delay, clock or retry count in and test with a small value. Never

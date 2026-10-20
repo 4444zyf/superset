@@ -1,0 +1,56 @@
+bun test v1.4.2 (744846f84)
+
+scripts/workflow-policy.test.ts:
+19 | 	const automatic = workflows.flatMap(({ name, workflow }) =>
+20 | 		Object.keys(workflow.on)
+21 | 			.filter((event) => event !== "workflow_dispatch" && event !== "workflow_call")
+22 | 			.map((event) => `${name}: ${event}`),
+23 | 	);
+24 | 	expect(automatic).toEqual([]);
+                        ^
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   "ci.yml: push",
++   "ci.yml: pull_request",
++   "cleanup-preview.yml: pull_request",
++   "deploy-preview.yml: pull_request",
++   "deploy-production.yml: push",
++   "e2e-mobile.yml: pull_request",
++   "release-cli-lockstep.yml: release",
++   "release-cli.yml: push",
++   "release-desktop-canary.yml: schedule",
++   "release-desktop.yml: push",
++   "sandbox.yml: pull_request",
++   "sandbox.yml: push",
++   "stale-prs.yml: schedule",
++   "triage-issue.yml: issues",
++   "release-desktop-preview.yml: push",
++ ]
+
+- Expected  - 1
++ Received  + 17
+
+      at <anonymous> (/workspace/superset/scripts/workflow-policy.test.ts:24:20)
+(fail) fork workflows never start on upstream schedules, repository events, pushes, tags, or pull requests [1.02ms]
+33 | 	const preview = workflows.find(({ name }) => name === "release-desktop-preview.yml")!.workflow;
+34 | 	const dispatch = preview.on.workflow_dispatch as {
+35 | 		inputs: Record<string, { default: boolean }>;
+36 | 	};
+37 | 	for (const flag of ["publish", "repeat_benchmark", "full_benchmark", "balanced_benchmark"])
+38 | 		expect(dispatch.inputs[flag]!.default).toBe(false);
+                                              ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: true
+
+      at <anonymous> (/workspace/superset/scripts/workflow-policy.test.ts:38:42)
+(fail) manual previews default to no publication or repeated benchmarks [0.21ms]
+(pass) retained reusable build jobs remain callable without restoring upstream automation [0.20ms]
+
+ 1 pass
+ 2 fail
+ 19 expect() calls
+Ran 3 tests across 1 file. [68.00ms]

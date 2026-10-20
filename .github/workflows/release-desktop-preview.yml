@@ -1,8 +1,6 @@
 name: Release SSH Desktop Preview
 
 on:
-  push:
-    branches: ["release/ssh-preview-*"]
   workflow_dispatch:
     inputs:
       publish:
@@ -14,7 +12,7 @@ on:
         description: "Repeat previously measured archive comparisons"
         required: false
         type: boolean
-        default: true
+        default: false
       full_benchmark:
         description: "Repeat the slower V1 and compression comparisons"
         required: false
@@ -30,7 +28,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ssh-desktop-preview-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && !inputs.publish && github.run_id || 'release' }}
+  group: ssh-desktop-preview-${{ github.ref }}-${{ inputs.publish && 'release' || github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -187,7 +185,7 @@ jobs:
           retention-days: 14
 
   release:
-    if: github.event_name == 'push' || inputs.publish
+    if: inputs.publish
     name: Publish verified preview downloads
     needs: build
     runs-on: ubuntu-latest

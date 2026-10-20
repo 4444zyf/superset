@@ -20,6 +20,12 @@ Installed data lives under the OS application-data directory in `superset-remix`
 
 ## Build verified macOS previews
 
+Installer generation requires an explicit user request for that build; normal
+feature work, tests, pushes and upstream syncs do not authorize it. Workflows are
+currently disabled remotely. See [workflow policy](docs/workflow-policy.md)
+before enabling or dispatching a manual preview. Do not restore upstream
+automatic workflows or repeat benchmarks by default.
+
 Run `.github/workflows/release-desktop-preview.yml` on the intended source branch with `publish=false`. Each native backend worker signs its output with a temporary Ed25519 key. The desktop embeds the independently pinned verification keys and complete backend resources for both Mac architectures. Native jobs check SFTP upload, privileged installation, launchd, authenticated RPC and reconnect before packaging and again inside the mounted final DMG. Package checks cover SQLite, PTY, code signing, license and source identity; UI acceptance captures the actual packaged Workstation and About dialog.
 
 Without backend resources and pinned keys, a source-only desktop cannot automatically install the remote backend. Do not disable verification to bypass this error. Apple Developer ID signing and notarization are not configured; preview packages are ad-hoc signed. These are manually updated previews, not a production auto-update feed.
