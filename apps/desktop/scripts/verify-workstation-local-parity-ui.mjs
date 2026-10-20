@@ -64,7 +64,10 @@ export async function verifyWorkstationLocalParityUi(options){
  for(let i=0;i<aExecutions.length;i++)assert.equal((await controlA.inspectPresetTerminal(aWorkspace.panes[i].resourceId)).pid,aExecutions[i].pid);
  await screenshot('local-A-reopened-original-executions');
  writeFileSync(join(output,'local-parity-acceptance.json'),JSON.stringify({a,aDescriptor,aExecutions,b,bExecution,returned,reopened,restore,errors:getPage().errors},null,2)+'\n');
- if(process.argv.includes('--preset-run')) {
+ if(process.argv.includes('--linked-agent-settings')) {
+  const {verifyWorkstationLinkedAgentSettingsUi}=await import('./verify-workstation-linked-agent-settings-ui.mjs');
+  await verifyWorkstationLinkedAgentSettingsUi({...options,controls:controlA});
+ } else if(process.argv.includes('--preset-run')) {
   const {verifyWorkstationPresetRunUi}=await import('./verify-workstation-preset-run-ui.mjs');
   await verifyWorkstationPresetRunUi({...options,controls:controlA});
  } else if(process.argv.includes('--terminal-script-triggers')) {

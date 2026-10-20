@@ -21,7 +21,10 @@ export async function verifyWorkstationLinkedAgentSettingsUi({getPage,click,scre
  const firstBefore=await query('settings.agentConfigs.getWithRevisionV1',{id:agents[0].id});
  const before=await snapshot();
  const workspace=await query('workspace.get',{id:scope.workspaceId});
- const original=await controls.verifyWorktreeLocation(workspace.worktreePath);
+ const originalIds=await evaluate(`(async()=>{const {snapshot}=await window.directWorkstation.getWorkspaceView();return snapshot.targets.find(t=>t.connectionId===${JSON.stringify(scope.connectionId)}).workspaces.find(w=>w.workspaceId===${JSON.stringify(scope.workspaceId)}).panes.map(p=>p.resourceId);})()`);
+ assert.ok(originalIds.length>0);
+ const inspectOriginals=async()=>({terminals:await Promise.all(originalIds.map(async id=>{const row=await controls.inspectPresetTerminal(id);assert.equal(row.alive,true);assert.equal(row.cwd,workspace.worktreePath);return {id:row.id,executionId:row.executionId,pid:row.pid,cwd:row.cwd};}))});
+ const original=await inspectOriginals();
  const openScript=async()=>{
   await click('[data-workstation-presets] button[aria-label="Terminal Scripts"]');
   await until(()=>evaluate(`Boolean(document.querySelector('${list}'))`),'original script list open');
@@ -59,7 +62,7 @@ export async function verifyWorkstationLinkedAgentSettingsUi({getPage,click,scre
  await until(()=>evaluate(`document.querySelector('${agentRoot} input[aria-label="Label"]')?.value===${JSON.stringify(label)}`),'linked choice and config restored');
  await screenshot('linked-agent-reopen-exact-target');await agent.closeEditor();await closeScript();
  assert.deepEqual(await catalog(),initial);
- assert.deepEqual(await controls.verifyWorktreeLocation(workspace.worktreePath),original);
+ assert.deepEqual(await inspectOriginals(),original);
  assert.deepEqual(getPage().errors,[]);
  writeFileSync(join(output,'linked-agent-settings-ui.json'),JSON.stringify({sourceRevision:process.env.GITHUB_SHA,scope,agentId:config.id,presetId:preset.id,firstAgentId:agents[0].id,label,revision:updated.revision,originalTerminals:original.terminals,exactTarget:true,originalEditor:true,scriptCatalogUnchanged:true,reopenVerified:true,noAgentLaunch:true,unsavedScriptNativeVerified:false,macOSVerified:false},null,2)+'\n');
 }
