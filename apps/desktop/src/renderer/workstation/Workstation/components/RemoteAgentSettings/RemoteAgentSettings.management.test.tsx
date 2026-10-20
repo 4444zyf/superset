@@ -46,20 +46,32 @@ const connection: DirectDescriptor = {
 		workstationAgentManagementV1: true,
 	},
 };
-function fixture(lostReply = false) {
-	let catalog = { configs: [row], revision: "a".repeat(64) };
+const second: HostAgentConfig = {
+	...row,
+	id: "second-agent",
+	label: "Linked second agent",
+	command: "/opt/second-agent",
+};
+function fixture(lostReply = false, initialAgentId?: string) {
+	let catalog = {
+		configs: initialAgentId === undefined ? [row] : [row, second],
+		revision: "a".repeat(64),
+	};
 	const calls: DirectRpc[] = [];
 	const api = {
 		rpc: async (r: DirectRpc) => {
 			calls.push(r);
 			if (r.path.endsWith("catalogWithRevisionV1")) return catalog;
-			if (r.path.endsWith("getWithRevisionV1"))
+			if (r.path.endsWith("getWithRevisionV1")) {
+				const config = catalog.configs.find(
+					(c) => c.id === (r.input as { id: string }).id,
+				);
+				if (!config) throw new Error("Agent not found");
 				return {
-					config: catalog.configs.find(
-						(c) => c.id === (r.input as { id: string }).id,
-					),
+					config,
 					revision: catalog.revision,
 				};
+			}
 			const { change, expectedRevision } = r.input as {
 				change: { kind: string; id: string; config: HostAgentConfig };
 				expectedRevision: string;
@@ -94,6 +106,7 @@ function fixture(lostReply = false) {
 				api={api}
 				connection={connection}
 				agents={[row]}
+				initialAgentId={initialAgentId}
 				onChanged={() => {}}
 				onClose={() => {}}
 			/>
@@ -110,6 +123,32 @@ function fixture(lostReply = false) {
 		},
 	};
 }
+test("an explicit linked-agent target opens its original editor instead of the first configured agent", async () => {
+	const f = fixture(false, second.id);
+	await screen.findByDisplayValue(second.label);
+	expect(
+		f.calls
+			.filter((c) => c.path.endsWith("getWithRevisionV1"))
+			.map((c) => c.input),
+	).toEqual([{ id: second.id }]);
+	expect(f.calls.filter((c) => c.type === "mutation")).toEqual([]);
+});
+
+test("a deleted explicit agent target never silently selects another agent", async () => {
+	const f = fixture(false, "deleted-agent");
+	await waitFor(() =>
+		expect(f.calls.some((c) => c.path.endsWith("getWithRevisionV1"))).toBe(
+			true,
+		),
+	);
+	expect(
+		f.calls
+			.filter((c) => c.path.endsWith("getWithRevisionV1"))
+			.every((c) => (c.input as { id: string }).id === "deleted-agent"),
+	).toBe(true);
+	await screen.findByText("Agent not found");
+	expect(f.calls.filter((c) => c.type === "mutation")).toEqual([]);
+});
 test("original custom agent form creates a target config only after explicit submit", async () => {
 	const f = fixture();
 	const add = await screen.findByRole("button", { name: "Add agent" });

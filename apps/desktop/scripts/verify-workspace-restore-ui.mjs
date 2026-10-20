@@ -542,6 +542,12 @@ export async function verifyWorkspaceRestoreUi({
   await verifyWorkstationTerminalScriptManagementUi({getPage,click,screenshot,closeReopen,controls,output,nativeDrag});
   writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalScriptManagementOnly:true},null,2)+"\n");return;
  }
+ if (process.argv.includes("--linked-agent-settings-only")) {
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationLinkedAgentSettingsUi}=await import("./verify-workstation-linked-agent-settings-ui.mjs");
+  await verifyWorkstationLinkedAgentSettingsUi({getPage,click,screenshot,closeReopen,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,linkedAgentSettingsOnly:true},null,2)+"\n");return;
+ }
  if (process.argv.includes("--agent-icons-only")) {
   await click("text:Terminal");await ready();
   await verifyWorkstationAgentIconsUi({getPage,click,screenshot,closeReopen,controls,output,setClipboard,nativeFileDialog});

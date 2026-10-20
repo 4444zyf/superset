@@ -35,6 +35,7 @@ import { toAbsoluteWorkspacePath } from "shared/absolute-paths";
 import { WorkstationEditorGuardsContext } from "../../../../providers/WorkstationEditorGuards/workstation-editor-guards";
 import { useWorkstationAppearance } from "../../../../providers/WorkstationPreferencesContext/WorkstationPreferencesContext";
 import type { RemoteDirectory } from "../../../../types";
+import { RemoteAgentSettings } from "../../../RemoteAgentSettings/RemoteAgentSettings";
 import { RemoteDirectoryBrowser } from "../../../RemoteDirectoryBrowser/RemoteDirectoryBrowser";
 
 import type { RemoteTerminalScriptsProps as Props } from "../../remote-terminal-scripts-types";
@@ -68,6 +69,7 @@ export function RemoteTerminalScriptsView({
 	agents,
 	busy,
 	onCatalogChanged,
+	onAgentChanged,
 	configurationRequest,
 }: Props) {
 	const changed = useRef(onCatalogChanged);
@@ -125,6 +127,7 @@ export function RemoteTerminalScriptsView({
 		[directoryBusy, setDirectoryBusy] = useState(false),
 		[directoryError, setDirectoryError] = useState<string | null>(null);
 	const browseEpoch = useRef(0);
+	const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
 
 	const rpc = useCallback(
 		<T,>(path: string, type: "query" | "mutation", input?: unknown) =>
@@ -605,6 +608,20 @@ export function RemoteTerminalScriptsView({
 					onLinkedCommandChange={() => {}}
 					onLinkedCommandBlur={() => {}}
 					linkedCommandPending
+					agentSettingsLink={
+						linkedAgent &&
+						connection.capabilities?.workstationAgentSettingsV1 === true ? (
+							<Button
+								type="button"
+								variant="link"
+								size="sm"
+								disabled={working || busy}
+								onClick={() => setEditingAgentId(linkedAgent.id)}
+							>
+								<Trans>Agent settings</Trans>
+							</Button>
+						) : undefined
+					}
 					disabled={working}
 					preferredProjectId={preferredProjectId}
 					onBrowseDirectory={() =>
@@ -744,6 +761,16 @@ export function RemoteTerminalScriptsView({
 						: undefined
 				}
 			/>
+			{editingAgentId && (
+				<RemoteAgentSettings
+					api={api}
+					connection={connection}
+					agents={agents}
+					initialAgentId={editingAgentId}
+					onChanged={(row) => onAgentChanged?.(row)}
+					onClose={() => setEditingAgentId(null)}
+				/>
+			)}
 		</>
 	);
 }

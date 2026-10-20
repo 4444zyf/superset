@@ -80,12 +80,14 @@ export function RemoteAgentManager({
 	api,
 	connection,
 	agents,
+	initialAgentId,
 	onChanged,
 	onClose,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor;
 	agents: HostAgentConfig[];
+	initialAgentId?: string;
 	onChanged(c: HostAgentConfig): void;
 	onClose(): void;
 }) {
@@ -102,7 +104,9 @@ export function RemoteAgentManager({
 	const registry = useContext(WorkstationEditorGuardsContext),
 		guardId = useId();
 	const [catalog, setCatalog] = useState<Catalog | null>(null),
-		[selected, setSelected] = useState<string | null>(agents[0]?.id ?? null),
+		[selected, setSelected] = useState<string | null>(
+			initialAgentId ?? agents[0]?.id ?? null,
+		),
 		[epoch, setEpoch] = useState(0);
 	const [snapshot, setSnapshot] = useState<{
 			key: string;
@@ -156,7 +160,8 @@ export function RemoteAgentManager({
 				if (active) {
 					setCatalog(value);
 					setSelected((id) =>
-						value.configs.some((c) => c.id === id)
+						value.configs.some((c) => c.id === id) ||
+						(initialAgentId !== undefined && id === initialAgentId)
 							? id
 							: (value.configs[0]?.id ?? null),
 					);
@@ -169,7 +174,7 @@ export function RemoteAgentManager({
 			active = false;
 			mounted.current = false;
 		};
-	}, [rpc, setError, catalogPath]);
+	}, [rpc, setError, catalogPath, initialAgentId]);
 	useEffect(() => {
 		if (!selected || selected === NEW) return;
 		let active = true;

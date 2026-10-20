@@ -1,5 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
 import type {
+	HostAgentConfig,
 	HostTerminalPreset,
 	HostTerminalPresetCatalog,
 } from "@superset/host-service/settings";
@@ -47,13 +48,32 @@ function fixture({
 	lostReply = false,
 	conflict = false,
 	initialized = true,
+	linked = false,
 	configurationRequest = undefined as
 		| { requestId: string; presetId?: string }
 		| undefined,
 } = {}) {
+	const agent: HostAgentConfig = {
+		id: "linked-agent",
+		presetId: "custom",
+		label: "Linked agent",
+		command: "/opt/linked",
+		args: [],
+		env: {},
+		iconId: null,
+		promptArgs: [],
+		resumeArgs: [],
+		forkArgs: [],
+		promptTransport: "argv",
+		order: 0,
+	};
+	const agentChanges: HostAgentConfig[] = [];
+	let agentSnapshot = { config: agent, revision: "d".repeat(64) };
 	let catalog: HostTerminalPresetCatalog = {
 		initialized,
-		presets: initialized ? [row] : [],
+		presets: initialized
+			? [{ ...row, ...(linked ? { agentId: agent.id } : {}) }]
+			: [],
 		revision: "a".repeat(64),
 	};
 	const calls: DirectRpc[] = [];
@@ -61,6 +81,25 @@ function fixture({
 	const api = {
 		rpc: async (r: DirectRpc) => {
 			calls.push(r);
+			if (r.path === "settings.agentConfigs.getWithRevisionV1")
+				return structuredClone(agentSnapshot);
+			if (r.path === "settings.agentConfigs.updateWithRevisionV1") {
+				const input = r.input as {
+					id: string;
+					expectedRevision: string;
+					patch: Partial<HostAgentConfig>;
+				};
+				if (
+					input.id !== agent.id ||
+					input.expectedRevision !== agentSnapshot.revision
+				)
+					throw new Error("conflict");
+				agentSnapshot = {
+					config: { ...agentSnapshot.config, ...input.patch },
+					revision: "e".repeat(64),
+				};
+				return structuredClone(agentSnapshot);
+			}
 			if (r.path === "project.list")
 				return [
 					{ id: "project-a", name: "Project A", repoPath: "/remote/repo" },
@@ -132,8 +171,17 @@ function fixture({
 	} as unknown as DirectWorkstationApi;
 	const props = {
 		api,
-		connection,
-		agents: [],
+		connection: linked
+			? {
+					...connection,
+					capabilities: {
+						...connection.capabilities,
+						workstationAgentSettingsV1: true,
+					},
+				}
+			: connection,
+		agents: linked ? [agent] : [],
+		onAgentChanged: (updated: HostAgentConfig) => agentChanges.push(updated),
 		workspaceId: "workspace",
 		busy: false,
 		configurationRequest,
@@ -145,8 +193,43 @@ function fixture({
 			</WorkstationEditorGuardsContext.Provider>
 		</DndProvider>,
 	);
-	return { calls, registry, props, view, catalog: () => catalog };
+	return { calls, registry, props, view, agentChanges, catalog: () => catalog };
 }
+test("a linked script opens the existing agent editor and preserves its unsaved script fields", async () => {
+	const f = fixture({ linked: true });
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Terminal Scripts" }),
+	);
+	fireEvent.click(await screen.findByText("Safe script"));
+	const directory = await screen.findByLabelText("Directory");
+	fireEvent.change(directory, { target: { value: "./unsent directory" } });
+	fireEvent.click(screen.getByRole("button", { name: "Agent settings" }));
+	await screen.findByDisplayValue("Linked agent");
+	expect(f.calls.filter((c) => c.type === "mutation")).toEqual([]);
+	expect(f.registry.getUnsaved()).toHaveLength(1);
+	const label = screen.getByRole("textbox", { name: "Label" });
+	fireEvent.change(label, { target: { value: "Updated linked agent" } });
+	fireEvent.blur(label);
+	await waitFor(() => expect(f.agentChanges).toHaveLength(1));
+	expect(f.calls.find((c) => c.type === "mutation")).toMatchObject({
+		connectionId: "ssh",
+		generation: 1,
+		path: "settings.agentConfigs.updateWithRevisionV1",
+		input: { id: "linked-agent", expectedRevision: "d".repeat(64) },
+	});
+	fireEvent.click(
+		within(screen.getByRole("dialog")).getByRole("button", {
+			name: "Close",
+		}),
+	);
+	await screen.findByDisplayValue("./unsent directory");
+	expect(f.registry.getUnsaved()).toHaveLength(1);
+	expect(
+		f.calls.filter(
+			(c) => c.path === "settings.terminalPresets.applyCatalogChangeV1",
+		),
+	).toEqual([]);
+});
 async function openEditor() {
 	fireEvent.click(
 		await screen.findByRole("button", { name: "Terminal Scripts" }),

@@ -14,4 +14,5 @@ export interface RemoteTerminalScriptsProps {
 	busy: boolean;
 	configurationRequest?: { requestId: string; presetId?: string };
 	onCatalogChanged?(catalog: HostTerminalPresetCatalog): void;
+	onAgentChanged?(config: HostAgentConfig): void;
 }

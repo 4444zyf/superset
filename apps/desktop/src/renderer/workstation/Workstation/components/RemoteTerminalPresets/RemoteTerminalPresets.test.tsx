@@ -8,7 +8,10 @@ import {
 	render,
 	screen,
 	waitFor,
+	within,
 } from "@testing-library/react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import type {
 	DirectDescriptor,
 	DirectRpc,
@@ -43,6 +46,96 @@ const config: HostAgentConfig = {
 	resumeArgs: [],
 	forkArgs: [],
 };
+test("editing an agent through its linked script refreshes the original launch bar without launching", async () => {
+	let current = config;
+	const calls: DirectRpc[] = [],
+		launched: unknown[] = [];
+	const preset = {
+		id: "linked-script",
+		name: "Linked workflow",
+		agentId: config.id,
+		cwd: "",
+		commands: ["snapshot"],
+		projectIds: null,
+		tabOrder: 0,
+		createdAt: new Date(0),
+		executionMode: "new-tab",
+	};
+	const api = {
+		rpc: async (r: DirectRpc) => {
+			calls.push(r);
+			if (r.path === "settings.agentConfigs.list") return [current];
+			if (r.path === "settings.terminalPresets.catalogWithRevisionV1")
+				return {
+					initialized: true,
+					presets: [preset],
+					revision: "a".repeat(64),
+				};
+			if (r.path === "project.list") return [];
+			if (r.path === "workspace.get")
+				return { projectId: null, worktreePath: "/remote/worktree" };
+			if (r.path === "settings.agentConfigs.getWithRevisionV1")
+				return { config: current, revision: "b".repeat(64) };
+			if (r.path === "settings.agentConfigs.updateWithRevisionV1") {
+				current = {
+					...current,
+					...(r.input as { patch: Partial<HostAgentConfig> }).patch,
+				};
+				return { config: current, revision: "c".repeat(64) };
+			}
+			throw new Error("Unexpected request");
+		},
+	} as unknown as DirectWorkstationApi;
+	const view = render(
+		<DndProvider backend={HTML5Backend}>
+			<TooltipProvider>
+				<RemoteTerminalPresets
+					api={api}
+					connection={{
+						...connection,
+						capabilities: {
+							...connection.capabilities,
+							workstationTerminalScriptsV1: true,
+							workstationTerminalScriptExecutionV1: true,
+							workstationAgentSettingsV1: true,
+						},
+					}}
+					workspaceId="workspace"
+					busy={false}
+					onLaunch={(launch) => launched.push(launch)}
+					onLaunchScript={(launch) => launched.push(launch)}
+				/>
+			</TooltipProvider>
+		</DndProvider>,
+	);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Terminal Scripts" }),
+	);
+	fireEvent.click(
+		within(screen.getByRole("dialog")).getByText("Linked workflow"),
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Agent settings" }));
+	const command = await screen.findByRole("textbox", { name: "Command" });
+	fireEvent.change(command, {
+		target: { value: "/updated/codex --approval-mode manual" },
+	});
+	fireEvent.blur(command);
+	await waitFor(() =>
+		expect(
+			view.container
+				.querySelector('[data-workstation-script-id="linked-script"] button')
+				?.getAttribute("title"),
+		).toContain("/updated/codex"),
+	);
+	expect(launched).toEqual([]);
+	expect(calls.filter((c) => c.type === "mutation")).toHaveLength(1);
+	expect(calls.find((c) => c.type === "mutation")).toMatchObject({
+		connectionId: "ssh",
+		generation: 3,
+		path: "settings.agentConfigs.updateWithRevisionV1",
+		input: { id: config.id, expectedRevision: "b".repeat(64) },
+	});
+});
 test("the original default preset surface uses the selected host's config and launches only on an explicit click", async () => {
 	const calls: DirectRpc[] = [],
 		launched: unknown[] = [];

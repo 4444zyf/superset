@@ -30,12 +30,14 @@ function LegacyRemoteAgentSettings({
 	api,
 	connection,
 	agents,
+	initialAgentId,
 	onChanged,
 	onClose,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor;
 	agents: HostAgentConfig[];
+	initialAgentId?: string;
 	onChanged(config: HostAgentConfig): void;
 	onClose(): void;
 }) {
@@ -49,7 +51,7 @@ function LegacyRemoteAgentSettings({
 	const [catalog, setCatalog] = useState({ scope, rows: agents });
 	const [selection, setSelection] = useState({
 		scope,
-		id: agents[0]?.id ?? null,
+		id: initialAgentId ?? agents[0]?.id ?? null,
 	});
 	const [snapshot, setSnapshot] = useState<{
 		owner: string;
@@ -67,7 +69,9 @@ function LegacyRemoteAgentSettings({
 	} | null>(null);
 	const configs = catalog.scope === scope ? catalog.rows : agents;
 	const selected =
-		selection.scope === scope ? selection.id : (agents[0]?.id ?? null);
+		selection.scope === scope
+			? selection.id
+			: (initialAgentId ?? agents[0]?.id ?? null);
 	const pending = pendingState.scope === scope && pendingState.value;
 	const setPending = (value: boolean) => setPendingState({ scope, value });
 	const editor = useRef<AgentConfigEditorHandle>(null);

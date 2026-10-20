@@ -200,6 +200,17 @@ export function RemoteTerminalPresets({
 			label: agent.label,
 		});
 	};
+	const updateAgent = (row: HostAgentConfig) =>
+		setState((previous) =>
+			previous.owner === owner
+				? {
+						...previous,
+						agents: previous.agents.map((agent) =>
+							agent.id === row.id ? row : agent,
+						),
+					}
+				: previous,
+		);
 	return (
 		<>
 			<section
@@ -228,6 +239,7 @@ export function RemoteTerminalPresets({
 								workspaceId={workspaceId}
 								busy={busy}
 								onCatalogChanged={publishCatalog}
+								onAgentChanged={updateAgent}
 								configurationRequest={configurationRequest}
 							/>
 						)}
@@ -346,18 +358,7 @@ export function RemoteTerminalPresets({
 						setEditingOwner(null);
 						setReload((v) => v + 1);
 					}}
-					onChanged={(row) =>
-						setState((previous) =>
-							previous.owner === owner
-								? {
-										...previous,
-										agents: previous.agents.map((agent) =>
-											agent.id === row.id ? row : agent,
-										),
-									}
-								: previous,
-						)
-					}
+					onChanged={updateAgent}
 				/>
 			)}
 		</>
