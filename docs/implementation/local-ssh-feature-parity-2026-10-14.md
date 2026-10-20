@@ -1004,3 +1004,19 @@ CLI在SSH机器的安装/交付、自动选择终端namespace、其他读取/写
 实际运行已存在的阶段五十一CLI25885a097作为旧二进制基线，workspaces get --namespace返回Unknown option，退出1，目标目录未创建；SHA256仍为e646bae52aa4d74d4103834b54afea64cffdcf631cf8a00b9bf9a32807f35aec。没有生成新CLI二进制、后端发行归档或安装包，没有启用/派发Actions。CLI源码README明确标记新详情尚待打包验收。
 
 既有实际CLI验收脚本已补项目/无项目详情、原字段纯文本、原型字段拒绝、缺失与B读取A工作区的检查，并通过语法检查；本轮未执行新产品验收。它留给用户下一次明确要求的构建，不能将预先写好的验收脚本算成已通过。没有host/desktop产品源码、迁移或协议改动；SSH CLI交付/自动目标、其余写命令及原功能组继续接入。
+
+## 阶段五十四：关联脚本打开原 Agent 设置
+
+原PresetEditorDialogView已留有agentSettingsLink插槽，工作站wrapper此前未提供。现接入该原位置的Agent settings按钮，打开已有RemoteAgentSettings与原AgentConfigEditor；脚本编辑器继续挂载，原草稿与全局关闭守卫保留。Agent设置增加可选initialAgentId，管理与旧版路径都可直接选择关联UUID；管理目录返回时保留明确目标，即使目标已删除也不自动改选首项。父级复用同一个带owner检查的Agent更新函数，关联入口与原全局入口保存后都更新原脚本栏命令/名称数据，不执行Agent。能力不支持时不提供此入口，原命令预览仍只读。本阶段未实现脚本内直接编辑关联命令。
+
+TDD初轮18通过3失败：两个明确选中/缺失目标测试实际失败，脚本测试错误地寻找关联脚本本来就没有的Name字段。修为Directory后，在未修改的原脚本view上重新执行，明确因缺少Agent settings按钮失败；不是把测试辅助错误当作产品缺入口证据。父级缓存测试首次因未限定模态范围而找到两个同名文本，修正selector后，在原父级wrapper上实际复现保存后仍旧命令标题；再恢复新接线通过。类型检查另捕获测试ByRoleOptions不支持exact，删除多余属性，使用其默认精确名称匹配；未改产品以适配错误测试。最终4文件38项132断言、桌面类型、相关lint、翻译和插件检查通过；测试同时覆盖旧入口、冲突、晚回复、缺能力、原目录管理及草稿关闭。[阶段五十四红绿与检查](evidence/local-ssh-feature-parity/stage54)。
+
+源码/验收脚本提交b35807746。第196轮实际旧产品da56e38c3在关联的非首个Agent脚本中没有入口，present=false断言退出1；截图已实际查看。[196旧窗口失败](evidence/local-ssh-feature-parity/source-linux-linked-agent-settings-failures/196)。随后仅运行本地electron-vite代码编译，不执行compile:app中的CLI打包或electron-builder。首次Node默认4GiB heap耗尽退出134，按仓库已有8GiB编译参数重跑退出0；两份日志保留。没有放宽测试或验收等待条件，没有生成安装包、密封后端发行归档或新的CLI二进制；原CLI的e646bae52aa4d74d4103834b54afea64cffdcf631cf8a00b9bf9a32807f35aec保持。
+
+第197轮产品/脚本b35807746，真实Linux/Electron/拥有的loopback SSH退出0：打开关联的非首个Agent，在原设置编辑器保存中文emoji名称，完整config只label改变，首个Agent和脚本目录/版本保持；关闭设置返回原脚本，再关闭重开并从相同脚本打开相同Agent，保存名称保持。原3个PTY PID81715/81727/81721、执行ID与统一worktree cwd保持，无Agent启动；保存和重开两图已查看。[197初次完整窗口](evidence/local-ssh-feature-parity/source-linux-linked-agent-settings/197)。
+
+为复用到独立本地窗口，验收控制改用原工作区已有resourceId与owned inspectPresetTerminal投影核对PID/执行ID/cwd，不再假定必须是3个Git worktree终端；验收脚本d735115e1，产品仍固定b35807746。第198轮--local-parity-only --linked-agent-settings退出0：实际本地A/B独立创建、切换/相同backend实例恢复后，A的关联设置/保存/返回/重开均通过，A PID82557/82569保持，未选中B PID82657和执行ID仍活；保存及返回脚本两图已查看。[198独立本地完整证据](evidence/local-ssh-feature-parity/source-linux-local-linked-agent-settings/198)。
+
+第199轮同产品/最终脚本，SSH同一流程复测退出0，原PID83217/83223/83229及执行ID/cwd保持，首个Agent与脚本目录保持，关联入口与保存返回截图已查看。第197/198/199各另外两张功能截图已捕获，不混称全部查看。所有拥有的SSH fixture与本地namespace backend按现有finally清理，浏览器错误为空；本轮未实际在脏脚本情况下执行原生窗口关闭，仅组件回归验证草稿保留，不将unsavedScriptNativeVerified=false写成通过。[199最终SSH证据](evidence/local-ssh-feature-parity/source-linux-linked-agent-settings/199)。
+
+此为本地源码窗口验证，未触发Actions、生成DMG、验证真实macOS或供应商Agent。内联关联命令编辑、原脚本栏完整菜单/快捷键、CLI写命令/交付和其余功能组仍须继续，整体对齐未完成。
