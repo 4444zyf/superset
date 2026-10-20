@@ -8,11 +8,12 @@ See the [fork build guide](../../DEVELOPMENT.md), [scope inventory](../../docs/d
 
 ## Read an existing Remix namespace
 
-The bundled CLI accepts `--namespace <absolute-directory>` on `agents list`, `projects list`, `workspaces list`, `terminals list`, `terminals read`, and `scripts list`. Run the CLI on the machine that owns that directory. With this CLI installed on PATH, for example from a Remix terminal:
+The CLI source accepts `--namespace <absolute-directory>` on `agents list`, `projects list`, `workspaces list`, `workspaces get`, `terminals list`, `terminals read`, and `scripts list`. Run the CLI on the machine that owns that directory. With a matching CLI installed on PATH, for example from a Remix terminal:
 
 ```sh
 superset agents list --namespace "$SUPERSET_HOME_DIR" --json
 superset workspaces list --namespace "$SUPERSET_HOME_DIR" --search feature --json
+superset workspaces get <workspace-id> --namespace "$SUPERSET_HOME_DIR" --field worktreePath
 superset terminals list --namespace "$SUPERSET_HOME_DIR" --workspace <workspace-id> --json
 superset terminals read --namespace "$SUPERSET_HOME_DIR" --workspace <workspace-id> --terminal <terminal-id> --json
 ```
@@ -21,4 +22,6 @@ This explicit mode reads the selected existing backend through its authenticated
 
 Terminal reading uses the original plain-text screen snapshot, including the current alternate screen for a TUI. It retains `--max-lines` and text/JSON output. A missing terminal is refused; it never creates a PTY. An existing detached PTY can be adopted through the original backend path.
 
-`--namespace` is currently available only on these six commands. It is not an implicit default and cannot be combined with `--host`; unsupported commands reject the flag. Existing command behavior without the flag is retained. Remote CLI installation, automatic terminal target selection, and additional CLI commands are still being connected; this does not claim full CLI parity or a new macOS installer.
+Workspace details retain the original fields, table/raw-field formatting, `-f` alias, and workspace-id environment fallback. The selected namespace is always explicit; a missing workspace does not trigger a cloud or other-machine lookup. `hostName` uses the original host-id fallback without querying Superset's hosted names. Workspace detail support is source-validated; packaged acceptance waits for the next explicitly requested build.
+
+`--namespace` is currently available only on these seven commands. It is not an implicit default and cannot be combined with `--host`; unsupported commands reject the flag. Existing command behavior without the flag is retained. Remote CLI installation, automatic terminal target selection, and additional CLI commands are still being connected; this does not claim full CLI parity or a new macOS installer.

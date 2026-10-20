@@ -994,3 +994,13 @@ CLI在SSH机器的安装/交付、自动选择终端namespace、其他读取/写
 先加入策略回归，旧配置1通过2失败，实际检测到push/PR/schedule/release/issues触发和重复基准默认true。14份上游云/移动端/Sandbox/issue/PR/自动发布流程原样移至非发现目录.github/upstream-workflows，逐字节与旧版本一致；当前仅保留手动CI、手动Remix预览和4个workflow_call定义。CI不响应push/PR，预览不响应分支push，publish及三类重复基准均默认false，发布job仅由手动publish选择。签名校验、原生构建、安装包验证及复用调用合同保留。
 
 最终3项15断言、相关lint/插件检查通过；6个有效定义和14个归档定义均YAML解析通过，所有有效本地workflow_call引用可解析，diff无空白错误。源码检查不等同远端执行，本轮没有启用或派发工作流、生成安装包或执行发布。[原始红绿与停用证据](evidence/workflow-policy-20261020)。原功能对齐目标继续有效，但不得因此自动生成发行物。
+
+## 阶段五十三：原 CLI 工作区详情选择现有 namespace
+
+原workspaces get增加明确--namespace，复用阶段五十私有目标解析与已有workspace.list GET，仍要求sessions能力。原host详情映射与字段/表格格式化提取为共用函数，旧host/cloud解析继续原路径。新分支仅在指定namespace返回的列表中查ID，缺失即拒绝，不查询Superset账号、host名称、其他机器或云；hostName用原host-id回退。保留字段集合、projectName回退、false/null、Object.hasOwn原型字段拒绝、-f别名及SUPERSET_WORKSPACE_ID回退；不会隐式选择namespace。缺失提示复用已有翻译消息Workspace not found，ID另列，不引入新消息或API合同。
+
+先增加4个无账号/字段/隔离/ID回退失败测试，原20项通过、新4项均因No active organization失败。补接入后49项通过；随后补原参数解析器实际识别namespace与-f，并为测试结果按原command factory的宽返回类型补契约标注，修复测试类型错误。最终CLI5文件50项121断言、CLI类型、相关lint、i18n和插件检查均通过；既有9项工作区详情host测试同时通过。两namespace测试使用真实拥有Unix socket HTTP服务和合成响应，不冒称实际host-service数据库或GUI验收。原私有目录/凭据/能力/实例与禁止写入、终端读取和账号分支同时回归。[阶段五十三红绿与检查](evidence/local-ssh-feature-parity/stage53)。
+
+实际运行已存在的阶段五十一CLI25885a097作为旧二进制基线，workspaces get --namespace返回Unknown option，退出1，目标目录未创建；SHA256仍为e646bae52aa4d74d4103834b54afea64cffdcf631cf8a00b9bf9a32807f35aec。没有生成新CLI二进制、后端发行归档或安装包，没有启用/派发Actions。CLI源码README明确标记新详情尚待打包验收。
+
+既有实际CLI验收脚本已补项目/无项目详情、原字段纯文本、原型字段拒绝、缺失与B读取A工作区的检查，并通过语法检查；本轮未执行新产品验收。它留给用户下一次明确要求的构建，不能将预先写好的验收脚本算成已通过。没有host/desktop产品源码、迁移或协议改动；SSH CLI交付/自动目标、其余写命令及原功能组继续接入。

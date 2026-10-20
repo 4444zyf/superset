@@ -124,3 +124,5 @@
 2026-10-19：阶段五十接入原CLI五个list命令的明确--namespace读取，使用现有配置schema、owner-only读取和私有Unix socket；新Agent只读目录过程不初始化默认项，旧V2语义保留。无新参数时保留旧行为；新路径不解析账号/上报，拒绝写操作、会补种的旧Agent查询、坏身份/旧实例/停止目标与目标冲突。实际旧CLI先拒绝新flag，第191轮打包CLI暴露locale未初始化并修复；第193轮实际Linux二进制对两个拥有namespace完成27次调用，22项正向/5项明确拒绝均符合预期，空配置不补种、筛选/两PTY身份和目录隔离保持。33项CLI/48项host/2项socket、三端类型/17语言及完整构建通过。此为同机明确namespace读取，不等于SSH客户端CLI安装/自动目标、CLI写命令或全部能力完成；GUI/真实Mac/1.37.7安装包不混算验收。
 
 2026-10-19：阶段五十一接入原CLI terminals read的明确namespace路径，继续使用原snapshot、工作区归属检查和adopt-only恢复，文本/JSON/max-lines与无参数旧行为保持。第194轮旧实际CLI拒绝新flag；第195轮新CLI的43次调用中31成功/12明确拒绝，普通/TUI中文屏幕、原限制、错误工作区/缺失/跨namespace、backend重启后原PID读取均通过，原五列表同时回归；36项CLI测试/类型/打包CLI与插件检查通过。未改host/UI协议或迁移，只重建CLI；后端仍da56e38c3。SSH安装/自动目标/写命令、其他功能组与真实Mac仍待接通和验收。
+
+2026-10-20：阶段五十三为原workspaces get接入明确namespace，只读现有workspace.list；原host详情字段/格式/field别名/ID环境回退及未知字段保护共用原函数，hostName保留原ID回退，不查询Superset云名称。20通过4失败后最终50项121断言通过，CLI类型/翻译/插件检查通过；旧二进制明确拒绝新参数，未生成新二进制或安装包。真实Unix socket测试服务覆盖账户为空、缺失/跨namespace拒绝，属于源码/传输验证；下一次明确打包的实际CLI验收脚本已补齐，尚未运行。阶段五十二的手动打包规则继续有效，其他原功能接入和发行物验收未混算完成。

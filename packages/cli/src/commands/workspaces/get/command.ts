@@ -1,7 +1,17 @@
+import { msg } from "@lingui/core/macro";
 import { boolean, CLIError, positional, string } from "@superset/cli-framework";
+import { i18n } from "@superset/i18n";
 import { resolveWorkspaceHost } from "../../../lib/cloud-workspaces";
 import { command } from "../../../lib/command";
+import {
+	namespaceOption,
+	readFromDirectNamespace,
+} from "../../../lib/direct-namespace";
 import { resolveWorkspaceTarget } from "../../../lib/host-workspaces";
+import {
+	describeHostWorkspace,
+	formatWorkspaceDetail,
+} from "./workspace-detail";
 
 export default command({
 	description: "Show details for a single workspace by id",
@@ -9,6 +19,7 @@ export default command({
 		positional("id").desc("Workspace ID (defaults to $SUPERSET_WORKSPACE_ID)"),
 	],
 	options: {
+		namespace: namespaceOption(),
 		host: string().desc(
 			"Host the workspace lives on (default: the cloud if your account has cloud workspaces, else this machine)",
 		),
@@ -29,6 +40,15 @@ export default command({
 			);
 		}
 
+		const direct = await readFromDirectNamespace(options, async (target) => {
+			const workspaces = await target.client.workspace.list.query();
+			const workspace = workspaces.find((row) => row.id === id);
+			if (!workspace)
+				throw new CLIError(i18n._(msg({ message: "Workspace not found" })), id);
+			return describeHostWorkspace(workspace, workspace.hostId);
+		});
+		if (direct) return formatWorkspaceDetail(direct.value, options.field);
+
 		const organizationId = ctx.config.organizationId;
 		if (!organizationId) {
 			throw new CLIError("No active organization", "Run: superset auth login");
@@ -43,29 +63,7 @@ export default command({
 			? await hostDetail(ctx, organizationId, id, hostId)
 			: await cloudDetail(ctx, organizationId, id);
 
-		if (options.field) {
-			if (!Object.hasOwn(detail, options.field)) {
-				throw new CLIError(
-					`Unknown field: ${options.field}`,
-					`Available fields: ${Object.keys(detail).join(", ")}`,
-				);
-			}
-			const value = (detail as Record<string, unknown>)[options.field];
-			return {
-				data: detail,
-				message: value === null || value === undefined ? "" : String(value),
-			};
-		}
-
-		const width = Math.max(...Object.keys(detail).map((key) => key.length));
-		const message = Object.entries(detail)
-			.map(([key, value]) => {
-				const shown = value === null || value === undefined ? "—" : value;
-				return `${key.padEnd(width)}  ${shown}`;
-			})
-			.join("\n");
-
-		return { data: detail, message };
+		return formatWorkspaceDetail(detail, options.field);
 	},
 });
 
@@ -113,20 +111,9 @@ async function hostDetail(
 			.query({ organizationId })
 			.catch(() => [] as Array<{ id: string; name: string }>),
 	]);
-	return {
-		id: workspace.id,
-		name: workspace.name,
-		branch: workspace.branch,
-		type: workspace.type,
-		projectId: workspace.projectId,
-		projectName: workspace.projectName ?? workspace.projectId,
-		hostId: workspace.hostId,
-		hostName:
-			hosts.find((host) => host.id === workspace.hostId)?.name ??
+	return describeHostWorkspace(
+		workspace,
+		hosts.find((host) => host.id === workspace.hostId)?.name ??
 			workspace.hostId,
-		taskId: workspace.taskId,
-		worktreePath: workspace.worktreePath,
-		worktreeExists: workspace.worktreeExists,
-		createdAt: workspace.createdAt,
-	};
+	);
 }

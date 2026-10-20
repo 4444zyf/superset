@@ -12,8 +12,11 @@ import {
 import { createServer, type Server } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { parseArgv } from "@superset/cli-framework";
 import { directBackendSocketPath } from "@superset/shared/direct-backend-socket";
 import readTerminal from "../../commands/terminals/read/command";
+import getWorkspace from "../../commands/workspaces/get/command";
+import { createUnavailableApiClient } from "../api-client";
 import { readFromDirectNamespace } from "./readFromDirectNamespace";
 import { resolveDirectNamespace } from "./resolveDirectNamespace";
 
@@ -65,6 +68,20 @@ async function fixture() {
 	write("credentials/host-secret", "a".repeat(64));
 	write("state/endpoint.json", JSON.stringify(endpoint));
 	const requests: Array<{ path: string; authenticated: boolean }> = [];
+	const workspace = {
+		id: crypto.randomUUID(),
+		name: "Namespace 工作区",
+		branch: "feature/read-details",
+		type: "worktree",
+		projectId: crypto.randomUUID(),
+		projectName: "项目 中文",
+		hostId: config.backendId,
+		taskId: null,
+		worktreePath: join(homeDir, "Superset Remix/worktrees/项目 中文/feature"),
+		worktreeExists: false,
+		createdAt: "2026-10-20T00:00:00.000Z",
+	};
+	let workspaceRows: Array<Record<string, unknown>> = [workspace];
 	let description = {
 		...endpoint,
 		cloudAccountRequired: false,
@@ -90,6 +107,12 @@ async function fixture() {
 		}
 		if (request.url === "/direct/describe") {
 			response.end(JSON.stringify(description));
+			return;
+		}
+		if (request.url?.startsWith("/trpc/workspace.list?")) {
+			response.end(
+				JSON.stringify([{ result: { data: { json: workspaceRows } } }]),
+			);
 			return;
 		}
 		if (request.url?.startsWith("/trpc/terminal.snapshot?")) {
@@ -131,12 +154,131 @@ async function fixture() {
 		config,
 		endpoint,
 		requests,
+		workspace,
+		setWorkspaceRows: (rows: Array<Record<string, unknown>>) => {
+			workspaceRows = rows;
+		},
 		write,
 		setDescription: (value: Partial<typeof description>) => {
 			description = { ...description, ...value };
 		},
 	};
 }
+
+type WorkspaceDetailResult = { data: Record<string, unknown>; message: string };
+
+function readWorkspaceDetail(
+	f: Awaited<ReturnType<typeof fixture>>,
+	id: string | undefined = f.workspace.id,
+	field?: string,
+) {
+	return getWorkspace.run({
+		ctx: {
+			config: {},
+			bearer: "",
+			authSource: "direct",
+			api: createUnavailableApiClient(),
+		},
+		args: { id } as never,
+		options: { namespace: f.homeDir, field } as never,
+		signal: new AbortController().signal,
+	}) as Promise<WorkspaceDetailResult>;
+}
+
+test("the original CLI parser accepts namespace and the existing field alias for workspace details", () => {
+	const configs = Object.fromEntries(
+		Object.entries(getWorkspace.options ?? {}).map(([name, builder]) => [
+			name,
+			{ ...builder._.config, name },
+		]),
+	);
+	expect(
+		parseArgv(
+			[
+				"bun",
+				"superset",
+				"workspaces",
+				"get",
+				"workspace-a",
+				"--namespace",
+				"/tmp/Namespace 中文",
+				"-f",
+				"worktreePath",
+			],
+			configs,
+		).options,
+	).toEqual({ namespace: "/tmp/Namespace 中文", field: "worktreePath" });
+});
+
+test("workspace details reuse original host fields from the selected namespace without a Superset account", async () => {
+	const f = await fixture();
+	const result = await readWorkspaceDetail(f);
+	expect(result.data).toEqual({ ...f.workspace, hostName: f.workspace.hostId });
+	expect(result.message).toContain("Namespace 工作区");
+	expect(result.message).toContain(f.workspace.worktreePath);
+	expect(f.requests.every((request) => request.authenticated)).toBe(true);
+	expect(f.requests.map((request) => request.path.split("?")[0])).toEqual([
+		"/direct/describe",
+		"/trpc/workspace.list",
+	]);
+});
+
+test("namespace workspace details retain raw field output, nulls, project fallback and inherited-field rejection", async () => {
+	const f = await fixture();
+	f.setWorkspaceRows([{ ...f.workspace, projectName: null }]);
+	expect(
+		(await readWorkspaceDetail(f, f.workspace.id, "projectName")).message,
+	).toBe(f.workspace.projectId);
+	expect((await readWorkspaceDetail(f, f.workspace.id, "taskId")).message).toBe(
+		"",
+	);
+	expect(
+		(await readWorkspaceDetail(f, f.workspace.id, "worktreeExists")).message,
+	).toBe("false");
+	await expect(
+		readWorkspaceDetail(f, f.workspace.id, "toString"),
+	).rejects.toThrow("Unknown field: toString");
+});
+
+test("workspace details cannot fall through to another namespace when a requested id is missing", async () => {
+	const a = await fixture(),
+		b = await fixture();
+	expect((await readWorkspaceDetail(a)).data.id).toBe(a.workspace.id);
+	expect((await readWorkspaceDetail(b)).data.id).toBe(b.workspace.id);
+	await expect(readWorkspaceDetail(a, b.workspace.id)).rejects.toThrow(
+		"not found",
+	);
+	expect(
+		a.requests.every(
+			(request) =>
+				request.path === "/direct/describe" ||
+				request.path.startsWith("/trpc/workspace.list?"),
+		),
+	).toBe(true);
+});
+
+test("an explicit namespace retains the original workspace-id environment fallback", async () => {
+	const f = await fixture();
+	const previous = process.env.SUPERSET_WORKSPACE_ID;
+	process.env.SUPERSET_WORKSPACE_ID = f.workspace.id;
+	try {
+		const result = (await getWorkspace.run({
+			ctx: {
+				config: {},
+				bearer: "",
+				authSource: "direct",
+				api: createUnavailableApiClient(),
+			},
+			args: {} as never,
+			options: { namespace: f.homeDir } as never,
+			signal: new AbortController().signal,
+		})) as WorkspaceDetailResult;
+		expect(result.data.id).toBe(f.workspace.id);
+	} finally {
+		if (previous === undefined) delete process.env.SUPERSET_WORKSPACE_ID;
+		else process.env.SUPERSET_WORKSPACE_ID = previous;
+	}
+});
 
 test("an explicit namespace authenticates and reads through its owned Unix socket", async () => {
 	const f = await fixture(),

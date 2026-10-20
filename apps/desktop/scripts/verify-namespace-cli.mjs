@@ -82,6 +82,11 @@ try{
   assert.equal((await invoke(f.label+'-agents',['agents','list','--namespace',f.home]))[0].id,f.agentId);
   assert.equal((await invoke(f.label+'-projects',['projects','list','--namespace',f.home]))[0].path,f.repo);
   const workspaces=await invoke(f.label+'-workspaces',['workspaces','list','--namespace',f.home]);assert.equal(workspaces.length,2);assert.ok(workspaces.every(w=>w.id===f.workspaceId||w.id===f.sessionId));
+  const detail=await invoke(f.label+'-workspace-detail',['workspaces','get',f.workspaceId,'--namespace',f.home]);assert.equal(detail.id,f.workspaceId);assert.equal(detail.worktreePath,f.repo);assert.equal(detail.projectName,'CLI '+f.label+' Project');assert.equal(detail.hostName,detail.hostId);
+  const sessionDetail=await invoke(f.label+'-session-detail',['workspaces','get',f.sessionId,'--namespace',f.home]);assert.equal(sessionDetail.projectId,null);assert.equal(sessionDetail.projectName,null);
+  assert.equal((await invoke(f.label+'-workspace-field',['workspaces','get',f.workspaceId,'--namespace',f.home,'-f','worktreePath'],true,false)).trimEnd(),f.repo);
+  assert.match(await invoke(f.label+'-workspace-inherited-field',['workspaces','get',f.workspaceId,'--namespace',f.home,'--field','toString'],false),/Unknown field/);
+  await invoke(f.label+'-workspace-missing',['workspaces','get',crypto.randomUUID(),'--namespace',f.home],false);
   assert.deepEqual((await invoke(f.label+'-project-filter',['workspaces','list','--namespace',f.home,'--project','cli '+f.label.toLowerCase()+' project'])).map(w=>w.id),[f.workspaceId]);
   assert.deepEqual((await invoke(f.label+'-search-filter',['workspaces','list','--namespace',f.home,'--search','standalone'])).map(w=>w.id),[f.sessionId]);
   assert.deepEqual(await invoke(f.label+'-tag-filter',['workspaces','list','--namespace',f.home,'--tag','absent']),[]);
@@ -102,6 +107,7 @@ try{
   const execution=await f.controls.inspectPresetTerminal(f.terminalId);assert.equal(execution.pid,f.execution.pid);assert.equal(execution.executionId,f.execution.executionId);
  }
  await invoke('B-cannot-read-A',['terminals','read','--namespace',b.home,'--workspace',a.workspaceId,'--terminal',a.terminalId],false);
+ await invoke('B-cannot-find-A-workspace',['workspaces','get',a.workspaceId,'--namespace',b.home],false);
  assert.deepEqual(stats(a),a.before);assert.deepEqual(stats(b),b.before);
  const restarted=await a.controls.restartHost();
  const adopted=await invoke('A-screen-adopted',['terminals','read','--namespace',a.home,'--workspace',a.workspaceId,'--terminal',a.terminalId]);assert.ok(adopted.text.includes('CLI A TUI 中文'));assert.equal(adopted.terminalId,a.terminalId);
