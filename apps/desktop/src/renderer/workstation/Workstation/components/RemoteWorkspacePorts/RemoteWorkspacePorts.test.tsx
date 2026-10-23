@@ -207,3 +207,174 @@ test("copy is explicit and forwards the discovered port to the workspace owner",
 	expect(copied).toEqual([3000]);
 	expect(opened).toEqual([]);
 });
+
+test("Close passes the exact workspace terminal and port, and ignores duplicate clicks", async () => {
+	let finish!: (result: { success: boolean }) => void;
+	const pending = new Promise<{ success: boolean }>((resolve) => {
+		finish = resolve;
+	});
+	let running = true;
+	const requests: unknown[] = [];
+	const api = {
+		listPorts: async () => (running ? [port(3000)] : []),
+		killWorkspacePort: async (...args: unknown[]) => {
+			requests.push(args);
+			return pending;
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspacePorts
+			confirmClose={async () => true}
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={() => {}}
+		/>,
+	);
+	const button = await screen.findByRole("button", { name: "Close port 3000" });
+	fireEvent.click(button);
+	fireEvent.click(button);
+	await waitFor(() =>
+		expect(requests).toEqual([
+			[connection, "workspace", "terminal-3000", 3000],
+		]),
+	);
+	expect((button as HTMLButtonElement).disabled).toBe(true);
+	running = false;
+	await act(async () => finish({ success: true }));
+	await waitFor(() => expect(screen.queryByText(":3000")).toBeNull());
+});
+
+test("a failed close keeps the row and shows the original backend failure", async () => {
+	const api = {
+		listPorts: async () => [port(3000)],
+		killWorkspacePort: async () => ({
+			success: false,
+			error: "Port does not belong to the requested workspace",
+		}),
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspacePorts
+			confirmClose={async () => true}
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={() => {}}
+		/>,
+	);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Close port 3000" }),
+	);
+	await screen.findByRole("alert");
+	expect(screen.getByText(":3000")).toBeTruthy();
+	expect(screen.getByRole("alert").textContent).toContain("does not belong");
+	expect(
+		(
+			screen.getByRole("button", {
+				name: "Close port 3000",
+			}) as HTMLButtonElement
+		).disabled,
+	).toBe(false);
+});
+
+test("a late close failure cannot display in another namespace", async () => {
+	let fail!: (e: Error) => void;
+	const pending = new Promise<{ success: boolean }>((_, reject) => {
+		fail = reject;
+	});
+	let started = false;
+	const api = {
+		listPorts: async (d: DirectDescriptor) => [
+			port(d.namespaceId === "old" ? 3000 : 4000),
+		],
+		killWorkspacePort: async () => {
+			started = true;
+			return pending;
+		},
+	} as unknown as DirectWorkstationApi;
+	const view = render(
+		<RemoteWorkspacePorts
+			confirmClose={async () => true}
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={() => {}}
+		/>,
+	);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Close port 3000" }),
+	);
+	await waitFor(() => expect(started).toBe(true));
+	view.rerender(
+		<RemoteWorkspacePorts
+			confirmClose={async () => true}
+			api={api}
+			connection={{ ...connection, namespaceId: "new", generation: 2 }}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={() => {}}
+		/>,
+	);
+	await screen.findByText(":4000");
+	await act(async () => fail(new Error("old failure")));
+	expect(screen.queryByRole("alert")).toBeNull();
+	expect(
+		(
+			screen.getByRole("button", {
+				name: "Close port 4000",
+			}) as HTMLButtonElement
+		).disabled,
+	).toBe(false);
+});
+
+test.each([
+	"cancelled",
+	"scope changed",
+])("a %s confirmation does not send a port kill", async (mode) => {
+	let finish!: (value: boolean) => void;
+	const confirmation = new Promise<boolean>((resolve) => {
+		finish = resolve;
+	});
+	const requests: unknown[] = [];
+	const api = {
+		listPorts: async (d: DirectDescriptor) => [
+			port(d.namespaceId === "old" ? 3000 : 4000),
+		],
+		killWorkspacePort: async (...args: unknown[]) => {
+			requests.push(args);
+			return { success: true };
+		},
+	} as unknown as DirectWorkstationApi;
+	const view = render(
+		<RemoteWorkspacePorts
+			confirmClose={() => confirmation}
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={() => {}}
+		/>,
+	);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Close port 3000" }),
+	);
+	if (mode === "scope changed") {
+		view.rerender(
+			<RemoteWorkspacePorts
+				confirmClose={() => confirmation}
+				api={api}
+				connection={{ ...connection, namespaceId: "new", generation: 2 }}
+				workspaceId="workspace"
+				busy={false}
+				onOpenPort={() => {}}
+			/>,
+		);
+		await screen.findByText(":4000");
+	}
+	await act(async () => finish(mode !== "cancelled"));
+	expect(requests).toEqual([]);
+	expect(screen.queryByRole("alert")).toBeNull();
+});

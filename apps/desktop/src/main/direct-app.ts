@@ -1064,6 +1064,25 @@ export async function startWorkstation(): Promise<void> {
 						},
 					});
 				}
+				case "killWorkspacePort": {
+					const input = z
+						.object({
+							connectionId: z.string().uuid(),
+							generation: z.number().int().positive(),
+							workspaceId: z.string().uuid(),
+							terminalId: z.string().min(1).max(512),
+							port: z.number().int().min(1).max(65535),
+						})
+						.strict()
+						.parse(payload);
+					return controller.killWorkspacePort(
+						input.connectionId,
+						input.generation,
+						input.workspaceId,
+						input.terminalId,
+						input.port,
+					);
+				}
 				case "listPorts": {
 					const input = z
 						.object({

@@ -4,6 +4,86 @@ import type { SqliteDatabase } from "@superset/direct-connection";
 import { OperationIntents } from "./operation-intents";
 import { WorkstationController } from "./workstation-controller";
 
+test("port close uses the original scoped mutation and rejects old capability and stale generation", async () => {
+	const f = fixture();
+	let enabled = false;
+	const calls: unknown[] = [];
+	const result = { success: false, error: "not owned" };
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationPortsV1: enabled },
+		}),
+		invoke: async (id, request) => {
+			calls.push({ id, ...request });
+			return result;
+		},
+	});
+	await expect(
+		controller.killWorkspacePort("machine", 1, "workspace", "terminal", 3000),
+	).rejects.toThrow("required capability");
+	enabled = true;
+	await expect(
+		controller.killWorkspacePort("machine", 1, "", "terminal", 3000),
+	).rejects.toThrow("explicit workspace");
+	expect(
+		await controller.killWorkspacePort(
+			"machine",
+			1,
+			"workspace",
+			"terminal",
+			3000,
+		),
+	).toBe(result);
+	expect(calls).toEqual([
+		{
+			id: "machine",
+			path: "ports.kill",
+			type: "mutation",
+			input: { workspaceId: "workspace", terminalId: "terminal", port: 3000 },
+		},
+	]);
+	await expect(
+		controller.invoke({
+			connectionId: "machine",
+			generation: 1,
+			path: "ports.kill",
+			type: "mutation",
+			input: { workspaceId: "workspace", terminalId: "terminal", port: 3000 },
+		}),
+	).rejects.toThrow("Unsupported");
+	f.nextGeneration();
+	await expect(
+		controller.killWorkspacePort("machine", 1, "workspace", "terminal", 3000),
+	).rejects.toThrow("Connection changed");
+	expect(calls).toHaveLength(1);
+});
+
+test("a generation change during capability lookup prevents the port kill mutation", async () => {
+	const f = fixture();
+	const calls: unknown[] = [];
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationPortsV1: true },
+		}),
+		invoke: async (...args) => {
+			calls.push(args);
+			return { success: true };
+		},
+	});
+	const closing = controller.killWorkspacePort(
+		"machine",
+		1,
+		"workspace",
+		"terminal",
+		3000,
+	);
+	f.nextGeneration();
+	await expect(closing).rejects.toThrow("Connection changed");
+	expect(calls).toEqual([]);
+});
+
 test("port discovery preserves the existing getAll query and requires capability, workspace and generation", async () => {
 	const f = fixture();
 	let enabled = false;

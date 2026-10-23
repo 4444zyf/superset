@@ -156,6 +156,12 @@ export type DirectConnectionEvent =
 	  };
 
 export interface DirectWorkstationApi {
+	killWorkspacePort?(
+		connection: DirectDescriptor,
+		workspaceId: string,
+		terminalId: string,
+		port: number,
+	): Promise<{ success: boolean; error?: string }>;
 	listPorts?(
 		connection: DirectDescriptor,
 		workspaceId: string,

@@ -177,6 +177,29 @@ export class WorkstationController {
 			throw new Error("Connection changed; reconnect before continuing");
 	}
 
+	async killWorkspacePort(
+		connectionId: string,
+		generation: number,
+		workspaceId: string,
+		terminalId: string,
+		port: number,
+	): Promise<unknown> {
+		this.assertGeneration(connectionId, generation);
+		if (!workspaceId.trim())
+			throw new Error("An explicit workspace is required");
+		const features = await this.features(connectionId);
+		this.assertGeneration(connectionId, generation);
+		if (!features.capabilities?.workstationPortsV1)
+			throw new Error("This backend does not support the required capability");
+		const result = await this.manager.invoke(connectionId, {
+			path: "ports.kill",
+			type: "mutation",
+			input: { workspaceId, terminalId, port },
+		});
+		this.assertGeneration(connectionId, generation);
+		return result;
+	}
+
 	async listPorts(
 		connectionId: string,
 		generation: number,

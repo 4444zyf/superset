@@ -4,6 +4,7 @@ import { i18n } from "@superset/i18n";
 import { errorMessage } from "@superset/i18n/errors";
 import { Button } from "@superset/ui/button";
 import { useEffect, useRef, useState } from "react";
+import { confirmClosePorts } from "renderer/hooks/ports/usePortKillActions/confirmClosePorts";
 import { PortRowView } from "renderer/routes/_authenticated/_dashboard/components/PortsDropdown/components/PortRow/components/PortRowView";
 import type {
 	DirectDescriptor,
@@ -19,6 +20,7 @@ export function RemoteWorkspacePorts({
 	onOpenPort,
 	onCopyPort,
 	pollMs = 2000,
+	confirmClose = () => confirmClosePorts(1),
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor;
@@ -27,6 +29,7 @@ export function RemoteWorkspacePorts({
 	onOpenPort(port: number): void;
 	onCopyPort?(port: number): Promise<void>;
 	pollMs?: number;
+	confirmClose?(): Promise<boolean>;
 }) {
 	const owner = JSON.stringify([
 		connection.connectionId,
@@ -50,6 +53,66 @@ export function RemoteWorkspacePorts({
 	current.current = { api, owner, available, busy, onOpenPort, onCopyPort };
 	const mounted = useRef(false);
 	const readNow = useRef<(() => void) | null>(null);
+	const closingRef = useRef<{
+		api: DirectWorkstationApi;
+		owner: string;
+	} | null>(null);
+	const [closing, setClosing] = useState<{
+		api: DirectWorkstationApi;
+		owner: string;
+	} | null>(null);
+	const [closeError, setCloseError] = useState<{
+		api: DirectWorkstationApi;
+		owner: string;
+		message: string;
+	} | null>(null);
+	const isClosing = closing?.api === api && closing.owner === owner;
+	const closePort = async (port: DirectPort) => {
+		const kill = api.killWorkspacePort;
+		const isCurrent = () =>
+			mounted.current &&
+			current.current.api === api &&
+			current.current.owner === owner &&
+			current.current.available;
+		if (
+			!kill ||
+			!isCurrent() ||
+			current.current.busy ||
+			port.workspaceId !== workspaceId ||
+			(closingRef.current?.api === api && closingRef.current.owner === owner)
+		)
+			return;
+		const token = { api, owner };
+		closingRef.current = token;
+		setClosing(token);
+		setCloseError(null);
+		try {
+			if (!(await confirmClose()) || !isCurrent() || current.current.busy)
+				return;
+			const result = await kill.call(
+				api,
+				connection,
+				workspaceId,
+				port.terminalId,
+				port.port,
+			);
+			if (!isCurrent()) return;
+			if (!result || result.success !== true)
+				throw new Error(
+					result?.error ||
+						i18n._(msg({ message: `Failed to close port ${port.port}` })),
+				);
+			readNow.current?.();
+		} catch (error) {
+			if (isCurrent())
+				setCloseError({ api, owner, message: errorMessage(error) });
+		} finally {
+			if (closingRef.current === token) {
+				closingRef.current = null;
+				if (mounted.current) setClosing((old) => (old === token ? null : old));
+			}
+		}
+	};
 	const [readingState, setReadingState] = useState<{
 		api: DirectWorkstationApi;
 		owner: string;
@@ -148,6 +211,11 @@ export function RemoteWorkspacePorts({
 					<Trans>Refresh</Trans>
 				</Button>
 			</div>
+			{closeError?.api === api && closeError.owner === owner && (
+				<p role="alert" className="text-xs text-destructive">
+					{closeError.message}
+				</p>
+			)}
 			{snapshot?.error && (
 				<p className="text-xs text-destructive" role="alert">
 					{snapshot.error}
@@ -167,6 +235,13 @@ export function RemoteWorkspacePorts({
 						<PortRowView
 							key={`${port.terminalId}:${port.port}`}
 							port={port}
+							isPending={isClosing}
+							closeDisabled={busy}
+							onClose={
+								typeof api.killWorkspacePort === "function"
+									? () => void closePort(port)
+									: undefined
+							}
 							description={[port.label, port.processName]
 								.filter(Boolean)
 								.join(" · ")}

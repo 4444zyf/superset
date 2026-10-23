@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { I18nProvider } from "@superset/i18n/react";
 import { darkTheme, getBuiltInTheme } from "@superset/shared/themes";
+import { Alerter } from "@superset/ui/atoms/Alert";
 import {
 	lazy,
 	Suspense,
@@ -1010,6 +1011,7 @@ export function Workstation({
 	);
 	return (
 		<I18nProvider locale={preferences.snapshot?.values.language ?? undefined}>
+			<Alerter />
 			<WorkstationPreferencesContext value={preferences.snapshot}>
 				<WorkstationFileDocumentsContext value={documents}>
 					<WorkstationEditorGuardsContext value={editorGuards}>

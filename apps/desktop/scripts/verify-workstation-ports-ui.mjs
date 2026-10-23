@@ -64,7 +64,9 @@ export async function verifyWorkstationPortsUi(options) {
 	const marker = `OWNED-PORT-${randomUUID()}`;
 	const urlLinks = process.argv.includes("--terminal-url-links");
 	const script = [
-		"import http.server,json,os",
+		"import http.server,json,os,signal",
+		"def stop(*args): raise KeyboardInterrupt",
+		"signal.signal(signal.SIGTERM,stop)",
 		"from pathlib import Path",
 		`state={"marker":${JSON.stringify(marker)},"requests":[],"pid":os.getpid(),"running":True}`,
 		'def save():\n temp=Path("port-proof.tmp");temp.write_text(json.dumps(state)+"\\n");temp.replace("port-proof.json")',
@@ -178,6 +180,21 @@ export async function verifyWorkstationPortsUi(options) {
 				launches,
 				report,
 			});
+			if (process.argv.includes("--port-kill")) {
+				const { verifyWorkstationPortKillUi } = await import(
+					"./verify-workstation-port-kill-ui.mjs"
+				);
+				await verifyWorkstationPortKillUi(options, {
+					initial,
+					workspace,
+					terminal,
+					execution,
+					originals,
+					selector,
+					read,
+					report,
+				});
+			}
 		} else {
 			await click("text:Port");
 			await screenshot("port-before-open");
@@ -311,6 +328,10 @@ export async function verifyWorkstationPortsUi(options) {
 		try {
 			await getPage().call("Page.bringToFront");
 			await key("Escape", "Escape");
+			await until(
+				() => evaluate(`!document.querySelector('[role=menu]')`),
+				"port menu closed before owned cleanup",
+			);
 			if (
 				!(await evaluate(
 					`Boolean(document.querySelector('.ws-workspace-window'))`,

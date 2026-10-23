@@ -12,6 +12,7 @@ export function PortRowView({
 	isPending = false,
 	externalDisabled = false,
 	copyDisabled = false,
+	closeDisabled = false,
 	onPrimary,
 	onExternal,
 	onCopy,
@@ -25,6 +26,7 @@ export function PortRowView({
 	isPending?: boolean;
 	externalDisabled?: boolean;
 	copyDisabled?: boolean;
+	closeDisabled?: boolean;
 	onPrimary?(): void;
 	onExternal?(): void;
 	onCopy?(): Promise<void>;
@@ -98,7 +100,7 @@ export function PortRowView({
 						type="button"
 						aria-label={t({ message: `Close port ${port.port}` })}
 						onClick={onClose}
-						disabled={isPending}
+						disabled={isPending || closeDisabled}
 						aria-busy={isPending}
 						className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
 					>
