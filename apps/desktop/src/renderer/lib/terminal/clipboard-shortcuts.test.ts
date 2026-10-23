@@ -24,7 +24,50 @@ function makeEvent(
 }
 
 describe("shouldBubbleClipboardShortcut", () => {
-	it("bubbles every Mac Cmd chord, Ghostty-style", () => {
+	it("lets only plain Mac Cmd+C reach an app's own selection when xterm has none", () => {
+		const mac = { isMac: true, isWindows: false, hasSelection: false };
+		for (const { modifiers, selected, owns, bubble } of [
+			{ modifiers: {}, selected: false, owns: true, bubble: false },
+			{ modifiers: {}, selected: true, owns: true, bubble: true },
+			{ modifiers: {}, selected: false, owns: false, bubble: true },
+			{
+				modifiers: { shiftKey: true },
+				selected: false,
+				owns: true,
+				bubble: true,
+			},
+			{
+				modifiers: { altKey: true },
+				selected: false,
+				owns: true,
+				bubble: true,
+			},
+			{
+				modifiers: { ctrlKey: true },
+				selected: false,
+				owns: true,
+				bubble: true,
+			},
+			{
+				modifiers: { code: "KeyV" },
+				selected: false,
+				owns: true,
+				bubble: true,
+			},
+		]) {
+			expect(
+				shouldBubbleClipboardShortcut(
+					makeEvent({ metaKey: true, ...modifiers }),
+					{
+						...mac,
+						hasSelection: selected,
+						appOwnsSelection: owns,
+					},
+				),
+			).toBe(bubble);
+		}
+	});
+	it("bubbles Mac Cmd chords when the app does not own the selection", () => {
 		const cases = [
 			{
 				name: "Cmd+C (no selection)",

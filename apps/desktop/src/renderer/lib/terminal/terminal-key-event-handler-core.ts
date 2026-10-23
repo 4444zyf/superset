@@ -11,6 +11,16 @@ export interface TerminalKeyEventHandlerOptions {
 	resolveHotkey?: (event: KeyboardEvent) => unknown | null;
 }
 
+// Mouse-capturing TUIs draw their own selection. xterm exposes the kitty
+// keyboard flags needed to copy it only through its private core service.
+function appOwnsSelection(terminal: XTerm): boolean {
+	if (terminal.modes.mouseTrackingMode === "none") return false;
+	const internal = terminal as XTerm & {
+		_core?: { coreService?: { kittyKeyboard?: { flags?: number } } };
+	};
+	return (internal._core?.coreService?.kittyKeyboard?.flags ?? 0) > 0;
+}
+
 function resolvePlatform(options: TerminalKeyEventHandlerOptions): string {
 	const raw =
 		options.platform !== undefined
@@ -34,9 +44,9 @@ function resolvePlatform(options: TerminalKeyEventHandlerOptions): string {
 //
 // Kitty keyboard protocol is enabled, which means every Mac Cmd chord xterm
 // sees gets CSI-u encoded and leaks into TUIs as a literal char. Ghostty
-// sidesteps this by suppressing all super/Cmd chords on macOS before the
-// encoder runs (ghostty/src/input/key_encode.zig:534-545). We do the same via
-// shouldBubbleClipboardShortcut's Mac branch.
+// suppresses super/Cmd chords on macOS before the encoder runs
+// (ghostty/src/input/key_encode.zig:534-545). Its performable copy exception
+// lets Cmd+C reach a mouse-capturing TUI when xterm has no selection.
 export function createTerminalKeyEventHandler(
 	terminal: XTerm,
 	options: TerminalKeyEventHandlerOptions = {},
@@ -81,6 +91,8 @@ export function createTerminalKeyEventHandler(
 				isMac,
 				isWindows,
 				hasSelection: terminal.hasSelection(),
+				appOwnsSelection:
+					isMac && event.code === "KeyC" && appOwnsSelection(terminal),
 			})
 		) {
 			// Do NOT preventDefault: the browser keydown -> paste pipeline is what
