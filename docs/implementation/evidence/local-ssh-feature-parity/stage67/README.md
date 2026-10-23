@@ -1,0 +1,5 @@
+阶段六十七验证终端URL的原版外部手势，以及SSH localhost转发后的路径/查询/片段保留。baseline-ssh 是旧阶段六十六编译产品，普通URL无hover处理，预期失败；final-local 的失败来自验证器错误的Shift位掩码，不作为产品失败。
+
+最终取 verified-local 与 verified-ssh；后者先完成20次恢复。terminal-url-*-input.json记录三次实际DOM点击的修饰键，Ctrl+Shift为第三次；plain和内部pane手势不转成外部打开。原版内部pane/new-tab仍未接入。source与OS实际URI、Chrome HTTP请求path、真实原始终端执行与未选B检查分别在逐轮报告中；未把OS启动参数的fragment误称HTTP服务端接收的fragment，也未声称截取了Chromium页面图。
+
+独占Chromium/Xorg由runner持有Popen并finally结束；URL服务由原终端Ctrl+C正常停止，后端/SSH/namespace沿用原fixture清理。端口就绪查询只在拥有的fixture中使用原认证只读观察，没有改变产品过程allowlist或端口归属校验；仍沿用扫描缓存。artifact文件逐一复核2205个编译文件，CLI哈希未变，没有安装包、密封后端归档或Actions。

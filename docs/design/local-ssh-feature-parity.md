@@ -87,6 +87,8 @@
 
 阶段六十六补齐端口实窗红绿：旧阶段六十四产品在等待转发时离开工作区仍提交浏览器打开；阶段六十五修复已在新编译产品bdfcf0fc6上由本地和拥有的SSH实窗通过，后者含20次恢复。真实Chromium正常读取HTTP marker、手动关闭监听、原PTY/未选B保留、过期打开计数0→0均通过，2205文件哈希复核稳定。没有安装包/CLI重打包或Actions；终端URL和内部浏览器仍未接入。[阶段六十六证据](../implementation/evidence/local-ssh-feature-parity/stage66)。
 
+阶段六十七接入终端URL的原版external手势（Ctrl/Cmd+Shift），包括原普通URL provider及OSC 8；本机/公网按当前机器打开，SSH loopback使用原端口归属与preparePort，保留协议、path/query/fragment。旧完整URL不会退回基础地址立即打开接口。3609项定向回归、类型、17语言及插件检查通过；旧产品无URL处理的真实基线成立，新产品efc23cc69在本地和拥有SSH完成普通链接、重开后OSC 8及原PTY/未选B保留，实际HTTP路径/查询和OS启动参数正确。内部pane/new-tab、完整链接设置与端口发现界面仍待补，未打包CLI/安装包或使用Actions。[阶段六十七证据](../implementation/evidence/local-ssh-feature-parity/stage67)。
+
 ## 1.37.7 当前进度（2026-10-17）
 
 上表保留1.37.6基线，用于逐项核对；当前完成情况按实际接入范围记录如下。整组中的细项未完成时，不将该组标为全部完成。
