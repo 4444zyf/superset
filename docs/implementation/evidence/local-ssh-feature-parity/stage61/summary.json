@@ -1,0 +1,32 @@
+{
+  "baseCommit": "786990c86bcac2ecf70e90bd7d517e86e53aa014",
+  "runtimeFiles": [
+    {
+      "path": "packages/host-service/src/terminal/terminal.ts",
+      "sha256": "0f44cb666f05a1499e03314739c31d845ce3ab724defe8ca2b9e7a7d5c41a37c",
+      "sameAsStage58": true
+    },
+    {
+      "path": "packages/pty-daemon/src/Pty/Pty.ts",
+      "sha256": "5cc6c71c6648e00d6bc4e28ddd5f8b8d4a1a2b3b71493f94034de11ce8c87b4b",
+      "sameAsStage58": true
+    }
+  ],
+  "environment": {
+    "platform": "linux",
+    "electronAbi": 145,
+    "bashVersion": "GNU bash, version 5.2.37(1)-release (x86_64-pc-linux-gnu)"
+  },
+  "cause": "Linux Bash delays a trapped SIGWINCH until blocking read returns; kernel size changes and foreground signal delivery are correct",
+  "seqSuite": {
+    "passed": 10,
+    "failed": 0,
+    "durationMs": 53822.204088
+  },
+  "oldFailures": "stage58 regression-seq.log.gz: 8 pass / 2 fail; both original repaint assertions now pass unchanged",
+  "nativeMacVerified": false,
+  "productCodeChanged": false,
+  "productRecompiled": false,
+  "lastCompiledProductSource": "d921789dafc261fd23c8aade3d84497101e71617",
+  "actionsUsed": false
+}

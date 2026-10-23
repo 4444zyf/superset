@@ -136,8 +136,14 @@ blob() {
 printf '\033[2J\033[H'
 printf 'TUI READY\n'
 draw_box "$H"
+# Linux bash defers WINCH traps during a blocking read. A bounded fixture
+# read dispatches the trap without injecting input; macOS keeps its old read.
 while :; do
-  IFS= read -r cmd || { sleep 0.02; continue; }
+  if [[ "$OSTYPE" == linux* ]]; then
+    IFS= read -r -t 0.05 cmd || { sleep 0.02; continue; }
+  else
+    IFS= read -r cmd || { sleep 0.02; continue; }
+  fi
   set -- $cmd
   case $1 in
     frames) frames "$2" ;;

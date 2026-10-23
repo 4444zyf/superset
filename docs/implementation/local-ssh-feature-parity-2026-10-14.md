@@ -1122,3 +1122,13 @@ TDD在01d81bf30原源码上新增两项均失败，实际复现原传输和严�
 最终本机A原PID49203/49215、probe49429及执行ID保持；未选B的PID49302/执行ID在最后核对仍活且不变。SSH使用拥有的loopback fixture，原20次恢复采样与后续输入测试均完成，原PID49988/49994/50000、probe53038及执行ID保持；两端renderer错误为空。最终2205个编译文件在两轮后逐一核对未变，既有CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。本阶段编译包含阶段五十九源码，但Linux窗口不代替Mac复制验收。
 
 各暂停都在原finally恢复，原runner finally清理拥有的backend/SSH fixture。旧基线、初版及最终新建Xorg子进程43017/44239/48961分别由持有的Popen对象终止并wait，均退出0；未向未知资源发信号。仅执行现有8GiB参数的electron-vite源码编译，没有CLI重打包、安装包、密封后端归档或Actions。物理Mac/供应商行为、两处既有重绘超时、其他原版功能仍待验/待接入，整体对齐未完成。
+
+## 阶段六十一：定位并校正Linux重绘验收夹具
+
+2026-10-23。继续排查阶段五十八的两处既有FULL-REDRAW超时，先只读核对host resize/nudge、daemon handleResize、原生PTY和测试脚本。当前terminal.ts/Pty.ts与阶段五十八e3cb344a7字节一致，过去两项失败的源码/原始日志继续保留。没有先改产品重绘或追加终端输入。
+
+独立Electron ABI145/node-pty探针实际创建拥有的Bash与Python PTY，以同样80×24→100×30的resize触发内核SIGWINCH，记录foreground pgrp、信号mask和真实输出。两者前台组均为各自PID、WINCH未屏蔽；Python立即打印WINCH，Bash的阻塞read期间没有输出，直到明确输入probe行才打印WINCH及INPUT probe。增加同样Bash但有界read的对照后，不追加stdin也在resize后打印WINCH。由此定位为Linux Bash延迟执行trap，不能把它归因于信号未送达或产品未改变内核尺寸。[独立探针与完整恢复记录](evidence/local-ssh-feature-parity/stage61)。
+
+仅对原TUI夹具的Linux分支使用read -t 0.05，让trap及时执行；macOS仍走原read。原ANSI帧、命令、快照/原字节比较、无RIS、屏幕保留及所有断言/等待上限均未改，不注入换行、不重试测试、不扩大超时。完整seq套件10项通过、0失败，约53.8秒：原先失败的超出ring后重新定位/重绘、resize后重新定位/重绘，以及原跨host重启恢复均通过，旧客户端、focus、多客户端最小尺寸、僵死/隐藏客户端与版本回复保护一并通过。没有把独立诊断或中间输出累计成额外测试项。
+
+单文件格式、diff及插件检查通过。所有探针PTY由各自持有的node-pty对象结束并等待onExit，完整套件按原after/finally清理其拥有资源；没有碰用户服务、GUI、SSH配置或未知PID。未修改产品代码、tRPC、认证/归属、数据库或依赖，没有源码重编译、CLI打包、安装包、密封后端归档或Actions；环境产品仍为阶段六十d921789da。Mac分支只保留原逻辑，未在本环境实测；阶段五十八的原始失败记录不覆写，物理Mac/供应商与其他功能仍继续待验/待接入，整体对齐未完成。

@@ -1,5 +1,7 @@
 # Stage 58 — version replies across old renderers and raw replay transports
 
+Follow-up: [stage 61](../stage61/README.md) identifies the two repaint timeouts below as Linux Bash fixture trap deferral. The original assertions and timeouts pass after correcting only the fixture's Linux read loop. This stage's original failed logs remain unchanged.
+
 2026-10-23. Product and existing native verifier: `e3cb344a73745a6b47ff1777e088bb04ce8f0308`.
 Baseline product: `3199d6664`. No Actions, installer, sealed backend archive or new CLI binary.
 
