@@ -1149,3 +1149,16 @@ TDD在01d81bf30原源码上新增两项均失败，实际复现原传输和严�
 验收脚本增加真实上下滚动的slider位置、TUI显示offset、旧式高坐标与像素坐标检查，且切Files→Terminal验证同一终端重挂载。一次中间验证把主动点击产生的合法SGR按下/释放当成重挂载注入，保留final-local失败；随后仅将无输入断言置于主动点击前，并使fixture识别鼠标释放且仅对滚轮按钮移动内容，未修改产品/重试上限或放宽滚动断言。[完整记录及截图](evidence/local-ssh-feature-parity/stage62)。
 
 最终verified-local及verified-ssh均退出0，两端normal slider都为420→414→420、SGR内容offset100→95→100。切Files→Terminal后，旧式与像素TUI均100→99→100；旧式坐标0x8d原字节保持，像素报告为462;60。保存stock偏好仍进入历史而不发键；小幅/反向滚动、Esc返回通过，renderer错误为空。SSH使用拥有的loopback fixture，先完成原20次恢复采样。最终本地stock历史/legacy-up和SSH legacy-up/pixels-mouse截图已实际查看；其余捕获但未混称全看。两轮后逐一复核2205个编译文件未变。最终拥有Xorg PID57888由原Popen终止并wait退出0，backend/SSH沿用finally清理；没有向未知资源发信号。此结果不是物理Mac触控板或已认证供应商Agent验证；整体功能对齐未完成，用户新提出的复制粘贴要求继续单独核对。
+
+
+## 阶段六十三：终端复制粘贴，重点SSH中的TUI
+
+2026-10-23。用户追加复制粘贴要求后，继续实际核对。已有远端图片/文件上传及普通文本粘贴保留；本轮在编译的阶段六十二产品上运行真实SSH窗口，右键菜单仅分屏/关闭，没有Copy/Paste，基线退出1并保存菜单截图。ff69ca707接入原终端选区复制处理、Ctrl+Shift+C选区复制和终端菜单Copy/Paste；菜单保留分屏/关闭，mounted控件注册按实例撤销，Paste只在当前终端可用时聚焦并调用当前窗口原生粘贴事件，文本、图片/文件和bracketed paste沿用原链路。5cd4c9929将浏览器剪贴板不可用的回退显式指向当前DirectWorkstationApi.copyText，不依赖账号IPC或远端OS剪贴板；没有host/tRPC/DB/身份合同变更。
+
+初次本地验收先通过图片像素、远端shell读取、重复不覆盖、3474字节中文多行与36字节中文/引号文件名，再进入鼠标捕获TUI。一次因验证器把菜单项当button选择而失败，改用已有menu:选择器后，真实Ctrl+Shift+C和菜单Copy均正确复制中文选区，却发现随后键盘粘贴没有送达，raw输入仍为空。该产品失败保留在verified-local及focus-failure-input；针对确切5cd4c9929源码的焦点回归0通过1失败。cb3bb5ea7在复制完成后恢复本终端焦点，关闭实例不抢焦点；新验证器5312cd31f等待菜单完全关闭后核对同一TEXTAREA，再执行连续粘贴。没有通过额外点击终端掩盖此问题，没有重试、放宽断言或加大等待上限。
+
+最终103项通过、0失败、2813断言/8文件，包含原Unicode/宽字/折行复制、剪贴板/快捷键、图片fallback、直连组件/窗格、无账号启动图、回退与卸载后粘贴撤销、复制后焦点。完整桌面类型、i18n一致性及严格catalog编译、插件检查通过；最终格式无错误，仅2个既有warning/2个既有info。初期测试forEach返回值lint错误已改for循环，失败日志保存。最终源码仅以electron-vite编译，没有CLI打包、安装包、密封后端归档或GitHub Actions。
+
+最终focus-fixed-local、focus-fixed-ssh均退出0；SSH使用拥有的loopback夹具，并先完成原20次恢复。两端OS剪贴板图片像素一致、目标shell读取成功且重复粘贴不覆盖；3474字节长文本及36字节文件逐字节一致。真实鼠标Shift选择启用1000/1006鼠标捕获的全屏TUI中文/emoji文本，快捷键与菜单均复制到本机剪贴板且不发PTY输入。快捷键和菜单分别只发送一对200/201括号标记，Unicode多行按终端CR规则精确送达。菜单图片粘贴把目标工作区路径放入TUI；SSH含空格路径正确加引号。切Files→Terminal后，TUI输出OSC52将中文/emoji复制回本机，之后输入仍可用并正常退出，renderer错误均为空。原始字节和剪贴板读数是主要依据；raw夹具不会把粘贴内容回显，未用静态截图替代字节验证。[完整证据](evidence/local-ssh-feature-parity/stage63)。
+
+最终本地keyboard-copy/menu-paste与SSH keyboard-copy/remote-image-path-before-enter截图已实际查看，基线及两次失败截图也看过；其余只称已捕获。编译源码cb3bb5ea7的2205个文件两轮后复核不变，manifest SHA256 c66141719826e5cfd2a72d4e791ddd25a8086a3a8b440f1ee6484cbfdfc9e86b，既有CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。最终拥有Xorg PID69451由原Popen终止并wait退出0，本地/SSH夹具沿用finally清理。此结果不是逐家登录Claude/Codex等供应商或物理Mac/外部SSH主机验收；文件复制使用原生file URI剪贴板载荷，不冒称真实文件管理器手动Copy。整体原版功能对齐仍未完成。
