@@ -33,13 +33,13 @@ export interface FileDocumentView {
 	activeId: string | null;
 	order: string[];
 	labels: Record<string, string>;
-	revealLines: Record<string, number>;
+	revealPositions: Record<string, { line: number; column?: number }>;
 }
 const EMPTY_VIEW: FileDocumentView = {
 	activeId: null,
 	order: [],
 	labels: {},
-	revealLines: {},
+	revealPositions: {},
 };
 interface Scope {
 	views: Map<string, FileDocumentView>;
@@ -191,8 +191,8 @@ export class WorkstationFileDocuments {
 				view.order = view.order.filter((id) => ids.has(id));
 				for (const id of Object.keys(view.labels))
 					if (!ids.has(id)) delete view.labels[id];
-				for (const id of Object.keys(view.revealLines))
-					if (!ids.has(id)) delete view.revealLines[id];
+				for (const id of Object.keys(view.revealPositions))
+					if (!ids.has(id)) delete view.revealPositions[id];
 				if (view.activeId && !ids.has(view.activeId))
 					view.activeId = owned[0]?.id ?? null;
 			}

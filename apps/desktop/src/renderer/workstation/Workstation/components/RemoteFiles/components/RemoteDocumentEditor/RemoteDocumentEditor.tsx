@@ -74,6 +74,7 @@ export function RemoteDocumentEditor({
 	active,
 	busy,
 	revealLine,
+	revealPosition,
 	onSave,
 	onClose,
 	onFocusChange,
@@ -87,6 +88,7 @@ export function RemoteDocumentEditor({
 	active: boolean;
 	busy: boolean;
 	revealLine?: number;
+	revealPosition?: { line: number; column?: number };
 	onSave(): void;
 	onClose(): void;
 	onFocusChange(): void;
@@ -98,11 +100,11 @@ export function RemoteDocumentEditor({
 }) {
 	const { t } = useLingui();
 	const [markdownView, setMarkdownView] = useState(
-		revealLine ? "code" : "markdown-preview",
+		revealLine || revealPosition ? "code" : "markdown-preview",
 	);
 	useEffect(() => {
-		if (active && revealLine) setMarkdownView("code");
-	}, [active, revealLine]);
+		if (active && (revealLine || revealPosition)) setMarkdownView("code");
+	}, [active, revealLine, revealPosition]);
 	const appearance = useWorkstationAppearance();
 	useSyncExternalStore(
 		document.subscribe,
@@ -299,6 +301,7 @@ export function RemoteDocumentEditor({
 									}}
 									readOnly={busy || truncated || content.kind !== "text"}
 									revealLine={revealLine}
+									revealPosition={revealPosition}
 									onChange={(value) => {
 										try {
 											document.setContent(value);

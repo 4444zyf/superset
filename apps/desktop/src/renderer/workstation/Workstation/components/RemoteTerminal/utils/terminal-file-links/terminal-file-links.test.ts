@@ -46,7 +46,7 @@ test("the original detector resolves a remote stack trace and keeps the original
 	onFileLinkClick(event, link);
 	expect(event.defaultPrevented).toBe(true);
 	expect(opened).toEqual([
-		{ absolutePath: "/srv/project/src/example.ts", line: 12 },
+		{ absolutePath: "/srv/project/src/example.ts", line: 12, column: 7 },
 	]);
 	expect(requests[0]).toMatchObject({
 		connectionId: "ssh",

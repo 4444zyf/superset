@@ -1638,6 +1638,7 @@ test("a terminal file request opens the original editor at its line and preserve
 				requestId: "terminal-link",
 				absolutePath: "/Users/remote/repo/note.txt",
 				line: 3,
+				column: 3,
 			}}
 		/>,
 	);
@@ -1648,7 +1649,22 @@ test("a terminal file request opens the original editor at its line and preserve
 	if (!editorElement) throw new Error("Code editor missing");
 	const cm = EditorView.findFromDOM(editorElement);
 	if (!cm) throw new Error("Code editor state missing");
-	await waitFor(() => expect(cm.state.selection.main.head).toBe(8));
+	await waitFor(() => expect(cm.state.selection.main.head).toBe(10));
+	act(() => cm.dispatch({ selection: { anchor: 0 } }));
+	view.rerender(
+		<RemoteFiles
+			{...props}
+			openRequest={{
+				owner,
+				requestId: "terminal-link-again",
+				absolutePath: "/Users/remote/repo/note.txt",
+				line: 3,
+				column: 3,
+			}}
+		/>,
+	);
+	await waitFor(() => expect(cm.state.selection.main.head).toBe(10));
+	expect(handled).toEqual(["terminal-link", "terminal-link-again"]);
 	expect(
 		f.calls.filter((call) => call.path === "filesystem.readFile"),
 	).toHaveLength(1);
@@ -1661,7 +1677,7 @@ test("a terminal file request opens the original editor at its line and preserve
 			{...props}
 			openRequest={{
 				owner,
-				requestId: "terminal-link",
+				requestId: "terminal-link-again",
 				absolutePath: "/Users/remote/repo/note.txt",
 				line: 3,
 			}}
@@ -1672,7 +1688,7 @@ test("a terminal file request opens the original editor at its line and preserve
 			.getByRole("button", { name: "Changes" })
 			.getAttribute("aria-pressed"),
 	).toBe("true");
-	expect(handled).toEqual(["terminal-link"]);
+	expect(handled).toEqual(["terminal-link", "terminal-link-again"]);
 });
 
 test("a file request from a previous namespace is never read on the current machine", async () => {

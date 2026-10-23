@@ -641,7 +641,9 @@ test("file links use the owning backend and revoke old navigation after workspac
 	original.onFileLinkClick(new MouseEvent("click"), link);
 	expect(opened).toEqual([]);
 	original.onFileLinkClick(new MouseEvent("click", { metaKey: true }), link);
-	expect(opened).toEqual([{ absolutePath: "/remote/note.txt", line: 3 }]);
+	expect(opened).toEqual([
+		{ absolutePath: "/remote/note.txt", line: 3, column: 2 },
+	]);
 	reviewing = true;
 	original.onFileLinkClick(new MouseEvent("click", { ctrlKey: true }), link);
 	expect(opened).toHaveLength(1);

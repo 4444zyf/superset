@@ -48,6 +48,7 @@ export interface CodeEditorSurfaceProps {
 	language: string;
 	readOnly?: boolean;
 	revealLine?: number;
+	revealPosition?: { line: number; column?: number };
 	fillHeight?: boolean;
 	className?: string;
 	editorRef?: MutableRefObject<CodeEditorAdapter | null>;
@@ -67,6 +68,7 @@ export function CodeEditorSurface({
 	language,
 	readOnly = false,
 	revealLine,
+	revealPosition,
 	fillHeight = true,
 	className,
 	editorRef,
@@ -232,13 +234,22 @@ export function CodeEditorSurface({
 
 	useEffect(() => {
 		const view = viewRef.current;
-		if (!view || !Number.isInteger(revealLine) || !revealLine) return;
+		const requestedLine = revealPosition?.line ?? revealLine;
+		if (!view || !Number.isSafeInteger(requestedLine) || !requestedLine) return;
 		const line = view.state.doc.line(
-			Math.max(1, Math.min(revealLine, view.state.doc.lines)),
+			Math.max(1, Math.min(requestedLine, view.state.doc.lines)),
 		);
-		view.dispatch({ selection: { anchor: line.from }, scrollIntoView: true });
+		const column = revealPosition?.column;
+		const offset =
+			column && Number.isSafeInteger(column)
+				? Math.max(0, Math.min(column - 1, line.length))
+				: 0;
+		view.dispatch({
+			selection: { anchor: line.from + offset },
+			scrollIntoView: true,
+		});
 		view.focus();
-	}, [revealLine]);
+	}, [revealLine, revealPosition]);
 
 	useEffect(() => {
 		const view = viewRef.current;

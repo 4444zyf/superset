@@ -7,6 +7,7 @@ import type {
 export interface TerminalFileTarget {
 	absolutePath: string;
 	line?: number;
+	column?: number;
 }
 
 export function terminalFileLinks({
@@ -59,6 +60,9 @@ export function terminalFileLinks({
 				absolutePath: link.resolvedPath,
 				...(link.row && Number.isSafeInteger(link.row) && link.row > 0
 					? { line: link.row }
+					: {}),
+				...(link.col && Number.isSafeInteger(link.col) && link.col > 0
+					? { column: link.col }
 					: {}),
 			});
 		},

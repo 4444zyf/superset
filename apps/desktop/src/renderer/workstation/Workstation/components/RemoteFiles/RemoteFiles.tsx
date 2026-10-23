@@ -387,7 +387,11 @@ export function RemoteFiles({
 		});
 		return result;
 	};
-	const openFile = (absolutePath: string, revealLine?: number) => {
+	const openFile = (
+		absolutePath: string,
+		revealLine?: number,
+		revealColumn?: number,
+	) => {
 		if (ownerRef.current !== operationOwner) return;
 		try {
 			const existing = documentsManager
@@ -400,9 +404,9 @@ export function RemoteFiles({
 				activeId: document.id,
 				...(revealLine
 					? {
-							revealLines: {
-								...documentView.revealLines,
-								[document.id]: revealLine,
+							revealPositions: {
+								...documentView.revealPositions,
+								[document.id]: { line: revealLine, column: revealColumn },
 							},
 						}
 					: {}),
@@ -420,7 +424,11 @@ export function RemoteFiles({
 		if (consumedRequest.current === key) return;
 		consumedRequest.current = key;
 		setTab("files");
-		openFileRef.current(openRequest.absolutePath, openRequest.line);
+		openFileRef.current(
+			openRequest.absolutePath,
+			openRequest.line,
+			openRequest.column,
+		);
 		onOpenRequestHandled?.(openRequest.requestId);
 	}, [openRequest, operationOwner, onOpenRequestHandled]);
 
@@ -715,7 +723,7 @@ export function RemoteFiles({
 												);
 											await api.openExternal(url);
 										}}
-										revealLine={documentView.revealLines[document.id]}
+										revealPosition={documentView.revealPositions[document.id]}
 										onSave={() => {
 											void save(document);
 										}}

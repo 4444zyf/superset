@@ -34,7 +34,10 @@ export async function verifyWorkstationTerminalFileLinksUi(options) {
  finally {const diagnostic=await evaluate(`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;let stat;try{stat=await window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:'filesystem.statPath',type:'mutation',input:{workspaceId:${JSON.stringify(scope.workspaceId)},path:'terminal-link.txt'}});}catch(error){stat={error:String(error)}}return {stat,features:await window.directWorkstation.refreshFeatures(d),events:window.__fileLinkEvents,hit:document.elementFromPoint(${point.x},${point.y})?.className,cursor:getComputedStyle(document.elementFromPoint(${point.x},${point.y})).cursor};})()`);writeFileSync(join(output,'terminal-file-link-diagnostic.json'),JSON.stringify(diagnostic,null,2)+'\n');writeFileSync(join(output,'terminal-file-link-navigation.json'),JSON.stringify({scope,workspaceRoot:workspace.worktreePath,terminal,execution,point,opened,sourceRevision:process.env.GITHUB_SHA},null,2)+'\n');await screenshot(opened?'terminal-file-link-viewer':'terminal-file-link-missing-viewer');}
  await until(()=>evaluate(`document.querySelector('${editor}')?.textContent.includes('three 中文')`),'selected linked file loaded');
  const activeLine=await evaluate(`document.querySelector('${activeLineSelector}')?.textContent`);assert.equal(activeLine,'three 中文');
- await click(editor);await key('End',35);await getPage().call('Input.insertText',{text:' retained draft'});
+ const cursor=await evaluate(`(()=>{const s=getSelection();return {text:s?.anchorNode?.textContent,offset:s?.anchorOffset};})()`);
+ assert.deepEqual(cursor,{text:'three 中文',offset:1},'terminal link uses one-based column 2');
+ await getPage().call('Input.insertText',{text:' retained draft '});
+ await until(()=>evaluate(`document.querySelector('${activeLineSelector}')?.textContent==='t retained draft hree 中文'`),'typed draft starts at linked column');
  await screenshot('terminal-file-link-dirty-draft');
  await click('text:Terminal');await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(selector)}+'[data-restore-state="attached"]'))`),'original terminal restored after viewer');
  const after=await controls.inspectPresetTerminal(terminal.id);assert.equal(after.pid,execution.pid);assert.equal(after.executionId,execution.executionId);
@@ -50,5 +53,5 @@ export async function verifyWorkstationTerminalFileLinksUi(options) {
  await until(()=>evaluate(`document.querySelector('${activeLineSelector}')?.textContent==='three 中文'`),'file link works after window reopen');await screenshot('terminal-file-link-window-reopen');
  for(const original of originals){const row=await controls.inspectPresetTerminal(original.id);assert.deepEqual({id:row.id,pid:row.pid,executionId:row.executionId,cwd:row.cwd},original);}
  assert.deepEqual(getPage().errors,[]);
- writeFileSync(join(output,'terminal-file-links-ui.json'),JSON.stringify({scope,originals,terminal,execution,activeLine,modifierClick:true,plainClickPreserved:true,originalFileEditor:true,draftRetainedAcrossTerminalSwitch:true,linkAfterWindowReopen:true,backendFileUnchanged:true,columnNavigation:false,urlNavigation:false,macOSVerified:false,sourceRevision:process.env.GITHUB_SHA,errors:getPage().errors},null,2)+'\n');
+ writeFileSync(join(output,'terminal-file-links-ui.json'),JSON.stringify({scope,originals,terminal,execution,activeLine,cursor,modifierClick:true,plainClickPreserved:true,originalFileEditor:true,draftRetainedAcrossTerminalSwitch:true,linkAfterWindowReopen:true,backendFileUnchanged:true,columnNavigation:true,urlNavigation:false,macOSVerified:false,sourceRevision:process.env.GITHUB_SHA,errors:getPage().errors},null,2)+'\n');
 }
