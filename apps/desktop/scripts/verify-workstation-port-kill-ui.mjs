@@ -74,7 +74,15 @@ export async function verifyWorkstationPortKillUi(options, context) {
 		"port close cancelled",
 	);
 	assert.equal((await read()).running, true);
-	assert.equal(await (await fetch(url)).text(), initial.marker);
+	const cancelledBody = await (await fetch(url)).text();
+	assert.equal(cancelledBody, initial.marker);
+	report.cancelledPortClose = {
+		running: true,
+		url,
+		body: cancelledBody,
+		port: initial.port,
+	};
+	await screenshot("ports-service-close-cancelled");
 	if (!(await evaluate(`Boolean(document.querySelector('[role=menu]'))`)))
 		await click("text:Port");
 	await until(
