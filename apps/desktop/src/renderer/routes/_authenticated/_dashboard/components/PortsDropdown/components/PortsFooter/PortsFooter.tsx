@@ -1,10 +1,9 @@
 import { plural } from "@lingui/core/macro";
-import { Trans, useLingui } from "@lingui/react/macro";
+import { useLingui } from "@lingui/react/macro";
 import { toast } from "@superset/ui/sonner";
-import { LuLoaderCircle, LuX } from "react-icons/lu";
 import { useDashboardSidebarPortKill } from "renderer/routes/_authenticated/_dashboard/components/DashboardSidebar/hooks/useDashboardSidebarPortKill";
 import type { DashboardSidebarPortGroup } from "renderer/routes/_authenticated/_dashboard/components/DashboardSidebar/hooks/useDashboardSidebarPortsData";
-import { STROKE_WIDTH } from "renderer/screens/main/components/WorkspaceSidebar/constants";
+import { PortsFooterView } from "./components/PortsFooterView";
 
 interface PortsFooterProps {
 	groups: DashboardSidebarPortGroup[];
@@ -33,32 +32,10 @@ export function PortsFooter({ groups, totalPortCount }: PortsFooterProps) {
 	};
 
 	return (
-		<div className="flex items-center justify-between border-border border-t px-3 py-1.5">
-			<span className="text-[11px] text-muted-foreground">
-				{t({
-					message: plural(totalPortCount, {
-						one: "# live port",
-						other: "# live ports",
-					}),
-				})}
-			</span>
-			<button
-				type="button"
-				onClick={() => void handleCloseAll()}
-				disabled={isPending}
-				aria-busy={isPending}
-				className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:pointer-events-none disabled:opacity-60"
-			>
-				{isPending ? (
-					<LuLoaderCircle
-						className="size-3 animate-spin"
-						strokeWidth={STROKE_WIDTH}
-					/>
-				) : (
-					<LuX className="size-3" strokeWidth={STROKE_WIDTH} />
-				)}
-				<Trans>Close all</Trans>
-			</button>
-		</div>
+		<PortsFooterView
+			totalPortCount={totalPortCount}
+			isPending={isPending}
+			onCloseAll={() => void handleCloseAll()}
+		/>
 	);
 }

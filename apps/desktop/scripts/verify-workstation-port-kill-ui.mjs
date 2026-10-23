@@ -25,6 +25,16 @@ export async function verifyWorkstationPortKillUi(options, context) {
 	} = context;
 	const { evaluate, until } = agentUiDriver(options);
 	const row = `[data-workspace-ports] [data-port="${initial.port}"]`;
+	const bulk = process.argv.includes("--port-bulk");
+	const closeAction = bulk
+		? "[data-workspace-ports] [data-port-footer] button"
+		: `${row} button[aria-label="Close port ${initial.port}"]`;
+	const expectedPorts = bulk ? initial.ports : [initial.port];
+	assert.ok(Array.isArray(expectedPorts) && expectedPorts.length > 0);
+	const protectedPorts = [];
+	const confirmationTitle = bulk
+		? "These ports are still in use"
+		: "This port is still in use";
 	await click(
 		`button.ws-workspace-card[aria-label=${JSON.stringify(workspace.name)}]`,
 	);
@@ -39,10 +49,41 @@ export async function verifyWorkstationPortKillUi(options, context) {
 	await until(
 		() =>
 			evaluate(
-				`Boolean(document.querySelector(${JSON.stringify(row)}+' button[aria-label="Close port ${initial.port}"]'))`,
+				`Boolean(document.querySelector(${JSON.stringify(closeAction)}))`,
 			),
 		"original port close action",
 	);
+	if (bulk) {
+		await until(
+			() =>
+				evaluate(
+					`${JSON.stringify(expectedPorts)}.every(port=>document.querySelector('[data-workspace-ports] [data-port="'+port+'"]'))`,
+				),
+			"both owned service ports discovered",
+		);
+		const observed = await controls.inspectWorkspacePorts(
+			report.scope.workspaceId,
+		);
+		for (const port of observed) {
+			if (expectedPorts.includes(port.port)) {
+				assert.equal(port.pid, initial.pid);
+				assert.equal(port.terminalId, terminal.id);
+			} else {
+				assert.equal(port.processName, "bash");
+				assert.ok(
+					originals.some(
+						(original) =>
+							original.id === port.terminalId && original.pid === port.pid,
+					),
+					"bulk test may only target the owned original shells and server",
+				);
+				protectedPorts.push(port);
+			}
+		}
+		assert.ok(
+			expectedPorts.every((port) => observed.some((p) => p.port === port)),
+		);
+	}
 	await setClipboard({ text: "KILL-COPY-SENTINEL" });
 	await click(`${row} button[aria-label="Copy localhost:${initial.port}"]`);
 	const url = await until(async () => {
@@ -59,11 +100,11 @@ export async function verifyWorkstationPortKillUi(options, context) {
 	const before = await fetch(url);
 	assert.equal(await before.text(), initial.marker);
 	await screenshot("ports-before-service-close");
-	await click(`${row} button[aria-label="Close port ${initial.port}"]`);
+	await click(closeAction);
 	await until(
 		() =>
 			evaluate(
-				`document.querySelector('[role=dialog]')?.textContent.includes('This port is still in use')`,
+				`document.querySelector('[role=dialog]')?.textContent.includes(${JSON.stringify(confirmationTitle)})`,
 			),
 		"original close confirmation",
 	);
@@ -88,19 +129,19 @@ export async function verifyWorkstationPortKillUi(options, context) {
 	await until(
 		() =>
 			evaluate(
-				`Boolean(document.querySelector(${JSON.stringify(row)}+' button[aria-label="Close port ${initial.port}"]'))`,
+				`Boolean(document.querySelector(${JSON.stringify(closeAction)}))`,
 			),
 		"close row after cancellation",
 	);
-	await click(`${row} button[aria-label="Close port ${initial.port}"]`);
+	await click(closeAction);
 	await until(
 		() =>
 			evaluate(
-				`document.querySelector('[role=dialog]')?.textContent.includes('This port is still in use')`,
+				`document.querySelector('[role=dialog]')?.textContent.includes(${JSON.stringify(confirmationTitle)})`,
 			),
 		"close confirmation after cancellation",
 	);
-	await click("text:Close port");
+	await click(bulk ? "text:Close ports" : "text:Close port");
 	await until(
 		() => evaluate(`!document.querySelector('[role=dialog]')`),
 		"close confirmation accepted",
@@ -114,10 +155,19 @@ export async function verifyWorkstationPortKillUi(options, context) {
 	await until(
 		() =>
 			evaluate(
-				`(()=>{const root=document.querySelector('[data-workspace-ports]');return root&&!root.querySelector('[role=alert]')&&!root.innerText.includes('Loading...')&&root.querySelector('button')?.getAttribute('aria-busy')!=='true'&&!root.querySelector('[data-port="${initial.port}"]');})()`,
+				`(()=>{const root=document.querySelector('[data-workspace-ports]');return root&&!root.innerText.includes('Loading...')&&root.querySelector('button')?.getAttribute('aria-busy')!=='true'&&!${JSON.stringify(expectedPorts)}.some(port=>root.querySelector('[data-port="'+port+'"]'));})()`,
 			),
 		"closed service row removed after completed read",
 	);
+	const closeAlerts = await evaluate(
+		`Array.from(document.querySelectorAll('[data-workspace-ports] [role=alert]'),e=>e.textContent)`,
+	);
+	if (protectedPorts.length) {
+		assert.equal(closeAlerts.length, 1);
+		assert.ok(
+			closeAlerts[0].includes("Cannot kill the terminal shell process"),
+		);
+	} else assert.deepEqual(closeAlerts, []);
 	await assert.rejects(fetch(url, { signal: AbortSignal.timeout(1000) }));
 	const retained = await controls.inspectPresetTerminal(terminal.id);
 	assert.equal(retained.alive, true);
@@ -145,6 +195,10 @@ export async function verifyWorkstationPortKillUi(options, context) {
 		});
 	}
 	report.killed = {
+		bulk,
+		expectedPorts,
+		protectedPorts,
+		closeAlerts,
 		retainedOriginals,
 		port: initial.port,
 		serverPid: initial.pid,

@@ -378,3 +378,51 @@ test.each([
 	expect(requests).toEqual([]);
 	expect(screen.queryByRole("alert")).toBeNull();
 });
+
+test("Close all confirms the visible workspace once and reports partial failures", async () => {
+	const counts: number[] = [];
+	const requests: unknown[] = [];
+	let running = [3000, 4000];
+	const api = {
+		listPorts: async () => [
+			...running.map((p) => port(p)),
+			port(5000, "other"),
+		],
+		killWorkspacePort: async (...args: unknown[]) => {
+			requests.push(args);
+			if (args[3] === 3000) {
+				running = running.filter((p) => p !== 3000);
+				return { success: true };
+			}
+			return {
+				success: false,
+				error: "Cannot kill the terminal shell process",
+			};
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspacePorts
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			busy={false}
+			confirmClose={async (count) => {
+				counts.push(count);
+				return true;
+			}}
+			onOpenPort={() => {}}
+		/>,
+	);
+	fireEvent.click(await screen.findByRole("button", { name: "Close all" }));
+	await screen.findByRole("alert");
+	await waitFor(() => expect(screen.queryByText(":3000")).toBeNull());
+	expect(counts).toEqual([2]);
+	expect(requests).toEqual([
+		[connection, "workspace", "terminal-3000", 3000],
+		[connection, "workspace", "terminal-4000", 4000],
+	]);
+	expect(screen.getByText(":4000")).toBeTruthy();
+	expect(screen.getByRole("alert").textContent).toContain(
+		"Cannot kill the terminal shell process",
+	);
+});

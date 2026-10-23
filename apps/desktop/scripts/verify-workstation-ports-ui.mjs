@@ -64,25 +64,29 @@ export async function verifyWorkstationPortsUi(options) {
 	const marker = `OWNED-PORT-${randomUUID()}`;
 	const urlLinks = process.argv.includes("--terminal-url-links");
 	const script = [
-		"import http.server,json,os,signal",
-		"def stop(*args): raise KeyboardInterrupt",
+		"import http.server,json,os,signal,threading",
+		"proof_lock=threading.Lock()",
+		"def stop(*args): signal.signal(signal.SIGTERM,signal.SIG_IGN);raise KeyboardInterrupt",
 		"signal.signal(signal.SIGTERM,stop)",
 		"from pathlib import Path",
 		`state={"marker":${JSON.stringify(marker)},"requests":[],"pid":os.getpid(),"running":True}`,
-		'def save():\n temp=Path("port-proof.tmp");temp.write_text(json.dumps(state)+"\\n");temp.replace("port-proof.json")',
+		'def save():\n with proof_lock:\n  temp=Path("port-proof.tmp");temp.write_text(json.dumps(state)+"\\n");temp.replace("port-proof.json")',
 		"class Handler(http.server.BaseHTTPRequestHandler):",
 		" def do_GET(self):",
-		'  state["requests"].append({"path":self.path,"userAgent":self.headers.get("User-Agent")});save()',
+		'  state["requests"].append({"path":self.path,"userAgent":self.headers.get("User-Agent"),"serverPort":self.server.server_port});save()',
 		'  body=state["marker"].encode();self.send_response(200);self.send_header("Content-Type","text/plain");self.send_header("Cache-Control","no-store");self.send_header("Content-Length",str(len(body)));self.end_headers();self.wfile.write(body)',
 		" def log_message(self,*args): pass",
 		'server=http.server.HTTPServer(("127.0.0.1",0),Handler)',
+		process.argv.includes("--port-bulk")
+			? 'second=http.server.HTTPServer(("127.0.0.1",0),Handler);state["ports"]=[server.server_port,second.server_port];worker=threading.Thread(target=second.serve_forever,daemon=True);worker.start()'
+			: 'second=None;state["ports"]=[server.server_port]',
 		'state["port"]=server.server_port;state["url"]="http://localhost:"+str(server.server_port)+"/preview/sub?value=%E4%B8%AD%20hello#fragment";save()',
 		urlLinks
 			? 'print("\\x1b[2J\\x1b[H"+state["url"]+"\\n\\x1b]8;;"+state["url"]+"\\x07OPEN WEB LINK\\x1b]8;;\\x07",flush=True)'
 			: 'print("OWNED HTTP SERVER",server.server_port,flush=True)',
 		"try: server.serve_forever()",
 		"except KeyboardInterrupt: pass",
-		'finally: server.server_close();state["running"]=False;save()',
+		'finally: server.server_close();second.shutdown() if second else None;second.server_close() if second else None;state["running"]=False;save()',
 	].join("\n");
 	const command = `python3 -c 'import base64;exec(base64.b64decode("${Buffer.from(script).toString("base64")}"))'`;
 	const key = async (key, code, modifiers = 0) => {
@@ -180,7 +184,10 @@ export async function verifyWorkstationPortsUi(options) {
 				launches,
 				report,
 			});
-			if (process.argv.includes("--port-kill")) {
+			if (
+				process.argv.includes("--port-kill") ||
+				process.argv.includes("--port-bulk")
+			) {
 				const { verifyWorkstationPortKillUi } = await import(
 					"./verify-workstation-port-kill-ui.mjs"
 				);

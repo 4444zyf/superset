@@ -1,4 +1,4 @@
-import { msg } from "@lingui/core/macro";
+import { msg, plural } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { i18n } from "@superset/i18n";
 import { errorMessage } from "@superset/i18n/errors";
@@ -6,6 +6,7 @@ import { Button } from "@superset/ui/button";
 import { useEffect, useRef, useState } from "react";
 import { confirmClosePorts } from "renderer/hooks/ports/usePortKillActions/confirmClosePorts";
 import { PortRowView } from "renderer/routes/_authenticated/_dashboard/components/PortsDropdown/components/PortRow/components/PortRowView";
+import { PortsFooterView } from "renderer/routes/_authenticated/_dashboard/components/PortsDropdown/components/PortsFooter/components/PortsFooterView";
 import type {
 	DirectDescriptor,
 	DirectPort,
@@ -20,7 +21,7 @@ export function RemoteWorkspacePorts({
 	onOpenPort,
 	onCopyPort,
 	pollMs = 2000,
-	confirmClose = () => confirmClosePorts(1),
+	confirmClose = confirmClosePorts,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor;
@@ -29,7 +30,7 @@ export function RemoteWorkspacePorts({
 	onOpenPort(port: number): void;
 	onCopyPort?(port: number): Promise<void>;
 	pollMs?: number;
-	confirmClose?(): Promise<boolean>;
+	confirmClose?(count: number): Promise<boolean>;
 }) {
 	const owner = JSON.stringify([
 		connection.connectionId,
@@ -67,7 +68,7 @@ export function RemoteWorkspacePorts({
 		message: string;
 	} | null>(null);
 	const isClosing = closing?.api === api && closing.owner === owner;
-	const closePort = async (port: DirectPort) => {
+	const closePorts = async (ports: DirectPort[]) => {
 		const kill = api.killWorkspacePort;
 		const isCurrent = () =>
 			mounted.current &&
@@ -78,7 +79,8 @@ export function RemoteWorkspacePorts({
 			!kill ||
 			!isCurrent() ||
 			current.current.busy ||
-			port.workspaceId !== workspaceId ||
+			ports.length === 0 ||
+			ports.some((port) => port.workspaceId !== workspaceId) ||
 			(closingRef.current?.api === api && closingRef.current.owner === owner)
 		)
 			return;
@@ -87,22 +89,54 @@ export function RemoteWorkspacePorts({
 		setClosing(token);
 		setCloseError(null);
 		try {
-			if (!(await confirmClose()) || !isCurrent() || current.current.busy)
+			if (
+				!(await confirmClose(ports.length)) ||
+				!isCurrent() ||
+				current.current.busy
+			)
 				return;
-			const result = await kill.call(
-				api,
-				connection,
-				workspaceId,
-				port.terminalId,
-				port.port,
+			const results = await Promise.all(
+				ports.map(async (port) => {
+					try {
+						return await kill.call(
+							api,
+							connection,
+							workspaceId,
+							port.terminalId,
+							port.port,
+						);
+					} catch (error) {
+						return { success: false, error: errorMessage(error) };
+					}
+				}),
 			);
 			if (!isCurrent()) return;
-			if (!result || result.success !== true)
-				throw new Error(
-					result?.error ||
-						i18n._(msg({ message: `Failed to close port ${port.port}` })),
-				);
 			readNow.current?.();
+			const failed = results.flatMap((result, index) =>
+				result?.success === true
+					? []
+					: [{ port: ports[index], error: result?.error }],
+			);
+			if (failed.length) {
+				const first = failed[0];
+				if (ports.length === 1)
+					throw new Error(
+						first?.error ||
+							i18n._(
+								msg({ message: `Failed to close port ${ports[0]?.port}` }),
+							),
+					);
+				throw new Error(
+					i18n._(
+						msg({
+							message: plural(failed.length, {
+								one: "Failed to close # port",
+								other: "Failed to close # ports",
+							}),
+						}),
+					) + (first?.error ? `\n${first.error}` : ""),
+				);
+			}
 		} catch (error) {
 			if (isCurrent())
 				setCloseError({ api, owner, message: errorMessage(error) });
@@ -230,53 +264,62 @@ export function RemoteWorkspacePorts({
 					<Trans>No ports detected</Trans>
 				</p>
 			) : (
-				<div className="max-h-64 overflow-y-auto">
-					{snapshot.ports.map((port) => (
-						<PortRowView
-							key={`${port.terminalId}:${port.port}`}
-							port={port}
-							isPending={isClosing}
-							closeDisabled={busy}
-							onClose={
-								typeof api.killWorkspacePort === "function"
-									? () => void closePort(port)
-									: undefined
-							}
-							description={[port.label, port.processName]
-								.filter(Boolean)
-								.join(" · ")}
-							externalDisabled={busy || !!snapshot.error}
-							copyDisabled={busy}
-							onCopy={
-								onCopyPort && api.preparePort && api.copyText
-									? async () => {
-											if (
-												!mounted.current ||
-												current.current.api !== api ||
-												current.current.owner !== owner ||
-												!current.current.available ||
-												current.current.busy
-											)
-												return;
-											await current.current.onCopyPort?.(port.port);
-										}
-									: undefined
-							}
-							onExternal={() => {
-								if (
-									!mounted.current ||
-									current.current.api !== api ||
-									current.current.owner !== owner ||
-									!current.current.available ||
-									current.current.busy ||
-									snapshot.error
-								)
-									return;
-								current.current.onOpenPort(port.port);
-							}}
+				<>
+					<div className="max-h-64 overflow-y-auto">
+						{snapshot.ports.map((port) => (
+							<PortRowView
+								key={`${port.terminalId}:${port.port}`}
+								port={port}
+								isPending={isClosing}
+								closeDisabled={busy}
+								onClose={
+									typeof api.killWorkspacePort === "function"
+										? () => void closePorts([port])
+										: undefined
+								}
+								description={[port.label, port.processName]
+									.filter(Boolean)
+									.join(" · ")}
+								externalDisabled={busy || !!snapshot.error}
+								copyDisabled={busy}
+								onCopy={
+									onCopyPort && api.preparePort && api.copyText
+										? async () => {
+												if (
+													!mounted.current ||
+													current.current.api !== api ||
+													current.current.owner !== owner ||
+													!current.current.available ||
+													current.current.busy
+												)
+													return;
+												await current.current.onCopyPort?.(port.port);
+											}
+										: undefined
+								}
+								onExternal={() => {
+									if (
+										!mounted.current ||
+										current.current.api !== api ||
+										current.current.owner !== owner ||
+										!current.current.available ||
+										current.current.busy ||
+										snapshot.error
+									)
+										return;
+									current.current.onOpenPort(port.port);
+								}}
+							/>
+						))}
+					</div>
+					{typeof api.killWorkspacePort === "function" && (
+						<PortsFooterView
+							totalPortCount={snapshot.ports.length}
+							isPending={isClosing || busy}
+							onCloseAll={() => void closePorts(snapshot.ports)}
 						/>
-					))}
-				</div>
+					)}
+				</>
 			)}
 		</section>
 	);
