@@ -19,7 +19,8 @@ export class TerminalPendingInput {
 	}
 
 	take(): string {
-		const { data, queuedAt } = this;
+		const data = this.data;
+		const queuedAt = this.queuedAt;
 		this.clear();
 		if (queuedAt === undefined) return "";
 		const age = this.now() - queuedAt;

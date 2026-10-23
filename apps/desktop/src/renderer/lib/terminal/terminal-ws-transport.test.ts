@@ -284,7 +284,8 @@ test.each([
 	const transport = createTransport({ now: () => now });
 	const terminal = new HeadlessTerminal({ allowProposedApi: true });
 	connect(transport, terminal as unknown as XTerm, "ws://host/terminal/t1");
-	let socket = FakeRelaySocket.instances.at(-1)!;
+	let socket = FakeRelaySocket.instances.at(-1);
+	if (!socket) throw new Error("expected socket");
 	try {
 		terminal.input("old command", true);
 		if (action === "expired") now = 5001;
@@ -306,7 +307,8 @@ test.each([
 				terminal as unknown as XTerm,
 				"ws://other/terminal/t2",
 			);
-		socket = FakeRelaySocket.instances.at(-1)!;
+		socket = FakeRelaySocket.instances.at(-1);
+		if (!socket) throw new Error("expected attached socket");
 		socket.open();
 		socket.message(
 			JSON.stringify({

@@ -151,7 +151,11 @@ async function pendingFixture(strict: boolean) {
 		sent,
 		view,
 		props,
-		current: () => ({ listener, socketId, terminal: terminals.at(-1)! }),
+		current: () => {
+			const terminal = terminals.at(-1);
+			if (!terminal) throw new Error("expected emulator");
+			return { listener, socketId, terminal };
+		},
 	};
 }
 
