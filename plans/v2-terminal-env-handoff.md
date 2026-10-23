@@ -1,5 +1,10 @@
 # V2 Terminal Env Handoff
 
+> The TERM_PROGRAM kitty identity described below is superseded (2026-10-23).
+> New terminal environments omit that identity and its version; desktop
+> surfaces answer XTVERSION with the product name and an xterm.js marker.
+> See [the current parity checklist](../docs/design/local-ssh-feature-parity.md).
+
 Last refined: 2026-04-05
 
 ## Goal

@@ -1054,3 +1054,23 @@ TDD先在原实现执行，75通过3失败，分别复现桌面层尚未放行st
 独立本机窗口先实际创建A/B namespace、选择和同backend实例恢复，再运行相同文件链接流程，实际第3行第2列及重开再次定位通过。A原PID18143/18175和执行ID保持，fixture PID18517在往返保持；未选B的PID18325/执行ID在全部链接检查后仍存活且不变。两端各两张草稿保留/重开图已实际查看，其余相关截图捕获但未混称全部已查看。原生JSON/相关截图及无损gzip日志归档于stage56；编译输出逐文件SHA在两轮后再次核对未变。只读CodeMirror数值不等于系统文本选区或未点击编辑器直接输入验收，草稿输入仍使用原明确编辑器点击。
 
 所有拥有后端/SSH fixture由原finally路径清理，两个按UID与专属log路径匹配并记录启动tick的Xorg仅向各自正PID发送TERM，均退出0；没有向未知资源发信号，未声称PID1僵尸已回收。真实macOS/供应商Agent、安装包、悬停缓存刷新、目录/外部编辑器/URL及SSH端口跳转仍未完成。原版当前已取回1.39.0/853e3e8d8，新增功能核对入口已补入设计清单；本阶段不代表277条上游提交或整个功能对齐已经完成。
+
+## 阶段五十七：终端身份协商与恢复回放边界
+
+2026-10-23。核对并移植官方295bb0fc5/#8456的终端身份部分和11e27fd12/#8521的XTVERSION部分；原生Cmd+C和attach输入队列未混算完成。桌面旧环境allowlist和host新终端环境均不再设置/继承TERM_PROGRAM及TERM_PROGRAM_VERSION，TERM/truecolor/主题/UTF-8和既有shell元数据不变。原通用surface与原runtime注册同一个实际parser处理器，以PRODUCT_BRAND生成Superset Remix (xterm.js)，保留OpenTUI所需子串并避开Claude对stock前缀的判断。原全速滚动处理、只读回看、Linux粘贴和键盘翻译未改。删除旧测试中“必须是kitty类TERM_PROGRAM”的过期断言，与官方同一修复一致；环境实际行为、真实headless parser和25项原滚动测试覆盖替代合同，旧计划顶部已标明此部分被取代。
+
+初始源码e637e6c8d。旧环境测试先45通过2失败/80通过1失败；新helper尚不存在的导入错误单列记录，不当成产品行为证明。实现后初始210项相关检查/两端类型通过，但没有据此宣称实际恢复成功。真实native-baseline先因多行Input.insertText令Python源码拼接错误失败，截图/原始错误保留；改为先以Python compile检查固定脚本、再经单行base64传输，不用JSON.stringify作shell转义。native-baseline2在冻结旧产品92a4025fd的真实本机窗口中取得TERM_PROGRAM=kitty、版本0.42.0与stock xterm.js(6.1.0-beta.302)回复，然后按预期退出1。
+
+e637e6c8d实际native-local/native-ssh首次查询均得到新回复且身份为空，但正常重开后的第二次查询失败，不计为恢复验收通过。native-local2增加真实Page.bringToFront和焦点观测，页面/活动pane/textarea/attached均为true，失败仍在。native-local3仅增加有界只读DOM输入事件及原daemon输出检查：两次命令都到达浏览器textarea；重开后的PTY原字节中，新的python3命令前出现>|Superset Remix (xterm.js)及ESC尾字节。真实原因是原始历史里保留的旧CSI > q再次触发回复，协议字节进入已在读命令的shell；不是第二条命令没送达，也不是简单的缺焦点。原始失败和诊断不覆写。[完整红绿/原生证据](evidence/local-ssh-feature-parity/stage57)。
+
+最终修复42f7ac02d在既有attached消息仅增加replaying=true，并在daemon的实际回放checkpoint、前导模式与缓冲历史之后发送replay-complete。快/慢checkpoint与中途关闭分别有测试，不改已有输入、错误、权限、认证、所有者或执行身份校验。增加可注入daemon连接器仅供隔离测试，默认仍用原连接器，没有全局mock共享模块。旧客户端忽略额外信息；新客户端在旧后端未标边界时保留stock响应，不将新能力假定为可用，不提高最低版本或强制更新/停止已有后端。
+
+新直接终端的回放gate只在有标记时启用自定义回复。历史中的XTVERSION查询被消费而不回复，收到完成事件且xterm实际write回调释放完所有排队历史后才回复新查询；写异常释放计数，关闭/换终端自然销毁私有状态，不新增持久键、身份或数据库。普通键盘发送不经过这个查询gate，不用延时猜测完成，不丢弃/缓存普通命令来掩盖问题。真实headless测试专门覆盖完成事件早于历史实际解析，以及旧host回退/handler释放；该gate不声称修复所有查询族或连接前输入缓冲。
+
+回放改动TDD先路由1通过2失败、客户端9通过1失败、版本处理器3通过2失败，分别固定缺少边界、未区分历史写入与重复回复。最终桌面相关14文件144项/2946断言、host两文件50项/133断言、shared原滚动1文件25项/52断言通过，共219项，不能把中间重复运行再相加。完整桌面/host类型和插件检查通过。一次扩大回归中143通过1失败：原关联脚本测试在初始化未完成时直接点击入口，缺少控件已可用的前置等待；仅给测试补原enabled状态等待后同一回归144通过，不改脚本产品行为/超时、不靠重试，原日志保留。格式检查无错误，回放相关原文件有6项既有warning/2项info，未做unsafe修复；无新增需翻译的产品文案。
+
+最终只做8GiB配置的electron-vite源码编译，未运行compile:app、CLI打包、electron-builder、密封后端归档或Actions。最终产品/验证器为42f7ac02d，compiled manifest为fd49d65573cad8cd965a09a326659ddb18f8a66868c30746228d6bad243db07a；两轮后逐文件字节再核对未变。当前环境既有CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb，未重建或借此宣称CLI新功能交付。
+
+native-replay-local和native-replay-ssh使用相同冻结产品、独立Xorg/拥有profile/backend，均退出0。实际点击新终端输入Python PTY探针，首次与正常关闭重开后的第二次均读取空TERM_PROGRAM/version及精确ESC P >|Superset Remix (xterm.js) ESC反斜杠；真实PTY输出不再含回放版本回复，两次命令均完成。原本机A PID31412/31432及probe PID31756、执行ID保持，未选B PID31592/执行ID仍活；SSH原PID31516/31545/31552及probe PID34859/执行ID保持，并运行原工作区20次恢复采样。两端renderer错误为空，重开后的截图各一张已实际查看，其他截图捕获但未混称全部查看。原生JSON原样归档、日志无损gzip；summary.json独立核对旧回复、实际输入污染、修复结果与PID/执行身份。
+
+探针是实际PTY上的受控Python协议过程，只读取四个公开终端环境值和协议回复，不是已认证供应商Agent。没有为应用身份重新创建已有执行；已经运行的PTY环境不追溯修改。macOS、Claude/Codex真实滚动/复制、安装包、其他查询族、原生Cmd+C、自有选区和attach输入队列仍待实施/独立验证。全部拥有backend/SSH fixture由原finally清理；两个Xorg仅按UID与专属log路径匹配、记录启动tick后向各自正PID发TERM，均退出0，没有signal未知资源或声称已回收PID1僵尸。整体原版功能对齐继续按清单推进。

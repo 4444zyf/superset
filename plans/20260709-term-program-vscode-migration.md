@@ -1,5 +1,11 @@
 # Migrate terminal TERM_PROGRAM masquerade: kitty → vscode
 
+> **Superseded again (2026-10-23).** The fork now follows upstream #8456/#8521:
+> no inherited TERM_PROGRAM/TERM_PROGRAM_VERSION, and a branded XTVERSION
+> reply that keeps the xterm.js substring without starting with it. The
+> full-fidelity wheel handler and read-only history review stay in place.
+> See [the current parity checklist](../docs/design/local-ssh-feature-parity.md).
+
 Branch: `debug-terminal-scrollback` (PR #5563). Status: implemented and verified — manual pass and CDP pass both complete.
 
 > **SUPERSEDED (2026-07-11).** The vscode identity fixed scroll *distance* but
