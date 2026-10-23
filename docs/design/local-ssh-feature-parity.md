@@ -37,7 +37,7 @@
 | Agent 原生输入、候选命令、提及、模式/模型 | PromptInput、ACP | 待接入 | 按 `ssh-agent-native-input.md`，保留 TUI |
 | Agent 配置、技能、MCP 与工具配置 | settings.agentConfigs、agentTooling | 待接入 | 本地/SSH 配置，托管 MCP 不伪装为可用 |
 | 插件清单、安装、更新与移除 | plugins/installed_plugins.json、原插件界面 | 待接入 | 同一声明式状态，目标机器执行 |
-| 端口发现、转发、浏览器打开 | ports、已有 direct forwarding | 部分 | 阶段六十八至七十一接回发现、明确外部打开、复制、确认单端口/当前工作区批量关闭；旧后端保留手动输入，完整端口管理/内部浏览器待补 |
+| 端口发现、转发、浏览器打开 | ports、已有 direct forwarding | 部分 | 阶段六十八至七十二接回发现、明确外部打开、复制、确认单端口/当前工作区批量关闭和独立多转发；旧后端保留手动输入，完整端口管理/内部浏览器待补 |
 | 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 待接入 | 本机浏览器与远端页面的明确传输边界 |
 | 浏览器设置、数据导入与隔离 | 原 BrowserSettings | 待接入 | 原权限与用户选择，不隐式读取其他浏览器 |
 | 命令面板、全局快捷键与导航 | 原 commandPalette/hotkeys | 待接入 | 原注册表、设置与当前操作实际对应 |
@@ -181,3 +181,6 @@
 
 
 阶段七十一复用原PortsFooterView及多端口confirmClosePorts，接回当前工作区Close all；原全局页脚数据/动作保持，逐条复用原killWorkspacePort，部分失败如实显示并刷新。59项/2861断言、桌面类型、17语言及插件检查通过。旧产品两端口已显示但无Close all基线成立，新产品7ebd61ac1在本地和拥有SSH实际通过Cancel保留、确认关闭同PID双服务端口；本地恰好一项shell保护拒绝并保留该shell，SSH全部关闭且无错误，SSH含20次恢复。原PTY/未选B、复制/明确external和pending read检查继续通过，2205文件复核稳定，CLI不变，无打包或Actions。范围仍是当前工作区，跨工作区总览、多转发/标签和内部浏览器等继续待补。[阶段七十一证据](../implementation/evidence/local-ssh-feature-parity/stage71)。
+
+
+阶段七十二恢复独立多转发：前端取消打开/复制前关闭上一条的行为，复用原有界32条manager，按workspace过滤和按ID关闭；已保留缓存ID在后续copy/browser失败时不误关闭，新建失败仍清理，原连接事件清空全列表。25项/2712断言、类型、17语言和插件检查通过。旧产品复制第二条导致第一条不可用的真实基线成立；新产品f54d2a489在本地和拥有SSH均通过双URL同时200、重复复制不增控件、关一条另一条仍200、窗口关闭释放剩余地址/重开原进程后再建两条，SSH含20次恢复。逐阶段错误为空，原PTY/未选B及2205文件复核保持，CLI不变，无打包或Actions。跨工作区端口总览/标签、内部浏览器及其余原版功能继续待补。[阶段七十二证据](../implementation/evidence/local-ssh-feature-parity/stage72)。

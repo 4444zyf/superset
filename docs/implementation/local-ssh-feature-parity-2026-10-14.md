@@ -1292,3 +1292,20 @@ SSH verified-ssh 退出0，先完成20次恢复。远端服务35757经复制得�
 SSH verified-ssh 亦退出0，先完成20次恢复；原多端口确认Cancel保留服务，确认Close ports后同一自有PID170588的端口35975/45253均消失，失败列表为空，原PID167328/167334/167340、probe shell170579和执行/cwd保持。本地则保留受保护shell，不将其杀掉来追求“全成功”。两端复制首次/重开后均保持浏览器打开0→0，明确external各只正常打开一次Chromium；正常重开、pending read离开工作区和原未选B检查继续通过，renderer错误及cleanup错误均为空。SSH多端口确认图和关闭后空列表图均已查看，其余未另称查看。
 
 自有本地Xorg166016/Chromium166031、SSH Xorg166882/Chromium166897均由runner的Popen结束并wait退出0，namespace/后端/SSH沿用finally清理。两轮后全部2205文件逐一复核稳定，CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。未打包CLI、安装包、密封发行归档或使用GitHub Actions。[本阶段原始证据](evidence/local-ssh-feature-parity/stage71)。当前批量范围明确为当前工作区；跨工作区总览、标签/多转发、内部浏览器和其他原版功能仍待补。真实供应商Agent、外部SSH及物理Mac未混称通过，整体对齐未完成。
+
+
+## 阶段七十二：保留、复用和单独管理多条端口转发
+
+原DirectPortForwardManager已按connection/generation/workspace/remotePort复用，最多32条；前端每次打开/复制前主动关闭上一条，造成实际只有一个可用地址。本阶段取消该替换，使用窗口内带workspace/port的有界来源列表，按ID更新缓存项和单独移除，当前工作区过滤展示。原连接/namespace/reconnect流程清空整列表，并继续由原主进程关闭lease资源；窗口关闭不保存地址到磁盘。原单条forward getter/prop和缺少新list时的无参Close回调保留。
+
+原openWorkspacePort/copyWorkspacePort增加可选existingForwardIds，仅在后续浏览器/剪贴板失败时保护已经保留的缓存ID；新建、过期而尚未保留的转发仍按原finally释放。UI同时展示每条URL/Close，关闭前再次检查当前连接、workspace及记录ID，不因关闭一个清掉其他项。主进程、host、tRPC、IPC、最低版本、DB和持久键全部不变，无新依赖，旧prepare/open/close合同及fallback保留；最大数量沿用原manager的32条约束。
+
+状态基线新增用例先0通过1失败，缺少forwards集合。最终25项/2712断言/7文件通过，覆盖两workspace记录保留/缓存ID更新/仅移除指定项、reconnect全部清理/其他连接事件隔离、旧打开合同、新失败释放与缓存失败保留、两个控件独立Close/空列表不回退其他workspace旧单条，以及原窗口/窗格/无账号启动图。完整桌面类型、17语言extract/strict compile、插件检查通过。中间复制失败测试漏一个括号、setForward从setter改为稳定callback后缺依赖的错误保留；已修测试语法和真实effect依赖，没有降低类型/断言/等待上限。14文件最终格式无错误，3项既有warning保留。
+
+冻结阶段七十一7ebd61ac1产品2205文件后，baseline-local真实复制两个自有端口44785/43147；第二次复制后只显示36865，第一地址37083请求rejected，第二地址返回200/同marker，基线失败。Error对象原始JSON为空对象，仍完整保留rejected状态与一条URL的截图，不捏造错误code；新验证器记录message/code。服务由Ctrl+C停止，自有Xorg172845/Chromium172860 wait退出0，cleanup无错误；旧图已查看。重编译前逐文件验证旧manifest df1b4dd2449ddaa2a0d011eb3d213209467a7d324e5b1f38bf311c37e93cb4fd未变。
+
+新产品f54d2a489，最终verifier2d9d49623，只electron-vite源码编译，2205文件manifest为cde5035de714ddeeed7b93b041a46eaf847b789452f3338bf02238b2ea85b06a。verified-local/verified-ssh均退出0；SSH含原20次恢复，并额外执行多转发真实窗口关闭/重开。本地服务44615/33405首次复制46125/37633，重开后37021/36579；SSH服务38959/35623首次46347/46427，重开后44673/42867。每阶段两地址同时HTTP200/同marker，重复复制第二条URL不变且控件数1；关闭第一条后明确ECONNREFUSED，另一条继续200。第一阶段保留第二条时正常关闭窗口，旧第二地址也ECONNREFUSED；重开后原进程仍在且能再次创建两条。未把1秒超时当关闭成功。
+
+本地原PID174738/174750、probe shell174963/服务174972，SSH原PID175748/175754/175760、probe shell178958/服务178974及各执行/cwd保持；未选本地B PID174838仍活且执行不变。复制阶段主进程浏览器打开计数0→0，之前明确external正常Chromium访问保留；每阶段和最终renderer错误均为空。所有转发最后单独关闭，双server由原probe终端Ctrl+C停止。旧失败图、新本地双URL图、SSH重开后双URL和关闭一条的图均实际查看，其余仅称捕获。
+
+自有本地Xorg174346/Chromium174361、SSH Xorg175303/Chromium175318均通过runner持有Popen结束并wait退出0，namespace/后端/SSH沿用finally清理。两轮后全部2205文件哈希稳定，CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb；没有CLI重包、安装包、密封发行归档或Actions。[本阶段原始证据](evidence/local-ssh-feature-parity/stage72)。跨工作区端口总览、标签、内部浏览器及其他原版功能继续待补；真实供应商Agent、外部SSH和物理Mac不混称通过，整体对齐未完成。
