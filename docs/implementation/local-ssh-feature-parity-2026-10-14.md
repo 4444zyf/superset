@@ -1038,3 +1038,19 @@ TDD先在原实现执行，75通过3失败，分别复现桌面层尚未放行st
 第205轮相同产品/最终脚本，独立本地A/B创建、切换和恢复后执行同一文件链接流程，退出0；A原PID6096/6109保持，fixture PID6319在查看器往返保持，未选中B PID6196及执行ID仍活。文件查看器定位、脏草稿保留、后端原文不变和窗口重开再次点击均通过，两张对应截图已查看；其他截图有捕获，不混称全部查看。全部拥有的SSH fixture与本地后端按原finally清理；开发scratch中的测试配置和证据保留。[205 独立本地窗口证据](evidence/local-ssh-feature-parity/source-linux-local-terminal-file-links/205)。
 
 本阶段未验证真实macOS、真实供应商TUI/Agent、首悬停立即点击的网络延迟体验、完整文件查看器卸载后的Undo、列号、目录、外部编辑器或URL/SSH端口跳转；后续功能仍按清单推进。整体对齐未完成，没有生成安装包或恢复远端构建。
+
+## 阶段五十六：终端文件链接的列号与重复定位
+
+2026-10-23。沿用阶段五十五的原检测器、PaneGrid/WorkspaceWindow、私有文档管理器和原CodeEditorSurface，补齐原检测结果中的column。旧revealLine接口继续可用，新revealPosition只增加可选展示参数；每次明确请求保存独立的位置对象，同一路径/行/列再次点击也可重新定位。位置数据仅存当前文档视图内存，随文档/作用域清理，不增加localStorage或SQLite持久数据；行列越界夹到实际文档，非法列回退行首。导航只改选择，不调用onChange/保存，不重新读已打开的脏文档，保留已有请求归属、generation和晚回复保护。没有后端过程、协议、迁移、账号或依赖清单改动。
+
+源码提交cf150bea0。先在旧实现得到34通过2失败，分别证明终端回调遗漏column和查看器落在行首；实现后36项通过，额外原编辑器行为测试覆盖行号旧接口、同位置重复、边界与不改文档。最终相关21文件151项/738断言通过，包含文件操作/草稿/事件、终端、面板恢复与私有文档管理器；该原编辑器测试已包含其中，不能重复计数。无账号启动图另1项/2554断言通过，插件一致性通过，已有翻译目录严格编译通过，无产品文案变化。Biome检查9文件无错误、11项既有warning，未执行unsafe修复。[阶段五十六原始检查和证据](evidence/local-ssh-feature-parity/stage56)。
+
+首次完整桌面类型检查发现本环境仍是旧依赖及旧PTY声明：缺ws/tar/shell-quote，executionId/subscribed等类型未更新。按当前锁文件执行frozen/ignore-scripts安装并重建PTY声明及daemon JS后，完整桌面类型通过；锁文件未改，共享SQLite/PTY原生绑定未重建。原生模块以实际Electron ABI145加载检查可用。仅使用仓库已有8GiB参数执行electron-vite代码编译，分别得到完整旧产品182af9548和最终92a4025fd源码构建；后者包含cf150bea0产品改动及最终验证器。没有运行compile:app、CLI打包、electron-builder、密封后端归档或Actions。当前环境既有CLI字节SHA256为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb，前后保持；它不是阶段五十五历史环境中的CLI二进制，未据此宣称新CLI交付通过。
+
+实际验收先保留所有失败：Bun直接调用不能加载既有Node/tsx CommonJS互操作的验证器，尚未启动GUI；改用原Node/tsx路径。native-baseline-tsx和native-baseline3在原悬停就绪断言前失败；native-baseline2已打开原文件，但新增测试读到空的DOM getSelection，属于错误观测，不能当作产品列号失败。查明xterm同一行provider缓存后，最终验证器用真实鼠标从相邻行移入，并只读当前可见CodeMirror文档的实际head/行/列，不设置选区、不调用内部导航动作、不修改产品DOM，200次观测上限保持。native-baseline4在原字节产品上真实点击terminal-link.txt:3:2，得到line=3/column=1/text=three 中文，明确因期望column=2退出1；原截图已实际查看。该悬停路线不表示静止指针/首悬停缓存问题已经修复。
+
+最终验证器提交92a4025fd。native-ssh与native-local使用同一冻结编译输出，在两个独立Xorg显示、全新拥有的profile/backend运行，均退出0；源码目标由真实renderer URL、appPath、唯一inspect端口及profile核对。SSH先完成原工作区/20次恢复采样，再真实Ctrl点击新终端路径，原编辑器实际选择第3行第2列；明确编辑草稿、返回原终端再点路径，草稿保留且后端文件原文不变。明确丢弃拥有fixture草稿、正常关闭重开，再点相同路径仍第3行第2列。原SSH PTY PID18317/18332/18340及执行ID/cwd保持，fixture终端PID21783在查看器往返保持，renderer错误为空。
+
+独立本机窗口先实际创建A/B namespace、选择和同backend实例恢复，再运行相同文件链接流程，实际第3行第2列及重开再次定位通过。A原PID18143/18175和执行ID保持，fixture PID18517在往返保持；未选B的PID18325/执行ID在全部链接检查后仍存活且不变。两端各两张草稿保留/重开图已实际查看，其余相关截图捕获但未混称全部已查看。原生JSON/相关截图及无损gzip日志归档于stage56；编译输出逐文件SHA在两轮后再次核对未变。只读CodeMirror数值不等于系统文本选区或未点击编辑器直接输入验收，草稿输入仍使用原明确编辑器点击。
+
+所有拥有后端/SSH fixture由原finally路径清理，两个按UID与专属log路径匹配并记录启动tick的Xorg仅向各自正PID发送TERM，均退出0；没有向未知资源发信号，未声称PID1僵尸已回收。真实macOS/供应商Agent、安装包、悬停缓存刷新、目录/外部编辑器/URL及SSH端口跳转仍未完成。原版当前已取回1.39.0/853e3e8d8，新增功能核对入口已补入设计清单；本阶段不代表277条上游提交或整个功能对齐已经完成。

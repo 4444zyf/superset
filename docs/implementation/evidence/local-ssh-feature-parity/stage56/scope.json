@@ -1,0 +1,149 @@
+{
+  "date": "2026-10-23",
+  "repository": "4444zyf/superset",
+  "branch": "release-local-ssh-feature-parity-1.37.7",
+  "originalBaseline": "4ec5b6e287d380480a71b4b2ad98976354c82d4f",
+  "upstreamSnapshot": "853e3e8d8ed8d7fe542f2115b90eee0ac3d00600",
+  "upstreamVersion": "1.39.0",
+  "baselineProduct": "182af95489a777a74c95107ca0f279a2b22c985c",
+  "fixedProduct": "cf150bea09df4eff402af2506f9e1d07b383d9d4",
+  "finalVerifier": "92a4025fdcf95da1c58e8dc1eaac40dea315a964",
+  "baselineCursor": {
+    "line": 3,
+    "column": 1,
+    "text": "three 中文"
+  },
+  "actionsInvoked": false,
+  "installerGenerated": false,
+  "cliBinaryRebuilt": false,
+  "sourceOnlyBuildCommand": "NODE_OPTIONS=--max-old-space-size=8192 bun x --no-install electron-vite build",
+  "verificationMethod": "Real CDP mouse/keyboard input; read-only selection from the visible CodeMirror document; real owned local/SSH backends and PTYs",
+  "baselineScriptRuntimeFailure": "Bun cannot import the Node/tsx CommonJS interop verifier; the supported Node --import tsx path was used afterward",
+  "baselineAttempts": [
+    {
+      "path": "native-baseline-tsx",
+      "result": "hover readiness failed before column assertion"
+    },
+    {
+      "path": "native-baseline2",
+      "result": "DOM getSelection empty; invalid column observation, not a product column failure"
+    },
+    {
+      "path": "native-baseline3",
+      "result": "same-line hover readiness failed before column assertion"
+    },
+    {
+      "path": "native-baseline4",
+      "result": "actual column 1, expected column 2; baseline feature failure"
+    }
+  ],
+  "limitations": [
+    "Linux source build only",
+    "macOS not verified",
+    "Real vendor Agent not verified",
+    "No installer acceptance",
+    "Stationary first hover cache behavior is not resolved by the column fix"
+  ],
+  "native": {
+    "ssh": {
+      "exit": 0,
+      "cursor": {
+        "line": 3,
+        "column": 2,
+        "text": "three 中文"
+      },
+      "originals": [
+        {
+          "id": "0cfbd341-54cb-42d5-8e58-e2487d66b6fe",
+          "pid": 18317,
+          "executionId": "18c90b20-5b33-4263-bd5b-ff2f51363430",
+          "cwd": "/home/agent/.superset-ssh-test-YDCfa0/backend-home/Superset Remix/worktrees/Unified Project-dce58ed6-8356-452c-aea3-779bbeeca103/restore-lifecycle"
+        },
+        {
+          "id": "15b03d83-d6cc-4225-9488-811e13f06417",
+          "pid": 18332,
+          "executionId": "bb839930-52dd-4f12-879b-e9e118f110a2",
+          "cwd": "/home/agent/.superset-ssh-test-YDCfa0/backend-home/Superset Remix/worktrees/Unified Project-dce58ed6-8356-452c-aea3-779bbeeca103/restore-lifecycle"
+        },
+        {
+          "id": "2e262111-f3fc-44f6-a984-29f3ec5d5f79",
+          "pid": 18340,
+          "executionId": "37f912ea-b8c2-4611-81c3-550fc4b76cc1",
+          "cwd": "/home/agent/.superset-ssh-test-YDCfa0/backend-home/Superset Remix/worktrees/Unified Project-dce58ed6-8356-452c-aea3-779bbeeca103/restore-lifecycle"
+        }
+      ],
+      "fixtureExecution": {
+        "id": "31767747-7bd0-4430-b8c0-be0274b85e78",
+        "executionId": "ce251018-aaa3-447b-8fb2-f4e2d78e11d0",
+        "pid": 21783,
+        "cols": 110,
+        "rows": 30,
+        "cwd": "/home/agent/.superset-ssh-test-YDCfa0/backend-home/Superset Remix/worktrees/Unified Project-dce58ed6-8356-452c-aea3-779bbeeca103/restore-lifecycle",
+        "alive": true,
+        "processExists": true,
+        "output": "\u001b[?2004hagent@a57db62f0c20:~/Superset Remix/worktrees/Unified Project-dce58ed6-8356-452c-aea3-779bbeeca103/restore-lifecycle$ \r\u001b[K\ragent@a57db62f0c20:~/Superset Remix/worktrees/Unified Project-dce58ed6-8356-452c-aea3-779bbeeca103/restore-lifecycle$ printf 'one\\ntwo\\nthree 中文\\nfour\\n' > terminal-link.txt; printf '\\033[2J\\033[H%s\\n' 'terminal-link.txt:3:2'\r\n\u001b[?2004l\r\u001b[2J\u001b[Hterminal-link.txt:3:2\r\n\u001b[?2004hagent@a57db62f0c20:~/Superset Remix/worktrees/Unified Project-dce58ed6-8356-452c-aea3-779bbeeca103/restore-lifecycle$ "
+      },
+      "draftPreserved": true,
+      "backendFileUnchanged": true,
+      "reopenColumnVerified": true,
+      "errors": [],
+      "screenshotsVisuallyInspected": [
+        "terminal-file-link-retained-draft.png",
+        "terminal-file-link-window-reopen.png"
+      ]
+    },
+    "local": {
+      "exit": 0,
+      "cursor": {
+        "line": 3,
+        "column": 2,
+        "text": "three 中文"
+      },
+      "originals": [
+        {
+          "id": "cfac8b90-e403-4e71-bb73-241fb82349ed",
+          "pid": 18143,
+          "executionId": "b36843d4-5936-4e42-b4bc-9efe20a0d82c",
+          "cwd": "/workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/sessions/local-a-b29406d7-d70c-410"
+        },
+        {
+          "id": "22f17a0f-9b0e-40b7-ba39-43ae50f40c9b",
+          "pid": 18175,
+          "executionId": "afb88f1b-0fd8-49b7-bf27-70a267cf3dc8",
+          "cwd": "/workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/sessions/local-a-b29406d7-d70c-410"
+        }
+      ],
+      "fixtureExecution": {
+        "id": "5f878b15-f304-4626-bc38-c19885c7cc43",
+        "executionId": "3dce70ee-552c-42b8-82ba-0eb2a6a23292",
+        "pid": 18517,
+        "cols": 110,
+        "rows": 30,
+        "cwd": "/workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/sessions/local-a-b29406d7-d70c-410",
+        "alive": true,
+        "processExists": true,
+        "output": "\u001b[?2004h\u001b]0;agent@a57db62f0c20: /workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/sessions/local-a-b29406d7-d70c-410\u0007\u001b[01;32magent@a57db62f0c20\u001b[00m:\u001b[01;34m/workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/sessions/local-a-b29406d7-d70c-410\u001b[00m$ \r\u001b[K\r\u001b[A\u001b[K\r\u001b]0;agent@a57db62f0c20: /workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/sessions/local-a-b29406d7-d70c-410\u0007\u001b[01;32magent@a57db62f0c20\u001b[00m:\u001b[01;34m/workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/sessions/local-a-b29406d7-d70c-410\u001b[00m$ \r\n\rprintf 'one\\ntwo\\nthree 中文\\nfour\\n' > terminal-link.txt; printf '\\033[2J\\033[H%s\\n' 'terminal-link.txt:3:2'\b\b\b\b\b\r\n\u001b[?2004l\r\u001b[2J\u001b[Hterminal-link.txt:3:2\r\n\u001b[?2004h\u001b]0;agent@a57db62f0c20: /workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/sessions/local-a-b29406d7-d70c-410\u0007\u001b[01;32magent@a57db62f0c20\u001b[00m:\u001b[01;34m/workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/sessions/local-a-b29406d7-d70c-410\u001b[00m$ \r\n\r"
+      },
+      "draftPreserved": true,
+      "backendFileUnchanged": true,
+      "reopenColumnVerified": true,
+      "errors": [],
+      "screenshotsVisuallyInspected": [
+        "terminal-file-link-retained-draft.png",
+        "terminal-file-link-window-reopen.png"
+      ],
+      "inactiveNamespaceTerminal": {
+        "id": "37fd053b-5898-409a-adb4-7eeb3842a82a",
+        "executionId": "cd4af093-19ed-426a-9d8d-42a6e049671c",
+        "pid": 18325,
+        "cols": 110,
+        "rows": 30,
+        "cwd": "/workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/namespaces/b17f5b0b-4e96-4415-8e22-bbc2060397a1/sessions/local-b-d675bae8-0059-416",
+        "alive": true,
+        "processExists": true,
+        "output": "\u001b[?2004h\u001b]0;agent@a57db62f0c20: /workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/namespaces/b17f5b0b-4e96-4415-8e22-bbc2060397a1/sessions/local-b-d675bae8-0059-416\u0007\u001b[01;32magent@a57db62f0c20\u001b[00m:\u001b[01;34m/workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/namespaces/b17f5b0b-4e96-4415-8e22-bbc2060397a1/sessions/local-b-d675bae8-0059-416\u001b[00m$ \r\u001b[K\r\u001b[A\u001b[K\r\u001b[A\u001b[K\r\u001b]0;agent@a57db62f0c20: /workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/namespaces/b17f5b0b-4e96-4415-8e22-bbc2060397a1/sessions/local-b-d675bae8-0059-416\u0007\u001b[01;32magent@a57db62f0c20\u001b[00m:\u001b[01;34m/workspace/scratch/parity-56/config-fixed-local/superset-remix-dev-ffb36fd05b53627ec3752033519a13944604ec3f7663dfcb90b41380796b94b0/direct-workstation/local-backend/namespaces/b17f5b0b-4e96-4415-8e22-bbc2060397a1/sessions/local-b-d675bae8-0059-416\u001b[00m$ "
+      }
+    }
+  },
+  "compiledBytesUnchangedDuringNativeRuns": true
+}
