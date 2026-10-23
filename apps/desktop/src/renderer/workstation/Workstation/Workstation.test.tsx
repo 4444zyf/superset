@@ -582,6 +582,99 @@ test("opening a development server submits its port for forwarding on B", async 
 	);
 });
 
+test.each([
+	"current",
+	"replaced",
+	"blocked",
+	"unmounted",
+])("port forwarding opens only while the preparing connection is current (%s)", async (state) => {
+	const replaced = state !== "current";
+	const calls: string[] = [];
+	const descriptor: DirectDescriptor = {
+		connectionId: "machine",
+		generation: 1,
+		backendId: "backend",
+		namespaceId: "namespace",
+		instanceId: "instance",
+	};
+	let receive: ((event: DirectConnectionEvent) => void) | undefined;
+	let prepared!: (value: { id: string; url: string }) => void;
+	const pending = new Promise<{ id: string; url: string }>((resolve) => {
+		prepared = resolve;
+	});
+	const api = {
+		list: async () => [{ id: "machine", name: "Mac mini", host: "mini.local" }],
+		connect: async () => descriptor,
+		onConnection: (listener: typeof receive) => {
+			receive = listener;
+			return () => {
+				receive = undefined;
+			};
+		},
+		preparePort: async () => {
+			calls.push("prepare");
+			return pending;
+		},
+		openPort: async () => {
+			calls.push("legacy");
+			const result = await pending;
+			calls.push("browser");
+			return result;
+		},
+		openExternal: async () => {
+			calls.push("browser");
+		},
+		closePort: async (id: string) => {
+			calls.push(`close:${id}`);
+		},
+		rpc: async (request: { path: string }) =>
+			request.path === "workspace.list"
+				? [{ id: "workspace", name: "Remote session", worktreePath: "/remote" }]
+				: request.path === "terminal.list"
+					? { sessions: [] }
+					: [],
+	} as unknown as DirectWorkstationApi;
+	const rendered = render(<Workstation api={api} />);
+	fireEvent.click(await screen.findByRole("button", { name: "Connect" }));
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Remote session" }),
+	);
+	const open = await screen.findByRole("button", { name: "Open port" });
+	const input = open.closest("form")?.querySelector("input");
+	if (!input) throw new Error("Port field missing");
+	fireEvent.change(input, { target: { value: "3000" } });
+	fireEvent.click(open);
+	await waitFor(() => expect(calls.length).toBe(1));
+	if (state === "replaced")
+		await act(async () =>
+			receive?.({
+				kind: "connected",
+				connectionId: "machine",
+				previousGeneration: 1,
+				descriptor: { ...descriptor, generation: 2 },
+			}),
+		);
+	if (state === "blocked")
+		await act(async () =>
+			receive?.({
+				kind: "blocked",
+				connectionId: "machine",
+				previousGeneration: 1,
+				error: "Connection blocked",
+			}),
+		);
+	if (state === "unmounted") rendered.unmount();
+	await act(async () =>
+		prepared({ id: "forward", url: "http://127.0.0.1:1000" }),
+	);
+	await waitFor(() =>
+		expect(calls).toEqual(
+			replaced ? ["prepare", "close:forward"] : ["prepare", "browser"],
+		),
+	);
+	expect(screen.queryByText("http://127.0.0.1:1000") !== null).toBe(!replaced);
+});
+
 test("local data import waits for an explicit stop and never starts the backend automatically", async () => {
 	const imports: string[] = [];
 	const controls: string[] = [];

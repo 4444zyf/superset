@@ -243,6 +243,11 @@ export interface DirectWorkstationApi {
 		workspaceId: string,
 		port: number,
 	): Promise<{ id: string; url: string }>;
+	preparePort?(
+		connection: DirectDescriptor,
+		workspaceId: string,
+		port: number,
+	): Promise<{ id: string; url: string }>;
 	closePort(id: string): Promise<void>;
 	control(
 		id: string,

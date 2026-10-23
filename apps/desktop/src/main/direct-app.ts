@@ -1064,6 +1064,7 @@ export async function startWorkstation(): Promise<void> {
 						},
 					});
 				}
+				case "preparePort":
 				case "openPort": {
 					const input = z
 						.object({
@@ -1082,7 +1083,7 @@ export async function startWorkstation(): Promise<void> {
 					);
 					try {
 						controller.assertGeneration(input.connectionId, input.generation);
-						await shell.openExternal(forward.url);
+						if (action === "openPort") await shell.openExternal(forward.url);
 						controller.assertGeneration(input.connectionId, input.generation);
 						return { id: forward.id, url: forward.url };
 					} catch (error) {

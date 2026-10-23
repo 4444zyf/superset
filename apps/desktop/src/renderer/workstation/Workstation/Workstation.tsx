@@ -49,6 +49,7 @@ import type {
 	RemoteDirectory,
 	RemoteWorkspace,
 } from "./types";
+import { openWorkspacePort } from "./utils/open-workspace-port";
 import "./workstation.css";
 
 const WorkstationSettings = lazy(() =>
@@ -372,6 +373,17 @@ export function Workstation({
 		savedTarget?.workspaces.find((w) => w.tabId === savedTarget.activeTabId)
 			?.workspaceId ?? workspace?.id;
 	const forwardedWorkspace = useRef<string | null>(null);
+	const portLifecycle = useRef({
+		mounted: false,
+		reconnecting: ui.reconnecting,
+	});
+	portLifecycle.current.reconnecting = ui.reconnecting;
+	useEffect(() => {
+		portLifecycle.current.mounted = true;
+		return () => {
+			portLifecycle.current.mounted = false;
+		};
+	}, []);
 	const openPort = (workspaceId: string, port: number) =>
 		void ui.operation(async () => {
 			const target = ui.active.current;
@@ -380,14 +392,26 @@ export function Workstation({
 				await api.closePort(ui.forward.id);
 				ui.setForward(null);
 			}
-			const forward = await api.openPort(target, workspaceId, port);
-			if (
-				ui.active.current !== target ||
-				activeWorkspaceRef.current !== workspaceId
-			) {
-				await api.closePort(forward.id);
-				return;
-			}
+			const forward = await openWorkspacePort({
+				api,
+				connection: target,
+				workspaceId,
+				port,
+				isCurrent: () =>
+					portLifecycle.current.mounted &&
+					!portLifecycle.current.reconnecting &&
+					ui.active.current === target &&
+					selectedRef.current === target.connectionId &&
+					activeWorkspaceRef.current === workspaceId,
+				openExternal: (url) => {
+					if (!api.openExternal)
+						throw new Error(
+							t({ message: "External links are unavailable in this app." }),
+						);
+					return api.openExternal(url);
+				},
+			});
+			if (!forward) return;
 			forwardedWorkspace.current = workspaceId;
 			ui.setForward(forward);
 		});
