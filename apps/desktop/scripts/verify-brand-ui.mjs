@@ -445,6 +445,10 @@ try {
 						.find((value) => value.startsWith("--restore-samples="))
 						?.split("=")[1] ?? 20,
 				),
+				observePortBrowserCalls: async () => {
+					assert.ok(process.argv.includes("--ports-only"));
+					return main.evaluate(`(()=>{if(process.pid!==${child.pid})throw Error('Wrong owned app');if(!globalThis.__ownedPortBrowserCalls){const calls=[];const shell=${electron}.shell;const original=shell.openExternal;shell.openExternal=function(...args){calls.push({url:args[0]});if(calls.length>64)calls.shift();return Reflect.apply(original,this,args);};globalThis.__ownedPortBrowserCalls=calls;}return globalThis.__ownedPortBrowserCalls;})()`);
+				},
 				getPage: () => page,
 				click,
 				screenshot,

@@ -14,7 +14,10 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { startPrivateSocketProxy } from "../../../packages/direct-connection/src/local-socket.ts";
+import {
+	privateSocketFetch,
+	startPrivateSocketProxy,
+} from "../../../packages/direct-connection/src/local-socket.ts";
 import {
 	connectAndHello,
 	payloadOf,
@@ -320,6 +323,31 @@ export function ownedRestoreControls(home, fixture) {
 					}
 				}),
 			);
+		},
+		async inspectWorkspacePorts(workspaceId) {
+			assert.match(workspaceId, /^[a-f0-9-]{36}$/);
+			const config = JSON.parse(
+				readFileSync(join(home, "service-config.json"), "utf8"),
+			);
+			assert.equal(lstatSync(config.secretFile).uid, process.getuid());
+			const secret = readFileSync(config.secretFile, "utf8").trim();
+			const current = endpoint();
+			assert.equal(current.namespaceId, identity.namespaceId);
+			const input = encodeURIComponent(
+				JSON.stringify({json: {workspaceIds: [workspaceId]}}),
+			);
+			const response = await privateSocketFetch(
+				current.socketPath,
+				`/trpc/ports.getAll?input=${input}`,
+				{
+					headers: {Authorization: `Bearer ${secret}`},
+					signal: AbortSignal.timeout(1000),
+				},
+			);
+			assert.equal(response.status, 200);
+			const envelope = await response.json();
+			assert.ok(Array.isArray(envelope.result?.data?.json));
+			return envelope.result.data.json;
 		},
 		async verifyHeaderOnly(ref) {
 			const config = JSON.parse(

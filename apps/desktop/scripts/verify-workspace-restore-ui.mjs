@@ -32,6 +32,7 @@ import { verifyWorkstationRunUi } from "./verify-workstation-run-ui.mjs";
 import { verifyWorkstationProjectSettingsUi } from "./verify-workstation-project-settings-ui.mjs";
 
 export async function verifyWorkspaceRestoreUi({
+ observePortBrowserCalls,
  nativeDrag,
 	getPage,
 	click,
@@ -445,6 +446,12 @@ export async function verifyWorkspaceRestoreUi({
 			) + "\n",
 		);
 	}
+ if (process.argv.includes("--ports-only")) {
+  const {verifyWorkstationPortsUi}=await import("./verify-workstation-ports-ui.mjs");
+  await verifyWorkstationPortsUi({getPage,click,screenshot,closeReopen,controls,output,observePortBrowserCalls});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,portsOnly:true},null,2)+"\n");
+  return;
+ }
  if (process.argv.includes("--terminal-attach-input-only")) {
   const {verifyWorkstationTerminalAttachInputUi}=await import("./verify-workstation-terminal-attach-input-ui.mjs");
   await verifyWorkstationTerminalAttachInputUi({getPage,click,screenshot,closeReopen,controls,output});
