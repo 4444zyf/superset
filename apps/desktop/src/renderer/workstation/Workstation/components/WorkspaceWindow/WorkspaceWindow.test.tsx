@@ -312,8 +312,10 @@ test("terminal navigation reaches the existing file viewer through the original 
 	);
 	const view = render(fixture());
 	await waitFor(() => expect(handlers).toHaveLength(1));
+	const activate = handlers[0]?.onFileLinkClick;
+	if (!activate) throw new Error("File handler missing");
 	await act(async () =>
-		handlers[0]!.onFileLinkClick!(new MouseEvent("click", { ctrlKey: true }), {
+		activate(new MouseEvent("click", { ctrlKey: true }), {
 			text: "note.txt:3",
 			startIndex: 0,
 			endIndex: 10,
@@ -326,7 +328,9 @@ test("terminal navigation reaches the existing file viewer through the original 
 		}),
 	);
 	expect(selected).toEqual([["workspace", "files"]]);
-	props.target.workspaces[0]!.activeTool = "files";
+	const currentWorkspace = props.target.workspaces[0];
+	if (!currentWorkspace) throw new Error("Workspace missing");
+	currentWorkspace.activeTool = "files";
 	view.rerender(fixture());
 	await waitFor(() =>
 		expect(view.container.querySelector(".cm-editor")).not.toBeNull(),

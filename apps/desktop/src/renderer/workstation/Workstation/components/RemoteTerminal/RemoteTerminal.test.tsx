@@ -611,8 +611,10 @@ test("file links use the owning backend and revoke old navigation after workspac
 	);
 	const view = render(renderTerminal("workspace"));
 	expect(handlers).toHaveLength(1);
-	const original = handlers[0]!;
-	expect(await original.stat!("note.txt")).toEqual({
+	const original = handlers[0];
+	if (!original?.stat || !original.onFileLinkClick)
+		throw new Error("File handlers missing");
+	expect(await original.stat("note.txt")).toEqual({
 		resolvedPath: "/remote/note.txt",
 		isDirectory: false,
 	});
@@ -636,21 +638,21 @@ test("file links use the owning backend and revoke old navigation after workspac
 		rowEnd: undefined,
 		colEnd: undefined,
 	};
-	original.onFileLinkClick!(new MouseEvent("click"), link);
+	original.onFileLinkClick(new MouseEvent("click"), link);
 	expect(opened).toEqual([]);
-	original.onFileLinkClick!(new MouseEvent("click", { metaKey: true }), link);
+	original.onFileLinkClick(new MouseEvent("click", { metaKey: true }), link);
 	expect(opened).toEqual([{ absolutePath: "/remote/note.txt", line: 3 }]);
 	reviewing = true;
-	original.onFileLinkClick!(new MouseEvent("click", { ctrlKey: true }), link);
+	original.onFileLinkClick(new MouseEvent("click", { ctrlKey: true }), link);
 	expect(opened).toHaveLength(1);
 	reviewing = false;
-	original.onFileLinkClick!(new MouseEvent("click", { ctrlKey: true }), {
+	original.onFileLinkClick(new MouseEvent("click", { ctrlKey: true }), {
 		...link,
 		isDirectory: true,
 	});
 	expect(opened).toHaveLength(1);
 	defer = true;
-	const pending = original.stat!("delayed.txt");
+	const pending = original.stat("delayed.txt");
 	view.rerender(
 		renderTerminal("other", {
 			...connection,
@@ -660,12 +662,14 @@ test("file links use the owning backend and revoke old navigation after workspac
 	);
 	finish({ resolvedPath: "/remote/delayed.txt", isDirectory: false });
 	expect(await pending).toBeNull();
-	original.onFileLinkClick!(new MouseEvent("click", { ctrlKey: true }), link);
+	original.onFileLinkClick(new MouseEvent("click", { ctrlKey: true }), link);
 	expect(opened).toHaveLength(1);
 	const count = calls.length;
-	expect(await original.stat!("old.txt")).toBeNull();
+	expect(await original.stat("old.txt")).toBeNull();
 	expect(calls).toHaveLength(count);
 	defer = false;
 	view.unmount();
-	expect(await handlers.at(-1)!.stat!("after-unmount.txt")).toBeNull();
+	const last = handlers.at(-1);
+	if (!last?.stat) throw new Error("Final file handler missing");
+	expect(await last.stat("after-unmount.txt")).toBeNull();
 });

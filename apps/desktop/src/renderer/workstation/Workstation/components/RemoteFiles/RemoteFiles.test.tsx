@@ -1644,7 +1644,10 @@ test("a terminal file request opens the original editor at its line and preserve
 	await waitFor(() => expect(handled).toEqual(["terminal-link"]));
 	const selected = await fileEditor();
 	expect(contentOf(selected)).toBe("one\ntwo\nthree\nfour");
-	const cm = EditorView.findFromDOM(selected.querySelector(".cm-editor")!)!;
+	const editorElement = selected.querySelector<HTMLElement>(".cm-editor");
+	if (!editorElement) throw new Error("Code editor missing");
+	const cm = EditorView.findFromDOM(editorElement);
+	if (!cm) throw new Error("Code editor state missing");
 	await waitFor(() => expect(cm.state.selection.main.head).toBe(8));
 	expect(
 		f.calls.filter((call) => call.path === "filesystem.readFile"),

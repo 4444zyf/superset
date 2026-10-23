@@ -32,7 +32,9 @@ test("the original detector resolves a remote stack trace and keeps the original
 		isReviewing: () => false,
 		onOpenFile: (target) => opened.push(target),
 	});
-	const detector = new LocalLinkDetector(new TerminalLinkResolver(links.stat!));
+	const { stat, onFileLinkClick } = links;
+	if (!stat || !onFileLinkClick) throw new Error("File handlers missing");
+	const detector = new LocalLinkDetector(new TerminalLinkResolver(stat));
 	const [link] = await detector.detect("src/example.ts:12:7");
 	expect(link).toMatchObject({
 		resolvedPath: "/srv/project/src/example.ts",
@@ -40,7 +42,8 @@ test("the original detector resolves a remote stack trace and keeps the original
 		col: 7,
 	});
 	const event = new MouseEvent("click", { ctrlKey: true, cancelable: true });
-	links.onFileLinkClick!(event, link!);
+	if (!link) throw new Error("Original detector missed the stack trace");
+	onFileLinkClick(event, link);
 	expect(event.defaultPrevented).toBe(true);
 	expect(opened).toEqual([
 		{ absolutePath: "/srv/project/src/example.ts", line: 12 },
@@ -79,9 +82,11 @@ test("unsupported or failed path metadata produces no link and never fails the t
 			throw new Error("Must not open");
 		},
 	});
-	expect(await handlers.stat!("note.txt")).toBeNull();
+	if (!handlers.stat) throw new Error("Stat handler missing");
+	expect(await handlers.stat("note.txt")).toBeNull();
 	expect(calls).toBe(0);
 	connection.capabilities.workstationFilesV1 = true;
-	expect(await handlers.stat!("note.txt")).toBeNull();
+	if (!handlers.stat) throw new Error("Stat handler missing");
+	expect(await handlers.stat("note.txt")).toBeNull();
 	expect(calls).toBe(1);
 });
