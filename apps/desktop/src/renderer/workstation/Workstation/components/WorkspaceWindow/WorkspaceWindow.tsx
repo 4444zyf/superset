@@ -63,6 +63,7 @@ export function WorkspaceWindow({
 		busy: boolean;
 		forward: { id: string; url: string } | null;
 		onOpen(workspaceId: string, port: number): void;
+		onOpenUrl?(workspaceId: string, url: string): void;
 		onClose(): void;
 	};
 	onBrowse(): void;
@@ -460,6 +461,14 @@ export function WorkspaceWindow({
 								});
 								void actions.setTool(workspace.workspaceId, "files");
 							}}
+							onOpenUrl={
+								ports.onOpenUrl
+									? (url) => {
+											if (navigationOwner.current !== scriptOwner) return;
+											ports.onOpenUrl?.(workspace.workspaceId, url);
+										}
+									: undefined
+							}
 						/>
 					)}
 					{chatPicker && (

@@ -812,11 +812,12 @@ test("a rejected clipboard file reports an error without failing its attached te
 	).toBe("attached");
 });
 
-test("file links use the owning backend and revoke old navigation after workspace changes", async () => {
+test("file and URL links use the owning backend and revoke old navigation after workspace changes", async () => {
 	const handlers: import("renderer/lib/terminal/terminal-link-manager").TerminalLinkHandlers[] =
 		[];
 	const calls: unknown[] = [];
 	const opened: unknown[] = [];
+	const urls: string[] = [];
 	let finish!: (value: unknown) => void;
 	let defer = false;
 	let reviewing = false;
@@ -865,6 +866,7 @@ test("file links use the owning backend and revoke old navigation after workspac
 				throw new Error(error);
 			}}
 			onOpenFile={(value) => opened.push(value)}
+			onOpenUrl={(url) => urls.push(url)}
 			createEmulator={createEmulator}
 		/>
 	);
@@ -886,6 +888,26 @@ test("file links use the owning backend and revoke old navigation after workspac
 			input: { workspaceId: "workspace", path: "note.txt" },
 		},
 	]);
+	if (!original.onUrlClick) throw new Error("URL handler missing");
+	const url = "https://example.test/path?q=中文#fragment";
+	const external = () =>
+		new MouseEvent("click", {
+			ctrlKey: true,
+			shiftKey: true,
+			cancelable: true,
+		});
+	original.onUrlClick(new MouseEvent("click"), url);
+	original.onUrlClick(new MouseEvent("click", { ctrlKey: true }), url);
+	expect(urls).toEqual([]);
+	const event = external();
+	original.onUrlClick(event, url);
+	expect(event.defaultPrevented).toBe(true);
+	expect(urls).toEqual([url]);
+	reviewing = true;
+	original.onUrlClick(external(), url);
+	expect(urls).toHaveLength(1);
+	reviewing = false;
+
 	const link = {
 		text: "note.txt:3",
 		startIndex: 0,
@@ -929,6 +951,8 @@ test("file links use the owning backend and revoke old navigation after workspac
 	expect(await pending).toBeNull();
 	original.onFileLinkClick(new MouseEvent("click", { ctrlKey: true }), link);
 	expect(opened).toHaveLength(2);
+	original.onUrlClick(external(), url);
+	expect(urls).toHaveLength(1);
 	const count = calls.length;
 	expect(await original.stat("old.txt")).toBeNull();
 	expect(calls).toHaveLength(count);
@@ -937,6 +961,8 @@ test("file links use the owning backend and revoke old navigation after workspac
 	const last = handlers.at(-1);
 	if (!last?.stat) throw new Error("Final file handler missing");
 	expect(await last.stat("after-unmount.txt")).toBeNull();
+	last.onUrlClick?.(external(), url);
+	expect(urls).toHaveLength(1);
 });
 
 test.each([

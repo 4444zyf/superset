@@ -29,6 +29,7 @@ export function WorkspacePaneView({
 	onFailed,
 	createEmulator,
 	onOpenFile,
+	onOpenUrl,
 	onClipboardControls,
 }: {
 	api: DirectWorkstationApi;
@@ -45,6 +46,7 @@ export function WorkspacePaneView({
 	onFailed(): void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 	onOpenFile?(target: TerminalFileTarget): void;
+	onOpenUrl?(url: string): void;
 	onClipboardControls?(controls: TerminalClipboardControls): () => void;
 }) {
 	const [state, setState] = useState<
@@ -105,6 +107,7 @@ export function WorkspacePaneView({
 							}}
 							createEmulator={createEmulator}
 							onOpenFile={onOpenFile}
+							onOpenUrl={onOpenUrl}
 							onClipboardControls={onClipboardControls}
 						/>
 					) : (

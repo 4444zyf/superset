@@ -44,12 +44,14 @@ import {
 import { WorkstationDocumentEvents } from "./providers/WorkstationFileEvents/components/WorkstationDocumentEvents/WorkstationDocumentEvents";
 import { WorkstationPreferencesContext } from "./providers/WorkstationPreferencesContext";
 import type {
+	DirectDescriptor,
 	DirectProfile,
 	DirectWorkstationApi,
 	RemoteDirectory,
 	RemoteWorkspace,
 } from "./types";
 import { openWorkspacePort } from "./utils/open-workspace-port";
+import { terminalUrlTarget } from "./utils/terminal-url-target";
 import "./workstation.css";
 
 const WorkstationSettings = lazy(() =>
@@ -384,7 +386,13 @@ export function Workstation({
 			portLifecycle.current.mounted = false;
 		};
 	}, []);
-	const openPort = (workspaceId: string, port: number) =>
+	const portTargetIsCurrent = (target: DirectDescriptor, workspaceId: string) =>
+		portLifecycle.current.mounted &&
+		!portLifecycle.current.reconnecting &&
+		ui.active.current === target &&
+		selectedRef.current === target.connectionId &&
+		activeWorkspaceRef.current === workspaceId;
+	const openPort = (workspaceId: string, port: number, targetUrl?: string) =>
 		void ui.operation(async () => {
 			const target = ui.active.current;
 			if (!target) return;
@@ -397,12 +405,8 @@ export function Workstation({
 				connection: target,
 				workspaceId,
 				port,
-				isCurrent: () =>
-					portLifecycle.current.mounted &&
-					!portLifecycle.current.reconnecting &&
-					ui.active.current === target &&
-					selectedRef.current === target.connectionId &&
-					activeWorkspaceRef.current === workspaceId,
+				targetUrl,
+				isCurrent: () => portTargetIsCurrent(target, workspaceId),
 				openExternal: (url) => {
 					if (!api.openExternal)
 						throw new Error(
@@ -415,6 +419,30 @@ export function Workstation({
 			forwardedWorkspace.current = workspaceId;
 			ui.setForward(forward);
 		});
+	const openUrl = (workspaceId: string, raw: string) => {
+		const connection = ui.active.current;
+		if (!connection || !portTargetIsCurrent(connection, workspaceId)) return;
+		const profile = ui.profiles.find((p) => p.id === connection.connectionId);
+		const target = terminalUrlTarget(raw, profile?.kind === "local");
+		if (!target) return;
+		if (target.kind === "forward") {
+			if (!api.preparePort) {
+				ui.setError(
+					t({ message: "External links are unavailable in this app." }),
+				);
+				return;
+			}
+			openPort(workspaceId, target.port, target.url);
+		} else
+			void ui.operation(async () => {
+				if (!portTargetIsCurrent(connection, workspaceId)) return;
+				if (!api.openExternal)
+					throw new Error(
+						t({ message: "External links are unavailable in this app." }),
+					);
+				await api.openExternal(target.url);
+			});
+	};
 	const closePort = () =>
 		void ui.operation(async () => {
 			if (ui.forward) {
@@ -633,6 +661,7 @@ export function Workstation({
 										? ui.forward
 										: null,
 								onOpen: openPort,
+								onOpenUrl: openUrl,
 								onClose: closePort,
 							}}
 							api={api}

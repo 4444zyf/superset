@@ -39,6 +39,7 @@ import {
 	type TerminalFileTarget,
 	terminalFileLinks,
 } from "./utils/terminal-file-links/terminal-file-links";
+import { terminalUrlLinks } from "./utils/terminal-url-links/terminal-url-links";
 
 export interface TerminalClipboardControls {
 	canCopy(): boolean;
@@ -122,6 +123,7 @@ export function RemoteTerminal({
 	onExited,
 	onError,
 	onOpenFile,
+	onOpenUrl,
 	onClipboardControls,
 	createEmulator = createXterm,
 }: {
@@ -136,6 +138,7 @@ export function RemoteTerminal({
 	onExited?(): void;
 	onError(message: string): void;
 	onOpenFile?(target: TerminalFileTarget): void;
+	onOpenUrl?(url: string): void;
 	onClipboardControls?(controls: TerminalClipboardControls): () => void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 }) {
@@ -152,6 +155,7 @@ export function RemoteTerminal({
 	const appearanceRef = useRef(appearance);
 	appearanceRef.current = appearance;
 	const workspaceId = restoreRef?.workspaceId;
+	const urlLinksEnabled = !!onOpenUrl;
 	const resourceId = restoreRef?.resourceId;
 	const executionId = restoreRef?.executionId;
 	const restoreTarget = useMemo(
@@ -186,6 +190,7 @@ export function RemoteTerminal({
 		executionId,
 		visible,
 		onOpenFile,
+		onOpenUrl,
 	});
 	navigation.current = {
 		api,
@@ -195,6 +200,7 @@ export function RemoteTerminal({
 		executionId,
 		visible,
 		onOpenFile,
+		onOpenUrl,
 	};
 	useEffect(() => {
 		if (!element.current || !visible) return;
@@ -226,25 +232,34 @@ export function RemoteTerminal({
 			connecting = false;
 			pendingInput.clear();
 		};
+		const linkOwnerIsCurrent = () =>
+			!closed &&
+			navigation.current.api === api &&
+			navigation.current.connection === connection &&
+			navigation.current.workspaceId === workspaceId &&
+			navigation.current.terminalId === terminalId &&
+			navigation.current.executionId === executionId &&
+			navigation.current.visible;
 		const removeLinks = workspaceId
-			? emulator.installLinkHandlers?.(
-					terminalFileLinks({
+			? emulator.installLinkHandlers?.({
+					...terminalFileLinks({
 						api,
 						connection,
 						workspaceId,
 						isCurrent: () =>
-							!closed &&
-							navigation.current.api === api &&
-							navigation.current.connection === connection &&
-							navigation.current.workspaceId === workspaceId &&
-							navigation.current.terminalId === terminalId &&
-							navigation.current.executionId === executionId &&
-							navigation.current.visible &&
-							!!navigation.current.onOpenFile,
+							linkOwnerIsCurrent() && !!navigation.current.onOpenFile,
 						isReviewing: () => emulator.isReviewing?.() ?? false,
 						onOpenFile: (target) => navigation.current.onOpenFile?.(target),
 					}),
-				)
+					...(urlLinksEnabled
+						? terminalUrlLinks({
+								isCurrent: () =>
+									linkOwnerIsCurrent() && !!navigation.current.onOpenUrl,
+								isReviewing: () => emulator.isReviewing?.() ?? false,
+								onOpenUrl: (url) => navigation.current.onOpenUrl?.(url),
+							})
+						: {}),
+				})
 			: undefined;
 		let attachTimer: ReturnType<typeof setTimeout> | undefined;
 		const send = (data: unknown) => {
@@ -524,6 +539,7 @@ export function RemoteTerminal({
 		createEmulator,
 		workspaceId,
 		executionId,
+		urlLinksEnabled,
 	]);
 	useEffect(() => {
 		emulatorRef.current?.applyAppearance?.(appearance);

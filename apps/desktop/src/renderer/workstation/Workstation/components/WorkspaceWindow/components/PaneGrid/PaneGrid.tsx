@@ -42,6 +42,7 @@ export function PaneGrid({
 	actions,
 	createEmulator,
 	onOpenFile,
+	onOpenUrl,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor | null;
@@ -50,6 +51,7 @@ export function PaneGrid({
 	actions: WorkspaceViewActions;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 	onOpenFile?(target: TerminalFileTarget): void;
+	onOpenUrl?(url: string): void;
 }) {
 	const { t } = useLingui();
 	const terminalClipboards = useRef(
@@ -343,6 +345,7 @@ export function PaneGrid({
 				allowed={allowed.has(id)}
 				createEmulator={createEmulator}
 				onOpenFile={onOpenFile}
+				onOpenUrl={onOpenUrl}
 				onClipboardControls={(clipboard) => {
 					terminalClipboards.current.set(id, clipboard);
 					return () => {
