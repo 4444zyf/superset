@@ -1132,3 +1132,20 @@ TDD在01d81bf30原源码上新增两项均失败，实际复现原传输和严�
 仅对原TUI夹具的Linux分支使用read -t 0.05，让trap及时执行；macOS仍走原read。原ANSI帧、命令、快照/原字节比较、无RIS、屏幕保留及所有断言/等待上限均未改，不注入换行、不重试测试、不扩大超时。完整seq套件10项通过、0失败，约53.8秒：原先失败的超出ring后重新定位/重绘、resize后重新定位/重绘，以及原跨host重启恢复均通过，旧客户端、focus、多客户端最小尺寸、僵死/隐藏客户端与版本回复保护一并通过。没有把独立诊断或中间输出累计成额外测试项。
 
 单文件格式、diff及插件检查通过。所有探针PTY由各自持有的node-pty对象结束并等待onExit，完整套件按原after/finally清理其拥有资源；没有碰用户服务、GUI、SSH配置或未知PID。未修改产品代码、tRPC、认证/归属、数据库或依赖，没有源码重编译、CLI打包、安装包、密封后端归档或Actions；环境产品仍为阶段六十d921789da。Mac分支只保留原逻辑，未在本环境实测；阶段五十八的原始失败记录不覆写，物理Mac/供应商与其他功能仍继续待验/待接入，整体对齐未完成。
+
+
+## 阶段六十二：滚轮和触控板保护、TUI鼠标编码及二进制输入
+
+2026-10-23。按用户最新要求优先继续核对所有终端共用的滚动链路。阶段四十二已有普通历史、无鼠标全屏TUI的客户端回看和SGR鼠标滚动；本次不是重新宣称这些功能刚接入，而是补齐实际发现的回退与编码缺口。
+
+冻结阶段六十产品的实际本地窗口中，先完成普通历史及全屏回看，再设置已有的SUPERSET_TERMINAL_STOCK_WHEEL偏好。一次真实CDP滚轮后，raw PTY的received从61/6e多出1b5b41，即ESC [ A，没有打开历史。baseline-local退出1，截图与字节记录保留；截图中的raw程序不回显这些字节，结论来自其实际读取记录。真实xterm解析器另复现RIS之后SGR tracker仍为true。fff6135d9将普通历史改用明确scrollLines，并让stock偏好仅影响TUI鼠标报告；无鼠标全屏历史仍不发键，零scrollback也不再落到stock方向键分支。SGR tracker同步RIS、1016像素编码及同一DECSET中参数顺序。
+
+初版实际窗口通过普通历史、全屏回看、保存偏好与SGR，却在重置后旧鼠标协议中没有收到任何字节。检查发现xterm将旧编码报告发送到onBinary，原两个传输均只接onData；不是把这一项改为只验SGR。a288df1df新增attached.binaryInput能力和input-binary/base64控制消息，恢复route与原terminal route都将解码后的Buffer直接送daemon，避免较大坐标经过UTF-8改变字节；文本input及旧attached字段合同保留。两种客户端均仅在当前附着声明支持、连接可用时发送binary，不缓存待连接鼠标输入，退出/取消/换端撤销。没有能力的旧host由共用wheel handler回退客户端历史；像素SGR仍由xterm原编码器处理。新二进制输入同样受原版本回复保护、workspace/execution恢复范围和认证入口约束，无新tRPC、DB或身份绕过。
+
+最终相关回归108项通过、0失败、363断言/10文件：shared26/56，桌面74/269，host8/38。包括真实parser模式转换、两种传输的能力/关闭/旧端合同、二进制高坐标、畸形载荷和恢复回复保护；桌面及host完整类型检查、插件一致性通过。初版类型检查的状态作用域/部分测试emulator类型问题已修正，日志保留；中间旧normal委托断言按现明确scrollLines行为更新，原不发输入断言保留。最终格式检查无错误，仅6个既有warning/2个既有info。
+
+最终源码a288df1df仅用8GiB参数运行electron-vite编译，未运行bundle:cli、electron-builder、Actions、安装包或密封后端打包。2205个main/preload/renderer文件冻结为manifest SHA256 228be337a3188528c223a4c6ef306ebd66a7386dc1db67402af2b089fab7579d；既有CLI SHA仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。
+
+验收脚本增加真实上下滚动的slider位置、TUI显示offset、旧式高坐标与像素坐标检查，且切Files→Terminal验证同一终端重挂载。一次中间验证把主动点击产生的合法SGR按下/释放当成重挂载注入，保留final-local失败；随后仅将无输入断言置于主动点击前，并使fixture识别鼠标释放且仅对滚轮按钮移动内容，未修改产品/重试上限或放宽滚动断言。[完整记录及截图](evidence/local-ssh-feature-parity/stage62)。
+
+最终verified-local及verified-ssh均退出0，两端normal slider都为420→414→420、SGR内容offset100→95→100。切Files→Terminal后，旧式与像素TUI均100→99→100；旧式坐标0x8d原字节保持，像素报告为462;60。保存stock偏好仍进入历史而不发键；小幅/反向滚动、Esc返回通过，renderer错误为空。SSH使用拥有的loopback fixture，先完成原20次恢复采样。最终本地stock历史/legacy-up和SSH legacy-up/pixels-mouse截图已实际查看；其余捕获但未混称全看。两轮后逐一复核2205个编译文件未变。最终拥有Xorg PID57888由原Popen终止并wait退出0，backend/SSH沿用finally清理；没有向未知资源发信号。此结果不是物理Mac触控板或已认证供应商Agent验证；整体功能对齐未完成，用户新提出的复制粘贴要求继续单独核对。

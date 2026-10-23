@@ -1,0 +1,147 @@
+{
+  "productSource": "a288df1df3d0dbdcc1c1bce360495385b1a5fa5d",
+  "verifierSource": "9a4c24187606a70d95172b97c7d57fdb5f55d567",
+  "tests": {
+    "pass": 108,
+    "fail": 0,
+    "assertions": 363,
+    "files": 10
+  },
+  "native": [
+    {
+      "name": "verified-local",
+      "exitCode": 0
+    },
+    {
+      "name": "verified-ssh",
+      "exitCode": 0
+    }
+  ],
+  "sshRestoreSamples": 20,
+  "observations": [
+    {
+      "run": "verified-local",
+      "normal": {
+        "phase": "normal-viewport",
+        "normalBefore": {
+          "top": 420,
+          "height": 60
+        },
+        "normalAfter": {
+          "top": 414,
+          "height": 60
+        },
+        "normalDown": {
+          "top": 420,
+          "height": 60
+        }
+      },
+      "review": {
+        "scrollTop": 3666,
+        "scrollHeight": 4256,
+        "clientHeight": 494
+      },
+      "sgrOffsets": [
+        100,
+        95,
+        100
+      ],
+      "transitions": [
+        {
+          "stage": "legacy",
+          "offsets": [
+            100,
+            99,
+            100
+          ],
+          "bytes": "\u001b[M`$\u001b[Ma$"
+        },
+        {
+          "stage": "pixels",
+          "offsets": [
+            100,
+            99,
+            100
+          ],
+          "bytes": "\u001b[<64;462;60M\u001b[<65;462;60M"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "run": "verified-ssh",
+      "normal": {
+        "phase": "normal-viewport",
+        "normalBefore": {
+          "top": 420,
+          "height": 60
+        },
+        "normalAfter": {
+          "top": 414,
+          "height": 60
+        },
+        "normalDown": {
+          "top": 420,
+          "height": 60
+        }
+      },
+      "review": {
+        "scrollTop": 3634,
+        "scrollHeight": 4224,
+        "clientHeight": 494
+      },
+      "sgrOffsets": [
+        100,
+        95,
+        100
+      ],
+      "transitions": [
+        {
+          "stage": "legacy",
+          "offsets": [
+            100,
+            99,
+            100
+          ],
+          "bytes": "\u001b[M`$\u001b[Ma$"
+        },
+        {
+          "stage": "pixels",
+          "offsets": [
+            100,
+            99,
+            100
+          ],
+          "bytes": "\u001b[<64;462;60M\u001b[<65;462;60M"
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "artifact": {
+    "sourceCommit": "a288df1df3d0dbdcc1c1bce360495385b1a5fa5d",
+    "compiledFilesVerified": 2205,
+    "compiledManifestSha256": "228be337a3188528c223a4c6ef306ebd66a7386dc1db67402af2b089fab7579d",
+    "cliSha256": "f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb"
+  },
+  "cleanup": {
+    "ownedXorgPid": 57888,
+    "ownedXorgExit": 0,
+    "results": [
+      {
+        "name": "verified-local",
+        "exitCode": 0
+      },
+      {
+        "name": "verified-ssh",
+        "exitCode": 0
+      }
+    ]
+  },
+  "limitations": [
+    "Linux Electron CDP wheel input; no physical macOS trackpad validation",
+    "Owned raw protocol TUI, not authenticated vendor agent verification",
+    "Old host fallback checked in focused tests, not an old installer GUI",
+    "Overall parity remains incomplete"
+  ]
+}
