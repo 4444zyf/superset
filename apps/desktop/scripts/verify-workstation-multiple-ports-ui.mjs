@@ -73,6 +73,25 @@ export async function verifyWorkstationMultiplePortsUi(options, context) {
 			"own ports menu",
 		);
 	};
+	const unavailable = async (url) => {
+		let failure;
+		try {
+			await fetch(url, { signal: AbortSignal.timeout(1000) });
+		} catch (error) {
+			failure = {
+				name: error.name,
+				message: error.message,
+				code: error.cause?.code,
+			};
+		}
+		assert.ok(failure, "closed forward address must fail");
+		assert.notEqual(
+			failure.name,
+			"TimeoutError",
+			"closed forward must reject without waiting for the deadline",
+		);
+		return { url, ...failure };
+	};
 	const close = async (port, url) => {
 		const button = `[data-forward-port="${port}"] button`;
 		await click(button);
@@ -81,7 +100,7 @@ export async function verifyWorkstationMultiplePortsUi(options, context) {
 				evaluate(`!document.querySelector('[data-forward-port="${port}"]')`),
 			"selected forward removed",
 		);
-		await assert.rejects(fetch(url, { signal: AbortSignal.timeout(1000) }));
+		return unavailable(url);
 	};
 	try {
 		assert.equal(initial.ports.length, 2);
@@ -129,14 +148,13 @@ export async function verifyWorkstationMultiplePortsUi(options, context) {
 			);
 			const repeated = await copy(initial.ports[1]);
 			assert.equal(repeated, second);
-			assert.equal(
-				await evaluate(
-					`document.querySelectorAll('[data-forward-port="${initial.ports[1]}"]').length`,
-				),
-				1,
+			const repeatedRows = await evaluate(
+				`document.querySelectorAll('[data-forward-port="${initial.ports[1]}"]').length`,
 			);
-			await close(initial.ports[0], first);
-			await request(second);
+			assert.equal(repeatedRows, 1);
+			result.phases.at(-1).repeated = { url: repeated, rows: repeatedRows };
+			result.phases.at(-1).closedFirst = await close(initial.ports[0], first);
+			result.phases.at(-1).remaining = await request(second);
 			await screenshot(`ports-multiple-${phase}-one-closed`);
 			if (phase !== "first") await close(initial.ports[1], second);
 			assert.equal((await read()).running, true);
@@ -155,9 +173,7 @@ export async function verifyWorkstationMultiplePortsUi(options, context) {
 					"menu closed before dual-forward reopen",
 				);
 				await closeReopen();
-				await assert.rejects(
-					fetch(second, { signal: AbortSignal.timeout(1000) }),
-				);
+				result.phases.at(-1).windowClosedSecond = await unavailable(second);
 				await until(
 					() =>
 						evaluate(
