@@ -213,10 +213,13 @@ describe("createTerminalWheelEventHandler", () => {
 		sgrActive = false;
 	});
 
-	it("defers to stock xterm in the normal buffer without mouse tracking (scrollback)", () => {
-		const { terminal, input } = makeFakeTerminal({ bufferType: "normal" });
+	it("scrolls the normal buffer without allowing stock cursor-key fallback at zero scrollback", () => {
+		const { terminal, input, scrollLines } = makeFakeTerminal({
+			bufferType: "normal",
+		});
 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
-		expect(handler(wheelEvent(40))).toBe(true);
+		expect(handler(wheelEvent(40))).toBe(false);
+		expect(scrollLines).toHaveBeenCalledWith(2);
 		expect(input).not.toHaveBeenCalled();
 	});
 
@@ -237,7 +240,7 @@ describe("createTerminalWheelEventHandler", () => {
 			mouseTrackingMode: "x10",
 		});
 		const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
-		expect(handler(wheelEvent(40))).toBe(true);
+		expect(handler(wheelEvent(40))).toBe(false);
 		expect(input).not.toHaveBeenCalled();
 	});
 
@@ -323,7 +326,7 @@ describe("createTerminalWheelEventHandler", () => {
 		expect(input).not.toHaveBeenCalled();
 	});
 
-	it("honors the stock-wheel escape hatch per event, without reinstall", () => {
+	it("keeps client history input-free with the stock-wheel escape hatch", () => {
 		const globals = globalThis as { localStorage?: Pick<Storage, "getItem"> };
 		const original = globals.localStorage;
 		try {
@@ -333,11 +336,9 @@ describe("createTerminalWheelEventHandler", () => {
 			};
 			const { terminal, input } = makeFakeTerminal();
 			const handler = createTerminalWheelEventHandler(terminal, isSgrActive);
-			expect(handler(wheelEvent(51))).toBe(true);
+			expect(handler(wheelEvent(51))).toBe(false);
 			expect(input).not.toHaveBeenCalled();
 
-			// Clearing the flag re-enables the handler on the very next event —
-			// parked/reused terminal instances must not need a window reload.
 			globals.localStorage = { getItem: () => null };
 			expect(handler(wheelEvent(51))).toBe(false);
 			expect(input).not.toHaveBeenCalled();

@@ -1,7 +1,7 @@
 import type { Terminal as XTerm } from "@xterm/xterm";
 import { getCellDimensions } from "./cell-dimensions";
 
-// Escape hatch: revert to stock xterm wheel handling without a rebuild.
+// Escape hatch for application mouse reports; client history stays input-free.
 // Run in DevTools console: localStorage.setItem('SUPERSET_TERMINAL_STOCK_WHEEL', '1')
 // Checked per wheel event (localStorage reads are sub-microsecond in
 // Chromium) because terminal instances are parked and reused across React
@@ -108,20 +108,27 @@ export function createSgrMouseModeTracker(xterm: XTerm): {
 } {
 	let active = false;
 
-	const hasSgrParam = (params: (number | number[])[]): boolean =>
-		params.flat().includes(1006);
-
 	const setHandler = xterm.parser.registerCsiHandler(
 		{ prefix: "?", final: "h" },
 		(params) => {
-			if (hasSgrParam(params)) active = true;
+			for (const param of params) {
+				if (param === 1006) active = true;
+				else if (param === 1016) active = false;
+			}
 			return false;
 		},
 	);
 	const resetHandler = xterm.parser.registerCsiHandler(
 		{ prefix: "?", final: "l" },
 		(params) => {
-			if (hasSgrParam(params)) active = false;
+			if (params.includes(1006) || params.includes(1016)) active = false;
+			return false;
+		},
+	);
+	const fullResetHandler = xterm.parser.registerEscHandler(
+		{ final: "c" },
+		() => {
+			active = false;
 			return false;
 		},
 	);
@@ -131,6 +138,7 @@ export function createSgrMouseModeTracker(xterm: XTerm): {
 		dispose: () => {
 			setHandler.dispose();
 			resetHandler.dispose();
+			fullResetHandler.dispose();
 		},
 	};
 }
@@ -205,8 +213,6 @@ export function createTerminalWheelEventHandler(
 	const state = createWheelLineState();
 
 	return (event: WheelEvent): boolean => {
-		if (isStockWheelForced()) return true;
-
 		// Shift bypasses application mouse tracking.
 		if (event.deltaY === 0) return true;
 
@@ -220,10 +226,7 @@ export function createTerminalWheelEventHandler(
 		if (wantsMouseReports) {
 			// Without SGR encoding we cannot safely synthesize reports — legacy
 			// X10 byte encoding breaks past column 223. Let stock xterm handle it.
-			if (!isSgrMouseModeActive()) return true;
-		} else if (bufferType !== "alternate") {
-			// Normal buffer without mouse tracking: viewport scrollback.
-			return true;
+			if (isStockWheelForced() || !isSgrMouseModeActive()) return true;
 		}
 
 		const cell = getCellDimensions(xterm);
@@ -263,7 +266,8 @@ export function createTerminalWheelEventHandler(
 				);
 				sequence = buildSgrWheelReport(event.deltaY, col, row, event);
 			} else {
-				scrollAlternateBuffer(lines);
+				if (bufferType === "alternate") scrollAlternateBuffer(lines);
+				else xterm.scrollLines(lines);
 				sequence = "";
 			}
 			if (sequence) xterm.input(sequence.repeat(Math.abs(lines)), true);

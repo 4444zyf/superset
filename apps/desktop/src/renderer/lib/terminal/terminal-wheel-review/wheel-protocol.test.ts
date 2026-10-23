@@ -43,10 +43,34 @@ test("real VT mode transitions preserve TUI mouse reports and never synthesize c
 		expect(data).toHaveLength(count);
 		expect(reviewed).toEqual([-2, -1]);
 		await write("\x1b[?1000l\x1b[?1006l\x1b[?1049l");
-		expect(wheel(-34)).toBe(true);
+		expect(wheel(-34)).toBe(false);
 		expect(data).toHaveLength(count);
 	} finally {
 		subscription.dispose();
+		tracker.dispose();
+		terminal.dispose();
+	}
+});
+
+test("SGR tracking follows reset and pixel encoding in the real parser", async () => {
+	const terminal = new Terminal({ allowProposedApi: true });
+	const tracker = createSgrMouseModeTracker(
+		terminal as unknown as BrowserTerminal,
+	);
+	const write = (value: string) =>
+		new Promise<void>((resolve) => terminal.write(value, resolve));
+	try {
+		await write("\x1b[?1006h");
+		expect(tracker.isActive()).toBe(true);
+		await write("\x1bc\x1b[?1000h");
+		expect(tracker.isActive()).toBe(false);
+		await write("\x1b[?1006;1016h");
+		expect(tracker.isActive()).toBe(false);
+		await write("\x1b[?1016;1006h");
+		expect(tracker.isActive()).toBe(true);
+		await write("\x1b[?1016l");
+		expect(tracker.isActive()).toBe(false);
+	} finally {
 		tracker.dispose();
 		terminal.dispose();
 	}
