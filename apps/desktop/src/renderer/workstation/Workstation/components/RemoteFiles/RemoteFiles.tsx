@@ -607,6 +607,11 @@ export function RemoteFiles({
 												? directoryRequest
 												: undefined
 										}
+										onRevealHandled={(requestId) =>
+											setDirectoryRequest((current) =>
+												current?.requestId === requestId ? null : current,
+											)
+										}
 										list={async (absolutePath) =>
 											(
 												await rpc<{

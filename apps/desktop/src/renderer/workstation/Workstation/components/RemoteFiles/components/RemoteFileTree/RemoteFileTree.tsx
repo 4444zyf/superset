@@ -27,6 +27,7 @@ export function RemoteFileTree({
 	refreshKey,
 	selectedPath,
 	revealRequest,
+	onRevealHandled,
 	onRename,
 	onController,
 	renderContextMenu,
@@ -39,6 +40,7 @@ export function RemoteFileTree({
 	refreshKey: number;
 	selectedPath?: string;
 	revealRequest?: { requestId: string; absolutePath: string };
+	onRevealHandled?(requestId: string): void;
 	onRename?(absolutePath: string): void;
 	onController?(controller: FileTreeController | null): void;
 	renderContextMenu?: React.ComponentProps<
@@ -53,6 +55,7 @@ export function RemoteFileTree({
 		onError,
 		onRename,
 		onController,
+		onRevealHandled,
 	});
 	latest.current = {
 		list,
@@ -61,6 +64,7 @@ export function RemoteFileTree({
 		onError,
 		onRename,
 		onController,
+		onRevealHandled,
 	};
 	const controllerRef = useRef<FileTreeController | null>(null);
 	const { model } = useFileTree({
@@ -130,6 +134,7 @@ export function RemoteFileTree({
 					latest.current.onError(
 						new Error(t({ message: "Directory not found" })),
 					);
+				latest.current.onRevealHandled?.(revealRequest.requestId);
 			});
 		return () => {
 			cancelled = true;
