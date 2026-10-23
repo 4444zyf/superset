@@ -31,7 +31,7 @@ export async function verifyWorkstationTerminalUrlLinksUi(options, context) {
 		proof.requests.filter(
 			(r) => r.path === path && r.userAgent?.includes("Chrome/"),
 		).length;
-	const gesture = (process.platform === "darwin" ? 4 : 2) | 1;
+	const gesture = (process.platform === "darwin" ? 4 : 2) | 8;
 	const run = async (phase, row) => {
 		await getPage().call("Page.bringToFront");
 		const dims = await controls.inspectPresetTerminal(terminal.id);
@@ -59,6 +59,9 @@ export async function verifyWorkstationTerminalUrlLinksUi(options, context) {
 					`document.querySelector(${JSON.stringify(selector)}+' .xterm-screen')?.classList.contains('xterm-cursor-pointer')`,
 				);
 			}, "original terminal URL hover");
+		await evaluate(
+			`(()=>{window.__ownedUrlInputEvents=[];document.addEventListener('click',e=>{if(!e.target?.closest?.(${JSON.stringify(selector)}))return;window.__ownedUrlInputEvents.push({button:e.button,ctrl:e.ctrlKey,meta:e.metaKey,shift:e.shiftKey,alt:e.altKey});if(window.__ownedUrlInputEvents.length>12)window.__ownedUrlInputEvents.shift();},true);return true;})()`,
+		);
 		const beforeCalls = await observePortBrowserCalls();
 		const before = await read();
 		await hover(0);
@@ -76,7 +79,20 @@ export async function verifyWorkstationTerminalUrlLinksUi(options, context) {
 		await hover(gesture);
 		await mouse("mousePressed", gesture);
 		await mouse("mouseReleased", gesture);
-		const calls = await until(async () => {
+		const events = await evaluate("window.__ownedUrlInputEvents");
+		writeFileSync(
+			join(output, `terminal-url-${phase}-input.json`),
+			`${JSON.stringify({ gesture, point, events }, null, 2)}\n`,
+		);
+		assert.deepEqual(events.at(-1), {
+			button: 0,
+			ctrl: process.platform !== "darwin",
+			meta: process.platform === "darwin",
+			shift: true,
+			alt: false,
+		});
+		let calls;
+		calls = await until(async () => {
 			const c = await observePortBrowserCalls();
 			return c.length > beforeCalls.length ? c : null;
 		}, "external URL gesture dispatched");
