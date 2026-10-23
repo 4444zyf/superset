@@ -1239,3 +1239,20 @@ TDD在01d81bf30原源码上新增两项均失败，实际复现原传输和严�
 本地A原PID145200/145212及probe shell145464、SSH原PID141010/141016/141022及probe shell144437保持执行/cwd，未选本地B PID145310仍活且执行不变，renderer错误为空。实际查看了旧缺少列表图、新本地发现悬停图、最终本地停止后图及SSH转发打开图；其余图片仅称捕获。拥有的Xorg/Chromium均通过runner持有的Popen正常结束并wait退出0，namespace/SSH/后端沿用finally清理。
 
 最终逐一复核编译文件不变，CLI仍为 f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb；只有electron-vite源码编译，无CLI重打包、安装包、密封发行归档或Actions。[本阶段103份证据](evidence/local-ssh-feature-parity/stage68)。端口复制/kill/标签/多转发、内部浏览器、完整链接设置与其他原版功能仍待补；物理Mac、外部SSH和已登录真实供应商Agent未据此宣称通过，整体对齐未完成。
+
+
+## 阶段六十九：复制本地可访问的工作区端口地址
+
+复用阶段六十八原 PortRowView 的复制图标，在两个工作站入口接入 copyPort；仍由明确 workspace、当前连接对象/选中机器/组件/generation 及原扫描器归属约束。新的 copyWorkspacePort 只调用既有 preparePort、copyText、closePort；prepare 成功且当前归属有效才写本机 OS 剪贴板，保留并展示转发供复制的地址访问，成功显示原 Copied {0} 翻译。用户可用原 Close 关闭转发。旧 API 缺少 preparePort 或 copyText 不显示复制入口，绝不退回会立即打开浏览器的旧 openPort；已有打开合同完全不变。离开工作区的晚回复和剪贴板失败释放新转发；已有单转发界面替换时按原规则关闭先前转发。
+
+没有 host/tRPC/IPC 输入输出变更、最低版本、数据库、持久键、新依赖或账号绕过。原 ports.ts SHA256 保持 69839a5227121a8e5d61a7ce0775a2c748ce60b4d065d11b93de53c1a57d1019。本阶段复用上阶段协商的发现能力，不需要新 host 合同；17语言仅增加同一 Copied {0} 的占位表达式注释，翻译保持。
+
+新增组件用例先0通过1失败（没有 Copy localhost:3000 按钮），最终桌面22项/2686断言/7文件，包括旧 openWorkspacePort 合同、原 PortRow 独立动作、原窗格、无账号启动图、复制成功/缺少旧API/晚回复/失败清理。桌面完整类型、17语言 extract/strict compile、插件检查通过。10文件最终格式检查无错误，3项既有非空断言 warning 保留；原恢复验证器只改参数传递行，其既有大范围格式未混入提交。
+
+冻结上阶段 fcda2b878 产品2205文件后，baseline-local 确认原扫描器和列表均包含43803，但无复制动作，实窗失败。服务正常 Ctrl+C 停止，拥有 Xorg146663/Chromium146678 wait退出0；重编译前逐文件验证 manifest 73dbc5301181c59eff4fdc94dd5378146ed8fe593fae186724af70e204a26c51 未变，旧失败图已查看。
+
+新产品源码提交3b2d467d6，仅electron-vite编译；2205文件manifest为 99806a3f8fa06d7062b5295b78793c4c74a7aa99b527317647103ee05e950719。本地 verified-local 实窗退出0，首次/重开后复制分别为 http://127.0.0.1:35003 和 http://127.0.0.1:44141，与界面forward URL、OS剪贴板完全一致，HTTP marker相同，复制前后主进程浏览器打开次数均0→0；随后明确external只打开一次真实Chromium，手动Close拒绝旧地址但原服务仍活。原本地A PID148415/148427、probe shell148641和执行/cwd保留，未选B PID148516仍活且执行不变。最终Ctrl+C停止服务，已完成列表读中原端口消失。
+
+SSH verified-ssh 退出0，先完成20次恢复。远端服务35757经复制得到本机地址 http://127.0.0.1:39321，正常重开后得到 http://127.0.0.1:41461；两次均实际鼠标点击、读取本机OS剪贴板并向复制地址请求相同marker，0→0浏览器打开。明确external动作另行正常打开一次Chromium，原SSH PID149346/149352/149358及probe shell152578/执行/cwd保留；读取pending时离开工作区后不额外打开，服务由Ctrl+C停止，完成的列表读为空。新本地首次复制图及SSH重开后复制图已实际查看，其他仅称捕获。
+
+最终本地Xorg148019/Chromium148034与SSH Xorg148896/Chromium148911均由runner持有Popen结束并wait退出0，renderer错误为空，namespace/后端/SSH沿用原finally清理。两轮后2205编译文件逐一复核不变；CLI仍为 f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。没有CLI重打包、安装包、密封发行归档或GitHub Actions。[本阶段证据](evidence/local-ssh-feature-parity/stage69)。这轮仅补原端口复制；完整kill/标签/多转发管理、内部浏览器及其他原版功能继续待补，真实供应商Agent、外部SSH、物理Mac不混称通过，整体对齐未完成。
