@@ -30,6 +30,7 @@ export function WorkspaceEditor({
 	reconnecting,
 	onNewSession,
 	forward,
+	forwards,
 	onBack,
 	onMachines,
 	onError,
@@ -51,6 +52,7 @@ export function WorkspaceEditor({
 	reconnecting: false | "reconnecting" | "blocked";
 	onNewSession(): void;
 	forward: { id: string; url: string } | null;
+	forwards?: { id: string; url: string; workspaceId: string; port: number }[];
 	onBack(): void;
 	onMachines(): void;
 	onError(error: string): void;
@@ -58,7 +60,7 @@ export function WorkspaceEditor({
 	onNewTerminal(): void;
 	onOpenPort(port: number): void;
 	onCopyPort?(port: number): Promise<void>;
-	onClosePort(): void;
+	onClosePort(id?: string): void;
 	onRefresh(): void;
 	onPending(): void;
 }) {
@@ -228,6 +230,7 @@ export function WorkspaceEditor({
 								workspaceId={workspace.id}
 								busy={busy}
 								forward={forward}
+								forwards={forwards}
 								onOpenPort={onOpenPort}
 								onCopyPort={onCopyPort}
 								onClosePort={onClosePort}

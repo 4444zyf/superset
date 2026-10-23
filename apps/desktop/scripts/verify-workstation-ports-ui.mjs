@@ -77,7 +77,8 @@ export async function verifyWorkstationPortsUi(options) {
 		'  body=state["marker"].encode();self.send_response(200);self.send_header("Content-Type","text/plain");self.send_header("Cache-Control","no-store");self.send_header("Content-Length",str(len(body)));self.end_headers();self.wfile.write(body)',
 		" def log_message(self,*args): pass",
 		'server=http.server.HTTPServer(("127.0.0.1",0),Handler)',
-		process.argv.includes("--port-bulk")
+		process.argv.includes("--port-bulk") ||
+		process.argv.includes("--port-multiple")
 			? 'second=http.server.HTTPServer(("127.0.0.1",0),Handler);state["ports"]=[server.server_port,second.server_port];worker=threading.Thread(target=second.serve_forever,daemon=True);worker.start()'
 			: 'second=None;state["ports"]=[server.server_port]',
 		'state["port"]=server.server_port;state["url"]="http://localhost:"+str(server.server_port)+"/preview/sub?value=%E4%B8%AD%20hello#fragment";save()',
@@ -184,6 +185,21 @@ export async function verifyWorkstationPortsUi(options) {
 				launches,
 				report,
 			});
+			if (process.argv.includes("--port-multiple")) {
+				const { verifyWorkstationMultiplePortsUi } = await import(
+					"./verify-workstation-multiple-ports-ui.mjs"
+				);
+				await verifyWorkstationMultiplePortsUi(options, {
+					initial,
+					workspace,
+					terminal,
+					execution,
+					originals,
+					selector,
+					read,
+					report,
+				});
+			}
 			if (
 				process.argv.includes("--port-kill") ||
 				process.argv.includes("--port-bulk")

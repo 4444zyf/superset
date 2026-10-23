@@ -376,7 +376,6 @@ export function Workstation({
 	activeWorkspaceRef.current =
 		savedTarget?.workspaces.find((w) => w.tabId === savedTarget.activeTabId)
 			?.workspaceId ?? workspace?.id;
-	const forwardedWorkspace = useRef<string | null>(null);
 	const portLifecycle = useRef({
 		mounted: false,
 		reconnecting: ui.reconnecting,
@@ -398,12 +397,9 @@ export function Workstation({
 		void ui.operation(async () => {
 			const target = ui.active.current;
 			if (!target || !portTargetIsCurrent(target, workspaceId)) return;
-			if (ui.forward) {
-				await api.closePort(ui.forward.id);
-				ui.setForward(null);
-			}
 			const forward = await openWorkspacePort({
 				api,
+				existingForwardIds: new Set(ui.forwards.map((f) => f.id)),
 				connection: target,
 				workspaceId,
 				port,
@@ -418,8 +414,7 @@ export function Workstation({
 				},
 			});
 			if (!forward) return;
-			forwardedWorkspace.current = workspaceId;
-			ui.setForward(forward);
+			ui.setForward({ ...forward, workspaceId, port });
 		});
 	const copyPort = async (workspaceId: string, port: number) => {
 		await ui.operation(async () => {
@@ -431,20 +426,16 @@ export function Workstation({
 				!api.copyText
 			)
 				return;
-			if (ui.forward) {
-				await api.closePort(ui.forward.id);
-				ui.setForward(null);
-			}
 			const forward = await copyWorkspacePort({
 				api,
+				existingForwardIds: new Set(ui.forwards.map((f) => f.id)),
 				connection: target,
 				workspaceId,
 				port,
 				isCurrent: () => portTargetIsCurrent(target, workspaceId),
 			});
 			if (!forward) return;
-			forwardedWorkspace.current = workspaceId;
-			ui.setForward(forward);
+			ui.setForward({ ...forward, workspaceId, port });
 			ui.setNotice(
 				t({ message: `Copied ${forward.url.replace(/^https?:\/\//, "")}` }),
 			);
@@ -474,13 +465,14 @@ export function Workstation({
 				await api.openExternal(target.url);
 			});
 	};
-	const closePort = () =>
+	const closePort = (id = ui.forward?.id) =>
 		void ui.operation(async () => {
-			if (ui.forward) {
-				await api.closePort(ui.forward.id);
-				ui.setForward(null);
-				forwardedWorkspace.current = null;
-			}
+			const entry = ui.forwards.find((f) => f.id === id),
+				target = ui.active.current;
+			if (!entry || !target || !portTargetIsCurrent(target, entry.workspaceId))
+				return;
+			await api.closePort(entry.id);
+			ui.removeForward(entry.id);
 		});
 	const disabled = ui.busy || api.platform === "win32";
 	const content = (
@@ -688,9 +680,10 @@ export function Workstation({
 							ports={{
 								busy: ui.busy,
 								forward:
-									forwardedWorkspace.current === activeWorkspaceRef.current
-										? ui.forward
-										: null,
+									ui.forwards
+										.filter((f) => f.workspaceId === activeWorkspaceRef.current)
+										.at(-1) ?? null,
+								forwards: ui.forwards,
 								onOpen: openPort,
 								onOpenUrl: openUrl,
 								onCopy: copyPort,
@@ -742,7 +735,14 @@ export function Workstation({
 							terminalIds={ui.terminalIds}
 							terminalId={ui.terminalId}
 							busy={disabled}
-							forward={ui.forward}
+							forward={
+								ui.forwards
+									.filter((f) => f.workspaceId === workspace.id)
+									.at(-1) ?? null
+							}
+							forwards={ui.forwards.filter(
+								(f) => f.workspaceId === workspace.id,
+							)}
 							onBack={() => {
 								ui.clearWorkspace();
 							}}

@@ -62,10 +62,11 @@ export function WorkspaceWindow({
 	ports: {
 		busy: boolean;
 		forward: { id: string; url: string } | null;
+		forwards?: { id: string; url: string; workspaceId: string; port: number }[];
 		onOpen(workspaceId: string, port: number): void;
 		onOpenUrl?(workspaceId: string, url: string): void;
 		onCopy?(workspaceId: string, port: number): Promise<void>;
-		onClose(): void;
+		onClose(id?: string): void;
 	};
 	onBrowse(): void;
 	onMachines(): void;
@@ -283,6 +284,9 @@ export function WorkspaceWindow({
 											workspaceId={workspace.workspaceId}
 											busy={ports.busy}
 											forward={ports.forward}
+											forwards={ports.forwards?.filter(
+												(f) => f.workspaceId === workspace.workspaceId,
+											)}
 											onOpenPort={(port) =>
 												ports.onOpen(workspace.workspaceId, port)
 											}

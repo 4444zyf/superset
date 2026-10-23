@@ -123,3 +123,26 @@ test("clipboard failure releases the newly prepared forward", async () => {
 	).rejects.toThrow("Clipboard unavailable");
 	expect(closed).toEqual([forward.id]);
 });
+
+test("clipboard failure keeps an already retained cached forward usable", async () => {
+	const closed: string[] = [];
+	await expect(
+		copyWorkspacePort({
+			connection,
+			workspaceId: "workspace",
+			port: 3000,
+			isCurrent: () => true,
+			existingForwardIds: new Set([forward.id]),
+			api: {
+				preparePort: async () => forward,
+				copyText: async () => {
+					throw Error("Clipboard unavailable");
+				},
+				closePort: async (id) => {
+					closed.push(id);
+				},
+			},
+		}),
+	).rejects.toThrow("Clipboard unavailable");
+	expect(closed).toEqual([]);
+});

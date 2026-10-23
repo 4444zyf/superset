@@ -149,3 +149,86 @@ test("ordinary connection work retains its existing close behavior", async () =>
 		await pending;
 	});
 });
+
+test("forward entries retain other ports, replace cached IDs and remove only the selected one", async () => {
+	const api = { list: async () => [] } as unknown as DirectWorkstationApi;
+	const hook = renderHook(() => useWorkstation(api));
+	const first = {
+		id: "one",
+		url: "http://127.0.0.1:1001",
+		workspaceId: "a",
+		port: 3000,
+	};
+	const second = {
+		id: "two",
+		url: "http://127.0.0.1:1002",
+		workspaceId: "b",
+		port: 4000,
+	};
+	await act(async () => {
+		hook.result.current.setForward(first);
+		hook.result.current.setForward(second);
+	});
+	expect(hook.result.current.forwards).toEqual([first, second]);
+	await act(async () =>
+		hook.result.current.setForward({ ...first, url: `${first.url}/path` }),
+	);
+	expect(hook.result.current.forwards).toEqual([
+		second,
+		{ ...first, url: `${first.url}/path` },
+	]);
+	await act(async () => hook.result.current.removeForward(first.id));
+	expect(hook.result.current.forwards).toEqual([second]);
+	await act(async () => hook.result.current.setForward(null));
+	expect(hook.result.current.forwards).toEqual([]);
+});
+
+test("a reconnect clears every retained forward while keeping other connection events isolated", async () => {
+	let receive: Parameters<
+		NonNullable<DirectWorkstationApi["onConnection"]>
+	>[0] = () => {};
+	const api = {
+		list: async () => [],
+		onConnection: (callback: typeof receive) => {
+			receive = callback;
+			return () => {};
+		},
+	} as unknown as DirectWorkstationApi;
+	const hook = renderHook(() => useWorkstation(api));
+	hook.result.current.active.current = {
+		connectionId: "a",
+		backendId: "backend",
+		namespaceId: "namespace",
+		instanceId: "instance",
+		generation: 1,
+	};
+	const first = {
+		id: "one",
+		url: "http://127.0.0.1:1001",
+		workspaceId: "ws",
+		port: 3000,
+	};
+	const second = { ...first, id: "two", port: 4000 };
+	await act(async () => {
+		hook.result.current.setForward(first);
+		hook.result.current.setForward(second);
+	});
+	await act(async () =>
+		receive({
+			kind: "reconnecting",
+			connectionId: "other",
+			previousGeneration: 1,
+			attempt: 1,
+		}),
+	);
+	expect(hook.result.current.forwards).toEqual([first, second]);
+	await act(async () =>
+		receive({
+			kind: "reconnecting",
+			connectionId: "a",
+			previousGeneration: 1,
+			attempt: 1,
+		}),
+	);
+	expect(hook.result.current.forwards).toEqual([]);
+});

@@ -13,6 +13,7 @@ export function WorkspacePortControls({
 	workspaceId,
 	busy,
 	forward,
+	forwards,
 	onOpenPort,
 	onCopyPort,
 	onClosePort,
@@ -22,9 +23,10 @@ export function WorkspacePortControls({
 	workspaceId?: string;
 	busy: boolean;
 	forward: { id: string; url: string } | null;
+	forwards?: { id: string; url: string; workspaceId?: string; port?: number }[];
 	onOpenPort(port: number): void;
 	onCopyPort?(port: number): Promise<void>;
-	onClosePort(): void;
+	onClosePort(id?: string): void;
 }) {
 	const { t } = useLingui();
 	return (
@@ -51,20 +53,25 @@ export function WorkspacePortControls({
 					<Trans>Open port</Trans>
 				</Button>
 			</form>
-			{forward && (
-				<div className="flex items-center gap-2">
-					<code className="text-xs">{forward.url}</code>
+			{(forwards ?? (forward ? [forward] : [])).map((entry) => (
+				<div
+					key={entry.id}
+					data-forward-id={entry.id}
+					data-forward-port={"port" in entry ? entry.port : undefined}
+					className="flex items-center gap-2"
+				>
+					<code className="text-xs">{entry.url}</code>
 					<Button
 						type="button"
 						variant="ghost"
 						size="sm"
-						onClick={onClosePort}
+						onClick={() => (forwards ? onClosePort(entry.id) : onClosePort())}
 						disabled={busy}
 					>
 						<Trans>Close</Trans>
 					</Button>
 				</div>
-			)}
+			))}
 			{api && connection && workspaceId && (
 				<RemoteWorkspacePorts
 					api={api}

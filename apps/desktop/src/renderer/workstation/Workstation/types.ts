@@ -43,3 +43,10 @@ export interface MachineProbe {
 	architecture: string;
 	installed: boolean;
 }
+
+export interface WorkstationForward {
+	id: string;
+	url: string;
+	workspaceId: string;
+	port: number;
+}

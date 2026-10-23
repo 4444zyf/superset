@@ -9,12 +9,14 @@ export async function copyWorkspacePort({
 	workspaceId,
 	port,
 	isCurrent,
+	existingForwardIds,
 }: {
 	api: Pick<DirectWorkstationApi, "preparePort" | "copyText" | "closePort">;
 	connection: DirectDescriptor;
 	workspaceId: string;
 	port: number;
 	isCurrent(): boolean;
+	existingForwardIds?: ReadonlySet<string>;
 }): Promise<{ id: string; url: string } | null> {
 	if (!isCurrent() || !api.preparePort || !api.copyText) return null;
 	const forward = await api.preparePort(connection, workspaceId, port);
@@ -26,6 +28,7 @@ export async function copyWorkspacePort({
 		retained = true;
 		return forward;
 	} finally {
-		if (!retained) await api.closePort(forward.id);
+		if (!retained && !existingForwardIds?.has(forward.id))
+			await api.closePort(forward.id);
 	}
 }

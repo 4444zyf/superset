@@ -118,3 +118,32 @@ test("an old API cannot open an incomplete forwarded URL", async () => {
 	expect(result).toBeNull();
 	expect(calls).toEqual([]);
 });
+
+test("a failed browser dispatch does not close a cached forward already in use", async () => {
+	const closed: string[] = [];
+	await expect(
+		openWorkspacePort({
+			connection,
+			workspaceId: "workspace",
+			port: 3000,
+			isCurrent: () => true,
+			existingForwardIds: new Set(["retained"]),
+			api: {
+				preparePort: async () => ({
+					id: "retained",
+					url: "http://127.0.0.1:1000",
+				}),
+				openPort: async () => {
+					throw Error("legacy open");
+				},
+				closePort: async (id) => {
+					closed.push(id);
+				},
+			},
+			openExternal: async () => {
+				throw Error("Browser unavailable");
+			},
+		}),
+	).rejects.toThrow("Browser unavailable");
+	expect(closed).toEqual([]);
+});

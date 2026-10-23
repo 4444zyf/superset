@@ -11,6 +11,7 @@ import type {
 	RemoteDirectory,
 	RemoteProject,
 	RemoteWorkspace,
+	WorkstationForward,
 } from "../../types";
 
 export function useWorkstation(api: DirectWorkstationApi) {
@@ -75,9 +76,16 @@ export function useWorkstation(api: DirectWorkstationApi) {
 	>(false);
 	const [error, setError] = useState<string | null>(null);
 	const [notice, setNotice] = useState<string | null>(null);
-	const [forward, setForward] = useState<{ id: string; url: string } | null>(
-		null,
-	);
+	const [forwards, setForwards] = useState<WorkstationForward[]>([]);
+	const forward = forwards.at(-1) ?? null;
+	const setForward = useCallback((value: WorkstationForward | null) => {
+		setForwards((previous) =>
+			value ? [...previous.filter((f) => f.id !== value.id), value] : [],
+		);
+	}, []);
+	const removeForward = useCallback((id: string) => {
+		setForwards((previous) => previous.filter((f) => f.id !== id));
+	}, []);
 	const [pending, setPending] = useState<
 		{ operationId: string; procedure: string; status: string }[]
 	>([]);
@@ -250,7 +258,7 @@ export function useWorkstation(api: DirectWorkstationApi) {
 					if (event.kind === "blocked") setError(event.error);
 				}
 			}),
-		[api, refresh],
+		[api, refresh, setForward],
 	);
 	const namespaceSelected = (
 		profileId: string,
@@ -543,6 +551,8 @@ export function useWorkstation(api: DirectWorkstationApi) {
 		error,
 		notice,
 		forward,
+		forwards,
+		removeForward,
 		pending,
 		active,
 		password,

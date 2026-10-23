@@ -11,6 +11,7 @@ export async function openWorkspacePort({
 	port,
 	targetUrl,
 	isCurrent,
+	existingForwardIds,
 	openExternal,
 }: {
 	api: Pick<DirectWorkstationApi, "openPort" | "preparePort" | "closePort">;
@@ -19,6 +20,7 @@ export async function openWorkspacePort({
 	port: number;
 	targetUrl?: string;
 	isCurrent(): boolean;
+	existingForwardIds?: ReadonlySet<string>;
 	openExternal(url: string): Promise<void>;
 }): Promise<{ id: string; url: string } | null> {
 	if (!isCurrent()) return null;
@@ -44,6 +46,7 @@ export async function openWorkspacePort({
 		retained = true;
 		return { id: forward.id, url };
 	} finally {
-		if (!retained) await api.closePort(forward.id);
+		if (!retained && !existingForwardIds?.has(forward.id))
+			await api.closePort(forward.id);
 	}
 }
