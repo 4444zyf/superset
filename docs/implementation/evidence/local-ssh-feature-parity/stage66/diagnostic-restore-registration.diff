@@ -1,0 +1,72 @@
+diff --git a/packages/host-service/src/terminal/restore-route.test.ts b/packages/host-service/src/terminal/restore-route.test.ts
+index be06d7f39..9793c5054 100644
+--- a/packages/host-service/src/terminal/restore-route.test.ts
++++ b/packages/host-service/src/terminal/restore-route.test.ts
+@@ -8,13 +8,15 @@ import type { DaemonClient, SubscribeCallbacks } from "./DaemonClient";
+ import { HeadlessTerminal } from "./headless-xterm";
+ import { registerTerminalRestoreRoute } from "./restore-route";
+ 
+-async function fixture(fast: boolean) {
++async function fixture(fast: boolean, listedExecution = "execution") {
+ 	const app = new Hono();
+ 	let hooks: WSEvents | undefined;
+ 	let replay: SubscribeCallbacks | undefined;
+ 	const frames: (string | ArrayBufferLike | Uint8Array)[] = [];
+ 	const inputs: string[] = [];
+ 	const binaryInputs: Buffer[] = [];
++	const portSessions: unknown[] = [];
++	const portHints: unknown[] = [];
+ 	const snapshot = new TerminalModes().snapshot();
+ 	const upgrade = ((factory: (c: unknown) => WSEvents) => (c: never) => {
+ 		hooks = factory(c);
+@@ -40,6 +42,7 @@ async function fixture(fast: boolean) {
+ 	} as unknown as HostDb;
+ 	const daemon = {
+ 		supportsConditionalSubscribe: true,
++		list: async () => [{id: "terminal", executionId: listedExecution, alive: true, pid: 123}],
+ 		onDisconnect() {},
+ 		async subscribeExisting(
+ 			_id: string,
+@@ -57,7 +60,10 @@ async function fixture(fast: boolean) {
+ 			inputs.push(Buffer.from(data).toString());
+ 		},
+ 	} as unknown as DaemonClient;
+-	registerTerminalRestoreRoute(app, db, upgrade, undefined, async () => daemon);
++	registerTerminalRestoreRoute(app, db, upgrade, undefined, async () => daemon, {
++		upsertSession: (...args: unknown[]) => { portSessions.push(args); },
++		checkOutputForHint: (...args: unknown[]) => { portHints.push(args); },
++	});
+ 	await app.request(
+ 		"/terminal-restore/terminal?workspaceId=workspace&executionId=execution",
+ 	);
+@@ -77,6 +83,8 @@ async function fixture(fast: boolean) {
+ 			.map((f) => JSON.parse(f));
+ 	return {
+ 		frames,
++		portSessions,
++		portHints,
+ 		inputs,
+ 		binaryInputs,
+ 		binary: (data: string) =>
+@@ -174,3 +182,21 @@ test("closing during replay prevents a late completion from reviving the socket"
+ 	f.replay.onOutput(Buffer.from("late output"));
+ 	expect(f.frames).toHaveLength(count);
+ });
++
++
++test("direct restore registers only the matching execution for port scanning and hints only from live output", async () => {
++	const f = await fixture(false);
++	expect(f.portSessions).toEqual([["terminal", "workspace", 123]]);
++	expect(f.portHints).toEqual([]);
++	f.replay.onOutput(Buffer.from("historical listening on port 3000"));
++	expect(f.portHints).toEqual([]);
++	f.replay.onReplayComplete?.(f.snapshot);
++	f.replay.onOutput(Buffer.from("server listening on port 3000"));
++	expect(f.portHints).toEqual([["terminal", "server listening on port 3000"]]);
++	f.close();
++	f.replay.onOutput(Buffer.from("closed output"));
++	expect(f.portHints).toHaveLength(1);
++	const other = await fixture(true, "other-execution");
++	expect(other.portSessions).toEqual([]);
++	other.close();
++});
