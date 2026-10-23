@@ -334,16 +334,14 @@ export async function verifyWorkstationPortsUi(options) {
 			}, "owned HTTP server stopped by terminal interrupt");
 			if (report.discoveryFinished) {
 				await click("text:Port");
-				await until(
+				report.portsAfterStop = await until(
 					() =>
 						evaluate(
-							`Boolean(document.querySelector('[data-workspace-ports]')) && !document.querySelector('[data-workspace-ports] [role=alert]') && !document.querySelector('[data-workspace-ports] [data-port="${initial.port}"]')`,
+							`(()=>{const root=document.querySelector('[data-workspace-ports]');if(!root || root.querySelector('[role=alert]') || root.innerText.includes('Loading...') || root.querySelector('button')?.getAttribute('aria-busy')==='true' || root.querySelector('[data-port="${initial.port}"]'))return null;return {text:root.innerText,ports:[...root.querySelectorAll('[data-port]')].map(e=>Number(e.dataset.port))};})()`,
 						),
-					"stopped port removed by the discovery refresh",
+					"stopped port removed by the settled discovery refresh",
 				);
-				report.portsAfterStop = await evaluate(
-					`document.querySelector('[data-workspace-ports]')?.innerText`,
-				);
+				assert.ok(!report.portsAfterStop.ports.includes(initial.port));
 				await screenshot("ports-discovery-after-stop");
 			}
 		} catch (error) {
