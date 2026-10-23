@@ -167,6 +167,12 @@ export async function verifyWorkstationPortKillUi(options, context) {
 		assert.ok(
 			closeAlerts[0].includes("Cannot kill the terminal shell process"),
 		);
+		if (bulk)
+			assert.ok(
+				closeAlerts[0].startsWith(
+					`Failed to close ${protectedPorts.length} ${protectedPorts.length === 1 ? "port" : "ports"}`,
+				),
+			);
 	} else assert.deepEqual(closeAlerts, []);
 	await assert.rejects(fetch(url, { signal: AbortSignal.timeout(1000) }));
 	const retained = await controls.inspectPresetTerminal(terminal.id);
