@@ -171,6 +171,6 @@ export async function verifyWorkstationPortKillUi(options, context) {
 	);
 	writeFileSync(
 		join(output, "port-kill-ui.json"),
-		JSON.stringify(report.killed, null, 2) + "\n",
+		`${JSON.stringify(report.killed, null, 2)}\n`,
 	);
 }
