@@ -270,6 +270,8 @@ export function ownedRestoreControls(home, fixture) {
 					id: row.id,
 					executionId: row.executionId,
 					pid: row.pid,
+					cols: row.cols,
+					rows: row.rows,
 					cwd,
 					alive: row.alive,
 					processExists:

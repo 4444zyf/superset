@@ -11,6 +11,7 @@ import {
 	RemoteTerminal,
 	type TerminalEmulator,
 } from "../../../RemoteTerminal/RemoteTerminal";
+import type { TerminalFileTarget } from "../../../RemoteTerminal/utils/terminal-file-links/terminal-file-links";
 
 export function WorkspacePaneView({
 	api,
@@ -26,6 +27,7 @@ export function WorkspacePaneView({
 	onAttached,
 	onFailed,
 	createEmulator,
+	onOpenFile,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor | null;
@@ -40,6 +42,7 @@ export function WorkspacePaneView({
 	onAttached(): void;
 	onFailed(): void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
+	onOpenFile?(target: TerminalFileTarget): void;
 }) {
 	const [state, setState] = useState<
 		"pending" | "attached" | "failed" | "ended"
@@ -98,6 +101,7 @@ export function WorkspacePaneView({
 								onFailed();
 							}}
 							createEmulator={createEmulator}
+							onOpenFile={onOpenFile}
 						/>
 					) : (
 						<RemoteChat

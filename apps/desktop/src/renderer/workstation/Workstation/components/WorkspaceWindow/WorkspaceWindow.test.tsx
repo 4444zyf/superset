@@ -189,3 +189,154 @@ test("loading Run state does not insert an action before New terminal", async ()
 		["workspace", "horizontal", undefined, { placement: "new-tab" }],
 	]);
 });
+
+test("terminal navigation reaches the existing file viewer through the original pane grid", async () => {
+	const handlers: import("renderer/lib/terminal/terminal-link-manager").TerminalLinkHandlers[] =
+		[];
+	const requests: import("../../../../../shared/direct-workstation").DirectRpc[] =
+		[];
+	const selected: unknown[] = [];
+	const connection = {
+		connectionId: "remote",
+		backendId: "backend",
+		namespaceId: "namespace",
+		instanceId: "instance",
+		generation: 1,
+		capabilities: {
+			workspaceViewRestoreV1: true,
+			workstationFilesV1: true,
+			files: true,
+		},
+	};
+	const workspace = {
+		tabId: "tab",
+		workspaceId: "workspace",
+		activeTool: "terminal",
+		activePaneId: "pane",
+		panes: [
+			{
+				paneId: "pane",
+				kind: "terminal",
+				resourceId: "terminal",
+				executionId: "execution",
+			},
+		],
+		layout: { type: "pane", paneId: "pane" },
+	};
+	const props = {
+		api: {
+			onSocket: () => () => {},
+			openRestoredTerminal: async () => {},
+			closeSocket: async () => {},
+			rpc: async (
+				request: import("../../../../../shared/direct-workstation").DirectRpc,
+			) => {
+				requests.push(request);
+				if (request.path === "workspace.get")
+					return { worktreePath: "/remote/repo" };
+				if (request.path === "filesystem.listDirectory") return { entries: [] };
+				if (request.path === "filesystem.readFile")
+					return {
+						kind: "bytes",
+						content: btoa("one\ntwo\nthree\nfour"),
+						revision: "r1",
+						exceededLimit: false,
+					};
+				throw new Error(`Unexpected request ${request.path}`);
+			},
+		},
+		connection,
+		target: {
+			connectionId: "remote",
+			targetRevision: 1,
+			backendId: "backend",
+			namespaceId: "namespace",
+			serviceUid: 1000,
+			autoConnect: true,
+			activeTabId: "tab",
+			workspaces: [workspace],
+		},
+		checks: [
+			{
+				workspaceId: "workspace",
+				kind: "terminal",
+				resourceId: "terminal",
+				executionId: "execution",
+				state: "live",
+			},
+		],
+		resourceRevision: 0,
+		restore: null,
+		actions: {
+			busy: false,
+			setTool: (id: string, tool: string) => {
+				selected.push([id, tool]);
+			},
+			focusPane() {},
+		},
+		ports: { busy: false, forward: null, onOpen() {}, onClose() {} },
+		onNewSession() {},
+		onRefresh() {},
+		onPending() {},
+		onProjectSettings() {},
+		onBrowse() {},
+		onMachines() {},
+		onError(message: string) {
+			throw new Error(message);
+		},
+		createEmulator: () => ({
+			terminal: {
+				cols: 80,
+				rows: 24,
+				write() {},
+				writeln() {},
+				dispose() {},
+				onData: () => ({ dispose() {} }),
+				onResize: () => ({ dispose() {} }),
+			},
+			fit() {},
+			installLinkHandlers(
+				value: import("renderer/lib/terminal/terminal-link-manager").TerminalLinkHandlers,
+			) {
+				handlers.push(value);
+				return () => {};
+			},
+		}),
+	} as unknown as ComponentProps<typeof WorkspaceWindow>;
+	const fixture = () => (
+		<DndProvider backend={HTML5Backend}>
+			<TooltipProvider>
+				<WorkspaceWindow {...props} />
+			</TooltipProvider>
+		</DndProvider>
+	);
+	const view = render(fixture());
+	await waitFor(() => expect(handlers).toHaveLength(1));
+	await act(async () =>
+		handlers[0]!.onFileLinkClick!(new MouseEvent("click", { ctrlKey: true }), {
+			text: "note.txt:3",
+			startIndex: 0,
+			endIndex: 10,
+			resolvedPath: "/remote/repo/note.txt",
+			isDirectory: false,
+			row: 3,
+			col: undefined,
+			rowEnd: undefined,
+			colEnd: undefined,
+		}),
+	);
+	expect(selected).toEqual([["workspace", "files"]]);
+	props.target.workspaces[0]!.activeTool = "files";
+	view.rerender(fixture());
+	await waitFor(() =>
+		expect(view.container.querySelector(".cm-editor")).not.toBeNull(),
+	);
+	expect(
+		requests.find((request) => request.path === "filesystem.readFile"),
+	).toMatchObject({
+		connectionId: "remote",
+		generation: 1,
+		type: "query",
+		input: { workspaceId: "workspace", absolutePath: "/remote/repo/note.txt" },
+	});
+});

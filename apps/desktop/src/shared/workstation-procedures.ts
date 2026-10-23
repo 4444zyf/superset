@@ -17,6 +17,7 @@ export interface WorkspaceProcedure {
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"filesystem.statPath": { type: "mutation", capability: "workstationFilesV1" },
 	"workspaceRun.getStateV2": {
 		type: "query",
 		capability: "workstationWorkspaceRunV2",

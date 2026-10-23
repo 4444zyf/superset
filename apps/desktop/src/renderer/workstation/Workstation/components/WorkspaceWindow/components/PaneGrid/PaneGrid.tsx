@@ -26,6 +26,7 @@ import {
 } from "../../../../utils/pane-adapter/pane-adapter";
 import { paneStateMetadataKey } from "../../../../utils/workspace-pane-state/workspace-pane-state";
 import type { TerminalEmulator } from "../../../RemoteTerminal/RemoteTerminal";
+import type { TerminalFileTarget } from "../../../RemoteTerminal/utils/terminal-file-links/terminal-file-links";
 
 import { WorkspacePaneView } from "../WorkspacePaneView/WorkspacePaneView";
 import { isCompactPaneLayout } from "./utils/isCompactPaneLayout/isCompactPaneLayout";
@@ -37,6 +38,7 @@ export function PaneGrid({
 	checks,
 	actions,
 	createEmulator,
+	onOpenFile,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor | null;
@@ -44,6 +46,7 @@ export function PaneGrid({
 	checks: RestoreResourceCheck[];
 	actions: WorkspaceViewActions;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
+	onOpenFile?(target: TerminalFileTarget): void;
 }) {
 	const { t } = useLingui();
 	const current = useRef({ workspace, actions, connection });
@@ -333,6 +336,7 @@ export function PaneGrid({
 				active={tab?.activePaneId === id}
 				allowed={allowed.has(id)}
 				createEmulator={createEmulator}
+				onOpenFile={onOpenFile}
 				onFocus={() => {
 					void actions.focusPane(workspace.workspaceId, id);
 				}}

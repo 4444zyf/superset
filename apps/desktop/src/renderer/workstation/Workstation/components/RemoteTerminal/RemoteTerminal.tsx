@@ -1,5 +1,5 @@
-import { errorMessage } from "@superset/i18n/errors";
 import { Trans } from "@lingui/react/macro";
+import { errorMessage } from "@superset/i18n/errors";
 import { darkTheme, getTerminalColors } from "@superset/shared/themes";
 import type { RestoreResourceRef } from "@superset/shared/workspace-restore";
 import type { SearchAddon } from "@xterm/addon-search";
@@ -9,14 +9,15 @@ import {
 	resolveTerminalAppearance,
 	type TerminalAppearance,
 } from "renderer/lib/terminal/appearance";
-import { createTerminalSurface } from "renderer/lib/terminal/createTerminalSurface";
-import { installTerminalKeyEventHandler } from "renderer/lib/terminal/terminal-key-event-handler-core";
 import { validateClipboardFiles } from "renderer/lib/terminal/clipboard-files";
-import { installImagePasteFallback } from "renderer/lib/terminal/terminal-image-paste-fallback";
-import { uploadPastedFiles } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/utils/uploadPastedFiles";
-import { shellEscapePaths } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/TerminalPane/utils";
+import { createTerminalSurface } from "renderer/lib/terminal/createTerminalSurface";
 import { writeTerminalClipboard } from "renderer/lib/terminal/terminal-clipboard";
+import { installImagePasteFallback } from "renderer/lib/terminal/terminal-image-paste-fallback";
+import { installTerminalKeyEventHandler } from "renderer/lib/terminal/terminal-key-event-handler-core";
+import type { TerminalLinkHandlers } from "renderer/lib/terminal/terminal-link-manager";
 import { installCopyOnSelect } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/TerminalPane/hooks/useCopyOnSelect/copyOnSelect";
+import { shellEscapePaths } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/TerminalPane/utils";
+import { uploadPastedFiles } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/utils/uploadPastedFiles";
 import { TerminalSearch } from "renderer/screens/main/components/WorkspaceView/ContentView/TabsContent/Terminal/TerminalSearch";
 import { toXtermTheme } from "renderer/stores/theme/utils";
 import type {
@@ -24,6 +25,10 @@ import type {
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
 import { useWorkstationAppearance } from "../../providers/WorkstationPreferencesContext";
+import {
+	type TerminalFileTarget,
+	terminalFileLinks,
+} from "./utils/terminal-file-links/terminal-file-links";
 
 export interface TerminalEmulator {
 	terminal: Pick<
@@ -35,6 +40,8 @@ export interface TerminalEmulator {
 	cleanup?(): void;
 	applyAppearance?(appearance: TerminalAppearance): void;
 	installCopyOnSelect?(writeText: (text: string) => Promise<void>): () => void;
+	installLinkHandlers?(handlers: TerminalLinkHandlers): () => void;
+	isReviewing?(): boolean;
 }
 
 function createXterm(element: HTMLDivElement): TerminalEmulator {
@@ -53,6 +60,12 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 		applyAppearance: surface.applyAppearance,
 		installCopyOnSelect: (writeText) =>
 			installCopyOnSelect(surface.xterm, undefined, writeText),
+		installLinkHandlers: (handlers) => {
+			surface.linkManager.setHandlers(handlers);
+			return () => surface.linkManager.dispose();
+		},
+		isReviewing: () =>
+			!!surface.wrapper.querySelector("[data-terminal-scrollback-review]"),
 		cleanup: () => {
 			removeKeys();
 			surface.cleanup();
@@ -72,6 +85,7 @@ export function RemoteTerminal({
 	onAttached,
 	onExited,
 	onError,
+	onOpenFile,
 	createEmulator = createXterm,
 }: {
 	api: DirectWorkstationApi;
@@ -84,6 +98,7 @@ export function RemoteTerminal({
 	onAttached?(): void;
 	onExited?(): void;
 	onError(message: string): void;
+	onOpenFile?(target: TerminalFileTarget): void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 }) {
 	const { theme, fontSettings, copyOnSelect } = useWorkstationAppearance();
@@ -119,6 +134,24 @@ export function RemoteTerminal({
 	const [searchAddon, setSearchAddon] = useState<SearchAddon | null>(null);
 	const callbacks = useRef({ onError, onAttached, onExited });
 	callbacks.current = { onError, onAttached, onExited };
+	const navigation = useRef({
+		api,
+		connection,
+		workspaceId,
+		terminalId,
+		executionId,
+		visible,
+		onOpenFile,
+	});
+	navigation.current = {
+		api,
+		connection,
+		workspaceId,
+		terminalId,
+		executionId,
+		visible,
+		onOpenFile,
+	};
 	useEffect(() => {
 		if (!element.current || !visible) return;
 		setState("pending");
@@ -134,6 +167,26 @@ export function RemoteTerminal({
 		let closed = false;
 		let ready = false;
 		let ended = false;
+		const removeLinks = workspaceId
+			? emulator.installLinkHandlers?.(
+					terminalFileLinks({
+						api,
+						connection,
+						workspaceId,
+						isCurrent: () =>
+							!closed &&
+							navigation.current.api === api &&
+							navigation.current.connection === connection &&
+							navigation.current.workspaceId === workspaceId &&
+							navigation.current.terminalId === terminalId &&
+							navigation.current.executionId === executionId &&
+							navigation.current.visible &&
+							!!navigation.current.onOpenFile,
+						isReviewing: () => emulator.isReviewing?.() ?? false,
+						onOpenFile: (target) => navigation.current.onOpenFile?.(target),
+					}),
+				)
+			: undefined;
 		let attachTimer: ReturnType<typeof setTimeout> | undefined;
 		const send = (data: unknown) => {
 			if (ready && !closed)
@@ -322,6 +375,7 @@ export function RemoteTerminal({
 			clearTimeout(attachTimer);
 			focusTerminal.current = null;
 			off();
+			removeLinks?.();
 			removePaste?.();
 			input.dispose();
 			resize.dispose();
@@ -331,7 +385,16 @@ export function RemoteTerminal({
 			cleanup?.();
 			terminal.dispose();
 		};
-	}, [api, connection, terminalId, restoreTarget, visible, createEmulator]);
+	}, [
+		api,
+		connection,
+		terminalId,
+		restoreTarget,
+		visible,
+		createEmulator,
+		workspaceId,
+		executionId,
+	]);
 	useEffect(() => {
 		emulatorRef.current?.applyAppearance?.(appearance);
 	}, [appearance]);

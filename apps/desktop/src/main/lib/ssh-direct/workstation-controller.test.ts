@@ -4,6 +4,48 @@ import type { SqliteDatabase } from "@superset/direct-connection";
 import { OperationIntents } from "./operation-intents";
 import { WorkstationController } from "./workstation-controller";
 
+test("terminal path resolution preserves the existing mutation contract and requires workspace capability and generation", async () => {
+	const f = fixture();
+	let enabled = false;
+	const requests: unknown[] = [];
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationFilesV1: enabled },
+		}),
+		invoke: async (_id, request) => {
+			requests.push(request);
+			return { resolvedPath: "/remote/repo/note.txt", isDirectory: false };
+		},
+	});
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "filesystem.statPath",
+		type: "mutation" as const,
+		input: { workspaceId: "workspace", path: "note.txt" },
+	};
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"required capability",
+	);
+	enabled = true;
+	await expect(
+		controller.invoke({ ...request, type: "query" }),
+	).rejects.toThrow("Unsupported");
+	await expect(
+		controller.invoke({ ...request, input: { path: "note.txt" } }),
+	).rejects.toThrow("explicit workspace");
+	expect(await controller.invoke(request)).toEqual({
+		resolvedPath: "/remote/repo/note.txt",
+		isDirectory: false,
+	});
+	f.nextGeneration();
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"Connection changed",
+	);
+	expect(requests).toEqual([request]);
+});
+
 test("project settings require an explicit project and an advertised backend capability", async () => {
 	const f = fixture();
 	const requests: unknown[] = [];

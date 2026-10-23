@@ -32,6 +32,7 @@ import {
 } from "../../providers/WorkstationFileDocuments";
 import { useWorkstationFileEvents } from "../../providers/WorkstationFileEvents/use-workstation-file-events";
 import { useWorkstationAppearance } from "../../providers/WorkstationPreferencesContext";
+import type { TerminalFileTarget } from "../RemoteTerminal/utils/terminal-file-links/terminal-file-links";
 import { CloseFileDialog } from "./components/CloseFileDialog";
 import { FileActionItems } from "./components/FileActionMenu/components/FileActionItems/FileActionItems";
 import {
@@ -55,6 +56,11 @@ import {
 	type ImageResult,
 	MarkdownImageReader,
 } from "./components/RemoteMarkdownPreview/markdown-images";
+
+export interface FileOpenRequest extends TerminalFileTarget {
+	owner: string;
+	requestId: string;
+}
 
 interface ChangedFile {
 	path: string;
@@ -82,11 +88,15 @@ export function RemoteFiles({
 	connection,
 	workspaceId,
 	onError,
+	openRequest,
+	onOpenRequestHandled,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor;
 	workspaceId: string;
 	onError(message: string): void;
+	openRequest?: FileOpenRequest;
+	onOpenRequestHandled?(requestId: string): void;
 }) {
 	const appearance = useWorkstationAppearance();
 	const { t } = useLingui();
@@ -401,6 +411,18 @@ export function RemoteFiles({
 			report(error);
 		}
 	};
+	const openFileRef = useRef(openFile);
+	openFileRef.current = openFile;
+	const consumedRequest = useRef<string | null>(null);
+	useEffect(() => {
+		if (!openRequest || openRequest.owner !== operationOwner) return;
+		const key = JSON.stringify([operationOwner, openRequest.requestId]);
+		if (consumedRequest.current === key) return;
+		consumedRequest.current = key;
+		setTab("files");
+		openFileRef.current(openRequest.absolutePath, openRequest.line);
+		onOpenRequestHandled?.(openRequest.requestId);
+	}, [openRequest, operationOwner, onOpenRequestHandled]);
 
 	return (
 		<TooltipProvider>

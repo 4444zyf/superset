@@ -552,3 +552,120 @@ test("a rejected clipboard file reports an error without failing its attached te
 			?.getAttribute("data-restore-state"),
 	).toBe("attached");
 });
+
+test("file links use the owning backend and revoke old navigation after workspace changes", async () => {
+	const handlers: import("renderer/lib/terminal/terminal-link-manager").TerminalLinkHandlers[] =
+		[];
+	const calls: unknown[] = [];
+	const opened: unknown[] = [];
+	let finish!: (value: unknown) => void;
+	let defer = false;
+	let reviewing = false;
+	const api = {
+		onSocket: () => () => {},
+		openRestoredTerminal: async () => {},
+		closeSocket: async () => {},
+		rpc: async (request: unknown) => {
+			calls.push(request);
+			if (defer)
+				return new Promise((resolve) => {
+					finish = resolve;
+				});
+			return { resolvedPath: "/remote/note.txt", isDirectory: false };
+		},
+	} as unknown as DirectWorkstationApi;
+	const createEmulator = (): TerminalEmulator => ({
+		terminal: {
+			cols: 80,
+			rows: 24,
+			write() {},
+			writeln() {},
+			dispose() {},
+			onData: () => ({ dispose() {} }),
+			onResize: () => ({ dispose() {} }),
+		},
+		fit() {},
+		installLinkHandlers(value) {
+			handlers.push(value);
+			return () => {};
+		},
+		isReviewing: () => reviewing,
+	});
+	const renderTerminal = (workspaceId: string, descriptor = connection) => (
+		<RemoteTerminal
+			api={api}
+			connection={{ ...descriptor, capabilities: { workstationFilesV1: true } }}
+			terminalId="terminal"
+			restoreRef={{
+				workspaceId,
+				kind: "terminal",
+				resourceId: "terminal",
+				executionId: "execution",
+			}}
+			onError={(error) => {
+				throw new Error(error);
+			}}
+			onOpenFile={(value) => opened.push(value)}
+			createEmulator={createEmulator}
+		/>
+	);
+	const view = render(renderTerminal("workspace"));
+	expect(handlers).toHaveLength(1);
+	const original = handlers[0]!;
+	expect(await original.stat!("note.txt")).toEqual({
+		resolvedPath: "/remote/note.txt",
+		isDirectory: false,
+	});
+	expect(calls).toEqual([
+		{
+			connectionId: "machine",
+			generation: 1,
+			path: "filesystem.statPath",
+			type: "mutation",
+			input: { workspaceId: "workspace", path: "note.txt" },
+		},
+	]);
+	const link = {
+		text: "note.txt:3",
+		startIndex: 0,
+		endIndex: 10,
+		resolvedPath: "/remote/note.txt",
+		isDirectory: false,
+		row: 3,
+		col: 2,
+		rowEnd: undefined,
+		colEnd: undefined,
+	};
+	original.onFileLinkClick!(new MouseEvent("click"), link);
+	expect(opened).toEqual([]);
+	original.onFileLinkClick!(new MouseEvent("click", { metaKey: true }), link);
+	expect(opened).toEqual([{ absolutePath: "/remote/note.txt", line: 3 }]);
+	reviewing = true;
+	original.onFileLinkClick!(new MouseEvent("click", { ctrlKey: true }), link);
+	expect(opened).toHaveLength(1);
+	reviewing = false;
+	original.onFileLinkClick!(new MouseEvent("click", { ctrlKey: true }), {
+		...link,
+		isDirectory: true,
+	});
+	expect(opened).toHaveLength(1);
+	defer = true;
+	const pending = original.stat!("delayed.txt");
+	view.rerender(
+		renderTerminal("other", {
+			...connection,
+			namespaceId: "other",
+			generation: 2,
+		}),
+	);
+	finish({ resolvedPath: "/remote/delayed.txt", isDirectory: false });
+	expect(await pending).toBeNull();
+	original.onFileLinkClick!(new MouseEvent("click", { ctrlKey: true }), link);
+	expect(opened).toHaveLength(1);
+	const count = calls.length;
+	expect(await original.stat!("old.txt")).toBeNull();
+	expect(calls).toHaveLength(count);
+	defer = false;
+	view.unmount();
+	expect(await handlers.at(-1)!.stat!("after-unmount.txt")).toBeNull();
+});

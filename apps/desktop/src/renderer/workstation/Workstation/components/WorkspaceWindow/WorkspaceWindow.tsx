@@ -9,7 +9,7 @@ import {
 	DropdownMenuTrigger,
 } from "@superset/ui/dropdown-menu";
 import { Columns2, Folder, Rows2 } from "lucide-react";
-import { useLayoutEffect, useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -21,7 +21,8 @@ import type {
 } from "../../../../../shared/workspace-view";
 import type { WorkspaceViewActions } from "../../hooks/useWorkspaceViews/useWorkspaceViews";
 import { RemoteChat } from "../RemoteChat/RemoteChat";
-import { RemoteFiles } from "../RemoteFiles/RemoteFiles";
+import { type FileOpenRequest, RemoteFiles } from "../RemoteFiles/RemoteFiles";
+import type { TerminalEmulator } from "../RemoteTerminal/RemoteTerminal";
 import { RemoteTerminalPresets } from "../RemoteTerminalPresets/RemoteTerminalPresets";
 import { RemoteWorkspaceRun } from "../RemoteWorkspaceRun";
 import { RemoteWorkspaceSetup } from "../RemoteWorkspaceSetup/RemoteWorkspaceSetup";
@@ -45,6 +46,7 @@ export function WorkspaceWindow({
 	onPending,
 	onProjectSettings,
 	ports,
+	createEmulator,
 }: {
 	api: DirectWorkstationApi;
 	target: TargetView;
@@ -66,6 +68,7 @@ export function WorkspaceWindow({
 	onBrowse(): void;
 	onMachines(): void;
 	onError(message: string): void;
+	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 }) {
 	const { t } = useLingui();
 	useLayoutEffect(() => {
@@ -115,6 +118,15 @@ export function WorkspaceWindow({
 		connection?.generation,
 		workspace?.workspaceId,
 	]);
+	const navigationOwner = useRef(scriptOwner);
+	navigationOwner.current = scriptOwner;
+	const [fileOpenRequest, setFileOpenRequest] =
+		useState<FileOpenRequest | null>(null);
+	useLayoutEffect(() => {
+		setFileOpenRequest((current) =>
+			current?.owner === scriptOwner ? current : null,
+		);
+	}, [scriptOwner]);
 	const restoring =
 		restore?.status === "connecting" || restore?.status === "checking";
 	return (
@@ -416,6 +428,19 @@ export function WorkspaceWindow({
 							connection={connection}
 							workspaceId={workspace.workspaceId}
 							onError={onError}
+							openRequest={
+								fileOpenRequest?.owner === scriptOwner
+									? fileOpenRequest
+									: undefined
+							}
+							onOpenRequestHandled={(requestId) =>
+								setFileOpenRequest((current) =>
+									current?.owner === scriptOwner &&
+									current.requestId === requestId
+										? null
+										: current,
+								)
+							}
 						/>
 					) : (
 						<PaneGrid
@@ -425,6 +450,16 @@ export function WorkspaceWindow({
 							workspace={workspace}
 							checks={checks}
 							actions={actions}
+							createEmulator={createEmulator}
+							onOpenFile={(target) => {
+								if (navigationOwner.current !== scriptOwner) return;
+								setFileOpenRequest({
+									...target,
+									owner: scriptOwner,
+									requestId: crypto.randomUUID(),
+								});
+								void actions.setTool(workspace.workspaceId, "files");
+							}}
 						/>
 					)}
 					{chatPicker && (

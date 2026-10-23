@@ -1612,3 +1612,87 @@ test("a deleted clean file can be restored through the original Save and explici
 		},
 	});
 });
+
+test("a terminal file request opens the original editor at its line and preserves an existing dirty draft", async () => {
+	const f = fixture();
+	const handled: string[] = [];
+	const owner = JSON.stringify(["mini", "b", "n", 3, "workspace"]);
+	const props = {
+		api: f.api,
+		connection,
+		workspaceId: "workspace",
+		onError: f.onError,
+		onOpenRequestHandled: (id: string) => handled.push(id),
+	};
+	const view = render(<RemoteFiles {...props} />);
+	clickTreeRow(await treeRow("note.txt"));
+	const editor = await fileEditor();
+	await waitFor(() => expect(contentOf(editor)).toBe("remote contents"));
+	replaceContent(editor, "one\ntwo\nthree\nfour");
+	fireEvent.click(screen.getByRole("button", { name: "Changes" }));
+	view.rerender(
+		<RemoteFiles
+			{...props}
+			openRequest={{
+				owner,
+				requestId: "terminal-link",
+				absolutePath: "/Users/remote/repo/note.txt",
+				line: 3,
+			}}
+		/>,
+	);
+	await waitFor(() => expect(handled).toEqual(["terminal-link"]));
+	const selected = await fileEditor();
+	expect(contentOf(selected)).toBe("one\ntwo\nthree\nfour");
+	const cm = EditorView.findFromDOM(selected.querySelector(".cm-editor")!)!;
+	await waitFor(() => expect(cm.state.selection.main.head).toBe(8));
+	expect(
+		f.calls.filter((call) => call.path === "filesystem.readFile"),
+	).toHaveLength(1);
+	expect(f.calls.some((call) => call.path === "filesystem.writeFile")).toBe(
+		false,
+	);
+	fireEvent.click(screen.getByRole("button", { name: "Changes" }));
+	view.rerender(
+		<RemoteFiles
+			{...props}
+			openRequest={{
+				owner,
+				requestId: "terminal-link",
+				absolutePath: "/Users/remote/repo/note.txt",
+				line: 3,
+			}}
+		/>,
+	);
+	expect(
+		screen
+			.getByRole("button", { name: "Changes" })
+			.getAttribute("aria-pressed"),
+	).toBe("true");
+	expect(handled).toEqual(["terminal-link"]);
+});
+
+test("a file request from a previous namespace is never read on the current machine", async () => {
+	const f = fixture();
+	const handled: string[] = [];
+	render(
+		<RemoteFiles
+			api={f.api}
+			connection={connection}
+			workspaceId="workspace"
+			onError={f.onError}
+			onOpenRequestHandled={(id) => handled.push(id)}
+			openRequest={{
+				owner: JSON.stringify(["mini", "b", "old-namespace", 3, "workspace"]),
+				requestId: "stale",
+				absolutePath: "/other-machine/private.txt",
+				line: 1,
+			}}
+		/>,
+	);
+	await treeRow("note.txt");
+	expect(f.calls.some((call) => call.path === "filesystem.readFile")).toBe(
+		false,
+	);
+	expect(handled).toEqual([]);
+});
