@@ -30,6 +30,9 @@ export async function verifyWorkstationLocalWheelUi(options) {
  const scope={d:{...descriptor,kind:'local'},w:{workspaceId:workspace.id,panes:[]},root:workspace.worktreePath};
  writeFileSync(join(output,'local-wheel-target.json'),JSON.stringify({profile:local.profile,descriptor,workspace},null,2)+'\n');
  await screenshot('local-wheel-editor-before');
- await verifyWorkstationWheelUi({...options,scope});
+ if(process.argv.includes('--clipboard-only')) {
+  const {verifyWorkstationClipboardUi}=await import('./verify-workstation-clipboard-ui.mjs');
+  await verifyWorkstationClipboardUi({...options,scope,controls:options.controls.forNamespace(descriptor.namespaceId)});
+ } else await verifyWorkstationWheelUi({...options,scope});
  assert.deepEqual(getPage().errors,[]);
 }

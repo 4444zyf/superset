@@ -584,6 +584,9 @@ export async function startWorkstation(): Promise<void> {
 							.parse(payload),
 					);
 					return;
+				case "pasteClipboard":
+					event.sender.paste();
+					return;
 				case "getChatDrafts":
 					return chatDrafts.read();
 				case "saveChatDrafts":

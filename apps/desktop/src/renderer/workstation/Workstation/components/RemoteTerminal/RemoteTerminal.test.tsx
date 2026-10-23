@@ -6,7 +6,11 @@ import type {
 	DirectSocketEvent,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
-import { RemoteTerminal, type TerminalEmulator } from "./RemoteTerminal";
+import {
+	RemoteTerminal,
+	type TerminalClipboardControls,
+	type TerminalEmulator,
+} from "./RemoteTerminal";
 
 afterEach(cleanup);
 
@@ -106,7 +110,10 @@ const connection: DirectDescriptor = {
 	instanceId: "instance",
 };
 
-async function pendingFixture(strict: boolean) {
+async function pendingFixture(
+	strict: boolean,
+	onClipboardControls?: (controls: TerminalClipboardControls) => () => void,
+) {
 	let listener!: (event: DirectSocketEvent) => void;
 	let socketId = "";
 	const sent: { type: string; data?: string }[] = [];
@@ -127,6 +134,7 @@ async function pendingFixture(strict: boolean) {
 		async closeSocket() {},
 	} as unknown as DirectWorkstationApi;
 	const props = {
+		onClipboardControls,
 		api,
 		connection,
 		terminalId: "terminal",
@@ -986,4 +994,51 @@ test.each([
 	);
 	act(() => binary.triggerBinaryEvent(bytes));
 	expect(next.sent.filter((m) => m.type === "input-binary")).toHaveLength(1);
+});
+
+test("a scheduled menu paste cannot reach a replacement terminal after unmount", async () => {
+	let clipboard: TerminalClipboardControls | undefined;
+	let released = 0,
+		pastes = 0;
+	const f = await pendingFixture(true, (controls) => {
+		clipboard = controls;
+		return () => {
+			released++;
+		};
+	});
+	f.props.api.pasteClipboard = async () => {
+		pastes++;
+	};
+	if (!clipboard) throw new Error("clipboard controls missing");
+	expect(clipboard.canPaste()).toBe(false);
+	const { listener, socketId } = f.current();
+	act(() =>
+		listener({
+			socketId,
+			kind: "message",
+			data: JSON.stringify({
+				type: "attached",
+				terminalId: "terminal",
+				workspaceId: "workspace",
+				executionId: "execution",
+			}),
+		}),
+	);
+	expect(clipboard.canPaste()).toBe(true);
+	const original = requestAnimationFrame;
+	const frames: FrameRequestCallback[] = [];
+	globalThis.requestAnimationFrame = (callback) => {
+		frames.push(callback);
+		return 1;
+	};
+	try {
+		clipboard.paste();
+		f.view.unmount();
+		frames.forEach((frame) => frame(0));
+		expect(pastes).toBe(0);
+		expect(released).toBe(1);
+		expect(clipboard.canPaste()).toBe(false);
+	} finally {
+		globalThis.requestAnimationFrame = original;
+	}
 });

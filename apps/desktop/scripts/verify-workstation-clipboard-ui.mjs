@@ -13,8 +13,10 @@ export async function verifyWorkstationClipboardUi({
 	setClipboard,
 	pasteClipboard,
 	inspectClipboardImage,
+ readClipboardText,
 	controls,
 	output,
+ scope:suppliedScope,
 }) {
 	const evaluate = (expression) => getPage().evaluate(expression);
 	const until = async (read) => {
@@ -35,7 +37,7 @@ export async function verifyWorkstationClipboardUi({
 		);
 		throw new Error("Clipboard acceptance did not become ready");
 	};
-	const scope = await evaluate(
+	const scope = suppliedScope ?? await evaluate(
 		`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const v=(await window.directWorkstation.getWorkspaceView()).snapshot;const w=v.targets.find(t=>t.connectionId===d.connectionId).workspaces.find(w=>w.tabId===v.targets.find(t=>t.connectionId===d.connectionId).activeTabId);const row=await window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:'workspace.get',type:'query',input:{id:w.workspaceId}});return {d,w,root:row.worktreePath};})()`,
 	);
 	const query = (path, input) =>
@@ -92,6 +94,14 @@ export async function verifyWorkstationClipboardUi({
 		join(output, "clipboard-input-target.json"),
 		JSON.stringify(point, null, 2) + "\n",
 	);
+	if(process.argv.includes('--terminal-agent-clipboard')) {
+  for(const type of ['mousePressed','mouseReleased']) await getPage().call('Input.dispatchMouseEvent',{type,button:'right',clickCount:1,x:point.x,y:point.y});
+  const menu=await until(()=>evaluate(`document.querySelector('[role=menu]')&&[...document.querySelectorAll('[role=menuitem]')].map(e=>e.textContent.trim())`));
+  await screenshot('clipboard-terminal-menu');
+  writeFileSync(join(output,'clipboard-terminal-menu.json'),JSON.stringify({menu},null,2)+'\n');
+  assert.ok(menu.some(s=>s==='Copy'),'terminal context menu supports copy');assert.ok(menu.some(s=>s==='Paste'),'terminal context menu supports paste');
+  await key('Escape',27);
+ }
 	await screenshot("clipboard-image-source");
 	const expected = await setClipboard({
 		imageBase64: readFileSync(
@@ -302,6 +312,10 @@ export async function verifyWorkstationClipboardUi({
 		);
 		await screenshot("clipboard-native-file-shell-read");
 	}
+	if(process.argv.includes('--terminal-agent-clipboard')) {
+  const {verifyWorkstationTerminalClipboardUi}=await import('./verify-workstation-terminal-clipboard-ui.mjs');
+  await verifyWorkstationTerminalClipboardUi({getPage,click,screenshot,setClipboard,pasteClipboard,readClipboardText,output,scope,terminal,query});
+ }
 	for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
 		await getPage().call("Input.dispatchMouseEvent", {
 			type,

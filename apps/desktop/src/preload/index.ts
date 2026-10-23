@@ -23,6 +23,7 @@ const invoke = (action: string, payload?: unknown) =>
 const directWorkstation: DirectWorkstationApi = {
 	openExternal: (url) => invoke("openExternal", url),
 	copyText: (text) => invoke("copyText", text),
+	pasteClipboard: () => invoke("pasteClipboard"),
 	getPreferences: () => invoke("getPreferences"),
 	getChatDrafts: () => invoke("getChatDrafts"),
 	saveChatDrafts: (input) => invoke("saveChatDrafts", input),

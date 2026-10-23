@@ -9,6 +9,7 @@ import type { WorkspacePane } from "../../../../../../../shared/workspace-view";
 import { RemoteChat } from "../../../RemoteChat/RemoteChat";
 import {
 	RemoteTerminal,
+	type TerminalClipboardControls,
 	type TerminalEmulator,
 } from "../../../RemoteTerminal/RemoteTerminal";
 import type { TerminalFileTarget } from "../../../RemoteTerminal/utils/terminal-file-links/terminal-file-links";
@@ -28,6 +29,7 @@ export function WorkspacePaneView({
 	onFailed,
 	createEmulator,
 	onOpenFile,
+	onClipboardControls,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor | null;
@@ -43,6 +45,7 @@ export function WorkspacePaneView({
 	onFailed(): void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 	onOpenFile?(target: TerminalFileTarget): void;
+	onClipboardControls?(controls: TerminalClipboardControls): () => void;
 }) {
 	const [state, setState] = useState<
 		"pending" | "attached" | "failed" | "ended"
@@ -102,6 +105,7 @@ export function WorkspacePaneView({
 							}}
 							createEmulator={createEmulator}
 							onOpenFile={onOpenFile}
+							onClipboardControls={onClipboardControls}
 						/>
 					) : (
 						<RemoteChat

@@ -25,7 +25,10 @@ import {
 	toPaneState,
 } from "../../../../utils/pane-adapter/pane-adapter";
 import { paneStateMetadataKey } from "../../../../utils/workspace-pane-state/workspace-pane-state";
-import type { TerminalEmulator } from "../../../RemoteTerminal/RemoteTerminal";
+import type {
+	TerminalClipboardControls,
+	TerminalEmulator,
+} from "../../../RemoteTerminal/RemoteTerminal";
 import type { TerminalFileTarget } from "../../../RemoteTerminal/utils/terminal-file-links/terminal-file-links";
 
 import { WorkspacePaneView } from "../WorkspacePaneView/WorkspacePaneView";
@@ -49,6 +52,9 @@ export function PaneGrid({
 	onOpenFile?(target: TerminalFileTarget): void;
 }) {
 	const { t } = useLingui();
+	const terminalClipboards = useRef(
+		new Map<string, TerminalClipboardControls>(),
+	);
 	const current = useRef({ workspace, actions, connection });
 	current.current = { workspace, actions, connection };
 	const paneScope = workspace.tabId;
@@ -337,6 +343,13 @@ export function PaneGrid({
 				allowed={allowed.has(id)}
 				createEmulator={createEmulator}
 				onOpenFile={onOpenFile}
+				onClipboardControls={(clipboard) => {
+					terminalClipboards.current.set(id, clipboard);
+					return () => {
+						if (terminalClipboards.current.get(id) === clipboard)
+							terminalClipboards.current.delete(id);
+					};
+				}}
 				onFocus={() => {
 					void actions.focusPane(workspace.workspaceId, id);
 				}}
@@ -418,6 +431,26 @@ export function PaneGrid({
 		},
 	];
 	const contextMenuActions: ContextMenuActionConfig<WorkspacePane>[] = [
+		{
+			key: "copy",
+			label: t({ message: "Copy" }),
+			hidden: ({ pane }) => pane.kind !== "terminal",
+			disabled: ({ pane }) =>
+				!terminalClipboards.current.get(pane.id)?.canCopy(),
+			onSelect: ({ pane }) => terminalClipboards.current.get(pane.id)?.copy(),
+		},
+		{
+			key: "paste",
+			label: t({ message: "Paste" }),
+			hidden: ({ pane }) => pane.kind !== "terminal",
+			disabled: ({ pane }) =>
+				!terminalClipboards.current.get(pane.id)?.canPaste(),
+			onSelect: ({ pane, actions }) => {
+				actions.focus();
+				terminalClipboards.current.get(pane.id)?.paste();
+			},
+		},
+
 		{
 			key: "horizontal",
 			label: t({ message: "Split horizontally" }),

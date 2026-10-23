@@ -13,6 +13,10 @@ import {
 import { validateClipboardFiles } from "renderer/lib/terminal/clipboard-files";
 import { createTerminalSurface } from "renderer/lib/terminal/createTerminalSurface";
 import { writeTerminalClipboard } from "renderer/lib/terminal/terminal-clipboard";
+import {
+	getTerminalSelectionForCopy,
+	installTerminalCopyHandler,
+} from "renderer/lib/terminal/terminal-copy";
 import { installImagePasteFallback } from "renderer/lib/terminal/terminal-image-paste-fallback";
 import { installTerminalKeyEventHandler } from "renderer/lib/terminal/terminal-key-event-handler-core";
 import type { TerminalLinkHandlers } from "renderer/lib/terminal/terminal-link-manager";
@@ -36,6 +40,13 @@ import {
 	terminalFileLinks,
 } from "./utils/terminal-file-links/terminal-file-links";
 
+export interface TerminalClipboardControls {
+	canCopy(): boolean;
+	canPaste(): boolean;
+	copy(): void;
+	paste(): void;
+}
+
 export interface TerminalEmulator {
 	terminal: Pick<
 		Terminal,
@@ -48,6 +59,7 @@ export interface TerminalEmulator {
 	cleanup?(): void;
 	applyAppearance?(appearance: TerminalAppearance): void;
 	installCopyOnSelect?(writeText: (text: string) => Promise<void>): () => void;
+	getSelectionForCopy?(): string;
 	installLinkHandlers?(handlers: TerminalLinkHandlers): () => void;
 	isReviewing?(): boolean;
 	beginReplay?(): void;
@@ -64,6 +76,7 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 	const removeKeys = installTerminalKeyEventHandler(surface.xterm, {
 		linuxCtrlVPaste: true,
 	});
+	const removeCopy = installTerminalCopyHandler(surface.xterm);
 	element.appendChild(surface.wrapper);
 	if (surface.xterm.element) surface.xterm.element.style.padding = "8px";
 	return {
@@ -77,6 +90,10 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 		applyAppearance: surface.applyAppearance,
 		installCopyOnSelect: (writeText) =>
 			installCopyOnSelect(surface.xterm, undefined, writeText),
+		getSelectionForCopy: () =>
+			surface.wrapper.querySelector("[data-terminal-scrollback-review]")
+				? (window.getSelection()?.toString() ?? "")
+				: getTerminalSelectionForCopy(surface.xterm),
 		installLinkHandlers: (handlers) => {
 			surface.linkManager.setHandlers(handlers);
 			return () => surface.linkManager.dispose();
@@ -85,6 +102,7 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 			!!surface.wrapper.querySelector("[data-terminal-scrollback-review]"),
 		cleanup: () => {
 			removeKeys();
+			removeCopy();
 			surface.cleanup();
 			surface.wrapper.remove();
 		},
@@ -103,6 +121,7 @@ export function RemoteTerminal({
 	onExited,
 	onError,
 	onOpenFile,
+	onClipboardControls,
 	createEmulator = createXterm,
 }: {
 	api: DirectWorkstationApi;
@@ -116,6 +135,7 @@ export function RemoteTerminal({
 	onExited?(): void;
 	onError(message: string): void;
 	onOpenFile?(target: TerminalFileTarget): void;
+	onClipboardControls?(controls: TerminalClipboardControls): () => void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 }) {
 	const { theme, fontSettings, copyOnSelect } = useWorkstationAppearance();
@@ -149,8 +169,14 @@ export function RemoteTerminal({
 	const [pasteBusy, setPasteBusy] = useState(false);
 	const [pasteError, setPasteError] = useState<string | null>(null);
 	const [searchAddon, setSearchAddon] = useState<SearchAddon | null>(null);
-	const callbacks = useRef({ onError, onAttached, onExited });
-	callbacks.current = { onError, onAttached, onExited };
+	const clipboardControls = useRef<TerminalClipboardControls | null>(null);
+	const callbacks = useRef({
+		onError,
+		onAttached,
+		onExited,
+		onClipboardControls,
+	});
+	callbacks.current = { onError, onAttached, onExited, onClipboardControls };
 	const navigation = useRef({
 		api,
 		connection,
@@ -398,6 +424,36 @@ export function RemoteTerminal({
 					send({ type: "input-binary", data: btoa(data) });
 			},
 		);
+		const selection = () => emulator.getSelectionForCopy?.() ?? "";
+		const clipboard: TerminalClipboardControls = {
+			canCopy: () => !closed && !!selection(),
+			canPaste: () =>
+				ready &&
+				!closed &&
+				!ended &&
+				!!api.pasteClipboard &&
+				!emulator.isReviewing?.(),
+			copy() {
+				if (!clipboard.canCopy()) return;
+				void writeTerminalClipboard(selection(), async (text) => {
+					if (!api.copyText) throw new Error("Native clipboard is unavailable");
+					await api.copyText(text);
+				}).catch((error) => {
+					if (!closed) setPasteError(errorMessage(error));
+				});
+			},
+			paste() {
+				requestAnimationFrame(() => {
+					if (!clipboard.canPaste() || !focus.current) return;
+					terminal.focus?.();
+					void api.pasteClipboard?.().catch((error) => {
+						if (!closed) setPasteError(errorMessage(error));
+					});
+				});
+			},
+		};
+		clipboardControls.current = clipboard;
+		const removeClipboard = callbacks.current.onClipboardControls?.(clipboard);
 		const resize = terminal.onResize(({ cols, rows }) =>
 			send({ type: "resize", cols, rows }),
 		);
@@ -431,6 +487,9 @@ export function RemoteTerminal({
 			});
 		return () => {
 			closed = true;
+			removeClipboard?.();
+			if (clipboardControls.current === clipboard)
+				clipboardControls.current = null;
 			cancelPendingInput();
 			clearTimeout(attachTimer);
 			focusTerminal.current = null;
@@ -484,6 +543,18 @@ export function RemoteTerminal({
 		<div
 			className="relative h-full min-h-0"
 			onKeyDownCapture={(event) => {
+				if (
+					event.code === "KeyC" &&
+					event.ctrlKey &&
+					event.shiftKey &&
+					!event.metaKey &&
+					!event.altKey &&
+					clipboardControls.current?.canCopy()
+				) {
+					event.preventDefault();
+					event.stopPropagation();
+					clipboardControls.current.copy();
+				}
 				if (
 					(event.metaKey || event.ctrlKey) &&
 					event.key.toLowerCase() === "f" &&

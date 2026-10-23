@@ -608,6 +608,7 @@ export async function verifyWorkspaceRestoreUi({
 			setClipboard,
 			pasteClipboard,
 			inspectClipboardImage,
+ readClipboardText,
 			controls,
 			output,
 		});
