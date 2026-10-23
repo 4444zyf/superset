@@ -595,6 +595,8 @@ describe("env", () => {
 		// Store original env vars to restore after tests
 		const originalEnvVars: Record<string, string | undefined> = {};
 		const varsToTrack = [
+			"TERM_PROGRAM",
+			"TERM_PROGRAM_VERSION",
 			"NODE_ENV",
 			"NODE_OPTIONS",
 			"NODE_PATH",
@@ -671,9 +673,12 @@ describe("env", () => {
 		});
 
 		describe("terminal metadata", () => {
-			it("should set TERM_PROGRAM to kitty", () => {
+			it("does not claim or inherit another terminal's identity", () => {
+				process.env.TERM_PROGRAM = "vscode";
+				process.env.TERM_PROGRAM_VERSION = "1.0";
 				const result = buildTerminalEnv(baseParams);
-				expect(result.TERM_PROGRAM).toBe("kitty");
+				expect(result.TERM_PROGRAM).toBeUndefined();
+				expect(result.TERM_PROGRAM_VERSION).toBeUndefined();
 			});
 
 			it("should set COLORTERM to truecolor", () => {

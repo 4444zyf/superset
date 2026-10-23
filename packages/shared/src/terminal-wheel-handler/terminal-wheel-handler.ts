@@ -192,10 +192,9 @@ function getReportCoords(
  * sequence per line — the report stream a native terminal (kitty, iTerm,
  * Ghostty) produces.
  *
- * Coupled to terminal identity: TERM_PROGRAM must claim a kitty-class
- * terminal (see TERMINAL_TERM_PROGRAM in @superset/shared/constants).
- * Under a vscode identity Claude Code amplifies each report to compensate
- * for xterm's damped stream, so full-fidelity reports would over-scroll ~3x.
+ * TERM_PROGRAM must not claim vscode, and XTVERSION must not start with
+ * xterm.js. Those identities make Claude compensate for a damped stream
+ * instead of using native scroll acceleration.
  */
 export function createTerminalWheelEventHandler(
 	xterm: XTerm,

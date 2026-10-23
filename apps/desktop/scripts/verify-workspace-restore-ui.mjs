@@ -445,6 +445,12 @@ export async function verifyWorkspaceRestoreUi({
 			) + "\n",
 		);
 	}
+ if (process.argv.includes("--terminal-identity-only")) {
+  const {verifyWorkstationTerminalIdentityUi}=await import("./verify-workstation-terminal-identity-ui.mjs");
+  await verifyWorkstationTerminalIdentityUi({getPage,click,screenshot,closeReopen,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalIdentityOnly:true},null,2)+"\n");
+  return;
+ }
  if (process.argv.includes("--terminal-file-links-only")) {
   const {verifyWorkstationTerminalFileLinksUi}=await import("./verify-workstation-terminal-file-links-ui.mjs");
   await verifyWorkstationTerminalFileLinksUi({getPage,click,screenshot,closeReopen,controls,output});
