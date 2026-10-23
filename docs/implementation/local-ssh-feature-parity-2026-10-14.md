@@ -1218,3 +1218,24 @@ TDD在01d81bf30原源码上新增两项均失败，实际复现原传输和严�
 本地A原PID131936/131948、probe shell132168及执行/cwd保留，未选B PID132039在最后仍活且执行不变。SSH原PID132877/132883/132889及probe shell136111保持。服务均由原终端Ctrl+C正常停止，renderer错误为空。最终本地raw-opened与SSH osc8-reopened-opened图已实际查看，旧URL无hover图也看过；其余仅称捕获。最终本地Xorg131540/Chromium131555与SSH Xorg132431/Chromium132446由其Popen结束并wait退出0，原backend/namespace/SSH finally完成清理，未向未知资源发信号。
 
 只用8GiB参数electron-vite编译产品efc23cc69，2205文件manifest SHA256为ee8c73668ba59143e31192a5d2fc475975960f9c89b1263d74935985516287a0，两轮后复核不变；CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。没有CLI重打包、安装包、密封后端归档或Actions。实窗仅HTTP，HTTPS/IPv6/其他loopback映射由单元测试覆盖；真实供应商登录/OAuth、TLS证书交互、物理Mac、外部SSH、端口发现界面、内部浏览器及其他原版功能继续待验/待接入，整体对齐未完成。
+
+
+## 阶段六十八：当前工作区端口发现
+
+本阶段复用原端口行展示层，给无账号工作站接入原后端 ports.getAll；不是重新实现扫描器。主进程新增专用 listPorts 入口，要求明确 workspace、连接 generation 和 workstationPortsV1 能力，并在读取前后检查 generation。任意 RPC allowlist 仍不开放 ports.getAll。后端仅在 direct.describe 增加可选能力标记；ports.ts 的 SHA256 仍为 69839a5227121a8e5d61a7ce0775a2c748ce60b4d065d11b93de53c1a57d1019，原 getAll/kill 查询、输入、输出、认证、排序和错误不变。
+
+原 PortRow 的数据、内部打开、外部打开、复制及关闭逻辑保留，纯 PortRowView 抽出原样式和独立回调供工作站复用。新列表只显示当前 workspace 的有效端口，按端口号排序；点击明确的外部浏览器图标使用既有 preparePort 和归属检查。尚未接入内部浏览器的端口号不被偷换成外部打开；新的复制、kill/标签/多转发管理仍待补。旧 host 没有能力或旧 desktop API 没有 listPorts 时，原手动输入完整保留。列表仅菜单挂载时轮询，错误单独显示而不伪称无端口，Refresh 可重新读取。结果绑定 API、连接/backend/namespace/instance/generation/workspace，离开/换端清除后旧回复不进入新界面；openPort 在关闭现有转发前也先检查当前归属。
+
+兼容核对：官方稳定 desktop 1.29.0 及以上共14个标签、CLI共67个标签无 direct.describe 调用，当前 mobile/SDK 亦无；没有删除或改动任何旧合同，不提高最低版本，无 DB、持久键、新依赖或账号绕过。首次使用不存在的 upstream remote 失败，随后用官方公开 URL 获取标签成功，日志保留。推送显式禁用 followTags，只更新当前工作分支。
+
+源码基线新增 controller 用例先0通过1失败，缺少 listPorts。最终桌面50项/2816断言/6文件，另 host capability 1项/4断言通过；桌面和 host 全类型、17语言 extract/strict compile、插件检查通过。测试夹具的三个直接强转类型报错已改成明确 unknown 过渡，未更改产品类型或放宽检查。20份源码格式检查无错误，3项既有非空断言 warning 保留。
+
+冻结阶段六十七 efc23cc69 产品的2205文件后，旧本地窗口已由原扫描器确认实际 Python 服务40783归属，菜单仍只有手动输入，缺少发现行使 baseline-local 失败。服务由 Ctrl+C 停止，拥有 Xorg138224、Chromium138239 均 wait 退出0。重编译前再次逐文件验证旧 manifest ee8c73668ba59143e31192a5d2fc475975960f9c89b1263d74935985516287a0。
+
+编译产品 fcda2b878 的2205文件 manifest SHA256 为 73dbc5301181c59eff4fdc94dd5378146ed8fe593fae186724af70e204a26c51。首轮 verified-local 核心打开/重开/晚回复通过，但停止后断言把初始 Loading 误算完成，截图和后续文字仍有旧端口，因此不能作为停止后验收。017064d6c 只修验证器：排除 Loading、要求读请求结束，在同一次观察保存端口数组并断言旧端口不存在，不重编译产品、不增加原等待上限。SSH先完成20次恢复后才动态加载端口验证器，因此 verified-ssh 已执行新条件，报告的 portsAfterStop 为结构化观察；最终本地另跑 final-local，新旧证据完整保留。
+
+最终 final-local 与 verified-ssh 均退出0，原服务端口34003和45805分别经发现行的明确 external 图标映射为127.0.0.1:40865和:42117。每端只有一次主进程/OS打开，真实Chromium请求服务根路径；未把该证据说成读取Chromium页面DOM或截取其页面。客户端正常关闭重开后仍发现原服务；手动Close仅关闭转发、服务继续运行；暂停自有后端145168/140910后产生pending read，再从菜单离开工作区，恢复响应后不重建列表/额外打开。最终Ctrl+C正常停止服务，完成的列表读中34003/45805已不存在；本地仍保留独立bash端口34611，SSH为空，截图和数组相符。
+
+本地A原PID145200/145212及probe shell145464、SSH原PID141010/141016/141022及probe shell144437保持执行/cwd，未选本地B PID145310仍活且执行不变，renderer错误为空。实际查看了旧缺少列表图、新本地发现悬停图、最终本地停止后图及SSH转发打开图；其余图片仅称捕获。拥有的Xorg/Chromium均通过runner持有的Popen正常结束并wait退出0，namespace/SSH/后端沿用finally清理。
+
+最终逐一复核编译文件不变，CLI仍为 f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb；只有electron-vite源码编译，无CLI重打包、安装包、密封发行归档或Actions。[本阶段103份证据](evidence/local-ssh-feature-parity/stage68)。端口复制/kill/标签/多转发、内部浏览器、完整链接设置与其他原版功能仍待补；物理Mac、外部SSH和已登录真实供应商Agent未据此宣称通过，整体对齐未完成。
