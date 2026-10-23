@@ -1020,3 +1020,21 @@ TDD初轮18通过3失败：两个明确选中/缺失目标测试实际失败，�
 第199轮同产品/最终脚本，SSH同一流程复测退出0，原PID83217/83223/83229及执行ID/cwd保持，首个Agent与脚本目录保持，关联入口与保存返回截图已查看。第197/198/199各另外两张功能截图已捕获，不混称全部查看。所有拥有的SSH fixture与本地namespace backend按现有finally清理，浏览器错误为空；本轮未实际在脏脚本情况下执行原生窗口关闭，仅组件回归验证草稿保留，不将unsavedScriptNativeVerified=false写成通过。[199最终SSH证据](evidence/local-ssh-feature-parity/source-linux-linked-agent-settings/199)。
 
 此为本地源码窗口验证，未触发Actions、生成DMG、验证真实macOS或供应商Agent。内联关联命令编辑、原脚本栏完整菜单/快捷键、CLI写命令/交付和其余功能组仍须继续，整体对齐未完成。
+
+## 阶段五十五：终端文件路径接回原文件查看器
+
+2026-10-23复用原TerminalLinkManager、LocalLinkDetector、WordLinkDetector与TerminalLinkResolver，接入已有filesystem.statPath。保留原mutation合同，仅在主进程工作区白名单增加入口并要求workstationFilesV1、明确workspaceId与当前generation；未修改后端过程、数据库或账号路径。相对路径、HOME与绝对路径仍在运行机器解析，客户端不读取自己的对应路径。Cmd/Ctrl主键点击文件后，经原PaneGrid/WorkspacePaneView转入已有RemoteFiles和CodeEditorSurface，按原revealLine定位。普通点击继续用于终端选择；目录暂不作为文件打开，URL、外部编辑器与列号尚未接入，不提供无效偏好选项。
+
+文件导航只保留一个内存请求，按connection/backend/namespace/generation/workspace绑定，消费后清空，切换作用域时丢弃；旧终端回调与晚到stat回复不会转到新工作区。只读滚动回看期间不激活底下的文件链接。stat失败只返回未检测到链接，不调用会将终端标为失败的onError。原文件文档管理器复用已打开的文档和脏草稿，不自动保存或覆盖；关闭查看器只切换工具，不终止PTY。
+
+TDD先在原实现执行，75通过3失败，分别复现桌面层尚未放行statPath、终端未注册处理器、文件查看器未消费请求。接线后78项通过；增加整条原面板路由测试，在未接回Window回调时2通过1失败，再补路由通过。最终9文件110项575断言通过，涵盖原文件/Git、多面板/恢复、剪贴板与新增作用域、失效回调、原检测器栈跟踪和脏文档定位。桌面类型、i18n、插件检查通过；清理新增测试的非空断言时类型检查捕获Element/HTMLElement测试标注错误，补querySelector泛型后通过。产品及新helper共8文件Biome无诊断；完整旧测试文件仍有11项原有非空断言warning，不混称全仓lint无警告。[阶段五十五原始检查](evidence/local-ssh-feature-parity/stage55)。
+
+产品源码ca07bd253，本地仅执行electron-vite代码编译（仓库既有8GiB参数）退出0。未执行compile:app、CLI打包、electron-builder、后端密封归档或Actions；既有CLI SHA256仍为e646bae52aa4d74d4103834b54afea64cffdcf631cf8a00b9bf9a32807f35aec。最终验收脚本/测试整理为190407ee6，产品字节保持ca07bd253。
+
+第200轮为此前实际编译的b35807746产品，真实窗口中点击terminal-link.txt:3:2未打开文件查看器，退出1，失败截图已查看。第201轮修复产品在固定250ms等待下仍未完成跳转，缺少链接就绪观测，保留原失败，不据此单独断言具体产品原因。第202轮相同产品实际已打开并高亮第3行，诊断stat成功、鼠标Ctrl标记和链接指针就绪，随后验收错误读取了先前隐藏标签的编辑器，退出1；打开截图已查看。验收改为当前可见tabpanel，并等待原链接hover就绪，未延长原等待上限、修改页面布局或调用内部函数代替点击。第203轮跳转与再次点击保留草稿已通过，但额外Undo清理步骤超时；最终通过原Close file and discard draft显式清理拥有的fixture草稿，不将跨整个文件查看器卸载的Undo行为称为已验收。[200–203完整失败证据](evidence/local-ssh-feature-parity/source-linux-terminal-file-links-failures)。
+
+第204轮Linux/Electron/拥有的loopback SSH退出0：普通点击保持终端，真实Ctrl点击原路径打开已有多文件编辑器，当前行three 中文；输入草稿、返回原终端并再次点路径，脏草稿保留且后端文件原文未变。明确丢弃该fixture草稿后关闭重开，原路径仍可打开并定位。原3个PTY PID5068/5074/5080、执行ID和统一worktree cwd保持，新增fixture终端PID5333在查看器往返保持；浏览器错误为空。草稿保留与窗口重开两图已查看。[204 SSH窗口证据](evidence/local-ssh-feature-parity/source-linux-terminal-file-links/204)。
+
+第205轮相同产品/最终脚本，独立本地A/B创建、切换和恢复后执行同一文件链接流程，退出0；A原PID6096/6109保持，fixture PID6319在查看器往返保持，未选中B PID6196及执行ID仍活。文件查看器定位、脏草稿保留、后端原文不变和窗口重开再次点击均通过，两张对应截图已查看；其他截图有捕获，不混称全部查看。全部拥有的SSH fixture与本地后端按原finally清理；开发scratch中的测试配置和证据保留。[205 独立本地窗口证据](evidence/local-ssh-feature-parity/source-linux-local-terminal-file-links/205)。
+
+本阶段未验证真实macOS、真实供应商TUI/Agent、首悬停立即点击的网络延迟体验、完整文件查看器卸载后的Undo、列号、目录、外部编辑器或URL/SSH端口跳转；后续功能仍按清单推进。整体对齐未完成，没有生成安装包或恢复远端构建。
