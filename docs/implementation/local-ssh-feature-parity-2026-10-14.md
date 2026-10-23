@@ -1275,3 +1275,20 @@ SSH verified-ssh 退出0，先完成20次恢复。远端服务35757经复制得�
 本地原PID159010/159022、probe shell159234，SSH原PID159916/159922/159928、probe shell163241全部保持alive、executionId及cwd；未选本地B PID159110仍活且执行不变。复制在首次/重开后均保持浏览器打开0→0，明确external各只打开一次真实Chromium，pending read离开工作区后不额外打开。renderer错误为空，cleanup无错误。本地确认框图与SSH关闭服务后图已实际查看，其余最终图仅称捕获；新的无Close基线菜单图也已核对。
 
 拥有的本地Xorg158614/Chromium158629、SSH Xorg159469/Chromium159484均由runner的Popen结束并wait退出0，后端、namespace与自有SSH沿用finally清理，没有向未知PID发信号。两轮后全部2205文件逐一复核不变，CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。无CLI重打包、安装包、密封发行归档或GitHub Actions。[本阶段原始证据](evidence/local-ssh-feature-parity/stage70)。标签管理、批量/多转发、内部浏览器与其他原版功能仍待补，真实供应商Agent、外部SSH、物理Mac未混称通过，整体对齐未完成。
+
+
+## 阶段七十一：原端口页脚与当前工作区批量关闭
+
+抽出原PortsFooterView（总数、Close all、pending及原样式），原PortsFooter的数据/hooks/全工作区动作和成功toast保持；工作站仅对当前展示workspace复用该页脚。页脚固定在端口滚动区域外。closePorts沿用原confirmClosePorts(count)，一次确认后并发调用既有killWorkspacePort，逐条明确workspace/terminal/port，收集各条错误并显示原复数失败消息；成功和失败均刷新当前列表。已有单端口Close、旧API隐藏、当前api/backend/namespace/instance/generation/workspace、重复请求/取消/晚回复保护保留，不添加host、RPC、IPC、最低版本、DB、依赖或持久键。原ports.ts SHA256不变。
+
+新增部分失败用例先0通过1失败，没有Close all；最终59项/2861断言/5文件通过，含原单端口确认和安全保护已有回归，以及确认只发当前workspace两个精确目标、另一workspace排除、成功行消失/失败行保留。完整桌面类型、17语言extract/strict compile、插件检查通过。17语言只新增原失败消息的占位表达式注释，没有新文案或未翻译消息；7份源码格式检查无错误。
+
+原产品0f3ace890冻结2205文件后，baseline-local实际显示同一自有Python进程两个端口46515/33551以及原shell端口45683，但没有Close all；基线预期失败，服务Ctrl+C正常停止，cleanup无错误，自有Xorg164488/Chromium164503 wait退出0。旧图已实际查看。重编译前全部文件复核仍为manifest25e94da22da35577fb4086c8162c6c49319109d402cc278760b4f75e633e666a。
+
+双端口HTTP夹具只属于本次验证：同一PID监听两个端口，第二server在自有线程运行，原子证明写入加锁；首次SIGTERM切换忽略重复信号，最终关闭两server并记停止。这没有修改产品杀进程或扫描器。批量动作前逐一校验扫描项必须是自有Python的两个端口或原自有shell的监听，不向未知PID发信号。本地原shell自身监听须保持并只出现一项原shell保护错误，SSH则没有额外shell监听。
+
+新产品7ebd61ac1，verifier f15c62aca，仅electron-vite源码编译，2205文件manifest为df1b4dd2449ddaa2a0d011eb3d213209467a7d324e5b1f38bf311c37e93cb4fd。本地verified-local退出0：原多端口确认Cancel后服务仍运行/marker不变，再确认Close all使自有端口[38453, 40297]消失；原shell端口41349保留，且恰好一个“Failed to close 1 port / Cannot kill the terminal shell process”警告，未把保护拒绝说成全部成功。原进程[166387, 166399]、probe shell166614及未选B 166488保持，所有renderer错误为空。新本地部分失败页脚图已实际查看。
+
+SSH verified-ssh 亦退出0，先完成20次恢复；原多端口确认Cancel保留服务，确认Close ports后同一自有PID170588的端口35975/45253均消失，失败列表为空，原PID167328/167334/167340、probe shell170579和执行/cwd保持。本地则保留受保护shell，不将其杀掉来追求“全成功”。两端复制首次/重开后均保持浏览器打开0→0，明确external各只正常打开一次Chromium；正常重开、pending read离开工作区和原未选B检查继续通过，renderer错误及cleanup错误均为空。SSH多端口确认图和关闭后空列表图均已查看，其余未另称查看。
+
+自有本地Xorg166016/Chromium166031、SSH Xorg166882/Chromium166897均由runner的Popen结束并wait退出0，namespace/后端/SSH沿用finally清理。两轮后全部2205文件逐一复核稳定，CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。未打包CLI、安装包、密封发行归档或使用GitHub Actions。[本阶段原始证据](evidence/local-ssh-feature-parity/stage71)。当前批量范围明确为当前工作区；跨工作区总览、标签/多转发、内部浏览器和其他原版功能仍待补。真实供应商Agent、外部SSH及物理Mac未混称通过，整体对齐未完成。
