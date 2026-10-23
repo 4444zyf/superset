@@ -59,6 +59,7 @@ export interface TerminalEmulator {
 	cleanup?(): void;
 	applyAppearance?(appearance: TerminalAppearance): void;
 	installCopyOnSelect?(writeText: (text: string) => Promise<void>): () => void;
+	installCopyHandler?(writeText: (text: string) => Promise<void>): () => void;
 	getSelectionForCopy?(): string;
 	installLinkHandlers?(handlers: TerminalLinkHandlers): () => void;
 	isReviewing?(): boolean;
@@ -76,7 +77,6 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 	const removeKeys = installTerminalKeyEventHandler(surface.xterm, {
 		linuxCtrlVPaste: true,
 	});
-	const removeCopy = installTerminalCopyHandler(surface.xterm);
 	element.appendChild(surface.wrapper);
 	if (surface.xterm.element) surface.xterm.element.style.padding = "8px";
 	return {
@@ -88,6 +88,8 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 		writeReplay: (data) =>
 			replay.write(data, (chunk, done) => surface.xterm.write(chunk, done)),
 		applyAppearance: surface.applyAppearance,
+		installCopyHandler: (writeText) =>
+			installTerminalCopyHandler(surface.xterm, writeText),
 		installCopyOnSelect: (writeText) =>
 			installCopyOnSelect(surface.xterm, undefined, writeText),
 		getSelectionForCopy: () =>
@@ -102,7 +104,6 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 			!!surface.wrapper.querySelector("[data-terminal-scrollback-review]"),
 		cleanup: () => {
 			removeKeys();
-			removeCopy();
 			surface.cleanup();
 			surface.wrapper.remove();
 		},
@@ -204,6 +205,12 @@ export function RemoteTerminal({
 		emulatorRef.current = emulator;
 		emulator.applyAppearance?.(appearanceRef.current);
 		const { terminal, fit, searchAddon, cleanup } = emulator;
+		const writeCopy = (text: string) =>
+			writeTerminalClipboard(text, async (value) => {
+				if (!api.copyText) throw new Error("Native clipboard is unavailable");
+				await api.copyText(value);
+			});
+		const removeCopy = emulator.installCopyHandler?.(writeCopy);
 		setSearchAddon(searchAddon ?? null);
 		fit();
 		const socketId = crypto.randomUUID();
@@ -435,10 +442,7 @@ export function RemoteTerminal({
 				!emulator.isReviewing?.(),
 			copy() {
 				if (!clipboard.canCopy()) return;
-				void writeTerminalClipboard(selection(), async (text) => {
-					if (!api.copyText) throw new Error("Native clipboard is unavailable");
-					await api.copyText(text);
-				}).catch((error) => {
+				void writeCopy(selection()).catch((error) => {
 					if (!closed) setPasteError(errorMessage(error));
 				});
 			},
@@ -488,6 +492,7 @@ export function RemoteTerminal({
 		return () => {
 			closed = true;
 			removeClipboard?.();
+			removeCopy?.();
 			if (clipboardControls.current === clipboard)
 				clipboardControls.current = null;
 			cancelPendingInput();

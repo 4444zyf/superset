@@ -1034,11 +1034,55 @@ test("a scheduled menu paste cannot reach a replacement terminal after unmount",
 	try {
 		clipboard.paste();
 		f.view.unmount();
-		frames.forEach((frame) => frame(0));
+		for (const frame of frames) frame(0);
 		expect(pastes).toBe(0);
 		expect(released).toBe(1);
 		expect(clipboard.canPaste()).toBe(false);
 	} finally {
 		globalThis.requestAnimationFrame = original;
+	}
+});
+
+test("selection copying falls back through the owning direct API when browser clipboard is unavailable", async () => {
+	const f = await pendingFixture(false);
+	let write: ((text: string) => Promise<void>) | undefined;
+	let released = 0;
+	const copied: string[] = [];
+	const terminal = new HeadlessTerminal({ allowProposedApi: true });
+	const props = {
+		...f.props,
+		api: {
+			...f.props.api,
+			copyText: async (text: string) => {
+				copied.push(text);
+			},
+		},
+		createEmulator: () => ({
+			terminal,
+			fit() {},
+			installCopyHandler(callback: (text: string) => Promise<void>) {
+				write = callback;
+				return () => {
+					released++;
+				};
+			},
+		}),
+	};
+	f.view.rerender(<RemoteTerminal {...props} />);
+	await waitFor(() => expect(write).toBeDefined());
+	const previous = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+	Object.defineProperty(globalThis, "navigator", {
+		configurable: true,
+		value: {},
+	});
+	try {
+		if (!write) throw new Error("copy writer missing");
+		await write("copy 中文 🙂");
+		expect(copied).toEqual(["copy 中文 🙂"]);
+		f.view.unmount();
+		expect(released).toBe(1);
+	} finally {
+		if (previous) Object.defineProperty(globalThis, "navigator", previous);
+		else Reflect.deleteProperty(globalThis, "navigator");
 	}
 });
