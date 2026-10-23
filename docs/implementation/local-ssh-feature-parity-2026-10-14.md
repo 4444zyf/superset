@@ -1177,3 +1177,14 @@ TDD在01d81bf30原源码上新增两项均失败，实际复现原传输和严�
 最终final-local和final-ssh均退出0，实际输入的工作区嵌套目录首次与重开后均expanded/selected为true、childPresent为true；普通点击不离开终端，Files/Changes保留目录与脏草稿，后端原文件逐字一致，显式丢弃草稿后重开点击目录不创建编辑器。原文件仍到第3行第2列。本机A原PID84554/84566及执行/cwd保持，未选B的PID84653最后仍活且不变；SSH先完成20次恢复，再完成相同目录旅程，原PID85429/85435/85441及执行/cwd保持。renderer错误为空。本地reveal及SSH reveal/reopened图已实际查看，基线与初次Directory not found图也看过；其余仅称捕获。
 
 最终58cca08f6的2205个main/preload/renderer文件在两轮后复核不变，manifest SHA256 87a47e018fb9925d148eeb2a80c3aef01fd9d814f1464c492c8276b161aca35f；重编译前也核对了阶段六十三2205文件用于旧产品基线。既有CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。只运行源码electron-vite编译，无CLI打包、安装包、密封后端归档或Actions。最终拥有Xorg PID84313由原Popen终止并wait退出0，本地namespace/SSH沿用finally清理，无未知资源信号。只验POSIX工作区内目录；外部目录/Finder/外部编辑器、URL、链接设置及物理Mac/外部SSH仍待补或另验，整体原版对齐继续。
+
+
+## 阶段六十五：端口准备与浏览器打开分离
+
+2026-10-23。核对终端URL接入前，发现原直接端口接口在主进程完成转发时已打开浏览器，renderer随后才检查连接/工作区归属。源码ec193a76f新增可选preparePort，只准备原DirectPortForwardManager转发；沿用相同严格输入、generation检查、workspace端口归属和失败清理。新的工作站调用优先使用此接口，在提交openExternal之前检查选中机器、当前descriptor、工作区、重连状态和组件存活；晚回复或打开失败关闭转发。打开请求提交后才换端时也不保留转发，但不能撤销已经交给操作系统的浏览器请求。
+
+旧openPort保留三项输入、id/url返回及立即打开行为，没有变更host/tRPC、认证、namespace、最低版本或数据库。新renderer面对没有preparePort的旧API仍调用原openPort，不重复打开浏览器；此兼容分支保留旧时序限制。新主进程与preload同桌面交付，无需远端host新增方法。本轮没有把原默认内部浏览器手势改成外部打开，终端URL/SSH localhost路径、查询参数与链接设置尚未接入。
+
+受控IPC promise的组件基线0通过2失败：当前连接走旧接口，换generation的晚回复仍先记录browser再close。新流程最终覆盖正常、generation更新、blocked及卸载，并检查过期结果不显示转发地址；另验浏览器失败和提交期间失去归属的清理。旧Open port测试保留。首次修复测试错误地查找不存在的Close port按钮，实际按钮名为Close；改为检查真实转发地址显示，失败日志保留，不算产品缺陷。一次新增生命周期用例的编辑脚本断言失败、未写源码，后续旧用例运行不计新增覆盖；修正编辑后才取得最终结果。
+
+最终桌面23项/2650断言、原转发管理器8项/28断言均通过，合计31项，无失败。完整桌面类型、17语言检查/严格编译及插件一致性通过；7文件格式无错误，保留4项既有warning，diff检查通过。[原始红绿及检查记录](evidence/local-ssh-feature-parity/stage65)。本轮为源码/组件及转发管理器验证，没有启动GUI、SSH、Xorg、浏览器或其他服务，没有新实窗端口验收，也没有重编译桌面/CLI、打包安装包/密封后端或触发Actions。环境编译产物仍是阶段六十四58cca08f6，不能冒称已经运行本阶段新产品。终端滚动/剪贴板的实窗证据仍以阶段六十二/六十三为准；URL和其他原版功能继续待接入，整体对齐未完成。

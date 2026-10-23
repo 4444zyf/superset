@@ -1,0 +1,33 @@
+{
+  "sourceCommit": "ec193a76f335b91ec5db6fbebd35e24ebb83eb90",
+  "baseline": {
+    "componentTestsPassed": 0,
+    "componentTestsFailed": 2,
+    "kind": "synthetic renderer with controlled IPC promises, not a native browser"
+  },
+  "final": {
+    "desktopTests": 23,
+    "desktopAssertions": 2650,
+    "directConnectionTests": 8,
+    "directConnectionAssertions": 28,
+    "failed": 0,
+    "desktopTypecheckExit": 0,
+    "i18nCheckExit": 0,
+    "pluginsCheckExit": 0,
+    "formatExit": 0,
+    "existingFormatWarnings": 4
+  },
+  "scope": "prepare a direct port, then check current selected connection/workspace and component lifetime before browser dispatch; release abandoned/failed forwards",
+  "compatibility": "optional preparePort; old openPort retains its three inputs, return shape and immediate browser dispatch; absent preparePort uses old behavior",
+  "limitations": [
+    "No new native port/browser verification in this stage.",
+    "A browser dispatch already submitted to the OS cannot be undone.",
+    "Legacy openPort fallback retains its old browser timing.",
+    "Terminal URL handling is not wired by this change."
+  ],
+  "productRecompiled": false,
+  "compiledProductSource": "58cca08f6d348f9bbe05a07dbb9cdbeee39877fd",
+  "compiledProductManifestSha256": "87a47e018fb9925d148eeb2a80c3aef01fd9d814f1464c492c8276b161aca35f",
+  "githubActionsUsed": false,
+  "runtimeFixturesStarted": false
+}
