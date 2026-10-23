@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import { useFileTree } from "@pierre/trees/react";
 import { FoldVertical } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { buildPolicy } from "renderer/lib/clickPolicy/policies/buildPolicy";
 import { usePierreRowClickPolicy } from "renderer/lib/clickPolicy/usePierreRowClickPolicy";
 import { useFallthroughIcons } from "renderer/lib/fileIcons/useFallthroughIcons";
@@ -26,6 +26,7 @@ export function RemoteFileTree({
 	onError,
 	refreshKey,
 	selectedPath,
+	revealRequest,
 	onRename,
 	onController,
 	renderContextMenu,
@@ -37,6 +38,7 @@ export function RemoteFileTree({
 	onError(error: Error): void;
 	refreshKey: number;
 	selectedPath?: string;
+	revealRequest?: { requestId: string; absolutePath: string };
 	onRename?(absolutePath: string): void;
 	onController?(controller: FileTreeController | null): void;
 	renderContextMenu?: React.ComponentProps<
@@ -84,13 +86,14 @@ export function RemoteFileTree({
 		},
 	});
 	useFallthroughIcons(model);
+	const controller = useMemo(
+		() =>
+			new FileTreeController(model, root, (path) => latest.current.list(path), {
+				onError: (error) => latest.current.onError(error),
+			}),
+		[model, root],
+	);
 	useEffect(() => {
-		const controller = new FileTreeController(
-			model,
-			root,
-			(path) => latest.current.list(path),
-			{ onError: (error) => latest.current.onError(error) },
-		);
 		controllerRef.current = controller;
 		latest.current.onController?.(controller);
 		controller.start();
@@ -101,7 +104,7 @@ export function RemoteFileTree({
 				latest.current.onController?.(null);
 			}
 		};
-	}, [model, root]);
+	}, [controller]);
 	const lastRefresh = useRef(refreshKey);
 	useEffect(() => {
 		if (lastRefresh.current === refreshKey) return;
@@ -115,6 +118,24 @@ export function RemoteFileTree({
 		const relative = selectedPath.slice(prefix.length);
 		if (model.getItem(relative)) model.focusPath(relative);
 	}, [model, root, selectedPath]);
+	useEffect(() => {
+		if (!revealRequest) return;
+		let cancelled = false;
+		void controller
+			.revealDirectory(revealRequest.absolutePath)
+			.then((revealed) => {
+				if (cancelled || controllerRef.current !== controller) return;
+				if (revealed) latest.current.onDirectory(revealRequest.absolutePath);
+				else
+					latest.current.onError(
+						new Error(t({ message: "Directory not found" })),
+					);
+			});
+		return () => {
+			cancelled = true;
+			controller.cancelReveal();
+		};
+	}, [controller, revealRequest, t]);
 	const policy = buildPolicy(
 		DEFAULT_V2_USER_PREFERENCES.sidebarFileLinks,
 		"file",

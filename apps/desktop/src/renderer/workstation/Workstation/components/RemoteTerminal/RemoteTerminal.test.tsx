@@ -911,7 +911,11 @@ test("file links use the owning backend and revoke old navigation after workspac
 		...link,
 		isDirectory: true,
 	});
-	expect(opened).toHaveLength(1);
+	expect(opened.at(-1)).toEqual({
+		absolutePath: "/remote/note.txt",
+		isDirectory: true,
+	});
+	expect(opened).toHaveLength(2);
 	defer = true;
 	const pending = original.stat("delayed.txt");
 	view.rerender(
@@ -924,7 +928,7 @@ test("file links use the owning backend and revoke old navigation after workspac
 	finish({ resolvedPath: "/remote/delayed.txt", isDirectory: false });
 	expect(await pending).toBeNull();
 	original.onFileLinkClick(new MouseEvent("click", { ctrlKey: true }), link);
-	expect(opened).toHaveLength(1);
+	expect(opened).toHaveLength(2);
 	const count = calls.length;
 	expect(await original.stat("old.txt")).toBeNull();
 	expect(calls).toHaveLength(count);

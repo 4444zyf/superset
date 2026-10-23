@@ -1,4 +1,6 @@
+import { folderIntentForMap } from "renderer/lib/clickPolicy/policies/folderPolicy";
 import type { TerminalLinkHandlers } from "renderer/lib/terminal/terminal-link-manager";
+import { DEFAULT_V2_USER_PREFERENCES } from "renderer/routes/_authenticated/providers/CollectionsProvider/dashboardSidebarLocal/schema";
 import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
@@ -8,6 +10,7 @@ export interface TerminalFileTarget {
 	absolutePath: string;
 	line?: number;
 	column?: number;
+	isDirectory?: boolean;
 }
 
 export function terminalFileLinks({
@@ -41,7 +44,7 @@ export function terminalFileLinks({
 					type: "mutation",
 					input: { workspaceId, path },
 				});
-				return available() && result && !result.isDirectory ? result : null;
+				return available() && result ? result : null;
 			} catch {
 				return null;
 			}
@@ -50,18 +53,30 @@ export function terminalFileLinks({
 			if (
 				!available() ||
 				isReviewing() ||
-				link.isDirectory ||
 				event.button !== 0 ||
 				(!event.metaKey && !event.ctrlKey)
+			)
+				return;
+			if (
+				link.isDirectory &&
+				folderIntentForMap(event, DEFAULT_V2_USER_PREFERENCES.folderLinks) !==
+					"reveal"
 			)
 				return;
 			event.preventDefault();
 			onOpenFile({
 				absolutePath: link.resolvedPath,
-				...(link.row && Number.isSafeInteger(link.row) && link.row > 0
+				...(link.isDirectory ? { isDirectory: true } : {}),
+				...(!link.isDirectory &&
+				link.row &&
+				Number.isSafeInteger(link.row) &&
+				link.row > 0
 					? { line: link.row }
 					: {}),
-				...(link.col && Number.isSafeInteger(link.col) && link.col > 0
+				...(!link.isDirectory &&
+				link.col &&
+				Number.isSafeInteger(link.col) &&
+				link.col > 0
 					? { column: link.col }
 					: {}),
 			});

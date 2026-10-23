@@ -18,6 +18,7 @@ export class FileTreeController {
 	private applying = false;
 	private unsubscribe: (() => void) | null = null;
 	private readonly maxPaths: number;
+	private revealRevision = 0;
 	constructor(
 		private readonly model: FileTree,
 		root: string,
@@ -175,6 +176,43 @@ export class FileTreeController {
 	}
 	collapseAll(): void {
 		collapseFileTreeDirectories(this.model, this.paths(this.directories));
+	}
+	cancelReveal(): void {
+		this.revealRevision++;
+	}
+	async revealDirectory(absolutePath: string): Promise<boolean> {
+		const revision = ++this.revealRevision;
+		const epoch = this.epoch;
+		const current = () =>
+			this.running && this.epoch === epoch && this.revealRevision === revision;
+		const path =
+			absolutePath === "/" ? absolutePath : stripTrailingSlash(absolutePath);
+		const prefix = this.root === "/" ? "/" : `${this.root}/`;
+		if (
+			!current() ||
+			(path !== this.root && !path.startsWith(prefix)) ||
+			path
+				.split("/")
+				.some((part) => part === "." || part === ".." || part.includes("\0"))
+		)
+			return false;
+		if (!this.directories.has("")) await this.fetch("");
+		if (!current() || !this.directories.has("")) return false;
+		if (path === this.root) return true;
+		const parts = path.slice(prefix.length).split("/");
+		for (let index = 1; index <= parts.length; index++) {
+			const relative = parts.slice(0, index).join("/");
+			const directory = asDirectoryHandle(this.model.getItem(`${relative}/`));
+			if (!directory || !current()) return false;
+			directory.expand();
+			if (!this.directories.has(relative)) await this.fetch(relative);
+			if (!current() || !this.directories.has(relative)) return false;
+		}
+		const relative = `${parts.join("/")}/`;
+		this.model.getItem(relative)?.select();
+		this.model.focusPath(relative);
+		this.model.scrollToPath(relative, { offset: "nearest" });
+		return true;
 	}
 
 	private refreshing: Promise<void> | null = null;

@@ -90,3 +90,44 @@ test("unsupported or failed path metadata produces no link and never fails the t
 	expect(await handlers.stat("note.txt")).toBeNull();
 	expect(calls).toBe(1);
 });
+
+test("the original detector keeps directory metadata and only its reveal gesture navigates", async () => {
+	const opened: unknown[] = [];
+	const handlers = terminalFileLinks({
+		api: {
+			rpc: async () => ({
+				resolvedPath: "/repo/src/nested",
+				isDirectory: true,
+			}),
+		} as unknown as DirectWorkstationApi,
+		connection: {
+			connectionId: "ssh",
+			backendId: "b",
+			namespaceId: "n",
+			instanceId: "i",
+			generation: 1,
+			capabilities: { workstationFilesV1: true },
+		},
+		workspaceId: "w",
+		isCurrent: () => true,
+		isReviewing: () => false,
+		onOpenFile: (target) => opened.push(target),
+	});
+	if (!handlers.stat || !handlers.onFileLinkClick)
+		throw new Error("handlers missing");
+	const [link] = await new LocalLinkDetector(
+		new TerminalLinkResolver(handlers.stat),
+	).detect("src/nested/");
+	expect(link?.isDirectory).toBe(true);
+	if (!link) throw new Error("directory link missing");
+	handlers.onFileLinkClick(new MouseEvent("click"), link);
+	handlers.onFileLinkClick(
+		new MouseEvent("click", { ctrlKey: true, shiftKey: true }),
+		link,
+	);
+	expect(opened).toEqual([]);
+	handlers.onFileLinkClick(new MouseEvent("click", { ctrlKey: true }), link);
+	expect(opened).toEqual([
+		{ absolutePath: "/repo/src/nested", isDirectory: true },
+	]);
+});

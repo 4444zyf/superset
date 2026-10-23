@@ -1715,3 +1715,58 @@ test("a file request from a previous namespace is never read on the current mach
 	);
 	expect(handled).toEqual([]);
 });
+
+test("a terminal directory request expands the remote tree without replacing or saving a dirty editor", async () => {
+	const base = "/Users/remote/repo";
+	const f = fixture({
+		"filesystem.listDirectory": (r) => ({
+			entries:
+				(r.input as { absolutePath: string }).absolutePath === base
+					? [
+							{ absolutePath: `${base}/note.txt`, kind: "file" },
+							{ absolutePath: `${base}/src`, kind: "directory" },
+						]
+					: (r.input as { absolutePath: string }).absolutePath === `${base}/src`
+						? [{ absolutePath: `${base}/src/nested`, kind: "directory" }]
+						: [{ absolutePath: `${base}/src/nested/child.txt`, kind: "file" }],
+		}),
+	});
+	const props = {
+		api: f.api,
+		connection,
+		workspaceId: "workspace",
+		onError: f.onError,
+	};
+	const view = render(<RemoteFiles {...props} />);
+	clickTreeRow(await treeRow("note.txt"));
+	const editor = await fileEditor();
+	replaceContent(editor, "retained directory draft");
+	fireEvent.click(screen.getByRole("button", { name: "Changes" }));
+	view.rerender(
+		<RemoteFiles
+			{...props}
+			openRequest={{
+				owner: JSON.stringify(["mini", "b", "n", 3, "workspace"]),
+				requestId: "dir",
+				absolutePath: `${base}/src/nested`,
+				isDirectory: true,
+			}}
+		/>,
+	);
+	const folder = () =>
+		document
+			.querySelector("file-tree-container")
+			?.shadowRoot?.querySelector(
+				'[data-item-path="src/nested/"]:not([data-file-tree-sticky-row])',
+			);
+	await waitFor(() =>
+		expect(folder()?.getAttribute("aria-selected")).toBe("true"),
+	);
+	expect(folder()?.getAttribute("aria-expanded")).toBe("true");
+	expect(await treeRow("src/nested/child.txt")).not.toBeNull();
+	expect(contentOf(await fileEditor())).toBe("retained directory draft");
+	expect(f.calls.filter((r) => r.path === "filesystem.writeFile")).toEqual([]);
+	expect(f.calls.filter((r) => r.path === "filesystem.readFile")).toHaveLength(
+		1,
+	);
+});

@@ -418,12 +418,20 @@ export function RemoteFiles({
 	const openFileRef = useRef(openFile);
 	openFileRef.current = openFile;
 	const consumedRequest = useRef<string | null>(null);
+	const [directoryRequest, setDirectoryRequest] =
+		useState<FileOpenRequest | null>(null);
 	useEffect(() => {
 		if (!openRequest || openRequest.owner !== operationOwner) return;
 		const key = JSON.stringify([operationOwner, openRequest.requestId]);
 		if (consumedRequest.current === key) return;
 		consumedRequest.current = key;
 		setTab("files");
+		if (openRequest.isDirectory) {
+			setDirectoryRequest(openRequest);
+			onOpenRequestHandled?.(openRequest.requestId);
+			return;
+		}
+		setDirectoryRequest(null);
 		openFileRef.current(
 			openRequest.absolutePath,
 			openRequest.line,
@@ -594,6 +602,11 @@ export function RemoteFiles({
 											treeController.current = controller;
 										}}
 										selectedPath={activeDocument?.absolutePath}
+										revealRequest={
+											directoryRequest?.owner === operationOwner
+												? directoryRequest
+												: undefined
+										}
 										list={async (absolutePath) =>
 											(
 												await rpc<{

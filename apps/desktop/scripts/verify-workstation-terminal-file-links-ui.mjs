@@ -7,7 +7,7 @@ export async function verifyWorkstationTerminalFileLinksUi(options) {
  const {getPage,click,screenshot,output,controls,closeReopen}=options;
  const {evaluate,until}=agentUiDriver(options);
  const scope=await evaluate(`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const {snapshot}=await window.directWorkstation.getWorkspaceView();const t=snapshot.targets.find(t=>t.connectionId===d.connectionId),w=t.workspaces.find(w=>w.tabId===t.activeTabId);return {connectionId:d.connectionId,backendId:d.backendId,namespaceId:d.namespaceId,workspaceId:w.workspaceId,terminals:w.panes.filter(p=>p.kind==='terminal').map(p=>p.resourceId)};})()`);
- const query=(path,input)=>evaluate(`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;if(d.connectionId!==${JSON.stringify(scope.connectionId)}||d.backendId!==${JSON.stringify(scope.backendId)}||d.namespaceId!==${JSON.stringify(scope.namespaceId)})throw Error('Scope changed');return window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:${JSON.stringify(path)},type:'query',input:${JSON.stringify(input)}});})()`);
+ const query=(path,input)=>evaluate(`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;if(d.connectionId!==${JSON.stringify(scope.connectionId)}||d.backendId!==${JSON.stringify(scope.backendId)}||d.namespaceId!==${JSON.stringify(scope.namespaceId)})throw Error('Scope changed');return window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:${JSON.stringify(path)},type:${JSON.stringify(path==='filesystem.statPath'?'mutation':'query')},input:${JSON.stringify(input)}});})()`);
  const workspace=await query('workspace.get',{id:scope.workspaceId});
  const originals=await Promise.all(scope.terminals.map(async id=>{const row=await controls.inspectPresetTerminal(id);assert.equal(row.alive,true);return {id:row.id,pid:row.pid,executionId:row.executionId,cwd:row.cwd};}));
  await click('text:New terminal');
@@ -59,6 +59,28 @@ export async function verifyWorkstationTerminalFileLinksUi(options) {
  await hoverReady(process.platform==='darwin'?4:2);await mouse('mousePressed',process.platform==='darwin'?4:2);await mouse('mouseReleased',process.platform==='darwin'?4:2);
  await until(()=>evaluate(`document.querySelector('${activeLineSelector}')?.textContent==='three 中文'`),'file link works after window reopen');await screenshot('terminal-file-link-window-reopen');
  assert.deepEqual(await readCursor(),{line:3,column:2,text:'three 中文'},'linked column is restored after window reopen');
+ if(process.argv.includes('--terminal-directory-links')) {
+  await click(editor);await key('End',35);await getPage().call('Input.insertText',{text:' directory draft'});
+  await click('text:Terminal');await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(selector)}+'[data-restore-state="attached"]'))`),'terminal before directory link');
+  await click(`${selector} .xterm-screen`);
+  await getPage().call('Input.insertText',{text:"mkdir -p terminal-dir/nested; printf 'child content\\n' > terminal-dir/nested/child.txt; printf '\\033[2J\\033[Hterminal-dir/nested/\\n'"});await key('Enter',13);
+  const directoryStat=await until(async()=>{try{return await query('filesystem.statPath',{workspaceId:scope.workspaceId,path:'terminal-dir/nested/'});}catch{return null;}},'directory fixture exists');
+  assert.equal(directoryStat.isDirectory,true);
+  writeFileSync(join(output,'terminal-directory-link-stat.json'),JSON.stringify(directoryStat,null,2)+'\n');await screenshot('terminal-directory-link-before');
+  const reveal=async()=>{
+   await hoverReady();await mouse('mousePressed');await mouse('mouseReleased');assert.equal(await evaluate(`Boolean(document.querySelector('[data-workspace-files]'))`),false,'plain directory click preserves terminal');
+   const modifier=process.platform==='darwin'?4:2;await hoverReady(modifier);await mouse('mousePressed',modifier);await mouse('mouseReleased',modifier);
+   return until(()=>evaluate(`(()=>{const r=document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path="terminal-dir/nested/"]:not([data-file-tree-sticky-row])');return r?.getAttribute('aria-expanded')==='true'&&r?.getAttribute('aria-selected')==='true'&&{path:r.dataset.itemPath,expanded:r.getAttribute('aria-expanded'),selected:r.getAttribute('aria-selected')};})()`),'directory selected and expanded in original file tree');
+  };
+  const first=await reveal();assert.ok(await evaluate(`document.querySelector('${editor}')?.textContent.includes('directory draft')`),'directory reveal retains the existing dirty editor');
+  const savedDirectoryFile=await query('filesystem.readFile',{workspaceId:scope.workspaceId,absolutePath:workspace.worktreePath+'/terminal-link.txt',maxBytes:4096});assert.equal(savedDirectoryFile.kind==='bytes'?Buffer.from(savedDirectoryFile.content,'base64').toString():savedDirectoryFile.content,file);
+  await screenshot('terminal-directory-link-revealed');
+  await click('text:Close file and discard draft');
+  await click('text:Terminal');await closeReopen();await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(selector)}+'[data-restore-state="attached"]'))`),'directory terminal after reopen');
+  const reopened=await reveal();await screenshot('terminal-directory-link-reopened');
+  assert.equal(await evaluate(`Boolean(document.querySelector('${editor}'))`),false,'directory does not create an editor');
+  writeFileSync(join(output,'terminal-directory-links-ui.json'),JSON.stringify({scope,terminal,execution,directoryStat,first,reopened,draftRetained:true,errors:getPage().errors},null,2)+'\n');
+ }
  for(const original of originals){const row=await controls.inspectPresetTerminal(original.id);assert.deepEqual({id:row.id,pid:row.pid,executionId:row.executionId,cwd:row.cwd},original);}
  assert.deepEqual(getPage().errors,[]);
  writeFileSync(join(output,'terminal-file-links-ui.json'),JSON.stringify({scope,originals,terminal,execution,activeLine,cursor,modifierClick:true,plainClickPreserved:true,originalFileEditor:true,draftRetainedAcrossTerminalSwitch:true,linkAfterWindowReopen:true,backendFileUnchanged:true,columnNavigation:true,urlNavigation:false,macOSVerified:false,sourceRevision:process.env.GITHUB_SHA,errors:getPage().errors},null,2)+'\n');
