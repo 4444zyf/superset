@@ -66,7 +66,7 @@ export async function verifyWorkstationPortsUi(options) {
 		"import http.server,json,os",
 		"from pathlib import Path",
 		`state={"marker":${JSON.stringify(marker)},"requests":[],"pid":os.getpid(),"running":True}`,
-		'def save(): Path("port-proof.json").write_text(json.dumps(state)+"\\n")',
+		'def save():\n temp=Path("port-proof.tmp");temp.write_text(json.dumps(state)+"\\n");temp.replace("port-proof.json")',
 		"class Handler(http.server.BaseHTTPRequestHandler):",
 		" def do_GET(self):",
 		'  state["requests"].append({"path":self.path,"userAgent":self.headers.get("User-Agent")});save()',

@@ -70,6 +70,9 @@ export async function verifyWorkstationLocalParityUi(options){
  } else if(process.argv.includes('--terminal-identity')) {
   const {verifyWorkstationTerminalIdentityUi}=await import('./verify-workstation-terminal-identity-ui.mjs');
   await verifyWorkstationTerminalIdentityUi({...options,controls:controlA});
+ } else if(process.argv.includes('--ports-only')) {
+  const {verifyWorkstationPortsUi}=await import('./verify-workstation-ports-ui.mjs');
+  await verifyWorkstationPortsUi({...options,controls:controlA});
  } else if(process.argv.includes('--terminal-file-links')) {
   const {verifyWorkstationTerminalFileLinksUi}=await import('./verify-workstation-terminal-file-links-ui.mjs');
   await verifyWorkstationTerminalFileLinksUi({...options,controls:controlA});
