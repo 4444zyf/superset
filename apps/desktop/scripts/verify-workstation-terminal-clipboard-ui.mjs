@@ -26,6 +26,7 @@ export async function verifyWorkstationTerminalClipboardUi(options) {
  const menu=async()=>{for(const type of ['mousePressed','mouseReleased'])await getPage().call('Input.dispatchMouseEvent',{type,button:'right',clickCount:1,x:start.x+cellWidth*3,y:start.y,modifiers:8});await until(()=>evaluate(`Boolean(document.querySelector('[role=menu]'))`),'terminal clipboard menu');};
  await setClipboard({text:'menu copy sentinel'});await menu();await click('menu:Copy');
  await until(async()=>await readClipboardText()===copied,'menu copies TUI selection');
+ await until(()=>evaluate(`!document.querySelector('[role=menu]')`),'clipboard menu fully closes');
  const copyFocus=await until(()=>evaluate(`(()=>{const e=document.activeElement;return e?.matches('.xterm-helper-textarea')&&e.closest('[data-terminal-id]')?.dataset.terminalId===${JSON.stringify(terminal.terminalId)}&&{tag:e.tagName,terminalId:e.closest('[data-terminal-id]').dataset.terminalId};})()`),'copy returns focus to the same terminal');
  writeFileSync(join(output,'agent-clipboard-copy-focus.json'),JSON.stringify(copyFocus,null,2)+'\n');
  assert.deepEqual((await state()).received,[],'selection and copy do not send input to the agent');
