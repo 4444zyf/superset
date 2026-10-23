@@ -1,3 +1,4 @@
+import type { DetectedPort } from "@superset/port-scanner";
 import type {
 	ImportedLegacyHistoryChunk,
 	ImportedLegacyHistoryPage,
@@ -97,6 +98,10 @@ export interface DirectDescriptor {
 	chatHarnesses?: { id: string; available: boolean; reason?: string }[];
 }
 
+export interface DirectPort extends DetectedPort {
+	label: string | null;
+}
+
 export interface DirectSetupSnapshot {
 	connectionId: string;
 	jobId: string;
@@ -151,6 +156,10 @@ export type DirectConnectionEvent =
 	  };
 
 export interface DirectWorkstationApi {
+	listPorts?(
+		connection: DirectDescriptor,
+		workspaceId: string,
+	): Promise<DirectPort[]>;
 	openExternal?(url: string): Promise<void>;
 	copyText?(text: string): Promise<void>;
 	pasteClipboard?(): Promise<void>;

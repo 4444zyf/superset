@@ -277,6 +277,9 @@ export function WorkspaceWindow({
 									</DropdownMenuTrigger>
 									<DropdownMenuContent className="p-3" align="end">
 										<WorkspacePortControls
+											api={api}
+											connection={connection}
+											workspaceId={workspace.workspaceId}
 											busy={ports.busy}
 											forward={ports.forward}
 											onOpenPort={(port) =>

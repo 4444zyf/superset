@@ -1,13 +1,24 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Button } from "@superset/ui/button";
 import { Input } from "@superset/ui/input";
+import type {
+	DirectDescriptor,
+	DirectWorkstationApi,
+} from "../../../../../shared/direct-workstation";
+import { RemoteWorkspacePorts } from "../RemoteWorkspacePorts";
 
 export function WorkspacePortControls({
+	api,
+	connection,
+	workspaceId,
 	busy,
 	forward,
 	onOpenPort,
 	onClosePort,
 }: {
+	api?: DirectWorkstationApi;
+	connection?: DirectDescriptor | null;
+	workspaceId?: string;
 	busy: boolean;
 	forward: { id: string; url: string } | null;
 	onOpenPort(port: number): void;
@@ -51,6 +62,15 @@ export function WorkspacePortControls({
 						<Trans>Close</Trans>
 					</Button>
 				</div>
+			)}
+			{api && connection && workspaceId && (
+				<RemoteWorkspacePorts
+					api={api}
+					connection={connection}
+					workspaceId={workspaceId}
+					busy={busy}
+					onOpenPort={onOpenPort}
+				/>
 			)}
 		</div>
 	);

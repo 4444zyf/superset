@@ -1064,6 +1064,21 @@ export async function startWorkstation(): Promise<void> {
 						},
 					});
 				}
+				case "listPorts": {
+					const input = z
+						.object({
+							connectionId: z.string().uuid(),
+							generation: z.number().int().positive(),
+							workspaceId: z.string().uuid(),
+						})
+						.strict()
+						.parse(payload);
+					return controller.listPorts(
+						input.connectionId,
+						input.generation,
+						input.workspaceId,
+					);
+				}
 				case "preparePort":
 				case "openPort": {
 					const input = z

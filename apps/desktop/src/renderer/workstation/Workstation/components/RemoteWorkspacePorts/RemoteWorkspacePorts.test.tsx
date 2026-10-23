@@ -1,0 +1,182 @@
+import { afterEach, expect, test } from "bun:test";
+import {
+	act,
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+} from "@testing-library/react";
+import type {
+	DirectDescriptor,
+	DirectPort,
+	DirectWorkstationApi,
+} from "../../../../../shared/direct-workstation";
+import { RemoteWorkspacePorts } from "./RemoteWorkspacePorts";
+
+afterEach(cleanup);
+const connection: DirectDescriptor = {
+	connectionId: "machine",
+	backendId: "backend",
+	namespaceId: "old",
+	instanceId: "instance",
+	generation: 1,
+	capabilities: { workstationPortsV1: true },
+};
+const port = (number: number, workspaceId = "workspace"): DirectPort => ({
+	port: number,
+	pid: 123,
+	processName: "node",
+	workspaceId,
+	terminalId: `terminal-${number}`,
+	detectedAt: 1,
+	address: "127.0.0.1",
+	label: "Web",
+});
+
+test("discovered rows use the original external action and exclude other workspaces", async () => {
+	const requests: unknown[] = [];
+	const opened: number[] = [];
+	const api = {
+		listPorts: async (...args: unknown[]) => {
+			requests.push(args);
+			return [port(4000), port(3000), port(5000, "other")];
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspacePorts
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={(p) => opened.push(p)}
+		/>,
+	);
+	await screen.findByText(":3000");
+	expect(screen.queryByText(":5000")).toBeNull();
+	expect(
+		[...document.querySelectorAll("[data-workspace-ports] [data-port]")].map(
+			(e) => e.getAttribute("data-port"),
+		),
+	).toEqual(["3000", "4000"]);
+	expect(requests).toEqual([[connection, "workspace"]]);
+	expect(screen.getByText(":3000").closest("button")).toBeNull();
+	fireEvent.click(
+		screen.getByRole("button", {
+			name: "Open localhost:3000 in external browser",
+		}),
+	);
+	expect(opened).toEqual([3000]);
+});
+
+test.each([
+	"resolve",
+	"reject",
+])("a late %s cannot replace another namespace's ports", async (kind) => {
+	let finish!: (value: DirectPort[]) => void;
+	let fail!: (error: Error) => void;
+	const pending = new Promise<DirectPort[]>((resolve, reject) => {
+		finish = resolve;
+		fail = reject;
+	});
+	const requests: DirectDescriptor[] = [];
+	const opened: number[] = [];
+	const api = {
+		listPorts: async (d: DirectDescriptor) => {
+			requests.push(d);
+			return d.namespaceId === "old" ? pending : [port(4000)];
+		},
+	} as unknown as DirectWorkstationApi;
+	const view = render(
+		<RemoteWorkspacePorts
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={(p) => opened.push(p)}
+		/>,
+	);
+	await waitFor(() => expect(requests).toHaveLength(1));
+	view.rerender(
+		<RemoteWorkspacePorts
+			api={api}
+			connection={{ ...connection, namespaceId: "new", generation: 2 }}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={(p) => opened.push(p)}
+		/>,
+	);
+	await screen.findByText(":4000");
+	await act(async () => {
+		if (kind === "resolve") finish([port(3000)]);
+		else fail(new Error("old namespace failure"));
+	});
+	expect(screen.queryByText(":3000")).toBeNull();
+	expect(screen.queryByRole("alert")).toBeNull();
+	fireEvent.click(
+		screen.getByRole("button", {
+			name: "Open localhost:4000 in external browser",
+		}),
+	);
+	expect(opened).toEqual([4000]);
+});
+
+test("old hosts and old desktop APIs do not start a discovery query", () => {
+	const calls: unknown[] = [];
+	const api = {
+		listPorts: async () => {
+			calls.push("query");
+			return [];
+		},
+	} as unknown as DirectWorkstationApi;
+	const view = render(
+		<RemoteWorkspacePorts
+			api={api}
+			connection={{ ...connection, capabilities: {} }}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={() => {}}
+		/>,
+	);
+	expect(view.container.textContent).toBe("");
+	expect(calls).toEqual([]);
+	view.rerender(
+		<RemoteWorkspacePorts
+			api={{} as DirectWorkstationApi}
+			connection={connection}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={() => {}}
+		/>,
+	);
+	expect(view.container.textContent).toBe("");
+	expect(calls).toEqual([]);
+});
+
+test("failed reads do not claim there are no ports and Refresh reads again", async () => {
+	let failed = true;
+	let calls = 0;
+	const api = {
+		listPorts: async () => {
+			calls++;
+			if (failed) throw new Error("offline");
+			return [port(3000)];
+		},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspacePorts
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={() => {}}
+		/>,
+	);
+	await screen.findByRole("alert");
+	expect(screen.queryByText("No ports detected")).toBeNull();
+	failed = false;
+	fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+	await screen.findByText(":3000");
+	expect(screen.queryByRole("alert")).toBeNull();
+	expect(calls).toBe(2);
+});

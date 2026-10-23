@@ -163,6 +163,21 @@ export async function verifyWorkstationPortsUi(options) {
 				launches,
 				report,
 			});
+		} else if (process.argv.includes("--port-discovery")) {
+			const { verifyWorkstationPortDiscoveryUi } = await import(
+				"./verify-workstation-port-discovery-ui.mjs"
+			);
+			await verifyWorkstationPortDiscoveryUi(options, {
+				scope,
+				initial,
+				terminal,
+				execution,
+				originals,
+				selector,
+				read,
+				launches,
+				report,
+			});
 		} else {
 			await click("text:Port");
 			await screenshot("port-before-open");
@@ -317,6 +332,20 @@ export async function verifyWorkstationPortsUi(options) {
 				const proof = await read();
 				return proof.running === false ? proof : null;
 			}, "owned HTTP server stopped by terminal interrupt");
+			if (report.discoveryFinished) {
+				await click("text:Port");
+				await until(
+					() =>
+						evaluate(
+							`Boolean(document.querySelector('[data-workspace-ports]')) && !document.querySelector('[data-workspace-ports] [role=alert]') && !document.querySelector('[data-workspace-ports] [data-port="${initial.port}"]')`,
+						),
+					"stopped port removed by the discovery refresh",
+				);
+				report.portsAfterStop = await evaluate(
+					`document.querySelector('[data-workspace-ports]')?.innerText`,
+				);
+				await screenshot("ports-discovery-after-stop");
+			}
 		} catch (error) {
 			report.cleanupError = String(error);
 			cleanupError = error;

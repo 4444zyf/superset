@@ -395,7 +395,7 @@ export function Workstation({
 	const openPort = (workspaceId: string, port: number, targetUrl?: string) =>
 		void ui.operation(async () => {
 			const target = ui.active.current;
-			if (!target) return;
+			if (!target || !portTargetIsCurrent(target, workspaceId)) return;
 			if (ui.forward) {
 				await api.closePort(ui.forward.id);
 				ui.setForward(null);

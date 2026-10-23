@@ -221,6 +221,9 @@ export function WorkspaceEditor({
 								/>
 							)}
 							<WorkspacePortControls
+								api={api}
+								connection={connection}
+								workspaceId={workspace.id}
 								busy={busy}
 								forward={forward}
 								onOpenPort={onOpenPort}

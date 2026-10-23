@@ -155,6 +155,7 @@ export class WorkstationController {
 				"workstationWorkspaceRunV2",
 				"workstationWorkspaceCleanupV1",
 				"workstationWorkspaceSetupV1",
+				"workstationPortsV1",
 			].map((key) => [key, metadata.capabilities?.[key] === true]),
 		);
 		const chatHarnesses = Array.isArray(metadata.chatHarnesses)
@@ -174,6 +175,27 @@ export class WorkstationController {
 	assertGeneration(id: string, generation: number): void {
 		if (this.describe(id).generation !== generation)
 			throw new Error("Connection changed; reconnect before continuing");
+	}
+
+	async listPorts(
+		connectionId: string,
+		generation: number,
+		workspaceId: string,
+	): Promise<unknown> {
+		this.assertGeneration(connectionId, generation);
+		if (!workspaceId.trim())
+			throw new Error("An explicit workspace is required");
+		const features = await this.features(connectionId);
+		this.assertGeneration(connectionId, generation);
+		if (!features.capabilities?.workstationPortsV1)
+			throw new Error("This backend does not support the required capability");
+		const ports = await this.manager.invoke(connectionId, {
+			path: "ports.getAll",
+			type: "query",
+			input: { workspaceIds: [workspaceId] },
+		});
+		this.assertGeneration(connectionId, generation);
+		return ports;
 	}
 
 	async invoke(request: DirectRpc): Promise<unknown> {

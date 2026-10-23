@@ -4,6 +4,87 @@ import type { SqliteDatabase } from "@superset/direct-connection";
 import { OperationIntents } from "./operation-intents";
 import { WorkstationController } from "./workstation-controller";
 
+test("port discovery preserves the existing getAll query and requires capability, workspace and generation", async () => {
+	const f = fixture();
+	let enabled = false;
+	const calls: unknown[] = [];
+	const ports = [
+		{
+			port: 3000,
+			workspaceId: "workspace",
+			terminalId: "terminal",
+			label: null,
+		},
+	];
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationPortsV1: enabled },
+		}),
+		invoke: async (id, request) => {
+			calls.push({ id, ...request });
+			return ports;
+		},
+	});
+	await expect(controller.listPorts("machine", 1, "workspace")).rejects.toThrow(
+		"required capability",
+	);
+	enabled = true;
+	await expect(controller.listPorts("machine", 1, "")).rejects.toThrow(
+		"explicit workspace",
+	);
+	expect(await controller.listPorts("machine", 1, "workspace")).toBe(ports);
+	expect(calls).toEqual([
+		{
+			id: "machine",
+			path: "ports.getAll",
+			type: "query",
+			input: { workspaceIds: ["workspace"] },
+		},
+	]);
+	await expect(
+		controller.invoke({
+			connectionId: "machine",
+			generation: 1,
+			path: "ports.getAll",
+			type: "query",
+			input: { workspaceIds: ["workspace"] },
+		}),
+	).rejects.toThrow("Unsupported");
+	f.nextGeneration();
+	await expect(controller.listPorts("machine", 1, "workspace")).rejects.toThrow(
+		"Connection changed",
+	);
+	expect(calls).toHaveLength(1);
+});
+
+test("a port read cannot finish after the connection generation changes", async () => {
+	const f = fixture();
+	let finish!: (ports: unknown[]) => void;
+	let notify!: () => void;
+	const started = new Promise<void>((resolve) => {
+		notify = resolve;
+	});
+	const pending = new Promise<unknown[]>((resolve) => {
+		finish = resolve;
+	});
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationPortsV1: true },
+		}),
+		invoke: async () => {
+			notify();
+			return pending;
+		},
+	});
+	const reading = controller.listPorts("machine", 1, "workspace");
+	await started;
+	f.nextGeneration();
+	finish([]);
+	await expect(reading).rejects.toThrow("Connection changed");
+});
+
 test("terminal path resolution preserves the existing mutation contract and requires workspace capability and generation", async () => {
 	const f = fixture();
 	let enabled = false;

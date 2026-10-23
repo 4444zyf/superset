@@ -163,6 +163,12 @@ const directWorkstation: DirectWorkstationApi = {
 			port,
 		}),
 	closePort: (id) => invoke("closePort", id),
+	listPorts: (connection, workspaceId) =>
+		invoke("listPorts", {
+			connectionId: connection.connectionId,
+			generation: connection.generation,
+			workspaceId,
+		}),
 	preparePort: (connection, workspaceId, port) =>
 		invoke("preparePort", {
 			connectionId: connection.connectionId,

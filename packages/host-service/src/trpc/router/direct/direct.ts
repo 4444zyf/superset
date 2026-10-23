@@ -37,6 +37,7 @@ export function describeDirectBackend(
 		capabilities: {
 			workspaceViewRestoreV1,
 			workstationFilesV1: true,
+			workstationPortsV1: true,
 			workstationFileEventsV1: true,
 			workstationGitV1: true,
 			workstationGitIdentityV1: true,
