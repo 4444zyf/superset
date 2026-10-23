@@ -11,6 +11,7 @@ export function PortRowView({
 	title,
 	isPending = false,
 	externalDisabled = false,
+	copyDisabled = false,
 	onPrimary,
 	onExternal,
 	onCopy,
@@ -23,6 +24,7 @@ export function PortRowView({
 	title?: string;
 	isPending?: boolean;
 	externalDisabled?: boolean;
+	copyDisabled?: boolean;
 	onPrimary?(): void;
 	onExternal?(): void;
 	onCopy?(): Promise<void>;
@@ -85,6 +87,7 @@ export function PortRowView({
 						type="button"
 						aria-label={t({ message: `Copy localhost:${port.port}` })}
 						onClick={() => void onCopy()}
+						disabled={copyDisabled}
 						className="rounded p-1 text-muted-foreground hover:bg-fill-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
 					>
 						<LuCopy className="size-3" strokeWidth={STROKE_WIDTH} />

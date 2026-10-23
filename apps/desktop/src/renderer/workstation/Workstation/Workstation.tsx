@@ -50,6 +50,7 @@ import type {
 	RemoteDirectory,
 	RemoteWorkspace,
 } from "./types";
+import { copyWorkspacePort } from "./utils/copy-workspace-port";
 import { openWorkspacePort } from "./utils/open-workspace-port";
 import { terminalUrlTarget } from "./utils/terminal-url-target";
 import "./workstation.css";
@@ -419,6 +420,35 @@ export function Workstation({
 			forwardedWorkspace.current = workspaceId;
 			ui.setForward(forward);
 		});
+	const copyPort = async (workspaceId: string, port: number) => {
+		await ui.operation(async () => {
+			const target = ui.active.current;
+			if (
+				!target ||
+				!portTargetIsCurrent(target, workspaceId) ||
+				!api.preparePort ||
+				!api.copyText
+			)
+				return;
+			if (ui.forward) {
+				await api.closePort(ui.forward.id);
+				ui.setForward(null);
+			}
+			const forward = await copyWorkspacePort({
+				api,
+				connection: target,
+				workspaceId,
+				port,
+				isCurrent: () => portTargetIsCurrent(target, workspaceId),
+			});
+			if (!forward) return;
+			forwardedWorkspace.current = workspaceId;
+			ui.setForward(forward);
+			ui.setNotice(
+				t({ message: `Copied ${forward.url.replace(/^https?:\/\//, "")}` }),
+			);
+		});
+	};
 	const openUrl = (workspaceId: string, raw: string) => {
 		const connection = ui.active.current;
 		if (!connection || !portTargetIsCurrent(connection, workspaceId)) return;
@@ -662,6 +692,7 @@ export function Workstation({
 										: null,
 								onOpen: openPort,
 								onOpenUrl: openUrl,
+								onCopy: copyPort,
 								onClose: closePort,
 							}}
 							api={api}
@@ -744,6 +775,7 @@ export function Workstation({
 								})
 							}
 							onOpenPort={(port) => openPort(workspace.id, port)}
+							onCopyPort={(port) => copyPort(workspace.id, port)}
 							onClosePort={closePort}
 						/>
 					) : (

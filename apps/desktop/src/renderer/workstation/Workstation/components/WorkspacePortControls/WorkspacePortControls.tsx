@@ -14,6 +14,7 @@ export function WorkspacePortControls({
 	busy,
 	forward,
 	onOpenPort,
+	onCopyPort,
 	onClosePort,
 }: {
 	api?: DirectWorkstationApi;
@@ -22,6 +23,7 @@ export function WorkspacePortControls({
 	busy: boolean;
 	forward: { id: string; url: string } | null;
 	onOpenPort(port: number): void;
+	onCopyPort?(port: number): Promise<void>;
 	onClosePort(): void;
 }) {
 	const { t } = useLingui();
@@ -70,6 +72,7 @@ export function WorkspacePortControls({
 					workspaceId={workspaceId}
 					busy={busy}
 					onOpenPort={onOpenPort}
+					onCopyPort={onCopyPort}
 				/>
 			)}
 		</div>

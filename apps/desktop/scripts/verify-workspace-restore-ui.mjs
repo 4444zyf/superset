@@ -448,7 +448,7 @@ export async function verifyWorkspaceRestoreUi({
 	}
  if (process.argv.includes("--ports-only")) {
   const {verifyWorkstationPortsUi}=await import("./verify-workstation-ports-ui.mjs");
-  await verifyWorkstationPortsUi({getPage,click,screenshot,closeReopen,controls,output,observePortBrowserCalls});
+  await verifyWorkstationPortsUi({getPage,click,screenshot,closeReopen,controls,output,observePortBrowserCalls,setClipboard,readClipboardText});
   writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,portsOnly:true},null,2)+"\n");
   return;
  }

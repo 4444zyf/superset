@@ -36,6 +36,7 @@ export function WorkspaceEditor({
 	onTerminal,
 	onNewTerminal,
 	onOpenPort,
+	onCopyPort,
 	onClosePort,
 	onRefresh,
 	onPending,
@@ -56,6 +57,7 @@ export function WorkspaceEditor({
 	onTerminal(id: string): void;
 	onNewTerminal(): void;
 	onOpenPort(port: number): void;
+	onCopyPort?(port: number): Promise<void>;
 	onClosePort(): void;
 	onRefresh(): void;
 	onPending(): void;
@@ -227,6 +229,7 @@ export function WorkspaceEditor({
 								busy={busy}
 								forward={forward}
 								onOpenPort={onOpenPort}
+								onCopyPort={onCopyPort}
 								onClosePort={onClosePort}
 							/>
 						</div>

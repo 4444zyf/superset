@@ -47,6 +47,66 @@ export async function verifyWorkstationPortDiscoveryUi(options, context) {
 		);
 	};
 	result.firstRows = await openMenu();
+	const copyCurrentPort = async (phase) => {
+		assert.equal(typeof options.setClipboard, "function");
+		assert.equal(typeof options.readClipboardText, "function");
+		await options.setClipboard({ text: "COPY-SENTINEL" });
+		const copyButton = `${row} button[aria-label="Copy localhost:${initial.port}"]`;
+		await until(
+			() =>
+				evaluate(
+					`Boolean(document.querySelector(${JSON.stringify(copyButton)}))`,
+				),
+			"original row copy action",
+		);
+		const callsBeforeCopy = await observePortBrowserCalls();
+		await click(copyButton);
+		const copied = await until(async () => {
+			const value = await options.readClipboardText();
+			return value.startsWith("http://127.0.0.1:") ? value : null;
+		}, "local clipboard receives prepared workspace address");
+		const shown = await until(
+			() =>
+				evaluate(
+					`document.querySelector('[role=menu] code.text-xs')?.textContent===${JSON.stringify(copied)}?document.querySelector('[role=menu] code.text-xs').textContent:null`,
+				),
+			"copied forward displayed",
+		);
+		assert.equal(copied, shown);
+		assert.deepEqual(await observePortBrowserCalls(), callsBeforeCopy);
+		const response = await fetch(copied);
+		const body = await response.text();
+		assert.equal(response.status, 200);
+		assert.ok(body.includes(initial.marker));
+		const copiedResult = {
+			copied,
+			shown,
+			status: response.status,
+			body,
+			callsBeforeCopy,
+			callsAfterCopy: await observePortBrowserCalls(),
+		};
+		await screenshot(`ports-copy-${phase}`);
+		const closePosition = await evaluate(
+			`(()=>{const b=document.querySelector('[role=menu] code.text-xs')?.parentElement?.querySelector('button');const r=b?.getBoundingClientRect();return r?{x:r.x+r.width/2,y:r.y+r.height/2}:null;})()`,
+		);
+		assert.ok(closePosition);
+		for (const type of ["mousePressed", "mouseReleased"])
+			await getPage().call("Input.dispatchMouseEvent", {
+				type,
+				...closePosition,
+				button: "left",
+				clickCount: 1,
+			});
+		await until(
+			() => evaluate(`!document.querySelector('[role=menu] code.text-xs')`),
+			"copied forward closed",
+		);
+		await assert.rejects(fetch(copied, { signal: AbortSignal.timeout(1000) }));
+		return copiedResult;
+	};
+	if (process.argv.includes("--port-copy"))
+		result.copy = await copyCurrentPort("first");
 	const before = await observePortBrowserCalls();
 	await click(`${row} .tabular-nums`);
 	assert.deepEqual(
@@ -69,7 +129,9 @@ export async function verifyWorkstationPortDiscoveryUi(options, context) {
 		"original row action visible on hover",
 	);
 	await screenshot("ports-discovered-before-open");
-	await click(`${row} button`);
+	await click(
+		`${row} button[aria-label="Open localhost:${initial.port} in external browser"]`,
+	);
 	result.forwardUrl = await until(
 		() =>
 			evaluate(
@@ -124,6 +186,8 @@ export async function verifyWorkstationPortDiscoveryUi(options, context) {
 	assert.equal(retained.executionId, execution.executionId);
 	report.retained = retained;
 	result.reopenedRows = await openMenu();
+	if (process.argv.includes("--port-copy"))
+		result.copyReopened = await copyCurrentPort("reopened");
 	await screenshot("ports-discovered-reopened");
 	let paused;
 	try {

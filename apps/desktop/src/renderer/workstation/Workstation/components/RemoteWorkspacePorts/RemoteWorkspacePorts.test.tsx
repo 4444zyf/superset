@@ -180,3 +180,30 @@ test("failed reads do not claim there are no ports and Refresh reads again", asy
 	expect(screen.queryByRole("alert")).toBeNull();
 	expect(calls).toBe(2);
 });
+
+test("copy is explicit and forwards the discovered port to the workspace owner", async () => {
+	const copied: number[] = [];
+	const opened: number[] = [];
+	const api = {
+		listPorts: async () => [port(3000)],
+		preparePort: async () => ({ id: "forward", url: "http://127.0.0.1:1000" }),
+		copyText: async () => {},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspacePorts
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={(p) => opened.push(p)}
+			onCopyPort={async (p) => {
+				copied.push(p);
+			}}
+		/>,
+	);
+	fireEvent.click(
+		await screen.findByRole("button", { name: "Copy localhost:3000" }),
+	);
+	expect(copied).toEqual([3000]);
+	expect(opened).toEqual([]);
+});

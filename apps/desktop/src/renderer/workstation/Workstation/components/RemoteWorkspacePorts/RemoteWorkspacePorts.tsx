@@ -17,6 +17,7 @@ export function RemoteWorkspacePorts({
 	workspaceId,
 	busy,
 	onOpenPort,
+	onCopyPort,
 	pollMs = 2000,
 }: {
 	api: DirectWorkstationApi;
@@ -24,6 +25,7 @@ export function RemoteWorkspacePorts({
 	workspaceId: string;
 	busy: boolean;
 	onOpenPort(port: number): void;
+	onCopyPort?(port: number): Promise<void>;
 	pollMs?: number;
 }) {
 	const owner = JSON.stringify([
@@ -37,8 +39,15 @@ export function RemoteWorkspacePorts({
 	const available =
 		connection.capabilities?.workstationPortsV1 === true &&
 		typeof api.listPorts === "function";
-	const current = useRef({ api, owner, available, busy, onOpenPort });
-	current.current = { api, owner, available, busy, onOpenPort };
+	const current = useRef({
+		api,
+		owner,
+		available,
+		busy,
+		onOpenPort,
+		onCopyPort,
+	});
+	current.current = { api, owner, available, busy, onOpenPort, onCopyPort };
 	const mounted = useRef(false);
 	const readNow = useRef<(() => void) | null>(null);
 	const [readingState, setReadingState] = useState<{
@@ -162,6 +171,22 @@ export function RemoteWorkspacePorts({
 								.filter(Boolean)
 								.join(" · ")}
 							externalDisabled={busy || !!snapshot.error}
+							copyDisabled={busy}
+							onCopy={
+								onCopyPort && api.preparePort && api.copyText
+									? async () => {
+											if (
+												!mounted.current ||
+												current.current.api !== api ||
+												current.current.owner !== owner ||
+												!current.current.available ||
+												current.current.busy
+											)
+												return;
+											await current.current.onCopyPort?.(port.port);
+										}
+									: undefined
+							}
 							onExternal={() => {
 								if (
 									!mounted.current ||

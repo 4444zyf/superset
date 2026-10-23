@@ -64,6 +64,7 @@ export function WorkspaceWindow({
 		forward: { id: string; url: string } | null;
 		onOpen(workspaceId: string, port: number): void;
 		onOpenUrl?(workspaceId: string, url: string): void;
+		onCopy?(workspaceId: string, port: number): Promise<void>;
 		onClose(): void;
 	};
 	onBrowse(): void;
@@ -284,6 +285,13 @@ export function WorkspaceWindow({
 											forward={ports.forward}
 											onOpenPort={(port) =>
 												ports.onOpen(workspace.workspaceId, port)
+											}
+											onCopyPort={
+												ports.onCopy
+													? async (port) => {
+															await ports.onCopy?.(workspace.workspaceId, port);
+														}
+													: undefined
 											}
 											onClosePort={ports.onClose}
 										/>
