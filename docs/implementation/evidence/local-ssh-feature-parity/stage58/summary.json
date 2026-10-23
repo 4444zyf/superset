@@ -1,0 +1,73 @@
+{
+  "sourceCommit": "e3cb344a73745a6b47ff1777e088bb04ce8f0308",
+  "compiledManifestSha256": "f14e28f1876ee886459b45ee3d2bbad094ced696964c0177d7287d8b29035321",
+  "compiledManifestRecheckedAfterNative": true,
+  "cliSha256": "f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb",
+  "focusedChecks": {
+    "desktop": {
+      "passed": 64,
+      "assertions": 2762,
+      "files": 6
+    },
+    "host": {
+      "passed": 32,
+      "assertions": 78,
+      "files": 4
+    },
+    "scanner": {
+      "passed": 7,
+      "assertions": 324,
+      "files": 1
+    },
+    "oldRendererPtyWebsocket": {
+      "passed": 3
+    },
+    "distinctPassed": 106
+  },
+  "broaderSeqSuite": {
+    "passed": 8,
+    "failed": 2,
+    "baselineSameTwoRepaintTimeouts": true,
+    "includedThreeFocusedOldRendererTests": true
+  },
+  "native": [
+    {
+      "name": "native-local",
+      "sourceCommit": "e3cb344a73745a6b47ff1777e088bb04ce8f0308",
+      "appPath": "/workspace/superset/apps/desktop",
+      "rendererUrl": "file:///workspace/superset/apps/desktop/dist/renderer/index.html",
+      "originalPids": [
+        37531,
+        37543
+      ],
+      "probePid": 37756,
+      "sameExecutionAcrossReopen": true,
+      "noReplayedVersionReplyInPtyOutput": true,
+      "rendererErrors": [],
+      "reopenedScreenshotViewed": true
+    },
+    {
+      "name": "native-ssh",
+      "sourceCommit": "e3cb344a73745a6b47ff1777e088bb04ce8f0308",
+      "appPath": "/workspace/superset/apps/desktop",
+      "rendererUrl": "file:///workspace/superset/apps/desktop/dist/renderer/index.html",
+      "originalPids": [
+        38182,
+        38188,
+        38194
+      ],
+      "probePid": 41303,
+      "sameExecutionAcrossReopen": true,
+      "noReplayedVersionReplyInPtyOutput": true,
+      "rendererErrors": [],
+      "reopenedScreenshotViewed": true
+    }
+  ],
+  "inactiveLocalBPidRetained": 37632,
+  "limits": [
+    "Old unmarked hosts retain stock behavior; no claim that old-host replay is safe",
+    "Only standalone XTVERSION response events are guarded; other query families retain existing behavior",
+    "Native smoke covers the current direct renderer; old renderer behavior is reproduced with real headless parsing and actual PTY/WS, not an old desktop installer",
+    "Physical macOS, authenticated vendor Agents and installers were not verified"
+  ]
+}

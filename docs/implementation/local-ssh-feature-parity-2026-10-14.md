@@ -1057,6 +1057,8 @@ TDD先在原实现执行，75通过3失败，分别复现桌面层尚未放行st
 
 ## 阶段五十七：终端身份协商与恢复回放边界
 
+兼容范围补正：下文记录的是当时直接恢复路径的新客户端验证；“旧客户端忽略新增字段”不能证明其不会回复原始历史查询，旧runtime当时也没有回放gate。阶段五十八增加后端协议回复保护并收紧原runtime新回复的启用条件。保留本阶段原始失败与验证记录，不将新旧host两种兼容方向混为一项。
+
 2026-10-23。核对并移植官方295bb0fc5/#8456的终端身份部分和11e27fd12/#8521的XTVERSION部分；原生Cmd+C和attach输入队列未混算完成。桌面旧环境allowlist和host新终端环境均不再设置/继承TERM_PROGRAM及TERM_PROGRAM_VERSION，TERM/truecolor/主题/UTF-8和既有shell元数据不变。原通用surface与原runtime注册同一个实际parser处理器，以PRODUCT_BRAND生成Superset Remix (xterm.js)，保留OpenTUI所需子串并避开Claude对stock前缀的判断。原全速滚动处理、只读回看、Linux粘贴和键盘翻译未改。删除旧测试中“必须是kitty类TERM_PROGRAM”的过期断言，与官方同一修复一致；环境实际行为、真实headless parser和25项原滚动测试覆盖替代合同，旧计划顶部已标明此部分被取代。
 
 初始源码e637e6c8d。旧环境测试先45通过2失败/80通过1失败；新helper尚不存在的导入错误单列记录，不当成产品行为证明。实现后初始210项相关检查/两端类型通过，但没有据此宣称实际恢复成功。真实native-baseline先因多行Input.insertText令Python源码拼接错误失败，截图/原始错误保留；改为先以Python compile检查固定脚本、再经单行base64传输，不用JSON.stringify作shell转义。native-baseline2在冻结旧产品92a4025fd的真实本机窗口中取得TERM_PROGRAM=kitty、版本0.42.0与stock xterm.js(6.1.0-beta.302)回复，然后按预期退出1。
@@ -1074,3 +1076,21 @@ e637e6c8d实际native-local/native-ssh首次查询均得到新回复且身份为
 native-replay-local和native-replay-ssh使用相同冻结产品、独立Xorg/拥有profile/backend，均退出0。实际点击新终端输入Python PTY探针，首次与正常关闭重开后的第二次均读取空TERM_PROGRAM/version及精确ESC P >|Superset Remix (xterm.js) ESC反斜杠；真实PTY输出不再含回放版本回复，两次命令均完成。原本机A PID31412/31432及probe PID31756、执行ID保持，未选B PID31592/执行ID仍活；SSH原PID31516/31545/31552及probe PID34859/执行ID保持，并运行原工作区20次恢复采样。两端renderer错误为空，重开后的截图各一张已实际查看，其他截图捕获但未混称全部查看。原生JSON原样归档、日志无损gzip；summary.json独立核对旧回复、实际输入污染、修复结果与PID/执行身份。
 
 探针是实际PTY上的受控Python协议过程，只读取四个公开终端环境值和协议回复，不是已认证供应商Agent。没有为应用身份重新创建已有执行；已经运行的PTY环境不追溯修改。macOS、Claude/Codex真实滚动/复制、安装包、其他查询族、原生Cmd+C、自有选区和attach输入队列仍待实施/独立验证。全部拥有backend/SSH fixture由原finally清理；两个Xorg仅按UID与专属log路径匹配、记录启动tick后向各自正PID发TERM，均退出0，没有signal未知资源或声称已回收PID1僵尸。整体原版功能对齐继续按清单推进。
+
+## 阶段五十八：旧客户端与原序号恢复的版本回复保护
+
+2026-10-23。只读核对原runtime、FIFO、seq和直接恢复路径后，实际取回已发布ssh-preview-v1.37.1（7d309a8ac）与1.37.2（8da8d2901）源码。两版原terminal-ws-transport和工作站RemoteTerminal均将完整onData事件作为input发送；旧客户端不会因为忽略阶段五十七的新字段而停止回复历史查询。先用真实headless解析器和隔离restore路由复现，旧代码明确收到历史stock版本回复。再以实际Electron ABI145、拥有的in-process daemon/PTY和真实WebSocket，分别复现旧FIFO、seq tail和seq exact：三项在3199d6664原terminal.ts均失败，输入列表都多出stock版本回复；保留查询原字节和普通中文输入作为对照。
+
+源码提交e3cb344a7。复用原有有界ControlSequenceScanner，不解码或改写PTY传输。host按完整输出流识别实时XTVERSION请求，给实际收到该输出的每个socket分别记录固定大小计数；FIFO/seq历史发送不增加计数，断开即清理该socket状态。只有独立、完整的XTVERSION回复事件才消费计数，无实时请求的此类回复不再进入PTY；普通键盘、粘贴文本和其他查询族保持原输入路径。直接恢复按daemon实际checkpoint区分历史和实时输出，保留原客户端回放gate。请求跨chunk/UTF-8/取消序列及checkpoint解析状态均复用原扫描器；不使用回放延时或队列普通命令来掩盖问题。
+
+原runtime移除无条件注册；由其原transport管理handler，仅在已有attached消息的可选versionRepliesGuarded=true明确出现时启用新回复。每次attach重新判断，park/disconnect/dispose释放handler，切到未声明能力的旧host回退stock。旧renderer连新host不需要理解此新增字段，保护在其原始input消息到PTY之前执行；新renderer连旧host仍是原stock行为，这不是对旧host回放安全的证明。没有改变二进制历史、seq锚点、synced含义、消息类型、必填字段、旧错误、最低版本、认证或workspace/execution归属；未增加fullyLocal或替换正常org/user上下文，未修改tRPC过程或迁移。
+
+最终定向回归：桌面6文件64项/2762断言，host4文件32项/78断言，原TerminalModes扫描器7项/324断言，以及真实PTY/WS三条旧客户端路径3项通过。共106项，不重复累计中间运行。完整两端类型、插件检查、diff检查通过；相关10文件格式检查无错误，4项既有warning保留。初稿曾把直接恢复的回复状态放进onOpen局部作用域，实时回复测试捕获异常关闭；已移到同连接回调共同闭包后通过，诊断日志保留。初次lint还拒绝控制字符正则，改用明确起止字节及字符范围检查后通过；没有执行unsafe修复。
+
+另外运行完整原seq套件，8项通过、2项失败：超出ring后的重绘和resize后的重绘均等待FULL-REDRAW超时。将相同文件中的产品terminal.ts恢复为3199d6664原字节、仅选择这两个未改用例执行，仍在相同断言超时（0通过2失败）；finally恢复新源码。原始两份日志保留，根因仍待查，不将这两项算通过，也未提高超时、添加重试或更改旧断言。当前专项三条旧客户端路径已在新源码最终再次通过。[阶段五十八证据](evidence/local-ssh-feature-parity/stage58)。
+
+只运行8GiB参数的electron-vite源码编译，产品/验证器固定e3cb344a7。manifest为f14e28f1876ee886459b45ee3d2bbad094ced696964c0177d7287d8b29035321，两个真实Linux窗口验证后2205个编译文件逐一复核未变；既有CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。没有CLI重打包、安装包、密封后端归档或Actions。
+
+native-local与native-ssh均退出0，后者使用拥有的loopback SSH fixture。实际输入固定Python PTY协议过程，首次和正常关闭重开后的两次均收到精确Superset Remix (xterm.js)回复，TERM_PROGRAM/version为空；PTY输出无历史版本回复污染，renderer错误为空。本机A原PID37531/37543、probe37756及执行ID保持，未选B的PID37632/执行ID在最后再次核对存活且不变；SSH原PID38182/38188/38194和probe41303及执行ID保持，并完成原20次恢复采样。两端重开图已实际查看，首轮图捕获但未混称全部查看。此为当前直接renderer的真实窗口回归，旧renderer的修复红绿由真实headless解析及PTY/WS测试证明，不冒充已经运行旧安装包。
+
+各runner原finally完成拥有backend/SSH fixture清理，唯一新建Xorg子进程37293由其持有的Popen对象终止并wait，退出0；未向未知资源发信号。物理macOS、真实供应商Agent复制/滚动、其他查询族、原生Cmd+C、attach输入队列、两个既有重绘失败和其他原版功能仍须继续，整体对齐未完成。

@@ -1,0 +1,14 @@
+ssh-preview-v1.37.1: 7d309a8acb4dc06a6d0818e74b7b3c419872299f
+981: 	transport._onDataDisposable = terminal.onData((data) => {
+982: 		if (transport.connectionState !== "open") return;
+983: 		if (socket.readyState !== WebSocket.OPEN) return;
+984: 		socket.send(JSON.stringify({ type: "input", data }));
+985: 	});
+RemoteTerminal:78: 		const input = terminal.onData((data) => send({ type: "input", data }));
+ssh-preview-v1.37.2: 8da8d2901bc75a7ed82b8fc1b17fbf68df19c858
+981: 	transport._onDataDisposable = terminal.onData((data) => {
+982: 		if (transport.connectionState !== "open") return;
+983: 		if (socket.readyState !== WebSocket.OPEN) return;
+984: 		socket.send(JSON.stringify({ type: "input", data }));
+985: 	});
+RemoteTerminal:78: 		const input = terminal.onData((data) => send({ type: "input", data }));
