@@ -15,6 +15,10 @@ import { writeTerminalClipboard } from "renderer/lib/terminal/terminal-clipboard
 import { installImagePasteFallback } from "renderer/lib/terminal/terminal-image-paste-fallback";
 import { installTerminalKeyEventHandler } from "renderer/lib/terminal/terminal-key-event-handler-core";
 import type { TerminalLinkHandlers } from "renderer/lib/terminal/terminal-link-manager";
+import {
+	listenTerminalInput,
+	TerminalPendingInput,
+} from "renderer/lib/terminal/terminal-pending-input";
 import { createTerminalReplayGate } from "renderer/lib/terminal/terminal-replay-gate";
 import { installCopyOnSelect } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/TerminalPane/hooks/useCopyOnSelect/copyOnSelect";
 import { shellEscapePaths } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/TerminalPane/utils";
@@ -178,6 +182,12 @@ export function RemoteTerminal({
 		let ready = false;
 		let receivingReplay = false;
 		let ended = false;
+		let connecting = true;
+		const pendingInput = new TerminalPendingInput();
+		const cancelPendingInput = () => {
+			connecting = false;
+			pendingInput.clear();
+		};
 		const removeLinks = workspaceId
 			? emulator.installLinkHandlers?.(
 					terminalFileLinks({
@@ -219,13 +229,6 @@ export function RemoteTerminal({
 		};
 		const off = api.onSocket((event) => {
 			if (event.socketId !== socketId || closed) return;
-			if (event.kind === "open") {
-				if (!restoreTarget) {
-					ready = true;
-					setState("attached");
-					announce();
-				}
-			}
 			if (event.kind === "message") {
 				if (event.data instanceof Uint8Array) {
 					if (ready || !restoreTarget) {
@@ -236,27 +239,39 @@ export function RemoteTerminal({
 				} else if (typeof event.data === "string") {
 					try {
 						const message = JSON.parse(event.data);
-						if (message.type === "attached" && restoreTarget && !ready) {
+						if (message.type === "attached" && !ready) {
 							if (
 								message.terminalId !== terminalId ||
-								message.workspaceId !== restoreTarget.workspaceId ||
-								message.executionId !== restoreTarget.executionId
+								(restoreTarget &&
+									(message.workspaceId !== restoreTarget.workspaceId ||
+										message.executionId !== restoreTarget.executionId))
 							) {
 								closed = true;
+								cancelPendingInput();
 								setState("unknown");
 								clearTimeout(attachTimer);
 								void api.closeSocket(socketId).catch(() => {});
 								callbacks.current.onError("EXECUTION_CHANGED");
 								return;
 							}
-							if (message.replaying === true) {
+							if (restoreTarget && message.replaying === true) {
 								receivingReplay = true;
 								emulator.beginReplay?.();
 							}
 							ready = true;
+							connecting = false;
 							setState("attached");
 							clearTimeout(attachTimer);
 							announce();
+							const pending = pendingInput.take();
+							if (
+								pending &&
+								focus.current &&
+								navigation.current.connection === connection &&
+								navigation.current.terminalId === terminalId &&
+								navigation.current.executionId === executionId
+							)
+								send({ type: "input", data: pending });
 							callbacks.current.onAttached?.();
 						}
 						if (message.type === "ping") send({ type: "pong" });
@@ -265,12 +280,14 @@ export function RemoteTerminal({
 							emulator.endReplay?.();
 						}
 						if (message.type === "error") {
+							cancelPendingInput();
 							ready = false;
 							setState("unknown");
 							clearTimeout(attachTimer);
 							callbacks.current.onError(message.code ?? message.message);
 						}
 						if (message.type === "exit") {
+							cancelPendingInput();
 							ended = true;
 							callbacks.current.onExited?.();
 							ready = false;
@@ -282,6 +299,7 @@ export function RemoteTerminal({
 				}
 			}
 			if (event.kind === "close" || event.kind === "error") {
+				cancelPendingInput();
 				ready = false;
 				clearTimeout(attachTimer);
 				if (restoreTarget && !ended)
@@ -361,8 +379,10 @@ export function RemoteTerminal({
 					{ preferFiles: true },
 				)
 			: undefined;
-		const input = terminal.onData((data) => {
-			if (focus.current) send({ type: "input", data });
+		const input = listenTerminalInput(terminal, (data, userInput) => {
+			if (!focus.current || closed || ended) return;
+			if (ready) send({ type: "input", data });
+			else if (connecting && userInput) pendingInput.queue(data);
 		});
 		const resize = terminal.onResize(({ cols, rows }) =>
 			send({ type: "resize", cols, rows }),
@@ -372,6 +392,7 @@ export function RemoteTerminal({
 		if (restoreTarget)
 			attachTimer = setTimeout(() => {
 				if (!ready && !closed) {
+					cancelPendingInput();
 					closed = true;
 					setState("unknown");
 					void api.closeSocket(socketId).catch(() => {});
@@ -387,6 +408,7 @@ export function RemoteTerminal({
 				if (closed) return api.closeSocket(socketId).catch(() => {});
 			})
 			.catch((error) => {
+				cancelPendingInput();
 				clearTimeout(attachTimer);
 				if (!closed) {
 					setState("unknown");
@@ -395,6 +417,7 @@ export function RemoteTerminal({
 			});
 		return () => {
 			closed = true;
+			cancelPendingInput();
 			clearTimeout(attachTimer);
 			focusTerminal.current = null;
 			off();

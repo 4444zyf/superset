@@ -18,6 +18,10 @@ import {
 	resetAttachRetryState,
 	shouldSurfaceDiagnosis,
 } from "./attach-retry-diagnosis";
+import {
+	listenTerminalInput,
+	TerminalPendingInput,
+} from "./terminal-pending-input";
 import { terminalQueryColors } from "./terminal-query-colors";
 import { installTerminalVersionReply } from "./terminal-version-reply";
 import {
@@ -116,6 +120,7 @@ export interface TerminalTransport {
 	_terminal: XTerm | null;
 	/** Internal: disposes the terminal.onData → socket.send wiring. */
 	_onDataDisposable: { dispose(): void } | null;
+	_pendingInput: TerminalPendingInput;
 	_versionReplyDisposable: { dispose(): void } | null;
 	_versionRepliesGuarded: boolean;
 	_pendingColorReset: boolean;
@@ -316,6 +321,8 @@ function setConnectionState(
 	transport: TerminalTransport,
 	state: ConnectionState,
 ) {
+	if (state === "closed" || state === "disconnected")
+		transport._pendingInput.clear();
 	transport.connectionState = state;
 	for (const listener of transport.stateListeners) {
 		listener();
@@ -386,6 +393,7 @@ export function createTransport(
 	options: {
 		onSessionEnded?: () => void;
 		createSocket?: typeof createRelaySocket;
+		now?: () => number;
 	} = {},
 ): TerminalTransport {
 	return {
@@ -405,6 +413,7 @@ export function createTransport(
 		_createSocket: options.createSocket ?? createRelaySocket,
 		_terminal: null,
 		_onDataDisposable: null,
+		_pendingInput: new TerminalPendingInput(options.now),
 		_versionReplyDisposable: null,
 		_versionRepliesGuarded: false,
 		_pendingColorReset: false,
@@ -606,7 +615,10 @@ export function connect(
 	// double-painting its whole FIFO into an xterm that already has content.
 	if (transport.currentUrl && stripToken(transport.currentUrl) !== base) {
 		transport._seqEverSynced = false;
+		transport._pendingInput.clear();
 	}
+	if (transport._terminal && transport._terminal !== terminal)
+		transport._pendingInput.clear();
 	transport.currentUrl = wsUrl;
 	transport._localToken = extractToken(wsUrl);
 	transport._terminal = terminal;
@@ -811,6 +823,9 @@ function attachSocketListeners(
 			sendColors(transport, terminal.options?.theme);
 			sendVisibleState(transport);
 			sendResize(transport, terminal.cols, terminal.rows);
+			const pending = transport._pendingInput.take();
+			if (pending && socket.readyState === WebSocket.OPEN)
+				socket.send(JSON.stringify({ type: "input", data: pending }));
 			return;
 		}
 
@@ -834,6 +849,7 @@ function attachSocketListeners(
 		}
 
 		if (message.type === "error") {
+			transport._pendingInput.clear();
 			// Transient host-side attach failure (pty-daemon stalled/restarting).
 			// Don't mark terminated: the server closes the socket and partysocket's
 			// capped-backoff loop keeps re-dialing the same create-on-attach URL, so
@@ -990,11 +1006,21 @@ function attachSocketListeners(
 	});
 
 	transport._onDataDisposable?.dispose();
-	transport._onDataDisposable = terminal.onData((data) => {
-		if (transport.connectionState !== "open") return;
-		if (socket.readyState !== WebSocket.OPEN) return;
-		socket.send(JSON.stringify({ type: "input", data }));
-	});
+	transport._onDataDisposable = listenTerminalInput(
+		terminal,
+		(data, userInput) => {
+			if (transport._socket !== socket || transport._terminal !== terminal)
+				return;
+			if (
+				transport.connectionState === "open" &&
+				socket.readyState === WebSocket.OPEN
+			) {
+				socket.send(JSON.stringify({ type: "input", data }));
+			} else if (transport.connectionState === "connecting" && userInput) {
+				transport._pendingInput.queue(data);
+			}
+		},
+	);
 }
 
 /**
@@ -1014,6 +1040,7 @@ function attachSocketListeners(
  * bytes (or reanchors past the 2 MB ring), so parking loses nothing.
  */
 export function park(transport: TerminalTransport) {
+	transport._pendingInput.clear();
 	// A pre-seq host (bytes delivered, `synced` never seen) cannot replay a
 	// parked gap: it ignores `?seq=` and `replay=0` suppresses its legacy
 	// FIFO replay, so closing this socket would silently drop everything
@@ -1066,6 +1093,7 @@ export function park(transport: TerminalTransport) {
  */
 export function reconnect(transport: TerminalTransport) {
 	if (!transport._socket || !transport.currentUrl) return;
+	transport._pendingInput.clear();
 	transport._terminated = false;
 	transport._diagnosisLogged = false;
 	transport.lastDiagnosis = null;
@@ -1163,6 +1191,7 @@ export function sendDispose(transport: TerminalTransport) {
 }
 
 export function disposeTransport(transport: TerminalTransport) {
+	transport._pendingInput.clear();
 	teardownLiveness(transport);
 	transport._disposeFocusListeners?.();
 	transport._disposeFocusListeners = null;

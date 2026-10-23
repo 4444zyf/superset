@@ -118,7 +118,9 @@ class FakeRelaySocket {
 const createSocket = ((options: Record<string, unknown>) =>
 	new FakeRelaySocket(options)) as unknown as typeof createRelaySocket;
 
-function createTransport(options: { onSessionEnded?: () => void } = {}) {
+function createTransport(
+	options: { onSessionEnded?: () => void; now?: () => number } = {},
+) {
 	return createRealTransport({ ...options, createSocket });
 }
 
@@ -231,6 +233,98 @@ test("custom version replies require this attach's host input protection and fal
 		socket.message(JSON.stringify({ type: "attached", terminalId: "t1" }));
 		await query();
 		expect(inputs()[2]).toBe(inputs()[0]);
+	} finally {
+		disconnect(transport);
+		terminal.dispose();
+	}
+});
+
+test("typed input while attaching is sent once after metadata, without queuing a parser reply", async () => {
+	const transport = createTransport();
+	const terminal = new HeadlessTerminal({ allowProposedApi: true });
+	connect(transport, terminal as unknown as XTerm, "ws://host/terminal/t1");
+	const socket = FakeRelaySocket.instances.at(-1);
+	if (!socket) throw new Error("expected socket");
+	try {
+		terminal.input("typed 中文", true);
+		await new Promise<void>((done) => terminal.write("\x1b[>q", done));
+		terminal.input("\r", true);
+		expect(socket.sent).toEqual([]);
+		socket.open();
+		socket.message(JSON.stringify({ type: "attached", terminalId: "t1" }));
+		const messages = socket.sent.map((data) => JSON.parse(data));
+		expect(messages.filter((m) => m.type === "input")).toEqual([
+			{ type: "input", data: "typed 中文\r" },
+		]);
+		expect(messages.findIndex((m) => m.type === "input")).toBeGreaterThan(
+			messages.findIndex((m) => m.type === "resize"),
+		);
+		socket.message(JSON.stringify({ type: "attached", terminalId: "t1" }));
+		expect(
+			socket.sent
+				.map((data) => JSON.parse(data))
+				.filter((m) => m.type === "input"),
+		).toHaveLength(1);
+	} finally {
+		disconnect(transport);
+		terminal.dispose();
+	}
+});
+
+test.each([
+	"expired",
+	"overflow",
+	"close",
+	"park",
+	"repoint",
+	"error",
+	"reconnect",
+] as const)("pending input cannot survive %s", (action) => {
+	let now = 0;
+	const transport = createTransport({ now: () => now });
+	const terminal = new HeadlessTerminal({ allowProposedApi: true });
+	connect(transport, terminal as unknown as XTerm, "ws://host/terminal/t1");
+	let socket = FakeRelaySocket.instances.at(-1)!;
+	try {
+		terminal.input("old command", true);
+		if (action === "expired") now = 5001;
+		if (action === "overflow") {
+			terminal.input("x".repeat(8193), true);
+			terminal.input("\r", true);
+		}
+		if (action === "close") socket.drop();
+		if (action === "error")
+			socket.message(JSON.stringify({ type: "error", message: "unavailable" }));
+		if (action === "reconnect") reconnect(transport);
+		if (action === "park") {
+			park(transport);
+			connect(transport, terminal as unknown as XTerm, "ws://host/terminal/t1");
+		}
+		if (action === "repoint")
+			connect(
+				transport,
+				terminal as unknown as XTerm,
+				"ws://other/terminal/t2",
+			);
+		socket = FakeRelaySocket.instances.at(-1)!;
+		socket.open();
+		socket.message(
+			JSON.stringify({
+				type: "attached",
+				terminalId: action === "repoint" ? "t2" : "t1",
+			}),
+		);
+		expect(
+			socket.sent
+				.map((data) => JSON.parse(data))
+				.filter((m) => m.type === "input"),
+		).toEqual([]);
+		terminal.input("fresh\r", true);
+		expect(
+			socket.sent
+				.map((data) => JSON.parse(data))
+				.filter((m) => m.type === "input"),
+		).toEqual([{ type: "input", data: "fresh\r" }]);
 	} finally {
 		disconnect(transport);
 		terminal.dispose();
