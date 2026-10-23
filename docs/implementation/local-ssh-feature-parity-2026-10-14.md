@@ -1094,3 +1094,13 @@ native-replay-local和native-replay-ssh使用相同冻结产品、独立Xorg/拥
 native-local与native-ssh均退出0，后者使用拥有的loopback SSH fixture。实际输入固定Python PTY协议过程，首次和正常关闭重开后的两次均收到精确Superset Remix (xterm.js)回复，TERM_PROGRAM/version为空；PTY输出无历史版本回复污染，renderer错误为空。本机A原PID37531/37543、probe37756及执行ID保持，未选B的PID37632/执行ID在最后再次核对存活且不变；SSH原PID38182/38188/38194和probe41303及执行ID保持，并完成原20次恢复采样。两端重开图已实际查看，首轮图捕获但未混称全部查看。此为当前直接renderer的真实窗口回归，旧renderer的修复红绿由真实headless解析及PTY/WS测试证明，不冒充已经运行旧安装包。
 
 各runner原finally完成拥有backend/SSH fixture清理，唯一新建Xorg子进程37293由其持有的Popen对象终止并wait，退出0；未向未知资源发信号。物理macOS、真实供应商Agent复制/滚动、其他查询族、原生Cmd+C、attach输入队列、两个既有重绘失败和其他原版功能仍须继续，整体对齐未完成。
+
+## 阶段五十九：原版Mac Cmd+C的TUI自有选区分支
+
+2026-10-23。源码b8fc5cd06继续移植官方295bb0fc5/#8456的复制部分。原剪贴板判定增加可选appOwnsSelection，缺省false保留旧调用方式；共用terminal-key-event-handler-core读取当前公开鼠标捕获模式和xterm私有kitty flags，仅在Mac的普通Cmd+C、终端无选区、应用同时捕获鼠标且读取kitty键盘时交给原xterm编码器处理。终端有选区时仍保留系统copy事件，kitty-only或mouse-only应用继续原系统路径；Cmd+Shift+C、其他修饰键、粘贴、Windows/Linux和已注册应用热键保持原行为。应用释放kitty协议或鼠标捕获后立即恢复原判定，不缓存应用名/模式、不读供应商身份或增加后端能力。
+
+原runtime wrapper和直接RemoteTerminal已有同一core入口，本轮只改共用逻辑；未改传输、PTY输入队列、回复保护、环境身份、复制文本修剪、OSC 52提供器、历史回看或权限范围。xterm私有kitty字段不存在时按未启用处理，不尝试模拟供应商复制。没有新增持久键、翻译文案、依赖、账号或迁移。
+
+先加纯快捷键与真实headless解析器测试，在da3e30d84旧产品上8通过2失败：自有选区Cmd+C仍冒泡，真实启用kitty及鼠标捕获后原handler仍返回禁止编码。实现后10项/51断言通过。最终相关11文件153项/306断言通过，包括原复制空白/换行/矩形规则、剪贴板回退、行编辑、应用热键排除及只读历史复制/滚动；未重复累计初轮10项。完整桌面类型、4文件格式及插件检查通过。[阶段五十九红绿记录](evidence/local-ssh-feature-parity/stage59)。
+
+解析器测试只为headless现有构造选项白名单补原kitty扩展开关，实际flags和鼠标模式由ANSI输入产生；选择状态以测试替身控制，KeyboardEvent为合成事件。它验证共用判定与私有字段兼容性，不是物理Mac、实际系统剪贴板、完整CSI字节或认证Claude/Codex复制验收。本轮没有启动/停止服务、GUI、SSH夹具或Xorg，也未重新编译桌面/CLI、打包安装包、生成密封后端归档或触发Actions；当前环境编译输出仍为阶段五十八e3cb344a7，不能将其算成本阶段新产品窗口通过。实际Mac/供应商复制、连接期输入队列、原重绘失败与其他功能继续待验/待接入，整体对齐未完成。
