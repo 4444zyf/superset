@@ -1,6 +1,15 @@
 import type { Terminal as XTerm } from "@xterm/xterm";
 import { getCellDimensions } from "./cell-dimensions";
 
+const binaryInputSupport = new WeakMap<object, boolean>();
+
+export function setTerminalBinaryInputSupported(
+	terminal: object,
+	supported: boolean,
+): void {
+	binaryInputSupport.set(terminal, supported);
+}
+
 // Escape hatch for application mouse reports; client history stays input-free.
 // Run in DevTools console: localStorage.setItem('SUPERSET_TERMINAL_STOCK_WHEEL', '1')
 // Checked per wheel event (localStorage reads are sub-microsecond in
@@ -104,16 +113,20 @@ export function consumeWheelLines(
  */
 export function createSgrMouseModeTracker(xterm: XTerm): {
 	isActive: () => boolean;
+	isLegacy: () => boolean;
 	dispose: () => void;
 } {
 	let active = false;
+	let legacy = true;
 
 	const setHandler = xterm.parser.registerCsiHandler(
 		{ prefix: "?", final: "h" },
 		(params) => {
 			for (const param of params) {
-				if (param === 1006) active = true;
-				else if (param === 1016) active = false;
+				if (param === 1006 || param === 1016) {
+					active = param === 1006;
+					legacy = false;
+				}
 			}
 			return false;
 		},
@@ -121,7 +134,10 @@ export function createSgrMouseModeTracker(xterm: XTerm): {
 	const resetHandler = xterm.parser.registerCsiHandler(
 		{ prefix: "?", final: "l" },
 		(params) => {
-			if (params.includes(1006) || params.includes(1016)) active = false;
+			if (params.includes(1006) || params.includes(1016)) {
+				active = false;
+				legacy = true;
+			}
 			return false;
 		},
 	);
@@ -129,12 +145,14 @@ export function createSgrMouseModeTracker(xterm: XTerm): {
 		{ final: "c" },
 		() => {
 			active = false;
+			legacy = true;
 			return false;
 		},
 	);
 
 	return {
 		isActive: () => active,
+		isLegacy: () => legacy,
 		dispose: () => {
 			setHandler.dispose();
 			resetHandler.dispose();
@@ -209,6 +227,7 @@ export function createTerminalWheelEventHandler(
 	isSgrMouseModeActive: () => boolean,
 	scrollAlternateBuffer: (lines: number) => void = (lines) =>
 		xterm.scrollLines(lines),
+	canUseStockMouse: () => boolean = () => true,
 ): (event: WheelEvent) => boolean {
 	const state = createWheelLineState();
 
@@ -219,14 +238,16 @@ export function createTerminalWheelEventHandler(
 		const bufferType = xterm.buffer.active.type;
 		const tracking = xterm.modes.mouseTrackingMode;
 		// x10 tracking never reports wheel.
-		const wantsMouseReports =
+		let wantsMouseReports =
 			!event.shiftKey &&
 			(tracking === "vt200" || tracking === "drag" || tracking === "any");
 
 		if (wantsMouseReports) {
 			// Without SGR encoding we cannot safely synthesize reports — legacy
 			// X10 byte encoding breaks past column 223. Let stock xterm handle it.
-			if (isStockWheelForced() || !isSgrMouseModeActive()) return true;
+			if (canUseStockMouse()) {
+				if (isStockWheelForced() || !isSgrMouseModeActive()) return true;
+			} else wantsMouseReports = false;
 		}
 
 		const cell = getCellDimensions(xterm);
@@ -295,6 +316,7 @@ export function installTerminalWheelEventHandler(
 			xterm,
 			sgrTracker.isActive,
 			scrollAlternateBuffer,
+			() => !sgrTracker.isLegacy() || binaryInputSupport.get(xterm) === true,
 		),
 	);
 

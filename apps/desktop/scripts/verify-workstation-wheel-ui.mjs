@@ -14,13 +14,13 @@ export async function verifyWorkstationWheelUi({getPage, click, screenshot, outp
  const key=async(key,code)=>{for(const type of ['keyDown','keyUp'])await getPage().call('Input.dispatchKeyEvent',{type,key,code:key,windowsVirtualKeyCode:code});};
  const text=value=>getPage().call('Input.insertText',{text:value});
  const file=`${scope.root}/wheel-input.json`;
- const program=`import os,sys,tty,termios,json,time\nf=sys.stdin.fileno();old=termios.tcgetattr(f);received=[];stage='normal'\ndef state():\n open(${JSON.stringify(file)},'w').write(json.dumps({'stage':stage,'received':received}))\ndef screen(label):\n sys.stdout.write('\\x1b[2J\\x1b[H'+label+' 中文 🙂\\r\\n'+''.join('TUI line %03d\\r\\n'%i for i in range(1,12)));sys.stdout.flush()\ntry:\n tty.setraw(f)\n sys.stdout.write(''.join('SHELL HISTORY %03d\\r\\n'%i for i in range(1,201)));sys.stdout.flush();state()\n while True:\n  data=os.read(f,4096);received.append(data.hex())\n  if data==b'a':\n   stage='alternate';sys.stdout.write('\\x1b[?1049h');screen('FIRST SCREEN')\n  elif data==b'n':\n   stage='redraw';screen('SECOND SCREEN')\n  elif data==b's':\n   stage='mouse';sys.stdout.write('\\x1b[?1000h\\x1b[?1006h');sys.stdout.flush()\n  elif data==b'r':\n   stage='legacy';sys.stdout.write('\\x1bc\\x1b[?1049h\\x1b[?1000h');screen('RESET LEGACY MOUSE')\n  elif data==b'p':\n   stage='pixels';sys.stdout.write('\\x1b[?1006;1016h');screen('PIXEL MOUSE')\n  elif data==b'q':\n   stage='finished';state();break\n  state()\nfinally:\n sys.stdout.write('\\x1b[?1000l\\x1b[?1006l\\x1b[?1049l');sys.stdout.flush();termios.tcsetattr(f,termios.TCSADRAIN,old)\n`;
+ const program=`import os,sys,tty,termios,json,time,re\nf=sys.stdin.fileno();old=termios.tcgetattr(f);received=[];stage='normal';offset=100;pending=b''\ndef state():\n open(${JSON.stringify(file)},'w').write(json.dumps({'stage':stage,'received':received,'offset':offset}))\ndef screen(label):\n sys.stdout.write('\\x1b[2J\\x1b[H'+label+' 中文 🙂\\r\\n'+''.join('TUI line %03d\\r\\n'%i for i in range(offset,offset+11)));sys.stdout.flush()\ntry:\n tty.setraw(f)\n sys.stdout.write(''.join('SHELL HISTORY %03d\\r\\n'%i for i in range(1,201)));sys.stdout.flush();state()\n while True:\n  data=os.read(f,4096);received.append(data.hex())\n  pending+=data\n  while pending.startswith(b'\\x1b'):\n   report=re.match(rb'\\x1b\\[<([0-9]+);[0-9]+;[0-9]+M',pending)\n   if report:\n    button=int(report[1]);pending=pending[report.end():]\n   elif pending.startswith(b'\\x1b[M') and len(pending)>=6:\n    button=pending[3]-32;pending=pending[6:]\n   else: break\n   offset+=-1 if button==64 else 1;screen(stage+' OFFSET '+str(offset))\n  if not pending.startswith(b'\\x1b'): pending=b''\n  if data==b'a':\n   stage='alternate';sys.stdout.write('\\x1b[?1049h');screen('FIRST SCREEN')\n  elif data==b'n':\n   stage='redraw';screen('SECOND SCREEN')\n  elif data==b's':\n   stage='mouse';sys.stdout.write('\\x1b[?1000h\\x1b[?1006h');sys.stdout.flush()\n  elif data==b'r':\n   stage='legacy';sys.stdout.write('\\x1bc\\x1b[?1049h\\x1b[?1000h');screen('RESET LEGACY MOUSE')\n  elif data==b'p':\n   stage='pixels';sys.stdout.write('\\x1b[?1006;1016h');screen('PIXEL MOUSE')\n  elif data==b'q':\n   stage='finished';state();break\n  state()\nfinally:\n sys.stdout.write('\\x1b[?1000l\\x1b[?1006l\\x1b[?1049l');sys.stdout.flush();termios.tcsetattr(f,termios.TCSADRAIN,old)\n`;
  const command="python3 -u -c \"exec(bytes.fromhex('"+Buffer.from(program).toString('hex')+"').decode())\"";
  await text(command);await key('Enter',13);
  const state=async()=>{try{const row=await rpc('filesystem.readFile',{absolutePath:file,maxBytes:64*1024});return JSON.parse(row.kind==='text'?row.content:Buffer.from(row.content,'base64').toString());}catch{return null;}};
  await until(async()=>{const s=await state();return s?.stage==='normal'&&s;},'normal raw terminal fixture');
- const wheel=async(deltaY)=>{const point=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}+' .xterm-screen'),r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+Math.min(60,r.height/2)};})()`);await getPage().call('Input.dispatchMouseEvent',{type:'mouseWheel',...point,deltaX:0,deltaY});await delay(180);};
- const slider=()=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}+' .xterm-scrollbar.vertical .xterm-slider');return e&&{top:parseFloat(e.style.top),height:parseFloat(e.style.height)};})()`);
+ const wheel=async(deltaY,edge=false)=>{const point=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}+' .xterm-screen'),r=e.getBoundingClientRect();return {x:${edge ? "r.right-10" : "r.x+r.width/2"},y:r.y+Math.min(60,r.height/2)};})()`);await getPage().call('Input.dispatchMouseEvent',{type:'mouseWheel',...point,deltaX:0,deltaY});await delay(180);};
+ const slider=()=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}+' .xterm-scrollbar.xterm-vertical .xterm-slider');return e&&{top:parseFloat(e.style.top),height:parseFloat(e.style.height)};})()`);
  const traces=[];
  const normalBefore=await slider();
  await screenshot('wheel-normal-before');await wheel(-150);await screenshot('wheel-normal-after');
@@ -74,25 +74,30 @@ export async function verifyWorkstationWheelUi({getPage, click, screenshot, outp
   await key('Escape',27);
  }
  await text('s');await until(async()=>(await state())?.stage==='mouse','SGR TUI mouse mode');
- const mouseBefore=await state();await wheel(-80);await wheel(80);const mouseAfter=await state();
+ const mouseBefore=await state();await wheel(-80);const mouseUp=await state();assert.ok(mouseUp.offset<mouseBefore.offset,'TUI content scrolls up');await screenshot('wheel-tui-mouse-up');await wheel(80);const mouseAfter=await state();assert.ok(mouseAfter.offset>mouseUp.offset,'TUI content scrolls down');
  const reports=Buffer.from(mouseAfter.received.slice(mouseBefore.received.length).join(''),'hex').toString();
  assert.match(reports,/\x1b\[<64;/);assert.match(reports,/\x1b\[<65;/);assert.doesNotMatch(reports,/\x1b(?:\[|O)[AB]/);
  await screenshot('wheel-tui-native-mouse');
  if(process.argv.includes('--wheel-mode-transitions')) {
+  const priorRemount=await state();
+  await click('text:Files');await until(()=>evaluate(`Boolean(document.querySelector('[data-workspace-files]'))`),'files before wheel remount');
+  await click('text:Terminal');await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(selector)}+'[data-restore-state="attached"] .xterm-screen'))`),'same terminal reattached');
+  await click(`${selector} .xterm-screen`);
+  assert.deepEqual((await state()).received,priorRemount.received,'remount does not inject input');
   const transitions=[];
   for(const [command,stage] of [['r','legacy'],['p','pixels']]) {
    await text(command);await until(async()=>(await state())?.stage===stage,stage+' mouse fixture');
-   const previous=await state();await wheel(-80);await wheel(80);const current=await state();
+   const previous=await state();await wheel(-80,stage==='legacy');const upward=await state();assert.ok(upward.offset<previous.offset,stage+' TUI scrolls up');await screenshot('wheel-'+stage+'-up');await wheel(80,stage==='legacy');const current=await state();assert.ok(current.offset>upward.offset,stage+' TUI scrolls down');
    const bytes=Buffer.from(current.received.slice(previous.received.length).join(''),'hex').toString('latin1');
-   transitions.push({stage,previous,current,bytes});
+   transitions.push({stage,previous,upward,current,bytes});
    writeFileSync(join(output,'wheel-mode-transitions.json'),JSON.stringify(transitions,null,2)+'\n');
-   if(stage==='legacy') { assert.match(bytes,/\x1b\[M`/);assert.match(bytes,/\x1b\[Ma/);assert.doesNotMatch(bytes,/\x1b\[</); }
+   if(stage==='legacy') { assert.match(bytes,/\x1b\[M`/);assert.match(bytes,/\x1b\[Ma/);assert.doesNotMatch(bytes,/\x1b\[</);assert.ok([...bytes].some(c=>c.charCodeAt(0)>127),'legacy high coordinates remain raw bytes'); }
    else { const coords=[...bytes.matchAll(/\x1b\[<(64|65);(\d+);(\d+)M/g)];assert.equal(coords.length,2);assert.ok(coords.every(c=>Number(c[2])>100&&Number(c[3])>40),'SGR pixel mode keeps pixel coordinates'); }
    assert.doesNotMatch(bytes,/\x1b(?:\[|O)[AB]/);
    await screenshot('wheel-'+stage+'-mouse');
   }
  }
  await text('q');await until(async()=>(await state())?.stage==='finished','input still usable');
- writeFileSync(join(output,'wheel-acceptance.json'),JSON.stringify({connectionKind:scope.d.kind,terminal,review,mouseBefore,mouseAfter,reports,errors:getPage().errors},null,2)+'\n');
+ writeFileSync(join(output,'wheel-acceptance.json'),JSON.stringify({connectionKind:scope.d.kind,terminal,review,mouseBefore,mouseUp,mouseAfter,reports,errors:getPage().errors},null,2)+'\n');
  assert.deepEqual(getPage().errors,[]);
 }

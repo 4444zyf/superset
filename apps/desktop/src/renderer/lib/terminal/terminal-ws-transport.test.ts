@@ -1055,3 +1055,42 @@ test("a disconnected appearance reset is sent once on reconnect even with unchan
 	});
 	disconnect(transport);
 });
+
+test("binary input requires this host's attach capability and is never queued or sent after disconnect", () => {
+	const transport = createTransport();
+	const terminal = new HeadlessTerminal({ allowProposedApi: true });
+	const core = (
+		terminal as unknown as {
+			_core: { coreService: { triggerBinaryEvent(data: string): void } };
+		}
+	)._core.coreService;
+	connect(transport, terminal as unknown as XTerm, "ws://host/terminal/t1");
+	const socket = FakeRelaySocket.instances.at(-1);
+	if (!socket) throw new Error("expected socket");
+	const bytes = "\x1b[M\x60\xc8\xff";
+	const messages = () =>
+		socket.sent
+			.map((m) => JSON.parse(m))
+			.filter((m) => m.type === "input-binary");
+	try {
+		core.triggerBinaryEvent(bytes);
+		socket.open();
+		socket.message(JSON.stringify({ type: "attached", terminalId: "t1" }));
+		core.triggerBinaryEvent(bytes);
+		expect(messages()).toEqual([]);
+		socket.message(
+			JSON.stringify({ type: "attached", terminalId: "t1", binaryInput: true }),
+		);
+		core.triggerBinaryEvent(bytes);
+		expect(messages()).toEqual([{ type: "input-binary", data: btoa(bytes) }]);
+		socket.message(JSON.stringify({ type: "attached", terminalId: "t1" }));
+		core.triggerBinaryEvent(bytes);
+		expect(messages()).toHaveLength(1);
+		disconnect(transport);
+		core.triggerBinaryEvent(bytes);
+		expect(messages()).toHaveLength(1);
+	} finally {
+		disconnect(transport);
+		terminal.dispose();
+	}
+});

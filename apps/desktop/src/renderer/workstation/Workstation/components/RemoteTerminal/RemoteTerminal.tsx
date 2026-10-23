@@ -1,5 +1,6 @@
 import { Trans } from "@lingui/react/macro";
 import { errorMessage } from "@superset/i18n/errors";
+import { setTerminalBinaryInputSupported } from "@superset/shared/terminal-wheel-handler";
 import { darkTheme, getTerminalColors } from "@superset/shared/themes";
 import type { RestoreResourceRef } from "@superset/shared/workspace-restore";
 import type { SearchAddon } from "@xterm/addon-search";
@@ -39,7 +40,9 @@ export interface TerminalEmulator {
 	terminal: Pick<
 		Terminal,
 		"cols" | "rows" | "write" | "writeln" | "onData" | "onResize" | "dispose"
-	> & { focus?(): void } & Partial<Pick<Terminal, "input" | "paste">>;
+	> & { focus?(): void } & Partial<
+			Pick<Terminal, "input" | "paste" | "onBinary">
+		>;
 	fit(): void;
 	searchAddon?: SearchAddon;
 	cleanup?(): void;
@@ -180,6 +183,8 @@ export function RemoteTerminal({
 		const socketId = crypto.randomUUID();
 		let closed = false;
 		let ready = false;
+		let binaryInput = false;
+		setTerminalBinaryInputSupported(terminal, false);
 		let receivingReplay = false;
 		let ended = false;
 		let connecting = true;
@@ -258,6 +263,8 @@ export function RemoteTerminal({
 								receivingReplay = true;
 								emulator.beginReplay?.();
 							}
+							binaryInput = message.binaryInput === true;
+							setTerminalBinaryInputSupported(terminal, binaryInput);
 							ready = true;
 							connecting = false;
 							setState("attached");
@@ -379,11 +386,18 @@ export function RemoteTerminal({
 					{ preferFiles: true },
 				)
 			: undefined;
-		const input = listenTerminalInput(terminal, (data, userInput) => {
-			if (!focus.current || closed || ended) return;
-			if (ready) send({ type: "input", data });
-			else if (connecting && userInput) pendingInput.queue(data);
-		});
+		const input = listenTerminalInput(
+			terminal,
+			(data, userInput) => {
+				if (!focus.current || closed || ended) return;
+				if (ready) send({ type: "input", data });
+				else if (connecting && userInput) pendingInput.queue(data);
+			},
+			(data) => {
+				if (binaryInput && ready && focus.current && !closed && !ended)
+					send({ type: "input-binary", data: btoa(data) });
+			},
+		);
 		const resize = terminal.onResize(({ cols, rows }) =>
 			send({ type: "resize", cols, rows }),
 		);

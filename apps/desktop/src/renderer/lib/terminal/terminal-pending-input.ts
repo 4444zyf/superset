@@ -35,8 +35,9 @@ export class TerminalPendingInput {
 }
 
 export function listenTerminalInput(
-	terminal: Pick<Terminal, "onData">,
+	terminal: Pick<Terminal, "onData"> & Partial<Pick<Terminal, "onBinary">>,
 	listener: (data: string, userInput: boolean) => void,
+	binaryListener?: (data: string) => void,
 ): IDisposable {
 	let userInput = false;
 	// onData merges user input and parser replies. The pinned core announces
@@ -57,9 +58,16 @@ export function listenTerminalInput(
 		userInput = false;
 		listener(value, fromUser);
 	});
+	const binary =
+		binaryListener &&
+		terminal.onBinary?.((value) => {
+			userInput = false;
+			binaryListener(value);
+		});
 	return {
 		dispose() {
 			data.dispose();
+			binary?.dispose();
 			user?.dispose();
 			userInput = false;
 		},

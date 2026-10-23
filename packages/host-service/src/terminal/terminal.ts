@@ -76,6 +76,7 @@ import {
 	recordShellReadyMarkerEvidence,
 } from "./shell-ready-evidence.ts";
 import { TerminalColorAuthority } from "./TerminalColorAuthority";
+import { decodeTerminalBinaryInput } from "./terminal-binary-input";
 import {
 	createModeTracker,
 	type ModeTracker,
@@ -104,8 +105,8 @@ interface PtyDataDisposer {
 
 interface DaemonPty {
 	pid: number;
-	writeOrThrow(data: string): void;
-	write(data: string): void;
+	writeOrThrow(data: string | Buffer): void;
+	write(data: string | Buffer): void;
 	resize(cols: number, rows: number): void;
 	setColors(colors: TerminalColors, resetOverrides?: boolean): void;
 	kill(signal?: NodeJS.Signals): Promise<void>;
@@ -120,8 +121,11 @@ function makeDaemonPty(
 	sessionId: string,
 	pid: number,
 ): DaemonPty {
-	const writeOrThrow = (data: string) =>
-		daemon.input(sessionId, Buffer.from(data, "utf8"));
+	const writeOrThrow = (data: string | Buffer) =>
+		daemon.input(
+			sessionId,
+			typeof data === "string" ? Buffer.from(data, "utf8") : data,
+		);
 	return {
 		pid,
 		writeOrThrow,
@@ -208,6 +212,7 @@ function getHostAgentHookUrl(): string {
 
 type TerminalClientMessage =
 	| { type: "input"; data: string }
+	| { type: "input-binary"; data: string }
 	| { type: "colors"; colors: TerminalColors; resetOverrides?: boolean }
 	| { type: "resize"; cols: number; rows: number }
 	// The client's current keyboard-focus state, sent on every attach. A
@@ -239,7 +244,12 @@ type TerminalClientMessage =
 // on attach) is a binary frame too; the renderer doesn't distinguish it
 // from live data.
 type TerminalServerMessage =
-	| { type: "attached"; terminalId: string; versionRepliesGuarded?: boolean }
+	| {
+			type: "attached";
+			terminalId: string;
+			versionRepliesGuarded?: boolean;
+			binaryInput?: boolean;
+	  }
 	// `code: "session-gone"` marks the session as permanently destroyed (not
 	// found / disposed / exited) so the renderer can drop persisted scrollback;
 	// `code: "attach-retryable"` marks a transient host-side failure (pty-daemon
@@ -3655,6 +3665,7 @@ export function registerWorkspaceTerminalRoute({
 					type: "attached",
 					terminalId,
 					versionRepliesGuarded: true,
+					binaryInput: true,
 				});
 				// Ping straight away so a client that speaks pong declares itself
 				// within a round trip, not after the first sweep interval — a
@@ -3888,6 +3899,15 @@ export function registerWorkspaceTerminalRoute({
 						return;
 					}
 
+					if (message.type === "input-binary") {
+						const data = decodeTerminalBinaryInput(message.data);
+						if (
+							data &&
+							versionReplies.get(ws)?.allowsInput(data.toString("latin1"))
+						)
+							session.pty.write(data);
+						return;
+					}
 					if (message.type === "input") {
 						if (!versionReplies.get(ws)?.allowsInput(message.data)) return;
 						session.pty.write(message.data);

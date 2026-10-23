@@ -926,3 +926,64 @@ test("file links use the owning backend and revoke old navigation after workspac
 	if (!last?.stat) throw new Error("Final file handler missing");
 	expect(await last.stat("after-unmount.txt")).toBeNull();
 });
+
+test.each([
+	true,
+	false,
+])("binary mouse input negotiates per attachment and stops after exit (strict=%s)", async (strict) => {
+	const f = await pendingFixture(strict);
+	const { terminal, listener, socketId } = f.current();
+	const core = (
+		terminal as unknown as {
+			_core: { coreService: { triggerBinaryEvent(data: string): void } };
+		}
+	)._core.coreService;
+	const bytes = "\x1b[M\x60\xc8\xff";
+	const emit = (message: object) =>
+		act(() =>
+			listener({ socketId, kind: "message", data: JSON.stringify(message) }),
+		);
+	act(() => core.triggerBinaryEvent(bytes));
+	emit({
+		type: "attached",
+		terminalId: "terminal",
+		...(strict ? { workspaceId: "workspace", executionId: "execution" } : {}),
+	});
+	act(() => core.triggerBinaryEvent(bytes));
+	expect(f.sent.filter((m) => m.type === "input-binary")).toEqual([]);
+	f.view.unmount();
+	const next = await pendingFixture(strict);
+	const current = next.current();
+	const binary = (
+		current.terminal as unknown as {
+			_core: { coreService: { triggerBinaryEvent(data: string): void } };
+		}
+	)._core.coreService;
+	act(() =>
+		current.listener({
+			socketId: current.socketId,
+			kind: "message",
+			data: JSON.stringify({
+				type: "attached",
+				terminalId: "terminal",
+				binaryInput: true,
+				...(strict
+					? { workspaceId: "workspace", executionId: "execution" }
+					: {}),
+			}),
+		}),
+	);
+	act(() => binary.triggerBinaryEvent(bytes));
+	expect(next.sent.filter((m) => m.type === "input-binary")).toEqual([
+		{ type: "input-binary", data: btoa(bytes) },
+	]);
+	act(() =>
+		current.listener({
+			socketId: current.socketId,
+			kind: "message",
+			data: JSON.stringify({ type: "exit" }),
+		}),
+	);
+	act(() => binary.triggerBinaryEvent(bytes));
+	expect(next.sent.filter((m) => m.type === "input-binary")).toHaveLength(1);
+});

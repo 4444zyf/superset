@@ -8,6 +8,7 @@ import type { HostDb } from "../db";
 import { projects, terminalSessions, workspaces } from "../db/schema";
 import type { DaemonClient } from "./DaemonClient";
 import { connectExistingDaemon } from "./daemon-client-singleton";
+import { decodeTerminalBinaryInput } from "./terminal-binary-input";
 import {
 	TerminalVersionQueries,
 	TerminalVersionReplies,
@@ -164,6 +165,7 @@ export function registerTerminalRestoreRoute(
 								workspaceId: ref.workspaceId,
 								executionId: ref.executionId,
 								replaying: true,
+								binaryInput: true,
 							}),
 						);
 						ready = true;
@@ -196,7 +198,18 @@ export function registerTerminalRestoreRoute(
 							return fail(ws, "INVALID_RESTORE_INPUT");
 						const message = JSON.parse(event.data);
 						const ref = parsed.data;
-						if (message.type === "input" && typeof message.data === "string") {
+						if (message.type === "input-binary") {
+							const data = decodeTerminalBinaryInput(message.data);
+							if (
+								data &&
+								ref.executionId &&
+								versionReplies.allowsInput(data.toString("latin1"))
+							)
+								daemon.inputExisting(ref.resourceId, ref.executionId, data);
+						} else if (
+							message.type === "input" &&
+							typeof message.data === "string"
+						) {
 							if (!versionReplies.allowsInput(message.data)) return;
 							daemon.inputExisting(
 								ref.resourceId,

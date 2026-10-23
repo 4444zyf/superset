@@ -7,6 +7,7 @@ export {
 	createTerminalWheelEventHandler,
 	createWheelLineState,
 	installTerminalWheelEventHandler,
+	setTerminalBinaryInputSupported,
 	type WheelLineContext,
 	type WheelLineInput,
 	type WheelLineState,

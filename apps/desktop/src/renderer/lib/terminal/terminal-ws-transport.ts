@@ -1,3 +1,4 @@
+import { setTerminalBinaryInputSupported } from "@superset/shared/terminal-wheel-handler";
 import { DIAL_TIMEOUT_MS } from "@superset/shared/tunnel-protocol";
 import type { RelayHostProbe } from "@superset/workspace-client";
 import {
@@ -47,7 +48,12 @@ export interface TerminalLogEntry {
 // partial sequences internally). Control messages (title/error/exit) stay
 // JSON.
 type TerminalServerMessage =
-	| { type: "attached"; terminalId: string; versionRepliesGuarded?: boolean }
+	| {
+			type: "attached";
+			terminalId: string;
+			versionRepliesGuarded?: boolean;
+			binaryInput?: boolean;
+	  }
 	// `code: "session-gone"` = the server says the session is permanently
 	// destroyed (not found / disposed / exited), not a transient attach failure.
 	| { type: "error"; message: string; code?: string }
@@ -123,6 +129,7 @@ export interface TerminalTransport {
 	_pendingInput: TerminalPendingInput;
 	_versionReplyDisposable: { dispose(): void } | null;
 	_versionRepliesGuarded: boolean;
+	_binaryInputSupported: boolean;
 	_pendingColorReset: boolean;
 	/** Internal: title-change debounce timer; see TITLE_COALESCE_MS. */
 	_titleNotifyTimer: ReturnType<typeof setTimeout> | null;
@@ -416,6 +423,7 @@ export function createTransport(
 		_pendingInput: new TerminalPendingInput(options.now),
 		_versionReplyDisposable: null,
 		_versionRepliesGuarded: false,
+		_binaryInputSupported: false,
 		_pendingColorReset: false,
 		_titleNotifyTimer: null,
 		_writeCoalescer: null,
@@ -624,6 +632,9 @@ export function connect(
 	transport._terminal = terminal;
 	transport._versionReplyDisposable?.dispose();
 	transport._versionRepliesGuarded = false;
+	transport._binaryInputSupported = false;
+	if (transport._terminal)
+		setTerminalBinaryInputSupported(transport._terminal, false);
 	transport._versionReplyDisposable = installTerminalVersionReply(terminal, {
 		enabled: () =>
 			transport._versionRepliesGuarded && transport.connectionState === "open",
@@ -805,6 +816,11 @@ function attachSocketListeners(
 
 		if (message.type === "attached") {
 			transport._versionRepliesGuarded = message.versionRepliesGuarded === true;
+			transport._binaryInputSupported = message.binaryInput === true;
+			setTerminalBinaryInputSupported(
+				terminal,
+				transport._binaryInputSupported,
+			);
 			transport.lastDiagnosis = null;
 			transport._diagnosisLogged = false;
 			// Only a real attach ends the failure streak — WS opens don't count
@@ -1020,6 +1036,16 @@ function attachSocketListeners(
 				transport._pendingInput.queue(data);
 			}
 		},
+		(data) => {
+			if (
+				transport._binaryInputSupported &&
+				transport._socket === socket &&
+				transport._terminal === terminal &&
+				transport.connectionState === "open" &&
+				socket.readyState === WebSocket.OPEN
+			)
+				socket.send(JSON.stringify({ type: "input-binary", data: btoa(data) }));
+		},
 	);
 }
 
@@ -1079,6 +1105,9 @@ export function park(transport: TerminalTransport) {
 	transport._versionReplyDisposable?.dispose();
 	transport._versionReplyDisposable = null;
 	transport._versionRepliesGuarded = false;
+	transport._binaryInputSupported = false;
+	if (transport._terminal)
+		setTerminalBinaryInputSupported(transport._terminal, false);
 	transport._writeCoalescer?.dispose();
 	transport._writeCoalescer = null;
 	if (transport.connectionState !== "disconnected") {
@@ -1116,6 +1145,9 @@ export function disconnect(transport: TerminalTransport) {
 	transport._versionReplyDisposable?.dispose();
 	transport._versionReplyDisposable = null;
 	transport._versionRepliesGuarded = false;
+	transport._binaryInputSupported = false;
+	if (transport._terminal)
+		setTerminalBinaryInputSupported(transport._terminal, false);
 	transport._writeCoalescer?.dispose();
 	transport._writeCoalescer = null;
 	transport.currentUrl = null;
@@ -1204,6 +1236,9 @@ export function disposeTransport(transport: TerminalTransport) {
 	transport._versionReplyDisposable?.dispose();
 	transport._versionReplyDisposable = null;
 	transport._versionRepliesGuarded = false;
+	transport._binaryInputSupported = false;
+	if (transport._terminal)
+		setTerminalBinaryInputSupported(transport._terminal, false);
 	transport._writeCoalescer?.dispose();
 	transport._writeCoalescer = null;
 	transport.currentUrl = null;

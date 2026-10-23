@@ -318,6 +318,21 @@ describe("createTerminalWheelEventHandler", () => {
 		expect(scrollLines).toHaveBeenCalledWith(1);
 	});
 
+	it("reviews legacy TUI history when an old host cannot accept binary reports", () => {
+		const { terminal, input, scrollLines } = makeFakeTerminal({
+			mouseTrackingMode: "vt200",
+		});
+		const handler = createTerminalWheelEventHandler(
+			terminal,
+			isSgrActive,
+			scrollLines,
+			() => false,
+		);
+		expect(handler(wheelEvent(-34))).toBe(false);
+		expect(scrollLines).toHaveBeenCalledWith(-2);
+		expect(input).not.toHaveBeenCalled();
+	});
+
 	it("never falls back to arrow input when cell dimensions are unavailable", () => {
 		const { terminal, input } = makeFakeTerminal();
 		(terminal as unknown as { _core: unknown })._core = undefined;

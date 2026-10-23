@@ -14,6 +14,7 @@ async function fixture(fast: boolean) {
 	let replay: SubscribeCallbacks | undefined;
 	const frames: (string | ArrayBufferLike | Uint8Array)[] = [];
 	const inputs: string[] = [];
+	const binaryInputs: Buffer[] = [];
 	const snapshot = new TerminalModes().snapshot();
 	const upgrade = ((factory: (c: unknown) => WSEvents) => (c: never) => {
 		hooks = factory(c);
@@ -52,6 +53,7 @@ async function fixture(fast: boolean) {
 		},
 		async dispose() {},
 		inputExisting(_id: string, _execution: string, data: Uint8Array) {
+			binaryInputs.push(Buffer.from(data));
 			inputs.push(Buffer.from(data).toString());
 		},
 	} as unknown as DaemonClient;
@@ -76,6 +78,14 @@ async function fixture(fast: boolean) {
 	return {
 		frames,
 		inputs,
+		binaryInputs,
+		binary: (data: string) =>
+			hooks?.onMessage?.(
+				new MessageEvent("message", {
+					data: JSON.stringify({ type: "input-binary", data }),
+				}),
+				ws as never,
+			),
 		input: (data: string) =>
 			hooks?.onMessage?.(
 				new MessageEvent("message", {
@@ -101,6 +111,7 @@ test.each([
 		workspaceId: "workspace",
 		executionId: "execution",
 		replaying: true,
+		binaryInput: true,
 	});
 	if (!fast) {
 		expect(f.messages().some((m) => m.type === "replay-complete")).toBe(false);
@@ -116,6 +127,18 @@ test.each([
 	expect(Buffer.from(f.frames.at(-1) as ArrayBuffer).toString()).toBe(
 		"live output",
 	);
+});
+
+test("binary restore input keeps exact bytes, preserves the replay reply guard, and stops after close", async () => {
+	const f = await fixture(true);
+	const mouse = Buffer.from([27, 91, 77, 96, 200, 255]);
+	f.binary(mouse.toString("base64"));
+	f.binary(Buffer.from("\x1bP>|historical\x1b\\").toString("base64"));
+	f.binary("bad input");
+	expect(f.binaryInputs).toEqual([mouse]);
+	f.close();
+	f.binary(mouse.toString("base64"));
+	expect(f.binaryInputs).toEqual([mouse]);
 });
 
 test("an old renderer's historical version response cannot reach the PTY, while live replies and ordinary input can", async () => {
