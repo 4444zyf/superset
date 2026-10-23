@@ -1,13 +1,13 @@
 import type { NodeWebSocket } from "@hono/node-ws";
-import { restoreResourceRefSchema } from "@superset/shared/workspace-restore";
 import { TerminalModes } from "@superset/pty-daemon/terminal-modes";
+import { restoreResourceRefSchema } from "@superset/shared/workspace-restore";
 import { eq } from "drizzle-orm";
 import type { Hono } from "hono";
 import type { WSContext } from "hono/ws";
 import type { HostDb } from "../db";
 import { projects, terminalSessions, workspaces } from "../db/schema";
-import { connectExistingDaemon } from "./daemon-client-singleton";
 import type { DaemonClient } from "./DaemonClient";
+import { connectExistingDaemon } from "./daemon-client-singleton";
 
 export function registerTerminalRestoreRoute(
 	app: Hono,
@@ -17,6 +17,7 @@ export function registerTerminalRestoreRoute(
 		ref: { workspaceId: string; resourceId: string; executionId: string },
 		data: string,
 	) => void,
+	connectDaemon: typeof connectExistingDaemon = connectExistingDaemon,
 ): void {
 	app.get(
 		"/terminal-restore/:terminalId",
@@ -76,6 +77,13 @@ export function registerTerminalRestoreRoute(
 					const ref = parsed.data;
 					const backlog: Uint8Array[] = [];
 					let bytes = 0;
+					let replayFinished = false;
+					let boundarySent = false;
+					const sendReplayBoundary = () => {
+						if (!ready || closed || !replayFinished || boundarySent) return;
+						boundarySent = true;
+						ws.send(JSON.stringify({ type: "replay-complete" }));
+					};
 					const output = (chunk: Uint8Array) => {
 						if (closed) return;
 						if (
@@ -95,7 +103,7 @@ export function registerTerminalRestoreRoute(
 					};
 					const tracker = new TerminalModes();
 					try {
-						daemon = await connectExistingDaemon();
+						daemon = await connectDaemon();
 						if (closed) {
 							await daemon.dispose();
 							return;
@@ -112,6 +120,8 @@ export function registerTerminalRestoreRoute(
 									tracker.restore(modes);
 									const preamble = tracker.buildPreamble();
 									if (preamble.byteLength) output(preamble);
+									replayFinished = true;
+									sendReplayBoundary();
 								},
 								onError(code) {
 									fail(
@@ -144,11 +154,13 @@ export function registerTerminalRestoreRoute(
 								terminalId: ref.resourceId,
 								workspaceId: ref.workspaceId,
 								executionId: ref.executionId,
+								replaying: true,
 							}),
 						);
 						ready = true;
 						for (const chunk of backlog) ws.send(new Uint8Array(chunk).buffer);
 						backlog.length = 0;
+						sendReplayBoundary();
 					} catch (error) {
 						fail(
 							ws,
@@ -182,7 +194,11 @@ export function registerTerminalRestoreRoute(
 								Buffer.from(message.data),
 							);
 							onInput?.(
-								{ workspaceId: ref.workspaceId, resourceId: ref.resourceId, executionId: ref.executionId! },
+								{
+									workspaceId: ref.workspaceId,
+									resourceId: ref.resourceId,
+									executionId: ref.executionId!,
+								},
 								message.data,
 							);
 						} else if (

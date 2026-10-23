@@ -8,10 +8,11 @@ import {
 async function replies(
 	query: string,
 	mode: "installed" | "stock" | "disposed",
+	options: { enabled?(): boolean; canRespond?(): boolean } = {},
 ) {
 	const terminal = new Terminal({ allowProposedApi: true });
 	if (mode !== "stock") {
-		const registration = installTerminalVersionReply(terminal);
+		const registration = installTerminalVersionReply(terminal, options);
 		if (mode === "disposed") registration.dispose();
 	}
 	const sent: string[] = [];
@@ -40,4 +41,16 @@ test("disposing the custom reply restores xterm's original query behavior", asyn
 	const stock = await replies("\x1b[>q", "stock");
 	expect(stock[0]).toStartWith("\x1bP>|xterm.js(");
 	expect(await replies("\x1b[>q", "disposed")).toEqual(stock);
+});
+
+test("hosts without a replay boundary retain the stock response", async () => {
+	expect(
+		await replies("\x1b[>q", "installed", { enabled: () => false }),
+	).toEqual(await replies("\x1b[>q", "stock"));
+});
+
+test("replayed XTVERSION queries do not send a second response into the live program", async () => {
+	expect(
+		await replies("\x1b[>q", "installed", { canRespond: () => false }),
+	).toEqual([]);
 });

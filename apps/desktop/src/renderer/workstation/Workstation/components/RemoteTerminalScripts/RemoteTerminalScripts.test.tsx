@@ -197,9 +197,7 @@ function fixture({
 }
 test("a linked script opens the existing agent editor and preserves its unsaved script fields", async () => {
 	const f = fixture({ linked: true });
-	fireEvent.click(
-		await screen.findByRole("button", { name: "Terminal Scripts" }),
-	);
+	await openCatalog();
 	fireEvent.click(await screen.findByText("Safe script"));
 	const directory = await screen.findByLabelText("Directory");
 	fireEvent.change(directory, { target: { value: "./unsent directory" } });
@@ -230,10 +228,13 @@ test("a linked script opens the existing agent editor and preserves its unsaved 
 		),
 	).toEqual([]);
 });
+async function openCatalog() {
+	const entry = await screen.findByRole("button", { name: "Terminal Scripts" });
+	await waitFor(() => expect(entry.hasAttribute("disabled")).toBe(false));
+	fireEvent.click(entry);
+}
 async function openEditor() {
-	fireEvent.click(
-		await screen.findByRole("button", { name: "Terminal Scripts" }),
-	);
+	await openCatalog();
 	fireEvent.click(await screen.findByText("Safe script"));
 	return await screen.findByLabelText("Name");
 }

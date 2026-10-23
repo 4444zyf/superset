@@ -18,7 +18,10 @@ import {
 	wrapWrite,
 } from "renderer/lib/terminal/parser-idle-gate";
 import { TerminalLinkManager } from "renderer/lib/terminal/terminal-link-manager";
-import { installTerminalVersionReply } from "renderer/lib/terminal/terminal-version-reply";
+import {
+	installTerminalVersionReply,
+	type TerminalVersionReplyOptions,
+} from "renderer/lib/terminal/terminal-version-reply";
 import { installTerminalWheelReview } from "renderer/lib/terminal/terminal-wheel-review/terminal-wheel-review";
 import { installInputModeReclaimer } from "renderer/lib/terminal/terminalInputModeReclaimer";
 
@@ -30,7 +33,10 @@ import { suppressQueryResponses } from "renderer/screens/main/components/Workspa
 
 let suggestedRendererType: "webgl" | "dom" | undefined;
 
-export function createTerminalSurface(options: { initialTheme: ITheme }): {
+export function createTerminalSurface(options: {
+	initialTheme: ITheme;
+	versionReplyOptions?: TerminalVersionReplyOptions;
+}): {
 	xterm: XTerm;
 	fitAddon: FitAddon;
 	searchAddon: SearchAddon;
@@ -40,7 +46,7 @@ export function createTerminalSurface(options: { initialTheme: ITheme }): {
 	cleanup: () => void;
 	applyAppearance: (appearance: TerminalAppearance) => void;
 } {
-	const { initialTheme } = options;
+	const { initialTheme, versionReplyOptions } = options;
 
 	const theme = initialTheme;
 	const terminalOptions = { ...TERMINAL_OPTIONS, theme };
@@ -142,7 +148,7 @@ export function createTerminalSurface(options: { initialTheme: ITheme }): {
 	// live shell prompt by a TUI killed while attached (#4949) — keyed on the
 	// OSC 777 shell-ready marker, same as v2's terminal-runtime.
 	const inputModeReclaimer = installInputModeReclaimer(xterm);
-	const versionReply = installTerminalVersionReply(xterm);
+	const versionReply = installTerminalVersionReply(xterm, versionReplyOptions);
 
 	const linkManager = new TerminalLinkManager(xterm);
 

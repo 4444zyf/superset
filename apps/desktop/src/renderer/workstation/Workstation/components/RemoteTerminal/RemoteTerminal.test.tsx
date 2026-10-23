@@ -8,6 +8,95 @@ import type {
 import { RemoteTerminal, type TerminalEmulator } from "./RemoteTerminal";
 
 afterEach(cleanup);
+
+test.each([
+	true,
+	false,
+])("history uses replay rendering only when the host marks a boundary (marked=%s)", async (marked) => {
+	let listener: ((event: DirectSocketEvent) => void) | undefined;
+	let socketId = "";
+	const writes: string[] = [];
+	const emulator = {
+		terminal: {
+			cols: 80,
+			rows: 24,
+			write(data: string | Uint8Array) {
+				writes.push("live:" + new TextDecoder().decode(data as Uint8Array));
+			},
+			writeln() {},
+			onData() {
+				return { dispose() {} };
+			},
+			onResize() {
+				return { dispose() {} };
+			},
+			dispose() {},
+		},
+		fit() {},
+		beginReplay() {
+			writes.push("begin");
+		},
+		endReplay() {
+			writes.push("end");
+		},
+		writeReplay(data: Uint8Array) {
+			writes.push("history:" + new TextDecoder().decode(data));
+		},
+	};
+	const api = {
+		onSocket(callback: (event: DirectSocketEvent) => void) {
+			listener = callback;
+			return () => {};
+		},
+		async openRestoredTerminal(
+			_connection: unknown,
+			_ref: unknown,
+			id: string,
+		) {
+			socketId = id;
+		},
+		async sendSocket() {},
+		async closeSocket() {},
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteTerminal
+			api={api}
+			connection={connection}
+			terminalId="terminal"
+			restoreRef={{
+				kind: "terminal",
+				workspaceId: "workspace",
+				resourceId: "terminal",
+				executionId: "execution",
+			}}
+			onError={() => {}}
+			createEmulator={() => emulator}
+		/>,
+	);
+	await waitFor(() => expect(socketId).not.toBe(""));
+	const emit = (data: string | Uint8Array) => {
+		if (!listener) throw new Error("Socket listener missing");
+		act(() => listener?.({ socketId, kind: "message", data }));
+	};
+	emit(
+		JSON.stringify({
+			type: "attached",
+			terminalId: "terminal",
+			workspaceId: "workspace",
+			executionId: "execution",
+			...(marked ? { replaying: true } : {}),
+		}),
+	);
+	emit(new TextEncoder().encode("query"));
+	emit(JSON.stringify({ type: "replay-complete" }));
+	emit(new TextEncoder().encode("live"));
+	expect(writes).toEqual(
+		marked
+			? ["begin", "history:query", "end", "live:live"]
+			: ["live:query", "live:live"],
+	);
+});
+
 const connection: DirectDescriptor = {
 	connectionId: "machine",
 	generation: 1,

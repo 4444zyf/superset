@@ -15,6 +15,7 @@ import { writeTerminalClipboard } from "renderer/lib/terminal/terminal-clipboard
 import { installImagePasteFallback } from "renderer/lib/terminal/terminal-image-paste-fallback";
 import { installTerminalKeyEventHandler } from "renderer/lib/terminal/terminal-key-event-handler-core";
 import type { TerminalLinkHandlers } from "renderer/lib/terminal/terminal-link-manager";
+import { createTerminalReplayGate } from "renderer/lib/terminal/terminal-replay-gate";
 import { installCopyOnSelect } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/TerminalPane/hooks/useCopyOnSelect/copyOnSelect";
 import { shellEscapePaths } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/TerminalPane/utils";
 import { uploadPastedFiles } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/utils/uploadPastedFiles";
@@ -42,11 +43,16 @@ export interface TerminalEmulator {
 	installCopyOnSelect?(writeText: (text: string) => Promise<void>): () => void;
 	installLinkHandlers?(handlers: TerminalLinkHandlers): () => void;
 	isReviewing?(): boolean;
+	beginReplay?(): void;
+	endReplay?(): void;
+	writeReplay?(data: Uint8Array): void;
 }
 
 function createXterm(element: HTMLDivElement): TerminalEmulator {
+	const replay = createTerminalReplayGate();
 	const surface = createTerminalSurface({
 		initialTheme: toXtermTheme(getTerminalColors(darkTheme)),
+		versionReplyOptions: replay.versionReplyOptions,
 	});
 	const removeKeys = installTerminalKeyEventHandler(surface.xterm, {
 		linuxCtrlVPaste: true,
@@ -57,6 +63,10 @@ function createXterm(element: HTMLDivElement): TerminalEmulator {
 		terminal: surface.xterm,
 		fit: () => surface.fitAddon.fit(),
 		searchAddon: surface.searchAddon,
+		beginReplay: replay.begin,
+		endReplay: replay.end,
+		writeReplay: (data) =>
+			replay.write(data, (chunk, done) => surface.xterm.write(chunk, done)),
 		applyAppearance: surface.applyAppearance,
 		installCopyOnSelect: (writeText) =>
 			installCopyOnSelect(surface.xterm, undefined, writeText),
@@ -166,6 +176,7 @@ export function RemoteTerminal({
 		const socketId = crypto.randomUUID();
 		let closed = false;
 		let ready = false;
+		let receivingReplay = false;
 		let ended = false;
 		const removeLinks = workspaceId
 			? emulator.installLinkHandlers?.(
@@ -217,7 +228,11 @@ export function RemoteTerminal({
 			}
 			if (event.kind === "message") {
 				if (event.data instanceof Uint8Array) {
-					if (ready || !restoreTarget) terminal.write(event.data);
+					if (ready || !restoreTarget) {
+						if (receivingReplay && emulator.writeReplay)
+							emulator.writeReplay(event.data);
+						else terminal.write(event.data);
+					}
 				} else if (typeof event.data === "string") {
 					try {
 						const message = JSON.parse(event.data);
@@ -234,6 +249,10 @@ export function RemoteTerminal({
 								callbacks.current.onError("EXECUTION_CHANGED");
 								return;
 							}
+							if (message.replaying === true) {
+								receivingReplay = true;
+								emulator.beginReplay?.();
+							}
 							ready = true;
 							setState("attached");
 							clearTimeout(attachTimer);
@@ -241,6 +260,10 @@ export function RemoteTerminal({
 							callbacks.current.onAttached?.();
 						}
 						if (message.type === "ping") send({ type: "pong" });
+						if (message.type === "replay-complete" && receivingReplay) {
+							receivingReplay = false;
+							emulator.endReplay?.();
+						}
 						if (message.type === "error") {
 							ready = false;
 							setState("unknown");

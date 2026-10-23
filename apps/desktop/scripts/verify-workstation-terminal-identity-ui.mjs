@@ -35,10 +35,21 @@ export async function verifyWorkstationTerminalIdentityUi(options) {
   execFileSync('python3',['-c','import sys; compile(sys.stdin.read(), "terminal-identity-probe", "exec")'],{input:script});
   const payload=Buffer.from(script).toString('base64');
   const command="python3 -c 'import base64;exec(base64.b64decode(\""+payload+"\"))'";
+  const focusState=()=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});return {documentFocused:document.hasFocus(),paneActive:e?.closest('[data-active]')?.getAttribute('data-active'),textareaFocused:Boolean(e?.contains(document.activeElement)&&document.activeElement?.matches('textarea')),attached:e?.dataset.restoreState==='attached'};})()`);
+  const beforeFocus=await focusState();
+  await getPage().call('Page.bringToFront');
   await click(`${selector} .xterm-screen`);
+  await until(async()=>{const state=await focusState();writeFileSync(join(output,`terminal-identity-focus-${phase}.json`),JSON.stringify({before:beforeFocus,after:state},null,2)+'\n');return state.documentFocused&&state.paneActive==='true'&&state.textareaFocused&&state.attached?state:null;},'identity terminal owns keyboard focus');
+  await evaluate(`(()=>{window.__identityInputEvents=[];for(const type of ['beforeinput','input','keydown','keyup'])document.addEventListener(type,e=>{window.__identityInputEvents.push({type,inputType:e.inputType,dataLength:e.data?.length,key:e.key,code:e.code,defaultPrevented:e.defaultPrevented,target:e.target?.className});if(window.__identityInputEvents.length>32)window.__identityInputEvents.shift();},true);return true;})()`);
   await getPage().call('Input.insertText',{text:command});
   for(const type of ['keyDown','keyUp'])await getPage().call('Input.dispatchKeyEvent',{type,key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
-  const proof=await until(async()=>{try {const v=await read();return v.phase===phase?v:null;}catch{return null;}},'actual terminal identity probe');
+  let proof,inspected;
+  try {proof=await until(async()=>{try {const v=await read();return v.phase===phase?v:null;}catch{return null;}},'actual terminal identity probe');}
+  finally {
+   const inputEvents=await evaluate(`window.__identityInputEvents`);
+   inspected=await controls.inspectPresetTerminal(terminal.id);
+   writeFileSync(join(output,`terminal-identity-input-${phase}.json`),JSON.stringify({inputEvents,inspected},null,2)+'\n');
+  }
   writeFileSync(join(output,`terminal-identity-${phase}.json`),JSON.stringify(proof,null,2)+'\n');
   await screenshot(`terminal-identity-${phase}`);
   assert.equal(proof.termProgram,null,'the shell does not claim kitty or inherit a parent terminal identity');
@@ -46,6 +57,7 @@ export async function verifyWorkstationTerminalIdentityUi(options) {
   assert.equal(proof.term,'xterm-256color');
   assert.equal(proof.colorTerm,'truecolor');
   assert.equal(Buffer.from(proof.replyBase64,'base64').toString(),'\x1bP>|Superset Remix (xterm.js)\x1b\\');
+  assert.equal(inspected.output.includes('>|Superset Remix (xterm.js)'),false,'historical protocol replies must not become shell input');
   return proof;
  };
  const first=await run('first');
