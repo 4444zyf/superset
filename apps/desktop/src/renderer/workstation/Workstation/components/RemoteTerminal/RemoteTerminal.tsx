@@ -442,9 +442,15 @@ export function RemoteTerminal({
 				!emulator.isReviewing?.(),
 			copy() {
 				if (!clipboard.canCopy()) return;
-				void writeCopy(selection()).catch((error) => {
-					if (!closed) setPasteError(errorMessage(error));
-				});
+				void writeCopy(selection())
+					.catch((error) => {
+						if (!closed) setPasteError(errorMessage(error));
+					})
+					.finally(() => {
+						requestAnimationFrame(() => {
+							if (!closed && focus.current) terminal.focus?.();
+						});
+					});
 			},
 			paste() {
 				requestAnimationFrame(() => {

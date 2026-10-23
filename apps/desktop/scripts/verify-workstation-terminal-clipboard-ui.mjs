@@ -24,18 +24,20 @@ export async function verifyWorkstationTerminalClipboardUi(options) {
  await until(async()=>await readClipboardText()===copied,'Ctrl Shift C copies TUI selection');
  await screenshot('agent-clipboard-keyboard-copy');
  const menu=async()=>{for(const type of ['mousePressed','mouseReleased'])await getPage().call('Input.dispatchMouseEvent',{type,button:'right',clickCount:1,x:start.x+cellWidth*3,y:start.y,modifiers:8});await until(()=>evaluate(`Boolean(document.querySelector('[role=menu]'))`),'terminal clipboard menu');};
- await setClipboard({text:'menu copy sentinel'});await menu();await click('text:Copy');
+ await setClipboard({text:'menu copy sentinel'});await menu();await click('menu:Copy');
  await until(async()=>await readClipboardText()===copied,'menu copies TUI selection');
+ const copyFocus=await until(()=>evaluate(`(()=>{const e=document.activeElement;return e?.matches('.xterm-helper-textarea')&&e.closest('[data-terminal-id]')?.dataset.terminalId===${JSON.stringify(terminal.terminalId)}&&{tag:e.tagName,terminalId:e.closest('[data-terminal-id]').dataset.terminalId};})()`),'copy returns focus to the same terminal');
+ writeFileSync(join(output,'agent-clipboard-copy-focus.json'),JSON.stringify(copyFocus,null,2)+'\n');
  assert.deepEqual((await state()).received,[],'selection and copy do not send input to the agent');
  const phases=[];
  for(const [method,plain] of [['keyboard','中文 prompt 🙂\nsecond line\n'],['menu','menu paste 中文\nline two\n']]) {
   const previous=await state();await setClipboard({text:plain});
-  if(method==='keyboard')await pasteClipboard();else {await menu();await click('text:Paste');}
+  if(method==='keyboard')await pasteClipboard();else {await menu();await click('menu:Paste');}
   const expected='\x1b[200~'+plain.replace(/\n/g,'\r')+'\x1b[201~';
   const current=await until(async()=>{const s=await state();return s&&Buffer.from(s.received.slice(previous.received.length).join(''),'hex').toString()===expected&&s;},method+' multiline bracketed paste');
   phases.push({method,plain,expected,previous,current});await screenshot('agent-clipboard-'+method+'-paste');
  }
- const previousImage=await state();await setClipboard({imageBase64:readFileSync(join(output,'clipboard-image-source.png')).toString('base64')});await menu();await click('text:Paste');
+ const previousImage=await state();await setClipboard({imageBase64:readFileSync(join(output,'clipboard-image-source.png')).toString('base64')});await menu();await click('menu:Paste');
  const imageInput=await until(async()=>{const s=await state();if(!s)return null;const bytes=Buffer.from(s.received.slice(previousImage.received.length).join(''),'hex').toString();return bytes.startsWith('\x1b[200~')&&bytes.endsWith('\x1b[201~')&&bytes.includes(scope.root+'/.superset/attachments/')&&{state:s,bytes};},'agent receives bracketed remote image path');
  await screenshot('agent-clipboard-remote-image');
  await click('text:Files');await until(()=>evaluate(`Boolean(document.querySelector('[data-workspace-files]'))`),'files before clipboard remount');await click('text:Terminal');
@@ -46,5 +48,5 @@ export async function verifyWorkstationTerminalClipboardUi(options) {
  await screenshot('agent-clipboard-osc52-after-remount');
  await getPage().call('Input.insertText',{text:'q'});await until(async()=>(await state())?.stage==='finished','agent input remains usable');
  assert.deepEqual(getPage().errors,[]);
- writeFileSync(join(output,'terminal-agent-clipboard-ui.json'),JSON.stringify({terminal,selection:copied,keyboardCopy:true,menuCopy:true,phases,imageInput,osc52:osc,afterRemount:true,final:await state(),errors:getPage().errors,vendorAgentVerified:false},null,2)+'\n');
+ writeFileSync(join(output,'terminal-agent-clipboard-ui.json'),JSON.stringify({terminal,selection:copied,keyboardCopy:true,menuCopy:true,copyFocus,phases,imageInput,osc52:osc,afterRemount:true,final:await state(),errors:getPage().errors,vendorAgentVerified:false},null,2)+'\n');
 }

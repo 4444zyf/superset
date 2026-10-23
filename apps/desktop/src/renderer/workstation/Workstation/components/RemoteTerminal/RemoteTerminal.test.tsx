@@ -1086,3 +1086,33 @@ test("selection copying falls back through the owning direct API when browser cl
 		else Reflect.deleteProperty(globalThis, "navigator");
 	}
 });
+
+test("menu copy restores keyboard focus to its terminal", async () => {
+	const f = await pendingFixture(false);
+	let clipboard: TerminalClipboardControls | undefined;
+	let focused = 0;
+	const terminal = new HeadlessTerminal({ allowProposedApi: true });
+	Object.assign(terminal, {
+		focus() {
+			focused++;
+		},
+	});
+	const props = {
+		...f.props,
+		api: { ...f.props.api, copyText: async () => {} },
+		onClipboardControls: (controls: TerminalClipboardControls) => {
+			clipboard = controls;
+			return () => {};
+		},
+		createEmulator: () => ({
+			terminal,
+			fit() {},
+			getSelectionForCopy: () => "copy 中文",
+		}),
+	};
+	f.view.rerender(<RemoteTerminal {...props} />);
+	await waitFor(() => expect(clipboard).toBeDefined());
+	if (!clipboard) throw new Error("clipboard controls missing");
+	clipboard.copy();
+	await waitFor(() => expect(focused).toBe(1));
+});
