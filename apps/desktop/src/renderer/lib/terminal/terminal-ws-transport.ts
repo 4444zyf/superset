@@ -19,6 +19,7 @@ import {
 	shouldSurfaceDiagnosis,
 } from "./attach-retry-diagnosis";
 import { terminalQueryColors } from "./terminal-query-colors";
+import { installTerminalVersionReply } from "./terminal-version-reply";
 import {
 	classifyTerminalFailure,
 	type TerminalFailureClassification,
@@ -42,7 +43,7 @@ export interface TerminalLogEntry {
 // partial sequences internally). Control messages (title/error/exit) stay
 // JSON.
 type TerminalServerMessage =
-	| { type: "attached"; terminalId: string }
+	| { type: "attached"; terminalId: string; versionRepliesGuarded?: boolean }
 	// `code: "session-gone"` = the server says the session is permanently
 	// destroyed (not found / disposed / exited), not a transient attach failure.
 	| { type: "error"; message: string; code?: string }
@@ -115,6 +116,8 @@ export interface TerminalTransport {
 	_terminal: XTerm | null;
 	/** Internal: disposes the terminal.onData → socket.send wiring. */
 	_onDataDisposable: { dispose(): void } | null;
+	_versionReplyDisposable: { dispose(): void } | null;
+	_versionRepliesGuarded: boolean;
 	_pendingColorReset: boolean;
 	/** Internal: title-change debounce timer; see TITLE_COALESCE_MS. */
 	_titleNotifyTimer: ReturnType<typeof setTimeout> | null;
@@ -402,6 +405,8 @@ export function createTransport(
 		_createSocket: options.createSocket ?? createRelaySocket,
 		_terminal: null,
 		_onDataDisposable: null,
+		_versionReplyDisposable: null,
+		_versionRepliesGuarded: false,
 		_pendingColorReset: false,
 		_titleNotifyTimer: null,
 		_writeCoalescer: null,
@@ -605,6 +610,12 @@ export function connect(
 	transport.currentUrl = wsUrl;
 	transport._localToken = extractToken(wsUrl);
 	transport._terminal = terminal;
+	transport._versionReplyDisposable?.dispose();
+	transport._versionRepliesGuarded = false;
+	transport._versionReplyDisposable = installTerminalVersionReply(terminal, {
+		enabled: () =>
+			transport._versionRepliesGuarded && transport.connectionState === "open",
+	});
 	// Keep the host's declared focus state current across live focus changes,
 	// not just at attach — the host writes the aggregate across all attached
 	// clients, so a pane whose focus only travelled in-band would be invisible
@@ -781,6 +792,7 @@ function attachSocketListeners(
 		}
 
 		if (message.type === "attached") {
+			transport._versionRepliesGuarded = message.versionRepliesGuarded === true;
 			transport.lastDiagnosis = null;
 			transport._diagnosisLogged = false;
 			// Only a real attach ends the failure streak — WS opens don't count
@@ -1037,6 +1049,9 @@ export function park(transport: TerminalTransport) {
 
 	transport._onDataDisposable?.dispose();
 	transport._onDataDisposable = null;
+	transport._versionReplyDisposable?.dispose();
+	transport._versionReplyDisposable = null;
+	transport._versionRepliesGuarded = false;
 	transport._writeCoalescer?.dispose();
 	transport._writeCoalescer = null;
 	if (transport.connectionState !== "disconnected") {
@@ -1070,6 +1085,9 @@ export function disconnect(transport: TerminalTransport) {
 	}
 	transport._onDataDisposable?.dispose();
 	transport._onDataDisposable = null;
+	transport._versionReplyDisposable?.dispose();
+	transport._versionReplyDisposable = null;
+	transport._versionRepliesGuarded = false;
 	transport._writeCoalescer?.dispose();
 	transport._writeCoalescer = null;
 	transport.currentUrl = null;
@@ -1154,6 +1172,9 @@ export function disposeTransport(transport: TerminalTransport) {
 	}
 	transport._onDataDisposable?.dispose();
 	transport._onDataDisposable = null;
+	transport._versionReplyDisposable?.dispose();
+	transport._versionReplyDisposable = null;
+	transport._versionRepliesGuarded = false;
 	transport._writeCoalescer?.dispose();
 	transport._writeCoalescer = null;
 	transport.currentUrl = null;

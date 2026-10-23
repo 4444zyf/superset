@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import type { WSEvents } from "hono/ws";
 import type { HostDb } from "../db";
 import type { DaemonClient, SubscribeCallbacks } from "./DaemonClient";
+import { HeadlessTerminal } from "./headless-xterm";
 import { registerTerminalRestoreRoute } from "./restore-route";
 
 async function fixture(fast: boolean) {
@@ -12,6 +13,7 @@ async function fixture(fast: boolean) {
 	let hooks: WSEvents | undefined;
 	let replay: SubscribeCallbacks | undefined;
 	const frames: (string | ArrayBufferLike | Uint8Array)[] = [];
+	const inputs: string[] = [];
 	const snapshot = new TerminalModes().snapshot();
 	const upgrade = ((factory: (c: unknown) => WSEvents) => (c: never) => {
 		hooks = factory(c);
@@ -49,6 +51,9 @@ async function fixture(fast: boolean) {
 			return () => {};
 		},
 		async dispose() {},
+		inputExisting(_id: string, _execution: string, data: Uint8Array) {
+			inputs.push(Buffer.from(data).toString());
+		},
 	} as unknown as DaemonClient;
 	registerTerminalRestoreRoute(app, db, upgrade, undefined, async () => daemon);
 	await app.request(
@@ -70,6 +75,14 @@ async function fixture(fast: boolean) {
 			.map((f) => JSON.parse(f));
 	return {
 		frames,
+		inputs,
+		input: (data: string) =>
+			hooks?.onMessage?.(
+				new MessageEvent("message", {
+					data: JSON.stringify({ type: "input", data }),
+				}),
+				ws as never,
+			),
 		messages,
 		replay,
 		snapshot,
@@ -103,6 +116,31 @@ test.each([
 	expect(Buffer.from(f.frames.at(-1) as ArrayBuffer).toString()).toBe(
 		"live output",
 	);
+});
+
+test("an old renderer's historical version response cannot reach the PTY, while live replies and ordinary input can", async () => {
+	const f = await fixture(true);
+	const terminal = new HeadlessTerminal({ allowProposedApi: true });
+	terminal.onData(f.input);
+	try {
+		for (const frame of f.frames) {
+			if (typeof frame !== "string")
+				await new Promise<void>((done) =>
+					terminal.write(new Uint8Array(frame as ArrayBuffer), done),
+				);
+		}
+		expect(f.inputs).toEqual([]);
+		const live = Buffer.from("\x1b[>q");
+		f.replay.onOutput(live);
+		await new Promise<void>((done) => terminal.write(live, done));
+		expect(f.inputs).toHaveLength(1);
+		expect(f.inputs[0]).toStartWith("\x1bP>|xterm.js(");
+		f.input("echo 普通输入\r");
+		expect(f.inputs[1]).toBe("echo 普通输入\r");
+	} finally {
+		terminal.dispose();
+		f.close();
+	}
 });
 
 test("closing during replay prevents a late completion from reviving the socket", async () => {

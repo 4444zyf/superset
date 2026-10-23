@@ -8,6 +8,10 @@ import type { HostDb } from "../db";
 import { projects, terminalSessions, workspaces } from "../db/schema";
 import type { DaemonClient } from "./DaemonClient";
 import { connectExistingDaemon } from "./daemon-client-singleton";
+import {
+	TerminalVersionQueries,
+	TerminalVersionReplies,
+} from "./terminal-version-replies";
 
 export function registerTerminalRestoreRoute(
 	app: Hono,
@@ -32,6 +36,8 @@ export function registerTerminalRestoreRoute(
 			let ready = false;
 			let closed = false;
 			let unsubscribe: (() => void) | undefined;
+			const versionQueries = new TerminalVersionQueries();
+			const versionReplies = new TerminalVersionReplies();
 			const cleanup = () => {
 				closed = true;
 				ready = false;
@@ -86,6 +92,8 @@ export function registerTerminalRestoreRoute(
 					};
 					const output = (chunk: Uint8Array) => {
 						if (closed) return;
+						const queries = versionQueries.feed(chunk);
+						if (replayFinished) versionReplies.expect(queries);
 						if (
 							Number(
 								(ws.raw as { bufferedAmount?: number } | undefined)
@@ -120,6 +128,7 @@ export function registerTerminalRestoreRoute(
 									tracker.restore(modes);
 									const preamble = tracker.buildPreamble();
 									if (preamble.byteLength) output(preamble);
+									versionQueries.restoreParser(modes.parser);
 									replayFinished = true;
 									sendReplayBoundary();
 								},
@@ -188,6 +197,7 @@ export function registerTerminalRestoreRoute(
 						const message = JSON.parse(event.data);
 						const ref = parsed.data;
 						if (message.type === "input" && typeof message.data === "string") {
+							if (!versionReplies.allowsInput(message.data)) return;
 							daemon.inputExisting(
 								ref.resourceId,
 								ref.executionId!,

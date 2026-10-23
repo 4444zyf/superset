@@ -9,7 +9,9 @@ import {
 	test,
 } from "bun:test";
 import type { createRelaySocket } from "@superset/workspace-client/relay-socket";
+import { Terminal as HeadlessTerminal } from "@xterm/headless";
 import type { Terminal as XTerm } from "@xterm/xterm";
+import { TERMINAL_VERSION_NAME } from "./terminal-version-reply";
 import {
 	connect,
 	createTransport as createRealTransport,
@@ -135,6 +137,7 @@ function createMockTerminal(
 	return {
 		cols,
 		rows,
+		parser: { registerCsiHandler: () => ({ dispose() {} }) },
 		onData: (listener: (data: string) => void) => {
 			onDataListener = listener;
 			return { dispose() {} };
@@ -194,6 +197,44 @@ afterEach(() => {
 	globalThis.cancelAnimationFrame = originalCancelRaf;
 	setSystemTime();
 	jest.useRealTimers();
+});
+
+test("custom version replies require this attach's host input protection and fall back on an older host", async () => {
+	const transport = createTransport();
+	const terminal = new HeadlessTerminal({ allowProposedApi: true });
+	connect(transport, terminal as unknown as XTerm, "ws://host/terminal/t1");
+	const socket = FakeRelaySocket.instances.at(-1);
+	if (!socket) throw new Error("expected socket");
+	const query = () =>
+		new Promise<void>((done) => terminal.write("\x1b[>q", done));
+	const inputs = () =>
+		socket.sent
+			.map((m) => JSON.parse(m))
+			.filter((m) => m.type === "input")
+			.map((m) => m.data);
+	try {
+		socket.open();
+		socket.message(JSON.stringify({ type: "attached", terminalId: "t1" }));
+		await query();
+		expect(inputs()[0]).toStartWith("\x1bP>|xterm.js(");
+		socket.message(
+			JSON.stringify({
+				type: "attached",
+				terminalId: "t1",
+				versionRepliesGuarded: true,
+			}),
+		);
+		await query();
+		expect(inputs()[1]).toBe(`\x1bP>|${TERMINAL_VERSION_NAME}\x1b\\`);
+		socket.drop();
+		socket.open();
+		socket.message(JSON.stringify({ type: "attached", terminalId: "t1" }));
+		await query();
+		expect(inputs()[2]).toBe(inputs()[0]);
+	} finally {
+		disconnect(transport);
+		terminal.dispose();
+	}
 });
 
 describe("PTY output write coalescing", () => {

@@ -281,14 +281,18 @@ class SeqRenderer {
 	 */
 	connect(
 		terminalId: string,
-		options: { seqOverride?: string; autoResize?: boolean } = {},
+		options: {
+			seqOverride?: string;
+			autoResize?: boolean;
+			legacy?: boolean;
+		} = {},
 	): Promise<void> {
 		const seqValue =
 			options.seqOverride ??
 			(this.anchor ? `${this.anchor.epoch}:${this.anchor.seq}` : "new");
 		return new Promise((resolve, reject) => {
 			const ws = new WebSocket(
-				`ws://127.0.0.1:${httpPort}/terminal/${terminalId}?seq=${encodeURIComponent(seqValue)}`,
+				`ws://127.0.0.1:${httpPort}/terminal/${terminalId}${options.legacy ? "" : `?seq=${encodeURIComponent(seqValue)}`}`,
 			);
 			ws.binaryType = "arraybuffer";
 			this.ws = ws;
@@ -557,6 +561,75 @@ after(async () => {
 		// best-effort
 	}
 });
+
+for (const mode of ["legacy", "tail", "exact"] as const) {
+	test(
+		`historical version replies are blocked for an old ${mode} renderer`,
+		{ timeout: 5_000 },
+		async () => {
+			const terminalId = `version-${randomUUID().slice(0, 8)}`;
+			const session = await createTerminalSessionInternal({
+				terminalId,
+				workspaceId,
+				db,
+				cols: COLS,
+				rows: ROWS,
+			});
+			if ("error" in session) throw new Error(session.error);
+			const renderer = new SeqRenderer();
+			const write = session.pty.write.bind(session.pty);
+			const inputs: string[] = [];
+			const listener = renderer.term.onData((data) => renderer.sendInput(data));
+			try {
+				write("printf 'VERSION-READY\\n'\r");
+				await waitForTrackerText(terminalId, "VERSION-READY", 1_000);
+				if (mode === "exact") {
+					await renderer.connect(terminalId, { autoResize: false });
+					await renderer.waitVisible("VERSION-READY", 1_000);
+					await renderer.disconnect();
+				}
+				write("printf '\\033[>qVERSION-HISTORY\\n'\r");
+				await waitForTrackerText(terminalId, "VERSION-HISTORY", 1_000);
+				session.pty.write = (data) => {
+					inputs.push(String(data));
+				};
+				await renderer.connect(terminalId, {
+					autoResize: false,
+					legacy: mode === "legacy",
+					seqOverride: mode === "tail" ? "new" : undefined,
+				});
+				await renderer.waitVisible("VERSION-HISTORY", 1_000);
+				renderer.sendInput("ordinary 中文\r");
+				await waitFor(
+					() => inputs.includes("ordinary 中文\r"),
+					1_000,
+					"ordinary input after replay",
+				);
+				assert.deepEqual(inputs, ["ordinary 中文\r"]);
+				assert.ok(
+					Buffer.concat(renderer.allBinary.map((b) => Buffer.from(b))).includes(
+						"\x1b[>q",
+					),
+					"historical query bytes must stay unchanged",
+				);
+				write("printf '\\033[>qVERSION-LIVE\\n'\r");
+				await waitFor(
+					() => inputs.some((data) => data.startsWith("\x1bP>|xterm.js(")),
+					1_000,
+					"live version response",
+				);
+				assert.equal(inputs.length, 2);
+				renderer.assertNoReset(mode);
+			} finally {
+				session.pty.write = write;
+				listener.dispose();
+				await renderer.disconnect().catch(() => {});
+				renderer.dispose();
+				await disposeSessionAndWait(terminalId, db);
+			}
+		},
+	);
+}
 
 test(
 	"seq catch-up: gapless, in-ring, beyond-ring, and restart-spanning reattaches",

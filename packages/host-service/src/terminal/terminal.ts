@@ -82,6 +82,10 @@ import {
 	type TerminalSnapshot,
 } from "./terminal-mode-tracker.ts";
 import { reconstructTerminalTranscript } from "./terminal-transcript.ts";
+import {
+	TerminalVersionQueries,
+	TerminalVersionReplies,
+} from "./terminal-version-replies.ts";
 import { toWsCloseReason } from "./ws-close-reason.ts";
 
 /**
@@ -235,7 +239,7 @@ type TerminalClientMessage =
 // on attach) is a binary frame too; the renderer doesn't distinguish it
 // from live data.
 type TerminalServerMessage =
-	| { type: "attached"; terminalId: string }
+	| { type: "attached"; terminalId: string; versionRepliesGuarded?: boolean }
 	// `code: "session-gone"` marks the session as permanently destroyed (not
 	// found / disposed / exited) so the renderer can drop persisted scrollback;
 	// `code: "attach-retryable"` marks a transient host-side failure (pty-daemon
@@ -388,6 +392,8 @@ const socketLiveness = new WeakMap<
 >();
 /** Sockets that dialed with `?seq=`; only these can be told their position. */
 const seqSockets = new WeakSet<TerminalSocket>();
+const versionQueries = new WeakMap<TerminalSession, TerminalVersionQueries>();
+const versionReplies = new WeakMap<TerminalSocket, TerminalVersionReplies>();
 let clientPingIntervalMs = CLIENT_PING_INTERVAL_MS;
 let clientLivenessSweep: ReturnType<typeof setInterval> | null = null;
 
@@ -1827,6 +1833,7 @@ function resumeHiddenSocket(session: TerminalSession, ws: TerminalSocket) {
  */
 function detachSocket(session: TerminalSession, ws: TerminalSocket) {
 	session.sockets.delete(ws);
+	versionReplies.delete(ws);
 	session.colorAuthority.remove(ws);
 	if (session.focusedSockets.delete(ws)) syncPtyFocus(session);
 	releaseSocketDims(session, ws);
@@ -1942,6 +1949,12 @@ function socketBufferedAmount(socket: TerminalSocket): number {
 }
 
 function broadcastBytes(session: TerminalSession, bytes: Uint8Array): number {
+	let queries = versionQueries.get(session);
+	if (!queries) {
+		queries = new TerminalVersionQueries();
+		versionQueries.set(session, queries);
+	}
+	const count = queries.feed(bytes);
 	let sent = 0;
 	const tight = asArrayBufferBytes(bytes);
 	for (const socket of session.sockets) {
@@ -1973,6 +1986,7 @@ function broadcastBytes(session: TerminalSession, bytes: Uint8Array): number {
 			}
 			continue;
 		}
+		versionReplies.get(socket)?.expect(count);
 		socket.send(tight);
 		sent += 1;
 	}
@@ -3389,6 +3403,12 @@ async function createTerminalSessionUnlocked({
 		{
 			onReplayComplete(modes) {
 				session.modeTracker.restoreModes(modes);
+				let queries = versionQueries.get(session);
+				if (!queries) {
+					queries = new TerminalVersionQueries();
+					versionQueries.set(session, queries);
+				}
+				queries.restoreParser(modes.parser);
 			},
 			onOutput(chunk) {
 				// Bytes flow daemon → host → xterm without UTF-8 decoding;
@@ -3630,7 +3650,12 @@ export function registerWorkspaceTerminalRoute({
 			): boolean => {
 				if (session.sockets.has(ws)) return false;
 				session.sockets.add(ws);
-				sendMessage(ws, { type: "attached", terminalId });
+				versionReplies.set(ws, new TerminalVersionReplies());
+				sendMessage(ws, {
+					type: "attached",
+					terminalId,
+					versionRepliesGuarded: true,
+				});
 				// Ping straight away so a client that speaks pong declares itself
 				// within a round trip, not after the first sweep interval — a
 				// phone can go half-open inside that window.
@@ -3864,6 +3889,7 @@ export function registerWorkspaceTerminalRoute({
 					}
 
 					if (message.type === "input") {
+						if (!versionReplies.get(ws)?.allowsInput(message.data)) return;
 						session.pty.write(message.data);
 						return;
 					}
