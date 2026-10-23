@@ -19,6 +19,7 @@ export class FileTreeController {
 	private unsubscribe: (() => void) | null = null;
 	private readonly maxPaths: number;
 	private revealRevision = 0;
+	private runRevision = 0;
 	constructor(
 		private readonly model: FileTree,
 		root: string,
@@ -57,6 +58,7 @@ export class FileTreeController {
 	start(): void {
 		if (this.running) this.stop();
 		this.running = true;
+		this.runRevision++;
 		this.epoch++;
 		this.directories.clear();
 		this.pending.clear();
@@ -66,6 +68,7 @@ export class FileTreeController {
 	}
 	stop(): void {
 		this.running = false;
+		this.runRevision++;
 		this.epoch++;
 		this.unsubscribe?.();
 		this.unsubscribe = null;
@@ -182,9 +185,11 @@ export class FileTreeController {
 	}
 	async revealDirectory(absolutePath: string): Promise<boolean> {
 		const revision = ++this.revealRevision;
-		const epoch = this.epoch;
+		const run = this.runRevision;
 		const current = () =>
-			this.running && this.epoch === epoch && this.revealRevision === revision;
+			this.running &&
+			this.runRevision === run &&
+			this.revealRevision === revision;
 		const path =
 			absolutePath === "/" ? absolutePath : stripTrailingSlash(absolutePath);
 		const prefix = this.root === "/" ? "/" : `${this.root}/`;
@@ -196,8 +201,20 @@ export class FileTreeController {
 				.some((part) => part === "." || part === ".." || part.includes("\0"))
 		)
 			return false;
-		if (!this.directories.has("")) await this.fetch("");
-		if (!current() || !this.directories.has("")) return false;
+		const load = async (directory: string): Promise<boolean> => {
+			while (current()) {
+				await this.refreshing;
+				if (!current()) return false;
+				if (this.refreshing) continue;
+				if (this.directories.has(directory)) return true;
+				const epoch = this.epoch;
+				await this.fetch(directory);
+				if (this.epoch === epoch)
+					return current() && this.directories.has(directory);
+			}
+			return false;
+		};
+		if (!(await load(""))) return false;
 		if (path === this.root) return true;
 		const parts = path.slice(prefix.length).split("/");
 		for (let index = 1; index <= parts.length; index++) {
@@ -205,8 +222,7 @@ export class FileTreeController {
 			const directory = asDirectoryHandle(this.model.getItem(`${relative}/`));
 			if (!directory || !current()) return false;
 			directory.expand();
-			if (!this.directories.has(relative)) await this.fetch(relative);
-			if (!current() || !this.directories.has(relative)) return false;
+			if (!(await load(relative))) return false;
 		}
 		const relative = `${parts.join("/")}/`;
 		this.model.getItem(relative)?.select();
@@ -223,7 +239,7 @@ export class FileTreeController {
 		const task = (async () => {
 			while (this.running && this.refreshRequested) {
 				this.refreshRequested = false;
-				await this.refresh();
+				await this.refreshNow();
 			}
 		})();
 		this.refreshing = task;
@@ -234,6 +250,9 @@ export class FileTreeController {
 	}
 
 	async refresh(): Promise<void> {
+		await this.requestRefresh();
+	}
+	private async refreshNow(): Promise<void> {
 		const epoch = ++this.epoch;
 		this.pending.clear();
 		try {

@@ -70,16 +70,19 @@ export async function verifyWorkstationTerminalFileLinksUi(options) {
   const reveal=async()=>{
    await hoverReady();await mouse('mousePressed');await mouse('mouseReleased');assert.equal(await evaluate(`Boolean(document.querySelector('[data-workspace-files]'))`),false,'plain directory click preserves terminal');
    const modifier=process.platform==='darwin'?4:2;await hoverReady(modifier);await mouse('mousePressed',modifier);await mouse('mouseReleased',modifier);
-   return until(()=>evaluate(`(()=>{const r=document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path="terminal-dir/nested/"]:not([data-file-tree-sticky-row])');return r?.getAttribute('aria-expanded')==='true'&&r?.getAttribute('aria-selected')==='true'&&{path:r.dataset.itemPath,expanded:r.getAttribute('aria-expanded'),selected:r.getAttribute('aria-selected')};})()`),'directory selected and expanded in original file tree');
+   return until(()=>evaluate(`(()=>{const r=document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path="terminal-dir/nested/"]:not([data-file-tree-sticky-row])');const child=Boolean(document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path="terminal-dir/nested/child.txt"]'));return child&&r?.getAttribute('aria-expanded')==='true'&&r?.getAttribute('aria-selected')==='true'&&{path:r.dataset.itemPath,expanded:r.getAttribute('aria-expanded'),selected:r.getAttribute('aria-selected'),childPresent:child};})()`),'directory selected and expanded in original file tree');
   };
   const first=await reveal();assert.ok(await evaluate(`document.querySelector('${editor}')?.textContent.includes('directory draft')`),'directory reveal retains the existing dirty editor');
   const savedDirectoryFile=await query('filesystem.readFile',{workspaceId:scope.workspaceId,absolutePath:workspace.worktreePath+'/terminal-link.txt',maxBytes:4096});assert.equal(savedDirectoryFile.kind==='bytes'?Buffer.from(savedDirectoryFile.content,'base64').toString():savedDirectoryFile.content,file);
   await screenshot('terminal-directory-link-revealed');
+  await click('text:Changes');await click('[data-workspace-files] button[aria-pressed]');
+  await until(()=>evaluate(`document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path="terminal-dir/nested/"]:not([data-file-tree-sticky-row])')?.getAttribute('aria-selected')==='true'`),'directory selection retained across Files Changes');
+  assert.ok(await evaluate(`document.querySelector('${editor}')?.textContent.includes('directory draft')`),'Files Changes retains the dirty draft');
   await click('text:Close file and discard draft');
   await click('text:Terminal');await closeReopen();await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(selector)}+'[data-restore-state="attached"]'))`),'directory terminal after reopen');
   const reopened=await reveal();await screenshot('terminal-directory-link-reopened');
   assert.equal(await evaluate(`Boolean(document.querySelector('${editor}'))`),false,'directory does not create an editor');
-  writeFileSync(join(output,'terminal-directory-links-ui.json'),JSON.stringify({scope,terminal,execution,directoryStat,first,reopened,draftRetained:true,errors:getPage().errors},null,2)+'\n');
+  writeFileSync(join(output,'terminal-directory-links-ui.json'),JSON.stringify({scope,terminal,execution,directoryStat,first,reopened,draftRetained:true,filesChangesRetained:true,errors:getPage().errors},null,2)+'\n');
  }
  for(const original of originals){const row=await controls.inspectPresetTerminal(original.id);assert.deepEqual({id:row.id,pid:row.pid,executionId:row.executionId,cwd:row.cwd},original);}
  assert.deepEqual(getPage().errors,[]);

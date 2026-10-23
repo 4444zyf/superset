@@ -244,10 +244,35 @@ test("a newer directory reveal keeps selection when an earlier listing replies l
 	await settle();
 	try {
 		const old = controller.revealDirectory("/repo/a");
+		await settle();
 		expect(await controller.revealDirectory("/repo/b")).toBe(true);
 		finish([]);
 		expect(await old).toBe(false);
 		expect(model.getSelectedPaths()).toEqual(["b/"]);
+	} finally {
+		controller.stop();
+		model.cleanUp();
+	}
+});
+
+test("a watcher refresh during initial loading does not discard the user's directory reveal", async () => {
+	const model = new FileTree({ paths: [] });
+	const roots: ((entries: RemoteTreeEntry[]) => void)[] = [];
+	const controller = new FileTreeController(model, "/repo", async (path) =>
+		path === "/repo" ? new Promise((resolve) => roots.push(resolve)) : [],
+	);
+	controller.start();
+	const reveal = controller.revealDirectory("/repo/nested");
+	const refresh = controller.requestRefresh();
+	const entries: RemoteTreeEntry[] = [
+		{ absolutePath: "/repo/nested", kind: "directory" },
+	];
+	roots[0]?.(entries);
+	roots[1]?.(entries);
+	try {
+		await refresh;
+		expect(await reveal).toBe(true);
+		expect(model.getSelectedPaths()).toEqual(["nested/"]);
 	} finally {
 		controller.stop();
 		model.cleanUp();
