@@ -1,0 +1,9 @@
+After stage 80 evidence/push, continue the overall parity goal; it is not complete.
+Candidate next: original BrowserOverflowMenu pure view extraction and scoped basic tools.
+Original BrowserOverflowMenu.tsx mixes dropdown JSX with legacy TRPC/auth-dependent dialogs and hooks.
+Reuse the exact menu via injected actions; original wrapper continues all current callbacks/dialogs, accountless wrapper only offers actually supported tools. Preserve pointerPassthrough lifecycle.
+Existing BrowserRuntimeRegistryCore already implements zoom, print, hard reload; use original core methods rather than shadow implementations. Review accessibility keyboard handling in the existing zoom row.
+Original browserManager.openDevTools(paneId) calls registered webContents.openDevTools({mode:'detach'}); WorkstationBrowserRegistry managerKey contains the full registration scope. Add optional browser.openDevTools using current owner/registration/generation checks and delegate the original manager with its scoped key; keep released TRPC untouched.
+Original schema/API doesn't support a persisted devtools pane in V2. Do not invent that layout type to claim full devtools parity. Native detached guest debugger can be tested separately.
+Copy URL must copy displayed canonical/original SSH URL; external browser action must use existing workspace forward + exact path/query/hash and original shell helper, not raw localhost or current port policy.
+History/import/downloads/screenshots/device/design/rightPane/chat/task URL policy/full favicon/CLI bridge remain separate pending features until actually wired and verified.

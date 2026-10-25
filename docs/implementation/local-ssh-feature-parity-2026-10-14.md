@@ -1430,3 +1430,24 @@ TDD日志保留：新增store方法不存在时失败、旧metadata跨namespace�
 最终2205编译文件manifest SHA为6886dcc800ecf3c9a66e8777d1c3dae1eabcd93ed4fefd50772b99311ca7645e；构建明确退出0后冻结，全部原生后逐一复核一致，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。最终本地Xorg49437、SSH49838和拥有app均finally清理、wait退出0。证据不含profile、DB、私钥或后端凭据；未生成CLI、安装包、后端发行归档，未用Actions。[阶段七十九证据](evidence/local-ssh-feature-parity/stage79)。
 
 当前地址栏图标显示已补齐；完整标签/历史图标、浏览器设置/导入、完整链接偏好及端口内部入口、设备/设计/开发工具和CLI桥等仍待接，整体对齐继续进行。
+
+
+## 阶段八十：原浏览器主页、终端链接与端口偏好（2026-10-25）
+
+产品dad926c8d、最终ca7912bc6复用原BrowserSettings主页与BrowserLinkSettings/LinkTierMapper控件，提取纯View供无账号设置使用，原wrapper仍接自己的设置/feature flag。四档默认沿用原版：普通点击不操作、Shift新标签、Ctrl/⌘分屏、Ctrl/⌘+Shift外部；端口默认外部。设置变化经现有RemoteTerminal导航ref即时读取，不重建模拟器或更换终端DOM。普通URL和OSC8复用已有处理器；旧API没有可选preferences时保留原external-only回退。当前设置说明明确只覆盖终端，聊天/任务两档策略及原rightPane区域仍待接，不将rightPane伪装成现有分屏。
+
+新可选browser.preferences接口在原main-frame IPC守卫下读写独立browser-preferences.db，private schemaVersion1、revision CAS、64KiB上限和8192字符主页；只接受三种已实现action及完整四档map。无效/未来数据只读并显示显式恢复默认值，不自动修复。复用已有偏好客户端实现，仅将类型泛化；AST核对原10个状态/方法主体、四个schema/default初始化器及原external端口打开主体均保持一致。一般Workstation偏好、既有tRPC合同、后端能力/最低版本和localStorage未改。真实DB只观察元数据：0600、单表workstation_browser_preferences、schema/revision为1/3，证据不含DB。
+
+New browser仅在默认创建时读取保存主页，并调用原sanitizeUrl；显式链接、端口与window.open URL不受主页替换。内部打开先flush并检查捕获连接/工作区，失败如实显示，不回退外部或桌面同端口。端口行按偏好打开，原明确external图标保持独立external回调；URL策略要求external时也直接走原外部helper，不被端口偏好改写。原发现/转发的归属检查继续使用。
+
+主要定向回归63tests/3195assertions/10files，加root/layout/settings的28tests/111assertions/4files，共91项不同测试通过；最终仅去掉不适用于此入口的侧栏描述后，重跑4项已有settings/boot测试，不重复计数。完整桌面类型、17语言extract/strict compile、格式、plugins与diff检查通过。store方法缺失、主页仍about:blank、live action未启用的红日志保留；初始泛型与导航ref类型错误也保存并修复，没有降低校验。
+
+旧048155编译2205文件逐一匹配阶段七十九manifest，在新增API不存在处预期失败。第一次dad926本地夹具将DOM赋值结果直接经CDP按值返回，触发Object reference chain is too long，尚未操作设置；改为返回boolean后同产品本地与SSH均通过。截图检查随后发现原端口说明仅指侧栏，最终ca791仅在Workstation隐藏该段，原legacy默认展示保留；最终编译重新执行本地/SSH完整设置流程。没有提高等待或重试次数掩盖失败。
+
+最终两端通过真实输入主页、原Select选择、默认主页打开、plain无操作、Ctrl/⌘分屏、同终端即时改成新标签、发现端口行按偏好分屏和正常关窗重开。主页/策略URL保留路径、query、fragment；SSH实际guest使用127.0.0.1:41751，设置保留localhost:43473。原本地PID60578/execution e923424a-b02a-4a54-bcec-7d4df9a1337b，SSH PID64113/execution66b096d4-0539-4fd8-9486-67ddcaed5353及cwd保持，记录的运行时异常为空。Shift与Ctrl+Shift默认保存值有核对，本阶段新原生流程主要驱动plain及Ctrl/⌘；external OS启动仍按原先阶段证据，不把callback/AST核对冒充本轮真实外部浏览器启动。
+
+随后在同一最终编译上重新跑用户重点四组原生回归，均退出0。本地/SSH中文与Emoji快捷键/菜单复制、焦点恢复、括号多行粘贴、图片/文件路径、36字节文件精确内容及重挂载OSC52全部通过；vendorAgentVerified仍false。滚轮两端SGR offset100→95→100、RIS legacy/pixel100→99→100，普通历史、无鼠标TUI回看、保存stock设置不注入方向键，legacy高位字节保持raw。浏览器、剪贴板、滚轮三个SSH流程各含20次恢复。初次本地控件/分屏、初次SSH新标签、最终SSH重开控件/键盘复制/pixel截图已实际查看，其余仅称捕获。
+
+最终2205编译文件manifest SHA256995a37fd333c7f4bcac55ccd20238b40af3b80df1dcb6e4398d4bcba1d7e6913；明确构建退出0后冻结，六组最终原生结束后逐一复核一致。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb，没有重建。所有拥有app/Xorg按finally清理/wait且退出0，无外部SSH、Actions、安装包或后端发行归档。[阶段八十证据](evidence/local-ssh-feature-parity/stage80)。
+
+原聊天/任务URL策略、完整标签/历史图标、rightPane、其余浏览器设置/导入、设备/设计/开发工具、CLI桥等继续待接，整体原版功能对齐未完成。
