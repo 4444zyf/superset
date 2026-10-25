@@ -1,0 +1,944 @@
+import {verifyWorkstationAgentIconsUi} from "./verify-workstation-agent-icons-ui.mjs";
+import {verifyWorkstationAgentCatalogChoicesUi} from "./verify-workstation-agent-catalog-choices-ui.mjs";
+import {verifyWorkstationAgentManagementUi} from "./verify-workstation-agent-management-ui.mjs";
+import {verifyWorkstationAgentSettingsUi} from "./verify-workstation-agent-settings-ui.mjs";
+import {verifyWorkstationTerminalPresetsUi} from "./verify-workstation-terminal-presets-ui.mjs";
+import { verifyWorkstationCloseGuardUi } from "./verify-workstation-close-guard-ui.mjs";
+import { verifyWorkstationBackgroundFilesUi } from "./verify-workstation-background-files-ui.mjs";
+import { verifyWorkstationFileConflictUi } from "./verify-workstation-file-conflict-ui.mjs";
+import { verifyWorkstationFileEventsUi } from "./verify-workstation-file-events-ui.mjs";
+import { verifyWorkstationMediaUi } from "./verify-workstation-media-ui.mjs";
+import { verifyWorkstationMarkdownUi } from "./verify-workstation-markdown-ui.mjs";
+import { verifyWorkstationFilePreviewsUi } from "./verify-workstation-file-previews-ui.mjs";
+import { verifyWorkstationInstantRunUi } from "./verify-workstation-instant-run-ui.mjs";
+import { verifyWorkstationCleanupUi } from "./verify-workstation-cleanup-ui.mjs";
+import { verifyWorkstationSetupUi } from "./verify-workstation-setup-ui.mjs";
+import { verifyWorkstationClipboardUi } from "./verify-workstation-clipboard-ui.mjs";
+import { verifyWorkstationChatClipboardUi } from "./verify-workstation-chat-clipboard-ui.mjs";
+import assert from "node:assert/strict";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
+import { verifyWorkstationFileGitUi } from "./verify-workstation-file-git-ui.mjs";
+import { verifyWorkstationFileTreeUi } from "./verify-workstation-file-tree-ui.mjs";
+import { verifyWorkstationGitBaseUi } from "./verify-workstation-git-base-ui.mjs";
+import { verifyWorkstationGitBranchUi } from "./verify-workstation-git-branch-ui.mjs";
+import { verifyWorkstationGitDiffUi } from "./verify-workstation-git-diff-ui.mjs";
+import { verifyWorkstationGitHistoryUi } from "./verify-workstation-git-history-ui.mjs";
+import { verifyWorkstationGitSyncUi } from "./verify-workstation-git-sync-ui.mjs";
+import { verifyWorkstationMultipleFilesUi } from "./verify-workstation-multiple-files-ui.mjs";
+import { verifyWorkstationSettingsUi } from "./verify-workstation-settings-ui.mjs";
+import { verifyWorkstationRunUi } from "./verify-workstation-run-ui.mjs";
+import { verifyWorkstationProjectSettingsUi } from "./verify-workstation-project-settings-ui.mjs";
+
+export async function verifyWorkspaceRestoreUi({
+ observePortBrowserCalls,
+ nativeDrag,
+	getPage,
+	click,
+	screenshot,
+	restart,
+	closeReopen,
+ requestClose,
+ isWindowOpen,
+	controls,
+	nativeFileDialog,
+	setClipboard,
+	pasteClipboard,
+	inspectClipboardImage,
+	readClipboardText,
+	output,
+	samples = 20,
+}) {
+	const evaluate = (expression) => getPage().evaluate(expression);
+	const until = async (read, predicate = Boolean) => {
+		for (let i = 0; i < 200; i++) {
+			const value = await read();
+			if (predicate(value)) return value;
+			await delay(50);
+		}
+		throw new Error(
+			`Window restore did not become ready: ${await evaluate("document.body.innerText.slice(-2400)")}`,
+		);
+	};
+	const type = async (selector, text) => {
+		await click(selector);
+		await getPage().call("Input.insertText", { text });
+	};
+	const saved = () => evaluate("window.directWorkstation.getWorkspaceView()");
+	const activeLayout = workspace => workspace?.paneTabs?.find(tab=>tab.tabId===workspace.activePaneTabId)?.layout ?? workspace?.layout;
+	const terminals = () =>
+		evaluate(
+			"[...document.querySelectorAll('[data-terminal-id]')].map(e=>({id:e.dataset.terminalId,executionId:e.dataset.executionId,state:e.dataset.restoreState}))",
+		);
+	const ready = () =>
+		until(
+			terminals,
+			(rows) => rows.length === 3 && rows.every((r) => r.state === "attached"),
+		);
+	await click('[data-slot=sidebar-content] button[aria-label="Workspaces"]');
+	await click("text:Add project");
+	await until(() =>
+		evaluate(
+			"Boolean(document.querySelector('[role=dialog] .border-t label:first-child input'))",
+		),
+	);
+	controls?.verifyProjectParent(
+		await evaluate(
+			"document.querySelector('[role=dialog] input[name=path]')?.value",
+		),
+	);
+	await type(
+		"[role=dialog] .border-t label:first-child input",
+		"Unified Project",
+	);
+	await click("text:Create project");
+	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
+	await until(() =>
+		evaluate(
+			"[...document.querySelectorAll('[data-slot=sidebar-content] button')].some(b=>b.getAttribute('aria-label')==='Unified Project')",
+		),
+	);
+	await click(".ws-heading-actions .primary");
+	await type('[role="dialog"] input', "Restore lifecycle");
+	await click("[role=dialog] label:nth-of-type(3) select");
+	for (const [key, code] of [
+		["ArrowDown", 40],
+		["Enter", 13],
+	]) {
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyDown",
+			key,
+			windowsVirtualKeyCode: code,
+		});
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyUp",
+			key,
+			windowsVirtualKeyCode: code,
+		});
+	}
+	await until(() =>
+		evaluate(
+			"Boolean(document.querySelector('[role=dialog] button[aria-label=\"Checkout: Worktree\"]'))",
+		),
+	);
+	await screenshot("worktree-original-checkout-picker");
+	for (const [current, next] of [
+		["Worktree", "Local"],
+		["Local", "Worktree"],
+	]) {
+		await click(`[role=dialog] button[aria-label="Checkout: ${current}"]`);
+		const point = await until(() =>
+			evaluate(
+				`(()=>{const e=[...document.querySelectorAll('[role=menuitem]')].find(e=>e.textContent.trim().startsWith(${JSON.stringify(next)}));if(!e)return null;const r=e.getBoundingClientRect();const x=r.x+r.width/2,y=r.y+r.height/2;return e.contains(document.elementFromPoint(x,y))?{x,y}:null;})()`,
+			),
+		);
+		for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
+			await getPage().call("Input.dispatchMouseEvent", {
+				type,
+				button: type === "mouseMoved" ? "none" : "left",
+				clickCount: type === "mouseMoved" ? 0 : 1,
+				...point,
+			});
+		await until(() =>
+			evaluate(
+				`Boolean(document.querySelector('[role=dialog] button[aria-label="Checkout: ${next}"]'))`,
+			),
+		);
+		await until(() => evaluate("!document.querySelector('[role=menu]')"));
+	}
+	await screenshot("worktree-original-checkout-mouse-selection");
+	await click('[role="dialog"] button[type="submit"]');
+	await until(() => evaluate("!document.querySelector('[role=dialog]')"));
+	await until(() =>
+		evaluate("Boolean(document.querySelector('.ws-workspace-window'))"),
+	);
+	const firstTerminalInput = await until(() =>
+		evaluate(
+			`(()=>{const e=[...document.querySelectorAll('button')].find(e=>e.textContent.trim()==='New terminal');if(!e||e.disabled)return null;const r=e.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;const hit=document.elementFromPoint(x,y);return e.contains(hit)?{x,y,label:e.textContent.trim()}:null;})()`,
+		),
+	);
+	writeFileSync(
+		join(output, "first-terminal-input.json"),
+		JSON.stringify(firstTerminalInput, null, 2) + "\n",
+	);
+	for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
+		await getPage().call("Input.dispatchMouseEvent", {
+			type,
+			button: type === "mouseMoved" ? "none" : "left",
+			clickCount: type === "mouseMoved" ? 0 : 1,
+			x: firstTerminalInput.x,
+			y: firstTerminalInput.y,
+		});
+	await until(
+		terminals,
+		(rows) => rows.length === 1 && rows[0].state === "attached",
+	);
+	await click('button[aria-label="Split horizontally"]');
+	await until(
+		terminals,
+		(rows) => rows.length === 2 && rows.every((r) => r.state === "attached"),
+	);
+	await click('button[aria-label="Split vertically"]');
+	const original = await ready();
+	controls?.trackOriginals(original);
+
+	await click("[data-terminal-id] .xterm-screen");
+	await getPage().call("Input.insertText", {
+		text: "printf 'before\\r\\n' > restore-ui.txt",
+	});
+	await getPage().call("Input.dispatchKeyEvent", {
+		type: "keyDown",
+		key: "Enter",
+		code: "Enter",
+		windowsVirtualKeyCode: 13,
+	});
+	await click("text:Files");
+	await until(() =>
+		evaluate(
+			"Boolean(document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path=\"restore-ui.txt\"]'))",
+		),
+	);
+	await click("tree:restore-ui.txt");
+	await until(() => evaluate("Boolean(document.querySelector('.cm-content'))"));
+	await click(".cm-content");
+	await getPage().call("Input.dispatchKeyEvent", {
+		type: "keyDown",
+		key: "a",
+		code: "KeyA",
+		windowsVirtualKeyCode: 65,
+		modifiers: process.platform === "darwin" ? 4 : 2,
+		commands: ["selectAll"],
+	});
+	await getPage().call("Input.insertText", { text: "after upstream editor" });
+	await click("text:Save file");
+	await until(() =>
+		evaluate(
+			"[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Save file')?.disabled",
+		),
+	);
+	await click("text:Close file and discard draft");
+	await click("tree:restore-ui.txt");
+	await until(() =>
+		evaluate(
+			"document.querySelector('.cm-content')?.textContent==='after upstream editor'",
+		),
+	);
+	await screenshot("upstream-remote-code-editor");
+	await click("text:Terminal");
+	await ready();
+	await click("[data-terminal-id] .xterm-screen");
+	await getPage().call("Input.dispatchKeyEvent", {
+		type: "keyDown",
+		key: "f",
+		code: "KeyF",
+		windowsVirtualKeyCode: 70,
+		modifiers: process.platform === "darwin" ? 4 : 2,
+	});
+	await until(() =>
+		evaluate("Boolean(document.querySelector('input[placeholder=Find]'))"),
+	);
+	await getPage().call("Input.insertText", { text: "restore-ui.txt" });
+	await getPage().call("Input.dispatchKeyEvent", {
+		type: "keyDown",
+		key: "Escape",
+		code: "Escape",
+		windowsVirtualKeyCode: 27,
+	});
+	await until(() =>
+		evaluate("!document.querySelector('input[placeholder=Find]')"),
+	);
+	await click('button[aria-label="Toggle sidebar"]');
+	await screenshot("upstream-collapsed-sidebar");
+	await click('button[aria-label="Toggle sidebar"]');
+
+	for (let i = 0; i < 3; i++) {
+		const paneId = await evaluate(
+			`[...document.querySelectorAll('.ws-workspace-pane')][${i}].dataset.paneId`,
+		);
+		const base = `[data-pane-id="${paneId}"]`;
+		await click(`[data-pane-title-id="${paneId}"]`);
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyDown",
+			key: "a",
+			code: "KeyA",
+			windowsVirtualKeyCode: 65,
+			modifiers: process.platform === "darwin" ? 4 : 2,
+			commands: ["selectAll"],
+		});
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyUp",
+			key: "a",
+			code: "KeyA",
+			windowsVirtualKeyCode: 65,
+			modifiers: process.platform === "darwin" ? 4 : 2,
+		});
+		await getPage().call("Input.insertText", {
+			text: ["Claude", "Codex", "OMP"][i],
+		});
+		await click(`${base} .xterm-screen`);
+		await getPage().call("Input.insertText", {
+			text: `while :; do printf 'RESTORE_${i} %s\\n' "$$"; sleep 0.3; done`,
+		});
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyDown",
+			key: "Enter",
+			code: "Enter",
+			windowsVirtualKeyCode: 13,
+		});
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyUp",
+			key: "Enter",
+			code: "Enter",
+			windowsVirtualKeyCode: 13,
+		});
+	}
+	const beforeDrag = JSON.stringify(
+		activeLayout((await saved()).snapshot.targets[0].workspaces[0]),
+	);
+	const dragPoints = await evaluate(
+		`(() => {const titles=[...document.querySelectorAll('[data-pane-title-id]')];const source=titles[2].closest('.cursor-grab').getBoundingClientRect();const target=document.querySelector('[data-pane-id="'+titles[0].dataset.paneTitleId+'"]').getBoundingClientRect();return {start:{x:source.x+10,y:source.y+source.height/2},end:{x:target.x+target.width/2,y:target.bottom-30}};})()`,
+	);
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mousePressed",
+		button: "left",
+		clickCount: 1,
+		...dragPoints.start,
+	});
+	for (let step = 1; step <= 12; step++) {
+		await getPage().call("Input.dispatchMouseEvent", {
+			type: "mouseMoved",
+			button: "left",
+			buttons: 1,
+			x:
+				dragPoints.start.x +
+				((dragPoints.end.x - dragPoints.start.x) * step) / 12,
+			y:
+				dragPoints.start.y +
+				((dragPoints.end.y - dragPoints.start.y) * step) / 12,
+		});
+		await delay(20);
+	}
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mouseReleased",
+		button: "left",
+		clickCount: 1,
+		...dragPoints.end,
+	});
+	await until(
+		saved,
+		(v) =>
+			JSON.stringify(activeLayout(v.snapshot.targets[0].workspaces[0])) !== beforeDrag,
+	);
+	const afterDrag = await ready();
+	assert.deepEqual(
+		afterDrag.map((r) => r.id).sort(),
+		original.map((r) => r.id).sort(),
+	);
+	original.splice(0, original.length, ...afterDrag);
+	const firstDivider = await evaluate(
+		"(() => {const split=document.querySelector('[data-panel-group-direction=horizontal]');const divider=split.querySelector(':scope > [data-slot=resizable-handle]');const r=split.getBoundingClientRect(),d=divider.getBoundingClientRect();return {start:{x:d.x+d.width/2,y:d.y+d.height/2},end:{x:r.x+r.width*.37,y:d.y+d.height/2}};})()",
+	);
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mousePressed",
+		button: "left",
+		clickCount: 1,
+		...firstDivider.start,
+	});
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mouseMoved",
+		button: "left",
+		buttons: 1,
+		...firstDivider.end,
+	});
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mouseReleased",
+		button: "left",
+		clickCount: 1,
+		...firstDivider.end,
+	});
+	await until(
+		saved,
+		(v) =>
+			Math.abs(
+				(activeLayout(v.snapshot?.targets[0]?.workspaces[0])?.ratio ?? 0) - 0.37,
+			) < 0.02 &&
+			v.snapshot.targets[0].workspaces[0].panes.every((p) => p.label),
+	);
+	const before = (await saved()).snapshot.targets[0];
+	const strictHeaderAuth = controls
+		? await controls.verifyHeaderOnly({
+				workspaceId: before.workspaces[0].workspaceId,
+				...before.workspaces[0].panes[0],
+				resourceId: before.workspaces[0].panes[0].resourceId,
+			})
+		: undefined;
+	assert.deepEqual(
+		before.workspaces[0].panes.map((p) => p.label),
+		["Claude", "Codex", "OMP"],
+	);
+	await screenshot("restore-three-panes-before");
+	const report = {
+		source: process.env.GITHUB_SHA,
+		arch: process.arch,
+		platform: process.platform,
+		realInput: true,
+		upstreamCodeEditorReadWrite: true,
+		upstreamTerminalSearch: true,
+		upstreamSidebarCollapse: true,
+		upstreamPaneDrag: true,
+		heartbeatPtyOnly: true,
+		strictHeaderAuth,
+		original,
+		samples: [],
+	};
+	for (let i = 0; i < samples; i++) {
+		const closedHeartbeat = await restart(i === 1 ? "force" : "quit");
+		const rows = await ready();
+		assert.deepEqual(
+			rows.map(({ id, executionId }) => ({ id, executionId })),
+			original.map(({ id, executionId }) => ({ id, executionId })),
+		);
+		const restored = (await saved()).snapshot.targets[0];
+		assert.deepEqual(restored.workspaces, before.workspaces);
+		const timing = await evaluate(
+			`(async () => { const job=await window.directWorkstation.getWorkspaceRestore(); const marks=performance.getEntriesByName('workspace-layout-visible'); const initial=performance.getEntriesByName('workspace-renderer-ready'); return { skeletonMs:marks[0]?.startTime-initial[0]?.startTime, authenticatedToAttachedUpperBoundMs:performance.timeOrigin+performance.now()-job.authenticatedAt }; })()`,
+		);
+		report.samples.push({
+			closedHeartbeat,
+			lifecycle: i === 1 ? "forceQuit" : "quit",
+			...timing,
+		});
+		assert.deepEqual(getPage().errors, []);
+		if (i < 2)
+			await screenshot(`restore-${i === 1 ? "force-quit" : "normal-quit"}`);
+		writeFileSync(
+			join(output, "workspace-restore-ui.json"),
+			JSON.stringify(report, null, 2) + "\n",
+		);
+	}
+	await click("text:Files");
+	await until(() =>
+		evaluate(
+			"Boolean(document.querySelector('file-tree-container')?.shadowRoot?.querySelector('[data-item-path=\"restore-ui.txt\"]'))",
+		),
+	);
+	await click("tree:restore-ui.txt");
+	await until(() => evaluate("Boolean(document.querySelector('.cm-content'))"));
+	if (controls?.verifyWorktreeLocation) {
+		const worktreePath = await evaluate(
+			`(async()=>{const {descriptor:d}=await window.directWorkstation.getWorkspaceRestore();const {snapshot:v}=await window.directWorkstation.getWorkspaceView();const target=v.targets.find(t=>t.connectionId===v.activeConnectionId);const workspaceId=target.workspaces.find(w=>w.tabId===target.activeTabId).workspaceId;const workspace=await window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:'workspace.get',type:'query',input:{id:workspaceId,workspaceId}});return workspace.worktreePath;})()`,
+		);
+		const location = await controls.verifyWorktreeLocation(worktreePath);
+		writeFileSync(
+			join(output, "workstation-worktree-location-ui.json"),
+			JSON.stringify(
+				{
+					sourceRevision: process.env.GITHUB_SHA,
+					physicalCreation: true,
+					originalCheckoutPicker: true,
+					heartbeatPtyOnly: true,
+					vendorAgentLaunchVerified: false,
+					...location,
+				},
+				null,
+				2,
+			) + "\n",
+		);
+	}
+ if (process.argv.includes("--ports-only")) {
+  const {verifyWorkstationPortsUi}=await import("./verify-workstation-ports-ui.mjs");
+  await verifyWorkstationPortsUi({getPage,click,screenshot,closeReopen,controls,output,observePortBrowserCalls,setClipboard,readClipboardText});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,portsOnly:true},null,2)+"\n");
+  return;
+ }
+ if (process.argv.includes("--terminal-attach-input-only")) {
+  const {verifyWorkstationTerminalAttachInputUi}=await import("./verify-workstation-terminal-attach-input-ui.mjs");
+  await verifyWorkstationTerminalAttachInputUi({getPage,click,screenshot,closeReopen,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalAttachInputOnly:true},null,2)+"\n");
+  return;
+ }
+ if (process.argv.includes("--terminal-identity-only")) {
+  const {verifyWorkstationTerminalIdentityUi}=await import("./verify-workstation-terminal-identity-ui.mjs");
+  await verifyWorkstationTerminalIdentityUi({getPage,click,screenshot,closeReopen,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalIdentityOnly:true},null,2)+"\n");
+  return;
+ }
+ if (process.argv.includes("--terminal-file-links-only")) {
+  const {verifyWorkstationTerminalFileLinksUi}=await import("./verify-workstation-terminal-file-links-ui.mjs");
+  await verifyWorkstationTerminalFileLinksUi({getPage,click,screenshot,closeReopen,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalFileLinksOnly:true},null,2)+"\n");
+  return;
+ }
+ if (process.argv.includes("--file-close-guard-only")) {
+  await verifyWorkstationCloseGuardUi({getPage,click,screenshot,closeReopen,requestClose,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,fileCloseGuardOnly:true},null,2)+"\n");
+  return;
+ }
+ if (process.argv.includes("--file-background-only")) {
+  await verifyWorkstationBackgroundFilesUi({getPage,click,screenshot,closeReopen,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,fileBackgroundOnly:true},null,2)+"\n");
+  return;
+ }
+	if (process.argv.includes("--file-conflict-only")) {
+		await verifyWorkstationFileConflictUi({
+			getPage,
+			click,
+			screenshot,
+			closeReopen,
+			controls,
+			output,
+		});
+		writeFileSync(
+			join(output, "workspace-restore-ui.json"),
+			JSON.stringify({ ...report, fileConflictOnly: true }, null, 2) + "\n",
+		);
+		return;
+	}
+	if (process.argv.includes("--file-events-only")) {
+		await verifyWorkstationFileEventsUi({ getPage, click, screenshot, closeReopen, controls, output });
+		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, fileEventsOnly: true }, null, 2) + "\n");
+		return;
+	}
+	if (process.argv.includes("--workspace-run-only")) {
+		await click("text:Terminal");await ready();
+		await verifyWorkstationRunUi({getPage,click,screenshot,closeReopen,controls,output});
+		await verifyWorkstationInstantRunUi({getPage,click,screenshot,closeReopen,controls,output});
+		writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,workspaceRunOnly:true},null,2)+"\n");return;
+	}
+	if (process.argv.includes("--lifecycle-only")) {
+		await click("text:Terminal");
+		await ready();
+		await verifyWorkstationInstantRunUi({ getPage, click, screenshot, closeReopen, controls, output });
+		await verifyWorkstationSetupUi({ getPage, click, screenshot, closeReopen, controls, output });
+		await verifyWorkstationCleanupUi({ getPage, click, screenshot, closeReopen, output });
+		assert.deepEqual(getPage().errors, []);
+		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, lifecycleOnly: true }, null, 2) + "\n");
+		return;
+	}
+	if (process.argv.includes("--media-only")) {
+		await verifyWorkstationMediaUi({ getPage, click, screenshot, closeReopen, controls, output });
+		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, mediaOnly: true }, null, 2) + "\n");
+		return;
+	}
+	if (process.argv.includes("--markdown-only")) {
+		await verifyWorkstationMarkdownUi({ getPage, click, screenshot, closeReopen, controls, output });
+		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, markdownOnly: true }, null, 2) + "\n");
+		return;
+	}
+	if (process.argv.includes("--file-previews-only")) {
+		await verifyWorkstationFilePreviewsUi({ getPage, click, screenshot, closeReopen, controls, output });
+		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, filePreviewsOnly: true }, null, 2) + "\n");
+		return;
+	}
+ if(process.argv.includes("--preset-run-only")){
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationPresetRunUi}=await import("./verify-workstation-preset-run-ui.mjs");
+  await verifyWorkstationPresetRunUi({getPage,click,screenshot,output,closeReopen,controls});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,presetRunOnly:true},null,2)+"\n");return;
+ }
+ if(process.argv.includes("--terminal-script-triggers-only")){
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationTerminalScriptTriggersUi}=await import("./verify-workstation-terminal-script-triggers-ui.mjs");
+  await verifyWorkstationTerminalScriptTriggersUi({getPage,click,screenshot,output,closeReopen,controls,requestClose,isWindowOpen});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalScriptTriggersOnly:true},null,2)+"\n");return;
+ }
+ if(process.argv.includes("--terminal-script-execution-only")){
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationTerminalScriptExecutionUi}=await import("./verify-workstation-terminal-script-execution-ui.mjs");
+  await verifyWorkstationTerminalScriptExecutionUi({getPage,click,screenshot,output,closeReopen,requestClose,isWindowOpen,controls});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalScriptExecutionOnly:true},null,2)+"\n");return;
+ }
+ if (process.argv.includes("--browser-ui-only")) {
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationBrowserUi}=await import("./verify-workstation-browser-ui.mjs");
+  await verifyWorkstationBrowserUi({getPage,click,screenshot,output,controls,closeReopen});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,browserUiOnly:true},null,2)+"\n");return;
+ }
+ if (process.argv.includes("--wheel-only")) {
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationWheelUi}=await import("./verify-workstation-wheel-ui.mjs");
+  await verifyWorkstationWheelUi({getPage,click,screenshot,output,setClipboard,pasteClipboard,readClipboardText});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,wheelOnly:true},null,2)+"\n");return;
+ }
+ if (process.argv.includes("--pane-tabs-only")) {
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationPaneTabsUi}=await import("./verify-workstation-pane-tabs-ui.mjs");
+  await verifyWorkstationPaneTabsUi({getPage,click,screenshot,closeReopen,controls,output,nativeDrag});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,paneTabsOnly:true},null,2)+"\n");return;
+ }
+ if (process.argv.includes("--terminal-script-management-only")) {
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationTerminalScriptManagementUi}=await import("./verify-workstation-terminal-script-management-ui.mjs");
+  await verifyWorkstationTerminalScriptManagementUi({getPage,click,screenshot,closeReopen,controls,output,nativeDrag});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalScriptManagementOnly:true},null,2)+"\n");return;
+ }
+ if (process.argv.includes("--linked-agent-settings-only")) {
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationLinkedAgentSettingsUi}=await import("./verify-workstation-linked-agent-settings-ui.mjs");
+  await verifyWorkstationLinkedAgentSettingsUi({getPage,click,screenshot,closeReopen,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,linkedAgentSettingsOnly:true},null,2)+"\n");return;
+ }
+ if (process.argv.includes("--agent-icons-only")) {
+  await click("text:Terminal");await ready();
+  await verifyWorkstationAgentIconsUi({getPage,click,screenshot,closeReopen,controls,output,setClipboard,nativeFileDialog});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,agentIconsOnly:true},null,2)+"\n");return;
+ }
+ if (process.argv.includes("--agent-catalog-choices-only")) {
+  await click("text:Terminal");await ready();
+  await verifyWorkstationAgentCatalogChoicesUi({getPage,click,screenshot,closeReopen,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,agentCatalogChoicesOnly:true},null,2)+"\n");return;
+ }
+	if (process.argv.includes("--agent-management-only")) {
+  await click("text:Terminal");await ready();
+  await verifyWorkstationAgentManagementUi({getPage,click,screenshot,closeReopen,requestClose,controls,output});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,agentManagementOnly:true},null,2)+"\n");return;
+ }
+	if (process.argv.includes("--agent-settings-only")) {
+		await click("text:Terminal");await ready();
+		await verifyWorkstationAgentSettingsUi({getPage,click,screenshot,closeReopen,requestClose,controls,output});
+		writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,agentSettingsOnly:true},null,2)+"\n");return;
+	}
+	if (process.argv.includes("--terminal-presets-only")) {
+		await click("text:Terminal");
+		await ready();
+		await verifyWorkstationTerminalPresetsUi({getPage, click, screenshot, closeReopen, controls, output});
+		writeFileSync(join(output, "workspace-restore-ui.json"),JSON.stringify({...report, terminalPresetsOnly:true},null,2)+"\n");
+		return;
+	}
+	if (process.argv.includes("--chat-clipboard-only")) {
+		await verifyWorkstationChatClipboardUi({ getPage, click, screenshot, closeReopen, setClipboard, pasteClipboard, inspectClipboardImage, readClipboardText, controls, output });
+		writeFileSync(join(output, "workspace-restore-ui.json"), JSON.stringify({ ...report, chatClipboardOnly: true }, null, 2) + "\n");
+		return;
+	}
+	if (process.argv.includes("--clipboard-only")) {
+		await click("text:Terminal");
+		await ready();
+		await verifyWorkstationClipboardUi({
+			getPage,
+			click,
+			screenshot,
+			setClipboard,
+			pasteClipboard,
+			inspectClipboardImage,
+ readClipboardText,
+			controls,
+			output,
+		});
+		assert.deepEqual(getPage().errors, []);
+		writeFileSync(
+			join(output, "workspace-restore-ui.json"),
+			JSON.stringify({ ...report, clipboardOnly: true }, null, 2) + "\n",
+		);
+		return;
+	}
+	await verifyWorkstationProjectSettingsUi({
+		getPage,
+		click,
+		screenshot,
+		output,
+	});
+	await verifyWorkstationFileGitUi({ getPage, click, screenshot, output });
+	await click("text:Terminal");
+	await ready();
+	await verifyWorkstationRunUi({
+		getPage,
+		click,
+		screenshot,
+		closeReopen,
+		controls,
+		output,
+	});
+	await verifyWorkstationInstantRunUi({
+		getPage,
+		click,
+		screenshot,
+		closeReopen,
+		controls,
+		output,
+	});
+	await verifyWorkstationClipboardUi({
+		getPage,
+		click,
+		screenshot,
+		setClipboard,
+		pasteClipboard,
+		inspectClipboardImage,
+		controls,
+		output,
+	});
+	await verifyWorkstationSetupUi({
+		getPage,
+		click,
+		screenshot,
+		closeReopen,
+		controls,
+		output,
+	});
+	await verifyWorkstationCleanupUi({
+		getPage,
+		click,
+		screenshot,
+		closeReopen,
+		output,
+	});
+	await verifyWorkstationSettingsUi({
+		getPage,
+		click,
+		screenshot,
+		closeReopen,
+		ready,
+		output,
+	});
+	await verifyWorkstationMultipleFilesUi({
+		getPage,
+		click,
+		screenshot,
+		output,
+	});
+	await verifyWorkstationFileTreeUi({ getPage, click, screenshot, output });
+	await verifyWorkstationGitDiffUi({
+		getPage,
+		click,
+		screenshot,
+		output,
+		closeReopen,
+		ready,
+	});
+	await verifyWorkstationGitHistoryUi({ getPage, click, screenshot, output });
+	await verifyWorkstationGitBaseUi({ getPage, click, screenshot, output });
+	if (controls?.prepareGitRemote) {
+		const branch = await verifyWorkstationGitBranchUi({
+			getPage,
+			click,
+			screenshot,
+			output,
+			controls,
+		});
+		await verifyWorkstationGitSyncUi({
+			getPage,
+			click,
+			screenshot,
+			output,
+			...branch,
+		});
+	}
+	await ready();
+
+	writeFileSync(
+		join(output, "before-restoration-comparison.json"),
+		JSON.stringify(
+			{
+				expected: before.workspaces,
+				actual: (await saved()).snapshot.targets[0].workspaces,
+			},
+			null,
+			2,
+		) + "\n",
+	);
+	await until(
+		saved,
+		(value) =>
+			JSON.stringify(value.snapshot.targets[0].workspaces) ===
+			JSON.stringify(before.workspaces),
+	);
+	await closeReopen();
+	await ready();
+	assert.deepEqual(
+		(await saved()).snapshot.targets[0].workspaces,
+		before.workspaces,
+	);
+	report.windowClose = true;
+	await screenshot("restore-window-close");
+	const separator = await evaluate(
+		"(() => { const r=document.querySelector('[data-slot=resizable-panel-group]').querySelector(':scope > [data-slot=resizable-handle]').getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}; })()",
+	);
+	await evaluate(
+		"window.restoreStall=setInterval(()=>{const end=performance.now()+120;while(performance.now()<end){}},400); true",
+	);
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mousePressed",
+		button: "left",
+		clickCount: 1,
+		...separator,
+	});
+	for (const delta of [-100, 100, -180, 180, -100, 100, 0]) {
+		await getPage().call("Input.dispatchMouseEvent", {
+			type: "mouseMoved",
+			button: "left",
+			buttons: 1,
+			x: separator.x + delta,
+			y: separator.y,
+		});
+		await delay(150);
+	}
+	await delay(600);
+	await getPage().call("Input.dispatchMouseEvent", {
+		type: "mouseReleased",
+		button: "left",
+		clickCount: 1,
+		...separator,
+	});
+	await evaluate("clearInterval(window.restoreStall); true");
+	assert.deepEqual(getPage().errors, []);
+	report.resizeStress = true;
+	await screenshot("restore-resize-stress");
+	if (controls) {
+		controls.trackOriginals([]);
+		await click(
+			'[data-slot=sidebar-content] button[aria-label="SSH machines"]',
+		);
+		await click(".ws-detail-actions button:last-child");
+		await until(saved, (v) => v.snapshot.targets[0].autoConnect === false);
+		await restart("quit");
+		await until(
+			() => evaluate("window.directWorkstation.getWorkspaceRestore()"),
+			(j) => j?.status === "paused",
+		);
+		assert.equal(
+			(await terminals()).some((t) => t.state === "attached"),
+			false,
+		);
+		await click("text:Retry");
+		await ready();
+		assert.equal((await saved()).snapshot.targets[0].autoConnect, true);
+		report.manualDisconnectThenRestore = true;
+		await screenshot("restore-manual-disconnect-retry");
+		await controls.setAvailable(false);
+		await restart("quit");
+		await until(
+			() => evaluate("window.directWorkstation.getWorkspaceRestore()"),
+			(j) => j?.status === "paused",
+		);
+		assert.equal(
+			await evaluate("document.querySelectorAll('.ws-workspace-pane').length"),
+			3,
+		);
+		assert.equal(
+			(await terminals()).some((t) => t.state === "attached"),
+			false,
+		);
+		await screenshot("restore-offline-preserved");
+		await controls.setAvailable(true);
+		await click("text:Retry");
+		await ready();
+		report.offline = true;
+		report.hostRestart = await controls.restartHost();
+		await restart("quit");
+		const rows = await ready();
+		assert.deepEqual(
+			rows.map(({ id, executionId }) => ({ id, executionId })),
+			original.map(({ id, executionId }) => ({ id, executionId })),
+		);
+		await screenshot("restore-host-restart-same-executions");
+		const endId = await evaluate(
+			"[...document.querySelectorAll('.ws-workspace-pane')].at(-1).dataset.paneId",
+		);
+		await click(`[data-pane-id="${endId}"] .xterm-screen`);
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyDown",
+			key: "c",
+			code: "KeyC",
+			windowsVirtualKeyCode: 67,
+			modifiers: 2,
+		});
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyUp",
+			key: "c",
+			code: "KeyC",
+			windowsVirtualKeyCode: 67,
+			modifiers: 2,
+		});
+		await getPage().call("Input.insertText", { text: "exit" });
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyDown",
+			key: "Enter",
+			code: "Enter",
+			windowsVirtualKeyCode: 13,
+		});
+		await getPage().call("Input.dispatchKeyEvent", {
+			type: "keyUp",
+			key: "Enter",
+			code: "Enter",
+			windowsVirtualKeyCode: 13,
+		});
+		await until(() =>
+			evaluate(
+				"document.querySelectorAll('[data-resource-state=exited]').length",
+			),
+		);
+		await restart("quit");
+		await until(
+			terminals,
+			(rs) => rs.length === 2 && rs.every((r) => r.state === "attached"),
+		);
+		assert.equal(
+			await evaluate("document.querySelectorAll('.ws-workspace-pane').length"),
+			3,
+		);
+		report.partialEnded = true;
+		await screenshot("restore-one-ended-two-live");
+		for (const name of ["Second workspace", "Third workspace"]) {
+			await click(
+				".ws-workspace-window .ws-window-toolbar:first-child button:first-child",
+			);
+			await click(".ws-heading-actions .primary");
+			await type('[role="dialog"] input', name);
+			await click('[role="dialog"] button[type="submit"]');
+			await until(() => evaluate("!document.querySelector('[role=dialog]')"));
+			await until(
+				() =>
+					evaluate(
+						"document.querySelector('.ws-workspace-tabs [data-tab-id][data-active=true]')?.textContent",
+					),
+				(value) => value === name,
+			);
+			await click("text:New terminal");
+			await until(
+				terminals,
+				(rs) => rs.length === 1 && rs[0].state === "attached",
+			);
+		}
+		await restart("quit");
+		await until(
+			terminals,
+			(rs) => rs.length === 1 && rs[0].state === "attached",
+		);
+		assert.equal(
+			await evaluate(
+				"document.querySelectorAll('.ws-workspace-tabs [data-tab-id]').length",
+			),
+			3,
+		);
+		await click("text:Restore lifecycle");
+		await until(
+			terminals,
+			(rs) => rs.length === 2 && rs.every((r) => r.state === "attached"),
+		);
+		report.threeWorkspaceTabs = true;
+		await screenshot("restore-three-workspace-tabs");
+		await controls.killDaemon();
+		await restart("quit");
+		await until(
+			() => evaluate("window.directWorkstation.getWorkspaceRestore()"),
+			(j) =>
+				j?.status === "paused" ||
+				j?.resources.some((r) => r.state === "interrupted"),
+		);
+		assert.equal(
+			await evaluate("document.querySelectorAll('.ws-workspace-pane').length"),
+			3,
+		);
+		assert.equal(
+			(await terminals()).some((t) => t.state === "attached"),
+			false,
+		);
+		report.daemonLostWithoutRespawn = true;
+		await screenshot("restore-daemon-lost");
+	}
+	writeFileSync(
+		join(output, "workspace-restore-ui.json"),
+		JSON.stringify(report, null, 2) + "\n",
+	);
+	return report;
+}
