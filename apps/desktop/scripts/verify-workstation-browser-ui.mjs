@@ -58,6 +58,9 @@ export async function verifyWorkstationBrowserUi(options) {
 		`  title='Owned browser '+('next' if self.path.startswith('/next') else 'home')+' 中文 🙂'`,
 		`  body=('<!doctype html><meta charset="utf-8"><title>'+title+'</title><h1>'+state['marker']+'</h1><a id="next" href="/next?value=%E4%B8%AD%20hello#section">Next page</a><br><a id="popup" target="_blank" href="/popup">Open second pane</a><p>needle needle needle</p>').encode()`,
 		`  body=body.replace(b'<title>',b'<link rel="icon" href="/icon.svg"><title>')`,
+		process.argv.includes("--browser-device-tools")
+			? "  body=body.replace(b'<meta charset=',b'<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta charset=')"
+			: "  pass",
 		`  content_type='text/html; charset=utf-8'`,
 		`  if self.path.startswith('/icon.svg'): body=('<svg xmlns="http://www.w3.org/2000/svg" data-owned="'+state['marker']+'" width="16" height="16"><rect width="16" height="16" fill="green"/></svg>').encode();content_type='image/svg+xml'`,
 		"  self.send_response(200);self.send_header('Content-Type',content_type);self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)",
@@ -218,6 +221,27 @@ export async function verifyWorkstationBrowserUi(options) {
 				readProof,
 				guestRead,
 				key,
+			});
+			save();
+		}
+
+		if (process.argv.includes("--browser-device-tools")) {
+			const { verifyWorkstationBrowserDeviceUi } = await import(
+				"./verify-workstation-browser-device-ui.mjs"
+			);
+			report.devices = await verifyWorkstationBrowserDeviceUi(options, {
+				scope,
+				url,
+				proof,
+				marker,
+				readProof,
+				guestRead,
+				key,
+				terminalTab,
+				terminal,
+				selector,
+				readView,
+				workspace,
 			});
 			save();
 		}

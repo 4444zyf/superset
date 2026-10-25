@@ -46,7 +46,22 @@ export type WorkstationBrowserNavigationResult =
 	| { status: "navigated"; url: string; guestUrl: string }
 	| { status: "superseded" };
 
+export const workstationBrowserDeviceEmulationSchema = z
+	.object({
+		width: z.number().int().min(1).max(8192),
+		height: z.number().int().min(1).max(8192),
+	})
+	.strict()
+	.nullable();
+export type WorkstationBrowserDeviceEmulation = z.infer<
+	typeof workstationBrowserDeviceEmulationSchema
+>;
+
 export interface WorkstationBrowserApi {
+	setDeviceEmulation?(input: {
+		pane: WorkstationBrowserPane;
+		params: WorkstationBrowserDeviceEmulation;
+	}): Promise<{ status: "requested" | "stale" }>;
 	openDevTools?(input: {
 		pane: WorkstationBrowserPane;
 	}): Promise<{ status: "requested" | "stale" }>;

@@ -1,3 +1,4 @@
+import { getDeviceToolbarSize } from "../../deviceToolbarStoreCore";
 import { useLingui } from "@lingui/react/macro";
 import {
 	Select,
@@ -7,7 +8,7 @@ import {
 	SelectValue,
 } from "@superset/ui/select";
 import { RefreshCwIcon, XIcon } from "lucide-react";
-import { DEFAULT_DEVICE_PRESET, DEVICE_PRESETS } from "../../constants";
+import { DEVICE_PRESETS } from "../../constants";
 import type { DeviceToolbarState } from "../../deviceToolbarStore";
 
 interface DeviceToolbarProps {
@@ -25,12 +26,7 @@ export function DeviceToolbar({
 	onClose,
 }: DeviceToolbarProps) {
 	const { t } = useLingui();
-	const device =
-		DEVICE_PRESETS.find((d) => d.id === state.deviceId) ??
-		DEFAULT_DEVICE_PRESET;
-	const size = state.isRotated
-		? { width: device.height, height: device.width }
-		: { width: device.width, height: device.height };
+	const size = getDeviceToolbarSize(state);
 
 	return (
 		// relative z-20: stay above the blank-page/error inset-0 z-10 overlays.

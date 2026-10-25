@@ -1,3 +1,4 @@
+import { workstationBrowserMenuDriver } from "./verify-workstation-browser-menu-driver.mjs";
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -37,32 +38,7 @@ export async function verifyWorkstationBrowserToolsUi(options, context) {
 		`(()=>{const tracked=document.querySelector('[data-workstation-browser-pane]');window.__ownedBrowserToolTrace=[];const record=(type,e)=>{const target=e?.target;const row={type,time:performance.now(),target:target?.tagName,label:target?.getAttribute?.('aria-label'),role:target?.getAttribute?.('role'),defaultPrevented:e?.defaultPrevented,menu:!!document.querySelector('[role=menu]'),menuState:document.querySelector('[role=menu]')?.dataset.state,expanded:document.querySelector('[data-workstation-browser-pane] button[aria-label=\"More options\"]')?.getAttribute('aria-expanded'),samePane:document.querySelector('[data-workstation-browser-pane]')===tracked,connected:tracked?.isConnected,active:document.activeElement?.tagName};window.__ownedBrowserToolTrace.push(row);if(window.__ownedBrowserToolTrace.length>100)window.__ownedBrowserToolTrace.shift();};for(const type of ['pointerdown','pointerup','click','focusin','focusout','menu.itemSelect'])document.addEventListener(type,e=>{record(type,e);queueMicrotask(()=>record(type+':after',e));},true);let previous=!!document.querySelector('[role=menu]');new MutationObserver(()=>{const next=!!document.querySelector('[role=menu]');if(next!==previous){previous=next;record('menu-mutation');}}).observe(document.body,{childList:true,subtree:true});return true;})()`,
 	);
 	try {
-		const open = async () => {
-			await until(
-				() => evaluate("!document.querySelector('[role=menu]')"),
-				"previous menu exit animation completed before the next user open",
-			);
-			await click(
-				'[data-workstation-browser-pane] button[aria-label="More options"]',
-			);
-			await until(
-				() =>
-					evaluate(
-						"(()=>{const m=document.querySelector('[role=menu][data-state=open]'),trigger=document.querySelector('[data-workstation-browser-pane] button[aria-label=\"More options\"]');return m&&trigger?.getAttribute('aria-expanded')==='true'&&m.getAnimations().every(a=>a.playState==='finished');})()",
-					),
-				"original browser menu opens",
-			);
-		};
-		const menu = async (label) => {
-			assert.equal(
-				await evaluate(
-					`[...document.querySelectorAll('[role=menuitem]')].some(e=>e.textContent.trim()===${JSON.stringify(label)})`,
-				),
-				true,
-				`Original browser item ${label}`,
-			);
-			await click("menu:" + label);
-		};
+		const { open, select: menu } = workstationBrowserMenuDriver(options);
 		const state = async () => {
 			const rows = await inspectBrowserTools();
 			assert.equal(rows.length, 1);

@@ -45,7 +45,10 @@ import {
 	DIRECT_WINDOW_CLOSE_CHANNEL,
 	WORKSTATION_BROWSER_CHANNEL,
 } from "../shared/direct-workstation";
-import { workstationBrowserPaneSchema } from "../shared/workstation-browser";
+import {
+	workstationBrowserPaneSchema,
+	workstationBrowserDeviceEmulationSchema,
+} from "../shared/workstation-browser";
 import { browserPageStateSchema } from "../shared/workspace-view-v2";
 import { browserManager } from "./lib/browser/browser-manager";
 import { lockProductProfile } from "./lib/product-identity";
@@ -691,6 +694,21 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "setBrowserDeviceEmulation": {
+					const { pane, params } = z
+						.strictObject({
+							pane: workstationBrowserPaneSchema,
+							params: workstationBrowserDeviceEmulationSchema,
+						})
+						.parse(payload);
+					const key = browserRegistry?.getManagerPaneId(owner, pane);
+					if (!key) return { status: "stale" };
+					const guest = browserManager.getWebContents(key);
+					if (!guest || guest.isDestroyed() || guest.isCrashed())
+						return { status: "stale" };
+					browserManager.setDeviceEmulation(key, params);
+					return { status: "requested" };
+				}
 				case "openBrowserDevTools": {
 					const { pane } = z
 						.strictObject({ pane: workstationBrowserPaneSchema })

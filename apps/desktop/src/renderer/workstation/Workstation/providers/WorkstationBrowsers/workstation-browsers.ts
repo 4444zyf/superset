@@ -1,3 +1,7 @@
+import { msg } from "@lingui/core/macro";
+import { i18n } from "@superset/i18n";
+import { DeviceToolbarStoreCore } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/deviceToolbarStoreCore";
+import type { WorkstationBrowserDeviceEmulation } from "shared/workstation-browser";
 import {
 	BrowserRuntimeRegistryCore,
 	type BrowserRuntimeState,
@@ -26,6 +30,7 @@ interface Runtime {
 	desiredUrl: string;
 	origins: Map<string, string>;
 	version: number;
+	deviceRevision: number;
 	offState?: () => void;
 	lastPersist?: string;
 	cached?: {
@@ -56,12 +61,16 @@ export function workstationBrowsers(
 
 export class WorkstationBrowsers {
 	readonly core: BrowserRuntimeRegistryCore;
+	readonly devices: DeviceToolbarStoreCore;
 	private readonly entries = new Map<string, Runtime>();
 	private readonly agentListeners = new Set<
 		(data: { paneIds: string[] }) => void
 	>();
 	private readonly agentActive = new Set<string>();
 	constructor(private readonly api: DirectWorkstationApi) {
+		this.devices = new DeviceToolbarStoreCore(({ paneId, params }) =>
+			this.setDeviceEmulation(paneId, params),
+		);
 		this.core = new BrowserRuntimeRegistryCore({
 			browser: {
 				register: {
@@ -248,6 +257,7 @@ export class WorkstationBrowsers {
 				desiredUrl: pane.browser.url,
 				origins: new Map(),
 				version: 0,
+				deviceRevision: 0,
 				...callbacks,
 			};
 			this.entries.set(id, runtime);
@@ -389,7 +399,41 @@ export class WorkstationBrowsers {
 			if (!pane) this.destroy(entry.id);
 		}
 	}
+	private async setDeviceEmulation(
+		id: string,
+		params: WorkstationBrowserDeviceEmulation,
+	): Promise<void> {
+		const runtime = this.entries.get(id);
+		if (!runtime) return;
+		const version = ++runtime.deviceRevision,
+			registration = runtime.registration;
+		const current = () =>
+			this.entries.get(id) === runtime &&
+			runtime.deviceRevision === version &&
+			runtime.registration === registration;
+		try {
+			if (
+				!registration ||
+				!runtime.registered ||
+				!this.api.browser?.setDeviceEmulation
+			) {
+				if (params)
+					throw Error(i18n._(msg({ message: "Session status unavailable." })));
+				return;
+			}
+			const result = await this.api.browser.setDeviceEmulation({
+				pane: registration,
+				params,
+			});
+			if (current() && result.status === "stale")
+				throw Error(i18n._(msg({ message: "Session status unavailable." })));
+		} catch (error) {
+			if (current()) runtime.onError(error);
+			throw error;
+		}
+	}
 	destroy(id: string): void {
+		this.devices.reset(id);
 		this.entries.get(id)?.offState?.();
 		this.core.destroy(id);
 		this.entries.delete(id);

@@ -1,3 +1,9 @@
+import { DeviceToolbar } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/DeviceToolbar";
+import { BrowserViewportView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/BrowserViewportView";
+import {
+	getDeviceToolbarSize,
+	useDeviceToolbarStateCore,
+} from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/deviceToolbarStoreCore";
 import { MENU_CLOSE_ANIMATION_MS } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/BrowserOverflowMenu/utils/openAfterClose/openAfterClose";
 import { BrowserOverflowMenuView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/BrowserOverflowMenu/components/BrowserOverflowMenuView";
 import { useLingui } from "@lingui/react/macro";
@@ -79,6 +85,10 @@ export function WorkspaceBrowserPane({
 			),
 	});
 	const state = useBrowserStateCore(id, runtime.state);
+	const deviceToolbar = useDeviceToolbarStateCore(id, runtime.devices);
+	const deviceToolbarSize = getDeviceToolbarSize(deviceToolbar);
+	useEffect(() => () => runtime.devices.reset(id), [runtime, id]);
+
 	useEffect(
 		() => () => {
 			if (settingsTimer.current !== null) clearTimeout(settingsTimer.current);
@@ -242,6 +252,12 @@ export function WorkspaceBrowserPane({
 					paneId={id}
 					isMenuOpen={isMenuOpen}
 					setIsMenuOpen={setIsMenuOpen}
+					isDeviceToolbarOpen={deviceToolbar.isOpen}
+					onToggleDeviceToolbar={
+						api.browser?.setDeviceEmulation
+							? () => runtime.devices.toggle(id)
+							: undefined
+					}
 					hasPage={!!state.currentUrl && state.currentUrl !== "about:blank"}
 					zoomFactor={state.zoomFactor}
 					onOpenFindBar={() => setFind(true)}
@@ -278,7 +294,21 @@ export function WorkspaceBrowserPane({
 					{navigationError}
 				</output>
 			)}
-			<div ref={placeholder} className="relative min-h-0 flex-1" />
+			{deviceToolbar.isOpen && (
+				<div data-workstation-browser-device-toolbar className="shrink-0">
+					<DeviceToolbar
+						state={deviceToolbar}
+						onSetDevice={(value) => runtime.devices.setDevice(id, value)}
+						onToggleRotate={() => runtime.devices.toggleRotate(id)}
+						onClose={() => runtime.devices.close(id)}
+					/>
+				</div>
+			)}
+			<BrowserViewportView
+				deviceToolbar={deviceToolbar}
+				deviceToolbarSize={deviceToolbarSize}
+				placeholderRef={placeholder}
+			/>
 			{overlay &&
 				createPortal(
 					<>

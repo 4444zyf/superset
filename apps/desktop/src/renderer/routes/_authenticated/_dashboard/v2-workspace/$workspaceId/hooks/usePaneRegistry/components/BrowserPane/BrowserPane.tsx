@@ -18,7 +18,8 @@ import { BrowserTabFavicon } from "./components/BrowserTabFavicon";
 import { ChromeImportBanner } from "./components/ChromeImportBanner";
 import { DesignModePopover } from "./components/DesignModePopover";
 import { DeviceToolbar } from "./components/DeviceToolbar";
-import { DEFAULT_DEVICE_PRESET, DEVICE_PRESETS } from "./constants";
+import { getDeviceToolbarSize } from "./deviceToolbarStoreCore";
+import { BrowserViewportView } from "./components/BrowserViewportView";
 import { designModeStore, useDesignModeState } from "./designModeStore";
 import {
 	deviceToolbarStore,
@@ -149,12 +150,7 @@ export function BrowserPane({
 
 	const isBlankPage = !state.currentUrl || state.currentUrl === "about:blank";
 
-	const deviceForToolbar =
-		DEVICE_PRESETS.find((d) => d.id === deviceToolbar.deviceId) ??
-		DEFAULT_DEVICE_PRESET;
-	const deviceToolbarSize = deviceToolbar.isRotated
-		? { width: deviceForToolbar.height, height: deviceForToolbar.width }
-		: { width: deviceForToolbar.width, height: deviceForToolbar.height };
+	const deviceToolbarSize = getDeviceToolbarSize(deviceToolbar);
 
 	// Anchor the composer under the clicked element. The composer renders in
 	// the pane's overlay layer, which mirrors the placeholder's box, so the
@@ -288,28 +284,11 @@ export function BrowserPane({
 					onClose={() => deviceToolbarStore.close(paneId)}
 				/>
 			)}
-			<div
-				className={
-					deviceToolbar.isOpen
-						? "flex min-h-0 w-full flex-1 items-center justify-center overflow-auto bg-muted/20"
-						: "min-h-0 w-full flex-1"
-				}
-			>
-				<div
-					ref={placeholderRef}
-					style={
-						deviceToolbar.isOpen
-							? {
-									width: deviceToolbarSize.width,
-									height: deviceToolbarSize.height,
-								}
-							: undefined
-					}
-					className={
-						deviceToolbar.isOpen ? "shrink-0 shadow-lg" : "h-full w-full"
-					}
-				/>
-			</div>
+			<BrowserViewportView
+				deviceToolbar={deviceToolbar}
+				deviceToolbarSize={deviceToolbarSize}
+				placeholderRef={placeholderRef}
+			/>
 			{/* Everything that must paint over the page goes through the registry's
 			    overlay layer: the webview is hoisted out of the pane tree, so no
 			    z-index in here can reach above it. */}
