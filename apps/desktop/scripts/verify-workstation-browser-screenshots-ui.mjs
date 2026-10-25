@@ -43,14 +43,12 @@ function driver(options) {
 	const press = async (point) => {
 		assert.ok(point);
 		for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
-			await options
-				.getPage()
-				.call("Input.dispatchMouseEvent", {
-					type,
-					...point,
-					button: type === "mouseMoved" ? "none" : "left",
-					clickCount: 1,
-				});
+			await options.getPage().call("Input.dispatchMouseEvent", {
+				type,
+				...point,
+				button: type === "mouseMoved" ? "none" : "left",
+				clickCount: 1,
+			});
 	};
 	const capture = async () => {
 		await menu.open();
@@ -68,6 +66,7 @@ async function verifyFile(options, row, directory) {
 	assert.equal(bytes.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
 	const decoded = await options.inspectClipboardImage(bytes.toString("base64"));
 	assert.deepEqual(decoded.size, { width: row.width, height: row.height });
+	assert.equal(decoded.corner[3], 255, "captured page uses an opaque canvas");
 	assert.ok(row.width > 0 && row.height > 0);
 	return {
 		id: row.id,
@@ -135,6 +134,11 @@ export async function verifyWorkstationBrowserScreenshotsUi(options, context) {
 			return row;
 		};
 		report.first = await captureAndCheck(1);
+		assert.deepEqual(
+			report.files[0].corner,
+			[255, 255, 255, 255],
+			"the default page canvas stays white on disk and clipboard",
+		);
 		await options.screenshot("browser-screenshot-clipboard");
 		const point = await evaluate(
 			`(async()=>{const v=[...document.querySelectorAll('webview')].find(e=>e.style.visibility==='visible'),p=await v.executeJavaScript("(()=>{const e=document.querySelector('#capture-color'),r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()");const r=v.getBoundingClientRect();return {x:r.x+p.x,y:r.y+p.y};})()`,
@@ -148,6 +152,11 @@ export async function verifyWorkstationBrowserScreenshotsUi(options, context) {
 			"real page input changes captured pixels",
 		);
 		report.second = await captureAndCheck(2);
+		assert.deepEqual(
+			report.files[1].corner,
+			[130, 90, 40, 255],
+			"explicit page background colors stay exact",
+		);
 		assert.notEqual(report.files[0].pixelSha256, report.files[1].pixelSha256);
 		assert.notEqual(report.first.savePath, report.second.savePath);
 		await press(

@@ -1,3 +1,4 @@
+import { opaqueScreenshot } from "./lib/browser/opaque-screenshot";
 import {
 	WorkstationBrowserScreenshots,
 	screenshotThumbnail,
@@ -37,6 +38,7 @@ import {
 	dialog,
 	ipcMain,
 	Menu,
+	nativeImage,
 	screen,
 	session,
 	shell,
@@ -815,7 +817,10 @@ export async function startWorkstation(): Promise<void> {
 								}
 							},
 							capture: () => browserManager.capturePageImage(key),
-							commit: (image) => {
+							commit: (capturedImage) => {
+								const image = opaqueScreenshot(capturedImage, (bitmap, size) =>
+									nativeImage.createFromBitmap(bitmap, size),
+								);
 								const canonical = browserNavigation.canonical(owner, pane, url);
 								const saved = store.manager.save(image, canonical);
 								clipboard.writeImage(image);

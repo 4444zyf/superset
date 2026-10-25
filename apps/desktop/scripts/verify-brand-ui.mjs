@@ -438,7 +438,7 @@ try {
 				readClipboardText: async () => main.evaluate(`${electron}.clipboard.readText()`),
 				inspectClipboardImage: async (base64) =>
 					main.evaluate(
-						`(()=>{const image=${electron}.nativeImage.createFromBuffer(Buffer.from(${JSON.stringify(base64)},'base64'));return {size:image.getSize(),pixelSha256:process.getBuiltinModule('crypto').createHash('sha256').update(image.toBitmap()).digest('hex')};})()`,
+						`(()=>{const image=${electron}.nativeImage.createFromBuffer(Buffer.from(${JSON.stringify(base64)},'base64'));return {size:image.getSize(),pixelSha256:process.getBuiltinModule('crypto').createHash('sha256').update(image.toBitmap()).digest('hex')${process.argv.includes('--browser-screenshots')?",corner:[...image.toBitmap().subarray(0,4)]":""}};})()`,
 					),
 				samples: Number(
 					process.argv

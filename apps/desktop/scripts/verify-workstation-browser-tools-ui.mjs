@@ -55,12 +55,13 @@ export async function verifyWorkstationBrowserToolsUi(options, context) {
 		);
 		assert.ok(report.items.includes("Print"));
 		assert.ok(report.items.includes("Open DevTools"));
-		for (const unsupported of [
-			"Take a screenshot",
-			"Import cookies and passwords…",
-			"Screenshots",
-		])
-			assert.ok(!report.items.includes(unsupported));
+
+		report.screenshotCapability = await evaluate(
+			"Boolean(window.directWorkstation.browser?.screenshots&&window.directWorkstation.browser?.captureScreenshot)",
+		);
+		for (const action of ["Take a screenshot", "Screenshots"])
+			assert.equal(report.items.includes(action), report.screenshotCapability);
+		assert.ok(!report.items.includes("Import cookies and passwords…"));
 		await screenshot("browser-tools-original-menu");
 		await menu("Copy URL");
 		await until(
@@ -188,7 +189,7 @@ export async function verifyWorkstationBrowserToolsUi(options, context) {
 		);
 		await getPage().call("Page.bringToFront");
 		await open();
-		await menu("Browser settings");
+		report.settingsMenu = await menu("Browser settings");
 		await until(
 			() =>
 				evaluate(
