@@ -63,7 +63,7 @@ function driver(options) {
 	};
 	return { evaluate, until, rows, press, open, close };
 }
-function prepareSourceFiles(output, fixture, canonicalUrl) {
+export function prepareSourceFiles(output, fixture, canonicalUrl) {
 	const rel = relative(resolve(output, ".."), fixture.configRoot);
 	assert.ok(rel && !isAbsolute(rel) && !rel.startsWith(".."));
 	const url = new URL(canonicalUrl);
@@ -85,7 +85,7 @@ function prepareSourceFiles(output, fixture, canonicalUrl) {
 	execFileSync("python3", ["-c", script, path, url.href]);
 	Object.assign(fixture, JSON.parse(readFileSync(path)));
 }
-function sourceFilesUnchanged(fixture) {
+export function sourceFilesUnchanged(fixture) {
 	for (const f of fixture.sourceFiles)
 		assert.equal(
 			hash(readFileSync(f.path)),

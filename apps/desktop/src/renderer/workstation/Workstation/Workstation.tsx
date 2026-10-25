@@ -1,3 +1,4 @@
+import { WorkstationBrowserImport } from "./providers/WorkstationBrowserImport";
 import { Toaster } from "@superset/ui/sonner";
 import { tierFor } from "renderer/lib/clickPolicy/tiers";
 import type { ModifierEvent } from "renderer/lib/clickPolicy/types";
@@ -1113,97 +1114,99 @@ export function Workstation({
 		<I18nProvider locale={preferences.snapshot?.values.language ?? undefined}>
 			<Alerter />
 			<Toaster expand theme={theme.type} />
-			<WorkstationPreferencesContext value={preferences.snapshot}>
-				<WorkstationFileDocumentsContext value={documents}>
-					<WorkstationEditorGuardsContext value={editorGuards}>
-						<WorkstationChatDraftsContext value={chatDrafts}>
-							<WorkstationCloseGuard
-								api={api}
-								documents={documents}
-								chatDrafts={chatDrafts}
-								editors={editorGuards}
-								beforeClose={async () => {
-									await ui.flushOperations();
-									await views.flush();
-								}}
-							/>
-							{ui.connection && (
-								<WorkstationDocumentEvents
+			<WorkstationBrowserImport source={api.browser?.importData}>
+				<WorkstationPreferencesContext value={preferences.snapshot}>
+					<WorkstationFileDocumentsContext value={documents}>
+						<WorkstationEditorGuardsContext value={editorGuards}>
+							<WorkstationChatDraftsContext value={chatDrafts}>
+								<WorkstationCloseGuard
 									api={api}
-									connection={ui.connection}
 									documents={documents}
-								/>
-							)}
-							{content}
-							{draftManager && (
-								<WorkstationChatDraftManager
-									store={chatDrafts}
-									profiles={ui.profiles}
-									target={draftManager.target}
-									onClose={() => setDraftManager(null)}
-								/>
-							)}
-							{deleteWorkspace && connected && ui.connection && (
-								<RemoteWorkspaceDelete
-									key={JSON.stringify([
-										ui.connection.connectionId,
-										ui.connection.backendId,
-										ui.connection.namespaceId,
-										ui.connection.generation,
-										deleteWorkspace.id,
-									])}
-									api={api}
-									connection={ui.connection}
-									workspace={deleteWorkspace}
-									onClose={() => setDeleteWorkspace(null)}
-									hasUnsavedChanges={() =>
-										documents
-											.getDocuments(ui.connection!, deleteWorkspace.id)
-											.some((d) => d.dirty || d.pendingSave) ||
-										chatDrafts.hasDrafts({
-											...ui.connection!,
-											workspaceId: deleteWorkspace.id,
-										})
-									}
-									onDeleted={(warnings) => {
-										const target = ui.connection!;
-										setDeleteWorkspace(null);
-
-										void ui.operation(async () => {
-											ui.setNotice(
-												warnings.length ? warnings.join("\n") : null,
-											);
-											await views.removeWorkspace(target, deleteWorkspace.id);
-											if (
-												ui.active.current?.connectionId ===
-													target.connectionId &&
-												ui.active.current.generation === target.generation
-											) {
-												await ui.refresh(target);
-											}
-										});
+									chatDrafts={chatDrafts}
+									editors={editorGuards}
+									beforeClose={async () => {
+										await ui.flushOperations();
+										await views.flush();
 									}}
 								/>
-							)}
-						</WorkstationChatDraftsContext>
-					</WorkstationEditorGuardsContext>
-				</WorkstationFileDocumentsContext>
-				{settingsOpen && (
-					<Suspense fallback={null}>
-						<WorkstationSettings
-							initialSection={settingsSection}
-							open={settingsOpen}
-							onOpenChange={setSettingsOpen}
-							snapshot={preferences.snapshot}
-							saving={preferences.saving}
-							error={preferences.error}
-							onUpdate={preferences.update}
-							onReload={preferences.reload}
-							browserPreferences={browserPreferences}
-						/>
-					</Suspense>
-				)}
-			</WorkstationPreferencesContext>
+								{ui.connection && (
+									<WorkstationDocumentEvents
+										api={api}
+										connection={ui.connection}
+										documents={documents}
+									/>
+								)}
+								{content}
+								{draftManager && (
+									<WorkstationChatDraftManager
+										store={chatDrafts}
+										profiles={ui.profiles}
+										target={draftManager.target}
+										onClose={() => setDraftManager(null)}
+									/>
+								)}
+								{deleteWorkspace && connected && ui.connection && (
+									<RemoteWorkspaceDelete
+										key={JSON.stringify([
+											ui.connection.connectionId,
+											ui.connection.backendId,
+											ui.connection.namespaceId,
+											ui.connection.generation,
+											deleteWorkspace.id,
+										])}
+										api={api}
+										connection={ui.connection}
+										workspace={deleteWorkspace}
+										onClose={() => setDeleteWorkspace(null)}
+										hasUnsavedChanges={() =>
+											documents
+												.getDocuments(ui.connection!, deleteWorkspace.id)
+												.some((d) => d.dirty || d.pendingSave) ||
+											chatDrafts.hasDrafts({
+												...ui.connection!,
+												workspaceId: deleteWorkspace.id,
+											})
+										}
+										onDeleted={(warnings) => {
+											const target = ui.connection!;
+											setDeleteWorkspace(null);
+
+											void ui.operation(async () => {
+												ui.setNotice(
+													warnings.length ? warnings.join("\n") : null,
+												);
+												await views.removeWorkspace(target, deleteWorkspace.id);
+												if (
+													ui.active.current?.connectionId ===
+														target.connectionId &&
+													ui.active.current.generation === target.generation
+												) {
+													await ui.refresh(target);
+												}
+											});
+										}}
+									/>
+								)}
+							</WorkstationChatDraftsContext>
+						</WorkstationEditorGuardsContext>
+					</WorkstationFileDocumentsContext>
+					{settingsOpen && (
+						<Suspense fallback={null}>
+							<WorkstationSettings
+								initialSection={settingsSection}
+								open={settingsOpen}
+								onOpenChange={setSettingsOpen}
+								snapshot={preferences.snapshot}
+								saving={preferences.saving}
+								error={preferences.error}
+								onUpdate={preferences.update}
+								onReload={preferences.reload}
+								browserPreferences={browserPreferences}
+							/>
+						</Suspense>
+					)}
+				</WorkstationPreferencesContext>
+			</WorkstationBrowserImport>
 		</I18nProvider>
 	);
 }

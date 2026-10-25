@@ -1,3 +1,5 @@
+import { BrowserImportSettingView } from "renderer/routes/_authenticated/settings/browser/components/BrowserSettings/components/BrowserImportSettingView";
+import { useWorkstationBrowserImport } from "../../../../providers/WorkstationBrowserImport";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Button } from "@superset/ui/button";
 import { useEffect, useState, type Ref } from "react";
@@ -19,6 +21,7 @@ export function WorkstationBrowserSettings({
 	sectionRef?: Ref<HTMLElement>;
 }) {
 	const { t } = useLingui();
+	const openImport = useWorkstationBrowserImport();
 	const values = preferences.snapshot?.values;
 	const [draft, setDraft] = useState("");
 	useEffect(() => setDraft(values?.homepageUrl ?? ""), [values?.homepageUrl]);
@@ -79,6 +82,7 @@ export function WorkstationBrowserSettings({
 						if (homepageUrl !== values?.homepageUrl) update({ homepageUrl });
 					}}
 				/>
+				{openImport && <BrowserImportSettingView onImport={openImport} />}
 				{values && (
 					<BrowserLinkSettingsView
 						showPortDescription={false}

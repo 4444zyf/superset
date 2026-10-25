@@ -1,10 +1,9 @@
+import { BrowserImportSettingView } from "./components/BrowserImportSettingView";
 import { BrowserHomepageSettingView } from "./components/BrowserHomepageSettingView";
 import { Trans, useLingui } from "@lingui/react/macro";
-import { Button } from "@superset/ui/button";
 import { Label } from "@superset/ui/label";
 import { Switch } from "@superset/ui/switch";
 import { useEffect, useState } from "react";
-import { TbDownload } from "react-icons/tb";
 import { ImportHistoryDialog } from "renderer/components/ImportHistoryDialog";
 import { electronTrpc } from "renderer/lib/electron-trpc";
 import { HighlightText } from "renderer/routes/_authenticated/settings/components/HighlightText";
@@ -137,33 +136,10 @@ export function BrowserSettings({ visibleItems }: BrowserSettingsProps) {
 				)}
 
 				{showImportHistory && (
-					<div className="flex items-center justify-between gap-4">
-						<div className="space-y-0.5">
-							<Label className="text-sm font-medium">
-								<HighlightText
-									text={t({
-										message: "Import settings from another browser",
-									})}
-									query={searchQuery}
-								/>
-							</Label>
-							<p className="text-xs text-muted-foreground">
-								<Trans>
-									Copy browsing history and logins from Chrome, Brave, Arc, or
-									another Chromium browser into Superset.
-								</Trans>
-							</p>
-						</div>
-						<Button
-							variant="outline"
-							size="sm"
-							className="gap-2 shrink-0"
-							onClick={() => setIsImportOpen(true)}
-						>
-							<TbDownload className="size-4" />
-							<Trans>Import…</Trans>
-						</Button>
-					</div>
+					<BrowserImportSettingView
+						searchQuery={searchQuery}
+						onImport={() => setIsImportOpen(true)}
+					/>
 				)}
 				{[SETTING_ITEM_ID.LINKS_URL, SETTING_ITEM_ID.LINKS_PORT].some((id) =>
 					isItemVisible(id, visibleItems),

@@ -16,22 +16,17 @@ afterEach(() => {
 });
 test("history selection removes its dialog when another browser dialog is available and the pane rerenders", async () => {
 	jest.useFakeTimers();
-	const profile = {
-			id: "/owned/profile",
-			browserKey: "chrome",
-			browserName: "Chrome",
-			profileName: "Owned",
-		},
-		row = {
-			id: "owned",
-			url: "https://owned.test/",
-			title: "Owned visit",
-			faviconUrl: null,
-			lastVisitedAt: 1,
-			visitCount: 1,
-		};
+	const row = {
+		id: "owned",
+		url: "https://owned.test/",
+		title: "Owned visit",
+		faviconUrl: null,
+		lastVisitedAt: 1,
+		visitCount: 1,
+	};
 	const props = {
 		api: {
+			copyText: async () => {},
 			browser: {
 				register: async () => {},
 				unregister: async () => {},
@@ -47,18 +42,12 @@ test("history selection removes its dialog when another browser dialog is availa
 					upsert: async () => {},
 					clear: async () => {},
 				},
-				importData: {
-					getSources: async () => ({
-						sources: [profile],
-						needsFullDiskAccess: false,
-					}),
-					importHistory: async () => ({ imported: 0 }),
-					importCookies: async () => ({
-						imported: 0,
-						skipped: 0,
-						keyUnavailable: true,
-					}),
-					requestFullDiskAccess: async () => {},
+				screenshots: {
+					getSnapshot: async () => ({ revision: 0, rows: [] }),
+					onChanged: () => () => {},
+					clear: async () => ({ success: true }),
+					open: async () => ({ success: true }),
+					showInFolder: async () => ({ success: true }),
 				},
 			},
 		},

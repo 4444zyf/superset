@@ -1,4 +1,4 @@
-import { ImportHistoryDialogView } from "renderer/components/ImportHistoryDialog/components/ImportHistoryDialogView";
+import { useWorkstationBrowserImport } from "../../../../providers/WorkstationBrowserImport";
 import { ScreenshotsDialogView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/ScreenshotsDialog/components/ScreenshotsDialogView";
 import { useScreenshotToast } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/hooks/useScreenshotToast/useScreenshotToast";
 import { screenshotsSource } from "./utils/screenshots-source/screenshots-source";
@@ -73,7 +73,7 @@ export function WorkspaceBrowserPane({
 	const [find, setFind] = useState(false);
 	const [historyPane, setHistoryPane] = useState<string | null>(null);
 	const [clearPane, setClearPane] = useState<string | null>(null);
-	const [importPane, setImportPane] = useState<string | null>(null);
+	const openImport = useWorkstationBrowserImport();
 	const [screenshotsPane, setScreenshotsPane] = useState<string | null>(null);
 	const [downloadsPane, setDownloadsPane] = useState<string | null>(null);
 	const [navigationError, setNavigationError] = useState<string | null>(null);
@@ -375,9 +375,7 @@ export function WorkspaceBrowserPane({
 							: undefined
 					}
 					onImport={
-						api.browser?.importData
-							? () => openBrowserDialog(() => setImportPane(id))
-							: undefined
+						openImport ? () => openBrowserDialog(openImport) : undefined
 					}
 					handleScreenshot={
 						api.browser?.captureScreenshot ? captureScreenshot : undefined
@@ -459,19 +457,6 @@ export function WorkspaceBrowserPane({
 					open={screenshotsPane === id}
 					onOpenChange={(open) =>
 						setScreenshotsPane((current) =>
-							open ? id : current === id ? null : current,
-						)
-					}
-				/>
-			)}
-
-			{api.browser?.importData && (
-				<ImportHistoryDialogView
-					key={`${id}:import`}
-					source={api.browser.importData}
-					open={importPane === id}
-					onOpenChange={(open) =>
-						setImportPane((current) =>
 							open ? id : current === id ? null : current,
 						)
 					}
