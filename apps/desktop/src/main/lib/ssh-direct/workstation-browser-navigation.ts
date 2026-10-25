@@ -23,6 +23,8 @@ interface Navigation {
 	current(): boolean;
 	sequence: number;
 	origins: Map<string, string>;
+	iconCandidates: Set<string>;
+	pageOrigin: string | null;
 }
 
 export class WorkstationBrowserNavigation {
@@ -64,6 +66,8 @@ export class WorkstationBrowserNavigation {
 			current,
 			sequence: 0,
 			origins: new Map(),
+			iconCandidates: new Set(),
+			pageOrigin: null,
 		};
 		this.entries.set(key, entry);
 		const intercept = (
@@ -124,10 +128,30 @@ export class WorkstationBrowserNavigation {
 			}
 		};
 		guest.on("before-input-event", find);
+		const icons = (_event: unknown, urls: string[]) => {
+			if (!this.active(key, entry)) return;
+			entry.iconCandidates = new Set(
+				urls
+					.slice(0, 16)
+					.filter((url) => typeof url === "string" && url.length <= 16384),
+			);
+		};
+		const committed = (_event: unknown, url: string) => {
+			let origin: string | null = null;
+			try {
+				origin = new URL(url).origin;
+			} catch {}
+			if (entry.pageOrigin !== origin) entry.iconCandidates.clear();
+			entry.pageOrigin = origin;
+		};
+		guest.on("page-favicon-updated", icons);
+		guest.on("did-navigate", committed);
 		return () => {
 			guest.off("will-navigate", intercept);
 			guest.off("will-redirect", intercept);
 			guest.off("before-input-event", find);
+			guest.off("page-favicon-updated", icons);
+			guest.off("did-navigate", committed);
 			entry.sequence++;
 			if (this.entries.get(key) === entry) this.entries.delete(key);
 		};
@@ -162,6 +186,66 @@ export class WorkstationBrowserNavigation {
 			url.protocol = original.protocol;
 		}
 		return url.href;
+	}
+	iconAllowed(
+		owner: number,
+		pane: WorkstationBrowserPane,
+		candidate: string,
+	): boolean {
+		try {
+			const entry = this.require(owner, pane);
+			return (
+				entry.iconCandidates.has(candidate) ||
+				[...entry.iconCandidates].some(
+					(url) => this.canonical(owner, pane, url) === candidate,
+				)
+			);
+		} catch {
+			return false;
+		}
+	}
+	async resolveIcon(
+		owner: number,
+		pane: WorkstationBrowserPane,
+		candidate: string,
+		redirect?: string,
+	): Promise<string | null> {
+		if (!this.iconAllowed(owner, pane, candidate)) return null;
+		const entry = this.require(owner, pane);
+		const declared = entry.iconCandidates.has(candidate)
+			? candidate
+			: [...entry.iconCandidates].find(
+					(url) => this.canonical(owner, pane, url) === candidate,
+				);
+		if (!declared) return null;
+		const target = terminalUrlTarget(
+			redirect ?? declared,
+			this.dependencies.isLocal(pane.connectionId),
+		);
+		if (!target) return null;
+		if (
+			target.kind === "external" ||
+			entry.origins.has(new URL(target.url).origin)
+		)
+			return target.url;
+		const forward = await this.dependencies.prepare(
+			entry.descriptor,
+			pane.workspaceId,
+			target.port,
+		);
+		if (
+			!this.active(this.key(owner, pane), entry) ||
+			!this.iconAllowed(owner, pane, candidate)
+		)
+			return null;
+		const actual = forwardedTerminalUrl(target.url, forward.url);
+		if (
+			!actual ||
+			(entry.origins.size >= 32 && !entry.origins.has(new URL(actual).origin))
+		)
+			return null;
+		entry.origins.set(new URL(actual).origin, new URL(target.url).origin);
+		return actual;
 	}
 	async navigate(
 		owner: number,

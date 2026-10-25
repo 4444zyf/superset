@@ -40,6 +40,7 @@ function fixture(local = false) {
 	});
 	const detach = navigation.bind(1, pane, descriptor, guest, () => current);
 	return {
+		descriptor,
 		navigation,
 		pane,
 		guest,
@@ -159,4 +160,52 @@ test("navigation keeps the original about scheme and rejects non-browser protoco
 			"not allowed",
 		);
 	f.detach();
+});
+
+test("icon reads require a current candidate and resolve SSH loopback resources in that workspace", async () => {
+	const f = fixture();
+	f.guest.emit("did-navigate", {}, "https://example.com/page");
+	f.guest.emit("page-favicon-updated", {}, ["http://localhost:3000/icon.svg"]);
+	expect(
+		await f.navigation.resolveIcon(
+			1,
+			f.pane,
+			"https://unrelated.invalid/icon.svg",
+		),
+	).toBeNull();
+	expect(
+		await f.navigation.resolveIcon(1, f.pane, "http://localhost:3000/icon.svg"),
+	).toBe("http://127.0.0.1:48000/icon.svg");
+	expect(f.prepared).toEqual([3000]);
+	f.guest.emit("did-navigate", {}, "https://other.example/page");
+	expect(
+		await f.navigation.resolveIcon(1, f.pane, "http://localhost:3000/icon.svg"),
+	).toBeNull();
+	f.detach();
+});
+
+test("a late icon forward cannot cross a replaced registration even if its client token is reused", async () => {
+	const f = fixture();
+	const prepared = Promise.withResolvers<{ url: string }>();
+	f.setPrepare(() => prepared.promise);
+	f.guest.emit("did-navigate", {}, "https://example.com/page");
+	f.guest.emit("page-favicon-updated", {}, ["http://localhost:3000/icon.svg"]);
+	const pending = f.navigation.resolveIcon(
+		1,
+		f.pane,
+		"http://localhost:3000/icon.svg",
+	);
+	f.detach();
+	const detach = f.navigation.bind(
+		1,
+		f.pane,
+		{ ...f.descriptor, instanceId: "replacement" },
+		f.guest,
+		() => true,
+	);
+	f.guest.emit("did-navigate", {}, "https://example.com/page");
+	f.guest.emit("page-favicon-updated", {}, ["http://localhost:3000/icon.svg"]);
+	prepared.resolve({ url: "http://127.0.0.1:48000" });
+	expect(await pending).toBeNull();
+	detach();
 });

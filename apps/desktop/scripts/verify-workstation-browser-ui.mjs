@@ -160,6 +160,16 @@ export async function verifyWorkstationBrowserUi(options) {
 		assert.equal(loaded.node, "undefined");
 		assert.equal(loaded.process, "undefined");
 		report.loaded = loaded;
+		if (process.argv.includes("--browser-icon-display")) {
+			report.displayedIcon = await until(
+				() =>
+					evaluate(
+						`(()=>{const image=document.querySelector('[data-workstation-browser-toolbar] img');return image?.src.startsWith('data:image/')&&image.complete&&image.naturalWidth===16&&image.naturalHeight===16?{src:image.src,width:image.naturalWidth,height:image.naturalHeight}:null;})()`,
+					),
+				"declared favicon renders through a bounded data URL under the original CSP",
+			);
+			save();
+		}
 		await screenshot("browser-owned-page");
 		await click('button[aria-label="Find in page"]');
 		await getPage().call("Input.insertText", { text: "needle" });

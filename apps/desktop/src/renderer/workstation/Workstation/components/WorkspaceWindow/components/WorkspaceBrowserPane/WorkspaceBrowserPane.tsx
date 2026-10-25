@@ -1,6 +1,12 @@
 import { useLingui } from "@lingui/react/macro";
 import { Search } from "lucide-react";
-import { useLayoutEffect, useRef, useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { BrowserErrorOverlay } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/BrowserErrorOverlay";
 import { BrowserFindBarView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/BrowserFindBar/components/BrowserFindBarView";
@@ -64,6 +70,48 @@ export function WorkspaceBrowserPane({
 			),
 	});
 	const state = useBrowserStateCore(id, runtime.state);
+	const [displayIcon, setDisplayIcon] = useState<string | null>(null);
+	useEffect(() => {
+		let active = true;
+		setDisplayIcon(null);
+		const url = state.faviconUrl;
+		if (!url) return;
+		if (
+			url.length <= 16384 &&
+			/^data:image\/(?:png|jpeg|gif|webp|avif|svg\+xml|x-icon|vnd\.microsoft\.icon)[;,]/i.test(
+				url,
+			)
+		) {
+			setDisplayIcon(url);
+			return;
+		}
+		const pane = runtime.registration(id);
+		if (!pane || !api.browser?.getIcon) return;
+		void api.browser.getIcon({ pane, url }).then(
+			(result) => {
+				if (
+					active &&
+					runtime.registration(id)?.registrationId === pane.registrationId
+				)
+					setDisplayIcon(result?.dataUrl ?? null);
+			},
+			() => {},
+		);
+		return () => {
+			active = false;
+		};
+	}, [api, id, runtime, state.faviconUrl]);
+	const loadHistory = useCallback(
+		async () =>
+			(await api.browser!.history!.getAll()).map((row) => ({
+				...row,
+				faviconUrl:
+					row.faviconUrl && row.faviconUrl === pane.browser.faviconUrl
+						? displayIcon
+						: null,
+			})),
+		[api, displayIcon, pane.browser.faviconUrl],
+	);
 	useLayoutEffect(() => {
 		if (!placeholder.current) return;
 		runtime.attach(id, placeholder.current);
@@ -101,10 +149,10 @@ export function WorkspaceBrowserPane({
 				<div className="min-w-0 flex-1" data-workstation-browser-toolbar>
 					<BrowserToolbarView
 						registry={runtime.core}
-						loadHistory={api.browser!.history!.getAll}
+						loadHistory={loadHistory}
 						paneId={id}
 						currentUrl={state.currentUrl}
-						faviconUrl={state.faviconUrl}
+						faviconUrl={displayIcon}
 						isLoading={state.isLoading}
 						canGoBack={state.canGoBack}
 						canGoForward={state.canGoForward}

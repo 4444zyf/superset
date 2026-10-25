@@ -229,7 +229,10 @@ export class WorkstationBrowserRegistry {
 			this.release(record, false);
 	}
 
-	getRegistration(ownerId: number, input: unknown): DirectDescriptor | null {
+	private findRegistration(
+		ownerId: number,
+		input: unknown,
+	): Registration | null {
 		const pane = workstationBrowserPaneSchema.parse(input);
 		if (this.owner?.id !== ownerId) return null;
 		const record = this.registrations.get(this.paneKey(pane));
@@ -239,7 +242,14 @@ export class WorkstationBrowserRegistry {
 			!this.current(record)
 		)
 			return null;
-		return { ...record.descriptor };
+		return record;
+	}
+	getRegistration(ownerId: number, input: unknown): DirectDescriptor | null {
+		const record = this.findRegistration(ownerId, input);
+		return record ? { ...record.descriptor } : null;
+	}
+	getWebContentsId(ownerId: number, input: unknown): number | null {
+		return this.findRegistration(ownerId, input)?.guest.id ?? null;
 	}
 
 	closeConnection(connectionId: string): void {

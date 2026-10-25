@@ -69,6 +69,7 @@ import { closeWindowTransports } from "./lib/ssh-direct/window-transports";
 import { WorkspaceRestoreCoordinator } from "./lib/ssh-direct/workspace-restore-coordinator";
 import { WorkspaceViewStore } from "./lib/ssh-direct/workspace-view-store";
 import { WorkstationBrowserHistory } from "./lib/ssh-direct/workstation-browser-history";
+import { WorkstationBrowserIcons } from "./lib/ssh-direct/workstation-browser-icons";
 import { WorkstationBrowserNavigation } from "./lib/ssh-direct/workstation-browser-navigation";
 import { WorkstationBrowserRegistry } from "./lib/ssh-direct/workstation-browser-registry";
 import { guardWorkstationWebviews } from "./lib/ssh-direct/workstation-browser-security";
@@ -328,6 +329,48 @@ export async function startWorkstation(): Promise<void> {
 		send: (owner, event) => {
 			if (window?.webContents.id === owner && !window.webContents.isDestroyed())
 				window.webContents.send(WORKSTATION_BROWSER_CHANNEL, event);
+		},
+	});
+	const browserIcons = new WorkstationBrowserIcons({
+		resolve: async (owner, pane, candidate) => {
+			const descriptor = browserRegistry?.getRegistration(owner, pane);
+			if (!descriptor) return null;
+			const guestId = browserRegistry?.getWebContentsId(owner, pane);
+			if (!guestId) return null;
+			const guest = webContents.fromId(guestId);
+			if (!guest || guest.isDestroyed()) return null;
+			const url = await browserNavigation.resolveIcon(owner, pane, candidate);
+			if (!url) return null;
+			return {
+				key: JSON.stringify([
+					owner,
+					pane.connectionId,
+					pane.generation,
+					descriptor.backendId,
+					descriptor.namespaceId,
+					descriptor.instanceId,
+					pane.workspaceId,
+					pane.paneId,
+					pane.registrationId,
+					guestId,
+					candidate,
+				]),
+				url,
+				current: () => {
+					const current = browserRegistry?.getRegistration(owner, pane);
+					return (
+						!!current &&
+						current.backendId === descriptor.backendId &&
+						current.namespaceId === descriptor.namespaceId &&
+						current.instanceId === descriptor.instanceId &&
+						browserRegistry?.getWebContentsId(owner, pane) === guestId &&
+						browserNavigation.iconAllowed(owner, pane, candidate)
+					);
+				},
+				resolveRedirect: (redirect) =>
+					browserNavigation.resolveIcon(owner, pane, candidate, redirect),
+				fetch: (url, options) => guest.session.fetch(url, options),
+			};
 		},
 	});
 	const sockets = new SocketBroker((id, socketPath) =>
@@ -634,6 +677,15 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "getBrowserIcon": {
+					const input = z
+						.strictObject({
+							pane: workstationBrowserPaneSchema,
+							url: z.string().min(1).max(16384),
+						})
+						.parse(payload);
+					return browserIcons.get(owner, input.pane, input.url);
+				}
 				case "navigateBrowser": {
 					const input = z
 						.strictObject({

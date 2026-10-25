@@ -246,7 +246,10 @@ export function BrowserToolbarView({
 							</span>
 						) : (
 							<>
-								<BrowserTabFavicon src={faviconUrl} />
+								<BrowserTabFavicon
+									key={faviconUrl ?? "none"}
+									src={faviconUrl}
+								/>
 								<span className="min-w-0 truncate text-foreground/75 transition-colors group-hover:text-foreground">
 									{url}
 								</span>

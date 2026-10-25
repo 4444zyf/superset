@@ -46,6 +46,10 @@ export type WorkstationBrowserNavigationResult =
 	| { status: "superseded" };
 
 export interface WorkstationBrowserApi {
+	getIcon?(input: {
+		pane: WorkstationBrowserPane;
+		url: string;
+	}): Promise<{ dataUrl: string } | null>;
 	navigate?(input: {
 		pane: WorkstationBrowserPane;
 		url: string;
