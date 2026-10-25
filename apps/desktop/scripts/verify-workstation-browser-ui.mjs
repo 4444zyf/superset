@@ -63,7 +63,10 @@ export async function verifyWorkstationBrowserUi(options) {
 			: "  pass",
 		`  content_type='text/html; charset=utf-8'`,
 		`  if self.path.startswith('/icon.svg'): body=('<svg xmlns="http://www.w3.org/2000/svg" data-owned="'+state['marker']+'" width="16" height="16"><rect width="16" height="16" fill="green"/></svg>').encode();content_type='image/svg+xml'`,
-		"  self.send_response(200);self.send_header('Content-Type',content_type);self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)",
+		process.argv.includes("--browser-clear-data")
+			? "  cache_control='public, max-age=3600' if self.path.startswith('/owned-cache?') else 'no-store'"
+			: "  cache_control='no-store'",
+		"  self.send_response(200);self.send_header('Content-Type',content_type);self.send_header('Cache-Control',cache_control);self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)",
 		" def log_message(self,*args): pass",
 		"server=http.server.HTTPServer(('127.0.0.1',0),Handler)",
 		"state['port']=server.server_port;save()",
@@ -246,6 +249,18 @@ export async function verifyWorkstationBrowserUi(options) {
 			save();
 		}
 
+		if (process.argv.includes("--browser-clear-data")) {
+			const { verifyWorkstationBrowserClearUi } = await import(
+				"./verify-workstation-browser-clear-ui.mjs"
+			);
+			report.clearData = await verifyWorkstationBrowserClearUi(options, {
+				url,
+				marker,
+				guestRead,
+				readProof,
+			});
+			save();
+		}
 		await screenshot("browser-owned-page");
 		await click('button[aria-label="Find in page"]');
 		await getPage().call("Input.insertText", { text: "needle" });

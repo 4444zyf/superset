@@ -1,4 +1,8 @@
 import {
+	ClearBrowsingDataDialogView,
+	type ClearBrowsingDataSource,
+} from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/ClearBrowsingDataDialog/components/ClearBrowsingDataDialogView";
+import {
 	HistoryDialogView,
 	type BrowserHistorySource,
 	type HistoryEntry,
@@ -62,6 +66,7 @@ export function WorkspaceBrowserPane({
 
 	const [find, setFind] = useState(false);
 	const [historyPane, setHistoryPane] = useState<string | null>(null);
+	const [clearPane, setClearPane] = useState<string | null>(null);
 	const [navigationError, setNavigationError] = useState<string | null>(null);
 	const id = runtime.ensure(connection, workspaceId, pane, {
 		onPersist: (state) => {
@@ -172,6 +177,16 @@ export function WorkspaceBrowserPane({
 		};
 	}, [api, loadHistory, decorateHistory]);
 
+	const clearDataSource = useMemo<ClearBrowsingDataSource | null>(() => {
+		const history = api.browser?.history,
+			clear = api.browser?.clearData;
+		if (!history || !clear) return null;
+		return {
+			clearHistory: () => history.clear(),
+			clearCookies: () => clear({ type: "cookies" }),
+			clearCache: () => clear({ type: "cache" }),
+		};
+	}, [api]);
 	useLayoutEffect(() => {
 		if (!placeholder.current) return;
 		runtime.attach(id, placeholder.current);
@@ -310,6 +325,11 @@ export function WorkspaceBrowserPane({
 							? () => openBrowserDialog(onBrowserSettings)
 							: undefined
 					}
+					onClearData={
+						clearDataSource
+							? () => openBrowserDialog(() => setClearPane(id))
+							: undefined
+					}
 					onHistory={
 						historySource
 							? () => openBrowserDialog(() => setHistoryPane(id))
@@ -339,6 +359,18 @@ export function WorkspaceBrowserPane({
 					open={historyPane === id}
 					onOpenChange={(open) => setHistoryPane(open ? id : null)}
 					onSelect={navigate}
+				/>
+			)}
+			{clearDataSource && (
+				<ClearBrowsingDataDialogView
+					key={id}
+					source={clearDataSource}
+					open={clearPane === id}
+					onOpenChange={(open) =>
+						setClearPane((current) =>
+							open ? id : current === id ? null : current,
+						)
+					}
 				/>
 			)}
 			<BrowserViewportView

@@ -57,7 +57,12 @@ export type WorkstationBrowserDeviceEmulation = z.infer<
 	typeof workstationBrowserDeviceEmulationSchema
 >;
 
+export const workstationBrowserDataTypeSchema = z.enum(["cookies", "cache"]);
+
 export interface WorkstationBrowserApi {
+	clearData?(input: {
+		type: z.infer<typeof workstationBrowserDataTypeSchema>;
+	}): Promise<{ success: boolean }>;
 	setDeviceEmulation?(input: {
 		pane: WorkstationBrowserPane;
 		params: WorkstationBrowserDeviceEmulation;

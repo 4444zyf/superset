@@ -1,3 +1,4 @@
+import { clearBrowserSessionData } from "main/lib/browser/clear-browser-session-data";
 import { observable } from "@trpc/server/observable";
 import { session } from "electron";
 import {
@@ -348,24 +349,7 @@ export const createBrowserRouter = () => {
 			)
 			.mutation(async ({ input }) => {
 				const ses = session.fromPartition("persist:superset");
-				switch (input.type) {
-					case "cookies":
-						await ses.clearStorageData({ storages: ["cookies"] });
-						break;
-					case "cache":
-						await ses.clearCache();
-						break;
-					case "storage":
-						await ses.clearStorageData({
-							storages: ["localstorage", "indexdb"],
-						});
-						break;
-					case "all":
-						await ses.clearStorageData();
-						await ses.clearCache();
-						break;
-				}
-				return { success: true };
+				return clearBrowserSessionData(ses, input);
 			}),
 
 		// Chrome's "device toolbar" — a fixed viewport size for responsive

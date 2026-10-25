@@ -1,3 +1,4 @@
+import { clearBrowserSessionData } from "./lib/browser/clear-browser-session-data";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -31,6 +32,7 @@ import {
 	ipcMain,
 	Menu,
 	screen,
+	session,
 	shell,
 	webContents,
 } from "electron";
@@ -47,6 +49,7 @@ import {
 } from "../shared/direct-workstation";
 import {
 	workstationBrowserPaneSchema,
+	workstationBrowserDataTypeSchema,
 	workstationBrowserDeviceEmulationSchema,
 } from "../shared/workstation-browser";
 import { browserPageStateSchema } from "../shared/workspace-view-v2";
@@ -694,6 +697,15 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "clearBrowserData": {
+					const input = z
+						.strictObject({ type: workstationBrowserDataTypeSchema })
+						.parse(payload);
+					return clearBrowserSessionData(
+						session.fromPartition("persist:superset"),
+						input,
+					);
+				}
 				case "setBrowserDeviceEmulation": {
 					const { pane, params } = z
 						.strictObject({

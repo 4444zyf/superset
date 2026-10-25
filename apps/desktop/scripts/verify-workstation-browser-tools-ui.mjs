@@ -60,7 +60,6 @@ export async function verifyWorkstationBrowserToolsUi(options, context) {
 			"Import cookies and passwords…",
 			"Downloads",
 			"Screenshots",
-			"Clear browsing data",
 		])
 			assert.ok(!report.items.includes(unsupported));
 		await screenshot("browser-tools-original-menu");

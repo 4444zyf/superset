@@ -1,3 +1,4 @@
+import { Toaster } from "@superset/ui/sonner";
 import { tierFor } from "renderer/lib/clickPolicy/tiers";
 import type { ModifierEvent } from "renderer/lib/clickPolicy/types";
 import type { BrowserLinkAction } from "shared/workstation-browser-preferences";
@@ -1111,6 +1112,7 @@ export function Workstation({
 	return (
 		<I18nProvider locale={preferences.snapshot?.values.language ?? undefined}>
 			<Alerter />
+			<Toaster expand theme={theme.type} />
 			<WorkstationPreferencesContext value={preferences.snapshot}>
 				<WorkstationFileDocumentsContext value={documents}>
 					<WorkstationEditorGuardsContext value={editorGuards}>
