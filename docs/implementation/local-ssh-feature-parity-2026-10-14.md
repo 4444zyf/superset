@@ -1309,3 +1309,14 @@ SSH verified-ssh 亦退出0，先完成20次恢复；原多端口确认Cancel保
 本地原PID174738/174750、probe shell174963/服务174972，SSH原PID175748/175754/175760、probe shell178958/服务178974及各执行/cwd保持；未选本地B PID174838仍活且执行不变。复制阶段主进程浏览器打开计数0→0，之前明确external正常Chromium访问保留；每阶段和最终renderer错误均为空。所有转发最后单独关闭，双server由原probe终端Ctrl+C停止。旧失败图、新本地双URL图、SSH重开后双URL和关闭一条的图均实际查看，其余仅称捕获。
 
 自有本地Xorg174346/Chromium174361、SSH Xorg175303/Chromium175318均通过runner持有Popen结束并wait退出0，namespace/后端/SSH沿用finally清理。两轮后全部2205文件哈希稳定，CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb；没有CLI重包、安装包、密封发行归档或Actions。[本阶段原始证据](evidence/local-ssh-feature-parity/stage72)。跨工作区端口总览、标签、内部浏览器及其他原版功能继续待补；真实供应商Agent、外部SSH和物理Mac不混称通过，整体对齐未完成。
+
+
+## 阶段七十三：原内置浏览器运行时的可注入核心
+
+为后续本地/SSH工作站复用原浏览器，抽出BrowserRuntimeRegistryCore，移除该核心对默认electronTrpcClient的运行时依赖；注册、注销、活动pane订阅和浏览历史写入通过结构化窄接口注入。原BrowserRuntimeRegistryImpl继续默认注入原Electron客户端，原导出类型、缩放常量、热更新单例和既有调用者合同保持。无账号依赖图增加该核心作为检查入口，禁止重新引入云端/账号/遥测和旧设置桥。
+
+以f1eeb1a0501fc1d5d1488ee6373ffeec119c87d0为基线，格式化后仅标准化类名及构造参数的依赖类型/默认值，原类实现逐字一致（标准化主体SHA256 c58d72cbe97d4fc00e4b8767c4b05fc74c4d97aaba8411974211c339718c08e5）；原热更新单例逐字一致。原导航、前进后退、查找、缩放、持久webview/overlay、指针穿透、后台LRU和agent活动页面例外均沿用，不另写iframe替代。
+
+抽取前原11项/38断言通过；格式化后原11项及扩展依赖图合计12项/2690断言/2文件通过。新环境初次完整类型检查暴露旧工作树遗留的依赖链接和pty-daemon声明，原始错误保留。执行bun install --frozen-lockfile --ignore-scripts及pty-daemon的build:types恢复声明后，完整桌面类型检查无错误；锁文件、依赖声明均未修改。三份源码格式检查修复两份格式；插件检查通过。没有新增产品文案、持久键、数据库或IPC。
+
+本阶段是复用准备，未启用工作站webview，没有把组件测试称为实窗验收；历史写入接口仍要求真实存储实现，未以成功空操作代替。未重编译/打包CLI、后端发行归档、安装包或使用Actions。后续仍需独立的owner/connection/namespace/generation隔离、webview安全入口、原组件适配和兼容的页面持久化。[原始日志与比对证明](evidence/local-ssh-feature-parity/stage73)。用户要求的滚动/复制粘贴已完成阶段六十二/六十三的源码与本地/拥有SSH验证，真实供应商TUI和物理Mac仍未冒称验收；整体原版功能对齐尚未完成。

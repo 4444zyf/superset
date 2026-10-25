@@ -1,0 +1,19 @@
+bun test v1.4.2 (744846f84)
+
+src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/browserRuntimeRegistry.test.ts:
+(pass) browserRuntimeRegistry detached persistence > retains its persistence callback for navigation completion after detach [1.63ms]
+(pass) browserRuntimeRegistry detached persistence > hidden-webview eviction spares panes with a live CDP session [0.45ms]
+(pass) browserRuntimeRegistry detached persistence > surfaces BrowserManager unregister failures [0.34ms]
+(pass) browserRuntimeRegistry pointer passthrough > mirrors the passthrough state onto visible webviews only [0.18ms]
+(pass) browserRuntimeRegistry overlay layer > mirrors the placeholder rect onto the overlay as well as the webview [0.08ms]
+(pass) browserRuntimeRegistry overlay layer > hides the overlay with the webview on detach [0.04ms]
+(pass) browserRuntimeRegistry overlay layer > reports no overlay for an unknown pane [0.03ms]
+(pass) browserRuntimeRegistry guest lifecycle > tracks the URL and title from events, not from the guest [0.90ms]
+(pass) browserRuntimeRegistry guest lifecycle > records the attempted URL of a failed main-frame load only [0.13ms]
+(pass) browserRuntimeRegistry guest lifecycle > drops the entry and closes the pane when the guest is destroyed [0.49ms]
+(pass) browserRuntimeRegistry background open > registers a hidden guest with a usable viewport and persists navigation without attaching [1.68ms]
+
+ 11 pass
+ 0 fail
+ 38 expect() calls
+Ran 11 tests across 1 file. [447.00ms]
