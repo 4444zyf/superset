@@ -32,6 +32,10 @@ import { verifyWorkstationRunUi } from "./verify-workstation-run-ui.mjs";
 import { verifyWorkstationProjectSettingsUi } from "./verify-workstation-project-settings-ui.mjs";
 
 export async function verifyWorkspaceRestoreUi({
+ inspectBrowserTools,
+ inspectBrowserDevTools,
+ captureBrowserDevTools,
+ closeBrowserDevTools,
  observePortBrowserCalls,
  nativeDrag,
 	getPage,
@@ -552,7 +556,7 @@ export async function verifyWorkspaceRestoreUi({
  if (process.argv.includes("--browser-ui-only")) {
   await click("text:Terminal");await ready();
   const {verifyWorkstationBrowserUi}=await import("./verify-workstation-browser-ui.mjs");
-  await verifyWorkstationBrowserUi({getPage,click,screenshot,output,controls,closeReopen});
+  await verifyWorkstationBrowserUi({getPage,click,screenshot,output,controls,closeReopen,readClipboardText,inspectBrowserTools,inspectBrowserDevTools,captureBrowserDevTools,closeBrowserDevTools});
   writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,browserUiOnly:true},null,2)+"\n");return;
  }
  if (process.argv.includes("--wheel-only")) {

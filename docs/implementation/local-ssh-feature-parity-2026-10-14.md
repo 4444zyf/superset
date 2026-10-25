@@ -1451,3 +1451,22 @@ New browser仅在默认创建时读取保存主页，并调用原sanitizeUrl；�
 最终2205编译文件manifest SHA256995a37fd333c7f4bcac55ccd20238b40af3b80df1dcb6e4398d4bcba1d7e6913；明确构建退出0后冻结，六组最终原生结束后逐一复核一致。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb，没有重建。所有拥有app/Xorg按finally清理/wait且退出0，无外部SSH、Actions、安装包或后端发行归档。[阶段八十证据](evidence/local-ssh-feature-parity/stage80)。
 
 原聊天/任务URL策略、完整标签/历史图标、rightPane、其余浏览器设置/导入、设备/设计/开发工具、CLI桥等继续待接，整体原版功能对齐未完成。
+
+
+## 阶段八十一：原浏览器基础工具菜单与DevTools（2026-10-25）
+
+产品3f645f011提取原BrowserOverflowMenuView，只注入当前工作站支持的动作；原wrapper仍接完整原动作与各Dialog，未接入的工作站动作隐藏。AST核对原10个controller主体、9个menu item、完整zoom行与键盘处理、pointer-passthrough effect和延迟Dialog helper主体一致。缩放/查找/打印直接复用原Core；复制写OS剪贴板中的canonical URL，外部回调走原root URL/转发入口，不误用桌面localhost。
+
+新增可选private browser.reload/openDevTools IPC，通过原main-frame守卫和registry的owner/registration/connection identity解析原browserManager key，委派原getWebContents.reloadIgnoringCache/reload和openDevTools。没有修改既有tRPC、后端最低版本、持久布局类型、SQLite或localStorage。Browser settings动作等待原菜单关闭间隔，换pane取消timer，并在原设置Dialog定位/聚焦可见主页字段；通用设置打开仍保留原默认焦点。
+
+新增归属方法先以失败用例记录，再实现；55tests/3163assertions/7files、完整桌面类型、17语言严格编译、plugins、相关格式和脚本语法通过。最初JSX提取与timer返回类型错误分别保存并修复；原helper主体未为timer改写，工作站使用原延迟常量及自己的有界清理。
+
+旧ca791实窗在实际页面已加载后，于新工具菜单缺失处预期失败。随后产品3f645的最初三轮夹具误把退出动画中的旧portal当成新打开菜单，实际事件记录在Zoom点击前已为data-state=closed/aria-expanded=false；并非产品缩放失败。等待旧portal消失后鼠标/键盘缩放通过，下一轮立即点击页面仍早于完整open/animation就绪。最终按真实open state、trigger expanded和CSS动画完成等待，未增加原等待上限或重试动作，同一产品完整通过。初次SSH夹具漏传clipboard/tool观察回调，也已仅在夹具桥补齐。
+
+DevTools首次图片只有bootstrap工具栏；加入tree readiness后的两端均通过，但截图复核又发现SSH树仍可能局部加载。最终收紧为inspector frontend实际出现自有HTTP页面唯一marker，跳过STYLE/SCRIPT以免CSS耗尽32768字符观察上限，再保存图像。最终五个夹具文件启动前冻结、结束后复核；早期诊断轮没有混称同一固定夹具版本，全部失败与中间通过结果分开保留。整个诊断期间产品源码与编译均未变化。
+
+最终本地/拥有SSH均通过菜单实际点击、OS canonical URL复制、鼠标100→110→100%及ArrowLeft/Right/0缩放，实际guest宽度940→855再恢复；点击guest区域关闭菜单、真实HTTP强制刷新、独立DevTools真实webContents/12节点树及当前页面marker截图，以及主页字段可见/焦点/命中检查。SSH复制localhost:40593的原路径/query/fragment，实际guest使用127.0.0.1:34459。随后原地址栏/查找/前后退/刷新/window.open分屏/单页关闭/正常重开继续通过。原本地PID83273/execution9d50bd29-0228-4550-a34b-7a5f54d0b7aa，SSH PID86761/executionb2ce1f5e-b6a0-470a-926f-2a8b8738aaa5及cwd保持；记录的renderer runtime异常为空。SSH套件含20次此前恢复。
+
+打印入口已接原Core，未实际打印；外部菜单回调接原路径，本轮未重跑OS外部浏览器启动，不把源代码/回调检查称作两项原生验收。原menu AST延续原行为，不代表设备/设计、其余Dialog/导入或持久DevTools关联窗格已完成。终端滚轮/剪贴板继续按阶段八十ca791两端原生证据记录，其实现本阶段未改；真实供应商Agent、外部SSH和物理Mac仍未实测。
+
+最终2205编译文件manifest SHA25614ce6fd9c4a9506a54b35c87801d1fa730e0adb085d7f777317fc137d2cf751a，所有原生结束后逐一复核；五个最终夹具文件也一致。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。构建明确退出0后才冻结/启动，期间无覆盖dist。最终自有Xorg83030/83448与拥有app按finally结束/wait。失败zoom/outside图、早期及完整本地DevTools、初步SSH树/设置和最终SSH含marker的DevTools图均已查看，其余仅称捕获；最终inspector有一个warning徽标，未冒称全部Chromium诊断为空。无私钥/DB/profile入证据，无Actions、CLI重建、安装包或后端发行归档。[阶段八十一证据](evidence/local-ssh-feature-parity/stage81)。整体功能对齐仍进行中。
