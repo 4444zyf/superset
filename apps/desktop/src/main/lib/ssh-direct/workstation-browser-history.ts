@@ -1,3 +1,4 @@
+import type { ImportedHistoryEntry } from "../browser/chrome-history-import";
 import { chmodSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { browserHistory } from "@superset/local-db/browser-history";
@@ -39,6 +40,9 @@ export class WorkstationBrowserHistory {
 	}
 	upsert(input: BrowserHistoryVisit): void {
 		this.repository.upsert(input);
+	}
+	importEntries(entries: ImportedHistoryEntry[]): void {
+		this.repository.importEntries(entries);
 	}
 	clear(): void {
 		this.repository.clear();

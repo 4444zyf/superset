@@ -1,6 +1,4 @@
-import { browserHistory } from "@superset/local-db";
 import { TRPCError } from "@trpc/server";
-import { sql } from "drizzle-orm";
 import { session } from "electron";
 import { createBrowserHistoryRepository } from "main/lib/browser/browser-history-repository";
 import { importCookiesIntoSession } from "main/lib/browser/chrome-cookie-import";
@@ -14,9 +12,6 @@ import { hasUnreadableChromiumBrowser } from "main/lib/browser/chromium-profiles
 import { localDb } from "main/lib/local-db";
 import { z } from "zod";
 import { publicProcedure, router } from "../..";
-
-/** Rows per multi-row upsert, kept well under SQLite's bound-parameter limit. */
-const IMPORT_CHUNK_SIZE = 200;
 
 /** The partition the in-app browser pane (and app renderer) use. */
 const BROWSER_PARTITION = "persist:superset";
@@ -113,32 +108,7 @@ export const createBrowserHistoryRouter = () => {
 				if (entries.length === 0) return { imported: 0 };
 
 				try {
-					localDb.transaction((tx) => {
-						for (let i = 0; i < entries.length; i += IMPORT_CHUNK_SIZE) {
-							const chunk = entries.slice(i, i + IMPORT_CHUNK_SIZE);
-							tx.insert(browserHistory)
-								.values(
-									chunk.map((entry) => ({
-										url: entry.url,
-										title: entry.title,
-										faviconUrl: null,
-										lastVisitedAt: entry.lastVisitedAt,
-										visitCount: entry.visitCount,
-									})),
-								)
-								.onConflictDoUpdate({
-									target: browserHistory.url,
-									set: {
-										// Keep an existing title if the import has none.
-										title: sql`coalesce(nullif(excluded.title, ''), ${browserHistory.title})`,
-										lastVisitedAt: sql`max(${browserHistory.lastVisitedAt}, excluded.last_visited_at)`,
-										// max, not sum, so re-importing doesn't inflate counts.
-										visitCount: sql`max(${browserHistory.visitCount}, excluded.visit_count)`,
-									},
-								})
-								.run();
-						}
-					});
+					history.importEntries(entries);
 				} catch (error) {
 					if ((error as { code?: string }).code === "SQLITE_FULL") {
 						throw new TRPCError({
