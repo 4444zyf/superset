@@ -1,0 +1,29 @@
+# Stage 82 evidence
+
+Initial product source: `01fa429ded1bc42b31993d914b82bae5d8853669`. Final product source: `c1a0f846f4c719b1918b639121d2e813385da96b`.
+
+The original six-preset device toolbar, state methods, lookup/rotation algorithm and viewport JSX were extracted for shared use by the legacy pane and Workstation. The legacy wrapper still writes through its original TRPC client. Workstation supplies a scoped adapter and optional private device-emulation action; main validates the active owner/registration/connection and live guest, then delegates to the unchanged original browser manager. Its private dimensions are finite integers from 1 to 8192. Released TRPC procedures, browser-manager implementation and preset constants are unchanged. Device preview changes viewport/screen dimensions; it does not promise user-agent or touch-device emulation.
+
+`extraction-proof.json` records the original seven state-method bodies, preset lookup, rotation and DeviceToolbar JSX. Final viewport JSX differs only by explicit CSS `safe center` alignment. Existing main action bodies are unchanged. Shared guest zoom runtime strings are unchanged. The adapter ignores superseded failures and reports current failures; reset clears per-pane state/emulation when leaving or destroying the pane. There is no new persisted store or layout type.
+
+Baseline and failures are retained separately:
+
+- `baseline-3f645`: the first native helper failed its TS-module named import before feature verification. The helper uses createRequire for this source constant.
+- `baseline-entry-3f645`: baseline feature absence was initially masked by a finally-block geometry reader assuming a pane; the observation now handles missing elements.
+- `baseline-menu-3f645`: valid baseline on stage 81, after the actual page loads, fails because Show device toolbar is absent.
+- `initial-local-01fa429`: the new real guest has correct 375×667 metrics, but its frame begins at y322 while the scrollable area begins at y441, visibly covering the address/toolbar. This is a real product failure from the original unsafe centering and hoisted surface layout.
+- Red unit logs independently reproduce missing ancestor-scroll updates, missing viewport clipping, and a scale-one guest report clearing host clipping. An early fake DOM style lacked setProperty; that fixture was replaced by a real DOM style rather than weakening production behavior.
+
+The fix uses safe centering, intersects clipping ancestors with the host viewport, observes parent size and captures ancestor scroll. Guest clipping composes with the original pinch transform instead of competing with it. Guest CSS coordinates are normalized to the host surface dimensions when Chromium page zoom differs. Host overlays retain space for popovers; visible inset variables keep find/error UI inside the visible guest area.
+
+`clipped-local-c1a0f` and `clipped-ssh-c1a0f` pass the initial full device/native browser journey. `tools-local-c1a0f` and `tools-ssh-c1a0f` pass the original tools regression: canonical URL in the OS clipboard, real page zoom, hard HTTP reload, detached DevTools containing the exact owned HTTP marker, Browser settings, original navigation/find/window.open/selective close/normal reopen and preserved PTY identity.
+
+Final device runs are `sweeps-local-c1a0f` and `sweeps-ssh-c1a0f`. They use visible menu/Select/Rotate/Exit controls and actual guest screen/inner metrics for all six presets and rotation. They drive real Ctrl-wheel magnification/reset, outer preview wheel scrolling and five back-and-forth/boundary sweeps under a 120ms-per-400ms host stall, including a 600ms stationary dwell. They check frame/guest coordinates, a visible hit-tested 1/3 find result, device exit, terminal-tab switch/back, original browser interactions and normal reopen. The busy interval is removed in finally. Each SSH suite includes 20 preceding restores. Final numeric results, terminal identity and owned process cleanup are in native-summary.json.
+
+Seven native fixture files were frozen. The before-sweeps snapshot covers the initial device/tools batch; the final snapshot covers the added sweeps helper. The product source and compiled files did not change during either batch. 62 desktop tests/3218 assertions/10 files and 7 shared zoom tests/24 assertions pass, with desktop/shared types, 17 strict locale catalogs, plugin checks, relevant formatting and native script syntax. Earlier type/import/fake-style failures remain distinct from successful final checks.
+
+The final manifest covers 2205 compiled files, SHA256 `924e3ae1b4b482435e3d441445a44089a1deeaceb124d3be83c14c06819fff88`. The CLI remains `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb`. Build exit zero precedes snapshot and native launch; every compiled file and all seven final fixtures are checked afterward. The initial 01fa429 manifest and failed native geometry are preserved separately.
+
+Actually inspected images include initial failure (earlier in the stage), corrected local default, local pinch, local/SSH scrolled find, local busy-scroll sweep and final SSH DevTools marker. Other screenshots are captures. Renderer runtime-exception arrays are empty; the SSH inspector has a warning badge, so this is not a claim of warning-free Chromium. Profiles, databases and keys are excluded. Logs are gzip-compressed; SHA256SUMS covers all retained files except itself. Owned app/Xorg cleanup is recorded per case. No Actions, installer, CLI build or sealed backend release archive was used.
+
+Terminal wheel/clipboard native evidence remains stage 80 ca791; their implementations were unchanged here. Authenticated vendor agents, external SSH and physical Mac input remain untested. Remaining browser history/import/settings, design tools, full history/tab icons, right pane, chat/task URL policy, CLI bridge and other parity groups continue next. The overall parity goal remains active.

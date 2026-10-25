@@ -1470,3 +1470,18 @@ DevTools首次图片只有bootstrap工具栏；加入tree readiness后的两端�
 打印入口已接原Core，未实际打印；外部菜单回调接原路径，本轮未重跑OS外部浏览器启动，不把源代码/回调检查称作两项原生验收。原menu AST延续原行为，不代表设备/设计、其余Dialog/导入或持久DevTools关联窗格已完成。终端滚轮/剪贴板继续按阶段八十ca791两端原生证据记录，其实现本阶段未改；真实供应商Agent、外部SSH和物理Mac仍未实测。
 
 最终2205编译文件manifest SHA25614ce6fd9c4a9506a54b35c87801d1fa730e0adb085d7f777317fc137d2cf751a，所有原生结束后逐一复核；五个最终夹具文件也一致。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。构建明确退出0后才冻结/启动，期间无覆盖dist。最终自有Xorg83030/83448与拥有app按finally结束/wait。失败zoom/outside图、早期及完整本地DevTools、初步SSH树/设置和最终SSH含marker的DevTools图均已查看，其余仅称捕获；最终inspector有一个warning徽标，未冒称全部Chromium诊断为空。无私钥/DB/profile入证据，无Actions、CLI重建、安装包或后端发行归档。[阶段八十一证据](evidence/local-ssh-feature-parity/stage81)。整体功能对齐仍进行中。
+
+
+## 阶段八十二：原设备工具栏与可滚动、可裁剪的预览（2026-10-25）
+
+产品01fa429de提取原DeviceToolbarStoreCore、纯订阅hook、预设尺寸算法及BrowserViewportView，原wrapper继续接原tRPC；工作站接可选private setDeviceEmulation。主进程核对owner/registration/connection/live guest并委派未改的原browserManager，新增私有尺寸限制为1..8192整数。原六预设、七个状态方法、尺寸/旋转算法和工具栏JSX经AST核对一致，既有main action主体与原browser manager/TRPC/preset文件未改；没有新增持久存储。预览只模拟视口/屏幕尺寸，不声称UA或触摸设备模拟。
+
+旧3f645实窗在页面已加载后于Show device toolbar缺失处预期失败。前两次基线夹具分别遇到TS named import和finally空pane几何读取，修正夹具后保留有效基线。01fa429首轮原生捕获真实产品问题：375×667尺寸正确，但frame y322早于预览区y441，页面覆盖地址栏。随后失败单测分别确认祖先滚动未跟随、未裁剪和原scale-one缩放报告清空裁剪；假DOM style缺setProperty的早期夹具也单独记录。
+
+最终产品c1a0f846f采用safe center，交集计算祖先/窗口裁剪，观察父尺寸并捕获祖先滚动。宿主裁剪与原pinch变换合成，按宿主尺寸归一化Chromium page zoom后的guest CSS坐标；host overlay保留弹层空间，通过可见inset变量定位查找与错误层。原guest缩放脚本字符串未改。62项桌面测试/3218断言/10文件与7项shared测试/24断言、桌面/shared类型、17严格语言目录、插件和相关格式/语法检查通过。
+
+clipped本地/拥有SSH两端先通过全设备与原浏览器流程；随后原工具菜单两端回归通过系统原始URL复制、100→110→100%实际缩放、强制HTTP刷新、含当前唯一marker的独立DevTools、设置定位及原导航/查找/window.open/选择性关闭/正常重开。最终sweeps两端进一步通过六预设/旋转、Ctrl-wheel放大/复位保留裁剪、outer wheel 0→180、主线程每400ms阻塞120ms时五次正反向/越界滚动及600ms停留；scrollTop按420→180→751→0→180，frame与guest坐标逐次相同，滚动后查找框1/3可见且命中。退出和终端标签往返恢复desktop尺寸，原浏览器重开继续通过。各SSH套件含20次此前恢复。
+
+最终设备本地PID99222/execution ac6719d6-2ac4-407b-92d0-c852712211b6，SSH PID102680/execution 4b033e6b-faed-4a02-8d27-48fb95e9cea7及cwd保持；工具回归另有原PTY身份记录。四组最终runtime异常为空，所有拥有app/Xorg结束码0。初轮失败图、本地修复默认/放大/滚动查找、两端最终往返滚动及SSH查找/DevTools图已查看，其余仅称捕获；SSH inspector有warning徽标，不冒称全部Chromium诊断为空。
+
+源码编译明确退出0后冻结2205文件，manifest SHA256924e3ae1b4b482435e3d441445a44089a1deeaceb124d3be83c14c06819fff88；原生后逐文件及七个最终夹具复核。初轮01fa429 manifest独立保留；往返增强前后夹具快照分别记录，两批间产品未变。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。没有Actions、CLI重建、安装包、后端发行归档或隐式浏览器资料导入。[阶段八十二证据](evidence/local-ssh-feature-parity/stage82)。终端滚轮/复制粘贴仍按阶段八十ca791两端原生范围，真实供应商Agent/外部SSH/物理Mac未实测；历史Dialog、其余设置/导入、设计工具、完整图标、rightPane、聊天/任务URL与CLI桥等继续补齐，整体目标未完成。

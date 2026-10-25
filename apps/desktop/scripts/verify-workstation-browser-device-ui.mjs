@@ -25,7 +25,7 @@ export async function verifyWorkstationBrowserDeviceUi(options, context) {
 		);
 	const geometry = () =>
 		evaluate(
-			"(()=>{const pane=document.querySelector('[data-workstation-browser-pane]'),area=pane?.lastElementChild,frame=area?.firstElementChild??area,guest=[...document.querySelectorAll('webview')].find(e=>e.style.visibility==='visible');if(!area||!frame||!guest)return null;const rect=e=>{const r=e.getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height,bottom:r.bottom,right:r.right};};return {area:rect(area),frame:rect(frame),guest:rect(guest),scrollTop:area.scrollTop,scrollLeft:area.scrollLeft,align:getComputedStyle(area).alignItems,justify:getComputedStyle(area).justifyContent,clip:guest.style.clipPath,transform:guest.style.transform};})()",
+			"(()=>{const pane=document.querySelector('[data-workstation-browser-pane]'),area=pane?.lastElementChild,frame=area?.firstElementChild??area,guest=[...document.querySelectorAll('webview')].find(e=>e.style.visibility==='visible');if(!area||!frame||!guest)return null;const rect=e=>{const r=e.getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height,bottom:r.bottom,right:r.right};};return {area:rect(area),frame:rect(frame),guest:rect(guest),scrollTop:area.scrollTop,scrollLeft:area.scrollLeft,scrollHeight:area.scrollHeight,clientHeight:area.clientHeight,align:getComputedStyle(area).alignItems,justify:getComputedStyle(area).justifyContent,clip:guest.style.clipPath,transform:guest.style.transform};})()",
 		);
 	const device = async (width, height) =>
 		until(async () => {
@@ -175,6 +175,47 @@ export async function verifyWorkstationBrowserDeviceUi(options, context) {
 			"hoisted guest follows scrolling preview frame",
 		);
 		await screenshot("browser-device-scrolled");
+		report.scrollSweeps = [];
+		await evaluate(
+			"(()=>{globalThis.__devicePreviewStall=setInterval(()=>{const end=performance.now()+120;while(performance.now()<end){}},400);return true;})()",
+		);
+		try {
+			for (const deltaY of [240, -240, 900, -900, 180]) {
+				const before = await geometry();
+				const expected = Math.max(
+					0,
+					Math.min(
+						before.scrollHeight - before.clientHeight,
+						before.scrollTop + deltaY,
+					),
+				);
+				await getPage().call("Input.dispatchMouseEvent", {
+					type: "mouseWheel",
+					x: before.area.right - 15,
+					y: (before.area.top + before.area.bottom) / 2,
+					deltaX: 0,
+					deltaY,
+				});
+				const after = await until(async () => {
+					const row = await geometry();
+					return Math.abs(row.scrollTop - expected) < 1 &&
+						Math.abs(row.frame.top - row.guest.top) < 1
+						? row
+						: null;
+				}, "preview frame and guest follow repeated scroll under a busy host");
+				report.scrollSweeps.push({ deltaY, expected, geometry: after });
+				save();
+				if (deltaY === 900)
+					await evaluate(
+						"new Promise(resolve=>setTimeout(()=>resolve(true),600))",
+					);
+			}
+		} finally {
+			await evaluate(
+				"(()=>{clearInterval(globalThis.__devicePreviewStall);delete globalThis.__devicePreviewStall;return true;})()",
+			);
+		}
+		await screenshot("browser-device-scroll-sweeps");
 		await click('button[aria-label="Find in page"]');
 		await getPage().call("Input.insertText", { text: "needle" });
 		report.scrolledFind = await until(

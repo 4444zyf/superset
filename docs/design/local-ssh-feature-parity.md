@@ -6,7 +6,7 @@
 
 用户强调的滚轮/触控板输入保护和终端复制粘贴已实现。阶段八十在最终ca7912bc6源码编译上再次独立回归本地与拥有的loopback SSH：历史上下翻动、无鼠标TUI回看不注入方向键、保存的stock偏好、SGR/legacy/pixel切换、中文/Emoji复制、多行括号粘贴、图片/文件路径及重挂载后OSC52均通过。滚轮与剪贴板两个SSH套件各含20次窗口恢复。真实供应商Agent、外部SSH和物理Mac触控板仍未作为本轮实测范围。
 
-内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、查找、历史SQLite与V2持久化。阶段七十八至七十九已验证真实导航/查找/window.open/重开、所属SSH工作区的localhost转发与保持CSP的当前地址栏图标。阶段八十进一步接回原主页和终端四档URL策略设置、按偏好打开的端口行；明确的外部图标仍走原外部操作。偏好存入独立有界SQLite，真实本地/SSH设置操作、Ctrl点击分屏→即时改为新标签、正常重开及原PTY身份保留均通过。阶段八十一接回原工具菜单；真实本地/SSH已通过系统剪贴板中的原始URL、鼠标/键盘缩放与真实视口、强制刷新、包含当前页面DOM的独立DevTools以及浏览器设置定位。**浏览器组仍未全部完成**：聊天/任务URL策略、右侧区域、完整标签/历史图标、其余设置/导入、设备/设计及其余工具/关联窗格、CLI桥等仍待补。整体功能对齐仍进行中。详见[实施报告](../implementation/local-ssh-feature-parity-2026-10-14.md)、[阶段八十证据](../implementation/evidence/local-ssh-feature-parity/stage80)与[阶段八十一证据](../implementation/evidence/local-ssh-feature-parity/stage81)。
+内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、查找、历史SQLite与V2持久化。阶段七十八至七十九已验证真实导航/查找/window.open/重开、所属SSH工作区的localhost转发与保持CSP的当前地址栏图标。阶段八十进一步接回原主页和终端四档URL策略设置、按偏好打开的端口行；明确的外部图标仍走原外部操作。偏好存入独立有界SQLite，真实本地/SSH设置操作、Ctrl点击分屏→即时改为新标签、正常重开及原PTY身份保留均通过。阶段八十一接回原工具菜单；真实本地/SSH已通过系统剪贴板中的原始URL、鼠标/键盘缩放与真实视口、强制刷新、包含当前页面DOM的独立DevTools以及浏览器设置定位。阶段八十二接回原六预设设备工具栏，并修复超高预览覆盖地址栏、滚动不同步和缩放裁剪冲突；本地/SSH真实尺寸、旋转、滚动/卡顿往返、查找、退出/标签往返和正常重开通过，原工具菜单两端回归通过。**浏览器组仍未全部完成**：历史Dialog、聊天/任务URL策略、右侧区域、完整标签/历史图标、其余设置/导入、设计及其余工具/关联窗格、CLI桥等仍待补。整体功能对齐仍进行中。详见[实施报告](../implementation/local-ssh-feature-parity-2026-10-14.md)、[阶段八十证据](../implementation/evidence/local-ssh-feature-parity/stage80)、[阶段八十一证据](../implementation/evidence/local-ssh-feature-parity/stage81)与[阶段八十二证据](../implementation/evidence/local-ssh-feature-parity/stage82)。
 
 ## 验收原则
 
