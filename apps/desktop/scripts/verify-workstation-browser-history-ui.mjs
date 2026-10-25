@@ -111,7 +111,24 @@ export async function verifyWorkstationBrowserHistoryUi(options, context) {
 			const r = await rows();
 			return r.length === 1 && r[0].url === url ? r : null;
 		}, "whole-table search finds actual visited page beyond recent cap");
+		report.searchIcon = await evaluate(
+			"(()=>{const e=document.querySelector('[role=dialog] button.flex.w-full img');return e?{src:e.getAttribute('src'),width:e.naturalWidth,height:e.naturalHeight}:null;})()",
+		);
+		save();
 		await screenshot("browser-history-search");
+		if (process.argv.includes("--browser-history-icons")) {
+			assert.equal(
+				report.searchIcon?.width,
+				16,
+				"current page history favicon renders under the original CSP",
+			);
+			assert.ok(
+				Buffer.from(report.searchIcon.src.split(",")[1], "base64")
+					.toString("utf8")
+					.includes(marker),
+			);
+		}
+
 		await select(url);
 		report.selected = await until(async () => {
 			const title = await guestRead("document.title");
@@ -119,9 +136,17 @@ export async function verifyWorkstationBrowserHistoryUi(options, context) {
 				? { title, url: await guestRead("location.href") }
 				: null;
 		}, "selected original history URL navigates real guest");
+		await screenshot("browser-history-selected");
 		const before = await readProof();
 		const navigate = async (target) => {
-			await click("[data-workstation-browser-toolbar] input");
+			await click("[data-workstation-browser-toolbar] button.group");
+			await until(
+				() =>
+					evaluate(
+						"(()=>{const e=document.querySelector('[data-workstation-browser-toolbar] input');return e&&document.activeElement===e;})()",
+					),
+				"address button enters focused edit mode",
+			);
 			await key("a", "KeyA", process.platform === "darwin" ? 4 : 2);
 			await getPage().call("Input.insertText", { text: target });
 			await key("Enter", "Enter");
@@ -135,6 +160,7 @@ export async function verifyWorkstationBrowserHistoryUi(options, context) {
 		);
 		const second = await open();
 		await second.show();
+		await replace(input, "");
 		await until(
 			async () => (await rows()).some((r) => r.url === next),
 			"next visit visible before clearing",
@@ -154,7 +180,9 @@ export async function verifyWorkstationBrowserHistoryUi(options, context) {
 		await screenshot("browser-history-cleared");
 		await close();
 		const beforeRevisit = await readProof();
-		await navigate(next);
+		await click(
+			"[data-workstation-browser-toolbar] > div > div:first-child > button:nth-child(3)",
+		);
 		await until(
 			async () =>
 				(await readProof()).requests.length > beforeRevisit.requests.length &&
@@ -178,12 +206,30 @@ export async function verifyWorkstationBrowserHistoryUi(options, context) {
 		report.errors = getPage().errors;
 		assert.deepEqual(report.errors, []);
 		return report;
+	} catch (error) {
+		report.failure = {
+			name: error.name,
+			message: error.message,
+			actual: error.actual,
+			expected: error.expected,
+		};
+		throw error;
 	} finally {
+		if (!report.errors) await screenshot("browser-history-incomplete");
 		report.finalRows = await rows();
+		report.finalHistory = await evaluate(
+			"window.directWorkstation.browser.history.getAll()",
+		);
 		report.alerts = await evaluate(
 			"[...document.querySelectorAll('[role=alert]')].map(e=>e.textContent)",
 		);
 		save();
+		if (
+			await evaluate(
+				"Boolean(document.querySelector('[role=dialog] input[placeholder=\"Search history\"]'))",
+			)
+		)
+			await close();
 	}
 }
 

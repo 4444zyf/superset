@@ -152,11 +152,11 @@ export function WorkspaceBrowserPane({
 			rows.map((row) => ({
 				...row,
 				faviconUrl:
-					row.faviconUrl && row.faviconUrl === state.faviconUrl
+					row.faviconUrl && row.faviconUrl === pane.browser.faviconUrl
 						? displayIcon
 						: null,
 			})),
-		[displayIcon, state.faviconUrl],
+		[displayIcon, pane.browser.faviconUrl],
 	);
 	const loadHistory = useCallback(
 		async () => decorateHistory((await api.browser?.history?.getAll()) ?? []),
