@@ -1485,3 +1485,20 @@ clipped本地/拥有SSH两端先通过全设备与原浏览器流程；随后原
 最终设备本地PID99222/execution ac6719d6-2ac4-407b-92d0-c852712211b6，SSH PID102680/execution 4b033e6b-faed-4a02-8d27-48fb95e9cea7及cwd保持；工具回归另有原PTY身份记录。四组最终runtime异常为空，所有拥有app/Xorg结束码0。初轮失败图、本地修复默认/放大/滚动查找、两端最终往返滚动及SSH查找/DevTools图已查看，其余仅称捕获；SSH inspector有warning徽标，不冒称全部Chromium诊断为空。
 
 源码编译明确退出0后冻结2205文件，manifest SHA256924e3ae1b4b482435e3d441445a44089a1deeaceb124d3be83c14c06819fff88；原生后逐文件及七个最终夹具复核。初轮01fa429 manifest独立保留；往返增强前后夹具快照分别记录，两批间产品未变。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。没有Actions、CLI重建、安装包、后端发行归档或隐式浏览器资料导入。[阶段八十二证据](evidence/local-ssh-feature-parity/stage82)。终端滚轮/复制粘贴仍按阶段八十ca791两端原生范围，真实供应商Agent/外部SSH/物理Mac未实测；历史Dialog、其余设置/导入、设计工具、完整图标、rightPane、聊天/任务URL与CLI桥等继续补齐，整体目标未完成。
+
+
+## 阶段八十三：原历史Dialog、全库搜索和明确清空（2026-10-25）
+
+初始产品5a7cfe8b6提取HistoryDialogView，原wrapper继续接原electronTrpcClient，工作站复用相同View及现有private SQLite历史接口。原Dialog JSX除可见失败状态/失败时不显示空列表文案外一致，即时过滤、150ms debounce、100条全库搜索保持。没有新增端点、DB迁移、持久key或后端最低版本；shared/private/preload/原history repository/已发布TRPC文件经字节核对未变。菜单复用原关闭间隔，校验当前registration并在pane变化时取消timer，Dialog按runtime身份key隔离。
+
+两个受控promise红例确认原读取会覆盖重开后的列表，并在清空后重新填回旧记录；加入revision失效保护，查询变化立即清掉旧搜索结果，失败清空保留原记录并显示既有翻译错误文案。最初类型检查发现dialog较窄的entry丢失toolbar需要的visitCount，泛型装饰保留全部行字段。最终70项桌面测试/3269断言/12文件、完整类型、17严格语言目录、插件和相关格式/语法检查通过；repository额外明确验证搜索能命中500条recent之外的记录。初次大DOM对象断言dump未纳入证据，相同布尔断言的精简红日志保留。
+
+旧c1a0f实窗在真实页面与原导航完成后于History菜单缺失处预期失败。首轮新产品已通过实际全库搜索/选择导航，但夹具漏了先点地址按钮进入编辑；修正后清空确实得到SQLite空表，接着夹具误把同一带fragment URL的did-navigate-in-page要求成新HTTP请求。改用原Reload按钮后5a7cf两端历史/原工具/原浏览器流程通过。这两项夹具修正均未改产品或延长等待/重试手势。
+
+截图复核又发现真实SSH当前历史图标为空：新适配曾用转发guest URL匹配canonical历史URL。5a7cf的独立SSH红轮保存searchIcon:null与空图标截图；打开的modal使外层终端清理timeout遮盖原图标断言，未称其为干净的原断言trace。夹具现记录自身failure并在finally关闭自己的Dialog。AST保持检查也在新旧条件不一致处失败；最终e9696c15a恢复原canonical条件，AST一致。没有扩展为任意旧历史图标抓取。
+
+最终verified-local-canonical/verified-ssh-canonical均在新独立测试资料库中明确setup501条填充记录，让真实访问过的home/next不在500条recent内；填充仅模拟导入旧历史，不冒称UI访问或浏览器导入功能验收。真实键盘搜索命中旧home，实际选择导航到HTTP页面；搜索图标为含本次唯一marker的16×16 data URL并保留原CSP。原Clear history按钮使Dialog显示No history yet且SQLite为空；真实刷新重新增加next访问，原window.open再增加popup，正常重开后仅保留这些新访问，已清空home和填充均不恢复。SSH列表保留localhost:40475的canonical URL，实际选中guest走127.0.0.1:34239所属转发。
+
+同轮原系统URL复制、100→110→100%实际缩放、强制HTTP刷新、含当前marker的独立DevTools、浏览器设置定位及原查找/前后退/window.open/选择性关闭/正常重开均通过。最终本地PID113467/execution a64a97f0-72e3-42ce-9c11-363e9130915f，SSH PID116965/execution 0e5b8d33-d5d5-4e21-ab62-22b73b6f8c13及cwd保持；SSH含20次此前恢复，runtime异常为空，拥有app/Xorg结束码均0。最初夹具失败图、本地搜索/清空、初始SSH空图标/重开和最终SSH绿色图标搜索/重开图已查看；其余仅称捕获，不冒称原Dialog description警告或DevTools warning徽标不存在。
+
+最终2205编译文件manifest SHA2568252b673da07ac8245431ae38447efd53122fefcb0c263cfce1d8fc28d91256d，初始5a7cf manifest独立保留；每次构建退出0后才冻结/启动，原生期间无覆盖dist，最终逐文件及七个夹具哈希一致。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。无Actions、CLI重建、安装包、后端发行归档或隐式其他浏览器资料读取。[阶段八十三证据](evidence/local-ssh-feature-parity/stage83)。终端滚轮/复制粘贴继续按阶段八十ca791两端原生范围，真实供应商Agent/外部SSH/物理Mac未实测。浏览器其余设置/导入、设计及其他工具、完整图标、rightPane、聊天/任务URL、CLI桥和其他功能组仍继续补齐，整体目标未完成。

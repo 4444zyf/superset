@@ -1,0 +1,1742 @@
+{
+  "available": true,
+  "scope": {
+    "d": {
+      "connectionId": "00000000-0000-4000-8000-000000000001",
+      "generation": 1,
+      "backendId": "4696c1b4-6d20-48e3-8792-ca6a137e7082",
+      "namespaceId": "5358d0fb-a0f6-404b-a04d-7620c210f610",
+      "instanceId": "1270dd90-6b79-4229-908e-854143866f0a",
+      "capabilities": {
+        "projects": true,
+        "sessions": true,
+        "terminals": true,
+        "chat": true,
+        "files": true,
+        "attachments": true,
+        "workstationChatAttachmentInputV1": true,
+        "workstationTerminalPresetsV1": true,
+        "workstationAgentSettingsV1": true,
+        "workstationAgentManagementV1": true,
+        "workstationAgentCatalogV2": true,
+        "workstationTerminalScriptsV1": true,
+        "workstationTerminalScriptExecutionV1": true,
+        "git": true,
+        "durableOperations": true,
+        "workspaceViewRestoreV1": true,
+        "workstationFilesV1": true,
+        "workstationFileEventsV1": true,
+        "workstationGitV1": true,
+        "workstationGitIdentityV1": true,
+        "workstationGitHistoryV1": true,
+        "workstationGitSyncV1": true,
+        "workstationManagedWorktreesV1": true,
+        "workstationProjectsV1": true,
+        "workstationProjectScriptsV1": true,
+        "workstationWorkspaceRunV1": true,
+        "workstationWorkspaceRunV2": true,
+        "workstationWorkspaceCleanupV1": true,
+        "workstationWorkspaceSetupV1": true,
+        "workstationPortsV1": true
+      },
+      "chatHarnesses": [
+        {
+          "id": "claude-code",
+          "available": false,
+          "reason": "Install claude on the remote machine and add it to the service user's login-shell PATH"
+        },
+        {
+          "id": "codex",
+          "available": true,
+          "reason": "CLI found on the remote machine; sign-in and version are checked when a chat starts. Sign in on B using CODEX_HOME=/workspace/scratch/parity-83/verified-local-5a7cf/config/superset-remix-dev-fa5baa02d93d1d5f43b3fbaaa87a59ac3d81c9043070db7ac8deabd2f8f8608a/direct-workstation/local-backend/providers/codex"
+        }
+      ],
+      "kind": "local"
+    },
+    "w": {
+      "workspaceId": "7cc6d312-ba63-4c0a-8ad1-f70477c78875",
+      "panes": []
+    },
+    "root": "/workspace/scratch/parity-83/verified-local-5a7cf/config/superset-remix-dev-fa5baa02d93d1d5f43b3fbaaa87a59ac3d81c9043070db7ac8deabd2f8f8608a/direct-workstation/local-backend/sessions/local-wheel-57d790b0-bcba"
+  },
+  "marker": "OWNED-BROWSER-a8847184-8aaf-4938-b786-8c219433bbe1",
+  "terminalBefore": {
+    "id": "81c4e4b3-d9ab-409b-beb1-2304f054cdd5",
+    "executionId": "8e762d01-adde-4a0a-8690-1ea5761743e7",
+    "pid": 104524,
+    "cols": 110,
+    "rows": 30,
+    "cwd": "/workspace/scratch/parity-83/verified-local-5a7cf/config/superset-remix-dev-fa5baa02d93d1d5f43b3fbaaa87a59ac3d81c9043070db7ac8deabd2f8f8608a/direct-workstation/local-backend/sessions/local-wheel-57d790b0-bcba",
+    "alive": true,
+    "processExists": true,
+    "output": "\u001b[?2004h\u001b]0;agent@691d642e31ed: /workspace/scratch/parity-83/verified-local-5a7cf/config/superset-remix-dev-fa5baa02d93d1d5f43b3fbaaa87a59ac3d81c9043070db7ac8deabd2f8f8608a/direct-workstation/local-backend/sessions/local-wheel-57d790b0-bcba\u0007\u001b[01;32magent@691d642e31ed\u001b[00m:\u001b[01;34m/workspace/scratch/parity-83/verified-local-5a7cf/config/superset-remix-dev-fa5baa02d93d1d5f43b3fbaaa87a59ac3d81c9043070db7ac8deabd2f8f8608a/direct-workstation/local-backend/sessions/local-wheel-57d790b0-bcba\u001b[00m$ \r\u001b[K\r\u001b[A\u001b[K\r\u001b]0;agent@691d642e31ed: /workspace/scratch/parity-83/verified-local-5a7cf/config/superset-remix-dev-fa5baa02d93d1d5f43b3fbaaa87a59ac3d81c9043070db7ac8deabd2f8f8608a/direct-workstation/local-backend/sessions/local-wheel-57d790b0-bcba\u0007\u001b[01;32magent@691d642e31ed\u001b[00m:\u001b[01;34m/workspace/scratch/parity-83/verified-local-5a7cf/config/superset-remix-dev-fa5baa02d93d1d5f43b3fbaaa87a59ac3d81c9043070db7ac8deabd2f8f8608a/direct-workstation/local-backend/sessions/local-wheel-57d790b0-bcba\u001b[00m$ python3 -c 'import base64;exec(base64.b64decode(\"aW1wb3J0IGh0dHAuc2VydmVyLGpzb24sb3Msc2lnbmFsCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aApzdGF0ZT17Im1hcmtlciI6Ik9XTkVELUJST1dTRVItYTg4NDcxODQtOGFhZi00OTM4LWI3ODYtOGMyMTk0MzNiYmUxIiwicmVxdWVzdHMiOltdLCJydW5uaW5nIjpUcnVlLCJwaWQiOm9zLmdldHBpZCgpfQpkZWYgc2F2ZSgpOiB0ZW1wPVBhdGgoJ2Jyb3dzZXItcHJvb2YudG1wJyk7dGVtcC53cml0ZV90ZXh0KGpzb24uZHVtcHMoc3RhdGUpKTt0ZW1wLnJlcGxhY2UoJ2Jyb3dzZXItcHJvb2YuanNvbicpCmNsYXNzIEhhbmRsZXIoaHR0cC5zZXJ2ZXIuQmFzZUhUVFBSZXF1ZXN0SGFuZGxlcik6CiBkZWYgZG9fR0VUKHNlbGYpOgogIHN0YXRlWydyZXF1ZXN0cyddLmFwcGVuZChzZWxmLnBhdGgpO3NhdmUoKQogIHRpdGxlPSdPd25lZCBicm93c2VyICcrKCduZXh0JyBpZiBzZWxmLnBhdGguc3RhcnRzd2l0aCgnL25leHQnKSBlbHNlICdob21lJykrJyDkuK3mlocg8J+ZgicKICBib2R5PSgnPCFkb2N0eXBlIGh0bWw+PG1ldGEgY2hhcnNldD0idXRmLTgiPjx0aXRsZT4nK3RpdGxlKyc8L3RpdGxlPjxoMT4nK3N0YXRlWydtYXJrZXInXSsnPC9oMT48YSBpZD0ibmV4dCIgaHJlZj0iL25leHQ/dmFsdWU9JUU0JUI4JUFEJTIwaGVsbG8jc2VjdGlvbiI+TmV4dCBwYWdlPC9hPjxicj48YSBpZD0icG9wdXAiIHRhcmdldD0iX2JsYW5rIiBocmVmPSIvcG9wdXAiPk9wZW4gc2Vjb25kIHBhbmU8L2E+PHA+bmVlZGxlIG5lZWRsZSBuZWVkbGU8L3A+JykuZW5jb2RlKCkKICBib2R5PWJvZHkucmVwbGFjZShiJzx0aXRsZT4nLGInPGxpbmsgcmVsPSJpY29uIiBocmVmPSIvaWNvbi5zdmciPjx0aXRsZT4nKQogIHBhc3MKICBjb250ZW50X3R5cGU9J3RleHQvaHRtbDsgY2hhcnNldD11dGYtOCcKICBpZiBzZWxmLnBhdGguc3RhcnRzd2l0aCgnL2ljb24uc3ZnJyk6IGJvZHk9KCc8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgZGF0YS1vd25lZD0iJytzdGF0ZVsnbWFya2VyJ10rJyIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2Ij48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9ImdyZWVuIi8+PC9zdmc+JykuZW5jb2RlKCk7Y29udGVudF90eXBlPSdpbWFnZS9zdmcreG1sJwogIHNlbGYuc2VuZF9yZXNwb25zZSgyMDApO3NlbGYuc2VuZF9oZWFkZXIoJ0NvbnRlbnQtVHlwZScsY29udGVudF90eXBlKTtzZWxmLnNlbmRfaGVhZGVyKCdDYWNoZS1Db250cm9sJywnbm8tc3RvcmUnKTtzZWxmLnNlbmRfaGVhZGVyKCdDb250ZW50LUxlbmd0aCcsc3RyKGxlbihib2R5KSkpO3NlbGYuZW5kX2hlYWRlcnMoKTtzZWxmLndmaWxlLndyaXRlKGJvZHkpCiBkZWYgbG9nX21lc3NhZ2Uoc2VsZiwqYXJncyk6IHBhc3MKc2VydmVyPWh0dHAuc2VydmVyLkhUVFBTZXJ2ZXIoKCcxMjcuMC4wLjEnLDApLEhhbmRsZXIpCnN0YXRlWydwb3J0J109c2VydmVyLnNlcnZlcl9wb3J0O3NhdmUoKQpwYXNzCnRyeTogc2VydmVyLnNlcnZlX2ZvcmV2ZXIoKQpleGNlcHQgS2V5Ym9hcmRJbnRlcnJ1cHQ6IHBhc3MKZmluYWxseTogc2VydmVyLnNlcnZlcl9jbG9zZSgpO3N0YXRlWydydW5uaW5nJ109RmFsc2U7c2F2ZSgp\"))'\r\n\u001b[?2004l\r"
+  },
+  "detectedPort": {
+    "port": 35203,
+    "pid": 104535,
+    "processName": "python3",
+    "terminalId": "81c4e4b3-d9ab-409b-beb1-2304f054cdd5",
+    "workspaceId": "7cc6d312-ba63-4c0a-8ad1-f70477c78875",
+    "detectedAt": 1792956024764,
+    "address": "127.0.0.1",
+    "label": null
+  },
+  "loaded": {
+    "body": "OWNED-BROWSER-a8847184-8aaf-4938-b786-8c219433bbe1\nNext page\nOpen second pane\n\nneedle needle needle",
+    "title": "Owned browser home 中文 🙂",
+    "url": "http://localhost:35203/preview?first=%E4%B8%AD#initial",
+    "node": "undefined",
+    "process": "undefined",
+    "head": "<meta charset=\"utf-8\"><link rel=\"icon\" href=\"/icon.svg\"><title>Owned browser home 中文 🙂</title>"
+  },
+  "tools": {
+    "available": true,
+    "items": [
+      "Find in page",
+      "Print",
+      "Open DevTools",
+      "Zoom100%",
+      "Show device toolbar",
+      "Hard reload",
+      "Copy URL",
+      "Open in Browser",
+      "History",
+      "Browser settings"
+    ],
+    "copiedUrl": "http://localhost:35203/preview?first=%E4%B8%AD#initial",
+    "beforeZoom": {
+      "state": {
+        "id": 2,
+        "url": "http://localhost:35203/preview?first=%E4%B8%AD#initial",
+        "zoom": 1,
+        "devToolsOpened": false,
+        "devToolsId": null,
+        "devToolsUrl": null,
+        "devToolsLoading": false
+      },
+      "viewport": {
+        "width": 940,
+        "ratio": 1
+      }
+    },
+    "zoomed": {
+      "state": {
+        "id": 2,
+        "url": "http://localhost:35203/preview?first=%E4%B8%AD#initial",
+        "zoom": 1.1,
+        "devToolsOpened": false,
+        "devToolsId": null,
+        "devToolsUrl": null,
+        "devToolsLoading": false
+      },
+      "viewport": {
+        "width": 855,
+        "ratio": 1.100000023841858
+      }
+    },
+    "resetZoom": {
+      "id": 2,
+      "url": "http://localhost:35203/preview?first=%E4%B8%AD#initial",
+      "zoom": 1,
+      "devToolsOpened": false,
+      "devToolsId": null,
+      "devToolsUrl": null,
+      "devToolsLoading": false
+    },
+    "beforeOutside": {
+      "state": "open",
+      "animations": [],
+      "passthrough": true,
+      "guestPointerEvents": "none",
+      "hit": "DIV",
+      "role": null,
+      "classes": "h-full w-full"
+    },
+    "hardReload": {
+      "marker": "OWNED-BROWSER-a8847184-8aaf-4938-b786-8c219433bbe1",
+      "requests": [
+        "/preview?first=%E4%B8%AD",
+        "/icon.svg",
+        "/preview?first=%E4%B8%AD"
+      ],
+      "running": true,
+      "pid": 104535,
+      "port": 35203
+    },
+    "devTools": {
+      "id": 2,
+      "url": "http://localhost:35203/preview?first=%E4%B8%AD#initial",
+      "zoom": 1,
+      "devToolsOpened": true,
+      "devToolsId": 3,
+      "devToolsUrl": "devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@eef5bd4988d4f2a2e62e7573c2cd7e44c95110a3/&can_dock=&toolbarColor=rgba(223,223,223,1)&textColor=rgba(0,0,0,1)&experiments=true",
+      "devToolsLoading": false
+    },
+    "devToolsFrontend": {
+      "title": "DevTools",
+      "url": "devtools://devtools/bundled/devtools_app.html?remoteBase=https://chrome-devtools-frontend.appspot.com/serve_file/@eef5bd4988d4f2a2e62e7573c2cd7e44c95110a3/&can_dock=&toolbarColor=rgba(223,223,223,1)&textColor=rgba(0,0,0,1)&experiments=true",
+      "trees": 1,
+      "treeItems": 12,
+      "text": "\nElementsConsoleSourcesNetworkPerformanceMemoryApplicationSecurity1MainReplaceReplace all<!DOCTYPE html><html>​view-source<head>​…​</head>​<body>​<h1>​OWNED-BROWSER-a8847184-8aaf-4938-b786-8c219433bbe1​</h1>​<a id=​\"next\" href=​\"/​next?value=%E4%B8%AD%20hello#section\">​Next page​</a>​<br>​<a id=​\"popup\" target=​\"_blank\" href=​\"/​popup\">​Open second pane​</a>​<p>​needle needle needle​</p>​</body>​</html>​#top-layerhtmlbodyStylesComputedLayoutEvent ListenersNo matching selector or stylemargin88border00padding00924 × 128.438000088DevTools is undocked",
+      "nodes": 903
+    },
+    "settings": {
+      "top": 384.13592529296875,
+      "bottom": 418.3359375,
+      "dialogTop": 83.93594360351562,
+      "dialogBottom": 788.0641174316406,
+      "focused": "browser-homepage",
+      "hit": true
+    },
+    "after": {
+      "id": 2,
+      "url": "http://localhost:35203/preview?first=%E4%B8%AD#initial",
+      "zoom": 1,
+      "devToolsOpened": false,
+      "devToolsId": null,
+      "devToolsUrl": null,
+      "devToolsLoading": false
+    },
+    "errors": [],
+    "events": [
+      {
+        "type": "pointerdown:after",
+        "time": 7357.5,
+        "target": "DIV",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusout",
+        "time": 7366.0999999940395,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "closed",
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusout:after",
+        "time": 7366.199999988079,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "closed",
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "pointerup",
+        "time": 7368.5,
+        "target": "WEBVIEW",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "closed",
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "pointerup:after",
+        "time": 7368.5,
+        "target": "WEBVIEW",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "closed",
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "click",
+        "time": 7368.5,
+        "target": "BODY",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "closed",
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "click:after",
+        "time": 7368.5999999940395,
+        "target": "BODY",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "closed",
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "menu-mutation",
+        "time": 7534.199999988079,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "pointerdown",
+        "time": 7584,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "pointerdown:after",
+        "time": 7584.199999988079,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusin",
+        "time": 7593.199999988079,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "menu-mutation",
+        "time": 7594.199999988079,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusin:after",
+        "time": 7594.299999982119,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup",
+        "time": 7599.399999976158,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup:after",
+        "time": 7599.399999976158,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click",
+        "time": 7599.5,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click:after",
+        "time": 7599.5999999940395,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerdown",
+        "time": 7810.899999976158,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerdown:after",
+        "time": 7810.899999976158,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusout",
+        "time": 7813,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusout:after",
+        "time": 7813,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusin",
+        "time": 7813.399999976158,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusin:after",
+        "time": 7813.5,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup",
+        "time": 7815.5,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup:after",
+        "time": 7815.5,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click",
+        "time": 7815.5999999940395,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click:after",
+        "time": 7815.699999988079,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "menu.itemSelect",
+        "time": 7815.899999976158,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "menu.itemSelect:after",
+        "time": 7816,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusout",
+        "time": 7981.299999982119,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "closed",
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusout:after",
+        "time": 7982.399999976158,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "menu-mutation",
+        "time": 7982.399999976158,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusin",
+        "time": 7987.5,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "focusin:after",
+        "time": 7987.899999976158,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "pointerdown",
+        "time": 8011.399999976158,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "pointerdown:after",
+        "time": 8011.399999976158,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "focusout",
+        "time": 8021.399999976158,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusin",
+        "time": 8021.799999982119,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "menu-mutation",
+        "time": 8022.699999988079,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusout:after",
+        "time": 8022.799999982119,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusin:after",
+        "time": 8022.899999976158,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup",
+        "time": 8027.299999982119,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup:after",
+        "time": 8027.299999982119,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click",
+        "time": 8027.5,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click:after",
+        "time": 8027.5,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerdown",
+        "time": 8185.799999982119,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerdown:after",
+        "time": 8185.899999976158,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusout",
+        "time": 8187.699999988079,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusout:after",
+        "time": 8187.699999988079,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusin",
+        "time": 8188,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusin:after",
+        "time": 8188,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup",
+        "time": 8189.299999982119,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup:after",
+        "time": 8189.399999976158,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click",
+        "time": 8189.399999976158,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click:after",
+        "time": 8189.399999976158,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "menu.itemSelect",
+        "time": 8189.5999999940395,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "menu.itemSelect:after",
+        "time": 8189.799999982119,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusout",
+        "time": 8366.799999982119,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "closed",
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusout:after",
+        "time": 8367.799999982119,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "menu-mutation",
+        "time": 8367.799999982119,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusin",
+        "time": 8376.299999982119,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "focusin:after",
+        "time": 8376.699999988079,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "focusout",
+        "time": 8514.09999999404,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "focusout:after",
+        "time": 8514.299999982119,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "focusin",
+        "time": 8731.299999982119,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "focusin:after",
+        "time": 8731.59999999404,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "pointerdown",
+        "time": 8736.399999976158,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "pointerdown:after",
+        "time": 8736.5,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "focusout",
+        "time": 8745.799999982119,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusin",
+        "time": 8746,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "menu-mutation",
+        "time": 8746.799999982119,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusout:after",
+        "time": 8746.799999982119,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusin:after",
+        "time": 8746.899999976158,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup",
+        "time": 8751.199999988079,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup:after",
+        "time": 8751.199999988079,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click",
+        "time": 8751.299999982119,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click:after",
+        "time": 8751.299999982119,
+        "target": "path",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerdown",
+        "time": 8960.799999982119,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerdown:after",
+        "time": 8960.799999982119,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusout",
+        "time": 8963.09999999404,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusout:after",
+        "time": 8963.199999988079,
+        "target": "DIV",
+        "label": null,
+        "role": "menu",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusin",
+        "time": 8963.59999999404,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusin:after",
+        "time": 8963.59999999404,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup",
+        "time": 8965.5,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "pointerup:after",
+        "time": 8965.59999999404,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click",
+        "time": 8965.699999988079,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "click:after",
+        "time": 8965.699999988079,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "menu.itemSelect",
+        "time": 8966,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "menu.itemSelect:after",
+        "time": 8966,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "open",
+        "expanded": "true",
+        "samePane": true,
+        "connected": true,
+        "active": "DIV"
+      },
+      {
+        "type": "focusout",
+        "time": 9147.5,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": true,
+        "menuState": "closed",
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusout:after",
+        "time": 9148.5,
+        "target": "DIV",
+        "label": null,
+        "role": "menuitem",
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "menu-mutation",
+        "time": 9148.59999999404,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusin",
+        "time": 9153.59999999404,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "focusin:after",
+        "time": 9153.899999976158,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BUTTON"
+      },
+      {
+        "type": "focusout",
+        "time": 9570.5,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusin",
+        "time": 9571,
+        "target": "INPUT",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "INPUT"
+      },
+      {
+        "type": "focusout:after",
+        "time": 9619.899999976158,
+        "target": "BUTTON",
+        "label": "More options",
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "INPUT"
+      },
+      {
+        "type": "focusin:after",
+        "time": 9620,
+        "target": "INPUT",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "INPUT"
+      },
+      {
+        "type": "focusout",
+        "time": 10281.299999982119,
+        "target": "INPUT",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      },
+      {
+        "type": "focusout:after",
+        "time": 10295,
+        "target": "INPUT",
+        "label": null,
+        "role": null,
+        "defaultPrevented": false,
+        "menu": false,
+        "expanded": "false",
+        "samePane": true,
+        "connected": true,
+        "active": "BODY"
+      }
+    ]
+  },
+  "guestEvents": [
+    {
+      "type": "did-navigate",
+      "url": "about:blank"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "about:blank"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://localhost:35203/preview?first=%E4%B8%AD#initial"
+    },
+    {
+      "type": "page-title-updated",
+      "title": "Owned browser home 中文 🙂"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "page-favicon-updated",
+      "favicons": [
+        "http://localhost:35203/icon.svg"
+      ]
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://localhost:35203/preview?first=%E4%B8%AD#initial"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://localhost:35203/next?value=%E4%B8%AD%20hello#section"
+    },
+    {
+      "type": "page-title-updated",
+      "title": "Owned browser next 中文 🙂"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://localhost:35203/preview?first=%E4%B8%AD#initial"
+    },
+    {
+      "type": "page-title-updated",
+      "title": "Owned browser home 中文 🙂"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://localhost:35203/next?value=%E4%B8%AD%20hello#section"
+    },
+    {
+      "type": "page-title-updated",
+      "title": "Owned browser next 中文 🙂"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://localhost:35203/next?value=%E4%B8%AD%20hello#section"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://localhost:35203/preview?first=%E4%B8%AD#initial"
+    },
+    {
+      "type": "page-title-updated",
+      "title": "Owned browser home 中文 🙂"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    }
+  ],
+  "finalView": {
+    "tabId": "e938cf4b-6042-473f-b350-77b4222a4cc4",
+    "workspaceId": "7cc6d312-ba63-4c0a-8ad1-f70477c78875",
+    "label": "Local wheel 57d790b0-bcba-49a9-9327-b07e2ed9073e",
+    "activeTool": "terminal",
+    "activePaneId": "077a6451-d79c-4015-9aab-34c3d0383bb3",
+    "panes": [
+      {
+        "paneId": "3a530e4b-9568-45f8-a08e-789609fc29c1",
+        "kind": "terminal",
+        "resourceId": "81c4e4b3-d9ab-409b-beb1-2304f054cdd5",
+        "executionId": "8e762d01-adde-4a0a-8690-1ea5761743e7",
+        "label": "Terminal"
+      },
+      {
+        "paneId": "077a6451-d79c-4015-9aab-34c3d0383bb3",
+        "kind": "browser",
+        "resourceId": "42a08544-b54f-4ec7-a1c0-2a4e36176db0",
+        "browser": {
+          "url": "http://localhost:35203/preview?first=%E4%B8%AD#initial",
+          "pageTitle": "Owned browser home 中文 🙂",
+          "faviconUrl": "http://localhost:35203/icon.svg"
+        }
+      }
+    ],
+    "layout": {
+      "type": "split",
+      "axis": "horizontal",
+      "ratio": 0.5,
+      "first": {
+        "type": "pane",
+        "paneId": "3a530e4b-9568-45f8-a08e-789609fc29c1"
+      },
+      "second": {
+        "type": "pane",
+        "paneId": "077a6451-d79c-4015-9aab-34c3d0383bb3"
+      }
+    },
+    "paneTabs": [
+      {
+        "tabId": "cb0e9fb8-7cf2-407b-b722-653a9552c0ca",
+        "label": "Terminal",
+        "createdAt": 1792956022197,
+        "activePaneId": "3a530e4b-9568-45f8-a08e-789609fc29c1",
+        "layout": {
+          "type": "pane",
+          "paneId": "3a530e4b-9568-45f8-a08e-789609fc29c1"
+        }
+      },
+      {
+        "tabId": "4abcaf4a-c9e6-4fd1-b53c-47407c5196a5",
+        "createdAt": 1792956024835,
+        "activePaneId": "077a6451-d79c-4015-9aab-34c3d0383bb3",
+        "layout": {
+          "type": "pane",
+          "paneId": "077a6451-d79c-4015-9aab-34c3d0383bb3"
+        }
+      }
+    ],
+    "activePaneTabId": "4abcaf4a-c9e6-4fd1-b53c-47407c5196a5"
+  },
+  "cleanup": {
+    "marker": "OWNED-BROWSER-a8847184-8aaf-4938-b786-8c219433bbe1",
+    "requests": [
+      "/preview?first=%E4%B8%AD",
+      "/icon.svg",
+      "/preview?first=%E4%B8%AD",
+      "/next?value=%E4%B8%AD%20hello",
+      "/preview?first=%E4%B8%AD",
+      "/next?value=%E4%B8%AD%20hello",
+      "/next?value=%E4%B8%AD%20hello",
+      "/preview?first=%E4%B8%AD"
+    ],
+    "running": false,
+    "pid": 104535,
+    "port": 35203
+  }
+}
