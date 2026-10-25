@@ -1352,3 +1352,20 @@ webview入口剥离preload，强制sandbox/contextIsolation/webSecurity，禁用
 原运行时/URL策略与扩展无账号依赖图17项/2811断言/3文件通过，格式和插件检查通过。依赖图显式加入新视图及状态核心，历史核心由工具栏传递检查。纯复用抽取采用现有回归与主体比对验证，没有新增UI或原生验收；没有改界面文案、翻译目录、存储、IPC、host、依赖或持久键。未重新编译桌面/CLI、生成安装包、后端发行归档或使用Actions，最近的真实桌面输入证据仍以阶段七十四的明确源码及快照为准。[本阶段源码比对与检查](evidence/local-ssh-feature-parity/stage75)。
 
 工作区BrowserPane入口、历史存储适配、兼容的页面布局、设备/设计模式/CLI桥及其他功能继续待接入，整体对齐未完成；阶段七十四的本地和拥有SSH滚轮/复制粘贴验证保持原范围，不追加物理Mac或供应商Agent声明。
+
+
+## 阶段七十六：原浏览历史仓库与独立工作站SQLite
+
+源码1f620bad0将原browserHistory表定义拆为纯schema模块，增加可选包子路径；原根导出、表字段、默认值和索引保持。原getAll/search/upsert/clear的Drizzle操作抽成可注入仓库，原router继续使用原localDb，验证器逐AST确认原查询/排序/500条最近列表、10/200条搜索、URL冲突计数、输入、query/mutation和SQLITE_FULL错误映射保持。原表定义AST一致，既有0026_browser_history.sql SHA256 ce67483444311fcebaca350b65a442d4c3eb87bbd1e92a73010d53b05885c8c4未改。没有新增或手编Drizzle迁移，也不运行云端迁移。
+
+默认无账号桌面只在当前独立profile的direct-workstation/browser-history.db中初始化这一原表，使用现有生成SQL、原子事务和独立版本检查；已有陌生数据库或未知版本拒绝覆盖，失败创建回滚，文件0600。历史仍属于当前桌面浏览器配置目录，未读取旧预览或第三方浏览器目录，也没有创建users/organizations表。新增可选browser.history API通过原main-frame调用者守卫，写入和搜索参数有界；存储失败报告错误，未以空成功操作伪装持久化。历史库在窗口重开中复用、应用退出时关闭；显式clear只清当前浏览历史。新API没有改变host或原RPC合同。
+
+真实Bun SQLite/Drizzle五项测试覆盖URL重复访问ID保持/次数递增/标题favicon更新、中文和绑定搜索、原LIKE语义/数量/顺序、重复初始化与clear、陌生数据拒绝和失败回滚。最终关联61项/2951断言/6文件通过；桌面与local-db完整类型、12文件格式及插件检查通过。主体/合同核对脚本与日志保留。
+
+旧编译601b85d14的2205文件冻结并逐一复核为阶段七十四f3040fe31066e9c30f95f9cf4757af8e0936776ac133a9d371083657e15c6667；真实桌面已完成原启动/关于/许可/重开流程，然后在browser.history不可用处按预期失败，available=false。没有将缺入口基线混称产品浏览器UI失败。新产品1f620bad0只electron-vite源码编译，2205文件manifest为c4f151c5980cc0887aaa0b469b2e818385c0ec8fb72bd7ceb0ef40ae49c09de9；原生IPC集成退出0，available=true。
+
+新集成通过实际renderer→preload→当前主窗口IPC→原生SQLite：写入包含中文/单引号的URL，更新同一ID为“第二次 🙂”、visitCount=2、favicon=null；正常关闭重开后整条记录完全相同，搜索返回该记录。只读核对实际文件权限0600且表只有browser_history；显式clear后为空，再正常重开仍为空，renderer错误为空。该测试直接调用IPC，是后端/持久化集成证据，不是用户浏览器面板、地址栏输入或SSH页面验收。普通桌面截图仅捕获，没有新增浏览器UI截图查看声明。
+
+自有baseline Xorg20442正常退出0（基线app预期1），新验证Xorg21160与app均退出0；全部原生子进程由既有runner finally清理。新运行后逐一复核全部2205编译文件不变，CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。没有CLI重建、安装包、密封后端发行归档、Actions或外部消息。[原始证据](evidence/local-ssh-feature-parity/stage76)。
+
+浏览器原核心/视图/主进程与真实历史已可供适配，工作区入口、兼容页面布局、内部分屏/新标签、浏览器设置/导入/工具等仍待连通；终端滚轮/复制仍沿用阶段七十四的明确实窗范围，未追加真实Mac、供应商Agent或外部SSH声明，整体对齐未完成。
