@@ -1,3 +1,4 @@
+import type { SelectBrowserHistory } from "@superset/local-db/browser-history";
 import { z } from "zod";
 import type { ForwardedKey } from "./hotkey-chord";
 
@@ -35,6 +36,19 @@ export type WorkstationBrowserEvent = WorkstationBrowserPane &
 	);
 
 export interface WorkstationBrowserApi {
+	history?: {
+		getAll(): Promise<SelectBrowserHistory[]>;
+		search(input: {
+			query: string;
+			limit?: number;
+		}): Promise<SelectBrowserHistory[]>;
+		upsert(input: {
+			url: string;
+			title: string;
+			faviconUrl?: string | null;
+		}): Promise<void>;
+		clear(): Promise<void>;
+	};
 	register(input: WorkstationBrowserRegistration): Promise<void>;
 	unregister(input: WorkstationBrowserPane): Promise<void>;
 	onEvent(listener: (event: WorkstationBrowserEvent) => void): () => void;

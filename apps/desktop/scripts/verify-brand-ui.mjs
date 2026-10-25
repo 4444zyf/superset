@@ -560,6 +560,22 @@ try {
 			});
 		}
 	}
+	if (process.argv.includes("--browser-history-ipc-only")) {
+		assert.equal(sourceTest, true);
+		const { verifyWorkstationBrowserHistoryIpc } = await import("./verify-workstation-browser-history-ipc.mjs");
+		await verifyWorkstationBrowserHistoryIpc({
+			getPage: () => page,
+			evaluateMain: (expression) => main.evaluate(expression),
+			restart: async () => {
+				await stop();
+				child = await launch();
+				await attach();
+			},
+			profile,
+			output,
+			source: process.env.GITHUB_SHA,
+		});
+	}
 	await stop();
 	writeFileSync(
 		join(output, "brand-ui.json"),

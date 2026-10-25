@@ -23,6 +23,12 @@ const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
 	browser: {
+		history: {
+			getAll: () => invoke("getBrowserHistory"),
+			search: (input) => invoke("searchBrowserHistory", input),
+			upsert: (input) => invoke("upsertBrowserHistory", input),
+			clear: () => invoke("clearBrowserHistory"),
+		},
 		register: (input) => invoke("registerBrowserPane", input),
 		unregister: (input) => invoke("unregisterBrowserPane", input),
 		onEvent: (listener) => {

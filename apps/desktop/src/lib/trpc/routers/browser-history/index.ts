@@ -1,7 +1,8 @@
 import { browserHistory } from "@superset/local-db";
 import { TRPCError } from "@trpc/server";
-import { like, or, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { session } from "electron";
+import { createBrowserHistoryRepository } from "main/lib/browser/browser-history-repository";
 import { importCookiesIntoSession } from "main/lib/browser/chrome-cookie-import";
 import {
 	listChromeImportSources,
@@ -21,15 +22,9 @@ const IMPORT_CHUNK_SIZE = 200;
 const BROWSER_PARTITION = "persist:superset";
 
 export const createBrowserHistoryRouter = () => {
+	const history = createBrowserHistoryRepository(localDb);
 	return router({
-		getAll: publicProcedure.query(() => {
-			return localDb
-				.select()
-				.from(browserHistory)
-				.orderBy(sql`${browserHistory.lastVisitedAt} desc`)
-				.limit(500)
-				.all();
-		}),
+		getAll: publicProcedure.query(() => history.getAll()),
 
 		search: publicProcedure
 			.input(
@@ -40,21 +35,7 @@ export const createBrowserHistoryRouter = () => {
 					limit: z.number().int().min(1).max(200).optional(),
 				}),
 			)
-			.query(({ input }) => {
-				const pattern = `%${input.query}%`;
-				return localDb
-					.select()
-					.from(browserHistory)
-					.where(
-						or(
-							like(browserHistory.url, pattern),
-							like(browserHistory.title, pattern),
-						),
-					)
-					.orderBy(sql`${browserHistory.lastVisitedAt} desc`)
-					.limit(input.limit ?? 10)
-					.all();
-			}),
+			.query(({ input }) => history.search(input)),
 
 		upsert: publicProcedure
 			.input(
@@ -66,25 +47,7 @@ export const createBrowserHistoryRouter = () => {
 			)
 			.mutation(({ input }) => {
 				try {
-					localDb
-						.insert(browserHistory)
-						.values({
-							url: input.url,
-							title: input.title,
-							faviconUrl: input.faviconUrl ?? null,
-							lastVisitedAt: Date.now(),
-							visitCount: 1,
-						})
-						.onConflictDoUpdate({
-							target: browserHistory.url,
-							set: {
-								title: input.title,
-								faviconUrl: input.faviconUrl ?? null,
-								lastVisitedAt: Date.now(),
-								visitCount: sql`${browserHistory.visitCount} + 1`,
-							},
-						})
-						.run();
+					history.upsert(input);
 				} catch (error) {
 					if ((error as { code?: string }).code !== "SQLITE_FULL") {
 						throw error;
@@ -97,7 +60,7 @@ export const createBrowserHistoryRouter = () => {
 			}),
 
 		clear: publicProcedure.mutation(() => {
-			localDb.delete(browserHistory).run();
+			history.clear();
 		}),
 
 		/**

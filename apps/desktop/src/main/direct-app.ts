@@ -66,6 +66,7 @@ import { WindowCloseGate } from "./lib/ssh-direct/window-close-gate";
 import { closeWindowTransports } from "./lib/ssh-direct/window-transports";
 import { WorkspaceRestoreCoordinator } from "./lib/ssh-direct/workspace-restore-coordinator";
 import { WorkspaceViewStore } from "./lib/ssh-direct/workspace-view-store";
+import { WorkstationBrowserHistory } from "./lib/ssh-direct/workstation-browser-history";
 import { WorkstationBrowserRegistry } from "./lib/ssh-direct/workstation-browser-registry";
 import { guardWorkstationWebviews } from "./lib/ssh-direct/workstation-browser-security";
 import { WorkstationChatDrafts } from "./lib/ssh-direct/workstation-chat-drafts";
@@ -150,6 +151,18 @@ export async function startWorkstation(): Promise<void> {
 	const resourcesRoot = app.isPackaged
 		? path.join(process.resourcesPath, "resources")
 		: path.join(__dirname, "../resources");
+	let browserHistory: WorkstationBrowserHistory | null = null;
+	try {
+		browserHistory = new WorkstationBrowserHistory(
+			path.join(dataDir, "browser-history.db"),
+			readFileSync(
+				path.join(resourcesRoot, "migrations/0026_browser_history.sql"),
+				"utf8",
+			),
+		);
+	} catch (error) {
+		console.error("[workstation] Browser history is unavailable", error);
+	}
 	if (!registry.get(localConnectionId))
 		registry.save({
 			id: localConnectionId,
@@ -589,6 +602,34 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "getBrowserHistory":
+				case "searchBrowserHistory":
+				case "upsertBrowserHistory":
+				case "clearBrowserHistory": {
+					if (!browserHistory)
+						throw new Error("Browser history is unavailable");
+					if (action === "getBrowserHistory") return browserHistory.getAll();
+					if (action === "clearBrowserHistory") return browserHistory.clear();
+					if (action === "searchBrowserHistory") {
+						return browserHistory.search(
+							z
+								.strictObject({
+									query: z.string().max(8192),
+									limit: z.number().int().min(1).max(200).optional(),
+								})
+								.parse(payload),
+						);
+					}
+					return browserHistory.upsert(
+						z
+							.strictObject({
+								url: z.string().max(8192),
+								title: z.string().max(4096),
+								faviconUrl: z.string().max(16384).nullable().optional(),
+							})
+							.parse(payload),
+					);
+				}
 				case "registerBrowserPane":
 					return browserRegistry?.register(owner, payload);
 				case "unregisterBrowserPane":
@@ -1390,6 +1431,7 @@ export async function startWorkstation(): Promise<void> {
 					intents.close();
 					preferences.close();
 					chatDrafts.close();
+					browserHistory?.close();
 					viewStore?.close();
 					ipcMain.removeHandler(DIRECT_CHANNEL);
 					app.quit();
