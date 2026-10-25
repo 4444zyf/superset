@@ -198,3 +198,6 @@
 
 
 阶段八十七以63226e16e提取原历史导入事务供独立工作站库复用；旧router的输入/输出/错误、完整SQL及200行批次经AST核对保持。16项/3197断言验证跨批合并幂等与后批失败回滚，类型/插件通过。仅源码准备，无新UI/IPC、资料读取、编译或原生验收；环境仍为阶段八十六产品，导入功能继续接入。[阶段八十七记录](../implementation/evidence/local-ssh-feature-parity/stage87)。
+
+
+阶段八十八恢复原浏览器显式菜单导入：原View/RPC分支/读取器/Cookie主体复用，桌面OS来源白名单与窗口epoch守卫写私有历史库，Linux支持实际appData/XDG目录，旧调用默认行为保持。真实发现并修复并列Dialog相同key遗留portal，最终6faaddb89通过150项/3702断言、类型/17严格语言/插件与原代码核对。本地/拥有SSH均通过202条跨批读取/幂等合并、空来源/取消、来源文件不变、真实历史选择与重开，并连续通过PNG系统剪贴板/截图列表生命周期；长菜单滚轮0→60，SSH20次恢复及原PTY/cwd保持。两端2205文件/9脚本复核稳定，CLI不变，无Actions/打包。Mac Cookie/Keychain/FDA沿用原实现但未原生验；原菜单未实现密码数据库读取。工作站banner/settings等其他入口与其余功能继续进行。[阶段八十八证据](../implementation/evidence/local-ssh-feature-parity/stage88)。

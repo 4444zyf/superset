@@ -1556,3 +1556,20 @@ clipped本地/拥有SSH两端先通过全设备与原浏览器流程；随后原
 新方法缺失的两项失败用例先记录，再以真实拥有的内存SQLite验证202 URL跨批合并、原ID/非空标题/favicon保持、重复导入不累加，以及第二批真实trigger拒绝使第一批新增/更新全部回滚。最初测试路径错误单列为setup失败，不计红用例。16项/3197断言/4文件、桌面类型与插件检查通过，没有运行时模块mock/真实等待。
 
 本阶段仅源码复用准备，没有重编译或新原生验收；环境2205编译文件仍逐项匹配阶段八十六87a236695，CLI SHA256不变。没有Actions、安装包、CLI/后端发行归档或共享DB迁移。[阶段八十七记录](evidence/local-ssh-feature-parity/stage87)。显式导入UI/服务、来源选择/权限及真实本地/SSH导入继续待接，整体对齐未完成。
+
+
+## 阶段八十八：原浏览器显式导入与并列弹窗身份修复（2026-10-25）
+
+初始af319f082提取原ImportHistoryDialogView，通过source接原RPC/banner回调或工作站可选private importData；复用阶段八十七的原200行事务。原Dialog JSX（除品牌变量/失败状态）、history/cookie分支、canImport、读取器/映射/时间转换、旧lookup默认行为与既有main action经AST核对保持；原router、事务、Cookie实现、权限helper与0026 SQL逐字不变。工作站按OS home/appData发现桌面资料，Linux使用实际XDG位置，旧调用默认目录保持；来源ID必须仍在发现名单，异步历史读取后校验窗口epoch再写私有SQLite。没有新host最低版本、公开RPC合同或迁移。
+
+原勾选、Mac-only登录、导入中阻止关闭和部分成功语义保留；source读取与UI完成使用generation丢弃旧关闭/重开回复，失败不显示“未安装浏览器”。两句原文按productName替换品牌并保留17种原译文。原菜单虽写cookies/passwords，实际原实现只有历史和Cookie，没有密码数据库导入；Linux实窗确认Cookie项禁用，Mac Keychain/FDA只接原实现，不冒称已原生测试。
+
+旧87a23实窗确认缺入口。af319两轮读取202条、空库与重复合并已通过，随后历史选择导航后Dialog不关闭，外层终端清理timeout盖住原stack；report保存首个失败。诊断记录实际row点击、data-state=open和空runtime异常。真实WorkspaceBrowserPane回归（外部API/webview替身及假时钟）复现并报告重复key：五个兄弟Dialog都用相同pane ID，重绘遗留失去关联的portal。最终6faaddb89按pane及Dialog类型分别给key，回归通过；测试语法/替身注册setup错误单列，不计红行为证据。
+
+修复后本地联合流程通过；首轮SSH因测试HTTP服务不属于工作区被原端口守卫正确拒绝，没有放宽产品检查。最终夹具改用实际工作区终端已启动的HTTP服务，在端口已知后、打开导入界面前生成两份自有Chromium格式SQLite，应用读取前冻结，此后哈希不变。未覆盖HOME、读取真实浏览器资料或调整UI布局。SSH导入通过后曾在截图View all处timeout，旧夹具缺前台/动画/hover后命中等待；最终等待真实前台按钮，实际hover后重验，单次按下/释放。新增夹具getPage引用错误亦单列setup失败；不将这些夹具timeout混称产品缺陷。
+
+最终verified-local-hover/verified-ssh-hover在同一6faadd编译均退出0：检测两来源、无自动导入、Cancel不改库、取消历史勾选禁用Import、空来源失败反馈、202条真实原读取器跨原200批次导入、保留已访问ID/非空标题/favicon/时间且计数升到99、重复不累加或换ID、任意来源拒绝、选择导入历史到真实工作区HTTP与弹窗关闭、正常重开202条及选择后ID/计数保持、三个来源文件哈希不变。SSH guest实际为127.0.0.1转发地址，canonical路径/query/fragment完整保留。
+
+随后两端连续通过完整PNG/OS图片剪贴板像素、默认白底与显式蓝色、前台View all各1次实际点击、缩略图/路径复制/清列表保留文件/截图正常重开；原URL复制、缩放/强刷、含marker的DevTools、设置、查找/导航/window.open分屏/选择性关闭/正常重开继续通过。长菜单真实滚轮0→60。最终本地PTY PID152984/execution f7d632be-ef3d-47c3-864f-652031610eb3，SSH PID156527/execution ce1296f7-1311-437b-9002-813743ced820及cwd保持；SSH含20次此前恢复，runtime异常为空，拥有app/Xorg退出0，工作区HTTP由实际Ctrl+C停止。基线、初始来源/卡住的历史、修复本地历史/截图、SSH归属拒绝/toast失败和最终SSH两类重开图已查看，其余只称捕获。
+
+150项/3702断言/29文件、桌面类型、17严格语言、插件、原代码核对及两原生脚本未声明变量检查通过。每次源码构建先明确退出0再冻结/运行，最终2205文件manifest SHA256874194c62dfccf5b07c6543635e1bb742f1201ba354260db01919ad5267bdd78，结束后逐文件及9个最终脚本一致。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb；无Actions、CLI重建、安装包、后端发行归档或共享DB迁移。[阶段八十八证据](evidence/local-ssh-feature-parity/stage88)。真实Chrome/活动WAL复制、物理Mac/Keychain/FDA、OS文件打开、外部SSH/供应商Agent未验，终端重点仍按阶段八十范围。工作站banner/settings导入、其余设置/设计、rightPane、聊天/任务URL、CLI桥及其他功能继续补齐，整体目标未完成。
