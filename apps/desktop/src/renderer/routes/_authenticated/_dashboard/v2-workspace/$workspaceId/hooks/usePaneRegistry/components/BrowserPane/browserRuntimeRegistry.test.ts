@@ -323,6 +323,31 @@ describe("browserRuntimeRegistry guest lifecycle", () => {
 		}
 	});
 
+	test("keeps the same-origin favicon when Chromium does not repeat its candidate event", () => {
+		const paneId = "lifecycle-favicon-cache-pane";
+		const entry = createEntry(paneId);
+		try {
+			fire(entry.webview, "did-navigate", { url: "https://example.com/first" });
+			fire(entry.webview, "page-favicon-updated", {
+				favicons: ["https://example.com/icon.svg"],
+			});
+			fire(entry.webview, "did-start-loading");
+			fire(entry.webview, "did-navigate", {
+				url: "https://example.com/second",
+			});
+			fire(entry.webview, "did-stop-loading");
+			expect(browserRuntimeRegistry.getState(paneId).faviconUrl).toBe(
+				"https://example.com/icon.svg",
+			);
+			fire(entry.webview, "did-navigate", {
+				url: "https://other.example/page",
+			});
+			expect(browserRuntimeRegistry.getState(paneId).faviconUrl).toBeNull();
+		} finally {
+			registryInternals.entries.delete(paneId);
+		}
+	});
+
 	test("records the attempted URL of a failed main-frame load only", () => {
 		const paneId = "lifecycle-failed-load-pane";
 		const entry = createEntry(paneId);

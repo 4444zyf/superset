@@ -45,7 +45,7 @@ export async function verifyWorkstationBrowserUi(options) {
 		"import http.server,json,os,signal",
 		"from pathlib import Path",
 		`state={"marker":${JSON.stringify(marker)},"requests":[],"running":True,"pid":os.getpid()}`,
-		"def save(): Path('browser-proof.json').write_text(json.dumps(state))",
+		"def save(): temp=Path('browser-proof.tmp');temp.write_text(json.dumps(state));temp.replace('browser-proof.json')",
 		"class Handler(http.server.BaseHTTPRequestHandler):",
 		" def do_GET(self):",
 		"  state['requests'].append(self.path);save()",
@@ -144,7 +144,7 @@ export async function verifyWorkstationBrowserUi(options) {
 			"browser page mounted",
 		);
 		await evaluate(
-			`(()=>{window.__ownedBrowserEvents=[];const v=document.querySelector('webview');for(const type of ['dom-ready','did-navigate','did-navigate-in-page','page-title-updated','did-stop-loading'])v.addEventListener(type,event=>{window.__ownedBrowserEvents.push({type,title:event.title,url:event.url});if(window.__ownedBrowserEvents.length>64)window.__ownedBrowserEvents.shift();});return true;})()`,
+			`(()=>{window.__ownedBrowserEvents=[];const v=document.querySelector('webview');for(const type of ['dom-ready','did-navigate','did-navigate-in-page','page-title-updated','page-favicon-updated','did-stop-loading'])v.addEventListener(type,event=>{window.__ownedBrowserEvents.push({type,title:event.title,url:event.url,favicons:event.favicons});if(window.__ownedBrowserEvents.length>64)window.__ownedBrowserEvents.shift();});return true;})()`,
 		);
 		const url = `http://localhost:${proof.port}/preview?first=%E4%B8%AD#initial`;
 		await click("text:Enter URL or search...");
@@ -153,7 +153,7 @@ export async function verifyWorkstationBrowserUi(options) {
 		await key("Enter", "Enter");
 		const loaded = await until(async () => {
 			const value = await guestRead(
-				"({body:document.body.innerText,title:document.title,url:location.href,node:typeof require,process:typeof process})",
+				"({body:document.body.innerText,title:document.title,url:location.href,node:typeof require,process:typeof process,head:document.head.innerHTML})",
 			);
 			return value?.body.includes(marker) ? value : null;
 		}, "owned page rendered inside Electron guest");
@@ -291,6 +291,9 @@ export async function verifyWorkstationBrowserUi(options) {
 						`http://localhost:${proof.port}/next?value=%E4%B8%AD%20hello#section` &&
 					row.faviconUrl === `http://localhost:${proof.port}/icon.svg`,
 			),
+		);
+		report.guestEventsBeforeReopen = await evaluate(
+			"window.__ownedBrowserEvents ?? []",
 		);
 		report.rendererBeforeReopen = getPage().errors;
 		assert.deepEqual(report.rendererBeforeReopen, []);

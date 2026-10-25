@@ -378,7 +378,6 @@ export class BrowserRuntimeRegistryCore {
 			this.setState(paneId, {
 				isLoading: true,
 				error: null,
-				faviconUrl: null,
 			});
 		};
 
@@ -408,10 +407,18 @@ export class BrowserRuntimeRegistryCore {
 		};
 
 		const handleDidNavigate = (e: Electron.DidNavigateEvent) => {
+			let sameOrigin = false;
+			try {
+				const origin = new URL(e.url).origin;
+				sameOrigin =
+					origin !== "null" &&
+					origin === new URL(entry.state.currentUrl).origin;
+			} catch {}
 			this.setState(paneId, {
 				currentUrl: e.url ?? "",
 				pageTitle:
 					e.url === entry.state.currentUrl ? entry.state.pageTitle : "",
+				faviconUrl: sameOrigin ? entry.state.faviconUrl : null,
 				isLoading: false,
 			});
 			this.refreshNavState(paneId);
@@ -428,8 +435,8 @@ export class BrowserRuntimeRegistryCore {
 		};
 
 		const handlePageFaviconUpdated = (e: Electron.PageFaviconUpdatedEvent) => {
-			const favicon = e.favicons?.[0];
-			if (!favicon || favicon === entry.state.faviconUrl) return;
+			const favicon = e.favicons?.[0] ?? null;
+			if (favicon === entry.state.faviconUrl) return;
 			this.setState(paneId, { faviconUrl: favicon });
 			const { currentUrl, pageTitle } = entry.state;
 			if (currentUrl && currentUrl !== "about:blank") {
