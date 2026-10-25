@@ -85,6 +85,9 @@ test("the original recent list and search limits preserve descending visit order
 		expect(rows.at(-1)?.lastVisitedAt).toBe(1);
 		expect(history.search({ query: "page" })).toHaveLength(10);
 		expect(history.search({ query: "page", limit: 200 })).toHaveLength(200);
+		expect(
+			history.search({ query: "page/0", limit: 100 }).map((row) => row.url),
+		).toEqual(["https://example.com/page/0"]);
 	} finally {
 		sqlite.close();
 	}

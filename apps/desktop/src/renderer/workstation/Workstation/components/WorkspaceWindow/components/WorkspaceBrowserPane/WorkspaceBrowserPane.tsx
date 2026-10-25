@@ -1,3 +1,8 @@
+import {
+	HistoryDialogView,
+	type BrowserHistorySource,
+	type HistoryEntry,
+} from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/HistoryDialog/components/HistoryDialogView";
 import { DeviceToolbar } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/DeviceToolbar";
 import { BrowserViewportView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/BrowserViewportView";
 import {
@@ -12,6 +17,7 @@ import {
 	useCallback,
 	useEffect,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 } from "react";
@@ -52,9 +58,10 @@ export function WorkspaceBrowserPane({
 	const placeholder = useRef<HTMLDivElement | null>(null);
 	const [overlay, setOverlay] = useState<HTMLElement | null>(null);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
-	const settingsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const dialogTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const [find, setFind] = useState(false);
+	const [historyPane, setHistoryPane] = useState<string | null>(null);
 	const [navigationError, setNavigationError] = useState<string | null>(null);
 	const id = runtime.ensure(connection, workspaceId, pane, {
 		onPersist: (state) => {
@@ -91,21 +98,21 @@ export function WorkspaceBrowserPane({
 
 	useEffect(
 		() => () => {
-			if (settingsTimer.current !== null) clearTimeout(settingsTimer.current);
-			settingsTimer.current = null;
+			if (dialogTimer.current !== null) clearTimeout(dialogTimer.current);
+			dialogTimer.current = null;
 		},
 		[id],
 	);
-	const openBrowserSettings = () => {
+	const openBrowserDialog = (open: () => void) => {
 		const registration = runtime.registration(id);
 		if (!registration) return;
-		if (settingsTimer.current !== null) clearTimeout(settingsTimer.current);
-		settingsTimer.current = setTimeout(() => {
-			settingsTimer.current = null;
+		if (dialogTimer.current !== null) clearTimeout(dialogTimer.current);
+		dialogTimer.current = setTimeout(() => {
+			dialogTimer.current = null;
 			if (
 				runtime.registration(id)?.registrationId === registration.registrationId
 			)
-				onBrowserSettings?.();
+				open();
 		}, MENU_CLOSE_ANIMATION_MS);
 	};
 
@@ -140,17 +147,31 @@ export function WorkspaceBrowserPane({
 			active = false;
 		};
 	}, [api, id, runtime, state.faviconUrl]);
-	const loadHistory = useCallback(
-		async () =>
-			(await api.browser!.history!.getAll()).map((row) => ({
+	const decorateHistory = useCallback(
+		<T extends HistoryEntry>(rows: T[]): T[] =>
+			rows.map((row) => ({
 				...row,
 				faviconUrl:
-					row.faviconUrl && row.faviconUrl === pane.browser.faviconUrl
+					row.faviconUrl && row.faviconUrl === state.faviconUrl
 						? displayIcon
 						: null,
 			})),
-		[api, displayIcon, pane.browser.faviconUrl],
+		[displayIcon, state.faviconUrl],
 	);
+	const loadHistory = useCallback(
+		async () => decorateHistory((await api.browser?.history?.getAll()) ?? []),
+		[api, decorateHistory],
+	);
+	const historySource = useMemo<BrowserHistorySource | null>(() => {
+		const history = api.browser?.history;
+		if (!history) return null;
+		return {
+			getAll: loadHistory,
+			search: async (input) => decorateHistory(await history.search(input)),
+			clear: () => history.clear(),
+		};
+	}, [api, loadHistory, decorateHistory]);
+
 	useLayoutEffect(() => {
 		if (!placeholder.current) return;
 		runtime.attach(id, placeholder.current);
@@ -285,7 +306,14 @@ export function WorkspaceBrowserPane({
 						onOpenExternal ? () => onOpenExternal(state.currentUrl) : undefined
 					}
 					handleOpenSettings={
-						onBrowserSettings ? openBrowserSettings : undefined
+						onBrowserSettings
+							? () => openBrowserDialog(onBrowserSettings)
+							: undefined
+					}
+					onHistory={
+						historySource
+							? () => openBrowserDialog(() => setHistoryPane(id))
+							: undefined
 					}
 				/>
 			</div>
@@ -303,6 +331,15 @@ export function WorkspaceBrowserPane({
 						onClose={() => runtime.devices.close(id)}
 					/>
 				</div>
+			)}
+			{historySource && (
+				<HistoryDialogView
+					key={id}
+					source={historySource}
+					open={historyPane === id}
+					onOpenChange={(open) => setHistoryPane(open ? id : null)}
+					onSelect={navigate}
+				/>
 			)}
 			<BrowserViewportView
 				deviceToolbar={deviceToolbar}

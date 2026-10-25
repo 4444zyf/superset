@@ -315,6 +315,20 @@ export async function verifyWorkstationBrowserUi(options) {
 			"canonical favicon metadata persisted",
 		);
 
+		if (process.argv.includes("--browser-history-dialog")) {
+			const { verifyWorkstationBrowserHistoryUi } = await import(
+				"./verify-workstation-browser-history-ui.mjs"
+			);
+			report.historyDialog = await verifyWorkstationBrowserHistoryUi(options, {
+				url,
+				proof,
+				marker,
+				guestRead,
+				key,
+				readProof,
+			});
+			save();
+		}
 		const browserBeforePopup = workspace(await readView())
 			.panes.filter((p) => p.kind === "browser")
 			.map((p) => p.paneId);
@@ -414,6 +428,16 @@ export async function verifyWorkstationBrowserUi(options) {
 		assert.equal(report.terminalAfter.cwd, report.terminalBefore.cwd);
 		report.rendererAfterReopen = getPage().errors;
 		assert.deepEqual(report.rendererAfterReopen, []);
+		if (process.argv.includes("--browser-history-dialog")) {
+			const { verifyWorkstationBrowserHistoryReopened } = await import(
+				"./verify-workstation-browser-history-ui.mjs"
+			);
+			report.historyReopened = await verifyWorkstationBrowserHistoryReopened(
+				options,
+				report.historyDialog,
+			);
+			save();
+		}
 		await screenshot("browser-reopened");
 		save();
 	} finally {
