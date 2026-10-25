@@ -1547,3 +1547,12 @@ clipped本地/拥有SSH两端先通过全设备与原浏览器流程；随后原
 最终本地PTY PID136591/execution023be236-894e-42a5-9c24-df14090ebb8b，SSH PID140188/executioncc1c9a06-37f4-4722-aa20-e91c247ed755及cwd保持；SSH含20次此前恢复，renderer runtime异常为空，所有拥有app/Xorg退出0。基线菜单、首轮工具菜单、初始透明PNG/列表、最终本地剪贴板预览/列表与最终SSH列表/重开图已查看，其余仅称捕获。实际OS打开/显示文件、真实供应商Agent、外部SSH、物理Mac输入/缩放仍未验；过期capture是受控测试，不混称原生竞争验收。
 
 两次源码构建均明确退出0后才冻结/运行，最终2205文件manifest SHA25602c197c1f0eddb3806ac573a8caa4156337e53e56a8659b3a890691eea368e00；两端原生后逐文件及8个最终夹具哈希一致。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb，无重建。没有Actions、安装包、后端发行归档、共享DB迁移或隐式浏览器资料导入。[阶段八十六证据](evidence/local-ssh-feature-parity/stage86)。用户重点终端滚轮/复制粘贴保持阶段八十ca791两端范围；原浏览器导入/其余设置、设计及其他工具、完整图标、rightPane、聊天/任务URL、CLI桥与其他功能组继续补齐，整体目标未完成。
+
+
+## 阶段八十七：原历史导入事务的复用准备（2026-10-25）
+
+源码63226e16e将原browserHistory.importFromSource中完整transaction/200行chunk/原upsert SQL移入现有history repository，旧router委派后保持完整输入/输出/错误/类型；工作站独立历史库增加内部importEntries委派。AST核对原事务、内联后的完整旧router、四个现有repository方法和200常量一致；private API/preload、原发现/读取/解密实现和0026 SQL逐字不变。没有新UI/IPC、迁移、自动资料导入或浏览器目录访问。
+
+新方法缺失的两项失败用例先记录，再以真实拥有的内存SQLite验证202 URL跨批合并、原ID/非空标题/favicon保持、重复导入不累加，以及第二批真实trigger拒绝使第一批新增/更新全部回滚。最初测试路径错误单列为setup失败，不计红用例。16项/3197断言/4文件、桌面类型与插件检查通过，没有运行时模块mock/真实等待。
+
+本阶段仅源码复用准备，没有重编译或新原生验收；环境2205编译文件仍逐项匹配阶段八十六87a236695，CLI SHA256不变。没有Actions、安装包、CLI/后端发行归档或共享DB迁移。[阶段八十七记录](evidence/local-ssh-feature-parity/stage87)。显式导入UI/服务、来源选择/权限及真实本地/SSH导入继续待接，整体对齐未完成。
