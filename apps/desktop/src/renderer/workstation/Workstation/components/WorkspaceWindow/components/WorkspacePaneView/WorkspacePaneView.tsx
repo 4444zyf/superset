@@ -5,7 +5,7 @@ import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../../../shared/direct-workstation";
-import type { WorkspacePane } from "../../../../../../../shared/workspace-view";
+import type { WorkspacePaneV2 as WorkspacePane } from "../../../../../../../shared/workspace-view-v2";
 import { RemoteChat } from "../../../RemoteChat/RemoteChat";
 import {
 	RemoteTerminal,
@@ -13,6 +13,8 @@ import {
 	type TerminalEmulator,
 } from "../../../RemoteTerminal/RemoteTerminal";
 import type { TerminalFileTarget } from "../../../RemoteTerminal/utils/terminal-file-links/terminal-file-links";
+import { WorkspaceBrowserPane } from "../WorkspaceBrowserPane";
+import type { WorkspaceViewActions } from "../../../../hooks/useWorkspaceViews/useWorkspaceViews";
 
 export function WorkspacePaneView({
 	api,
@@ -31,6 +33,7 @@ export function WorkspacePaneView({
 	onOpenFile,
 	onOpenUrl,
 	onClipboardControls,
+	actions,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor | null;
@@ -48,6 +51,7 @@ export function WorkspacePaneView({
 	onOpenFile?(target: TerminalFileTarget): void;
 	onOpenUrl?(url: string): void;
 	onClipboardControls?(controls: TerminalClipboardControls): () => void;
+	actions: WorkspaceViewActions;
 }) {
 	const [state, setState] = useState<
 		"pending" | "attached" | "failed" | "ended"
@@ -79,7 +83,16 @@ export function WorkspacePaneView({
 			}}
 		>
 			<div className="ws-pane-content">
-				{live && !failed && allowed && connection ? (
+				{pane.kind === "browser" && connection && actions.browserEnabled ? (
+					<WorkspaceBrowserPane
+						api={api}
+						connection={connection}
+						workspaceId={workspaceId}
+						pane={pane}
+						actions={actions}
+						onFocus={onFocus}
+					/>
+				) : live && !failed && allowed && connection ? (
 					pane.kind === "terminal" ? (
 						<RemoteTerminal
 							fill

@@ -1,8 +1,8 @@
 import type { LayoutNode, WorkspaceState } from "@superset/panes";
 import type {
-	WorkspacePane,
-	WorkspaceView,
-} from "../../../../../shared/workspace-view";
+	WorkspacePaneV2 as WorkspacePane,
+	WorkspaceViewV2 as WorkspaceView,
+} from "../../../../../shared/workspace-view-v2";
 import { fromPaneLayout, toPaneState } from "../pane-adapter/pane-adapter";
 import { buildPaneTree } from "../pane-layout/pane-layout";
 
@@ -189,7 +189,8 @@ export function applyWorkspacePaneState(
 				before.tabs.find((t) => t.id === before.activeTabId)?.activePaneId !==
 					active?.activePaneId)
 		)
-			workspace.activeTool = focused.kind;
+			workspace.activeTool =
+				focused.kind === "browser" ? "terminal" : focused.kind;
 		return true;
 	} catch {
 		return false;

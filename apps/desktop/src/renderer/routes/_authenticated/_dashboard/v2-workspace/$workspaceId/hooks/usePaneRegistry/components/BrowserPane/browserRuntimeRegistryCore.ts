@@ -95,6 +95,10 @@ export interface BrowserRuntimeIpc {
 		};
 	};
 	browserHistory: {
+		upsertForPane?(
+			paneId: string,
+			input: { url: string; title: string; faviconUrl?: string | null },
+		): Promise<unknown>;
 		upsert: {
 			mutate(input: {
 				url: string;
@@ -106,6 +110,15 @@ export interface BrowserRuntimeIpc {
 }
 
 export class BrowserRuntimeRegistryCore {
+	private upsertHistory(
+		paneId: string,
+		input: { url: string; title: string; faviconUrl?: string | null },
+	): Promise<unknown> {
+		return (
+			this.ipc.browserHistory.upsertForPane?.(paneId, input) ??
+			this.ipc.browserHistory.upsert.mutate(input)
+		);
+	}
 	private entries = new Map<string, RegistryEntry>();
 	private listenersByPaneId = new Map<string, Set<() => void>>();
 	private foundInPageListenersByPaneId = new Map<
@@ -383,11 +396,13 @@ export class BrowserRuntimeRegistryCore {
 			this.refreshZoomState(paneId);
 			const { currentUrl, pageTitle, faviconUrl } = entry.state;
 			if (currentUrl && currentUrl !== "about:blank") {
-				this.ipc.browserHistory.upsert
-					.mutate({ url: currentUrl, title: pageTitle, faviconUrl })
-					.catch((err) => {
-						console.error("[browserRuntimeRegistry] upsert history:", err);
-					});
+				this.upsertHistory(paneId, {
+					url: currentUrl,
+					title: pageTitle,
+					faviconUrl,
+				}).catch((err) => {
+					console.error("[browserRuntimeRegistry] upsert history:", err);
+				});
 			}
 			firePersist();
 		};
@@ -417,11 +432,13 @@ export class BrowserRuntimeRegistryCore {
 			this.setState(paneId, { faviconUrl: favicon });
 			const { currentUrl, pageTitle } = entry.state;
 			if (currentUrl && currentUrl !== "about:blank") {
-				this.ipc.browserHistory.upsert
-					.mutate({ url: currentUrl, title: pageTitle, faviconUrl: favicon })
-					.catch((err) => {
-						console.error("[browserRuntimeRegistry] upsert favicon:", err);
-					});
+				this.upsertHistory(paneId, {
+					url: currentUrl,
+					title: pageTitle,
+					faviconUrl: favicon,
+				}).catch((err) => {
+					console.error("[browserRuntimeRegistry] upsert favicon:", err);
+				});
 			}
 			firePersist();
 		};

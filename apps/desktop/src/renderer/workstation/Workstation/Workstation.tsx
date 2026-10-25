@@ -29,6 +29,7 @@ import { WorkstationChatDraftManager } from "./components/WorkstationChatDraftMa
 import { WorkstationCloseGuard } from "./components/WorkstationCloseGuard";
 import { WorkstationDialog } from "./components/WorkstationDialog/WorkstationDialog";
 import { WorkstationShell } from "./components/WorkstationShell/WorkstationShell";
+import { workstationBrowsers } from "./providers/WorkstationBrowsers/workstation-browsers";
 import { useWorkspaceViews } from "./hooks/useWorkspaceViews/useWorkspaceViews";
 import { useWorkstation } from "./hooks/useWorkstation/useWorkstation";
 import { useWorkstationPreferences } from "./hooks/useWorkstationPreferences";
@@ -162,6 +163,14 @@ export function Workstation({
 		},
 		onError: ui.setError,
 	});
+	useEffect(() => {
+		if (views.browserEnabled)
+			workstationBrowsers(api).reconcile(views.view, ui.connection);
+	}, [api, views.browserEnabled, views.view, ui.connection]);
+	useEffect(() => {
+		if (!views.browserEnabled) return;
+		return () => workstationBrowsers(api).clear();
+	}, [api, views.browserEnabled]);
 	const localViewNamespace = useRef<string | null>(null);
 	const savedTarget = views.view?.targets.find(
 		(target) => target.connectionId === selectedId,

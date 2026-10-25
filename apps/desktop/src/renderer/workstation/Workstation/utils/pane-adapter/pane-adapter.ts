@@ -1,9 +1,9 @@
 import type { LayoutNode, WorkspaceState } from "@superset/panes";
+import type { PaneTree } from "../../../../../shared/workspace-view";
 import type {
-	PaneTree,
-	WorkspacePane,
-	WorkspaceView,
-} from "../../../../../shared/workspace-view";
+	WorkspacePaneV2 as WorkspacePane,
+	WorkspaceViewV2 as WorkspaceView,
+} from "../../../../../shared/workspace-view-v2";
 
 export function toPaneLayout(tree: PaneTree): LayoutNode {
 	return tree.type === "pane"

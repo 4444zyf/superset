@@ -32,6 +32,8 @@ export type WorkstationBrowserRegistration = z.infer<
 
 export type WorkstationBrowserEvent = WorkstationBrowserPane &
 	(
+		| { type: "navigation-map"; url: string; guestUrl: string }
+		| { type: "navigation-error"; message: string }
 		| { type: "new-window"; url: string }
 		| { type: "context-menu-action"; action: string; url: string }
 		| { type: "close-pane" | "reload-pane" | "pane-focus" }
@@ -39,7 +41,15 @@ export type WorkstationBrowserEvent = WorkstationBrowserPane &
 		| { type: "agent-active"; active: boolean }
 	);
 
+export type WorkstationBrowserNavigationResult =
+	| { status: "navigated"; url: string; guestUrl: string }
+	| { status: "superseded" };
+
 export interface WorkstationBrowserApi {
+	navigate?(input: {
+		pane: WorkstationBrowserPane;
+		url: string;
+	}): Promise<WorkstationBrowserNavigationResult>;
 	updatePage?(input: {
 		pane: WorkstationBrowserPane;
 		resourceId: string;

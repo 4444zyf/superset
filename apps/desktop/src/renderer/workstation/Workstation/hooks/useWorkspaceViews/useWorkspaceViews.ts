@@ -25,12 +25,17 @@ import type {
 import {
 	emptyWorkspaceView,
 	type PaneTree,
-	type WorkspacePane,
 	type WorkspaceRestoreSnapshot,
-	type WorkspaceViewInput,
-	type WorkspaceViewSnapshot,
 } from "../../../../../shared/workspace-view";
+import type {
+	WorkspacePaneV2 as WorkspacePane,
+	WorkspaceViewInputV2 as WorkspaceViewInput,
+	WorkspaceViewSnapshotV2 as WorkspaceViewSnapshot,
+} from "../../../../../shared/workspace-view-v2";
 import type { RemoteWorkspace } from "../../types";
+import { hasBrowserPanes } from "../../../../../shared/workspace-view-v2";
+import type { WorkstationBrowserPane } from "../../../../../shared/workstation-browser";
+import type { BrowserPageState } from "../../../../../shared/workspace-view-v2";
 import {
 	fromPaneLayout,
 	toPaneLayout,
@@ -42,6 +47,21 @@ import {
 	splitPane,
 } from "../../utils/pane-layout/pane-layout";
 import { applyWorkspacePaneState } from "../../utils/workspace-pane-state/workspace-pane-state";
+
+type PageUpdate = {
+	pane: WorkstationBrowserPane;
+	resourceId: string;
+	state: BrowserPageState;
+};
+const pageKey = (update: PageUpdate) =>
+	JSON.stringify([
+		update.pane.connectionId,
+		update.pane.generation,
+		update.pane.workspaceId,
+		update.pane.paneId,
+		update.pane.registrationId,
+		update.resourceId,
+	]);
 
 function inputFor(snapshot: WorkspaceViewSnapshot | null): WorkspaceViewInput {
 	if (!snapshot)
@@ -76,6 +96,44 @@ export function useWorkspaceViews(
 		!!api.getWorkspaceView &&
 		!!api.saveWorkspaceView &&
 		!!api.beginWorkspaceRestore;
+	const versioned = !!api.getWorkspaceViewV2 && !!api.saveWorkspaceViewV2;
+	const browserEnabled =
+		versioned &&
+		!!api.browser?.updatePage &&
+		!!api.browser.history &&
+		!!api.browser.navigate;
+	const readSnapshot = useCallback(async () => {
+		const result = versioned
+			? await api.getWorkspaceViewV2!()
+			: await api.getWorkspaceView?.();
+		return result
+			? {
+					...result,
+					snapshot: result.snapshot
+						? { ...result.snapshot, schemaVersion: 2 as const }
+						: null,
+				}
+			: undefined;
+	}, [api, versioned]);
+	const saveSnapshot = useCallback(
+		async (input: {
+			expectedRevision: number;
+			navigationRevision: number;
+			view: WorkspaceViewInput;
+			browserLeases?: { connectionId: string; generation: number }[];
+		}): Promise<WorkspaceViewSnapshot> => {
+			if (versioned) return api.saveWorkspaceViewV2!(input);
+			if (hasBrowserPanes(input.view))
+				throw new Error("Browser pages require V2 workspace storage");
+			const saved = await api.saveWorkspaceView!({
+				expectedRevision: input.expectedRevision,
+				navigationRevision: input.navigationRevision,
+				view: input.view as import("../../../../../shared/workspace-view").WorkspaceViewInput,
+			});
+			return { ...saved, schemaVersion: 2 };
+		},
+		[api, versioned],
+	);
 	const [view, setView] = useState<WorkspaceViewSnapshot | null>(null);
 	const [invalid, setInvalid] = useState(false);
 	const [restore, setRestore] = useState<WorkspaceRestoreSnapshot | null>(null);
@@ -106,18 +164,20 @@ export function useWorkspaceViews(
 	const labelsRef = useRef(labels);
 	labelsRef.current = labels;
 	const setSaved = useCallback((saved: WorkspaceViewSnapshot | null) => {
+		if (saved && viewRef.current && saved.revision < viewRef.current.revision)
+			return;
 		viewRef.current = saved;
 		setView(saved);
 	}, []);
 	const read = useCallback(async () => {
 		const captured = intent.current;
-		const result = await api.getWorkspaceView?.();
+		const result = await readSnapshot();
 		if (!result || !mounted.current) return result;
 		revision.current = result.revision;
 		setInvalid(result.invalid);
 		if (captured === intent.current) setSaved(result.snapshot);
 		return result;
-	}, [api, setSaved]);
+	}, [readSnapshot, setSaved]);
 	const receive = useCallback(
 		(snapshot: WorkspaceRestoreSnapshot) => {
 			if (
@@ -144,12 +204,14 @@ export function useWorkspaceViews(
 					(w) => w.tabId === target.activeTabId,
 				);
 				const refs =
-					workspace?.panes.map((p) => [
-						workspace.workspaceId,
-						p.kind,
-						p.resourceId,
-						p.executionId,
-					]) ?? [];
+					workspace?.panes
+						.filter((p) => p.kind !== "browser")
+						.map((p) => [
+							workspace.workspaceId,
+							p.kind,
+							p.resourceId,
+							p.executionId,
+						]) ?? [];
 				restoredScope.current = JSON.stringify([
 					snapshot.descriptor.connectionId,
 					snapshot.descriptor.generation,
@@ -167,14 +229,91 @@ export function useWorkspaceViews(
 		},
 		[read],
 	);
+	const pendingPages = useRef(new Map<string, PageUpdate>());
+	const pageTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+		undefined,
+	);
+	const pageDrain = useRef<Promise<void> | null>(null);
+	const pageInFlight = useRef(new Set<string>());
+	const drainBrowserPages = useCallback((): Promise<void> => {
+		clearTimeout(pageTimer.current);
+		if (pageDrain.current) return pageDrain.current;
+		const drain = (async () => {
+			while (pendingPages.current.size) {
+				const updates = [...pendingPages.current.values()];
+				pendingPages.current.clear();
+				for (const update of updates) pageInFlight.current.add(pageKey(update));
+				const captured = intent.current;
+				const pending = queue.current.then(async () => {
+					for (const update of updates) {
+						if (!mounted.current) return;
+						const result = await api.browser?.updatePage?.(update);
+						if (result && result.status !== "stale") {
+							revision.current = Math.max(
+								revision.current,
+								result.snapshot.revision,
+							);
+							if (mounted.current && captured === intent.current)
+								setSaved(result.snapshot);
+						}
+					}
+				});
+				queue.current = pending.catch(() => {});
+				try {
+					await pending;
+				} catch (error) {
+					for (const update of updates) {
+						const key = pageKey(update);
+						if (!pendingPages.current.has(key))
+							pendingPages.current.set(key, update);
+					}
+					throw error;
+				} finally {
+					for (const update of updates)
+						pageInFlight.current.delete(pageKey(update));
+				}
+			}
+		})();
+		pageDrain.current = drain;
+		const clear = () => {
+			if (pageDrain.current === drain) pageDrain.current = null;
+		};
+		void drain.then(clear, clear);
+		return drain;
+	}, [api, setSaved]);
+	const persistBrowserPage = useCallback(
+		(update: PageUpdate) => {
+			if (!browserEnabled || !mounted.current) return;
+			const key = pageKey(update);
+			if (
+				pendingPages.current.size + pageInFlight.current.size >= 128 &&
+				!pendingPages.current.has(key) &&
+				!pageInFlight.current.has(key)
+			) {
+				callbacksRef.current.onError(labelsRef.current.saveFailed);
+				return;
+			}
+			pendingPages.current.set(key, structuredClone(update));
+			clearTimeout(pageTimer.current);
+			pageTimer.current = setTimeout(
+				() =>
+					void drainBrowserPages().catch(() =>
+						callbacksRef.current.onError(labelsRef.current.saveFailed),
+					),
+				200,
+			);
+		},
+		[browserEnabled, drainBrowserPages],
+	);
 	const flush = useCallback(async () => {
 		clearTimeout(debounce.current);
 		const action = deferred.current;
 		deferred.current = null;
 		if (action) await action();
+		await drainBrowserPages();
 		await pendingTerminalAction.current;
 		await queue.current;
-	}, []);
+	}, [drainBrowserPages]);
 	const trackTerminalAction = useCallback((action: () => Promise<void>) => {
 		if (pendingTerminalAction.current) return pendingTerminalAction.current;
 		setBusy(true);
@@ -226,6 +365,8 @@ export function useWorkspaceViews(
 			offFlush?.();
 			clearTimeout(debounce.current);
 			deferred.current = null;
+			clearTimeout(pageTimer.current);
+			pendingPages.current.clear();
 		};
 	}, [api, enabled, flush, read, receive]);
 	const navigate = useCallback(() => {
@@ -255,7 +396,7 @@ export function useWorkspaceViews(
 				change(updated);
 				setSaved({
 					...updated,
-					schemaVersion: 1,
+					schemaVersion: 2,
 					revision: viewRef.current.revision,
 					updatedAt: viewRef.current.updatedAt,
 				});
@@ -263,15 +404,27 @@ export function useWorkspaceViews(
 			const pending = queue.current.then(async () => {
 				for (let attempt = 0; attempt < 2; attempt++) {
 					if (!mounted.current || captured !== navigation.current) return null;
-					const current = await api.getWorkspaceView!();
+					const current = await readSnapshot();
+					if (!current) return null;
 					if (!mounted.current || captured !== navigation.current) return null;
 					const input = inputFor(current.snapshot);
 					change(input);
 					try {
-						const saved = await api.saveWorkspaceView!({
+						const descriptor = connectionRef.current;
+						const saved = await saveSnapshot({
 							expectedRevision: current.revision,
 							navigationRevision: captured,
 							view: input,
+							...(descriptor
+								? {
+										browserLeases: [
+											{
+												connectionId: descriptor.connectionId,
+												generation: descriptor.generation,
+											},
+										],
+									}
+								: {}),
 						});
 						revision.current = saved.revision;
 						if (
@@ -296,7 +449,7 @@ export function useWorkspaceViews(
 				return null;
 			});
 		},
-		[api, enabled, read, setSaved],
+		[enabled, read, readSnapshot, saveSnapshot, setSaved],
 	);
 	const targetId = useCallback(
 		() =>
@@ -339,12 +492,14 @@ export function useWorkspaceViews(
 		(w) => w.tabId === activeTarget.activeTabId,
 	);
 	const resourceKey = JSON.stringify(
-		activeWorkspace?.panes.map((p) => [
-			activeWorkspace.workspaceId,
-			p.kind,
-			p.resourceId,
-			p.executionId,
-		]) ?? [],
+		activeWorkspace?.panes
+			.filter((p) => p.kind !== "browser")
+			.map((p) => [
+				activeWorkspace.workspaceId,
+				p.kind,
+				p.resourceId,
+				p.executionId,
+			]) ?? [],
 	);
 	const query = useRef(0);
 	const refreshResources = useCallback(async () => {
@@ -360,12 +515,14 @@ export function useWorkspaceViews(
 		const sequence = ++query.current;
 		const captured = navigation.current;
 		setResources([]);
-		const refs = workspace.panes.map((p) => ({
-			workspaceId: workspace.workspaceId,
-			kind: p.kind,
-			resourceId: p.resourceId,
-			...(p.executionId ? { executionId: p.executionId } : {}),
-		}));
+		const refs = workspace.panes
+			.filter((p) => p.kind !== "browser")
+			.map((p) => ({
+				workspaceId: workspace.workspaceId,
+				kind: p.kind,
+				resourceId: p.resourceId,
+				...(p.executionId ? { executionId: p.executionId } : {}),
+			}));
 		try {
 			const checked = await api.rpc<RestoreResourceCheck[]>({
 				connectionId: descriptor.connectionId,
@@ -503,104 +660,113 @@ export function useWorkspaceViews(
 		) => {
 			const tabId = crypto.randomUUID(),
 				createdAt = Date.now();
-			return changeWorkspace(workspaceId, (workspace) => {
-				if (options?.connection && connectionRef.current !== options.connection)
-					return;
+			return changeWorkspace(
+				workspaceId,
+				(workspace) => {
+					if (
+						options?.connection &&
+						connectionRef.current !== options.connection
+					)
+						return;
 
-				workspace.activeTool = pane.kind;
-				const existing = workspace.panes.find(
-					(p) =>
-						p.kind === pane.kind &&
-						(p.resourceId === pane.resourceId ||
-							(!!options?.replaceResourceId &&
-								p.resourceId === options.replaceResourceId)),
-				);
-				if (existing) {
-					existing.resourceId = pane.resourceId;
-					existing.executionId = pane.executionId;
-					workspace.activePaneId = existing.paneId;
-					if (workspace.paneTabs) {
+					workspace.activeTool =
+						pane.kind === "browser" ? "terminal" : pane.kind;
+					const existing = workspace.panes.find(
+						(p) =>
+							p.kind === pane.kind &&
+							(p.resourceId === pane.resourceId ||
+								(!!options?.replaceResourceId &&
+									p.resourceId === options.replaceResourceId)),
+					);
+					if (existing) {
+						existing.resourceId = pane.resourceId;
+						existing.executionId = pane.executionId;
+						workspace.activePaneId = existing.paneId;
+						if (workspace.paneTabs) {
+							const before = toPaneState(workspace),
+								store = createWorkspaceStore({ initialState: before });
+							const found = store.getState().getPane(existing.paneId);
+							if (found) {
+								store.getState().setActivePane({
+									tabId: found.tabId,
+									paneId: existing.paneId,
+								});
+								applyWorkspacePaneState(workspace, store.getState(), before);
+							}
+						}
+						return;
+					}
+					if (workspace.panes.length >= 64) return;
+
+					if (options?.newTab || workspace.paneTabs) {
 						const before = toPaneState(workspace),
 							store = createWorkspaceStore({ initialState: before });
-						const found = store.getState().getPane(existing.paneId);
-						if (found) {
-							store
-								.getState()
-								.setActivePane({ tabId: found.tabId, paneId: existing.paneId });
-							applyWorkspacePaneState(workspace, store.getState(), before);
-						}
-					}
-					return;
-				}
-				if (workspace.panes.length >= 64) return;
-
-				if (options?.newTab || workspace.paneTabs) {
-					const before = toPaneState(workspace),
-						store = createWorkspaceStore({ initialState: before });
-					const input = {
-						id: pane.paneId,
-						kind: pane.kind,
-						titleOverride: pane.label,
-						data: { ...pane },
-					};
-					const active = store.getState().getActiveTab();
-					if (options?.newTab || !active)
-						store.getState().insertTab({
-							tab: {
-								id: tabId,
-								titleOverride: pane.label,
-								createdAt,
-								activePaneId: pane.paneId,
-								layout: { type: "pane", paneId: pane.paneId },
-								panes: { [pane.paneId]: input },
-							},
-						});
-					else {
-						store.getState().addPane({
-							tabId: active.id,
-							pane: input,
-							position: axis === "horizontal" ? "right" : "bottom",
-						});
-						if (options?.placement === "root") {
-							const next = store.getState();
-							store.getState().replaceState({
-								version: 1,
-								activeTabId: next.activeTabId,
-								tabs: next.tabs.map((t) =>
-									t.id === active.id
-										? {
-												...t,
-												layout: toPaneLayout(
-													splitPane(
-														fromPaneLayout(active.layout),
-														null,
-														pane.paneId,
-														axis,
-														0.65,
-													),
-												),
-											}
-										: t,
-								),
+						const input = {
+							id: pane.paneId,
+							kind: pane.kind,
+							titleOverride: pane.label,
+							data: { ...pane },
+						};
+						const active = store.getState().getActiveTab();
+						if (options?.newTab || !active)
+							store.getState().insertTab({
+								tab: {
+									id: tabId,
+									titleOverride: pane.label,
+									createdAt,
+									activePaneId: pane.paneId,
+									layout: { type: "pane", paneId: pane.paneId },
+									panes: { [pane.paneId]: input },
+								},
 							});
+						else {
+							store.getState().addPane({
+								tabId: active.id,
+								pane: input,
+								position: axis === "horizontal" ? "right" : "bottom",
+							});
+							if (options?.placement === "root") {
+								const next = store.getState();
+								store.getState().replaceState({
+									version: 1,
+									activeTabId: next.activeTabId,
+									tabs: next.tabs.map((t) =>
+										t.id === active.id
+											? {
+													...t,
+													layout: toPaneLayout(
+														splitPane(
+															fromPaneLayout(active.layout),
+															null,
+															pane.paneId,
+															axis,
+															0.65,
+														),
+													),
+												}
+											: t,
+									),
+								});
+							}
 						}
+						workspace.panes.push(pane);
+						applyWorkspacePaneState(workspace, store.getState(), before);
+						return;
 					}
+					workspace.layout = splitPane(
+						workspace.layout,
+						options?.placement === "root"
+							? null
+							: (workspace.activePaneId ?? workspace.panes[0]?.paneId ?? null),
+						pane.paneId,
+						axis,
+						options?.placement === "root" ? 0.65 : 0.5,
+					);
 					workspace.panes.push(pane);
-					applyWorkspacePaneState(workspace, store.getState(), before);
-					return;
-				}
-				workspace.layout = splitPane(
-					workspace.layout,
-					options?.placement === "root"
-						? null
-						: (workspace.activePaneId ?? workspace.panes[0]?.paneId ?? null),
-					pane.paneId,
-					axis,
-					options?.placement === "root" ? 0.65 : 0.5,
-				);
-				workspace.panes.push(pane);
-				workspace.activePaneId = pane.paneId;
-			});
+					workspace.activePaneId = pane.paneId;
+				},
+				pane.kind !== "browser",
+			);
 		},
 		[changeWorkspace],
 	);
@@ -1128,6 +1294,73 @@ export function useWorkspaceViews(
 	}, [api, navigate, setSaved]);
 	return {
 		enabled,
+		browserEnabled,
+		persistBrowserPage,
+		newBrowser: async (
+			workspaceId: string,
+			url = "about:blank",
+			placement: "split" | "new-tab" = "new-tab",
+			source?: DirectDescriptor,
+		) => {
+			const descriptor = connectionRef.current;
+			if (!browserEnabled || !descriptor?.capabilities?.workspaceViewRestoreV1)
+				return null;
+			if (
+				source &&
+				(source.connectionId !== descriptor.connectionId ||
+					source.generation !== descriptor.generation ||
+					source.backendId !== descriptor.backendId ||
+					source.namespaceId !== descriptor.namespaceId ||
+					source.instanceId !== descriptor.instanceId)
+			)
+				return null;
+			const paneId = crypto.randomUUID();
+			return addPane(
+				workspaceId,
+				{
+					paneId,
+					resourceId: crypto.randomUUID(),
+					kind: "browser",
+					browser: { url, pageTitle: "", faviconUrl: null },
+				},
+				"horizontal",
+				{ connection: descriptor, newTab: placement === "new-tab" },
+			);
+		},
+		closeBrowserPane: (
+			connectionId: string,
+			workspaceId: string,
+			paneId: string,
+			resourceId: string,
+		) =>
+			mutate((input) => {
+				const workspace = input.targets
+					.find((t) => t.connectionId === connectionId)
+					?.workspaces.find((w) => w.workspaceId === workspaceId);
+				const pane = workspace?.panes.find(
+					(p) =>
+						p.kind === "browser" &&
+						p.paneId === paneId &&
+						p.resourceId === resourceId,
+				);
+				if (!workspace || !pane) return;
+				if (workspace.paneTabs) {
+					const before = toPaneState(workspace),
+						store = createWorkspaceStore({ initialState: before }),
+						found = store.getState().getPane(paneId);
+					if (found) {
+						store
+							.getState()
+							.closePane({ tabId: found.tabId, paneId, intent: "remove" });
+						applyWorkspacePaneState(workspace, store.getState(), before);
+					}
+				} else {
+					workspace.panes = workspace.panes.filter((p) => p.paneId !== paneId);
+					workspace.layout = removePane(workspace.layout, paneId);
+					if (workspace.activePaneId === paneId)
+						workspace.activePaneId = workspace.panes[0]?.paneId ?? null;
+				}
+			}),
 		view,
 		invalid,
 		restore,

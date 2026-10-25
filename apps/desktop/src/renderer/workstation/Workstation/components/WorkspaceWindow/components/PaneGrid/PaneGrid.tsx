@@ -8,7 +8,7 @@ import {
 } from "@superset/panes";
 import type { RestoreResourceCheck } from "@superset/shared/workspace-restore";
 import { DropdownMenuItem } from "@superset/ui/dropdown-menu";
-import { Columns2, Rows2, X } from "lucide-react";
+import { Columns2, Globe, Rows2, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "zustand";
 import type {
@@ -16,9 +16,9 @@ import type {
 	DirectWorkstationApi,
 } from "../../../../../../../shared/direct-workstation";
 import type {
-	WorkspacePane,
-	WorkspaceView,
-} from "../../../../../../../shared/workspace-view";
+	WorkspacePaneV2 as WorkspacePane,
+	WorkspaceViewV2 as WorkspaceView,
+} from "../../../../../../../shared/workspace-view-v2";
 import type { WorkspaceViewActions } from "../../../../hooks/useWorkspaceViews/useWorkspaceViews";
 import {
 	fromPaneLayout,
@@ -286,7 +286,7 @@ export function PaneGrid({
 			return;
 		}
 		const pane = workspace.panes.find((p) => p.paneId === paneId);
-		if (!pane) return;
+		if (!pane || pane.kind === "browser") return;
 
 		const stillCurrent = () => {
 			const latest = current.current.workspace.panes.find(
@@ -337,6 +337,7 @@ export function PaneGrid({
 			<WorkspacePaneView
 				key={`${connection?.connectionId}:${connection?.backendId}:${connection?.namespaceId}:${connection?.generation}:${id}:${pane.kind}:${pane.resourceId}:${pane.executionId}:${attempts[id] ?? 0}`}
 				api={api}
+				actions={actions}
 				connection={connection}
 				workspaceId={workspace.workspaceId}
 				pane={pane}
@@ -373,25 +374,41 @@ export function PaneGrid({
 			/>
 		);
 	};
+	const titleFor = (pane: WorkspacePane) =>
+		pane.label ??
+		(pane.kind === "browser"
+			? pane.browser.pageTitle || t({ message: "Browser" })
+			: labelsForPane(pane));
+	const labelsForPane = (pane: WorkspacePane) =>
+		pane.kind === "chat" ? t({ message: "Chat" }) : t({ message: "Terminal" });
 	const definition: PaneRegistry<WorkspacePane>[string] = {
 		canDrop: (item) =>
 			item.store === store &&
 			!!item.paneId &&
 			!!store.getState().getPane(item.paneId),
-		getTitle: (pane) => pane.titleOverride ?? pane.data.label,
+		getTitle: (pane) => pane.titleOverride ?? titleFor(pane.data),
 		getIcon: ({ pane }) =>
-			pane.kind === "terminal" ? <Columns2 size={12} /> : <Rows2 size={12} />,
+			pane.kind === "browser" ? (
+				<Globe size={12} />
+			) : pane.kind === "terminal" ? (
+				<Columns2 size={12} />
+			) : (
+				<Rows2 size={12} />
+			),
 		renderTitle: ({ pane, actions: paneActions }) => (
 			<input
 				className="min-w-0 w-full bg-transparent text-xs outline-none"
 				aria-label={t({ message: "Title" })}
 				maxLength={128}
 				data-pane-title-id={pane.id}
-				key={`${pane.id}:${pane.titleOverride}`}
-				defaultValue={pane.titleOverride ?? pane.data.label}
+				key={`${pane.id}:${pane.titleOverride}:${pane.kind === "browser" ? (pane.data.kind === "browser" ? pane.data.browser.pageTitle : "") : ""}`}
+				defaultValue={pane.titleOverride ?? titleFor(pane.data)}
 				onPointerDown={(e) => e.stopPropagation()}
 				onBlur={(e) => {
-					if (e.currentTarget.value !== pane.titleOverride)
+					if (
+						e.currentTarget.value !==
+						(pane.titleOverride ?? titleFor(pane.data))
+					)
 						paneActions.setTitle(e.currentTarget.value);
 				}}
 			/>
@@ -493,7 +510,7 @@ export function PaneGrid({
 						})
 					}
 				>
-					{p.label ?? <Trans>Terminal</Trans>}
+					{titleFor(p)}
 				</button>
 			))}
 		</nav>
@@ -508,7 +525,11 @@ export function PaneGrid({
 				>
 					<Workspace
 						store={store}
-						registry={{ terminal: definition, chat: definition }}
+						registry={{
+							terminal: definition,
+							chat: definition,
+							browser: definition,
+						}}
 						canDropItem={(item) => item.store === store}
 						transformDisplayedTab={(displayed) =>
 							isCompactPaneLayout({
@@ -524,7 +545,13 @@ export function PaneGrid({
 								: displayed
 						}
 						renderBelowTabBar={() => compactNavigation}
-						renderTabIcon={() => <Columns2 size={14} />}
+						renderTabIcon={(tab) =>
+							Object.values(tab.panes).every((p) => p.kind === "browser") ? (
+								<Globe size={14} />
+							) : (
+								<Columns2 size={14} />
+							)
+						}
 						renderAddTabMenu={() => (
 							<DropdownMenuItem
 								disabled={
@@ -566,7 +593,11 @@ export function PaneGrid({
 											}
 										: tab
 								}
-								registry={{ terminal: definition, chat: definition }}
+								registry={{
+									terminal: definition,
+									chat: definition,
+									browser: definition,
+								}}
 								paneActions={
 									connection?.capabilities?.durableOperations && !actions.busy
 										? paneActions

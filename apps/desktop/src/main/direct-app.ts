@@ -69,6 +69,7 @@ import { closeWindowTransports } from "./lib/ssh-direct/window-transports";
 import { WorkspaceRestoreCoordinator } from "./lib/ssh-direct/workspace-restore-coordinator";
 import { WorkspaceViewStore } from "./lib/ssh-direct/workspace-view-store";
 import { WorkstationBrowserHistory } from "./lib/ssh-direct/workstation-browser-history";
+import { WorkstationBrowserNavigation } from "./lib/ssh-direct/workstation-browser-navigation";
 import { WorkstationBrowserRegistry } from "./lib/ssh-direct/workstation-browser-registry";
 import { guardWorkstationWebviews } from "./lib/ssh-direct/workstation-browser-security";
 import { WorkstationChatDrafts } from "./lib/ssh-direct/workstation-chat-drafts";
@@ -274,7 +275,37 @@ export async function startWorkstation(): Promise<void> {
 		},
 	});
 	const controller = new WorkstationController(manager, intents);
+	const forwards = new DirectPortForwardManager(manager);
+	const browserNavigation = new WorkstationBrowserNavigation({
+		isLocal: (id) => registry.get(id)?.kind === "local",
+		prepare: async (descriptor, workspaceId, port) => {
+			controller.assertGeneration(
+				descriptor.connectionId,
+				descriptor.generation,
+			);
+			const forward = await forwards.open(
+				descriptor.connectionId,
+				workspaceId,
+				port,
+			);
+			controller.assertGeneration(
+				descriptor.connectionId,
+				descriptor.generation,
+			);
+			return forward;
+		},
+		send: (owner, event) => {
+			if (window?.webContents.id === owner && !window.webContents.isDestroyed())
+				window.webContents.send(WORKSTATION_BROWSER_CHANNEL, event);
+		},
+	});
 	browserRegistry = new WorkstationBrowserRegistry({
+		bindNavigation: (owner, pane, descriptor, guestId, current) => {
+			const guest = webContents.fromId(guestId);
+			if (!guest || guest.isDestroyed())
+				throw Error("Browser guest is unavailable");
+			return browserNavigation.bind(owner, pane, descriptor, guest, current);
+		},
 		manager: browserManager,
 		getGuest: (id) => webContents.fromId(id) ?? undefined,
 		describe: (id) => controller.describe(id),
@@ -304,7 +335,6 @@ export async function startWorkstation(): Promise<void> {
 			? manager.openRestoredSocket(id, socketPath)
 			: manager.openSocket(id, socketPath),
 	);
-	const forwards = new DirectPortForwardManager(manager);
 	let quitting = false;
 	let quitRequested = false;
 	const closeGate = new WindowCloseGate();
@@ -604,6 +634,17 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "navigateBrowser": {
+					const input = z
+						.strictObject({
+							pane: workstationBrowserPaneSchema,
+							url: z.string().min(1).max(8192),
+						})
+						.parse(payload);
+					if (!browserRegistry?.getRegistration(owner, input.pane))
+						throw Error("Browser registration changed");
+					return browserNavigation.navigate(owner, input.pane, input.url);
+				}
 				case "updateBrowserPage": {
 					const input = z
 						.strictObject({

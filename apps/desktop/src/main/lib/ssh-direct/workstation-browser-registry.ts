@@ -48,6 +48,13 @@ export class WorkstationBrowserRegistry {
 			describe(connectionId: string): DirectDescriptor;
 			checkWorkspace(pane: WorkstationBrowserPane): Promise<void>;
 			send(ownerId: number, event: WorkstationBrowserEvent): void;
+			bindNavigation?(
+				ownerId: number,
+				pane: WorkstationBrowserPane,
+				descriptor: DirectDescriptor,
+				guestId: number,
+				current: () => boolean,
+			): () => void;
 		},
 	) {
 		dependencies.manager.on("agent-active", this.onAgentActive);
@@ -175,6 +182,14 @@ export class WorkstationBrowserRegistry {
 					guest.id,
 					pane.workspaceId,
 				);
+				const detachNavigation = this.dependencies.bindNavigation?.(
+					ownerId,
+					pane,
+					descriptor,
+					guest.id,
+					() => this.registrations.get(key) === record && this.current(record),
+				);
+				if (detachNavigation) detachListeners.push(detachNavigation);
 				this.onAgentActive();
 			} catch (error) {
 				this.release(record, false);

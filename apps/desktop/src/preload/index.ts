@@ -23,6 +23,7 @@ const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
 	browser: {
+		navigate: (input) => invoke("navigateBrowser", input),
 		updatePage: (input) => invoke("updateBrowserPage", input),
 		history: {
 			getAll: () => invoke("getBrowserHistory"),

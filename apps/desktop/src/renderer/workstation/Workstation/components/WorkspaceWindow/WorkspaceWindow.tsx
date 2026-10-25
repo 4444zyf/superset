@@ -14,11 +14,11 @@ import type {
 	DirectDescriptor,
 	DirectWorkstationApi,
 } from "../../../../../shared/direct-workstation";
+import type { WorkspaceRestoreSnapshot } from "../../../../../shared/workspace-view";
 import type {
-	TargetView,
-	WorkspacePane,
-	WorkspaceRestoreSnapshot,
-} from "../../../../../shared/workspace-view";
+	TargetViewV2 as TargetView,
+	WorkspacePaneV2 as WorkspacePane,
+} from "../../../../../shared/workspace-view-v2";
 import type { WorkspaceViewActions } from "../../hooks/useWorkspaceViews/useWorkspaceViews";
 import { RemoteChat } from "../RemoteChat/RemoteChat";
 import { type FileOpenRequest, RemoteFiles } from "../RemoteFiles/RemoteFiles";
@@ -211,6 +211,23 @@ export function WorkspaceWindow({
 			{workspace && (
 				<>
 					<div className="ws-window-toolbar">
+						{actions.browserEnabled && (
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								data-workstation-new-browser
+								disabled={
+									!connection?.capabilities?.workspaceViewRestoreV1 ||
+									actions.busy
+								}
+								onClick={() => {
+									void actions.newBrowser(workspace.workspaceId);
+								}}
+							>
+								<Trans>Browser</Trans>
+							</Button>
+						)}
 						<Button
 							type="button"
 							variant="ghost"
