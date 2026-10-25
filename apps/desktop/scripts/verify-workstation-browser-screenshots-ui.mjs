@@ -159,11 +159,40 @@ export async function verifyWorkstationBrowserScreenshotsUi(options, context) {
 		);
 		assert.notEqual(report.files[0].pixelSha256, report.files[1].pixelSha256);
 		assert.notEqual(report.first.savePath, report.second.savePath);
-		await press(
-			await evaluate(
-				"(()=>{const e=[...document.querySelectorAll('[data-sonner-toast] button')].filter(e=>e.textContent==='View all').at(-1);if(!e)return null;const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()",
-			),
+
+		const viewAllPoint = () =>
+			evaluate(
+				"(()=>{const buttons=[...document.querySelectorAll('[data-sonner-toast] button')].filter(e=>e.textContent==='View all');for(const e of buttons.reverse()){const toast=e.closest('[data-sonner-toast]');if(toast.dataset.front!=='true')continue;const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);if(r.top<0||r.bottom>innerHeight||r.left<0||r.right>innerWidth||!(hit===e||e.contains(hit))||toast.getAnimations().some(a=>a.playState!=='finished'))continue;return {x:r.x+r.width/2,y:r.y+r.height/2,front:toast.dataset.front,animations:toast.getAnimations().map(a=>a.playState)};}return null;})()",
+			);
+		report.viewAllBeforeHover = await until(
+			viewAllPoint,
+			"foreground View all is visible and its entrance is complete",
 		);
+		await options.getPage().call("Input.dispatchMouseEvent", {
+			type: "mouseMoved",
+			x: report.viewAllBeforeHover.x,
+			y: report.viewAllBeforeHover.y,
+			button: "none",
+		});
+		report.viewAllReady = await until(
+			viewAllPoint,
+			"hovered View all is stable and hit-testable",
+		);
+		await evaluate(
+			"(()=>{window.__ownedScreenshotViewAllClicks=0;const e=[...document.querySelectorAll('[data-sonner-toast][data-front=true] button')].find(e=>e.textContent==='View all');e.addEventListener('click',()=>window.__ownedScreenshotViewAllClicks++);return true;})()",
+		);
+		for (const type of ["mousePressed", "mouseReleased"])
+			await options.getPage().call("Input.dispatchMouseEvent", {
+				type,
+				x: report.viewAllReady.x,
+				y: report.viewAllReady.y,
+				button: "left",
+				clickCount: 1,
+			});
+		report.viewAllClicks = await evaluate(
+			"window.__ownedScreenshotViewAllClicks",
+		);
+
 		await until(
 			() =>
 				evaluate(
@@ -210,6 +239,9 @@ export async function verifyWorkstationBrowserScreenshotsUi(options, context) {
 		};
 		throw error;
 	} finally {
+		report.viewAllAtEnd = await evaluate(
+			"({clicks:window.__ownedScreenshotViewAllClicks,dialogs:[...document.querySelectorAll('[role=dialog] h2')].map(e=>e.textContent),passthrough:document.documentElement.hasAttribute('data-pointer-passthrough')})",
+		);
 		if (!report.errors)
 			await options.screenshot("browser-screenshots-incomplete");
 		save();

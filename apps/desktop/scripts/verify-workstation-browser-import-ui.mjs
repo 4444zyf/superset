@@ -1,7 +1,8 @@
+import { execFileSync } from "node:child_process";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, resolve, relative, isAbsolute } from "node:path";
 import { agentUiDriver } from "./verify-workstation-agent-ui-driver.mjs";
 import { workstationBrowserMenuDriver } from "./verify-workstation-browser-menu-driver.mjs";
 const label = "Import cookies and passwords…",
@@ -62,6 +63,28 @@ function driver(options) {
 	};
 	return { evaluate, until, rows, press, open, close };
 }
+function prepareSourceFiles(output, fixture, canonicalUrl) {
+	const rel = relative(resolve(output, ".."), fixture.configRoot);
+	assert.ok(rel && !isAbsolute(rel) && !rel.startsWith(".."));
+	const url = new URL(canonicalUrl);
+	url.searchParams.set("import-source", fixture.marker);
+	const script = [
+		"import sys,json,sqlite3,hashlib",
+		"from pathlib import Path",
+		"p=Path(sys.argv[1]);f=json.loads(p.read_text());url=sys.argv[2]",
+		"browser=Path(f['configRoot'])/'google-chrome';assert not browser.exists(),'Owned fixture browser directory already exists'",
+		"timestamp=(1577836800000+11644473600000)*1000",
+		"rows=[(url,'',99,timestamp)]+[('https://imported-owned.test/'+f['marker']+'/'+str(i),'Imported 中文 '+str(i),7,timestamp+i*1000000) for i in range(201)]",
+		"for directory,entries in [(Path(f['defaultId']),rows),(Path(f['emptyId']),[])]:",
+		" directory.mkdir(parents=True);db=sqlite3.connect(directory/'History');db.execute('CREATE TABLE urls(url TEXT,title TEXT,visit_count INTEGER,last_visit_time INTEGER)');db.executemany('INSERT INTO urls VALUES (?,?,?,?)',entries);db.commit();db.close()",
+		"(browser/'Local State').write_text(json.dumps({'profile':{'info_cache':{'Default':{'name':'Owned history 中文'},'Profile 1':{'name':'Owned empty'}}}}))",
+		"f['url']=url;f['entryCount']=len(rows);f['sourceFiles']=[{'path':str(q),'sha256':hashlib.sha256(q.read_bytes()).hexdigest()} for q in [Path(f['defaultId'])/'History',Path(f['emptyId'])/'History',browser/'Local State']]",
+		"p.write_text(json.dumps(f,indent=2)+'\\n')",
+	].join("\n");
+	const path = resolve(output, "../import-fixture.json");
+	execFileSync("python3", ["-c", script, path, url.href]);
+	Object.assign(fixture, JSON.parse(readFileSync(path)));
+}
 function sourceFilesUnchanged(fixture) {
 	for (const f of fixture.sourceFiles)
 		assert.equal(
@@ -105,6 +128,7 @@ export async function verifyWorkstationBrowserImportUi(options, context) {
 	};
 	try {
 		assert.equal(identity.appData, fixture.configRoot);
+		prepareSourceFiles(options.output, fixture, context.url);
 		report.capability = await evaluate(
 			"Boolean(window.directWorkstation.browser?.importData)",
 		);
@@ -153,15 +177,18 @@ export async function verifyWorkstationBrowserImportUi(options, context) {
 		await until(
 			() =>
 				context.guestRead(
-					`document.body.innerText.includes(${JSON.stringify(fixture.marker)})`,
+					`document.readyState==='complete'&&location.search.includes(${JSON.stringify(fixture.marker)})&&document.body.innerText.includes(${JSON.stringify(context.marker)})`,
 				),
 			"owned imported URL visited before merge",
+		);
+		report.liveGuest = await context.guestRead(
+			"({url:location.href,title:document.title})",
 		);
 		report.live = await until(
 			async () =>
 				(await rows()).find(
 					(row) =>
-						row.url === fixture.url && row.title === "Owned imported page 中文",
+						row.url === fixture.url && row.title === report.liveGuest.title,
 				),
 			"live record and original title recorded",
 		);
@@ -266,7 +293,7 @@ export async function verifyWorkstationBrowserImportUi(options, context) {
 			const point = await until(
 				() =>
 					evaluate(
-						`(()=>{const e=[...document.querySelectorAll('[role=dialog] button')].find(b=>b.textContent.includes('Owned imported page 中文')&&b.textContent.includes(${JSON.stringify(fixture.url)}));if(!e)return null;const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===e||e.contains(hit)?{x:r.x+r.width/2,y:r.y+r.height/2}:null;})()`,
+						`(()=>{const e=[...document.querySelectorAll('[role=dialog] button')].find(b=>b.textContent.includes(${JSON.stringify(report.live.title)})&&b.textContent.includes(${JSON.stringify(fixture.url)}));if(!e)return null;const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===e||e.contains(hit)?{x:r.x+r.width/2,y:r.y+r.height/2}:null;})()`,
 					),
 				"imported history row is visible and hit-testable",
 			);
@@ -280,10 +307,14 @@ export async function verifyWorkstationBrowserImportUi(options, context) {
 		await until(
 			() =>
 				context.guestRead(
-					`document.body.innerText.includes(${JSON.stringify(fixture.marker)})`,
+					`document.readyState==='complete'&&location.search.includes(${JSON.stringify(fixture.marker)})&&document.body.innerText.includes(${JSON.stringify(context.marker)})`,
 				),
 			"selected imported row navigates to real owned HTTP content",
 		);
+		report.selectedGuest = await context.guestRead(
+			"({url:location.href,title:document.title})",
+		);
+		report.sourceHttpProof = await context.readProof();
 		report.afterSelection = await until(
 			async () =>
 				(await rows()).find(
