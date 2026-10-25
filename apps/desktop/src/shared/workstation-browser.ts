@@ -5,6 +5,7 @@ export const workstationBrowserPaneSchema = z.strictObject({
 	connectionId: z.string().uuid(),
 	generation: z.number().int().positive(),
 	workspaceId: z.string().uuid(),
+	registrationId: z.string().uuid(),
 	paneId: z
 		.string()
 		.min(1)

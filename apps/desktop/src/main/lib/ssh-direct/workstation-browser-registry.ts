@@ -198,6 +198,7 @@ export class WorkstationBrowserRegistry {
 			generation,
 			record.pane.workspaceId,
 			record.pane.paneId,
+			record.pane.registrationId,
 		]);
 	}
 
@@ -206,9 +207,11 @@ export class WorkstationBrowserRegistry {
 		if (this.owner?.id !== ownerId)
 			throw new Error("Browser window owner changed");
 		const key = this.paneKey(pane);
-		this.pending.delete(key);
+		if (this.pending.get(key)?.pane.registrationId === pane.registrationId)
+			this.pending.delete(key);
 		const record = this.registrations.get(key);
-		if (record) this.release(record, false);
+		if (record?.pane.registrationId === pane.registrationId)
+			this.release(record, false);
 	}
 
 	closeConnection(connectionId: string): void {

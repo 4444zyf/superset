@@ -14,6 +14,7 @@ const pane: WorkstationBrowserPane = {
 	generation: 1,
 	workspaceId: "f340a634-2199-4305-86c4-03c46c046e1c",
 	paneId: "page",
+	registrationId: "2af9d874-b03f-44e2-a4dd-3215739613ea",
 };
 
 class Guest extends EventEmitter {
@@ -172,6 +173,27 @@ test("workspace verification that returns after a same-ID window reload cannot r
 	verification.resolve();
 	await expect(pending).rejects.toThrow("cancelled");
 	expect(f.manager.registered.size).toBe(0);
+	f.registry.dispose();
+});
+
+test("an unregister sent before a same-ID window reload cannot remove the new page", async () => {
+	const f = fixture();
+	await f.registry.register(7, { ...pane, webContentsId: 10 });
+	f.registry.activateOwner(7);
+	const verification = Promise.withResolvers<void>();
+	f.dependencies.checkWorkspace = () => verification.promise;
+	const newer = f.registry.register(7, {
+		...pane,
+		registrationId: "b6362538-a987-4c64-9c6f-6a6bb71f166b",
+		webContentsId: 11,
+	});
+	f.registry.unregister(7, pane);
+	verification.resolve();
+	await newer;
+	f.registry.unregister(7, pane);
+	expect([...f.manager.registered.values()]).toEqual([
+		{ guest: 11, workspaceId: pane.workspaceId },
+	]);
 	f.registry.dispose();
 });
 
