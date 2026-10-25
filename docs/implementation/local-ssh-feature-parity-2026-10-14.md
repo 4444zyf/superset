@@ -1502,3 +1502,16 @@ clipped本地/拥有SSH两端先通过全设备与原浏览器流程；随后原
 同轮原系统URL复制、100→110→100%实际缩放、强制HTTP刷新、含当前marker的独立DevTools、浏览器设置定位及原查找/前后退/window.open/选择性关闭/正常重开均通过。最终本地PID113467/execution a64a97f0-72e3-42ce-9c11-363e9130915f，SSH PID116965/execution 0e5b8d33-d5d5-4e21-ab62-22b73b6f8c13及cwd保持；SSH含20次此前恢复，runtime异常为空，拥有app/Xorg结束码均0。最初夹具失败图、本地搜索/清空、初始SSH空图标/重开和最终SSH绿色图标搜索/重开图已查看；其余仅称捕获，不冒称原Dialog description警告或DevTools warning徽标不存在。
 
 最终2205编译文件manifest SHA2568252b673da07ac8245431ae38447efd53122fefcb0c263cfce1d8fc28d91256d，初始5a7cf manifest独立保留；每次构建退出0后才冻结/启动，原生期间无覆盖dist，最终逐文件及七个夹具哈希一致。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。无Actions、CLI重建、安装包、后端发行归档或隐式其他浏览器资料读取。[阶段八十三证据](evidence/local-ssh-feature-parity/stage83)。终端滚轮/复制粘贴继续按阶段八十ca791两端原生范围，真实供应商Agent/外部SSH/物理Mac未实测。浏览器其余设置/导入、设计及其他工具、完整图标、rightPane、聊天/任务URL、CLI桥和其他功能组仍继续补齐，整体目标未完成。
+
+
+## 阶段八十四：原浏览数据清理与可见独立结果（2026-10-25）
+
+产品b47ca35e4提取原ClearBrowsingDataDialogView和clearBrowserSessionData，原wrapper与已发布TRPC继续委派同一执行逻辑。AST核对Dialog JSX、注入source后的完整handleClear、原session switch/返回值、原四类输入schema一致；其他browser router属性和既有main action均未变。新private clearData只接cookies/cache两类且在原main-frame owner守卫后严格验证，history用已有SQLite接口；没有新后端版本要求、DB迁移或持久key。清理作用于当前桌面资料的嵌入浏览器会话，SSH入口也如此；原cookies分支仍只清cookies，未扩大为localStorage/IndexedDB清除。
+
+三类任务继续独立allSettled并报告准确部分结果；工作站补上原shared Sonner Toaster、注入当前偏好theme，使反馈实际可见。Dialog关闭回调按runtime身份判断，晚回复不关闭其他pane的Dialog。74项测试/3301断言/14文件、完整桌面类型、17严格语言目录、插件和相关格式/语法通过。helper缺模块红例、存储失败传播/缓存与登录隔离、部分失败内容、只选缓存和全不选禁用均保留日志；最初测试直接导入不属于desktop直接依赖的sonner，已改从既有UI导出取得同一外部toast对象。实际OS存储故障未在原生中诱发，部分失败范围是受控测试。
+
+旧e9696实窗先在拥有HTTP页建立cookie及真实缓存，连续fetch两次只产生一次HTTP请求，随后在Clear browsing data菜单缺失处预期失败。旧2205编译文件在基线前后保持一致。新产品本地/拥有SSH均以真实menu/checkbox/按钮验收：Cancel保留三类数据；私有all负向诊断被拒且不改数据；只清history得到真实SQLite空表但保留cookie/cache，实际Reload新增访问；只清cookies移除自有cookie但保留历史/缓存；只清cache保留cookie/历史并让同一资源下一次请求计数1→2；全不选时禁用Clear data。成功toast在实窗与截图中可见。自有cookie/缓存仅属新测试资料和当轮HTTP marker，不读取或清理个人浏览器资料。
+
+同轮原系统URL复制、真实100→110→100%缩放、强制HTTP刷新、包含当前marker的独立DevTools、浏览器设置、原查找/前后退/window.open/选择性关闭和正常重开均通过。本地原PID118852/execution 0c9f32a1-51fc-486c-bac0-f4f9b2eac00a，SSH原PID122317/execution be96d4e2-7bb1-43bf-8d36-f8ead7481501及cwd保留；SSH含20次此前恢复。runtime异常为空，拥有app/Xorg结束码均0。本地只选历史、两端缓存成功可见toast、SSH只选cookies图已查看，其余仅称捕获，不声明全部Chromium警告为空，也不把有意无效输入诊断称为产品故障。
+
+构建明确退出0后冻结2205文件，manifest SHA256563dde07760bc2d330a4e34c57e02ebf992ec9d0685c717d2d1b2ba56fa44a4c；两端原生后逐文件和七个最终夹具一致，期间没有改源码/夹具或覆盖dist。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。没有Actions、CLI重建、安装包或后端发行归档。[阶段八十四证据](evidence/local-ssh-feature-parity/stage84)。终端滚轮/复制粘贴保持阶段八十ca791原生范围；真实供应商Agent/外部SSH/物理Mac仍未实测。浏览器其余设置/导入、设计及其他工具、完整图标、rightPane、聊天/任务URL、CLI桥及其他功能组继续进行，整体目标未完成。

@@ -6,7 +6,7 @@
 
 用户强调的滚轮/触控板输入保护和终端复制粘贴已实现。阶段八十在最终ca7912bc6源码编译上再次独立回归本地与拥有的loopback SSH：历史上下翻动、无鼠标TUI回看不注入方向键、保存的stock偏好、SGR/legacy/pixel切换、中文/Emoji复制、多行括号粘贴、图片/文件路径及重挂载后OSC52均通过。滚轮与剪贴板两个SSH套件各含20次窗口恢复。真实供应商Agent、外部SSH和物理Mac触控板仍未作为本轮实测范围。
 
-内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、查找、历史SQLite与V2持久化。阶段七十八至七十九已验证真实导航/查找/window.open/重开、所属SSH工作区的localhost转发与保持CSP的当前地址栏图标。阶段八十进一步接回原主页和终端四档URL策略设置、按偏好打开的端口行；明确的外部图标仍走原外部操作。偏好存入独立有界SQLite，真实本地/SSH设置操作、Ctrl点击分屏→即时改为新标签、正常重开及原PTY身份保留均通过。阶段八十一接回原工具菜单；真实本地/SSH已通过系统剪贴板中的原始URL、鼠标/键盘缩放与真实视口、强制刷新、包含当前页面DOM的独立DevTools以及浏览器设置定位。阶段八十二接回原六预设设备工具栏，并修复超高预览覆盖地址栏、滚动不同步和缩放裁剪冲突；本地/SSH真实尺寸、旋转、滚动/卡顿往返、查找、退出/标签往返和正常重开通过，原工具菜单两端回归通过。阶段八十三接回原历史Dialog；本地/SSH真实全库搜索、选择导航、明确清空、刷新新增访问和重开保持通过，并修复SSH当前历史图标的canonical匹配。**浏览器组仍未全部完成**：聊天/任务URL策略、右侧区域、完整标签/历史图标、其余设置/导入、设计及其余工具/关联窗格、CLI桥等仍待补。整体功能对齐仍进行中。详见[实施报告](../implementation/local-ssh-feature-parity-2026-10-14.md)、[阶段八十证据](../implementation/evidence/local-ssh-feature-parity/stage80)、[阶段八十一证据](../implementation/evidence/local-ssh-feature-parity/stage81)、[阶段八十二证据](../implementation/evidence/local-ssh-feature-parity/stage82)与[阶段八十三证据](../implementation/evidence/local-ssh-feature-parity/stage83)。
+内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、查找、历史SQLite与V2持久化。阶段七十八至七十九已验证真实导航/查找/window.open/重开、所属SSH工作区的localhost转发与保持CSP的当前地址栏图标。阶段八十进一步接回原主页和终端四档URL策略设置、按偏好打开的端口行；明确的外部图标仍走原外部操作。偏好存入独立有界SQLite，真实本地/SSH设置操作、Ctrl点击分屏→即时改为新标签、正常重开及原PTY身份保留均通过。阶段八十一接回原工具菜单；真实本地/SSH已通过系统剪贴板中的原始URL、鼠标/键盘缩放与真实视口、强制刷新、包含当前页面DOM的独立DevTools以及浏览器设置定位。阶段八十二接回原六预设设备工具栏，并修复超高预览覆盖地址栏、滚动不同步和缩放裁剪冲突；本地/SSH真实尺寸、旋转、滚动/卡顿往返、查找、退出/标签往返和正常重开通过，原工具菜单两端回归通过。阶段八十三接回原历史Dialog；本地/SSH真实全库搜索、选择导航、明确清空、刷新新增访问和重开保持通过，并修复SSH当前历史图标的canonical匹配。阶段八十四接回原独立浏览数据清理及可见结果提示，本地/SSH取消、只选历史/Cookie/缓存、保留未选数据、实际HTTP缓存失效与正常重开通过。**浏览器组仍未全部完成**：聊天/任务URL策略、右侧区域、完整标签/历史图标、其余设置/导入、设计及其余工具/关联窗格、CLI桥等仍待补。整体功能对齐仍进行中。详见[实施报告](../implementation/local-ssh-feature-parity-2026-10-14.md)、[阶段八十证据](../implementation/evidence/local-ssh-feature-parity/stage80)、[阶段八十一证据](../implementation/evidence/local-ssh-feature-parity/stage81)、[阶段八十二证据](../implementation/evidence/local-ssh-feature-parity/stage82)、[阶段八十三证据](../implementation/evidence/local-ssh-feature-parity/stage83)与[阶段八十四证据](../implementation/evidence/local-ssh-feature-parity/stage84)。
 
 ## 验收原则
 
@@ -45,7 +45,7 @@
 | 插件清单、安装、更新与移除 | plugins/installed_plugins.json、原插件界面 | 待接入 | 同一声明式状态，目标机器执行 |
 | 端口发现、转发、浏览器打开 | ports、已有 direct forwarding | 部分 | 阶段六十八至七十二接回发现、明确外部打开、复制、确认单端口/当前工作区批量关闭和独立多转发；旧后端保留手动输入，完整端口管理/内部浏览器待补 |
 | 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 部分 | 阶段七十三至八十三接回工作区页面、原导航/查找/历史Dialog/基础工具/设备预览及兼容布局；真实本地/SSH转发、搜索/清空、滚动和重开通过，其余工具/设置/CLI桥待补 |
-| 浏览器设置、数据导入与隔离 | 原 BrowserSettings | 部分：主页与终端/端口URL策略已接回 | 其余设置/导入待补；原权限与用户选择，不隐式读取其他浏览器 |
+| 浏览器设置、数据导入与隔离 | 原 BrowserSettings | 部分：主页、终端/端口URL策略及浏览数据清理已接回 | 其余设置/导入待补；原权限与用户选择，不隐式读取其他浏览器 |
 | 命令面板、全局快捷键与导航 | 原 commandPalette/hotkeys | 待接入 | 原注册表、设置与当前操作实际对应 |
 | 外观、语言、主题、字体 | AppearanceSettings、i18n/themes | 部分 | 原设置与组件真正响应 |
 | 文件、终端、Git、行为设置 | 原 settings 各页 | 待接入 | 原语义，有界本机 SQLite 偏好 |
