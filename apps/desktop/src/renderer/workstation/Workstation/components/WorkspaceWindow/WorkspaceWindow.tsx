@@ -1,3 +1,5 @@
+import type { ModifierEvent } from "renderer/lib/clickPolicy/types";
+import type { BrowserLinkAction } from "shared/workstation-browser-preferences";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { createWorkspaceStore, WorkspaceTabBar } from "@superset/panes";
 import type { RestoreResourceCheck } from "@superset/shared/workspace-restore";
@@ -64,7 +66,13 @@ export function WorkspaceWindow({
 		forward: { id: string; url: string } | null;
 		forwards?: { id: string; url: string; workspaceId: string; port: number }[];
 		onOpen(workspaceId: string, port: number): void;
-		onOpenUrl?(workspaceId: string, url: string): void;
+		onOpenExternal?(workspaceId: string, port: number): void;
+		onOpenUrl?(
+			workspaceId: string,
+			url: string,
+			action?: BrowserLinkAction,
+		): void;
+		resolveUrlAction?(event: ModifierEvent): BrowserLinkAction | null;
 		onCopy?(workspaceId: string, port: number): Promise<void>;
 		onClose(id?: string): void;
 	};
@@ -307,6 +315,15 @@ export function WorkspaceWindow({
 											onOpenPort={(port) =>
 												ports.onOpen(workspace.workspaceId, port)
 											}
+											onOpenPortExternal={
+												ports.onOpenExternal
+													? (port) =>
+															ports.onOpenExternal?.(
+																workspace.workspaceId,
+																port,
+															)
+													: undefined
+											}
 											onCopyPort={
 												ports.onCopy
 													? async (port) => {
@@ -483,6 +500,7 @@ export function WorkspaceWindow({
 							workspace={workspace}
 							checks={checks}
 							actions={actions}
+							resolveUrlAction={ports.resolveUrlAction}
 							createEmulator={createEmulator}
 							onOpenFile={(target) => {
 								if (navigationOwner.current !== scriptOwner) return;
@@ -495,9 +513,9 @@ export function WorkspaceWindow({
 							}}
 							onOpenUrl={
 								ports.onOpenUrl
-									? (url) => {
+									? (url, action) => {
 											if (navigationOwner.current !== scriptOwner) return;
-											ports.onOpenUrl?.(workspace.workspaceId, url);
+											ports.onOpenUrl?.(workspace.workspaceId, url, action);
 										}
 									: undefined
 							}

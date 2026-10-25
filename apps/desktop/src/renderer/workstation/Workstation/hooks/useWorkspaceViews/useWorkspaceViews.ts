@@ -33,6 +33,7 @@ import type {
 	WorkspaceViewSnapshotV2 as WorkspaceViewSnapshot,
 } from "../../../../../shared/workspace-view-v2";
 import type { RemoteWorkspace } from "../../types";
+import { sanitizeUrl } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/sanitizeUrl";
 import { hasBrowserPanes } from "../../../../../shared/workspace-view-v2";
 import type { WorkstationBrowserPane } from "../../../../../shared/workstation-browser";
 import type { BrowserPageState } from "../../../../../shared/workspace-view-v2";
@@ -89,6 +90,7 @@ export function useWorkspaceViews(
 		onDescriptor(descriptor: DirectDescriptor): Promise<void>;
 		onForget(): void;
 		onError(message: string): void;
+		getBrowserHomepage?(): { ready: boolean; url: string | null };
 	},
 ) {
 	const { t } = useLingui();
@@ -1298,7 +1300,7 @@ export function useWorkspaceViews(
 		persistBrowserPage,
 		newBrowser: async (
 			workspaceId: string,
-			url = "about:blank",
+			url?: string,
 			placement: "split" | "new-tab" = "new-tab",
 			source?: DirectDescriptor,
 		) => {
@@ -1314,6 +1316,15 @@ export function useWorkspaceViews(
 					source.instanceId !== descriptor.instanceId)
 			)
 				return null;
+			const homepage =
+				url === undefined
+					? callbacksRef.current.getBrowserHomepage?.()
+					: undefined;
+			if (homepage && !homepage.ready) {
+				callbacksRef.current.onError(labelsRef.current.saveFailed);
+				return null;
+			}
+			const initialUrl = sanitizeUrl(url ?? homepage?.url ?? "about:blank");
 			const paneId = crypto.randomUUID();
 			return addPane(
 				workspaceId,
@@ -1321,7 +1332,7 @@ export function useWorkspaceViews(
 					paneId,
 					resourceId: crypto.randomUUID(),
 					kind: "browser",
-					browser: { url, pageTitle: "", faviconUrl: null },
+					browser: { url: initialUrl, pageTitle: "", faviconUrl: null },
 				},
 				"horizontal",
 				{ connection: descriptor, newTab: placement === "new-tab" },

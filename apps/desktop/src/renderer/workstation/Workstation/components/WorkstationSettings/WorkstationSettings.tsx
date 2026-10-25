@@ -33,6 +33,8 @@ import type {
 	WorkstationPreferencePatch,
 	WorkstationPreferenceSnapshot,
 } from "../../../../../shared/workstation-preferences";
+import type { BrowserPreferencesState } from "../../hooks/useBrowserPreferences";
+import { WorkstationBrowserSettings } from "./components/WorkstationBrowserSettings";
 
 export function WorkstationSettings({
 	open,
@@ -42,6 +44,7 @@ export function WorkstationSettings({
 	error,
 	onUpdate,
 	onReload,
+	browserPreferences,
 }: {
 	open: boolean;
 	onOpenChange(open: boolean): void;
@@ -50,6 +53,7 @@ export function WorkstationSettings({
 	error: string | null;
 	onUpdate(patch: WorkstationPreferencePatch): Promise<unknown>;
 	onReload(): Promise<unknown>;
+	browserPreferences?: BrowserPreferencesState;
 }) {
 	const { t } = useLingui();
 	const { fonts, isLoading: fontsLoading } = useSystemFonts();
@@ -196,6 +200,9 @@ export function WorkstationSettings({
 						/>
 					</SettingsRow>
 				</SettingsSection>
+				{browserPreferences && (
+					<WorkstationBrowserSettings preferences={browserPreferences} />
+				)}
 			</DialogContent>
 		</Dialog>
 	);

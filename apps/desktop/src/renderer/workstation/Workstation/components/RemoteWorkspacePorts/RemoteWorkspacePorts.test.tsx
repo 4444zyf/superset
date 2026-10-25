@@ -426,3 +426,31 @@ test("Close all confirms the visible workspace once and reports partial failures
 		"Cannot kill the terminal shell process",
 	);
 });
+
+test("the detected-port row follows its preference while the explicit external button keeps its own action", async () => {
+	const calls: unknown[] = [];
+	const api = {
+		listPorts: async () => [port(3000)],
+	} as unknown as DirectWorkstationApi;
+	render(
+		<RemoteWorkspacePorts
+			api={api}
+			connection={connection}
+			workspaceId="workspace"
+			busy={false}
+			onOpenPort={(p) => calls.push(["preferred", p])}
+			onOpenPortExternal={(p) => calls.push(["external", p])}
+		/>,
+	);
+	const label = await screen.findByText(":3000");
+	fireEvent.click(label.closest("button")!);
+	fireEvent.click(
+		screen.getByRole("button", {
+			name: "Open localhost:3000 in external browser",
+		}),
+	);
+	expect(calls).toEqual([
+		["preferred", 3000],
+		["external", 3000],
+	]);
+});

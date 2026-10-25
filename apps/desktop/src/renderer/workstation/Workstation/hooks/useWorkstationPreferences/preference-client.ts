@@ -4,15 +4,32 @@ import type {
 	WorkstationPreferenceSnapshot,
 } from "../../../../../shared/workstation-preferences";
 
-export interface PreferenceClientState {
-	snapshot: WorkstationPreferenceSnapshot | null;
+export interface RevisionedPreferenceSnapshot {
+	revision: number;
+	invalid: boolean;
+}
+interface RevisionedPreferenceApi<TSnapshot, TPatch> {
+	getPreferences?(): Promise<TSnapshot>;
+	updatePreferences?(input: {
+		expectedRevision: number;
+		patch: TPatch;
+	}): Promise<TSnapshot>;
+}
+export interface PreferenceClientState<
+	TSnapshot extends
+		RevisionedPreferenceSnapshot = WorkstationPreferenceSnapshot,
+> {
+	snapshot: TSnapshot | null;
 	loading: boolean;
 	saving: boolean;
 	error: string | null;
 }
 
-export class PreferenceClient {
-	private state: PreferenceClientState = {
+export class RevisionedPreferenceClient<
+	TSnapshot extends RevisionedPreferenceSnapshot,
+	TPatch,
+> {
+	private state: PreferenceClientState<TSnapshot> = {
 		snapshot: null,
 		loading: false,
 		saving: false,
@@ -22,19 +39,16 @@ export class PreferenceClient {
 	private alive = true;
 	private readPromise: Promise<void> | null = null;
 	constructor(
-		private readonly api: Pick<
-			DirectWorkstationApi,
-			"getPreferences" | "updatePreferences"
-		>,
+		private readonly api: RevisionedPreferenceApi<TSnapshot, TPatch>,
 	) {}
-	getSnapshot = (): PreferenceClientState => this.state;
+	getSnapshot = (): PreferenceClientState<TSnapshot> => this.state;
 	subscribe = (listener: () => void): (() => void) => {
 		this.listeners.add(listener);
 		return () => {
 			this.listeners.delete(listener);
 		};
 	};
-	private publish(patch: Partial<PreferenceClientState>): void {
+	private publish(patch: Partial<PreferenceClientState<TSnapshot>>): void {
 		if (!this.alive) return;
 		this.state = { ...this.state, ...patch };
 		for (const listener of this.listeners) listener();
@@ -66,9 +80,7 @@ export class PreferenceClient {
 		});
 		return this.readPromise;
 	}
-	async update(
-		patch: WorkstationPreferencePatch,
-	): Promise<WorkstationPreferenceSnapshot> {
+	async update(patch: TPatch): Promise<TSnapshot> {
 		if (!this.alive) throw new Error("Preference client is disposed");
 		if (this.state.saving)
 			throw new Error("A settings update is already in progress");
@@ -106,5 +118,16 @@ export class PreferenceClient {
 	dispose(): void {
 		this.alive = false;
 		this.listeners.clear();
+	}
+}
+
+export class PreferenceClient extends RevisionedPreferenceClient<
+	WorkstationPreferenceSnapshot,
+	WorkstationPreferencePatch
+> {
+	constructor(
+		api: Pick<DirectWorkstationApi, "getPreferences" | "updatePreferences">,
+	) {
+		super(api);
 	}
 }

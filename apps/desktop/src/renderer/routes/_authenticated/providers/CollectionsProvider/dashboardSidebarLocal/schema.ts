@@ -1,3 +1,16 @@
+import {
+	linkActionSchema,
+	linkTierMapSchema,
+	DEFAULT_URL_LINKS,
+	DEFAULT_PORT_OPEN_ACTION,
+	type LinkAction,
+	type LinkTierMap,
+} from "shared/browser-link-policy";
+export type {
+	LinkAction,
+	LinkTier,
+	LinkTierMap,
+} from "shared/browser-link-policy";
 import type { AppRouter } from "@superset/host-service";
 import {
 	findFirstPaneId,
@@ -383,30 +396,9 @@ export type V2TerminalPresetRow = z.infer<typeof v2TerminalPresetSchema>;
  *
  * Resolution and labels live in src/renderer/lib/clickPolicy.
  */
-const linkActionSchema = z.enum(["pane", "newTab", "external", "rightPane"]);
-
-export type LinkAction = z.infer<typeof linkActionSchema>;
-
-const linkTierMapSchema = z.object({
-	plain: linkActionSchema.nullable(),
-	shift: linkActionSchema.nullable(),
-	meta: linkActionSchema.nullable(),
-	metaShift: linkActionSchema.nullable(),
-});
-
-export type LinkTierMap = z.infer<typeof linkTierMapSchema>;
-export type LinkTier = keyof LinkTierMap;
-
 const DEFAULT_LINK_TIER_MAP: LinkTierMap = {
 	plain: null,
 	shift: null,
-	meta: "pane",
-	metaShift: "external",
-};
-
-const DEFAULT_URL_LINKS: LinkTierMap = {
-	plain: null,
-	shift: "newTab",
 	meta: "pane",
 	metaShift: "external",
 };
@@ -454,7 +446,6 @@ const DEFAULT_FOLDER_LINKS: FolderTierMap = {
 // Clicking a port badge's open affordance opens http://localhost:<port>.
 // A single action chooses where: "pane" = in-app browser, "newTab" = new
 // in-app tab, "external" = system browser.
-const DEFAULT_PORT_OPEN_ACTION: LinkAction = "external";
 
 function isSameLinkTierMap(a: LinkTierMap, b: LinkTierMap): boolean {
 	return (

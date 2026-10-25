@@ -1,3 +1,5 @@
+import type { ModifierEvent } from "renderer/lib/clickPolicy/types";
+import type { BrowserLinkAction } from "shared/workstation-browser-preferences";
 import { Trans } from "@lingui/react/macro";
 import { errorMessage } from "@superset/i18n/errors";
 import { setTerminalBinaryInputSupported } from "@superset/shared/terminal-wheel-handler";
@@ -124,6 +126,7 @@ export function RemoteTerminal({
 	onError,
 	onOpenFile,
 	onOpenUrl,
+	resolveUrlAction,
 	onClipboardControls,
 	createEmulator = createXterm,
 }: {
@@ -138,7 +141,8 @@ export function RemoteTerminal({
 	onExited?(): void;
 	onError(message: string): void;
 	onOpenFile?(target: TerminalFileTarget): void;
-	onOpenUrl?(url: string): void;
+	onOpenUrl?(url: string, action?: BrowserLinkAction): void;
+	resolveUrlAction?(event: ModifierEvent): BrowserLinkAction | null;
 	onClipboardControls?(controls: TerminalClipboardControls): () => void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 }) {
@@ -191,6 +195,7 @@ export function RemoteTerminal({
 		visible,
 		onOpenFile,
 		onOpenUrl,
+		resolveUrlAction,
 	});
 	navigation.current = {
 		api,
@@ -201,6 +206,7 @@ export function RemoteTerminal({
 		visible,
 		onOpenFile,
 		onOpenUrl,
+		resolveUrlAction,
 	};
 	useEffect(() => {
 		if (!element.current || !visible) return;
@@ -256,7 +262,12 @@ export function RemoteTerminal({
 								isCurrent: () =>
 									linkOwnerIsCurrent() && !!navigation.current.onOpenUrl,
 								isReviewing: () => emulator.isReviewing?.() ?? false,
-								onOpenUrl: (url) => navigation.current.onOpenUrl?.(url),
+								getAction: resolveUrlAction
+									? (event) =>
+											navigation.current.resolveUrlAction?.(event) ?? null
+									: undefined,
+								onOpenUrl: (url, action) =>
+									navigation.current.onOpenUrl?.(url, action),
 							})
 						: {}),
 				})

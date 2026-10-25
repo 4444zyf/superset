@@ -69,6 +69,8 @@ import { closeWindowTransports } from "./lib/ssh-direct/window-transports";
 import { WorkspaceRestoreCoordinator } from "./lib/ssh-direct/workspace-restore-coordinator";
 import { WorkspaceViewStore } from "./lib/ssh-direct/workspace-view-store";
 import { WorkstationBrowserHistory } from "./lib/ssh-direct/workstation-browser-history";
+import { WorkstationBrowserPreferences } from "./lib/ssh-direct/workstation-browser-preferences";
+import { browserPreferencePatchSchema } from "../shared/workstation-browser-preferences";
 import { WorkstationBrowserIcons } from "./lib/ssh-direct/workstation-browser-icons";
 import { WorkstationBrowserNavigation } from "./lib/ssh-direct/workstation-browser-navigation";
 import { WorkstationBrowserRegistry } from "./lib/ssh-direct/workstation-browser-registry";
@@ -155,6 +157,18 @@ export async function startWorkstation(): Promise<void> {
 	const resourcesRoot = app.isPackaged
 		? path.join(process.resourcesPath, "resources")
 		: path.join(__dirname, "../resources");
+	let browserPreferences: WorkstationBrowserPreferences | null = null;
+	try {
+		browserPreferences = new WorkstationBrowserPreferences(
+			path.join(dataDir, "browser-preferences.db"),
+		);
+	} catch (error) {
+		console.error("[workstation] Browser preferences are unavailable", error);
+	}
+	const requireBrowserPreferences = () => {
+		if (!browserPreferences) throw Error("Browser preferences are unavailable");
+		return browserPreferences;
+	};
 	let browserHistory: WorkstationBrowserHistory | null = null;
 	try {
 		browserHistory = new WorkstationBrowserHistory(
@@ -677,6 +691,25 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "getBrowserPreferences":
+					return requireBrowserPreferences().read();
+				case "updateBrowserPreferences":
+					return requireBrowserPreferences().update(
+						z
+							.strictObject({
+								expectedRevision: z.number().int().nonnegative(),
+								patch: browserPreferencePatchSchema,
+							})
+							.parse(payload),
+					);
+				case "resetBrowserPreferences":
+					return requireBrowserPreferences().reset(
+						z
+							.strictObject({
+								expectedRevision: z.number().int().nonnegative(),
+							})
+							.parse(payload),
+					);
 				case "getBrowserIcon": {
 					const input = z
 						.strictObject({
@@ -1580,6 +1613,7 @@ export async function startWorkstation(): Promise<void> {
 					preferences.close();
 					chatDrafts.close();
 					browserHistory?.close();
+					browserPreferences?.close();
 					viewStore?.close();
 					ipcMain.removeHandler(DIRECT_CHANNEL);
 					app.quit();

@@ -16,6 +16,12 @@ export async function verifyWorkstationBrowserUi(options) {
 	);
 	await screenshot("browser-entry");
 	assert.equal(available, true, "workspace browser entry is visible");
+	if (process.argv.includes("--browser-preferences"))
+		assert.equal(
+			await evaluate("Boolean(window.directWorkstation.browser?.preferences)"),
+			true,
+			"browser preference API is available",
+		);
 	const scope =
 		options.scope ??
 		(await evaluate(
@@ -58,6 +64,10 @@ export async function verifyWorkstationBrowserUi(options) {
 		" def log_message(self,*args): pass",
 		"server=http.server.HTTPServer(('127.0.0.1',0),Handler)",
 		"state['port']=server.server_port;save()",
+		process.argv.includes("--browser-preferences")
+			? 'print("\\x1b[2J\\x1b[Hhttp://localhost:"+str(server.server_port)+"/policy?value=%E4%B8%AD%20hello#fragment",flush=True)'
+			: "pass",
+
 		"try: server.serve_forever()",
 		"except KeyboardInterrupt: pass",
 		"finally: server.server_close();state['running']=False;save()",
@@ -138,6 +148,26 @@ export async function verifyWorkstationBrowserUi(options) {
 				(row) => row.port === proof.port && row.terminalId === terminal.id,
 			);
 		}, "original scanner attributes the HTTP port to its owning workspace and terminal");
+
+		if (process.argv.includes("--browser-preferences")) {
+			const { verifyWorkstationBrowserPreferencesUi } = await import(
+				"./verify-workstation-browser-preferences-ui.mjs"
+			);
+			await verifyWorkstationBrowserPreferencesUi(options, {
+				scope,
+				terminal,
+				selector,
+				proof,
+				marker,
+				terminalTab,
+				readView,
+				workspace,
+				readProof,
+				guestRead,
+				key,
+			});
+			return;
+		}
 
 		await click("[data-workstation-new-browser]");
 		await until(

@@ -15,6 +15,7 @@ export function WorkspacePortControls({
 	forward,
 	forwards,
 	onOpenPort,
+	onOpenPortExternal,
 	onCopyPort,
 	onClosePort,
 }: {
@@ -25,6 +26,7 @@ export function WorkspacePortControls({
 	forward: { id: string; url: string } | null;
 	forwards?: { id: string; url: string; workspaceId?: string; port?: number }[];
 	onOpenPort(port: number): void;
+	onOpenPortExternal?(port: number): void;
 	onCopyPort?(port: number): Promise<void>;
 	onClosePort(id?: string): void;
 }) {
@@ -79,6 +81,7 @@ export function WorkspacePortControls({
 					workspaceId={workspaceId}
 					busy={busy}
 					onOpenPort={onOpenPort}
+					onOpenPortExternal={onOpenPortExternal}
 					onCopyPort={onCopyPort}
 				/>
 			)}

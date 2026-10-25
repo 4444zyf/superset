@@ -1,3 +1,6 @@
+import { tierFor } from "renderer/lib/clickPolicy/tiers";
+import type { ModifierEvent } from "renderer/lib/clickPolicy/types";
+import type { BrowserLinkAction } from "shared/workstation-browser-preferences";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { I18nProvider } from "@superset/i18n/react";
 import { darkTheme, getBuiltInTheme } from "@superset/shared/themes";
@@ -32,6 +35,7 @@ import { WorkstationShell } from "./components/WorkstationShell/WorkstationShell
 import { workstationBrowsers } from "./providers/WorkstationBrowsers/workstation-browsers";
 import { useWorkspaceViews } from "./hooks/useWorkspaceViews/useWorkspaceViews";
 import { useWorkstation } from "./hooks/useWorkstation/useWorkstation";
+import { useBrowserPreferences } from "./hooks/useBrowserPreferences";
 import { useWorkstationPreferences } from "./hooks/useWorkstationPreferences";
 import { WorkstationChatDraftsContext } from "./providers/WorkstationChatDrafts/WorkstationChatDraftsContext";
 import { WorkstationChatDraftStore } from "./providers/WorkstationChatDrafts/workstation-chat-drafts";
@@ -76,6 +80,7 @@ export function Workstation({
 	const { t } = useLingui();
 	const ui = useWorkstation(api);
 	const preferences = useWorkstationPreferences(api);
+	const browserPreferences = useBrowserPreferences(api.browser?.preferences);
 	const documents = useMemo(() => new WorkstationFileDocuments(api), [api]);
 	const chatDrafts = useMemo(() => new WorkstationChatDraftStore(api), [api]);
 	const [editorGuards] = useState(() => new WorkstationEditorGuards());
@@ -152,6 +157,14 @@ export function Workstation({
 		ui.setDirectory(null);
 	};
 	const views = useWorkspaceViews(api, ui.connection, {
+		getBrowserHomepage: () => ({
+			ready:
+				!browserPreferences.available ||
+				(!!browserPreferences.snapshot &&
+					!browserPreferences.snapshot.invalid &&
+					!browserPreferences.loading),
+			url: browserPreferences.snapshot?.values.homepageUrl ?? null,
+		}),
 		onSkeleton(id) {
 			select(id);
 			setPage("workspaces");
@@ -402,7 +415,11 @@ export function Workstation({
 		ui.active.current === target &&
 		selectedRef.current === target.connectionId &&
 		activeWorkspaceRef.current === workspaceId;
-	const openPort = (workspaceId: string, port: number, targetUrl?: string) =>
+	const openPortExternal = (
+		workspaceId: string,
+		port: number,
+		targetUrl?: string,
+	) =>
 		void ui.operation(async () => {
 			const target = ui.active.current;
 			if (!target || !portTargetIsCurrent(target, workspaceId)) return;
@@ -450,12 +467,67 @@ export function Workstation({
 			);
 		});
 	};
-	const openUrl = (workspaceId: string, raw: string) => {
+	const resolveUrlAction = browserPreferences.available
+		? (event: ModifierEvent): BrowserLinkAction | null => {
+				if (
+					!browserPreferences.snapshot ||
+					browserPreferences.snapshot.invalid ||
+					browserPreferences.loading
+				)
+					return null;
+				return browserPreferences.snapshot.values.urlLinks[
+					tierFor(event, "4-tier")
+				];
+			}
+		: undefined;
+	const openBrowser = (
+		workspaceId: string,
+		url: string,
+		action: "pane" | "newTab",
+	) =>
+		void ui.operation(async () => {
+			const target = ui.active.current;
+			if (!target || !portTargetIsCurrent(target, workspaceId)) return;
+			if (!views.browserEnabled || !target.capabilities?.workspaceViewRestoreV1)
+				throw Error(t({ message: "Session status unavailable." }));
+			await views.flush();
+			if (!portTargetIsCurrent(target, workspaceId)) return;
+			const saved = await views.newBrowser(
+				workspaceId,
+				url,
+				action === "newTab" ? "new-tab" : "split",
+				target,
+			);
+			if (saved && portTargetIsCurrent(target, workspaceId))
+				setPage("workspaces");
+		});
+	const openPort = (workspaceId: string, port: number) => {
+		if (
+			browserPreferences.available &&
+			(!browserPreferences.snapshot ||
+				browserPreferences.snapshot.invalid ||
+				browserPreferences.loading)
+		)
+			return;
+		const action =
+			browserPreferences.snapshot?.values.portOpenAction ?? "external";
+		if (action === "external") openPortExternal(workspaceId, port);
+		else openBrowser(workspaceId, `http://localhost:${port}`, action);
+	};
+	const openUrl = (
+		workspaceId: string,
+		raw: string,
+		action: BrowserLinkAction = "external",
+	) => {
 		const connection = ui.active.current;
 		if (!connection || !portTargetIsCurrent(connection, workspaceId)) return;
 		const profile = ui.profiles.find((p) => p.id === connection.connectionId);
 		const target = terminalUrlTarget(raw, profile?.kind === "local");
 		if (!target) return;
+		if (action !== "external") {
+			openBrowser(workspaceId, target.url, action);
+			return;
+		}
 		if (target.kind === "forward") {
 			if (!api.preparePort) {
 				ui.setError(
@@ -463,7 +535,7 @@ export function Workstation({
 				);
 				return;
 			}
-			openPort(workspaceId, target.port, target.url);
+			openPortExternal(workspaceId, target.port, target.url);
 		} else
 			void ui.operation(async () => {
 				if (!portTargetIsCurrent(connection, workspaceId)) return;
@@ -694,7 +766,9 @@ export function Workstation({
 										.at(-1) ?? null,
 								forwards: ui.forwards,
 								onOpen: openPort,
+								onOpenExternal: openPortExternal,
 								onOpenUrl: openUrl,
+								resolveUrlAction,
 								onCopy: copyPort,
 								onClose: closePort,
 							}}
@@ -1106,6 +1180,7 @@ export function Workstation({
 							error={preferences.error}
 							onUpdate={preferences.update}
 							onReload={preferences.reload}
+							browserPreferences={browserPreferences}
 						/>
 					</Suspense>
 				)}

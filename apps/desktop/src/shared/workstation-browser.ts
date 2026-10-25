@@ -1,6 +1,7 @@
 import type { SelectBrowserHistory } from "@superset/local-db/browser-history";
 import { z } from "zod";
 import type { ForwardedKey } from "./hotkey-chord";
+import type { BrowserPreferenceApi } from "./workstation-browser-preferences";
 import type {
 	BrowserPageState,
 	WorkspaceViewSnapshotV2,
@@ -46,6 +47,7 @@ export type WorkstationBrowserNavigationResult =
 	| { status: "superseded" };
 
 export interface WorkstationBrowserApi {
+	preferences?: BrowserPreferenceApi;
 	getIcon?(input: {
 		pane: WorkstationBrowserPane;
 		url: string;

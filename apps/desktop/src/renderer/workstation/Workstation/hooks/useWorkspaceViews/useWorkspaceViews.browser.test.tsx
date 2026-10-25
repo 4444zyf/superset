@@ -13,7 +13,9 @@ import { useWorkspaceViews } from "./useWorkspaceViews";
 
 afterEach(cleanup);
 
-function fixture() {
+function fixture(
+	getBrowserHomepage?: () => { ready: boolean; url: string | null },
+) {
 	const descriptor: DirectDescriptor = {
 		connectionId: "connection",
 		generation: 4,
@@ -133,6 +135,7 @@ function fixture() {
 				onForget() {},
 				async onDescriptor() {},
 				onError: (message) => errors.push(message),
+				getBrowserHomepage,
 			}),
 		{ initialProps: { connection: descriptor } },
 	);
@@ -179,6 +182,23 @@ test("versioned layout changes preserve browsers and send only terminal/chat ref
 		f.backing().targets[0]?.workspaces[0]?.panes.map((p) => p.kind),
 	).toEqual(["terminal", "browser", "browser"]);
 	expect(f.errors).toEqual([]);
+});
+
+test("new browser tabs use the saved homepage through the original URL sanitizer", async () => {
+	const f = fixture(() => ({
+		ready: true,
+		url: "localhost:3000/start?q=hello#part",
+	}));
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () => {
+		await f.hook.result.current.newBrowser("workspace");
+	});
+	expect(
+		f.saves[0]?.view.targets[0]?.workspaces[0]?.panes.at(-1),
+	).toMatchObject({
+		kind: "browser",
+		browser: { url: "http://localhost:3000/start?q=hello#part" },
+	});
 });
 
 test("page updates coalesce and retain their captured connection when another device is selected", async () => {

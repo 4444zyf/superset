@@ -1146,3 +1146,66 @@ test("menu copy restores keyboard focus to its terminal", async () => {
 	clipboard.copy();
 	await waitFor(() => expect(focused).toBe(1));
 });
+
+test("a saved modifier policy updates an attached terminal without reinstalling its emulator", () => {
+	const handlers: import("renderer/lib/terminal/terminal-link-manager").TerminalLinkHandlers[] =
+		[];
+	const urls: unknown[] = [];
+	const api = {
+		onSocket: () => () => {},
+		openRestoredTerminal: async () => {},
+		closeSocket: async () => {},
+	} as unknown as DirectWorkstationApi;
+	const createEmulator = (): TerminalEmulator => ({
+		terminal: {
+			cols: 80,
+			rows: 24,
+			write() {},
+			writeln() {},
+			dispose() {},
+			onData: () => ({ dispose() {} }),
+			onResize: () => ({ dispose() {} }),
+		},
+		fit() {},
+		installLinkHandlers(value) {
+			handlers.push(value);
+			return () => {};
+		},
+	});
+	const renderTerminal = (action: "pane" | "newTab") => (
+		<RemoteTerminal
+			api={api}
+			connection={connection}
+			terminalId="terminal"
+			restoreRef={{
+				workspaceId: "workspace",
+				kind: "terminal",
+				resourceId: "terminal",
+				executionId: "execution",
+			}}
+			onError={(error) => {
+				throw Error(error);
+			}}
+			onOpenUrl={(url, action) => urls.push({ url, action })}
+			resolveUrlAction={() => action}
+			createEmulator={createEmulator}
+		/>
+	);
+	const view = render(renderTerminal("pane"));
+	const original = handlers[0];
+	expect(handlers).toHaveLength(1);
+	original.onUrlClick!(
+		new MouseEvent("click", { ctrlKey: true, button: 0 }),
+		"http://localhost:3000/a",
+	);
+	view.rerender(renderTerminal("newTab"));
+	expect(handlers).toHaveLength(1);
+	original.onUrlClick!(
+		new MouseEvent("click", { ctrlKey: true, button: 0 }),
+		"http://localhost:3000/b",
+	);
+	expect(urls).toEqual([
+		{ url: "http://localhost:3000/a", action: "pane" },
+		{ url: "http://localhost:3000/b", action: "newTab" },
+	]);
+});

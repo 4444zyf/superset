@@ -19,6 +19,7 @@ export function RemoteWorkspacePorts({
 	workspaceId,
 	busy,
 	onOpenPort,
+	onOpenPortExternal,
 	onCopyPort,
 	pollMs = 2000,
 	confirmClose = confirmClosePorts,
@@ -28,6 +29,7 @@ export function RemoteWorkspacePorts({
 	workspaceId: string;
 	busy: boolean;
 	onOpenPort(port: number): void;
+	onOpenPortExternal?(port: number): void;
 	onCopyPort?(port: number): Promise<void>;
 	pollMs?: number;
 	confirmClose?(count: number): Promise<boolean>;
@@ -49,9 +51,18 @@ export function RemoteWorkspacePorts({
 		available,
 		busy,
 		onOpenPort,
+		onOpenPortExternal,
 		onCopyPort,
 	});
-	current.current = { api, owner, available, busy, onOpenPort, onCopyPort };
+	current.current = {
+		api,
+		owner,
+		available,
+		busy,
+		onOpenPort,
+		onOpenPortExternal,
+		onCopyPort,
+	};
 	const mounted = useRef(false);
 	const readNow = useRef<(() => void) | null>(null);
 	const closingRef = useRef<{
@@ -297,6 +308,22 @@ export function RemoteWorkspacePorts({
 											}
 										: undefined
 								}
+								onPrimary={
+									onOpenPortExternal
+										? () => {
+												if (
+													!mounted.current ||
+													current.current.api !== api ||
+													current.current.owner !== owner ||
+													!current.current.available ||
+													current.current.busy ||
+													snapshot.error
+												)
+													return;
+												current.current.onOpenPort(port.port);
+											}
+										: undefined
+								}
 								onExternal={() => {
 									if (
 										!mounted.current ||
@@ -307,7 +334,10 @@ export function RemoteWorkspacePorts({
 										snapshot.error
 									)
 										return;
-									current.current.onOpenPort(port.port);
+									(
+										current.current.onOpenPortExternal ??
+										current.current.onOpenPort
+									)(port.port);
 								}}
 							/>
 						))}

@@ -1,3 +1,5 @@
+import type { ModifierEvent } from "renderer/lib/clickPolicy/types";
+import type { BrowserLinkAction } from "shared/workstation-browser-preferences";
 import { Trans } from "@lingui/react/macro";
 import type { RestoreResourceCheck } from "@superset/shared/workspace-restore";
 import { useState } from "react";
@@ -32,6 +34,7 @@ export function WorkspacePaneView({
 	createEmulator,
 	onOpenFile,
 	onOpenUrl,
+	resolveUrlAction,
 	onClipboardControls,
 	actions,
 }: {
@@ -49,7 +52,8 @@ export function WorkspacePaneView({
 	onFailed(): void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 	onOpenFile?(target: TerminalFileTarget): void;
-	onOpenUrl?(url: string): void;
+	onOpenUrl?(url: string, action?: BrowserLinkAction): void;
+	resolveUrlAction?(event: ModifierEvent): BrowserLinkAction | null;
 	onClipboardControls?(controls: TerminalClipboardControls): () => void;
 	actions: WorkspaceViewActions;
 }) {
@@ -121,6 +125,7 @@ export function WorkspacePaneView({
 							createEmulator={createEmulator}
 							onOpenFile={onOpenFile}
 							onOpenUrl={onOpenUrl}
+							resolveUrlAction={resolveUrlAction}
 							onClipboardControls={onClipboardControls}
 						/>
 					) : (

@@ -1,3 +1,5 @@
+import type { ModifierEvent } from "renderer/lib/clickPolicy/types";
+import type { BrowserLinkAction } from "shared/workstation-browser-preferences";
 import { Trans, useLingui } from "@lingui/react/macro";
 import {
 	type ContextMenuActionConfig,
@@ -43,6 +45,7 @@ export function PaneGrid({
 	createEmulator,
 	onOpenFile,
 	onOpenUrl,
+	resolveUrlAction,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor | null;
@@ -51,7 +54,8 @@ export function PaneGrid({
 	actions: WorkspaceViewActions;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 	onOpenFile?(target: TerminalFileTarget): void;
-	onOpenUrl?(url: string): void;
+	onOpenUrl?(url: string, action?: BrowserLinkAction): void;
+	resolveUrlAction?(event: ModifierEvent): BrowserLinkAction | null;
 }) {
 	const { t } = useLingui();
 	const terminalClipboards = useRef(
@@ -347,6 +351,7 @@ export function PaneGrid({
 				createEmulator={createEmulator}
 				onOpenFile={onOpenFile}
 				onOpenUrl={onOpenUrl}
+				resolveUrlAction={resolveUrlAction}
 				onClipboardControls={(clipboard) => {
 					terminalClipboards.current.set(id, clipboard);
 					return () => {
