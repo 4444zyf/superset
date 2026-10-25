@@ -125,7 +125,7 @@ function protocolOf(url: string): string | null {
 	}
 }
 
-function isAllowedGuestUrl(url: string): boolean {
+export function isAllowedGuestUrl(url: string): boolean {
 	const protocol = protocolOf(url);
 	return protocol !== null && ALLOWED_GUEST_SCHEMES.has(protocol);
 }

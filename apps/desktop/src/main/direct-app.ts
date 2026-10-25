@@ -32,6 +32,7 @@ import {
 	Menu,
 	screen,
 	shell,
+	webContents,
 } from "electron";
 import { z } from "zod";
 import {
@@ -42,7 +43,9 @@ import {
 	DIRECT_SOCKET_CHANNEL,
 	DIRECT_VIEW_FLUSH_CHANNEL,
 	DIRECT_WINDOW_CLOSE_CHANNEL,
+	WORKSTATION_BROWSER_CHANNEL,
 } from "../shared/direct-workstation";
+import { browserManager } from "./lib/browser/browser-manager";
 import { lockProductProfile } from "./lib/product-identity";
 import { isSafeExternalUrl } from "./lib/safe-url/scheme";
 import { AutomaticReconnect } from "./lib/ssh-direct/automatic-reconnect";
@@ -63,6 +66,8 @@ import { WindowCloseGate } from "./lib/ssh-direct/window-close-gate";
 import { closeWindowTransports } from "./lib/ssh-direct/window-transports";
 import { WorkspaceRestoreCoordinator } from "./lib/ssh-direct/workspace-restore-coordinator";
 import { WorkspaceViewStore } from "./lib/ssh-direct/workspace-view-store";
+import { WorkstationBrowserRegistry } from "./lib/ssh-direct/workstation-browser-registry";
+import { guardWorkstationWebviews } from "./lib/ssh-direct/workstation-browser-security";
 import { WorkstationChatDrafts } from "./lib/ssh-direct/workstation-chat-drafts";
 import { WorkstationController } from "./lib/ssh-direct/workstation-controller";
 import { WorkstationPreferences } from "./lib/ssh-direct/workstation-preferences";
@@ -225,10 +230,20 @@ export async function startWorkstation(): Promise<void> {
 			...(password ? { password } : {}),
 		});
 	};
+	let browserRegistry: WorkstationBrowserRegistry | null = null;
+	const cleanBrowser = (operation: () => void) => {
+		try {
+			operation();
+		} catch (error) {
+			console.error("[workstation] Browser cleanup failed", error);
+		}
+	};
 	const manager = new DirectConnectionManager({
 		registry,
 		local,
 		onStatus: (id, status) => {
+			if (status.state !== "ready")
+				cleanBrowser(() => browserRegistry?.closeConnection(id));
 			if (["probing", "forwarding", "verifying"].includes(status.state))
 				progress.phase(
 					id,
@@ -244,6 +259,31 @@ export async function startWorkstation(): Promise<void> {
 		},
 	});
 	const controller = new WorkstationController(manager, intents);
+	browserRegistry = new WorkstationBrowserRegistry({
+		manager: browserManager,
+		getGuest: (id) => webContents.fromId(id) ?? undefined,
+		describe: (id) => controller.describe(id),
+		checkWorkspace: async (pane) => {
+			const workspace = await controller.invoke({
+				connectionId: pane.connectionId,
+				generation: pane.generation,
+				path: "workspace.get",
+				type: "query",
+				input: { id: pane.workspaceId },
+			});
+			if (
+				!workspace ||
+				typeof workspace !== "object" ||
+				!("id" in workspace) ||
+				workspace.id !== pane.workspaceId
+			)
+				throw new Error("Browser workspace is unavailable");
+		},
+		send: (owner, event) => {
+			if (window?.webContents.id === owner && !window.webContents.isDestroyed())
+				window.webContents.send(WORKSTATION_BROWSER_CHANNEL, event);
+		},
+	});
 	const sockets = new SocketBroker((id, socketPath) =>
 		socketPath.startsWith("/terminal-restore/")
 			? manager.openRestoredSocket(id, socketPath)
@@ -396,17 +436,21 @@ export async function startWorkstation(): Promise<void> {
 				contextIsolation: true,
 				nodeIntegration: false,
 				sandbox: true,
+				webviewTag: true,
 			},
 		});
 		window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+		guardWorkstationWebviews(window.webContents);
 		window.webContents.on("will-navigate", (event) => event.preventDefault());
 		const owner = window.webContents.id;
+		cleanBrowser(() => browserRegistry?.activateOwner(owner));
 		rendererOwnerEpoch++;
 		views?.activateOwner(owner);
 		window.webContents.on(
 			"did-start-navigation",
 			(_event, _url, isInPlace, isMainFrame) => {
 				if (isMainFrame && !isInPlace) {
+					cleanBrowser(() => browserRegistry?.activateOwner(owner));
 					rendererOwnerEpoch++;
 					closeGate.invalidate();
 					views?.activateOwner(owner);
@@ -433,7 +477,10 @@ export async function startWorkstation(): Promise<void> {
 		window.on("unmaximize", changedBounds);
 		let closing = false;
 		let allowClose = false;
-		window.webContents.on("render-process-gone", () => closeGate.invalidate());
+		window.webContents.on("render-process-gone", () => {
+			cleanBrowser(() => browserRegistry?.activateOwner(null));
+			closeGate.invalidate();
+		});
 		window.on("close", (event) => {
 			if (quitting || allowClose) return;
 			event.preventDefault();
@@ -462,6 +509,7 @@ export async function startWorkstation(): Promise<void> {
 				});
 		});
 		window.on("closed", () => {
+			cleanBrowser(() => browserRegistry?.activateOwner(null));
 			closeGate.invalidate();
 			clearTimeout(windowSaveTimer);
 			rendererOwnerEpoch++;
@@ -541,6 +589,10 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "registerBrowserPane":
+					return browserRegistry?.register(owner, payload);
+				case "unregisterBrowserPane":
+					return browserRegistry?.unregister(owner, payload);
 				case "registerWindowCloseGuard": {
 					const { registrationId } = z
 						.object({ registrationId: z.string().uuid() })
@@ -1330,6 +1382,7 @@ export async function startWorkstation(): Promise<void> {
 					rendererOwnerEpoch++;
 					closeGate.invalidate();
 					views?.activateOwner(null);
+					cleanBrowser(() => browserRegistry?.dispose());
 					forwards.dispose();
 					await controller.dispose();
 				})().finally(() => {

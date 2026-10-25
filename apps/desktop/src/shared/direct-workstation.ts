@@ -12,6 +12,7 @@ import type {
 	WorkspaceViewInput,
 	WorkspaceViewSnapshot,
 } from "./workspace-view";
+import type { WorkstationBrowserApi } from "./workstation-browser";
 import type {
 	WorkstationChatDraftSnapshot,
 	WorkstationChatDraftUpdate,
@@ -156,6 +157,7 @@ export type DirectConnectionEvent =
 	  };
 
 export interface DirectWorkstationApi {
+	readonly browser?: WorkstationBrowserApi;
 	killWorkspacePort?(
 		connection: DirectDescriptor,
 		workspaceId: string,
@@ -289,3 +291,4 @@ export const DIRECT_RESTORE_CHANNEL = "direct-workstation:restore";
 export const DIRECT_VIEW_FLUSH_CHANNEL = "direct-workstation:flush-view";
 
 export const DIRECT_WINDOW_CLOSE_CHANNEL = "direct-workstation:window-close";
+export const WORKSTATION_BROWSER_CHANNEL = "direct-workstation:browser";

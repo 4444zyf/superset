@@ -10,6 +10,7 @@ import {
 	type DirectConnectionEvent,
 	type DirectSocketEvent,
 	type DirectWorkstationApi,
+	WORKSTATION_BROWSER_CHANNEL,
 } from "../shared/direct-workstation";
 
 declare global {
@@ -21,6 +22,17 @@ declare global {
 const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
+	browser: {
+		register: (input) => invoke("registerBrowserPane", input),
+		unregister: (input) => invoke("unregisterBrowserPane", input),
+		onEvent: (listener) => {
+			const wrapped = (_event: unknown, data: Parameters<typeof listener>[0]) =>
+				listener(data);
+			ipcRenderer.on(WORKSTATION_BROWSER_CHANNEL, wrapped);
+			return () =>
+				ipcRenderer.removeListener(WORKSTATION_BROWSER_CHANNEL, wrapped);
+		},
+	},
 	openExternal: (url) => invoke("openExternal", url),
 	copyText: (text) => invoke("copyText", text),
 	pasteClipboard: () => invoke("pasteClipboard"),
