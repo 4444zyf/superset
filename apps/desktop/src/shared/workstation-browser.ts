@@ -1,3 +1,4 @@
+import type { SelectScreenshot } from "@superset/local-db/screenshots";
 import type { SelectDownload } from "@superset/local-db/downloads";
 import type { SelectBrowserHistory } from "@superset/local-db/browser-history";
 import { z } from "zod";
@@ -78,7 +79,36 @@ export interface WorkstationDownloadsApi {
 		listener: (snapshot: WorkstationDownloadsSnapshot) => void,
 	): () => void;
 }
+export type WorkstationScreenshotRow = Pick<
+	SelectScreenshot,
+	| "id"
+	| "filename"
+	| "savePath"
+	| "width"
+	| "height"
+	| "thumbnail"
+	| "capturedAt"
+>;
+export interface WorkstationScreenshotsSnapshot {
+	revision: number;
+	rows: WorkstationScreenshotRow[];
+}
+export interface WorkstationScreenshotsApi {
+	getSnapshot(): Promise<WorkstationScreenshotsSnapshot>;
+	clear(): Promise<{ success: boolean }>;
+	open(input: { id: string }): Promise<{ success: boolean }>;
+	showInFolder(input: { id: string }): Promise<{ success: boolean }>;
+	onChanged(
+		listener: (snapshot: WorkstationScreenshotsSnapshot) => void,
+	): () => void;
+}
 export interface WorkstationBrowserApi {
+	screenshots?: WorkstationScreenshotsApi;
+	captureScreenshot?(input: {
+		pane: WorkstationBrowserPane;
+	}): Promise<
+		{ status: "saved"; id: string; base64: string } | { status: "stale" }
+	>;
 	downloads?: WorkstationDownloadsApi;
 	clearData?(input: {
 		type: z.infer<typeof workstationBrowserDataTypeSchema>;

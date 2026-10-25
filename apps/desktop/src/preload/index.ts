@@ -12,6 +12,7 @@ import {
 	type DirectWorkstationApi,
 	WORKSTATION_BROWSER_CHANNEL,
 	WORKSTATION_DOWNLOADS_CHANNEL,
+	WORKSTATION_SCREENSHOTS_CHANNEL,
 } from "../shared/direct-workstation";
 
 declare global {
@@ -24,6 +25,22 @@ const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
 	browser: {
+		captureScreenshot: (input) => invoke("captureBrowserScreenshot", input),
+		screenshots: {
+			getSnapshot: () => invoke("getBrowserScreenshots"),
+			clear: () => invoke("clearBrowserScreenshots"),
+			open: (input) => invoke("openBrowserScreenshot", input),
+			showInFolder: (input) => invoke("revealBrowserScreenshot", input),
+			onChanged: (listener) => {
+				const wrapped = (
+					_event: unknown,
+					data: Parameters<typeof listener>[0],
+				) => listener(data);
+				ipcRenderer.on(WORKSTATION_SCREENSHOTS_CHANNEL, wrapped);
+				return () =>
+					ipcRenderer.removeListener(WORKSTATION_SCREENSHOTS_CHANNEL, wrapped);
+			},
+		},
 		downloads: {
 			getSnapshot: () => invoke("getBrowserDownloads"),
 			cancel: (input) => invoke("cancelBrowserDownload", input),

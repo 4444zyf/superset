@@ -1,3 +1,8 @@
+import {
+	WorkstationBrowserScreenshots,
+	screenshotThumbnail,
+} from "./lib/ssh-direct/workstation-browser-screenshots";
+import { captureCurrentPage } from "./lib/browser/capture-current-page";
 import { WorkstationBrowserDownloads } from "./lib/ssh-direct/workstation-browser-downloads";
 import { clearBrowserSessionData } from "./lib/browser/clear-browser-session-data";
 import { randomUUID } from "node:crypto";
@@ -48,6 +53,7 @@ import {
 	DIRECT_WINDOW_CLOSE_CHANNEL,
 	WORKSTATION_BROWSER_CHANNEL,
 	WORKSTATION_DOWNLOADS_CHANNEL,
+	WORKSTATION_SCREENSHOTS_CHANNEL,
 } from "../shared/direct-workstation";
 import {
 	workstationBrowserPaneSchema,
@@ -220,6 +226,45 @@ export async function startWorkstation(): Promise<void> {
 	const requireBrowserDownloads = () => {
 		if (!browserDownloads) throw Error("Browser downloads are unavailable");
 		return browserDownloads;
+	};
+
+	let browserScreenshots: WorkstationBrowserScreenshots | null = null,
+		screenshotsRevision = 0;
+	try {
+		browserScreenshots = new WorkstationBrowserScreenshots(
+			path.join(dataDir, "browser-screenshots.db"),
+			readFileSync(
+				path.join(resourcesRoot, "migrations/0052_add_screenshots.sql"),
+				"utf8",
+			),
+			{
+				directory: () => {
+					const directory = path.join(
+						app.getPath("pictures"),
+						`${PRODUCT_BRAND.displayName} Screenshots`,
+					);
+					mkdirSync(directory, { recursive: true });
+					return directory;
+				},
+				showInFolder: (path) => shell.showItemInFolder(path),
+				openFile: (path) => shell.openPath(path),
+			},
+		);
+		const store = browserScreenshots;
+		store.manager.on("changed", () => {
+			screenshotsRevision++;
+			if (window && !window.webContents.isDestroyed())
+				window.webContents.send(WORKSTATION_SCREENSHOTS_CHANNEL, {
+					revision: screenshotsRevision,
+					rows: store.listForDisplay(),
+				});
+		});
+	} catch (error) {
+		console.error("[workstation] Browser screenshots are unavailable", error);
+	}
+	const requireBrowserScreenshots = () => {
+		if (!browserScreenshots) throw Error("Browser screenshots are unavailable");
+		return browserScreenshots;
 	};
 	if (!registry.get(localConnectionId))
 		registry.save({
@@ -731,6 +776,88 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "captureBrowserScreenshot": {
+					const { pane } = z
+							.strictObject({ pane: workstationBrowserPaneSchema })
+							.parse(payload),
+						key = browserRegistry?.getManagerPaneId(owner, pane),
+						guest = key ? browserManager.getWebContents(key) : null;
+					if (!key || !guest || guest.isDestroyed()) return { status: "stale" };
+					const url = guest.getURL(),
+						store = requireBrowserScreenshots();
+					let pageCurrent = true;
+					const onNavigation = (
+						_event: unknown,
+						_url: string,
+						_inPlace: boolean,
+						mainFrame: boolean,
+					) => {
+						if (mainFrame) pageCurrent = false;
+					};
+					guest.on("did-start-navigation", onNavigation);
+					try {
+						const captured = await captureCurrentPage({
+							current: () => {
+								try {
+									return (
+										pageCurrent &&
+										window === callerWindow &&
+										rendererOwnerEpoch === callerEpoch &&
+										!callerWindow.isDestroyed() &&
+										browserRegistry?.getManagerPaneId(owner, pane) === key &&
+										browserManager.getWebContents(key) === guest &&
+										!guest.isDestroyed() &&
+										!guest.isCrashed() &&
+										guest.getURL() === url
+									);
+								} catch {
+									return false;
+								}
+							},
+							capture: () => browserManager.capturePageImage(key),
+							commit: (image) => {
+								const canonical = browserNavigation.canonical(owner, pane, url);
+								const saved = store.manager.save(image, canonical);
+								clipboard.writeImage(image);
+								return {
+									id: saved.id,
+									base64: screenshotThumbnail(image).slice(
+										"data:image/png;base64,".length,
+									),
+								};
+							},
+						});
+						return captured.status === "saved"
+							? { status: "saved", ...captured.result }
+							: captured;
+					} finally {
+						guest.off("did-start-navigation", onNavigation);
+					}
+				}
+				case "getBrowserScreenshots":
+					return {
+						revision: screenshotsRevision,
+						rows: requireBrowserScreenshots().listForDisplay(),
+					};
+				case "clearBrowserScreenshots":
+					requireBrowserScreenshots().manager.clear();
+					return { success: true };
+				case "openBrowserScreenshot":
+				case "revealBrowserScreenshot": {
+					const { id } = z
+							.strictObject({ id: z.string().uuid() })
+							.parse(payload),
+						store = requireBrowserScreenshots(),
+						row = store.fileForId(id);
+					if (!row) return { success: false };
+					if (action === "revealBrowserScreenshot") {
+						store.manager.showInFolder(row.savePath);
+						return { success: true };
+					}
+					return {
+						success: (await store.manager.openFile(row.savePath)) === "",
+					};
+				}
 				case "getBrowserDownloads": {
 					return {
 						revision: downloadsRevision,
@@ -1734,6 +1861,7 @@ export async function startWorkstation(): Promise<void> {
 					chatDrafts.close();
 					browserHistory?.close();
 					cleanBrowser(() => browserDownloads?.close());
+					cleanBrowser(() => browserScreenshots?.close());
 					browserPreferences?.close();
 					viewStore?.close();
 					ipcMain.removeHandler(DIRECT_CHANNEL);

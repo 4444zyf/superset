@@ -67,6 +67,11 @@ export async function verifyWorkstationBrowserUi(options) {
 		`  body=('<!doctype html><meta charset="utf-8"><title>'+title+'</title><h1>'+state['marker']+'</h1><a id="next" href="/next?value=%E4%B8%AD%20hello#section">Next page</a><br><a id="popup" target="_blank" href="/popup">Open second pane</a><p>needle needle needle</p>').encode()`,
 		`  body=body.replace(b'<title>',b'<link rel="icon" href="/icon.svg"><title>')`,
 		...(downloadsFixture ? [downloadsFixture.body] : []),
+		...(process.argv.includes("--browser-screenshots")
+			? [
+					`  body=body+b'<button id="capture-color" onclick="document.body.style.backgroundColor=String.fromCharCode(35,50,56,53,97,56,50)">Change capture color</button>'`,
+				]
+			: []),
 		process.argv.includes("--browser-device-tools")
 			? "  body=body.replace(b'<meta charset=',b'<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta charset=')"
 			: "  pass",
@@ -272,6 +277,17 @@ export async function verifyWorkstationBrowserUi(options) {
 				guestRead,
 				readProof,
 			});
+			save();
+		}
+
+		if (process.argv.includes("--browser-screenshots")) {
+			const { verifyWorkstationBrowserScreenshotsUi } = await import(
+				"./verify-workstation-browser-screenshots-ui.mjs"
+			);
+			report.screenshots = await verifyWorkstationBrowserScreenshotsUi(
+				options,
+				{ url, marker, guestRead, key, readProof },
+			);
 			save();
 		}
 		if (process.argv.includes("--browser-downloads")) {
@@ -490,6 +506,18 @@ export async function verifyWorkstationBrowserUi(options) {
 				await verifyWorkstationBrowserDownloadsReopened(
 					options,
 					report.downloads,
+				);
+			save();
+		}
+
+		if (process.argv.includes("--browser-screenshots")) {
+			const { verifyWorkstationBrowserScreenshotsReopened } = await import(
+				"./verify-workstation-browser-screenshots-ui.mjs"
+			);
+			report.screenshotsReopened =
+				await verifyWorkstationBrowserScreenshotsReopened(
+					options,
+					report.screenshots,
 				);
 			save();
 		}

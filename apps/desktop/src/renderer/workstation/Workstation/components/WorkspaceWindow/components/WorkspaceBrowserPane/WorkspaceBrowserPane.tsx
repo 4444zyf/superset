@@ -1,3 +1,6 @@
+import { ScreenshotsDialogView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/ScreenshotsDialog/components/ScreenshotsDialogView";
+import { useScreenshotToast } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/hooks/useScreenshotToast/useScreenshotToast";
+import { screenshotsSource } from "./utils/screenshots-source/screenshots-source";
 import { DownloadsDialogView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/DownloadsDialog/components/DownloadsDialogView";
 import { downloadsSource } from "./utils/downloads-source/downloads-source";
 import {
@@ -69,6 +72,7 @@ export function WorkspaceBrowserPane({
 	const [find, setFind] = useState(false);
 	const [historyPane, setHistoryPane] = useState<string | null>(null);
 	const [clearPane, setClearPane] = useState<string | null>(null);
+	const [screenshotsPane, setScreenshotsPane] = useState<string | null>(null);
 	const [downloadsPane, setDownloadsPane] = useState<string | null>(null);
 	const [navigationError, setNavigationError] = useState<string | null>(null);
 	const id = runtime.ensure(connection, workspaceId, pane, {
@@ -123,6 +127,41 @@ export function WorkspaceBrowserPane({
 				open();
 		}, MENU_CLOSE_ANIMATION_MS);
 	};
+
+	const screenshotToast = useScreenshotToast(() =>
+		openBrowserDialog(() => setScreenshotsPane(id)),
+	);
+	const captureScreenshot = () => {
+		const registration = runtime.registration(id);
+		if (!registration || !api.browser?.captureScreenshot) return;
+		void api.browser.captureScreenshot({ pane: registration }).then(
+			(result) => {
+				if (
+					runtime.registration(id)?.registrationId !==
+					registration.registrationId
+				)
+					return;
+				if (result.status === "saved") screenshotToast.success(result.base64);
+				else screenshotToast.error();
+			},
+			() => {
+				if (
+					runtime.registration(id)?.registrationId ===
+					registration.registrationId
+				)
+					screenshotToast.error();
+			},
+		);
+	};
+	const screenshots = useMemo(
+		() =>
+			api.browser?.screenshots && api.copyText
+				? screenshotsSource(api.browser.screenshots, (text) =>
+						api.copyText!(text),
+					)
+				: null,
+		[api],
+	);
 
 	const [displayIcon, setDisplayIcon] = useState<string | null>(null);
 	useEffect(() => {
@@ -333,6 +372,14 @@ export function WorkspaceBrowserPane({
 							? () => openBrowserDialog(onBrowserSettings)
 							: undefined
 					}
+					handleScreenshot={
+						api.browser?.captureScreenshot ? captureScreenshot : undefined
+					}
+					onScreenshots={
+						screenshots
+							? () => openBrowserDialog(() => setScreenshotsPane(id))
+							: undefined
+					}
 					onDownloads={
 						downloads
 							? () => openBrowserDialog(() => setDownloadsPane(id))
@@ -398,6 +445,19 @@ export function WorkspaceBrowserPane({
 					}
 				/>
 			)}
+			{screenshots && (
+				<ScreenshotsDialogView
+					key={id}
+					source={screenshots}
+					open={screenshotsPane === id}
+					onOpenChange={(open) =>
+						setScreenshotsPane((current) =>
+							open ? id : current === id ? null : current,
+						)
+					}
+				/>
+			)}
+
 			<BrowserViewportView
 				deviceToolbar={deviceToolbar}
 				deviceToolbarSize={deviceToolbarSize}

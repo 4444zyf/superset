@@ -786,7 +786,7 @@ class BrowserManager extends EventEmitter {
 		return image.toPNG().toString("base64");
 	}
 
-	private async capturePageImage(
+	async capturePageImage(
 		paneId: string,
 		workspaceId?: string,
 	): Promise<Electron.NativeImage> {

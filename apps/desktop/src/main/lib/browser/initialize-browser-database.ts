@@ -3,7 +3,7 @@ import type { SqliteDatabase } from "@superset/direct-connection";
 export function initializeBrowserDatabase(
 	db: SqliteDatabase,
 	migrationSql: string,
-	kind: "history" | "downloads",
+	kind: "history" | "downloads" | "screenshots",
 ): void {
 	db.exec("BEGIN IMMEDIATE");
 	try {
