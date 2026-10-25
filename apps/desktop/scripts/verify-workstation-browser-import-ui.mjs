@@ -247,6 +247,10 @@ export async function verifyWorkstationBrowserImportUi(options, context) {
 			(await rows()).filter((row) => row.url.includes(fixture.marker)),
 			report.imported,
 		);
+
+		await evaluate(
+			`(()=>{window.__ownedImportEvents=[];for(const type of ['pointerdown','pointerup','click','focusin','focusout'])document.addEventListener(type,event=>{const e=event.target,b=e?.closest?.('button');window.__ownedImportEvents.push({type,target:e?.tagName,button:b?.textContent?.slice(0,240),state:document.querySelector('[role=dialog]')?.dataset.state,title:document.querySelector('[role=dialog] h2')?.textContent,active:document.activeElement?.tagName});if(window.__ownedImportEvents.length>80)window.__ownedImportEvents.shift();},true);return true;})()`,
+		);
 		await menuHistory();
 		async function menuHistory() {
 			const menu = workstationBrowserMenuDriver(options);
@@ -309,6 +313,10 @@ export async function verifyWorkstationBrowserImportUi(options, context) {
 		};
 		throw error;
 	} finally {
+		report.domAtEnd = await evaluate(
+			`(()=>({events:window.__ownedImportEvents??[],dialogs:[...document.querySelectorAll('[role=dialog]')].map(d=>{const r=d.getBoundingClientRect();return {title:d.querySelector('h2')?.textContent,state:d.dataset.state,pointerEvents:getComputedStyle(d).pointerEvents,opacity:getComputedStyle(d).opacity,animationName:getComputedStyle(d).animationName,animations:d.getAnimations().map(a=>({state:a.playState,time:a.currentTime,timing:a.effect?.getComputedTiming()})),rect:{x:r.x,y:r.y,width:r.width,height:r.height}};}),active:document.activeElement?.tagName,bodyPointer:document.body.style.pointerEvents,alerts:[...document.querySelectorAll('[role=alert]')].map(e=>e.textContent)}))()`,
+		);
+		report.runtimeErrorsAtEnd = options.getPage().errors;
 		if (!report.errors) await options.screenshot("browser-import-incomplete");
 		save();
 		if (
@@ -327,6 +335,8 @@ export async function verifyWorkstationBrowserImportUi(options, context) {
 				() => evaluate("!document.querySelector('[role=dialog]')"),
 				"failed history selection dialog closes for cleanup",
 			);
+			report.cleanupDialogClosed = true;
+			save();
 		}
 	}
 }

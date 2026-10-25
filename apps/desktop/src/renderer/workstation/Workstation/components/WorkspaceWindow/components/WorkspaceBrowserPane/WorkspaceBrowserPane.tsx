@@ -421,7 +421,7 @@ export function WorkspaceBrowserPane({
 			)}
 			{historySource && (
 				<HistoryDialogView
-					key={id}
+					key={`${id}:history`}
 					source={historySource}
 					open={historyPane === id}
 					onOpenChange={(open) => setHistoryPane(open ? id : null)}
@@ -430,7 +430,7 @@ export function WorkspaceBrowserPane({
 			)}
 			{clearDataSource && (
 				<ClearBrowsingDataDialogView
-					key={id}
+					key={`${id}:clear`}
 					source={clearDataSource}
 					open={clearPane === id}
 					onOpenChange={(open) =>
@@ -442,7 +442,7 @@ export function WorkspaceBrowserPane({
 			)}
 			{downloads && (
 				<DownloadsDialogView
-					key={id}
+					key={`${id}:downloads`}
 					source={downloads}
 					open={downloadsPane === id}
 					onOpenChange={(open) =>
@@ -454,7 +454,7 @@ export function WorkspaceBrowserPane({
 			)}
 			{screenshots && (
 				<ScreenshotsDialogView
-					key={id}
+					key={`${id}:screenshots`}
 					source={screenshots}
 					open={screenshotsPane === id}
 					onOpenChange={(open) =>
@@ -467,7 +467,7 @@ export function WorkspaceBrowserPane({
 
 			{api.browser?.importData && (
 				<ImportHistoryDialogView
-					key={id}
+					key={`${id}:import`}
 					source={api.browser.importData}
 					open={importPane === id}
 					onOpenChange={(open) =>
