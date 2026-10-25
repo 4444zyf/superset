@@ -133,7 +133,15 @@ export function BrowserErrorOverlay({
 	}, [detailsText, copyToClipboard]);
 
 	return (
-		<div className="pointer-events-auto absolute inset-0 z-10 flex items-center justify-center bg-background">
+		<div
+			style={{
+				top: "var(--browser-visible-top, 0px)",
+				right: "var(--browser-visible-right, 0px)",
+				bottom: "var(--browser-visible-bottom, 0px)",
+				left: "var(--browser-visible-left, 0px)",
+			}}
+			className="pointer-events-auto absolute inset-0 z-10 flex items-center justify-center bg-background"
+		>
 			<div className="flex flex-col items-start gap-4 w-80">
 				<GlobeIcon className="size-10 text-muted-foreground/30" />
 				<div>

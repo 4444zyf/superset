@@ -56,7 +56,6 @@ export async function verifyWorkstationBrowserToolsUi(options, context) {
 		assert.ok(report.items.includes("Print"));
 		assert.ok(report.items.includes("Open DevTools"));
 		for (const unsupported of [
-			"Show device toolbar",
 			"Take a screenshot",
 			"Import cookies and passwords…",
 			"Downloads",

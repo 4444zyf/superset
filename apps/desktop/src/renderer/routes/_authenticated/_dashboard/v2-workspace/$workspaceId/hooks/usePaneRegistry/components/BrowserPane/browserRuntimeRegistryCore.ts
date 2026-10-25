@@ -1,3 +1,9 @@
+import {
+	applyPageViewportZoom,
+	isValidPageViewportZoom,
+	type PageViewportZoom,
+	type PageViewportClip,
+} from "@superset/shared/page-zoom";
 import { attachBrowserViewportZoom } from "renderer/lib/browser-viewport-zoom";
 import { pointerPassthrough } from "renderer/lib/pointer-passthrough";
 import { selectRuntimesToEvict } from "renderer/lib/terminal/terminal-runtime-eviction";
@@ -48,6 +54,9 @@ interface RegistryEntry {
 	placeholder: HTMLElement | null;
 	resizeObserver: ResizeObserver | null;
 	visible: boolean;
+	viewportZoom?: PageViewportZoom;
+	viewportSize?: { width: number; height: number };
+	visibleClip?: PageViewportClip;
 	/** Monotonic use counter; bumped on attach/detach, drives hidden-LRU eviction. */
 	lastUsedAt: number;
 }
@@ -191,6 +200,24 @@ export class BrowserRuntimeRegistryCore {
 			}
 		});
 
+		window.addEventListener(
+			"scroll",
+			(event) => {
+				const target = event.target;
+				for (const entry of this.entries.values()) {
+					const placeholder = entry.placeholder;
+					if (
+						placeholder &&
+						(target === window ||
+							target === document ||
+							(target instanceof Node && target.contains(placeholder)))
+					)
+						this.updateLayout(entry);
+				}
+			},
+			true,
+		);
+
 		this.ipc.browser.onAgentActivePanes.subscribe(undefined, {
 			onData: ({ paneIds }: { paneIds: string[] }) => {
 				this.agentActivePaneIds = new Set(paneIds);
@@ -231,15 +258,97 @@ export class BrowserRuntimeRegistryCore {
 		}
 	}
 
+	private viewportClip(placeholder: HTMLElement, rect: DOMRect) {
+		let top = 0,
+			left = 0,
+			right = window.innerWidth,
+			bottom = window.innerHeight;
+		const clips = (value: string) => /^(auto|scroll|hidden|clip)$/.test(value);
+		for (
+			let parent = placeholder.parentElement;
+			parent;
+			parent = parent.parentElement
+		) {
+			const style = window.getComputedStyle(parent);
+			const clipX = clips(style.overflowX),
+				clipY = clips(style.overflowY);
+			if (!clipX && !clipY) continue;
+			const bounds = parent.getBoundingClientRect();
+			const contentLeft = bounds.left + parent.clientLeft,
+				contentTop = bounds.top + parent.clientTop;
+			if (clipX) {
+				left = Math.max(left, contentLeft);
+				right = Math.min(right, contentLeft + parent.clientWidth);
+			}
+			if (clipY) {
+				top = Math.max(top, contentTop);
+				bottom = Math.min(bottom, contentTop + parent.clientHeight);
+			}
+		}
+		const insetTop = Math.min(rect.height, Math.max(0, top - rect.top)),
+			insetLeft = Math.min(rect.width, Math.max(0, left - rect.left));
+		const insetBottom = Math.min(
+				rect.height - insetTop,
+				Math.max(0, rect.top + rect.height - bottom),
+			),
+			insetRight = Math.min(
+				rect.width - insetLeft,
+				Math.max(0, rect.left + rect.width - right),
+			);
+		return {
+			top: insetTop,
+			right: insetRight,
+			bottom: insetBottom,
+			left: insetLeft,
+		};
+	}
+
+	private updateViewportTransform(
+		entry: RegistryEntry,
+		size?: { width: number; height: number },
+	): void {
+		if (size) entry.viewportSize = { width: size.width, height: size.height };
+		const raw =
+			entry.viewportZoom ??
+			(size
+				? { scale: 1, x: 0, y: 0, width: size.width, height: size.height }
+				: null);
+		if (!raw) return;
+		const width =
+			entry.viewportSize && entry.viewportSize.width > 0
+				? entry.viewportSize.width
+				: raw.width;
+		const height =
+			entry.viewportSize && entry.viewportSize.height > 0
+				? entry.viewportSize.height
+				: raw.height;
+		const viewport = {
+			scale: raw.scale,
+			width,
+			height,
+			x: Math.max(0, Math.min(raw.scale - 1, raw.x / raw.width)) * width,
+			y: Math.max(0, Math.min(raw.scale - 1, raw.y / raw.height)) * height,
+		};
+		applyPageViewportZoom(entry.webview, viewport, entry.visibleClip);
+	}
+
 	private updateLayout(entry: RegistryEntry) {
 		if (!entry.placeholder) return;
 		const rect = entry.placeholder.getBoundingClientRect();
+		const clip = this.viewportClip(entry.placeholder, rect);
 		for (const style of [entry.webview.style, entry.overlay.style]) {
 			style.top = `${rect.top}px`;
 			style.left = `${rect.left}px`;
 			style.width = `${rect.width}px`;
 			style.height = `${rect.height}px`;
 		}
+		entry.visibleClip = clip;
+		this.updateViewportTransform(entry, rect);
+		for (const side of ["top", "right", "bottom", "left"] as const)
+			entry.overlay.style.setProperty(
+				`--browser-visible-${side}`,
+				`${clip[side]}px`,
+			);
 	}
 
 	/** Host layer above the pane's webview; null until the pane has attached. */
@@ -310,7 +419,6 @@ export class BrowserRuntimeRegistryCore {
 		workspaceId: string,
 	): RegistryEntry {
 		const webview = document.createElement("webview") as Electron.WebviewTag;
-		const detachViewportZoom = attachBrowserViewportZoom(webview);
 		webview.setAttribute("partition", "persist:superset");
 		webview.setAttribute("allowpopups", "");
 		webview.style.position = "fixed";
@@ -353,6 +461,15 @@ export class BrowserRuntimeRegistryCore {
 			visible: false,
 			lastUsedAt: 0,
 		};
+
+		const detachViewportZoom = attachBrowserViewportZoom(
+			webview,
+			(viewport) => {
+				if (!isValidPageViewportZoom(viewport)) return;
+				entry.viewportZoom = viewport;
+				this.updateViewportTransform(entry);
+			},
+		);
 
 		const firePersist = () => {
 			entry.onPersist?.({
@@ -615,6 +732,7 @@ export class BrowserRuntimeRegistryCore {
 			this.updateLayout(entry);
 		});
 		observer.observe(placeholder);
+		if (placeholder.parentElement) observer.observe(placeholder.parentElement);
 		entry.resizeObserver = observer;
 
 		this.updateLayout(entry);

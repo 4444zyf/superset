@@ -25,7 +25,7 @@ export async function verifyWorkstationBrowserDeviceUi(options, context) {
 		);
 	const geometry = () =>
 		evaluate(
-			"(()=>{const pane=document.querySelector('[data-workstation-browser-pane]'),area=pane?.lastElementChild,frame=area?.firstElementChild??area,guest=[...document.querySelectorAll('webview')].find(e=>e.style.visibility==='visible');if(!area||!frame||!guest)return null;const rect=e=>{const r=e.getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height,bottom:r.bottom,right:r.right};};return {area:rect(area),frame:rect(frame),guest:rect(guest),scrollTop:area.scrollTop,scrollLeft:area.scrollLeft,align:getComputedStyle(area).alignItems,justify:getComputedStyle(area).justifyContent,clip:guest.style.clipPath};})()",
+			"(()=>{const pane=document.querySelector('[data-workstation-browser-pane]'),area=pane?.lastElementChild,frame=area?.firstElementChild??area,guest=[...document.querySelectorAll('webview')].find(e=>e.style.visibility==='visible');if(!area||!frame||!guest)return null;const rect=e=>{const r=e.getBoundingClientRect();return {top:r.top,left:r.left,width:r.width,height:r.height,bottom:r.bottom,right:r.right};};return {area:rect(area),frame:rect(frame),guest:rect(guest),scrollTop:area.scrollTop,scrollLeft:area.scrollLeft,align:getComputedStyle(area).alignItems,justify:getComputedStyle(area).justifyContent,clip:guest.style.clipPath,transform:guest.style.transform};})()",
 		);
 	const device = async (width, height) =>
 		until(async () => {
@@ -93,6 +93,49 @@ export async function verifyWorkstationBrowserDeviceUi(options, context) {
 			report.defaultGeometry.frame.top >= report.defaultGeometry.area.top - 1,
 			"oversized preview begins within its scrollable area",
 		);
+
+		const pinchPoint = {
+			x: report.defaultGeometry.frame.left + 100,
+			y: report.defaultGeometry.area.top + 100,
+		};
+		await getPage().call("Input.dispatchMouseEvent", {
+			type: "mouseWheel",
+			...pinchPoint,
+			deltaX: 0,
+			deltaY: -40,
+			modifiers: 2,
+		});
+		report.pinch = await until(async () => {
+			const row = await geometry();
+			return row.transform.includes("scale(") ? row : null;
+		}, "actual guest wheel magnification reaches host compositor");
+		const outside = {
+			x: report.defaultGeometry.frame.left + 100,
+			y: Math.min(
+				report.defaultGeometry.area.bottom + 10,
+				await evaluate("innerHeight-1"),
+			),
+		};
+		report.pinchOutside = await evaluate(
+			`(()=>{const e=document.elementFromPoint(${outside.x},${outside.y});return {tag:e?.tagName,insideGuest:!!e?.closest?.('webview')};})()`,
+		);
+		assert.equal(
+			report.pinchOutside.insideGuest,
+			false,
+			"pinch keeps the page clipped to its host viewport",
+		);
+		await screenshot("browser-device-pinch");
+		await getPage().call("Input.dispatchMouseEvent", {
+			type: "mouseWheel",
+			...pinchPoint,
+			deltaX: 0,
+			deltaY: 200,
+			modifiers: 2,
+		});
+		report.pinchReset = await until(async () => {
+			const row = await geometry();
+			return !row.transform && row.clip ? row : null;
+		}, "returning to scale one retains host clipping");
 		await choose("iPhone 14 Pro");
 		report.iphone = await device(393, 852);
 		await screenshot("browser-device-iphone");
@@ -132,6 +175,22 @@ export async function verifyWorkstationBrowserDeviceUi(options, context) {
 			"hoisted guest follows scrolling preview frame",
 		);
 		await screenshot("browser-device-scrolled");
+		await click('button[aria-label="Find in page"]');
+		await getPage().call("Input.insertText", { text: "needle" });
+		report.scrolledFind = await until(
+			() =>
+				evaluate(
+					"(()=>{const e=document.querySelector('input[placeholder=\"Find in page\"]');if(!e||!e.parentElement.textContent.includes('1/3'))return null;const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===e?{top:r.top,bottom:r.bottom,left:r.left,right:r.right,hit:true}:null;})()",
+				),
+			"find stays visible and reports real matches in the scrolled device preview",
+		);
+		assert.ok(
+			report.scrolledFind.top >= report.afterScroll.area.top &&
+				report.scrolledFind.bottom <= report.afterScroll.area.bottom,
+		);
+		await screenshot("browser-device-scrolled-find");
+		await click('button[aria-label="Close find bar"]');
+
 		await click('button[aria-label="Exit device toolbar"]');
 		await until(async () => {
 			const row = await metrics();

@@ -82,7 +82,13 @@ export function BrowserFindBarView({
 	};
 
 	return (
-		<div className="pointer-events-auto absolute right-3 top-3 z-30 flex items-center gap-1 rounded-md border border-border bg-popover px-2 py-1 text-xs shadow-md">
+		<div
+			style={{
+				top: "calc(var(--browser-visible-top, 0px) + 0.75rem)",
+				right: "calc(var(--browser-visible-right, 0px) + 0.75rem)",
+			}}
+			className="pointer-events-auto absolute right-3 top-3 z-30 flex items-center gap-1 rounded-md border border-border bg-popover px-2 py-1 text-xs shadow-md"
+		>
 			<input
 				ref={inputRef}
 				value={query}

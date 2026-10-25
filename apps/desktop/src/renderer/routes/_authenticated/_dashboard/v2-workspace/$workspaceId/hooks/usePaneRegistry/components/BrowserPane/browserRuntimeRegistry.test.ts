@@ -171,8 +171,8 @@ describe("browserRuntimeRegistry pointer passthrough", () => {
 
 describe("browserRuntimeRegistry overlay layer", () => {
 	const makeEntry = () => ({
-		webview: { style: {} as Record<string, string> },
-		overlay: { style: {} as Record<string, string> },
+		webview: { style: document.createElement("div").style },
+		overlay: { style: document.createElement("div").style },
 		placeholder: {
 			getBoundingClientRect: () => ({
 				top: 40,

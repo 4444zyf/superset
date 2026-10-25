@@ -8,32 +8,52 @@ export interface PageViewportZoom {
 	height: number;
 }
 
-export function applyPageViewportZoom(
-	element: {
-		style: { transform: string; transformOrigin: string; clipPath: string };
-	},
-	viewport: PageViewportZoom,
-): void {
+export interface PageViewportClip {
+	top: number;
+	right: number;
+	bottom: number;
+	left: number;
+}
+export function isValidPageViewportZoom(viewport: PageViewportZoom): boolean {
 	const { scale, x, y, width, height } = viewport;
-	if (
+	return !(
 		![scale, x, y, width, height].every(Number.isFinite) ||
 		scale < PAGE_PINCH_ZOOM_LIMITS.min ||
 		scale > PAGE_PINCH_ZOOM_LIMITS.max ||
 		width <= 0 ||
 		height <= 0
-	)
-		return;
+	);
+}
+
+export function applyPageViewportZoom(
+	element: {
+		style: { transform: string; transformOrigin: string; clipPath: string };
+	},
+	viewport: PageViewportZoom,
+	clip?: PageViewportClip,
+): void {
+	const { scale, x, y, width, height } = viewport;
+	if (!isValidPageViewportZoom(viewport)) return;
+	const host =
+		clip &&
+		[clip.top, clip.right, clip.bottom, clip.left].every(
+			(value) => Number.isFinite(value) && value >= 0,
+		)
+			? clip
+			: { top: 0, right: 0, bottom: 0, left: 0 };
 	if (scale === 1) {
 		element.style.transform = "";
 		element.style.transformOrigin = "";
-		element.style.clipPath = "";
+		element.style.clipPath = clip
+			? `inset(${host.top}px ${host.right}px ${host.bottom}px ${host.left}px)`
+			: "";
 		return;
 	}
 	const left = Math.max(0, Math.min(x, width * (scale - 1)));
 	const top = Math.max(0, Math.min(y, height * (scale - 1)));
 	element.style.transformOrigin = "0 0";
 	element.style.transform = `translate(${-left}px, ${-top}px) scale(${scale})`;
-	element.style.clipPath = `inset(${top / scale}px ${width - (left + width) / scale}px ${height - (top + height) / scale}px ${left / scale}px)`;
+	element.style.clipPath = `inset(${top / scale + host.top / scale}px ${width - (left + width) / scale + host.right / scale}px ${height - (top + height) / scale + host.bottom / scale}px ${left / scale + host.left / scale}px)`;
 }
 
 export const PAGE_PINCH_ZOOM_RUNTIME_SOURCE = `(onZoom = () => {}, isLocked = () => false) => {

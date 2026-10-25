@@ -10,6 +10,11 @@ export function BrowserViewportView({
 }) {
 	return (
 		<div
+			style={
+				deviceToolbar.isOpen
+					? { alignItems: "safe center", justifyContent: "safe center" }
+					: undefined
+			}
 			className={
 				deviceToolbar.isOpen
 					? "flex min-h-0 w-full flex-1 items-center justify-center overflow-auto bg-muted/20"

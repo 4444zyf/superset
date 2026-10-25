@@ -313,13 +313,11 @@ export function WorkspaceBrowserPane({
 				createPortal(
 					<>
 						{find && (
-							<div className="pointer-events-auto absolute right-3 top-3">
-								<BrowserFindBarView
-									registry={runtime.core}
-									paneId={id}
-									onClose={() => setFind(false)}
-								/>
-							</div>
+							<BrowserFindBarView
+								registry={runtime.core}
+								paneId={id}
+								onClose={() => setFind(false)}
+							/>
 						)}
 						{state.error && (
 							<BrowserErrorOverlay

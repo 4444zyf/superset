@@ -4,7 +4,10 @@ import {
 	type PageViewportZoom,
 } from "@superset/shared/page-zoom";
 
-export function attachBrowserViewportZoom(webview: Electron.WebviewTag) {
+export function attachBrowserViewportZoom(
+	webview: Electron.WebviewTag,
+	onViewport?: (viewport: PageViewportZoom) => void,
+) {
 	let generation = 0;
 	const onReady = () => {
 		const current = ++generation;
@@ -15,7 +18,8 @@ export function attachBrowserViewportZoom(webview: Electron.WebviewTag) {
 						NEXT_PAGE_VIEWPORT_ZOOM_SCRIPT,
 					);
 					if (generation !== current) return;
-					applyPageViewportZoom(webview, viewport);
+					if (onViewport) onViewport(viewport);
+					else applyPageViewportZoom(webview, viewport);
 				} catch {
 					return;
 				}

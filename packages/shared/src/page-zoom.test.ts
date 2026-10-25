@@ -146,3 +146,24 @@ describe("page viewport zoom", () => {
 		expect(style.clipPath).toBe("");
 	});
 });
+
+test("host clipping composes with pinch magnification and remains after returning to scale one", () => {
+	const element = {
+		style: { transform: "", transformOrigin: "", clipPath: "" },
+	};
+	const clip = { top: 140, right: 0, bottom: 60, left: 0 };
+	applyPageViewportZoom(
+		element,
+		{ scale: 2, x: 40, y: 60, width: 200, height: 400 },
+		clip,
+	);
+	expect(element.style.transform).toBe("translate(-40px, -60px) scale(2)");
+	expect(element.style.clipPath).toBe("inset(100px 80px 200px 20px)");
+	applyPageViewportZoom(
+		element,
+		{ scale: 1, x: 0, y: 0, width: 200, height: 400 },
+		clip,
+	);
+	expect(element.style.transform).toBe("");
+	expect(element.style.clipPath).toBe("inset(140px 0px 60px 0px)");
+});
