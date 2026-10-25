@@ -280,6 +280,19 @@ export async function verifyWorkstationBrowserUi(options) {
 			save();
 		}
 
+		if (process.argv.includes("--browser-import")) {
+			const { verifyWorkstationBrowserImportUi } = await import(
+				"./verify-workstation-browser-import-ui.mjs"
+			);
+			report.importData = await verifyWorkstationBrowserImportUi(options, {
+				url,
+				marker,
+				guestRead,
+				key,
+				readProof,
+			});
+			save();
+		}
 		if (process.argv.includes("--browser-screenshots")) {
 			const { verifyWorkstationBrowserScreenshotsUi } = await import(
 				"./verify-workstation-browser-screenshots-ui.mjs"
@@ -519,6 +532,17 @@ export async function verifyWorkstationBrowserUi(options) {
 					options,
 					report.screenshots,
 				);
+			save();
+		}
+
+		if (process.argv.includes("--browser-import")) {
+			const { verifyWorkstationBrowserImportReopened } = await import(
+				"./verify-workstation-browser-import-ui.mjs"
+			);
+			report.importReopened = await verifyWorkstationBrowserImportReopened(
+				options,
+				report.importData,
+			);
 			save();
 		}
 		await screenshot("browser-reopened");

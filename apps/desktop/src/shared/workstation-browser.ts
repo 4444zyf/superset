@@ -1,3 +1,4 @@
+import type { BrowserImportApi } from "./browser-import";
 import type { SelectScreenshot } from "@superset/local-db/screenshots";
 import type { SelectDownload } from "@superset/local-db/downloads";
 import type { SelectBrowserHistory } from "@superset/local-db/browser-history";
@@ -103,6 +104,7 @@ export interface WorkstationScreenshotsApi {
 	): () => void;
 }
 export interface WorkstationBrowserApi {
+	importData?: BrowserImportApi;
 	screenshots?: WorkstationScreenshotsApi;
 	captureScreenshot?(input: {
 		pane: WorkstationBrowserPane;

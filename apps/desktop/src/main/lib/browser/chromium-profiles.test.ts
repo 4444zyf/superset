@@ -11,6 +11,7 @@ import path from "node:path";
 import {
 	browserLocations,
 	getInstalledChromiumBrowsers,
+	listAllChromiumProfiles,
 	listProfilesWithHistory,
 } from "./chromium-profiles";
 
@@ -184,3 +185,22 @@ describe("listProfilesWithHistory", () => {
 		expect(profiles[0]?.displayName).toBe("Default");
 	});
 });
+
+it.skipIf(process.platform !== "linux")(
+	"explicit Linux configuration directory discovers only that OS root while legacy callers keep their default root",
+	() => {
+		const home = makeHome(),
+			config = path.join(home, "owned-config");
+		writeHistory(path.join(config, "google-chrome", "Default"));
+		writeHistory(path.join(home, ".config", "google-chrome-beta", "Default"));
+		expect(getInstalledChromiumBrowsers(home).map((b) => b.key)).toEqual([
+			"chrome-beta",
+		]);
+		expect(
+			getInstalledChromiumBrowsers(home, config).map((b) => b.key),
+		).toEqual(["chrome"]);
+		expect(
+			listAllChromiumProfiles(home, config).map((p) => p.profileDir),
+		).toEqual([path.join(config, "google-chrome", "Default")]);
+	},
+);

@@ -135,8 +135,10 @@ function toSource(profile: ChromiumProfile): ChromeImportSource {
 /**
  * All importable Chromium profiles on this machine, as UI-facing sources.
  */
-export function listChromeImportSources(): ChromeImportSource[] {
-	return listAllChromiumProfiles().map(toSource);
+export function listChromeImportSources(
+	profiles: ChromiumProfile[] = listAllChromiumProfiles(),
+): ChromeImportSource[] {
+	return profiles.map(toSource);
 }
 
 /**
@@ -158,10 +160,11 @@ export async function listLoginImportSources(
  * currently-detected profile. This prevents the renderer from asking us to read
  * an arbitrary path via the import mutation.
  */
-export function resolveImportSource(id: string): string | null {
-	const match = listAllChromiumProfiles().find(
-		(profile) => profile.profileDir === id,
-	);
+export function resolveImportSource(
+	id: string,
+	profiles: ChromiumProfile[] = listAllChromiumProfiles(),
+): string | null {
+	const match = profiles.find((profile) => profile.profileDir === id);
 	return match ? match.profileDir : null;
 }
 
@@ -171,10 +174,9 @@ export function resolveImportSource(id: string): string | null {
  */
 export function resolveImportProfile(
 	id: string,
+	profiles: ChromiumProfile[] = listAllChromiumProfiles(),
 ): { profileDir: string; browserKey: string } | null {
-	const match = listAllChromiumProfiles().find(
-		(profile) => profile.profileDir === id,
-	);
+	const match = profiles.find((profile) => profile.profileDir === id);
 	return match
 		? { profileDir: match.profileDir, browserKey: match.browser.key }
 		: null;

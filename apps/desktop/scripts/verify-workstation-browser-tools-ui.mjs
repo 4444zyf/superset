@@ -61,7 +61,13 @@ export async function verifyWorkstationBrowserToolsUi(options, context) {
 		);
 		for (const action of ["Take a screenshot", "Screenshots"])
 			assert.equal(report.items.includes(action), report.screenshotCapability);
-		assert.ok(!report.items.includes("Import cookies and passwords…"));
+		report.importCapability = await evaluate(
+			"Boolean(window.directWorkstation.browser?.importData)",
+		);
+		assert.equal(
+			report.items.includes("Import cookies and passwords…"),
+			report.importCapability,
+		);
 		await screenshot("browser-tools-original-menu");
 		await menu("Copy URL");
 		await until(

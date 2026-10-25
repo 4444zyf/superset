@@ -234,12 +234,19 @@ export function getChromiumUserDataDirs(
  */
 export function getInstalledChromiumBrowsers(
 	homeDir: string = os.homedir(),
+	configurationDirectory?: string,
 ): ChromiumBrowser[] {
 	return browserLocations(process.platform)
 		.map((location) => ({
 			key: location.key,
 			name: location.name,
-			userDataDir: path.join(homeDir, location.relativePath),
+			userDataDir:
+				configurationDirectory && process.platform === "linux"
+					? path.join(
+							configurationDirectory,
+							path.relative(".config", location.relativePath),
+						)
+					: path.join(homeDir, location.relativePath),
 		}))
 		.filter((browser) => existsSync(browser.userDataDir));
 }
@@ -326,9 +333,10 @@ export function listProfilesWithHistory(
  */
 export function listAllChromiumProfiles(
 	homeDir: string = os.homedir(),
+	configurationDirectory?: string,
 ): ChromiumProfile[] {
-	return getInstalledChromiumBrowsers(homeDir).flatMap((browser) =>
-		listProfilesWithHistory(browser),
+	return getInstalledChromiumBrowsers(homeDir, configurationDirectory).flatMap(
+		(browser) => listProfilesWithHistory(browser),
 	);
 }
 
@@ -340,8 +348,12 @@ export function listAllChromiumProfiles(
  */
 export function hasUnreadableChromiumBrowser(
 	homeDir: string = os.homedir(),
+	configurationDirectory?: string,
 ): boolean {
-	for (const browser of getInstalledChromiumBrowsers(homeDir)) {
+	for (const browser of getInstalledChromiumBrowsers(
+		homeDir,
+		configurationDirectory,
+	)) {
 		try {
 			readdirSync(browser.userDataDir);
 		} catch (error) {

@@ -1,3 +1,11 @@
+import { BrowserImportService } from "./lib/browser/browser-import-service";
+import {
+	listAllChromiumProfiles,
+	hasUnreadableChromiumBrowser,
+} from "./lib/browser/chromium-profiles";
+import { readHistoryFromProfile } from "./lib/browser/chrome-history-import";
+import { importCookiesIntoSession } from "./lib/browser/chrome-cookie-import";
+import { requestFullDiskAccess } from "../lib/trpc/routers/permissions/native-permissions";
 import { opaqueScreenshot } from "./lib/browser/opaque-screenshot";
 import {
 	WorkstationBrowserScreenshots,
@@ -268,6 +276,28 @@ export async function startWorkstation(): Promise<void> {
 		if (!browserScreenshots) throw Error("Browser screenshots are unavailable");
 		return browserScreenshots;
 	};
+
+	const browserImports = new BrowserImportService({
+		profiles: () =>
+			listAllChromiumProfiles(app.getPath("home"), app.getPath("appData")),
+		needsFullDiskAccess: () =>
+			process.platform === "darwin" &&
+			hasUnreadableChromiumBrowser(app.getPath("home"), app.getPath("appData")),
+		readHistory: readHistoryFromProfile,
+		writeHistory: (entries) => {
+			if (!browserHistory) throw Error("Browser history is unavailable");
+			browserHistory.importEntries(entries);
+		},
+		importCookies: (profile, key) =>
+			importCookiesIntoSession(
+				session.fromPartition("persist:superset"),
+				profile,
+				key,
+			),
+		requestFullDiskAccess: async () => {
+			if (process.platform === "darwin") await requestFullDiskAccess();
+		},
+	});
 	if (!registry.get(localConnectionId))
 		registry.save({
 			id: localConnectionId,
@@ -778,6 +808,28 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "getBrowserImportSources":
+					return browserImports.getSources();
+				case "requestBrowserImportPermissions":
+					return browserImports.requestFullDiskAccess();
+				case "importBrowserHistory": {
+					const { sourceId } = z
+						.strictObject({ sourceId: z.string().min(1).max(32768) })
+						.parse(payload);
+					return browserImports.importHistory(
+						sourceId,
+						() =>
+							window === callerWindow &&
+							rendererOwnerEpoch === callerEpoch &&
+							!callerWindow.isDestroyed(),
+					);
+				}
+				case "importBrowserCookies": {
+					const { sourceId } = z
+						.strictObject({ sourceId: z.string().min(1).max(32768) })
+						.parse(payload);
+					return browserImports.importCookies(sourceId);
+				}
 				case "captureBrowserScreenshot": {
 					const { pane } = z
 							.strictObject({ pane: workstationBrowserPaneSchema })
