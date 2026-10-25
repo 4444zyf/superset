@@ -148,8 +148,14 @@ export class WorkstationBrowserNavigation {
 	}
 	canonical(owner: number, pane: WorkstationBrowserPane, raw: string): string {
 		const entry = this.require(owner, pane);
-		const url = new URL(raw),
-			origin = entry.origins.get(url.origin);
+		let url: URL;
+		try {
+			url = new URL(raw);
+		} catch {
+			return raw;
+		}
+		const origin = entry.origins.get(url.origin);
+		if (!origin) return raw;
 		if (origin) {
 			const original = new URL(origin);
 			url.host = original.host;

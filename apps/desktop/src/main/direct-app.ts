@@ -657,6 +657,19 @@ export async function startWorkstation(): Promise<void> {
 							state: browserPageStateSchema,
 						})
 						.parse(payload);
+					if (browserRegistry?.getRegistration(owner, input.pane)) {
+						input.state.url = browserNavigation.canonical(
+							owner,
+							input.pane,
+							input.state.url,
+						);
+						if (input.state.faviconUrl)
+							input.state.faviconUrl = browserNavigation.canonical(
+								owner,
+								input.pane,
+								input.state.faviconUrl,
+							);
+					}
 					return requireViews().updateBrowserPage(
 						owner,
 						input,

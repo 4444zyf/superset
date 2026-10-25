@@ -70,6 +70,16 @@ test("SSH browser loopback navigation uses the scoped forward and preserves path
 	expect(f.navigation.canonical(1, f.pane, f.loads[0]!)).toBe(
 		"https://localhost:3000/%E4%B8%AD%E6%96%87?q=hello%20there#part",
 	);
+	expect(
+		f.navigation.canonical(1, f.pane, "https://127.0.0.1:48000/icon.svg"),
+	).toBe("https://localhost:3000/icon.svg");
+	expect(
+		f.navigation.canonical(
+			1,
+			f.pane,
+			"https://example.com/中文?value='literal'",
+		),
+	).toBe("https://example.com/中文?value='literal'");
 	f.detach();
 });
 

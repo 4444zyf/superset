@@ -137,6 +137,9 @@ export class WorkstationBrowsers {
 					await api.browser?.history?.upsert({
 						...input,
 						url: this.canonical(runtime, input.url),
+						faviconUrl: input.faviconUrl
+							? this.canonical(runtime, input.faviconUrl)
+							: input.faviconUrl,
 					});
 				},
 			},
@@ -269,7 +272,13 @@ export class WorkstationBrowsers {
 			return;
 		if (state.url === "about:blank" && runtime.desiredUrl !== "about:blank")
 			return;
-		const canonical = { ...state, url: this.canonical(runtime, state.url) };
+		const canonical = {
+			...state,
+			url: this.canonical(runtime, state.url),
+			faviconUrl: state.faviconUrl
+				? this.canonical(runtime, state.faviconUrl)
+				: null,
+		};
 		const encoded = JSON.stringify(canonical);
 		if (runtime.lastPersist === encoded) return;
 		runtime.lastPersist = encoded;

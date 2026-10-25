@@ -50,8 +50,11 @@ export async function verifyWorkstationBrowserUi(options) {
 		" def do_GET(self):",
 		"  state['requests'].append(self.path);save()",
 		`  title='Owned browser '+('next' if self.path.startswith('/next') else 'home')+' 中文 🙂'`,
-		`  body=('<!doctype html><meta charset="utf-8"><title>'+title+'</title><h1>'+state['marker']+'</h1><a id="next" href="/next?value=%E4%B8%AD%20hello#section">Next page</a><p>needle needle needle</p>').encode()`,
-		"  self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)",
+		`  body=('<!doctype html><meta charset="utf-8"><title>'+title+'</title><h1>'+state['marker']+'</h1><a id="next" href="/next?value=%E4%B8%AD%20hello#section">Next page</a><br><a id="popup" target="_blank" href="/popup">Open second pane</a><p>needle needle needle</p>').encode()`,
+		`  body=body.replace(b'<title>',b'<link rel="icon" href="/icon.svg"><title>')`,
+		`  content_type='text/html; charset=utf-8'`,
+		`  if self.path.startswith('/icon.svg'): body=b'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="green"/></svg>';content_type='image/svg+xml'`,
+		"  self.send_response(200);self.send_header('Content-Type',content_type);self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)",
 		" def log_message(self,*args): pass",
 		"server=http.server.HTTPServer(('127.0.0.1',0),Handler)",
 		"state['port']=server.server_port;save()",
@@ -71,7 +74,11 @@ export async function verifyWorkstationBrowserUi(options) {
 					? { text: "\r", unmodifiedText: "\r" }
 					: {}),
 				windowsVirtualKeyCode:
-					key === "Enter" ? 13 : key === "Escape" ? 27 : 67,
+					key === "Enter"
+						? 13
+						: key === "Escape"
+							? 27
+							: key.toUpperCase().charCodeAt(0),
 			});
 	};
 	const readProof = async () => {
@@ -119,6 +126,15 @@ export async function verifyWorkstationBrowserUi(options) {
 			),
 		)?.tabId;
 		assert.ok(terminalTab);
+		report.detectedPort = await until(async () => {
+			const ports = await evaluate(
+				`window.directWorkstation.listPorts(${JSON.stringify(scope.d)},${JSON.stringify(scope.w.workspaceId)})`,
+			);
+			return ports.find(
+				(row) => row.port === proof.port && row.terminalId === terminal.id,
+			);
+		}, "original scanner attributes the HTTP port to its owning workspace and terminal");
+
 		await click("[data-workstation-new-browser]");
 		await until(
 			() =>
@@ -203,6 +219,67 @@ export async function verifyWorkstationBrowserUi(options) {
 				),
 			"canonical page metadata persisted",
 		);
+		await until(
+			async () =>
+				workspace(await readView()).panes.some(
+					(p) =>
+						p.kind === "browser" &&
+						p.browser.faviconUrl === `http://localhost:${proof.port}/icon.svg`,
+				),
+			"canonical favicon metadata persisted",
+		);
+
+		const browserBeforePopup = workspace(await readView())
+			.panes.filter((p) => p.kind === "browser")
+			.map((p) => p.paneId);
+		const popupPoint = await evaluate(
+			`(async()=>{const v=[...document.querySelectorAll('webview')].find(e=>e.style.visibility==='visible');const inner=await v.executeJavaScript("(()=>{const r=document.querySelector('#popup').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()");const r=v.getBoundingClientRect();return {x:r.x+inner.x,y:r.y+inner.y};})()`,
+		);
+		for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
+			await getPage().call("Input.dispatchMouseEvent", {
+				type,
+				...popupPoint,
+				button: type === "mouseMoved" ? "none" : "left",
+				clickCount: 1,
+			});
+		const popup = await until(
+			async () =>
+				workspace(await readView()).panes.find(
+					(p) => p.kind === "browser" && !browserBeforePopup.includes(p.paneId),
+				),
+			"registered window.open creates a scoped browser split",
+		);
+		await until(
+			() =>
+				evaluate(
+					`(async()=>{const v=[...document.querySelectorAll('webview')].find(e=>{try{return new URL(e.getURL()).pathname==='/popup';}catch{return false;}});if(!v)return false;try{return (await v.executeJavaScript('document.title'))==='Owned browser home 中文 🙂';}catch{return false;}})()`,
+				),
+			"new browser split renders its real page",
+		);
+		report.popup = { paneId: popup.paneId, view: workspace(await readView()) };
+		await screenshot("browser-window-open-split");
+		const closePopup = await evaluate(
+			`(()=>{const input=document.querySelector('input[data-pane-title-id="${popup.paneId}"]');const b=input?.parentElement.parentElement.querySelector('button[aria-label="Close pane"]');if(!b)return null;const r=b.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`,
+		);
+		assert.ok(closePopup);
+		for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
+			await getPage().call("Input.dispatchMouseEvent", {
+				type,
+				...closePopup,
+				button: type === "mouseMoved" ? "none" : "left",
+				clickCount: 1,
+			});
+		await until(
+			async () =>
+				!workspace(await readView()).panes.some(
+					(p) => p.paneId === popup.paneId,
+				),
+			"closing the selected browser split removes only that page",
+		);
+		await until(
+			() => evaluate("document.querySelectorAll('webview').length===1"),
+			"selected guest destroyed while original browser remains",
+		);
 		report.beforeReopen = workspace(await readView());
 		report.history = await evaluate(
 			"window.directWorkstation.browser.history.getAll()",
@@ -211,7 +288,8 @@ export async function verifyWorkstationBrowserUi(options) {
 			report.history.some(
 				(row) =>
 					row.url ===
-					`http://localhost:${proof.port}/next?value=%E4%B8%AD%20hello#section`,
+						`http://localhost:${proof.port}/next?value=%E4%B8%AD%20hello#section` &&
+					row.faviconUrl === `http://localhost:${proof.port}/icon.svg`,
 			),
 		);
 		report.rendererBeforeReopen = getPage().errors;
