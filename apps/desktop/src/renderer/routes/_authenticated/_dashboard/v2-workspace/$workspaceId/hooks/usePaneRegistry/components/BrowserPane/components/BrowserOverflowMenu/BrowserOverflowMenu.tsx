@@ -1,24 +1,14 @@
-import { Trans, useLingui } from "@lingui/react/macro";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@superset/ui/dropdown-menu";
+import { openAfterClose } from "./utils/openAfterClose/openAfterClose";
+import { BrowserOverflowMenuView } from "./components/BrowserOverflowMenuView";
+import { useLingui } from "@lingui/react/macro";
+
 import { toast } from "@superset/ui/sonner";
 import { useNavigate } from "@tanstack/react-router";
-import { CheckIcon, MinusIcon, PlusIcon, RotateCcwIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { TbDots } from "react-icons/tb";
+import { useState } from "react";
 import { ImportHistoryDialog } from "renderer/components/ImportHistoryDialog";
 import { useCopyToClipboard } from "renderer/hooks/useCopyToClipboard";
-import { pointerPassthrough } from "renderer/lib/pointer-passthrough";
 import { electronTrpcClient } from "renderer/lib/trpc-client";
-import {
-	BROWSER_ZOOM,
-	browserRuntimeRegistry,
-} from "../../browserRuntimeRegistry";
+import { browserRuntimeRegistry } from "../../browserRuntimeRegistry";
 import { ClearBrowsingDataDialog } from "../ClearBrowsingDataDialog";
 import { DownloadsDialog } from "../DownloadsDialog";
 import { HistoryDialog } from "../HistoryDialog";
@@ -34,23 +24,6 @@ interface BrowserOverflowMenuProps {
 	onToggleDeviceToolbar: () => void;
 	onOpenFindBar: () => void;
 	onNavigateToUrl: (url: string) => void;
-}
-
-/**
- * A Dialog opened synchronously from the same click that's dismissing
- * something else (a DropdownMenuItem select, a toast action) gets caught by
- * that other element's own close cycle and immediately dismisses itself (a
- * well-known Radix issue): the closing element's exit animation (~150ms) is
- * still running, and its eventual focus-restore reads as a focus/pointer-
- * outside on the just-opened dialog. Waiting out the exit animation before
- * opening the dialog avoids the race.
- */
-const MENU_CLOSE_ANIMATION_MS = 200;
-
-function openAfterClose(setOpen: (open: boolean) => void) {
-	return () => {
-		setTimeout(() => setOpen(true), MENU_CLOSE_ANIMATION_MS);
-	};
 }
 
 export function BrowserOverflowMenu({
@@ -72,16 +45,6 @@ export function BrowserOverflowMenu({
 	const [isScreenshotsOpen, setIsScreenshotsOpen] = useState(false);
 	const [isClearDataOpen, setIsClearDataOpen] = useState(false);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-	// The webview swallows pointer events, so a click on the page would never
-	// reach the document listener Radix dismisses on; passing the click
-	// through to the host lets it dismiss the menu instead, as in a real
-	// browser. Keyed by pane so one pane closing can't drop another's.
-	useEffect(() => {
-		const source = `host-popover:${paneId}`;
-		pointerPassthrough.set(source, isMenuOpen);
-		return () => pointerPassthrough.set(source, false);
-	}, [paneId, isMenuOpen]);
 
 	const handleOpenDevTools = () => {
 		electronTrpcClient.browser.openDevTools.mutate({ paneId }).catch(() => {});
@@ -158,137 +121,32 @@ export function BrowserOverflowMenu({
 
 	return (
 		<>
-			<DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-				<DropdownMenuTrigger asChild>
-					<button
-						type="button"
-						className="rounded-md p-1 text-muted-foreground/70 transition-colors hover:bg-muted/50 hover:text-foreground"
-					>
-						<TbDots className="size-3.5" />
-					</button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end" className="w-64">
-					<DropdownMenuItem onClick={onOpenFindBar} disabled={!hasPage}>
-						<Trans>Find in page</Trans>
-					</DropdownMenuItem>
-					<DropdownMenuItem onClick={handlePrint} disabled={!hasPage}>
-						<Trans>Print</Trans>
-					</DropdownMenuItem>
-					<DropdownMenuItem onClick={handleOpenDevTools} disabled={!hasPage}>
-						<Trans>Open DevTools</Trans>
-					</DropdownMenuItem>
-					<DropdownMenuSeparator />
-					{/* A plain row of buttons here would be unreachable by arrow-key menu
-					    navigation (Radix only moves focus between registered items) and
-					    Tab closes the menu — so the whole row is one item, with
-					    Left/Right/Enter driving zoom while it's focused. */}
-					<DropdownMenuItem
-						disabled={!hasPage}
-						onSelect={(e) => e.preventDefault()}
-						onKeyDown={(e) => {
-							if (e.key === "ArrowLeft") {
-								e.preventDefault();
-								handleZoomOut();
-							} else if (e.key === "ArrowRight") {
-								e.preventDefault();
-								handleZoomIn();
-							} else if (e.key === "Enter" || e.key === "0") {
-								e.preventDefault();
-								handleZoomReset();
-							}
-						}}
-						className="justify-between gap-2"
-					>
-						<span>
-							<Trans>Zoom</Trans>
-						</span>
-						<div className="flex items-center gap-1">
-							<button
-								type="button"
-								tabIndex={-1}
-								onClick={handleZoomOut}
-								disabled={!hasPage || zoomFactor <= BROWSER_ZOOM.min}
-								aria-label={t({
-									message: "Zoom out",
-								})}
-								className="rounded p-1 text-muted-foreground/70 transition-colors hover:bg-muted/50 hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
-							>
-								<MinusIcon className="size-3.5" />
-							</button>
-							<span className="w-10 text-center text-xs tabular-nums text-muted-foreground">
-								{Math.round(zoomFactor * 100)}%
-							</span>
-							<button
-								type="button"
-								tabIndex={-1}
-								onClick={handleZoomIn}
-								disabled={!hasPage || zoomFactor >= BROWSER_ZOOM.max}
-								aria-label={t({
-									message: "Zoom in",
-								})}
-								className="rounded p-1 text-muted-foreground/70 transition-colors hover:bg-muted/50 hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
-							>
-								<PlusIcon className="size-3.5" />
-							</button>
-							<button
-								type="button"
-								tabIndex={-1}
-								onClick={handleZoomReset}
-								disabled={!hasPage || zoomFactor === 1}
-								aria-label={t({
-									message: "Reset zoom",
-								})}
-								className="rounded p-1 text-muted-foreground/70 transition-colors hover:bg-muted/50 hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
-							>
-								<RotateCcwIcon className="size-3.5" />
-							</button>
-						</div>
-					</DropdownMenuItem>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem
-						onClick={onToggleDeviceToolbar}
-						disabled={!hasPage}
-						className="justify-between"
-					>
-						<Trans>Show device toolbar</Trans>
-						{isDeviceToolbarOpen && <CheckIcon className="size-3.5" />}
-					</DropdownMenuItem>
-					<DropdownMenuItem onClick={handleScreenshot} disabled={!hasPage}>
-						<Trans>Take a screenshot</Trans>
-					</DropdownMenuItem>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={handleHardReload} disabled={!hasPage}>
-						<Trans>Hard reload</Trans>
-					</DropdownMenuItem>
-					<DropdownMenuItem onClick={handleCopyUrl} disabled={!hasPage}>
-						<Trans>Copy URL</Trans>
-					</DropdownMenuItem>
-					<DropdownMenuItem onClick={handleOpenExternal} disabled={!hasPage}>
-						<Trans>Open in Browser</Trans>
-					</DropdownMenuItem>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem onSelect={openAfterClose(setIsImportOpen)}>
-						<Trans>Import cookies and passwords…</Trans>
-					</DropdownMenuItem>
-					<SignedInSitesSubmenu />
-					<DropdownMenuItem onSelect={openAfterClose(setIsDownloadsOpen)}>
-						<Trans>Downloads</Trans>
-					</DropdownMenuItem>
-					<DropdownMenuItem onSelect={openAfterClose(setIsScreenshotsOpen)}>
-						<Trans>Screenshots</Trans>
-					</DropdownMenuItem>
-					<DropdownMenuItem onSelect={openAfterClose(setIsHistoryOpen)}>
-						<Trans>History</Trans>
-					</DropdownMenuItem>
-					<DropdownMenuItem onSelect={openAfterClose(setIsClearDataOpen)}>
-						<Trans>Clear browsing data</Trans>
-					</DropdownMenuItem>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={handleOpenSettings}>
-						<Trans>Browser settings</Trans>
-					</DropdownMenuItem>
-				</DropdownMenuContent>
-			</DropdownMenu>
+			<BrowserOverflowMenuView
+				paneId={paneId}
+				isMenuOpen={isMenuOpen}
+				setIsMenuOpen={setIsMenuOpen}
+				hasPage={hasPage}
+				zoomFactor={zoomFactor}
+				isDeviceToolbarOpen={isDeviceToolbarOpen}
+				onOpenFindBar={onOpenFindBar}
+				handlePrint={handlePrint}
+				handleOpenDevTools={handleOpenDevTools}
+				onToggleDeviceToolbar={onToggleDeviceToolbar}
+				handleScreenshot={handleScreenshot}
+				handleHardReload={handleHardReload}
+				handleCopyUrl={handleCopyUrl}
+				handleOpenExternal={handleOpenExternal}
+				handleOpenSettings={handleOpenSettings}
+				handleZoomOut={handleZoomOut}
+				handleZoomIn={handleZoomIn}
+				handleZoomReset={handleZoomReset}
+				onImport={openAfterClose(setIsImportOpen)}
+				onDownloads={openAfterClose(setIsDownloadsOpen)}
+				onScreenshots={openAfterClose(setIsScreenshotsOpen)}
+				onHistory={openAfterClose(setIsHistoryOpen)}
+				onClearData={openAfterClose(setIsClearDataOpen)}
+				signedInSites={<SignedInSitesSubmenu />}
+			/>
 			<ImportHistoryDialog open={isImportOpen} onOpenChange={setIsImportOpen} />
 			<HistoryDialog
 				open={isHistoryOpen}

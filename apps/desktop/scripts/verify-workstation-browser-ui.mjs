@@ -207,6 +207,21 @@ export async function verifyWorkstationBrowserUi(options) {
 			);
 			save();
 		}
+		if (process.argv.includes("--browser-tools")) {
+			const { verifyWorkstationBrowserToolsUi } = await import(
+				"./verify-workstation-browser-tools-ui.mjs"
+			);
+			report.tools = await verifyWorkstationBrowserToolsUi(options, {
+				url,
+				proof,
+				marker,
+				readProof,
+				guestRead,
+				key,
+			});
+			save();
+		}
+
 		await screenshot("browser-owned-page");
 		await click('button[aria-label="Find in page"]');
 		await getPage().call("Input.insertText", { text: "needle" });

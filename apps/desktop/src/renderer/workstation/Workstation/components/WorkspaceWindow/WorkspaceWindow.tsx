@@ -49,6 +49,7 @@ export function WorkspaceWindow({
 	onProjectSettings,
 	ports,
 	createEmulator,
+	onBrowserSettings,
 }: {
 	api: DirectWorkstationApi;
 	target: TargetView;
@@ -79,6 +80,7 @@ export function WorkspaceWindow({
 	onBrowse(): void;
 	onMachines(): void;
 	onError(message: string): void;
+	onBrowserSettings?(): void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 }) {
 	const { t } = useLingui();
@@ -494,6 +496,7 @@ export function WorkspaceWindow({
 						/>
 					) : (
 						<PaneGrid
+							onBrowserSettings={onBrowserSettings}
 							key={`${connection?.generation ?? "offline"}:${workspace.tabId}:${resourceRevision}`}
 							api={api}
 							connection={connection}

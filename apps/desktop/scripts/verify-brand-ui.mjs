@@ -445,6 +445,19 @@ try {
 						.find((value) => value.startsWith("--restore-samples="))
 						?.split("=")[1] ?? 20,
 				),
+    inspectBrowserTools: async () => {
+     assert.ok(process.argv.includes("--browser-tools"));
+     return main.evaluate(`(()=>{if(process.pid!==${child.pid})throw Error('Wrong owned app');const owner=${electron}.BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith('file:'))?.webContents.id;return ${electron}.webContents.getAllWebContents().filter(w=>!w.isDestroyed()&&w.getType()==='webview'&&w.hostWebContents?.id===owner).map(w=>({id:w.id,url:w.getURL(),zoom:w.getZoomFactor(),devToolsOpened:w.isDevToolsOpened(),devToolsId:w.devToolsWebContents?.id??null,devToolsUrl:w.devToolsWebContents?.getURL()??null,devToolsLoading:w.devToolsWebContents?.isLoading()??false}));})()`);
+    },
+    captureBrowserDevTools: async (guestId) => {
+     assert.ok(process.argv.includes("--browser-tools")&&Number.isInteger(guestId));
+     return main.evaluate(`(async()=>{if(process.pid!==${child.pid})throw Error('Wrong owned app');const owner=${electron}.BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith('file:'))?.webContents.id;const w=${electron}.webContents.fromId(${guestId});if(!w||w.getType()!=='webview'||w.hostWebContents?.id!==owner||!w.isDevToolsOpened()||!w.devToolsWebContents)throw Error('Wrong owned guest');let timer;try{const image=await Promise.race([w.devToolsWebContents.capturePage(),new Promise((_,reject)=>timer=setTimeout(()=>reject(Error('Owned DevTools capture timed out')),10000))]);return image.toPNG().toString('base64');}finally{clearTimeout(timer);}})()`);
+    },
+    closeBrowserDevTools: async (guestId) => {
+     assert.ok(process.argv.includes("--browser-tools")&&Number.isInteger(guestId));
+     return main.evaluate(`(()=>{if(process.pid!==${child.pid})throw Error('Wrong owned app');const w=${electron}.webContents.fromId(${guestId}),owner=${electron}.BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith('file:'))?.webContents.id;if(!w||w.getType()!=='webview'||w.hostWebContents?.id!==owner)throw Error('Wrong owned guest');w.closeDevTools();return true;})()`);
+    },
+
 				observePortBrowserCalls: async () => {
 					assert.ok(process.argv.includes("--ports-only"));
 					return main.evaluate(`(()=>{if(process.pid!==${child.pid})throw Error('Wrong owned app');if(!globalThis.__ownedPortBrowserCalls){const calls=[];const shell=${electron}.shell;const original=shell.openExternal;shell.openExternal=function(...args){calls.push({url:args[0]});if(calls.length>64)calls.shift();return Reflect.apply(original,this,args);};globalThis.__ownedPortBrowserCalls=calls;}return globalThis.__ownedPortBrowserCalls;})()`);

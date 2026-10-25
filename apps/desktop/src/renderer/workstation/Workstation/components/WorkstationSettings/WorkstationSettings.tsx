@@ -21,7 +21,7 @@ import {
 	SelectValue,
 } from "@superset/ui/select";
 import { Switch } from "@superset/ui/switch";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { ThemeSwatch } from "renderer/components/ThemeSwatch";
 import { EMPTY_FONT_SETTINGS } from "renderer/lib/font-settings";
 import { TypographySurfaceCardView } from "renderer/routes/_authenticated/settings/appearance/components/AppearanceSettings/components/FontSettingSection/components/TypographySurfaceCard/components/TypographySurfaceCardView";
@@ -45,6 +45,7 @@ export function WorkstationSettings({
 	onUpdate,
 	onReload,
 	browserPreferences,
+	initialSection,
 }: {
 	open: boolean;
 	onOpenChange(open: boolean): void;
@@ -54,8 +55,10 @@ export function WorkstationSettings({
 	onUpdate(patch: WorkstationPreferencePatch): Promise<unknown>;
 	onReload(): Promise<unknown>;
 	browserPreferences?: BrowserPreferencesState;
+	initialSection?: "browser";
 }) {
 	const { t } = useLingui();
+	const browserSection = useRef<HTMLElement | null>(null);
 	const { fonts, isLoading: fontsLoading } = useSystemFonts();
 	const disabled = !snapshot || snapshot.invalid || saving;
 	const values = snapshot?.values;
@@ -71,6 +74,15 @@ export function WorkstationSettings({
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent
+				onOpenAutoFocus={(event) => {
+					if (initialSection === "browser" && browserSection.current) {
+						event.preventDefault();
+						browserSection.current.scrollIntoView({ block: "start" });
+						browserSection.current
+							.querySelector("input")
+							?.focus({ preventScroll: true });
+					}
+				}}
 				className="min-w-0 grid-cols-[minmax(0,1fr)] max-h-[85vh] overflow-y-auto sm:max-w-3xl [&>section]:min-w-0"
 				data-workstation-settings
 			>
@@ -201,7 +213,10 @@ export function WorkstationSettings({
 					</SettingsRow>
 				</SettingsSection>
 				{browserPreferences && (
-					<WorkstationBrowserSettings preferences={browserPreferences} />
+					<WorkstationBrowserSettings
+						preferences={browserPreferences}
+						sectionRef={browserSection}
+					/>
 				)}
 			</DialogContent>
 		</Dialog>

@@ -32,6 +32,7 @@ export function WorkspacePaneView({
 	onAttached,
 	onFailed,
 	createEmulator,
+	onBrowserSettings,
 	onOpenFile,
 	onOpenUrl,
 	resolveUrlAction,
@@ -50,6 +51,7 @@ export function WorkspacePaneView({
 	onRetry(): void;
 	onAttached(): void;
 	onFailed(): void;
+	onBrowserSettings?(): void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 	onOpenFile?(target: TerminalFileTarget): void;
 	onOpenUrl?(url: string, action?: BrowserLinkAction): void;
@@ -89,6 +91,10 @@ export function WorkspacePaneView({
 			<div className="ws-pane-content">
 				{pane.kind === "browser" && connection && actions.browserEnabled ? (
 					<WorkspaceBrowserPane
+						onBrowserSettings={onBrowserSettings}
+						onOpenExternal={
+							onOpenUrl ? (url) => onOpenUrl(url, "external") : undefined
+						}
 						api={api}
 						connection={connection}
 						workspaceId={workspaceId}

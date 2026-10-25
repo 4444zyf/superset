@@ -1,3 +1,5 @@
+import { MENU_CLOSE_ANIMATION_MS } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/BrowserOverflowMenu/utils/openAfterClose/openAfterClose";
+import { BrowserOverflowMenuView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/BrowserOverflowMenu/components/BrowserOverflowMenuView";
 import { useLingui } from "@lingui/react/macro";
 import { Search } from "lucide-react";
 import {
@@ -27,6 +29,8 @@ export function WorkspaceBrowserPane({
 	pane,
 	actions,
 	onFocus,
+	onBrowserSettings,
+	onOpenExternal,
 }: {
 	api: DirectWorkstationApi;
 	connection: DirectDescriptor;
@@ -34,11 +38,16 @@ export function WorkspaceBrowserPane({
 	pane: Extract<WorkspacePaneV2, { kind: "browser" }>;
 	actions: WorkspaceViewActions;
 	onFocus(): void;
+	onBrowserSettings?(): void;
+	onOpenExternal?(url: string): void;
 }) {
 	const { t } = useLingui();
 	const runtime = workstationBrowsers(api);
 	const placeholder = useRef<HTMLDivElement | null>(null);
 	const [overlay, setOverlay] = useState<HTMLElement | null>(null);
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const settingsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 	const [find, setFind] = useState(false);
 	const [navigationError, setNavigationError] = useState<string | null>(null);
 	const id = runtime.ensure(connection, workspaceId, pane, {
@@ -70,6 +79,26 @@ export function WorkspaceBrowserPane({
 			),
 	});
 	const state = useBrowserStateCore(id, runtime.state);
+	useEffect(
+		() => () => {
+			if (settingsTimer.current !== null) clearTimeout(settingsTimer.current);
+			settingsTimer.current = null;
+		},
+		[id],
+	);
+	const openBrowserSettings = () => {
+		const registration = runtime.registration(id);
+		if (!registration) return;
+		if (settingsTimer.current !== null) clearTimeout(settingsTimer.current);
+		settingsTimer.current = setTimeout(() => {
+			settingsTimer.current = null;
+			if (
+				runtime.registration(id)?.registrationId === registration.registrationId
+			)
+				onBrowserSettings?.();
+		}, MENU_CLOSE_ANIMATION_MS);
+	};
+
 	const [displayIcon, setDisplayIcon] = useState<string | null>(null);
 	useEffect(() => {
 		let active = true;
@@ -131,6 +160,45 @@ export function WorkspaceBrowserPane({
 				),
 			);
 	};
+	const runTool = (
+		action: (
+			pane: NonNullable<ReturnType<typeof runtime.registration>>,
+		) => Promise<unknown>,
+	) => {
+		const registration = runtime.registration(id);
+		if (!registration) {
+			setNavigationError(t({ message: "Session status unavailable." }));
+			return;
+		}
+		setNavigationError(null);
+
+		void (async () => {
+			try {
+				const result = await action(registration);
+				if (
+					runtime.registration(id)?.registrationId !==
+					registration.registrationId
+				)
+					return;
+				if (
+					result &&
+					typeof result === "object" &&
+					"status" in result &&
+					result.status === "stale"
+				)
+					setNavigationError(t({ message: "Session status unavailable." }));
+			} catch (error) {
+				if (
+					runtime.registration(id)?.registrationId ===
+					registration.registrationId
+				)
+					setNavigationError(
+						error instanceof Error ? error.message : String(error),
+					);
+			}
+		})();
+	};
+
 	return (
 		<div
 			className="flex h-full min-h-0 flex-col bg-background"
@@ -170,6 +238,40 @@ export function WorkspaceBrowserPane({
 				>
 					<Search size={14} />
 				</button>
+				<BrowserOverflowMenuView
+					paneId={id}
+					isMenuOpen={isMenuOpen}
+					setIsMenuOpen={setIsMenuOpen}
+					hasPage={!!state.currentUrl && state.currentUrl !== "about:blank"}
+					zoomFactor={state.zoomFactor}
+					onOpenFindBar={() => setFind(true)}
+					handlePrint={() => runtime.core.print(id)}
+					handleZoomOut={() => runtime.core.stepZoom(id, "out")}
+					handleZoomIn={() => runtime.core.stepZoom(id, "in")}
+					handleZoomReset={() => runtime.core.stepZoom(id, "reset")}
+					handleOpenDevTools={
+						api.browser?.openDevTools
+							? () => runTool((pane) => api.browser!.openDevTools!({ pane }))
+							: undefined
+					}
+					handleHardReload={
+						api.browser?.reload
+							? () =>
+									runTool((pane) => api.browser!.reload!({ pane, hard: true }))
+							: undefined
+					}
+					handleCopyUrl={
+						api.copyText
+							? () => runTool(() => api.copyText!(state.currentUrl))
+							: undefined
+					}
+					handleOpenExternal={
+						onOpenExternal ? () => onOpenExternal(state.currentUrl) : undefined
+					}
+					handleOpenSettings={
+						onBrowserSettings ? openBrowserSettings : undefined
+					}
+				/>
 			</div>
 			{navigationError && (
 				<output role="alert" className="ws-error">

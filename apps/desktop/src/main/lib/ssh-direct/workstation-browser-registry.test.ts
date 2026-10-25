@@ -324,3 +324,25 @@ test("page metadata authorization requires the current owner, registration token
 	expect(f.registry.getWebContentsId(7, pane)).toBeNull();
 	f.registry.dispose();
 });
+
+test("browser tools resolve only the current owner registration to its original manager key", async () => {
+	const f = fixture();
+	expect(f.registry.getManagerPaneId(7, pane)).toBeNull();
+	await f.registry.register(7, { ...pane, webContentsId: 10 });
+	const key = [...f.manager.registered.keys()][0];
+	expect(f.registry.getManagerPaneId(7, pane)).toBe(key);
+	expect(f.registry.getManagerPaneId(8, pane)).toBeNull();
+	expect(
+		f.registry.getManagerPaneId(7, {
+			...pane,
+			registrationId: crypto.randomUUID(),
+		}),
+	).toBeNull();
+	f.descriptors.set(connectionId, {
+		...f.descriptors.get(connectionId)!,
+		instanceId: "replaced",
+	});
+	expect(f.registry.getManagerPaneId(7, pane)).toBeNull();
+	expect(f.manager.registered.has(key)).toBe(true);
+	f.registry.dispose();
+});

@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { Button } from "@superset/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Ref } from "react";
 import { BrowserHomepageSettingView } from "renderer/routes/_authenticated/settings/browser/components/BrowserSettings/components/BrowserHomepageSettingView";
 import { BrowserLinkSettingsView } from "renderer/routes/_authenticated/settings/browser/components/BrowserSettings/components/BrowserLinkSettings/components/BrowserLinkSettingsView";
 import { SettingsSection } from "renderer/routes/_authenticated/settings/components/SettingsSection";
@@ -13,8 +13,10 @@ import type { BrowserPreferencesState } from "../../../../hooks/useBrowserPrefer
 
 export function WorkstationBrowserSettings({
 	preferences,
+	sectionRef,
 }: {
 	preferences: BrowserPreferencesState;
+	sectionRef?: Ref<HTMLElement>;
 }) {
 	const { t } = useLingui();
 	const values = preferences.snapshot?.values;
@@ -30,7 +32,7 @@ export function WorkstationBrowserSettings({
 		if (!disabled) void preferences.update(patch).catch(() => {});
 	};
 	return (
-		<section data-workstation-browser-preferences>
+		<section ref={sectionRef} data-workstation-browser-preferences>
 			<SettingsSection title={t({ message: "Browser" })}>
 				{preferences.error && (
 					<output role="alert" className="text-destructive">

@@ -248,6 +248,10 @@ export class WorkstationBrowserRegistry {
 		const record = this.findRegistration(ownerId, input);
 		return record ? { ...record.descriptor } : null;
 	}
+	getManagerPaneId(ownerId: number, input: unknown): string | null {
+		const record = this.findRegistration(ownerId, input);
+		return record ? this.managerKey(record) : null;
+	}
 	getWebContentsId(ownerId: number, input: unknown): number | null {
 		return this.findRegistration(ownerId, input)?.guest.id ?? null;
 	}

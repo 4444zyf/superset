@@ -47,6 +47,13 @@ export type WorkstationBrowserNavigationResult =
 	| { status: "superseded" };
 
 export interface WorkstationBrowserApi {
+	openDevTools?(input: {
+		pane: WorkstationBrowserPane;
+	}): Promise<{ status: "requested" | "stale" }>;
+	reload?(input: {
+		pane: WorkstationBrowserPane;
+		hard?: boolean;
+	}): Promise<{ status: "requested" | "stale" }>;
 	preferences?: BrowserPreferenceApi;
 	getIcon?(input: {
 		pane: WorkstationBrowserPane;

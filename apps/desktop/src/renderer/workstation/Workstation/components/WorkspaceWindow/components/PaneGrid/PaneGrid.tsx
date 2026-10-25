@@ -43,6 +43,7 @@ export function PaneGrid({
 	checks,
 	actions,
 	createEmulator,
+	onBrowserSettings,
 	onOpenFile,
 	onOpenUrl,
 	resolveUrlAction,
@@ -52,6 +53,7 @@ export function PaneGrid({
 	workspace: WorkspaceView;
 	checks: RestoreResourceCheck[];
 	actions: WorkspaceViewActions;
+	onBrowserSettings?(): void;
 	createEmulator?(element: HTMLDivElement): TerminalEmulator;
 	onOpenFile?(target: TerminalFileTarget): void;
 	onOpenUrl?(url: string, action?: BrowserLinkAction): void;
@@ -339,6 +341,7 @@ export function PaneGrid({
 		if (!pane) return null;
 		return (
 			<WorkspacePaneView
+				onBrowserSettings={onBrowserSettings}
 				key={`${connection?.connectionId}:${connection?.backendId}:${connection?.namespaceId}:${connection?.generation}:${id}:${pane.kind}:${pane.resourceId}:${pane.executionId}:${attempts[id] ?? 0}`}
 				api={api}
 				actions={actions}

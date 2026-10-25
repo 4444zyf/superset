@@ -100,6 +100,9 @@ export function Workstation({
 		[documents, preferences.snapshot?.values.fileAutoSave],
 	);
 	const [settingsOpen, setSettingsOpen] = useState(false);
+	const [settingsSection, setSettingsSection] = useState<
+		"browser" | undefined
+	>();
 	const [draftManager, setDraftManager] = useState<{
 		target?: ChatDraftTarget;
 	} | null>(null);
@@ -576,7 +579,10 @@ export function Workstation({
 			page={page}
 			onSettings={
 				api.getPreferences && api.updatePreferences
-					? () => setSettingsOpen(true)
+					? () => {
+							setSettingsSection(undefined);
+							setSettingsOpen(true);
+						}
 					: undefined
 			}
 			workspaceOpen={page === "workspaces" && !!savedTarget?.activeTabId}
@@ -732,6 +738,16 @@ export function Workstation({
 				>
 					{views.enabled && savedTarget?.activeTabId ? (
 						<WorkspaceWindow
+							onBrowserSettings={
+								api.getPreferences &&
+								api.updatePreferences &&
+								browserPreferences.available
+									? () => {
+											setSettingsSection("browser");
+											setSettingsOpen(true);
+										}
+									: undefined
+							}
 							onProjectSettings={(id) => {
 								const target = ui.active.current;
 								if (
@@ -1173,6 +1189,7 @@ export function Workstation({
 				{settingsOpen && (
 					<Suspense fallback={null}>
 						<WorkstationSettings
+							initialSection={settingsSection}
 							open={settingsOpen}
 							onOpenChange={setSettingsOpen}
 							snapshot={preferences.snapshot}

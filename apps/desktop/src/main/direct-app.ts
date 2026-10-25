@@ -691,6 +691,29 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "openBrowserDevTools": {
+					const { pane } = z
+						.strictObject({ pane: workstationBrowserPaneSchema })
+						.parse(payload);
+					const key = browserRegistry?.getManagerPaneId(owner, pane);
+					if (!key) return { status: "stale" };
+					browserManager.openDevTools(key);
+					return { status: "requested" };
+				}
+				case "reloadBrowser": {
+					const { pane, hard } = z
+						.strictObject({
+							pane: workstationBrowserPaneSchema,
+							hard: z.boolean().optional(),
+						})
+						.parse(payload);
+					const key = browserRegistry?.getManagerPaneId(owner, pane);
+					const guest = key ? browserManager.getWebContents(key) : null;
+					if (!guest || guest.isDestroyed()) return { status: "stale" };
+					if (hard) guest.reloadIgnoringCache();
+					else guest.reload();
+					return { status: "requested" };
+				}
 				case "getBrowserPreferences":
 					return requireBrowserPreferences().read();
 				case "updateBrowserPreferences":
