@@ -1411,3 +1411,22 @@ TDD日志保留：新增store方法不存在时失败、旧metadata跨namespace�
 最终2205文件manifest SHA256为01c9d4ebade99ec45baa214e9a4418276d0df073c219b9791a5a3892d2ea98af；均在构建明确退出0后冻结和运行，六组原生完成后逐一复核不变。CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。浏览器本地Xorg32956、SSH33343，剪贴板36927、滚轮40630及各拥有app均依runner finally结束/wait，报告退出0。证据排除配置目录、数据库和私钥，只保留报告、日志、截图、校验和及运行脚本；无安装包、CLI重建、后端发行归档、Actions或外部消息。[阶段七十八证据](evidence/local-ssh-feature-parity/stage78)。
 
 浏览器设置/导入、设备/设计工具、开发工具入口、完整链接偏好与端口内部打开、CLI桥及受CSP约束的图标显示仍待接；整体原版功能对齐未完成。
+
+
+## 阶段七十九：保持CSP的当前页面图标显示（2026-10-25）
+
+产品048155a7c补上阶段七十八明确留下的地址栏favicon显示。既有renderer index.html与img-src策略逐字不变；新的可选getBrowserIcon IPC只接受原main-frame调用，并依当前owner、注册token、连接identity及guest webContents确认图标。BrowserNavigation从真实guest的page-favicon-updated记录最多16个候选，跨来源导航清除；非当前声明的地址不给取图，已有候选的原始URI别名可识别。SSH图标及重定向中的loopback仍由捕获的工作区转发并保留原归属检查，不能直接请求桌面同端口。
+
+受限取图复用guest.session.fetch，不读取其他浏览器配置或新建账号来源。仅接受列举的image MIME，响应上限256KiB、每条重定向链最多4次HTTP请求，并发最多16，缓存最多64条/5分钟lazy TTL。返回固定image data URL用于现有BrowserTabFavicon，原URL/favicon URI继续写布局和历史，显示数据不进SQLite/localStorage。缓存与异步响应重新核对注册归属；测试实际捕获“复用客户端token后旧图标转发仍返回”的失败，修复为await后校验捕获的记录对象，缓存authority同时包含backend/namespace/instance。过期响应不交给新组件。
+
+工作站工具栏先显示原globe，图像就绪后传给原展示组件，并在源变化时重建失败状态。当前已知图标可用于匹配的历史建议，其余历史图标保留globe回退，不为了显示图片扩大CSP或开放任意图像代理。旧preload缺少新可选接口时同样回退，不影响原页面导航。没有既有tRPC合同、后端能力/最低版本、SQL迁移、依赖或持久键变化。
+
+45tests/2989assertions/7files通过，覆盖图像体积/MIME、缓存授权、重复请求、过期归属、重定向边界、旧注册替换、原guest生命周期和无账号启动图；完整desktop类型检查、格式、plugins与diff检查通过。新测试不等待真实超时或网络。原CSP文件hash对照16305cc00相同。
+
+旧编译ac73718在原页面可导航/保存URI后，明确于data-URL图像显示断言失败，作为原生基线保留。新编译048155a7c本地与拥有SSH首先完整通过，随后验证脚本增加关窗重开后的图像检查并再通过；第二轮是针对新增恢复断言，没有改变产品或放宽条件。SVG内含该轮拥有HTTP服务的唯一marker，初次和重开图像naturalWidth/Height均16×16，解码内容也核对marker。最终本地初次/重开data URL SHA均f55fc31c97741b4f692c56e6607272fb65483d1539664d5faa670c925e578e2f，SSH均469abf00ab4ab3905e30450acadb6a95bcb15f52f50dbd78cee339ccd04b6bcd，两端各收到3次真实icon.svg请求；这些是data URL字符串hash，不混称栅格像素hash。
+
+同一流程继续通过地址栏/实际链接点击、查找、前进/后退/刷新、window.open分屏、单页关闭与重开，两次SSH验证各含20次恢复。本地最终原终端PID49677，SSH53127，execution/cwd保持，记录的renderer运行时异常为空。最终SSH重开图已实际查看，可见地址栏绿色图标，其余新图只称捕获；真实供应商Agent、外部SSH或物理Mac未测试，终端滚轮/剪贴板仍按阶段七十八ac73718的明确范围记录，相关终端实现本阶段未改。
+
+最终2205编译文件manifest SHA为6886dcc800ecf3c9a66e8777d1c3dae1eabcd93ed4fefd50772b99311ca7645e；构建明确退出0后冻结，全部原生后逐一复核一致，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。最终本地Xorg49437、SSH49838和拥有app均finally清理、wait退出0。证据不含profile、DB、私钥或后端凭据；未生成CLI、安装包、后端发行归档，未用Actions。[阶段七十九证据](evidence/local-ssh-feature-parity/stage79)。
+
+当前地址栏图标显示已补齐；完整标签/历史图标、浏览器设置/导入、完整链接偏好及端口内部入口、设备/设计/开发工具和CLI桥等仍待接，整体对齐继续进行。

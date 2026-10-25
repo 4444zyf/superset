@@ -53,7 +53,7 @@ export async function verifyWorkstationBrowserUi(options) {
 		`  body=('<!doctype html><meta charset="utf-8"><title>'+title+'</title><h1>'+state['marker']+'</h1><a id="next" href="/next?value=%E4%B8%AD%20hello#section">Next page</a><br><a id="popup" target="_blank" href="/popup">Open second pane</a><p>needle needle needle</p>').encode()`,
 		`  body=body.replace(b'<title>',b'<link rel="icon" href="/icon.svg"><title>')`,
 		`  content_type='text/html; charset=utf-8'`,
-		`  if self.path.startswith('/icon.svg'): body=b'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="green"/></svg>';content_type='image/svg+xml'`,
+		`  if self.path.startswith('/icon.svg'): body=('<svg xmlns="http://www.w3.org/2000/svg" data-owned="'+state['marker']+'" width="16" height="16"><rect width="16" height="16" fill="green"/></svg>').encode();content_type='image/svg+xml'`,
 		"  self.send_response(200);self.send_header('Content-Type',content_type);self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)",
 		" def log_message(self,*args): pass",
 		"server=http.server.HTTPServer(('127.0.0.1',0),Handler)",
@@ -102,6 +102,10 @@ export async function verifyWorkstationBrowserUi(options) {
 	const guestRead = (expression) =>
 		evaluate(
 			`(async()=>{const v=[...document.querySelectorAll('webview')].find(e=>e.style.visibility==='visible'&&e.getBoundingClientRect().width>0);if(!v)return null;try{return await v.executeJavaScript(${JSON.stringify(expression)});}catch{return null;}})()`,
+		);
+	const readDisplayedIcon = () =>
+		evaluate(
+			`(()=>{const image=document.querySelector('[data-workstation-browser-toolbar] img');return image?.src.startsWith('data:image/')&&image.complete&&image.naturalWidth===16&&image.naturalHeight===16?{src:image.src,width:image.naturalWidth,height:image.naturalHeight}:null;})()`,
 		);
 	let started = false,
 		terminalTab;
@@ -162,11 +166,14 @@ export async function verifyWorkstationBrowserUi(options) {
 		report.loaded = loaded;
 		if (process.argv.includes("--browser-icon-display")) {
 			report.displayedIcon = await until(
-				() =>
-					evaluate(
-						`(()=>{const image=document.querySelector('[data-workstation-browser-toolbar] img');return image?.src.startsWith('data:image/')&&image.complete&&image.naturalWidth===16&&image.naturalHeight===16?{src:image.src,width:image.naturalWidth,height:image.naturalHeight}:null;})()`,
-					),
+				readDisplayedIcon,
 				"declared favicon renders through a bounded data URL under the original CSP",
+			);
+			assert.ok(
+				Buffer.from(report.displayedIcon.src.split(",")[1], "base64")
+					.toString("utf8")
+					.includes(marker),
+				"displayed icon bytes came from this owned server",
 			);
 			save();
 		}
@@ -314,6 +321,18 @@ export async function verifyWorkstationBrowserUi(options) {
 				(await guestRead("document.title")) === "Owned browser next 中文 🙂",
 			"saved browser page after normal reopen",
 		);
+		if (process.argv.includes("--browser-icon-display")) {
+			report.reopenedIcon = await until(
+				readDisplayedIcon,
+				"the reopened registered guest renders its icon without a stale session result",
+			);
+			assert.ok(
+				Buffer.from(report.reopenedIcon.src.split(",")[1], "base64")
+					.toString("utf8")
+					.includes(marker),
+				"reopened icon bytes came from this owned server",
+			);
+		}
 		report.afterReopen = workspace(await readView());
 		report.terminalAfter = await controls.inspectRunExecution(
 			{

@@ -6,7 +6,7 @@
 
 用户强调的滚轮/触控板输入保护和终端复制粘贴已实现。阶段七十八在实际浏览器与V2布局接入后的ac73718上，再次独立回归本地与拥有的loopback SSH：历史上下翻动、无鼠标TUI回看不注入方向键、保存的stock偏好、SGR/legacy/pixel切换、中文/Emoji复制、多行括号粘贴、图片/文件路径及重挂载后OSC52均通过。滚轮与剪贴板两个SSH套件各含20次窗口恢复。真实供应商Agent、外部SSH和物理Mac触控板仍未作为本轮实测范围。
 
-内部浏览器现已接入现有工作区标签/分屏，复用原运行时、工具栏、查找、历史SQLite与阶段七十七的V2持久化。阶段七十八真实本地和拥有SSH流程通过地址栏导航、链接点击、前进/后退/刷新、实际文本查找、window.open分屏、单页关闭与重开；SSH浏览器套件另含20次恢复。远端localhost经所属工作区转发，布局/历史保留原始URL和favicon URL，原终端PID/execution/cwd不变。**浏览器组仍只完成基本工作区接入**：受现有CSP约束的外部图标显示、打开链接偏好/端口内部入口、设置/导入、设备/设计工具、开发工具入口及CLI桥等仍待补；未将favicon地址保存混称图标像素显示。整体功能对齐仍进行中。详见[实施报告](../implementation/local-ssh-feature-parity-2026-10-14.md)和[阶段七十八证据](../implementation/evidence/local-ssh-feature-parity/stage78)。
+内部浏览器现已接入现有工作区标签/分屏，复用原运行时、工具栏、查找、历史SQLite与阶段七十七的V2持久化。阶段七十八真实本地和拥有SSH流程通过地址栏导航、链接点击、前进/后退/刷新、实际文本查找、window.open分屏、单页关闭与重开；SSH浏览器套件另含20次恢复。远端localhost经所属工作区转发，布局/历史保留原始URL和favicon URL，原终端PID/execution/cwd不变。阶段七十九进一步在不放宽CSP的前提下，通过已注册guest声明图标的受限data URL显示当前地址栏favicon；真实本地/SSH窗口初次与重开后的16×16图像均已验证。**浏览器组仍未全部完成**：完整标签/历史图标、打开链接偏好/端口内部入口、设置/导入、设备/设计工具、开发工具入口及CLI桥等仍待补。整体功能对齐仍进行中。详见[实施报告](../implementation/local-ssh-feature-parity-2026-10-14.md)、[阶段七十八证据](../implementation/evidence/local-ssh-feature-parity/stage78)与[阶段七十九证据](../implementation/evidence/local-ssh-feature-parity/stage79)。
 
 ## 验收原则
 
