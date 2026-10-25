@@ -55,14 +55,12 @@ function driver(options) {
 		);
 	const press = async (point) => {
 		for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
-			await options
-				.getPage()
-				.call("Input.dispatchMouseEvent", {
-					type,
-					...point,
-					button: type === "mouseMoved" ? "none" : "left",
-					clickCount: 1,
-				});
+			await options.getPage().call("Input.dispatchMouseEvent", {
+				type,
+				...point,
+				button: type === "mouseMoved" ? "none" : "left",
+				clickCount: 1,
+			});
 	};
 	return { evaluate, until, snapshot, open, close, rowPoint, press };
 }
@@ -226,7 +224,22 @@ export async function verifyWorkstationBrowserDownloadsUi(options, context) {
 		await screenshot("browser-downloads-origin-closed");
 		await close();
 		await navigate(url);
+		report.releaseBefore = await guestRead(
+			"(()=>{const e=document.querySelector('#release-downloads');window.__ownedReleaseClicks=0;e.addEventListener('click',()=>window.__ownedReleaseClicks++);return {ready:document.readyState,handler:typeof e.onclick,attribute:e.getAttribute('onclick'),paint:performance.getEntriesByType('paint').map(p=>({name:p.name,time:p.startTime}))};})()",
+		);
+		await screenshot("browser-downloads-ready-to-release");
+		report.releaseReady = await until(
+			() =>
+				guestRead(
+					"(()=>{const paint=performance.getEntriesByType('paint').map(p=>({name:p.name,time:p.startTime}));return paint.some(p=>p.name==='first-contentful-paint')?{paint}:null;})()",
+				),
+			"replacement page content is painted before the next real input",
+		);
 		await pageClick("#release-downloads");
+		report.releaseAfter = await guestRead(
+			"({clicks:window.__ownedReleaseClicks,ready:document.readyState,paint:performance.getEntriesByType('paint').map(p=>({name:p.name,time:p.startTime}))})",
+		);
+		save();
 		report.completed = await until(async () => {
 			const r = (await snapshot()).rows;
 			return r.length === 2 &&
@@ -294,6 +307,17 @@ export async function verifyWorkstationBrowserDownloadsUi(options, context) {
 		};
 		throw error;
 	} finally {
+		if (report.capability) {
+			report.finalSnapshot = await snapshot();
+			report.serverAtEnd = await context.readProof();
+			report.guestAtEnd = await guestRead(
+				"({url:location.href,ready:document.readyState,clicks:window.__ownedReleaseClicks})",
+			);
+		}
+		report.hostAtEnd = await evaluate(
+			"(()=>{const v=[...document.querySelectorAll('webview')].find(e=>e.style.visibility==='visible');return {pointerEvents:v?.style.pointerEvents,bodyPointer:document.body.style.pointerEvents,passthrough:document.documentElement.hasAttribute('data-pointer-passthrough'),console:window.__ownedBrowserConsole??[]};})()",
+		);
+		if (!report.errors) await screenshot("browser-downloads-incomplete");
 		save();
 		if (
 			await evaluate(

@@ -1515,3 +1515,18 @@ clipped本地/拥有SSH两端先通过全设备与原浏览器流程；随后原
 同轮原系统URL复制、真实100→110→100%缩放、强制HTTP刷新、包含当前marker的独立DevTools、浏览器设置、原查找/前后退/window.open/选择性关闭和正常重开均通过。本地原PID118852/execution 0c9f32a1-51fc-486c-bac0-f4f9b2eac00a，SSH原PID122317/execution be96d4e2-7bb1-43bf-8d36-f8ead7481501及cwd保留；SSH含20次此前恢复。runtime异常为空，拥有app/Xorg结束码均0。本地只选历史、两端缓存成功可见toast、SSH只选cookies图已查看，其余仅称捕获，不声明全部Chromium警告为空，也不把有意无效输入诊断称为产品故障。
 
 构建明确退出0后冻结2205文件，manifest SHA256563dde07760bc2d330a4e34c57e02ebf992ec9d0685c717d2d1b2ba56fa44a4c；两端原生后逐文件和七个最终夹具一致，期间没有改源码/夹具或覆盖dist。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。没有Actions、CLI重建、安装包或后端发行归档。[阶段八十四证据](evidence/local-ssh-feature-parity/stage84)。终端滚轮/复制粘贴保持阶段八十ca791原生范围；真实供应商Agent/外部SSH/物理Mac仍未实测。浏览器其余设置/导入、设计及其他工具、完整图标、rightPane、聊天/任务URL、CLI桥及其他功能组继续进行，整体目标未完成。
+
+
+## 阶段八十五：原下载列表、同名文件和可恢复的元数据生命周期（2026-10-25）
+
+产品477c1e4b5把原DownloadManager提取为可注入DB/session/系统目录/shell的Core，原wrapper继续接原依赖；工作站使用独立0600 browser-downloads.db与未改的原0051 SQL。原下载表/类型移到专用模块并在旧路径重导出，没有新生成或手改既有迁移。原reserveSavePath、list/getById/cancel/open/reveal及四个启动/进度/完成SQL经显式依赖归一化核对相同，原downloads router字节未变；原Dialog/格式/状态helper复用，仅添加失败提示和失败时不显示假空列表。共用initializer保留原history行为。
+
+两个红例分别确认缺少关库前清理，以及Clear误删仍活跃的interrupted项。Core现在先解绑回调、尽力取消、把退出时未完成项记为interrupted，晚事件不再写已关闭DB；Clear排除所有active IDs。私有快照最多200条，只选id/filename/receivedBytes/totalBytes/state五字段，不把路径/data URL推入进度IPC；open/reveal由主进程按受跟踪UUID查找路径。快照revision保护晚初始读取，订阅关闭和晚失败被隔离。82项测试/3385断言/17文件、桌面/local-db类型、17严格目录、插件及格式/语法通过。测试使用真实SQLite、既有文件、外部DownloadItem事件及受控promise，不改私有map或增加真实等待。
+
+旧b47ca实窗确认实际Electron下载目录为拥有XDG目录，真实页面/原工具通过后于Downloads菜单缺失处预期失败，2205旧编译文件前后相同。首轮新产品已通过同名并发/取消/清空保活/关闭原pane，但脚本未发出测试页的release HTTP请求，随后超时；父夹具finally放行后完成的文件没有混称UI成功。诊断轮同源码观察到新文档complete、onclick为function但paint列表为空，捕获页面后一次真实点击产生请求、完整流程通过。最终显式等待首次内容绘制，不延长等待、不重试手势或调整布局。
+
+最终本地/拥有SSH均以九个固定夹具通过：预建report 中文.txt保留原29字节；真实链接同时启动两项64KiB部分进度，同名分别保存为(1)/(2)，按原行按钮取消第三项；Clear只删该已结束记录，保留两项active。实际关闭原浏览器pane后，新pane下载列表仍显示两项；恢复真实页并点击其release按钮，两项完成，Node直接检查桌面文件实际哈希，未假定网络到达顺序。Clear完成记录后文件保留，再启动一项完成文件和一项挂起部分下载。正常退出/重开后，完成ID保留、部分ID为interrupted；最终Clear后真实私有表0行，三份完成文件及原已有文件字节不变。每端文件大小217088、217088、245760；没有设置HOME或读取个人Downloads。文件open/Finder按钮接原shell与受跟踪ID校验，本轮未实际启动外部OS应用；返回失败的界面提示有受控测试。
+
+同轮原系统canonical URL复制、真实缩放、强制HTTP刷新、含本页marker的独立DevTools、浏览器设置与原查找/导航/window.open/选择性关闭/正常重开通过。最终本地PID125491/execution d256ba7d-0fb7-405c-9901-fd67fe8afa4a，SSH PID129088/execution 2221afaa-9c87-45e5-abfa-5389afdd552b及cwd保留；SSH含20次此前恢复和真实SSH转发到桌面下载。原生调试期间产品与编译未变；最终脚本在两端冻结。首轮超时图、最终本地完成/重开、SSH进度/重开图已查看，其余仅称捕获。runtime异常为空；自有无CSP测试HTTP页的6/7条guest安全警告记录在案，不称全部Chromium警告为空，也未修改产品renderer CSP。拥有app/Xorg结束码均0。
+
+构建退出0后冻结2205文件，manifest SHA256dc74a9ca09cad4c156173bddf07a1df1681ebeb945bb19e3482ac36dd962f180；原生后逐文件和九个最终夹具一致，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。没有Actions、CLI重建、安装包或后端发行归档。[阶段八十五证据](evidence/local-ssh-feature-parity/stage85)。终端滚轮/复制粘贴实现仍为阶段八十ca791范围，真实供应商Agent/外部SSH/物理Mac未实测。截图、导入/其余设置、设计及其他工具、完整图标、rightPane、聊天/任务URL、CLI桥与其他功能组继续补齐，整体目标未完成。

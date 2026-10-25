@@ -122,7 +122,7 @@ export async function verifyWorkstationBrowserUi(options) {
 	};
 	const observeGuest = () =>
 		evaluate(
-			`(()=>{window.__ownedBrowserEvents??=[];const v=[...document.querySelectorAll('webview')].find(e=>e.style.visibility==='visible');for(const type of ['dom-ready','did-navigate','did-navigate-in-page','page-title-updated','page-favicon-updated','did-stop-loading'])v.addEventListener(type,event=>{window.__ownedBrowserEvents.push({type,title:event.title,url:event.url,favicons:event.favicons});if(window.__ownedBrowserEvents.length>64)window.__ownedBrowserEvents.shift();});return true;})()`,
+			`(()=>{window.__ownedBrowserEvents??=[];window.__ownedBrowserConsole??=[];const v=[...document.querySelectorAll('webview')].find(e=>e.style.visibility==='visible');v.addEventListener('console-message',event=>{window.__ownedBrowserConsole.push({level:event.level,message:event.message?.slice(0,4096)});if(window.__ownedBrowserConsole.length>32)window.__ownedBrowserConsole.shift();});for(const type of ['dom-ready','did-navigate','did-navigate-in-page','page-title-updated','page-favicon-updated','did-stop-loading'])v.addEventListener(type,event=>{window.__ownedBrowserEvents.push({type,title:event.title,url:event.url,favicons:event.favicons});if(window.__ownedBrowserEvents.length>64)window.__ownedBrowserEvents.shift();});return true;})()`,
 		);
 	const report = { available, scope, marker };
 	const save = () =>
