@@ -47,17 +47,26 @@ export async function verifyWorkstationBrowserUi(options) {
 	);
 	const selector = `[data-terminal-id="${terminal.id}"]`;
 	const marker = `OWNED-BROWSER-${randomUUID()}`;
+	const downloadsFixture = process.argv.includes("--browser-downloads")
+		? (
+				await import("./verify-workstation-browser-download-server.mjs")
+			).browserDownloadServerFixture()
+		: null;
 	const script = [
 		"import http.server,json,os,signal",
 		"from pathlib import Path",
 		`state={"marker":${JSON.stringify(marker)},"requests":[],"running":True,"pid":os.getpid()}`,
-		"def save(): temp=Path('browser-proof.tmp');temp.write_text(json.dumps(state));temp.replace('browser-proof.json')",
+		...(downloadsFixture?.setup ?? []),
+		downloadsFixture?.save ??
+			"def save(): temp=Path('browser-proof.tmp');temp.write_text(json.dumps(state));temp.replace('browser-proof.json')",
 		"class Handler(http.server.BaseHTTPRequestHandler):",
 		" def do_GET(self):",
 		"  state['requests'].append(self.path);save()",
+		...(downloadsFixture?.handler ?? []),
 		`  title='Owned browser '+('next' if self.path.startswith('/next') else 'home')+' 中文 🙂'`,
 		`  body=('<!doctype html><meta charset="utf-8"><title>'+title+'</title><h1>'+state['marker']+'</h1><a id="next" href="/next?value=%E4%B8%AD%20hello#section">Next page</a><br><a id="popup" target="_blank" href="/popup">Open second pane</a><p>needle needle needle</p>').encode()`,
 		`  body=body.replace(b'<title>',b'<link rel="icon" href="/icon.svg"><title>')`,
+		...(downloadsFixture ? [downloadsFixture.body] : []),
 		process.argv.includes("--browser-device-tools")
 			? "  body=body.replace(b'<meta charset=',b'<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta charset=')"
 			: "  pass",
@@ -68,7 +77,8 @@ export async function verifyWorkstationBrowserUi(options) {
 			: "  cache_control='no-store'",
 		"  self.send_response(200);self.send_header('Content-Type',content_type);self.send_header('Cache-Control',cache_control);self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)",
 		" def log_message(self,*args): pass",
-		"server=http.server.HTTPServer(('127.0.0.1',0),Handler)",
+		downloadsFixture?.server ??
+			"server=http.server.HTTPServer(('127.0.0.1',0),Handler)",
 		"state['port']=server.server_port;save()",
 		process.argv.includes("--browser-preferences")
 			? 'print("\\x1b[2J\\x1b[Hhttp://localhost:"+str(server.server_port)+"/policy?value=%E4%B8%AD%20hello#fragment",flush=True)'
@@ -76,7 +86,8 @@ export async function verifyWorkstationBrowserUi(options) {
 
 		"try: server.serve_forever()",
 		"except KeyboardInterrupt: pass",
-		"finally: server.server_close();state['running']=False;save()",
+		downloadsFixture?.finalize ??
+			"finally: server.server_close();state['running']=False;save()",
 	].join("\n");
 	const command = `python3 -c 'import base64;exec(base64.b64decode("${Buffer.from(script).toString("base64")}"))'`;
 	const key = async (key, code, modifiers = 0) => {
@@ -109,6 +120,10 @@ export async function verifyWorkstationBrowserUi(options) {
 				: row.content,
 		);
 	};
+	const observeGuest = () =>
+		evaluate(
+			`(()=>{window.__ownedBrowserEvents??=[];const v=[...document.querySelectorAll('webview')].find(e=>e.style.visibility==='visible');for(const type of ['dom-ready','did-navigate','did-navigate-in-page','page-title-updated','page-favicon-updated','did-stop-loading'])v.addEventListener(type,event=>{window.__ownedBrowserEvents.push({type,title:event.title,url:event.url,favicons:event.favicons});if(window.__ownedBrowserEvents.length>64)window.__ownedBrowserEvents.shift();});return true;})()`,
+		);
 	const report = { available, scope, marker };
 	const save = () =>
 		writeFileSync(
@@ -183,9 +198,7 @@ export async function verifyWorkstationBrowserUi(options) {
 				),
 			"browser page mounted",
 		);
-		await evaluate(
-			`(()=>{window.__ownedBrowserEvents=[];const v=document.querySelector('webview');for(const type of ['dom-ready','did-navigate','did-navigate-in-page','page-title-updated','page-favicon-updated','did-stop-loading'])v.addEventListener(type,event=>{window.__ownedBrowserEvents.push({type,title:event.title,url:event.url,favicons:event.favicons});if(window.__ownedBrowserEvents.length>64)window.__ownedBrowserEvents.shift();});return true;})()`,
-		);
+		await observeGuest();
 		const url = `http://localhost:${proof.port}/preview?first=%E4%B8%AD#initial`;
 		await click("text:Enter URL or search...");
 		await click('input[placeholder="Enter URL or search..."]');
@@ -258,6 +271,22 @@ export async function verifyWorkstationBrowserUi(options) {
 				marker,
 				guestRead,
 				readProof,
+			});
+			save();
+		}
+		if (process.argv.includes("--browser-downloads")) {
+			const { verifyWorkstationBrowserDownloadsUi } = await import(
+				"./verify-workstation-browser-downloads-ui.mjs"
+			);
+			report.downloads = await verifyWorkstationBrowserDownloadsUi(options, {
+				url,
+				marker,
+				guestRead,
+				key,
+				readProof,
+				readView,
+				workspace,
+				observeGuest,
 			});
 			save();
 		}
@@ -451,6 +480,17 @@ export async function verifyWorkstationBrowserUi(options) {
 				options,
 				report.historyDialog,
 			);
+			save();
+		}
+		if (process.argv.includes("--browser-downloads")) {
+			const { verifyWorkstationBrowserDownloadsReopened } = await import(
+				"./verify-workstation-browser-downloads-ui.mjs"
+			);
+			report.downloadsReopened =
+				await verifyWorkstationBrowserDownloadsReopened(
+					options,
+					report.downloads,
+				);
 			save();
 		}
 		await screenshot("browser-reopened");

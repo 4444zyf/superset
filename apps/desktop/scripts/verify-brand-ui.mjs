@@ -445,6 +445,10 @@ try {
 						.find((value) => value.startsWith("--restore-samples="))
 						?.split("=")[1] ?? 20,
 				),
+    readBrowserDownloadDirectory:async()=>{
+     assert.ok(process.argv.includes("--browser-downloads"));
+     return main.evaluate(`(()=>{if(process.pid!==${child.pid})throw Error('Wrong owned app');return ${electron}.app.getPath('downloads');})()`);
+    },
     inspectBrowserTools: async () => {
      assert.ok(process.argv.includes("--browser-tools"));
      return main.evaluate(`(()=>{if(process.pid!==${child.pid})throw Error('Wrong owned app');const owner=${electron}.BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith('file:'))?.webContents.id;return ${electron}.webContents.getAllWebContents().filter(w=>!w.isDestroyed()&&w.getType()==='webview'&&w.hostWebContents?.id===owner).map(w=>({id:w.id,url:w.getURL(),zoom:w.getZoomFactor(),devToolsOpened:w.isDevToolsOpened(),devToolsId:w.devToolsWebContents?.id??null,devToolsUrl:w.devToolsWebContents?.getURL()??null,devToolsLoading:w.devToolsWebContents?.isLoading()??false}));})()`);

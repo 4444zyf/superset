@@ -1,3 +1,4 @@
+import { WorkstationBrowserDownloads } from "./lib/ssh-direct/workstation-browser-downloads";
 import { clearBrowserSessionData } from "./lib/browser/clear-browser-session-data";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync } from "node:fs";
@@ -46,6 +47,7 @@ import {
 	DIRECT_VIEW_FLUSH_CHANNEL,
 	DIRECT_WINDOW_CLOSE_CHANNEL,
 	WORKSTATION_BROWSER_CHANNEL,
+	WORKSTATION_DOWNLOADS_CHANNEL,
 } from "../shared/direct-workstation";
 import {
 	workstationBrowserPaneSchema,
@@ -187,6 +189,38 @@ export async function startWorkstation(): Promise<void> {
 	} catch (error) {
 		console.error("[workstation] Browser history is unavailable", error);
 	}
+	let browserDownloads: WorkstationBrowserDownloads | null = null;
+	let downloadsRevision = 0;
+	try {
+		browserDownloads = new WorkstationBrowserDownloads(
+			path.join(dataDir, "browser-downloads.db"),
+			readFileSync(
+				path.join(resourcesRoot, "migrations/0051_add_downloads.sql"),
+				"utf8",
+			),
+			{
+				session: () => session.fromPartition("persist:superset"),
+				directory: () => app.getPath("downloads"),
+				showInFolder: (path) => shell.showItemInFolder(path),
+				openFile: (path) => shell.openPath(path),
+			},
+		);
+		const store = browserDownloads;
+		store.manager.on("changed", () => {
+			downloadsRevision++;
+			if (window && !window.webContents.isDestroyed())
+				window.webContents.send(WORKSTATION_DOWNLOADS_CHANNEL, {
+					revision: downloadsRevision,
+					rows: store.listForDisplay(),
+				});
+		});
+	} catch (error) {
+		console.error("[workstation] Browser downloads are unavailable", error);
+	}
+	const requireBrowserDownloads = () => {
+		if (!browserDownloads) throw Error("Browser downloads are unavailable");
+		return browserDownloads;
+	};
 	if (!registry.get(localConnectionId))
 		registry.save({
 			id: localConnectionId,
@@ -697,6 +731,38 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "getBrowserDownloads": {
+					return {
+						revision: downloadsRevision,
+						rows: requireBrowserDownloads().listForDisplay(),
+					};
+				}
+				case "clearBrowserDownloads": {
+					requireBrowserDownloads().manager.clear();
+					return { success: true };
+				}
+				case "cancelBrowserDownload": {
+					const { id } = z
+						.strictObject({ id: z.string().uuid() })
+						.parse(payload);
+					return { cancelled: requireBrowserDownloads().manager.cancel(id) };
+				}
+				case "openBrowserDownload":
+				case "revealBrowserDownload": {
+					const { id } = z
+							.strictObject({ id: z.string().uuid() })
+							.parse(payload),
+						store = requireBrowserDownloads(),
+						row = store.fileForId(id);
+					if (!row) return { success: false };
+					if (action === "revealBrowserDownload") {
+						store.manager.showInFolder(row.savePath);
+						return { success: true };
+					}
+					return {
+						success: (await store.manager.openFile(row.savePath)) === "",
+					};
+				}
 				case "clearBrowserData": {
 					const input = z
 						.strictObject({ type: workstationBrowserDataTypeSchema })
@@ -1657,6 +1723,7 @@ export async function startWorkstation(): Promise<void> {
 					rendererOwnerEpoch++;
 					closeGate.invalidate();
 					views?.activateOwner(null);
+					cleanBrowser(() => browserDownloads?.manager.stop());
 					cleanBrowser(() => browserRegistry?.dispose());
 					forwards.dispose();
 					await controller.dispose();
@@ -1666,6 +1733,7 @@ export async function startWorkstation(): Promise<void> {
 					preferences.close();
 					chatDrafts.close();
 					browserHistory?.close();
+					cleanBrowser(() => browserDownloads?.close());
 					browserPreferences?.close();
 					viewStore?.close();
 					ipcMain.removeHandler(DIRECT_CHANNEL);

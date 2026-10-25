@@ -58,7 +58,6 @@ export async function verifyWorkstationBrowserToolsUi(options, context) {
 		for (const unsupported of [
 			"Take a screenshot",
 			"Import cookies and passwords…",
-			"Downloads",
 			"Screenshots",
 		])
 			assert.ok(!report.items.includes(unsupported));

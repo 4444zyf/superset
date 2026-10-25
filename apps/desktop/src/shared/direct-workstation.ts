@@ -305,3 +305,5 @@ export const DIRECT_VIEW_FLUSH_CHANNEL = "direct-workstation:flush-view";
 
 export const DIRECT_WINDOW_CLOSE_CHANNEL = "direct-workstation:window-close";
 export const WORKSTATION_BROWSER_CHANNEL = "direct-workstation:browser";
+export const WORKSTATION_DOWNLOADS_CHANNEL =
+	"direct-workstation:browser-downloads";

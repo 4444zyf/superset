@@ -11,6 +11,7 @@ import {
 	type DirectSocketEvent,
 	type DirectWorkstationApi,
 	WORKSTATION_BROWSER_CHANNEL,
+	WORKSTATION_DOWNLOADS_CHANNEL,
 } from "../shared/direct-workstation";
 
 declare global {
@@ -23,6 +24,22 @@ const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
 	browser: {
+		downloads: {
+			getSnapshot: () => invoke("getBrowserDownloads"),
+			cancel: (input) => invoke("cancelBrowserDownload", input),
+			clear: () => invoke("clearBrowserDownloads"),
+			open: (input) => invoke("openBrowserDownload", input),
+			showInFolder: (input) => invoke("revealBrowserDownload", input),
+			onChanged: (listener) => {
+				const wrapped = (
+					_event: unknown,
+					data: Parameters<typeof listener>[0],
+				) => listener(data);
+				ipcRenderer.on(WORKSTATION_DOWNLOADS_CHANNEL, wrapped);
+				return () =>
+					ipcRenderer.removeListener(WORKSTATION_DOWNLOADS_CHANNEL, wrapped);
+			},
+		},
 		clearData: (input) => invoke("clearBrowserData", input),
 		setDeviceEmulation: (input) => invoke("setBrowserDeviceEmulation", input),
 		openDevTools: (input) => invoke("openBrowserDevTools", input),

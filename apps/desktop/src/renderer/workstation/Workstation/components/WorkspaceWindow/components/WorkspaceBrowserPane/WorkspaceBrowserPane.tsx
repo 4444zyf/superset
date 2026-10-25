@@ -1,3 +1,5 @@
+import { DownloadsDialogView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/DownloadsDialog/components/DownloadsDialogView";
+import { downloadsSource } from "./utils/downloads-source/downloads-source";
 import {
 	ClearBrowsingDataDialogView,
 	type ClearBrowsingDataSource,
@@ -67,6 +69,7 @@ export function WorkspaceBrowserPane({
 	const [find, setFind] = useState(false);
 	const [historyPane, setHistoryPane] = useState<string | null>(null);
 	const [clearPane, setClearPane] = useState<string | null>(null);
+	const [downloadsPane, setDownloadsPane] = useState<string | null>(null);
 	const [navigationError, setNavigationError] = useState<string | null>(null);
 	const id = runtime.ensure(connection, workspaceId, pane, {
 		onPersist: (state) => {
@@ -187,6 +190,11 @@ export function WorkspaceBrowserPane({
 			clearCache: () => clear({ type: "cache" }),
 		};
 	}, [api]);
+	const downloads = useMemo(
+		() =>
+			api.browser?.downloads ? downloadsSource(api.browser.downloads) : null,
+		[api],
+	);
 	useLayoutEffect(() => {
 		if (!placeholder.current) return;
 		runtime.attach(id, placeholder.current);
@@ -325,6 +333,11 @@ export function WorkspaceBrowserPane({
 							? () => openBrowserDialog(onBrowserSettings)
 							: undefined
 					}
+					onDownloads={
+						downloads
+							? () => openBrowserDialog(() => setDownloadsPane(id))
+							: undefined
+					}
 					onClearData={
 						clearDataSource
 							? () => openBrowserDialog(() => setClearPane(id))
@@ -368,6 +381,18 @@ export function WorkspaceBrowserPane({
 					open={clearPane === id}
 					onOpenChange={(open) =>
 						setClearPane((current) =>
+							open ? id : current === id ? null : current,
+						)
+					}
+				/>
+			)}
+			{downloads && (
+				<DownloadsDialogView
+					key={id}
+					source={downloads}
+					open={downloadsPane === id}
+					onOpenChange={(open) =>
+						setDownloadsPane((current) =>
 							open ? id : current === id ? null : current,
 						)
 					}

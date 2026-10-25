@@ -1,3 +1,4 @@
+import type { SelectDownload } from "@superset/local-db/downloads";
 import type { SelectBrowserHistory } from "@superset/local-db/browser-history";
 import { z } from "zod";
 import type { ForwardedKey } from "./hotkey-chord";
@@ -59,7 +60,26 @@ export type WorkstationBrowserDeviceEmulation = z.infer<
 
 export const workstationBrowserDataTypeSchema = z.enum(["cookies", "cache"]);
 
+export type WorkstationDownloadRow = Pick<
+	SelectDownload,
+	"id" | "filename" | "receivedBytes" | "totalBytes" | "state"
+>;
+export interface WorkstationDownloadsSnapshot {
+	revision: number;
+	rows: WorkstationDownloadRow[];
+}
+export interface WorkstationDownloadsApi {
+	getSnapshot(): Promise<WorkstationDownloadsSnapshot>;
+	cancel(input: { id: string }): Promise<{ cancelled: boolean }>;
+	clear(): Promise<{ success: boolean }>;
+	open(input: { id: string }): Promise<{ success: boolean }>;
+	showInFolder(input: { id: string }): Promise<{ success: boolean }>;
+	onChanged(
+		listener: (snapshot: WorkstationDownloadsSnapshot) => void,
+	): () => void;
+}
 export interface WorkstationBrowserApi {
+	downloads?: WorkstationDownloadsApi;
 	clearData?(input: {
 		type: z.infer<typeof workstationBrowserDataTypeSchema>;
 	}): Promise<{ success: boolean }>;
