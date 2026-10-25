@@ -1341,3 +1341,14 @@ webview入口剥离preload，强制sandbox/contextIsolation/webSecurity，禁用
 7221fa2e8编译manifest为1a83d612260cf0d9e30a0464bc7ab0ebf938d0ddb2769ee39c714f6add45f30e；601b85d14最终2205文件manifest为f3040fe31066e9c30f95f9cf4757af8e0936776ac133a9d371083657e15c6667，原生运行后逐文件复核保持。两次构建的2071份renderer/preload逐文件完全相同；后续token修复只涉及新浏览器主进程与其类型，未混称7221的复制原生流程是在另一份renderer上执行。CLI仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。自有Xorg、Electron和拥有SSH/后端均依runner finally清理；没有向未知PID发信号。未生成CLI二进制、安装包、密封后端发行归档或使用Actions。[本阶段证据](evidence/local-ssh-feature-parity/stage74)。
 
 本阶段主进程和原运行时已可供后续适配，工作区内部浏览器入口、原工具栏/历史/页面布局持久化、CLI浏览器桥及其他功能组仍待完成；未以空成功历史写入或假登录替代。真实供应商Agent、外部SSH和物理Mac触控板仍未混称通过，整体功能对齐未完成。
+
+
+## 阶段七十五：原浏览器工具栏、建议、查找与状态订阅的可注入视图
+
+继续为工作区内部浏览器复用原实现，抽出BrowserToolbarView、BrowserFindBarView、useUrlAutocompleteCore与useBrowserStateCore。仅注入registry的窄方法和真实历史加载函数；原组件/hook名称、入参及默认Electron客户端、原singleton保持。新视图使用类型导入，不初始化旧trpc-client或账号/云provider。默认历史加载仍是原browserHistory.getAll.query，不使用空结果或空成功操作替代。
+
+原JSX、地址栏编辑/拖选/建议portal、前进后退/刷新、建议筛选/数量/键盘、查找和计数/Escape/Enter、状态订阅均迁移自原函数。effect另外追踪注入依赖身份，使换registry/loader时清理旧订阅；原默认依赖是稳定singleton/模块函数。相对于2be16ac12，工具栏、建议、查找、状态和displayUrl五份函数主体在明确替换注入引用及依赖数组后AST完全一致，字符串节点按原文核对。原导出wrapper通过完整桌面类型检查。
+
+原运行时/URL策略与扩展无账号依赖图17项/2811断言/3文件通过，格式和插件检查通过。依赖图显式加入新视图及状态核心，历史核心由工具栏传递检查。纯复用抽取采用现有回归与主体比对验证，没有新增UI或原生验收；没有改界面文案、翻译目录、存储、IPC、host、依赖或持久键。未重新编译桌面/CLI、生成安装包、后端发行归档或使用Actions，最近的真实桌面输入证据仍以阶段七十四的明确源码及快照为准。[本阶段源码比对与检查](evidence/local-ssh-feature-parity/stage75)。
+
+工作区BrowserPane入口、历史存储适配、兼容的页面布局、设备/设计模式/CLI桥及其他功能继续待接入，整体对齐未完成；阶段七十四的本地和拥有SSH滚轮/复制粘贴验证保持原范围，不追加物理Mac或供应商Agent声明。

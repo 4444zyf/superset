@@ -85,6 +85,9 @@ test("default main, preload and renderer cannot import the legacy cloud bootstra
 		"preload/index.ts",
 		"renderer/index.tsx",
 		"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/browserRuntimeRegistryCore.ts",
+		"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/BrowserToolbar/components/BrowserToolbarView/BrowserToolbarView.tsx",
+		"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/BrowserFindBar/components/BrowserFindBarView/BrowserFindBarView.tsx",
+		"renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/hooks/useBrowserState/useBrowserStateCore.ts",
 	])
 		visit(resolve(src, file));
 });

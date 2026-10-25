@@ -1,15 +1,9 @@
-import { useCallback, useSyncExternalStore } from "react";
 import {
 	type BrowserRuntimeState,
 	browserRuntimeRegistry,
 } from "../../browserRuntimeRegistry";
+import { useBrowserStateCore } from "./useBrowserStateCore";
 
 export function useBrowserState(paneId: string): BrowserRuntimeState {
-	return useSyncExternalStore(
-		useCallback(
-			(cb) => browserRuntimeRegistry.onStateChange(paneId, cb),
-			[paneId],
-		),
-		useCallback(() => browserRuntimeRegistry.getState(paneId), [paneId]),
-	);
+	return useBrowserStateCore(paneId, browserRuntimeRegistry);
 }
