@@ -1530,3 +1530,20 @@ clipped本地/拥有SSH两端先通过全设备与原浏览器流程；随后原
 同轮原系统canonical URL复制、真实缩放、强制HTTP刷新、含本页marker的独立DevTools、浏览器设置与原查找/导航/window.open/选择性关闭/正常重开通过。最终本地PID125491/execution d256ba7d-0fb7-405c-9901-fd67fe8afa4a，SSH PID129088/execution 2221afaa-9c87-45e5-abfa-5389afdd552b及cwd保留；SSH含20次此前恢复和真实SSH转发到桌面下载。原生调试期间产品与编译未变；最终脚本在两端冻结。首轮超时图、最终本地完成/重开、SSH进度/重开图已查看，其余仅称捕获。runtime异常为空；自有无CSP测试HTTP页的6/7条guest安全警告记录在案，不称全部Chromium警告为空，也未修改产品renderer CSP。拥有app/Xorg结束码均0。
 
 构建退出0后冻结2205文件，manifest SHA256dc74a9ca09cad4c156173bddf07a1df1681ebeb945bb19e3482ac36dd962f180；原生后逐文件和九个最终夹具一致，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。没有Actions、CLI重建、安装包或后端发行归档。[阶段八十五证据](evidence/local-ssh-feature-parity/stage85)。终端滚轮/复制粘贴实现仍为阶段八十ca791范围，真实供应商Agent/外部SSH/物理Mac未实测。截图、导入/其余设置、设计及其他工具、完整图标、rightPane、聊天/任务URL、CLI桥与其他功能组继续补齐，整体目标未完成。
+
+
+## 阶段八十六：原页面截图、系统图片剪贴板和截图列表（2026-10-25）
+
+初始产品73685514f提取原ScreenshotManagerCore和纯ScreenshotsDialogView/useScreenshotToast，原wrapper仍接原localDb/Session与已发布tRPC。原表/类型移至专用screenshots子路径并由根schema重导出，0052 SQL未改；新独立0600 browser-screenshots.db只应用这份已有迁移。AST核对原插入SQL、时间文件名helper、list/getById/clear/open/reveal、Dialog JSX（除失败反馈）、toast与原capture方法主体一致；既有main action与已发布router字节/主体不变。
+
+冻结时钟的失败用例确认原实现会覆盖同一秒的前一张PNG；改用wx独占创建和递增序号，清列表仍只删元数据。工作站可选private capture/gallery API复用原main-frame与registry归属守卫，截图等待前后核对窗口epoch、connection/registration、live guest、URL，并监听main-frame导航失效；受控promise验证过期结果不提交文件/剪贴板。原capturePageImage只开放已有方法，重试/等待主体未改。工作站只通过IPC返回最长边200的缩略图，完整PNG落桌面Pictures下的Superset Remix Screenshots目录并写系统图片剪贴板；打开/显示文件只接受可信记录ID，Copy path复制桌面实际路径，保持原语义。
+
+旧477c1实窗确认无截图API及入口。736855首轮停在旧工具夹具“截图入口应不存在”的过时断言；修正能力检查后，新增项使Browser settings需滚动，旧夹具仅点可见项而timeout。保留两轮失败，改用实际测量的一次滚轮使菜单scrollTop 0→28并命中，未调布局/延长等待。其后736855两端通过原文件/剪贴板像素、列表、路径复制和重开检查；但实际查看PNG/列表发现默认网页透明背景造成深色预览黑字不可读。原生PNG左上RGBA为0,0,0,0，单独保留透明红证据，没有把先前窄检查通过冒称为可读性通过。
+
+最终产品87a236695只在工作站提交截图时把Electron预乘BGRA合成到白色底，保留原capture主体与legacy行为；透明/半透明/不透明单测验证原颜色与输入不变。88项桌面测试/3475断言/21文件、桌面及local-db类型、17语言严格编译、插件、格式/语法和原代码保持核对通过。
+
+最终本地/拥有SSH均以真实菜单/网页输入完成三张940×474 PNG；默认白底RGBA255,255,255,255，网页显式蓝色BGRA130,90,40,255保持，文件完整像素每次与系统图片剪贴板一致。原toast与View all、两张200×101实际解码缩略图、Copy path到OS、Clear list后文件哈希保留、新截图正常重开记录/缩略图保留及再次清空均通过。最终SSH两张同秒PNG实际使用(1)序号；冻结时钟单测另覆盖确定性同秒情况。六张最终PNG及早期透明PNG保留为自有测试页面证据。原URL复制/缩放/真实HTTP强刷/含marker的DevTools/设置/导航查找/window.open分屏/选择性关闭/正常重开继续通过。
+
+最终本地PTY PID136591/execution023be236-894e-42a5-9c24-df14090ebb8b，SSH PID140188/executioncc1c9a06-37f4-4722-aa20-e91c247ed755及cwd保持；SSH含20次此前恢复，renderer runtime异常为空，所有拥有app/Xorg退出0。基线菜单、首轮工具菜单、初始透明PNG/列表、最终本地剪贴板预览/列表与最终SSH列表/重开图已查看，其余仅称捕获。实际OS打开/显示文件、真实供应商Agent、外部SSH、物理Mac输入/缩放仍未验；过期capture是受控测试，不混称原生竞争验收。
+
+两次源码构建均明确退出0后才冻结/运行，最终2205文件manifest SHA25602c197c1f0eddb3806ac573a8caa4156337e53e56a8659b3a890691eea368e00；两端原生后逐文件及8个最终夹具哈希一致。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb，无重建。没有Actions、安装包、后端发行归档、共享DB迁移或隐式浏览器资料导入。[阶段八十六证据](evidence/local-ssh-feature-parity/stage86)。用户重点终端滚轮/复制粘贴保持阶段八十ca791两端范围；原浏览器导入/其余设置、设计及其他工具、完整图标、rightPane、聊天/任务URL、CLI桥与其他功能组继续补齐，整体目标未完成。
