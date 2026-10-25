@@ -45,6 +45,8 @@ import {
 	DIRECT_WINDOW_CLOSE_CHANNEL,
 	WORKSTATION_BROWSER_CHANNEL,
 } from "../shared/direct-workstation";
+import { workstationBrowserPaneSchema } from "../shared/workstation-browser";
+import { browserPageStateSchema } from "../shared/workspace-view-v2";
 import { browserManager } from "./lib/browser/browser-manager";
 import { lockProductProfile } from "./lib/product-identity";
 import { isSafeExternalUrl } from "./lib/safe-url/scheme";
@@ -602,6 +604,19 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "updateBrowserPage": {
+					const input = z
+						.strictObject({
+							pane: workstationBrowserPaneSchema,
+							state: browserPageStateSchema,
+						})
+						.parse(payload);
+					return requireViews().updateBrowserPage(
+						owner,
+						input,
+						() => browserRegistry?.getRegistration(owner, input.pane) ?? null,
+					);
+				}
 				case "getBrowserHistory":
 				case "searchBrowserHistory":
 				case "upsertBrowserHistory":
@@ -714,6 +729,28 @@ export async function startWorkstation(): Promise<void> {
 							invalid: true,
 							navigationRevision: 0,
 						}
+					);
+				case "getWorkspaceViewV2":
+					return requireViews().readV2();
+				case "saveWorkspaceViewV2":
+					return requireViews().saveV2(
+						owner,
+						z
+							.strictObject({
+								expectedRevision: z.number().int().nonnegative(),
+								navigationRevision: z.number().int().nonnegative(),
+								view: z.unknown(),
+								browserLeases: z
+									.array(
+										z.strictObject({
+											connectionId: z.string().uuid(),
+											generation: z.number().int().positive(),
+										}),
+									)
+									.max(10)
+									.optional(),
+							})
+							.parse(payload),
 					);
 				case "saveWorkspaceView":
 					return requireViews().save(

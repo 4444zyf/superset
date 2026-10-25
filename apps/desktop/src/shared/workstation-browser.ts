@@ -1,6 +1,10 @@
 import type { SelectBrowserHistory } from "@superset/local-db/browser-history";
 import { z } from "zod";
 import type { ForwardedKey } from "./hotkey-chord";
+import type {
+	BrowserPageState,
+	WorkspaceViewSnapshotV2,
+} from "./workspace-view-v2";
 
 export const workstationBrowserPaneSchema = z.strictObject({
 	connectionId: z.string().uuid(),
@@ -36,6 +40,13 @@ export type WorkstationBrowserEvent = WorkstationBrowserPane &
 	);
 
 export interface WorkstationBrowserApi {
+	updatePage?(input: {
+		pane: WorkstationBrowserPane;
+		state: BrowserPageState;
+	}): Promise<
+		| { status: "saved" | "unchanged"; snapshot: WorkspaceViewSnapshotV2 }
+		| { status: "stale" }
+	>;
 	history?: {
 		getAll(): Promise<SelectBrowserHistory[]>;
 		search(input: {

@@ -23,6 +23,7 @@ const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
 	browser: {
+		updatePage: (input) => invoke("updateBrowserPage", input),
 		history: {
 			getAll: () => invoke("getBrowserHistory"),
 			search: (input) => invoke("searchBrowserHistory", input),
@@ -48,6 +49,8 @@ const directWorkstation: DirectWorkstationApi = {
 	updatePreferences: (input) => invoke("updatePreferences", input),
 	getWorkspaceView: () => invoke("getWorkspaceView"),
 	saveWorkspaceView: (input) => invoke("saveWorkspaceView", input),
+	getWorkspaceViewV2: () => invoke("getWorkspaceViewV2"),
+	saveWorkspaceViewV2: (input) => invoke("saveWorkspaceViewV2", input),
 	beginWorkspaceRestore: (input) => invoke("beginWorkspaceRestore", input),
 	getWorkspaceRestore: () => invoke("getWorkspaceRestore"),
 	cancelWorkspaceRestore: (input) => invoke("cancelWorkspaceRestore", input),

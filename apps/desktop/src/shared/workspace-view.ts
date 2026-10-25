@@ -129,7 +129,21 @@ export function emptyWorkspaceView(
 	};
 }
 
+export type WorkspaceViewStructure = Omit<WorkspaceViewInput, "targets"> & {
+	targets: (Omit<TargetView, "workspaces"> & {
+		workspaces: (Omit<WorkspaceView, "panes"> & {
+			panes: { paneId: string; kind: string; resourceId: string }[];
+		})[];
+	})[];
+};
+
 export function validateWorkspaceView(value: unknown): WorkspaceViewInput {
+	return validateWorkspaceViewWithSchema(value, workspaceViewInputSchema);
+}
+
+export function validateWorkspaceViewWithSchema<
+	TView extends WorkspaceViewStructure,
+>(value: unknown, schema: z.ZodType<TView>): TView {
 	const encoded = JSON.stringify(value);
 	if (!encoded || new TextEncoder().encode(encoded).length > 2 * 1024 * 1024)
 		throw new Error("Workspace view size limit exceeded");
@@ -159,7 +173,7 @@ export function validateWorkspaceView(value: unknown): WorkspaceViewInput {
 					if (Array.isArray(w?.paneTabs))
 						for (const tab of w.paneTabs) checkDepth(tab?.layout, 1);
 				}
-	const view = workspaceViewInputSchema.parse(input);
+	const view = schema.parse(input);
 	let tabs = 0;
 	let panes = 0;
 	const targets = new Set<string>();

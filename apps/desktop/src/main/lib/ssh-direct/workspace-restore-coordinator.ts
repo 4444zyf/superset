@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import type {
 	ConnectionLease,
 	ConnectionProfile,
@@ -19,8 +20,25 @@ import {
 	validateWorkspaceView,
 	type WorkspaceRestoreSnapshot,
 	type WorkspaceViewInput,
+	type WorkspaceViewSnapshot,
 } from "../../../shared/workspace-view";
+import {
+	browserPageStateSchema,
+	type BrowserPageState,
+	projectWorkspaceViewV1,
+	validateWorkspaceViewV2,
+	type WorkspaceViewInputV2,
+	type WorkspaceViewSnapshotV2,
+} from "../../../shared/workspace-view-v2";
+import type { WorkstationBrowserPane } from "../../../shared/workstation-browser";
 import type { WorkspaceViewStore } from "./workspace-view-store";
+
+interface ViewSaveInput {
+	expectedRevision: number;
+	navigationRevision: number;
+	view: unknown;
+	browserLeases?: { connectionId: string; generation: number }[];
+}
 
 interface RestoreManager {
 	getLease(id: string): ConnectionLease | null;
@@ -61,7 +79,10 @@ const refsFor = (target: TargetView): RestoreResourceRef[] =>
 const refKey = (r: RestoreResourceRef) =>
 	JSON.stringify([r.workspaceId, r.kind, r.resourceId, r.executionId]);
 const sameIdentity = (
-	target: TargetView,
+	target: Pick<
+		TargetView,
+		"targetRevision" | "backendId" | "namespaceId" | "serviceUid"
+	>,
 	profile: ConnectionProfile,
 	revision: number | null,
 ) =>
@@ -137,6 +158,21 @@ export class WorkspaceRestoreCoordinator {
 		try {
 			return {
 				...this.options.store.read(),
+				navigationRevision: this.navigationRevision,
+			};
+		} catch {
+			return {
+				revision: 0,
+				snapshot: null,
+				invalid: true,
+				navigationRevision: this.navigationRevision,
+			};
+		}
+	}
+	readV2() {
+		try {
+			return {
+				...this.options.store.readV2(),
 				navigationRevision: this.navigationRevision,
 			};
 		} catch {
@@ -410,14 +446,30 @@ export class WorkspaceRestoreCoordinator {
 			}
 		}
 	}
-	save(
+	save(owner: number, input: ViewSaveInput): Promise<WorkspaceViewSnapshot> {
+		return this.saveView(owner, input, 1);
+	}
+	saveV2(
 		owner: number,
-		input: {
-			expectedRevision: number;
-			navigationRevision: number;
-			view: unknown;
-		},
-	) {
+		input: ViewSaveInput,
+	): Promise<WorkspaceViewSnapshotV2> {
+		return this.saveView(owner, input, 2);
+	}
+	private saveView(
+		owner: number,
+		input: ViewSaveInput,
+		version: 1,
+	): Promise<WorkspaceViewSnapshot>;
+	private saveView(
+		owner: number,
+		input: ViewSaveInput,
+		version: 2,
+	): Promise<WorkspaceViewSnapshotV2>;
+	private saveView(
+		owner: number,
+		input: ViewSaveInput,
+		version: 1 | 2,
+	): Promise<WorkspaceViewSnapshot | WorkspaceViewSnapshotV2> {
 		this.acceptNavigation(owner, input.navigationRevision);
 		const ownerEpoch = this.ownerEpoch;
 		return this.enqueue(async () => {
@@ -427,7 +479,11 @@ export class WorkspaceRestoreCoordinator {
 			const previous = this.options.store.read();
 			if (previous.revision !== input.expectedRevision)
 				throw new Error("Workspace view revision changed");
-			const view = validateWorkspaceView(input.view);
+			const fullView =
+				version === 2 ? validateWorkspaceViewV2(input.view) : null;
+			const view = fullView
+				? projectWorkspaceViewV1(fullView)
+				: validateWorkspaceView(input.view);
 			for (const target of view.targets) {
 				const old = previous.snapshot?.targets.find(
 					(t) => t.connectionId === target.connectionId,
@@ -532,14 +588,205 @@ export class WorkspaceRestoreCoordinator {
 					}
 				}
 			}
+			const verifyBrowserView = fullView
+				? await this.validateBrowserView(
+						fullView,
+						view,
+						input.browserLeases ?? [],
+					)
+				: undefined;
 			this.assertOwner(owner, ownerEpoch);
 			if (input.navigationRevision !== this.navigationRevision)
 				throw new Error("Workspace navigation changed");
+			verifyBrowserView?.();
+			if (fullView)
+				return this.options.store.saveV2({
+					owner: String(owner),
+					expectedRevision: input.expectedRevision,
+					view: fullView,
+				});
 			return this.options.store.save({
 				owner: String(owner),
 				expectedRevision: input.expectedRevision,
 				view,
 			});
+		});
+	}
+	private async validateBrowserView(
+		view: WorkspaceViewInputV2,
+		canonical: WorkspaceViewInput,
+		bindings: { connectionId: string; generation: number }[],
+	): Promise<() => void> {
+		const previous = this.options.store.readV2().snapshot;
+		const checks: (() => void)[] = [];
+		for (const target of view.targets) {
+			const canonicalTarget = canonical.targets.find(
+				(item) => item.connectionId === target.connectionId,
+			);
+			if (!canonicalTarget) throw new Error("Workspace target is missing");
+			const { workspaces: _, ...identity } = canonicalTarget;
+			Object.assign(target, identity);
+			const old = previous?.targets.find(
+				(item) =>
+					item.connectionId === target.connectionId &&
+					item.backendId === target.backendId &&
+					item.namespaceId === target.namespaceId &&
+					item.serviceUid === target.serviceUid &&
+					item.targetRevision === target.targetRevision,
+			);
+			const required = new Set<string>();
+			for (const workspace of target.workspaces) {
+				const canonicalWorkspace = canonicalTarget.workspaces.find(
+					(item) => item.workspaceId === workspace.workspaceId,
+				);
+				for (const pane of workspace.panes) {
+					if (pane.kind !== "browser") {
+						const checked = canonicalWorkspace?.panes.find(
+							(item) => item.paneId === pane.paneId,
+						);
+						if (checked) pane.executionId = checked.executionId;
+						continue;
+					}
+					const existing = old?.workspaces
+						.find((item) => item.workspaceId === workspace.workspaceId)
+						?.panes.find(
+							(item) =>
+								item.kind === "browser" &&
+								item.paneId === pane.paneId &&
+								item.resourceId === pane.resourceId,
+						);
+					if (existing?.kind === "browser") {
+						if (!isDeepStrictEqual(existing.browser, pane.browser))
+							throw new Error(
+								"Browser page state requires its active registration",
+							);
+					} else required.add(workspace.workspaceId);
+				}
+			}
+			if (!required.size) continue;
+			const lease = this.options.manager.getLease(target.connectionId);
+			const binding = bindings.find(
+				(item) => item.connectionId === target.connectionId,
+			);
+			if (
+				!lease ||
+				binding?.generation !== lease.generation ||
+				lease.backendId !== target.backendId ||
+				lease.namespaceId !== target.namespaceId
+			)
+				throw new Error("Browser view connection generation changed");
+			const expected = { ...lease };
+			const expectedIdentity = {
+				targetRevision: target.targetRevision,
+				backendId: target.backendId,
+				namespaceId: target.namespaceId,
+				serviceUid: target.serviceUid,
+			};
+			const verify = () => {
+				const current = this.options.manager.getLease(expected.connectionId);
+				const profile = this.options.registry.get(expected.connectionId);
+				if (
+					current?.generation !== expected.generation ||
+					current.backendId !== expected.backendId ||
+					current.namespaceId !== expected.namespaceId ||
+					current.instanceId !== expected.instanceId ||
+					!profile ||
+					!sameIdentity(
+						expectedIdentity,
+						profile,
+						this.options.registry.getTargetRevision(expected.connectionId),
+					)
+				)
+					throw new Error("Browser view connection generation changed");
+			};
+			verify();
+			checks.push(verify);
+			for (const workspaceId of required) {
+				const workspace = await this.options.controller.invoke({
+					connectionId: target.connectionId,
+					generation: expected.generation,
+					path: "workspace.get",
+					type: "query",
+					input: { id: workspaceId },
+				});
+				if (
+					!workspace ||
+					typeof workspace !== "object" ||
+					!("id" in workspace) ||
+					workspace.id !== workspaceId
+				)
+					throw new Error("Browser workspace is unavailable");
+			}
+			verify();
+		}
+		return () => {
+			for (const verify of checks) verify();
+		};
+	}
+	updateBrowserPage(
+		owner: number,
+		input: { pane: WorkstationBrowserPane; state: BrowserPageState },
+		authorize: () => DirectDescriptor | null,
+	): Promise<
+		| { status: "saved" | "unchanged"; snapshot: WorkspaceViewSnapshotV2 }
+		| { status: "stale" }
+	> {
+		this.assertOwner(owner);
+		const epoch = this.ownerEpoch;
+		const state = browserPageStateSchema.parse(input.state);
+		return this.enqueue(() => {
+			this.assertOwner(owner, epoch);
+			const descriptor = authorize();
+			if (
+				!descriptor ||
+				descriptor.connectionId !== input.pane.connectionId ||
+				descriptor.generation !== input.pane.generation
+			)
+				return { status: "stale" as const };
+			const saved = this.options.store.readV2();
+			if (saved.invalid)
+				throw new Error(
+					"The saved workspace view must be cleared before writing",
+				);
+			if (!saved.snapshot) return { status: "stale" as const };
+			const target = saved.snapshot.targets.find(
+				(item) =>
+					item.connectionId === descriptor.connectionId &&
+					item.backendId === descriptor.backendId &&
+					item.namespaceId === descriptor.namespaceId,
+			);
+			const profile = this.options.registry.get(descriptor.connectionId);
+			if (
+				!target ||
+				!profile ||
+				!sameIdentity(
+					target,
+					profile,
+					this.options.registry.getTargetRevision(descriptor.connectionId),
+				)
+			)
+				return { status: "stale" as const };
+			const pane = target.workspaces
+				.find((item) => item.workspaceId === input.pane.workspaceId)
+				?.panes.find((item) => item.paneId === input.pane.paneId);
+			if (!pane || pane.kind !== "browser") return { status: "stale" as const };
+			if (isDeepStrictEqual(pane.browser, state))
+				return { status: "unchanged" as const, snapshot: saved.snapshot };
+			const {
+				schemaVersion: _,
+				revision: __,
+				updatedAt: ___,
+				...view
+			} = saved.snapshot;
+			pane.browser = state;
+			return {
+				status: "saved" as const,
+				snapshot: this.options.store.saveV2({
+					owner: String(owner),
+					expectedRevision: saved.revision,
+					view,
+				}),
+			};
 		});
 	}
 	private update(

@@ -301,3 +301,23 @@ test("connection cleanup releases every guest even when one original unregister 
 	expect(f.manager.registered.size).toBe(0);
 	f.registry.dispose();
 });
+
+test("page metadata authorization requires the current owner, registration token and connection identity", async () => {
+	const f = fixture();
+	await f.registry.register(7, { ...pane, webContentsId: 10 });
+	const owned = f.registry.getRegistration(7, pane);
+	expect(owned?.namespaceId).toBe("namespace");
+	if (!owned) throw new Error("Missing registration");
+	owned.namespaceId = "changed-return-value";
+	expect(f.registry.getRegistration(7, pane)?.namespaceId).toBe("namespace");
+	expect(f.registry.getRegistration(8, pane)).toBeNull();
+	expect(
+		f.registry.getRegistration(7, {
+			...pane,
+			registrationId: "b6362538-a987-4c64-9c6f-6a6bb71f166b",
+		}),
+	).toBeNull();
+	f.dependencies.describe(connectionId).instanceId = "replacement";
+	expect(f.registry.getRegistration(7, pane)).toBeNull();
+	f.registry.dispose();
+});

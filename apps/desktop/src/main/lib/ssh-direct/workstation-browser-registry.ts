@@ -214,6 +214,19 @@ export class WorkstationBrowserRegistry {
 			this.release(record, false);
 	}
 
+	getRegistration(ownerId: number, input: unknown): DirectDescriptor | null {
+		const pane = workstationBrowserPaneSchema.parse(input);
+		if (this.owner?.id !== ownerId) return null;
+		const record = this.registrations.get(this.paneKey(pane));
+		if (
+			!record ||
+			record.pane.registrationId !== pane.registrationId ||
+			!this.current(record)
+		)
+			return null;
+		return { ...record.descriptor };
+	}
+
 	closeConnection(connectionId: string): void {
 		for (const [key, pending] of this.pending)
 			if (pending.pane.connectionId === connectionId) this.pending.delete(key);
