@@ -79,6 +79,7 @@ export function WorkstationBrowserSettings({
 				/>
 				{values && (
 					<BrowserLinkSettingsView
+						showPortDescription={false}
 						urlDescription={t({ message: "Applies to URLs in terminals." })}
 						disabled={disabled}
 						urlLinks={values.urlLinks}

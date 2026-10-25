@@ -104,7 +104,7 @@ export async function verifyWorkstationBrowserPreferencesUi(options, context) {
 	const homepage = `http://localhost:${proof.port}/homepage?value=%E4%B8%AD#default`;
 	const url = `http://localhost:${proof.port}/policy?value=%E4%B8%AD%20hello#fragment`;
 	await evaluate(
-		`window.__ownedPolicyTerminal=document.querySelector(${JSON.stringify(selector)})`,
+		`(()=>{window.__ownedPolicyTerminal=document.querySelector(${JSON.stringify(selector)});return true;})()`,
 	);
 	await settings();
 	await replace("#browser-homepage", homepage);
@@ -188,7 +188,7 @@ export async function verifyWorkstationBrowserPreferencesUi(options, context) {
 	await closePane(split);
 	await selectTerminal();
 	await evaluate(
-		`window.__ownedPolicyTerminal=document.querySelector(${JSON.stringify(selector)})`,
+		`(()=>{window.__ownedPolicyTerminal=document.querySelector(${JSON.stringify(selector)});return true;})()`,
 	);
 	await settings();
 	await select("#links-url-meta", "Open in new tab");

@@ -20,6 +20,7 @@ interface BrowserLinkSettingsViewProps {
 	onPortOpenAction(next: LinkAction): void;
 	showUrl?: boolean;
 	showPort?: boolean;
+	showPortDescription?: boolean;
 	searchQuery?: string;
 	disabled?: boolean;
 	isRightPaneAreaEnabled?: boolean;
@@ -32,6 +33,7 @@ export function BrowserLinkSettingsView({
 	onPortOpenAction: handlePortChange,
 	showUrl = true,
 	showPort = true,
+	showPortDescription = true,
 	searchQuery = "",
 	disabled = false,
 	isRightPaneAreaEnabled = false,
@@ -73,11 +75,13 @@ export function BrowserLinkSettingsView({
 									query={searchQuery}
 								/>
 							</Label>
-							<p className="text-xs text-muted-foreground">
-								<Trans>
-									Where detected-port badges in the sidebar open when clicked.
-								</Trans>
-							</p>
+							{showPortDescription && (
+								<p className="text-xs text-muted-foreground">
+									<Trans>
+										Where detected-port badges in the sidebar open when clicked.
+									</Trans>
+								</p>
+							)}
 						</div>
 						<Select
 							disabled={disabled}
