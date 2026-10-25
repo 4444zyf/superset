@@ -321,6 +321,7 @@ export class BrowserRuntimeRegistryCore {
 		webview.style.margin = "0";
 		webview.style.padding = "0";
 		webview.style.border = "none";
+		webview.style.backgroundColor = "#fff";
 		webview.style.visibility = "hidden";
 		webview.style.pointerEvents = "auto";
 		webview.src = sanitizeUrl(initialUrl);
@@ -387,9 +388,8 @@ export class BrowserRuntimeRegistryCore {
 		// page that calls `window.close()` is destroyed by Electron the moment
 		// it asks, while the did-stop-loading it emitted first is still in
 		// flight, so a read in that handler throws "Invalid guestInstanceId".
-		// The title resets on each committed navigation and arrives through
-		// page-title-updated, so a page with no <title> shows the pane's URL
-		// fallback instead of Chromium's synthesized one.
+		// Reloads can omit page-title-updated when the title stays the same.
+		// Clear the old title only when committing a different URL.
 		const handleDidStopLoading = () => {
 			this.setState(paneId, { isLoading: false });
 			this.refreshNavState(paneId);
@@ -410,7 +410,8 @@ export class BrowserRuntimeRegistryCore {
 		const handleDidNavigate = (e: Electron.DidNavigateEvent) => {
 			this.setState(paneId, {
 				currentUrl: e.url ?? "",
-				pageTitle: "",
+				pageTitle:
+					e.url === entry.state.currentUrl ? entry.state.pageTitle : "",
 				isLoading: false,
 			});
 			this.refreshNavState(paneId);

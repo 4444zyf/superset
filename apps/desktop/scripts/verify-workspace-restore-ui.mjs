@@ -549,6 +549,12 @@ export async function verifyWorkspaceRestoreUi({
   await verifyWorkstationTerminalScriptExecutionUi({getPage,click,screenshot,output,closeReopen,requestClose,isWindowOpen,controls});
   writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,terminalScriptExecutionOnly:true},null,2)+"\n");return;
  }
+ if (process.argv.includes("--browser-ui-only")) {
+  await click("text:Terminal");await ready();
+  const {verifyWorkstationBrowserUi}=await import("./verify-workstation-browser-ui.mjs");
+  await verifyWorkstationBrowserUi({getPage,click,screenshot,output,controls,closeReopen});
+  writeFileSync(join(output,"workspace-restore-ui.json"),JSON.stringify({...report,browserUiOnly:true},null,2)+"\n");return;
+ }
  if (process.argv.includes("--wheel-only")) {
   await click("text:Terminal");await ready();
   const {verifyWorkstationWheelUi}=await import("./verify-workstation-wheel-ui.mjs");

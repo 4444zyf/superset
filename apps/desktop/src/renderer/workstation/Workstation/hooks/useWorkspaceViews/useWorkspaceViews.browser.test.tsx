@@ -267,3 +267,40 @@ test("a busy page writer keeps only the latest pending state instead of queuing 
 	expect(f.updates).toHaveLength(2);
 	expect(f.updates[1]).toMatchObject({ state: { pageTitle: "Latest" } });
 });
+
+test("a failed page write rejects the close flush and retains the update for an explicit later flush", async () => {
+	const f = fixture();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const original = f.api.browser!.updatePage!;
+	f.api.browser!.updatePage = async () => {
+		throw new Error("Owned SQLite write failed");
+	};
+	const update = {
+		pane: {
+			connectionId: "connection",
+			generation: 4,
+			workspaceId: "workspace",
+			paneId: "browser",
+			registrationId: "registration",
+		},
+		resourceId: "page",
+		state: {
+			url: "https://example.com/",
+			pageTitle: "Unsaved title",
+			faviconUrl: null,
+		},
+	};
+	act(() => f.hook.result.current.persistBrowserPage(update));
+	await act(async () => {
+		await expect(f.hook.result.current.flush()).rejects.toThrow(
+			"SQLite write failed",
+		);
+	});
+	expect(f.updates).toEqual([]);
+	f.api.browser!.updatePage = original;
+	await act(async () => {
+		await f.hook.result.current.flush();
+	});
+	expect(f.updates).toEqual([update]);
+	expect(f.saves).toEqual([]);
+});

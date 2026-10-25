@@ -67,6 +67,9 @@ export async function verifyWorkstationBrowserUi(options) {
 				key,
 				code,
 				modifiers,
+				...(key === "Enter" && type === "keyDown"
+					? { text: "\r", unmodifiedText: "\r" }
+					: {}),
 				windowsVirtualKeyCode:
 					key === "Enter" ? 13 : key === "Escape" ? 27 : 67,
 			});
@@ -123,6 +126,9 @@ export async function verifyWorkstationBrowserUi(options) {
 					"Boolean(document.querySelector('[data-workstation-browser-pane]'))",
 				),
 			"browser page mounted",
+		);
+		await evaluate(
+			`(()=>{window.__ownedBrowserEvents=[];const v=document.querySelector('webview');for(const type of ['dom-ready','did-navigate','did-navigate-in-page','page-title-updated','did-stop-loading'])v.addEventListener(type,event=>{window.__ownedBrowserEvents.push({type,title:event.title,url:event.url});if(window.__ownedBrowserEvents.length>64)window.__ownedBrowserEvents.shift();});return true;})()`,
 		);
 		const url = `http://localhost:${proof.port}/preview?first=%E4%B8%AD#initial`;
 		await click("text:Enter URL or search...");
@@ -232,6 +238,9 @@ export async function verifyWorkstationBrowserUi(options) {
 		await screenshot("browser-reopened");
 		save();
 	} finally {
+		report.guestEvents = await evaluate("window.__ownedBrowserEvents ?? []");
+		report.finalView = workspace(await readView());
+		save();
 		if (started && terminalTab) {
 			await click(
 				`[data-workstation-pane-tabs] [data-tab-id="${terminalTab}"]`,

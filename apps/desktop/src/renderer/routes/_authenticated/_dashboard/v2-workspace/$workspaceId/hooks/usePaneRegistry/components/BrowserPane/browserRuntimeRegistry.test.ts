@@ -304,6 +304,25 @@ describe("browserRuntimeRegistry guest lifecycle", () => {
 		}
 	});
 
+	test("reload retains the unchanged title when Chromium does not repeat its title event", () => {
+		const paneId = "lifecycle-reload-title-pane";
+		const entry = createEntry(paneId);
+		try {
+			fire(entry.webview, "did-navigate", { url: "https://example.com/page" });
+			fire(entry.webview, "page-title-updated", { title: "Page 中文 🙂" });
+			fire(entry.webview, "did-stop-loading");
+			fire(entry.webview, "did-navigate", { url: "https://example.com/page" });
+			fire(entry.webview, "did-stop-loading");
+			expect(browserRuntimeRegistry.getState(paneId).pageTitle).toBe(
+				"Page 中文 🙂",
+			);
+			fire(entry.webview, "did-navigate", { url: "https://example.com/other" });
+			expect(browserRuntimeRegistry.getState(paneId).pageTitle).toBe("");
+		} finally {
+			registryInternals.entries.delete(paneId);
+		}
+	});
+
 	test("records the attempted URL of a failed main-frame load only", () => {
 		const paneId = "lifecycle-failed-load-pane";
 		const entry = createEntry(paneId);
