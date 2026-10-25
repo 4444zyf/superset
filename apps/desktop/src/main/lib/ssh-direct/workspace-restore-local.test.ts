@@ -399,12 +399,16 @@ test("registered browser metadata updates preserve terminal layout and stale cal
 		};
 		const before = f.store.readV2();
 		expect(
-			await f.coordinator.updateBrowserPage(1, { pane, state }, () => null),
+			await f.coordinator.updateBrowserPage(
+				1,
+				{ pane, resourceId: "browser", state },
+				() => null,
+			),
 		).toEqual({ status: "stale" });
 		expect(f.store.readV2()).toEqual(before);
 		const result = await f.coordinator.updateBrowserPage(
 			1,
-			{ pane, state },
+			{ pane, resourceId: "browser", state },
 			() => descriptor,
 		);
 		expect(result.status).toBe("saved");
@@ -425,7 +429,7 @@ test("registered browser metadata updates preserve terminal layout and stale cal
 			(
 				await f.coordinator.updateBrowserPage(
 					1,
-					{ pane, state },
+					{ pane, resourceId: "browser", state },
 					() => descriptor,
 				)
 			).status,
@@ -434,11 +438,50 @@ test("registered browser metadata updates preserve terminal layout and stale cal
 		f.coordinator.activateOwner(2);
 		const rejected = f.coordinator.updateBrowserPage(
 			2,
-			{ pane, state: { ...state, pageTitle: "late" } },
+			{ pane, resourceId: "browser", state: { ...state, pageTitle: "late" } },
 			() => null,
 		);
 		expect(await rejected).toEqual({ status: "stale" });
 		expect(f.store.read().revision).toBe(revision);
+	} finally {
+		f.close();
+	}
+});
+
+test("a registered callback cannot update a replacement resource using the same pane id", async () => {
+	const f = fixture();
+	try {
+		await seedTerminal(f);
+		await saveBrowser(f);
+		const descriptor = f.descriptor();
+		const pane = {
+			connectionId: f.id,
+			generation: descriptor.generation,
+			workspaceId: "workspace",
+			paneId: "browser",
+			registrationId: randomUUID(),
+		};
+		const input = {
+			pane,
+			resourceId: "browser",
+			state: {
+				url: "https://old.invalid/",
+				pageTitle: "Old resource",
+				faviconUrl: null,
+			},
+		};
+		const replacement = browserInput(f);
+		const browser = replacement.targets[0]?.workspaces[0]?.panes.find(
+			(item) => item.kind === "browser",
+		);
+		if (!browser) throw Error("Missing fixture browser");
+		browser.resourceId = "replacement";
+		await saveBrowser(f, replacement);
+		const before = f.store.readV2();
+		expect(
+			await f.coordinator.updateBrowserPage(1, input, () => descriptor),
+		).toEqual({ status: "stale" });
+		expect(f.store.readV2()).toEqual(before);
 	} finally {
 		f.close();
 	}

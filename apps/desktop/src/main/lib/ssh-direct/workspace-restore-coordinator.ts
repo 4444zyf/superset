@@ -725,7 +725,11 @@ export class WorkspaceRestoreCoordinator {
 	}
 	updateBrowserPage(
 		owner: number,
-		input: { pane: WorkstationBrowserPane; state: BrowserPageState },
+		input: {
+			pane: WorkstationBrowserPane;
+			resourceId: string;
+			state: BrowserPageState;
+		},
 		authorize: () => DirectDescriptor | null,
 	): Promise<
 		| { status: "saved" | "unchanged"; snapshot: WorkspaceViewSnapshotV2 }
@@ -769,7 +773,12 @@ export class WorkspaceRestoreCoordinator {
 			const pane = target.workspaces
 				.find((item) => item.workspaceId === input.pane.workspaceId)
 				?.panes.find((item) => item.paneId === input.pane.paneId);
-			if (!pane || pane.kind !== "browser") return { status: "stale" as const };
+			if (
+				!pane ||
+				pane.kind !== "browser" ||
+				pane.resourceId !== input.resourceId
+			)
+				return { status: "stale" as const };
 			if (isDeepStrictEqual(pane.browser, state))
 				return { status: "unchanged" as const, snapshot: saved.snapshot };
 			const {

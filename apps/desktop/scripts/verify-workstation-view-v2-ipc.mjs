@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { agentUiDriver } from "./verify-workstation-agent-ui-driver.mjs";
 
 export async function verifyWorkstationViewV2Ipc(options) {
-	const { output, scope, controls, restart, getPage, screenshot } = options;
+	const { output, scope, controls, closeReopen, getPage, screenshot, click } =
+		options;
 	const { evaluate, until } = agentUiDriver(options);
 	const report = {
 		kind: "Native V2 layout IPC, guest registration and SQLite persistence; browser pane UI not exercised",
@@ -24,6 +25,14 @@ export async function verifyWorkstationViewV2Ipc(options) {
 		report.available,
 		true,
 		"V2 layout and registered page metadata IPC is available",
+	);
+	await click("text:New terminal");
+	await until(
+		() =>
+			evaluate(
+				"Boolean(document.querySelector('[data-terminal-id][data-restore-state=attached]'))",
+			),
+		"new terminal attached",
 	);
 	const read = () => evaluate("window.directWorkstation.getWorkspaceViewV2()");
 	let current;
@@ -126,18 +135,35 @@ export async function verifyWorkstationViewV2Ipc(options) {
 		faviconUrl: null,
 	};
 	const updated = await evaluate(
-		`window.directWorkstation.browser.updatePage(${JSON.stringify({ pane: registration, state: nextState })})`,
+		`window.directWorkstation.browser.updatePage(${JSON.stringify({ pane: registration, resourceId: browser(saved).resourceId, state: nextState })})`,
 	);
 	assert.equal(updated.status, "saved");
 	assert.deepEqual(browser(updated.snapshot).browser, nextState);
 	assert.equal(
 		(
 			await evaluate(
-				`window.directWorkstation.browser.updatePage(${JSON.stringify({ pane: registration, state: nextState })})`,
+				`window.directWorkstation.browser.updatePage(${JSON.stringify({ pane: registration, resourceId: browser(saved).resourceId, state: nextState })})`,
 			)
 		).status,
 		"unchanged",
 	);
+	const replacement = await read();
+	const {
+		schemaVersion: replacementVersion,
+		revision: replacementRevision,
+		updatedAt: replacementTime,
+		...replacementView
+	} = replacement.snapshot;
+	const replacementResourceId = randomUUID();
+	browser(replacementView).resourceId = replacementResourceId;
+	await evaluate(
+		`window.directWorkstation.saveWorkspaceViewV2(${JSON.stringify({ expectedRevision: replacementRevision, navigationRevision: replacement.navigationRevision, view: replacementView, browserLeases: [{ connectionId: scope.d.connectionId, generation: scope.d.generation }] })})`,
+	);
+	const replacedResourceCallback = await evaluate(
+		`window.directWorkstation.browser.updatePage(${JSON.stringify({ pane: registration, resourceId: browser(saved).resourceId, state: { ...nextState, pageTitle: "REPLACED RESOURCE CALLBACK" } })})`,
+	);
+	assert.deepEqual(replacedResourceCallback, { status: "stale" });
+	report.replacedResourceCallback = replacedResourceCallback;
 	await evaluate(
 		`window.directWorkstation.browser.unregister(${JSON.stringify(registration)})`,
 	);
@@ -145,7 +171,7 @@ export async function verifyWorkstationViewV2Ipc(options) {
 		"document.querySelector('#owned-v2-diagnostic-guest').remove();true",
 	);
 	const stale = await evaluate(
-		`window.directWorkstation.browser.updatePage(${JSON.stringify({ pane: registration, state: { ...nextState, pageTitle: "STALE CALLBACK" } })})`,
+		`window.directWorkstation.browser.updatePage(${JSON.stringify({ pane: registration, resourceId: browser(saved).resourceId, state: { ...nextState, pageTitle: "STALE CALLBACK" } })})`,
 	);
 	assert.deepEqual(stale, { status: "stale" });
 	assert.deepEqual(browser((await read()).snapshot).browser, nextState);
@@ -154,7 +180,7 @@ export async function verifyWorkstationViewV2Ipc(options) {
 	report.savedRevision = updated.snapshot.revision;
 	await screenshot("v2-backend-terminal-before-reopen");
 	save();
-	await restart();
+	await closeReopen();
 	await until(
 		() => evaluate("Boolean(window.directWorkstation)"),
 		"reopened renderer",

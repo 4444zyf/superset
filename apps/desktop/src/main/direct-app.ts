@@ -608,6 +608,11 @@ export async function startWorkstation(): Promise<void> {
 					const input = z
 						.strictObject({
 							pane: workstationBrowserPaneSchema,
+							resourceId: z
+								.string()
+								.min(1)
+								.max(128)
+								.regex(/^[\w-]+$/),
 							state: browserPageStateSchema,
 						})
 						.parse(payload);

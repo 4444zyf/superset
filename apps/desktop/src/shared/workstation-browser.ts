@@ -42,6 +42,7 @@ export type WorkstationBrowserEvent = WorkstationBrowserPane &
 export interface WorkstationBrowserApi {
 	updatePage?(input: {
 		pane: WorkstationBrowserPane;
+		resourceId: string;
 		state: BrowserPageState;
 	}): Promise<
 		| { status: "saved" | "unchanged"; snapshot: WorkspaceViewSnapshotV2 }
