@@ -2,6 +2,8 @@
 <img src="../assets/branding/icon-128.png" alt="Superset Remix" width="96" height="96" />
 
 # Superset Remix
+
+Based on [Superset](https://github.com/superset-sh/superset).
 </div>
 
 本地和 SSH 工作站。Superset 的非官方修改版本，由独立维护者维护，未获 Superset, Inc. 背书。

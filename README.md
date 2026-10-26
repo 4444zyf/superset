@@ -3,6 +3,8 @@
 
 # Superset Remix
 
+Based on [Superset](https://github.com/superset-sh/superset).
+
 Local and SSH workstations. An unofficial modified version of [Superset](https://github.com/superset-sh/superset), independently maintained without endorsement from Superset, Inc.
 
 [Downloads](https://github.com/4444zyf/superset/releases) · [Fork issues](https://github.com/4444zyf/superset/issues) · [Build guide](DEVELOPMENT.md)

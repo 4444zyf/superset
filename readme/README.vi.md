@@ -2,6 +2,8 @@
 <img src="../assets/branding/icon-128.png" alt="Superset Remix" width="96" height="96" />
 
 # Superset Remix
+
+Based on [Superset](https://github.com/superset-sh/superset).
 </div>
 
 Không gian làm việc cục bộ và SSH. Bản sửa đổi không chính thức của Superset, được duy trì độc lập và không được Superset, Inc. chứng thực.

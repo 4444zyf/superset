@@ -1,5 +1,7 @@
 # Superset Remix modification notice
 
+**Based on [Superset](https://github.com/superset-sh/superset).**
+
 Superset Remix is an unofficial modified version of [Superset](https://github.com/superset-sh/superset), maintained independently at [4444zyf/superset](https://github.com/4444zyf/superset). It is not an official Superset release and is not endorsed, sponsored or maintained by Superset, Inc.
 
 This fork changes the desktop entry point to an accountless local and SSH workstation, adds verified remote backend installation and persistent connections, and changes the product's display identity, icons and repository documentation. Existing CLI commands, workspace packages, protocol fields and backend storage identities remain compatible.

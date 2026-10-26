@@ -2,6 +2,8 @@
 <img src="../assets/branding/icon-128.png" alt="Superset Remix" width="96" height="96" />
 
 # Superset Remix
+
+Based on [Superset](https://github.com/superset-sh/superset).
 </div>
 
 Yerel ve SSH çalışma istasyonları. Superset’in bağımsız olarak sürdürülen, Superset, Inc. tarafından onaylanmayan resmî olmayan değiştirilmiş sürümüdür.

@@ -2,6 +2,8 @@
 <img src="../assets/branding/icon-128.png" alt="Superset Remix" width="96" height="96" />
 
 # Superset Remix
+
+Based on [Superset](https://github.com/superset-sh/superset).
 </div>
 
 Espacios de trabajo locales y SSH. Versión modificada no oficial de Superset, mantenida de forma independiente y sin respaldo de Superset, Inc.

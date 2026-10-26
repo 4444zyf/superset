@@ -1,6 +1,6 @@
 # Superset Remix branding inventory
 
-Implementation target: the accountless desktop entry in `apps/desktop/src/main/index.ts` and `src/renderer/index.tsx`, the fork repository, and the macOS SSH preview distribution. Superset Remix is the working product name, centralized for later changes. The user's 2026-10-13 instruction supersedes old-data compatibility: use fresh independent profiles, without automatic migration. Remote service/protocol contracts remain compatible.
+Implementation target: the accountless desktop entry in `apps/desktop/src/main/index.ts` and `src/renderer/index.tsx`, the fork repository, and the macOS SSH preview distribution. Superset Remix is the adopted product name, centralized for later changes. The user's 2026-10-13 instruction supersedes old-data compatibility: use fresh independent profiles, without automatic migration. Remote service/protocol contracts remain compatible.
 
 ## Reachability and distribution
 
@@ -74,3 +74,13 @@ The user asked about a later repository rename to Superset Remix and compliance 
 Read-only GitHub inspection on this date confirmed repository ID `1412858657`, current name `4444zyf/superset` and default branch `main`. The default branch README still displays the upstream name/icon and upstream downloads (README blob `1fafbe818f1f4ef60e9e0d062d0a7c6f71e8e320`), while the active feature branch has the fork README/notice. A public identity update must address that landing page as a separate, reviewable change; do not silently promote the unfinished feature branch or merge it merely to rename the repository. Looking up `4444zyf/superset-remix` returned 404, which is not a reservation or a guarantee of availability.
 
 The current root and packaged resource copies of both `LICENSE.md` and `FORK_NOTICE.md` were checked byte-identical. A tracked source search did not find an explicit license-key reference in `apps`/`packages`; that limited search does not prove that removing a particular gate is permitted, or replace review of the relevant functionality and terms.
+
+## Adopted repository identity — 2026-10-26
+
+The user selected `superset-remix` and a factual “Based on Superset” source attribution. The product display name remains Superset Remix; the independent data profile and original artwork already use this identity. The intended repository slug is `4444zyf/superset-remix`. Current links still target the existing `4444zyf/superset` so they remain usable until the rename succeeds. README translations and both copies of the modification notice explicitly attribute Superset. The original license, copyright, technical compatibility names and historical evidence URLs are preserved.
+
+The repository rename does not merge the feature branch, change the default branch or publish a new application build. The inherited default-branch landing page must be reconciled with the completed fork before release. This naming decision does not provide trademark clearance or change ELv2 obligations.
+
+The rename was attempted through GitHub on this date, but the integration returned HTTP 403 “Resource not accessible by integration” even though repository inspection reports the user has ADMIN access. Neither the repository name nor About description changed. The local origin was restored and verified as `https://github.com/4444zyf/superset.git`. No browser control tool is available in this session.
+
+An owner can finish the rename in the existing repository's **Settings → General → Repository name**, entering `superset-remix`. Set About to “superset-remix — Based on Superset. Independently maintained local and SSH workstation; unofficial modified version.” Then verify the new repository exists before updating origin to `https://github.com/4444zyf/superset-remix.git` and replacing current fork links in the brand manifest, root/desktop package metadata, root and translated READMEs, contribution/security/development guidance, issue/PR templates and both modification-notice copies. Run `bun run brand:check` and `bun run check:plugins`. Historical evidence URLs and upstream links retain their original identity. No Actions run, default-branch switch or merge is needed.

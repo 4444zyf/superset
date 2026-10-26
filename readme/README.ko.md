@@ -2,6 +2,8 @@
 <img src="../assets/branding/icon-128.png" alt="Superset Remix" width="96" height="96" />
 
 # Superset Remix
+
+Based on [Superset](https://github.com/superset-sh/superset).
 </div>
 
 로컬 및 SSH 워크스테이션. Superset의 비공식 수정 버전이며 독립적으로 유지 관리되고 Superset, Inc.의 승인을 받지 않았습니다.

@@ -7,8 +7,8 @@ Superset Remix is an unofficial modified version of Superset. The current deskto
 Use Git, Node, Bun 1.4.2 (see `.bun-version`) and platform-native Electron dependencies. macOS is the validated distribution target.
 
 ```bash
-git clone https://github.com/4444zyf/superset.git
-cd superset
+git clone https://github.com/4444zyf/superset.git superset-remix
+cd superset-remix
 bun install
 bun run --cwd apps/desktop compile:app
 bun run --cwd apps/desktop start
