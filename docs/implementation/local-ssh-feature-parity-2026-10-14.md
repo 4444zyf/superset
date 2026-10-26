@@ -1771,3 +1771,14 @@ CLI 仍为控制机原源码 dev runner，针对本次拥有的同机 namespace�
 原源码 CLI list/console/screenshot 的两端 22 次回归、六张 PNG 白底/剪贴板检查、原导航/find/popup/选择关闭及 HTTP Ctrl+C 同时通过；同 PTY/execution/cwd 保持。app/Xorg/报告 PID 均清理，2205 文件/76 脚本/原 CLI SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 复核不变。仅实际查看三张图，清单在 final-verification.json。
 
 这是导航 API 实窗，不是原 navigate CLI 的 namespace 参数接入；CLI 写入目标、稳定 operationId 与状态查询入口继续。未生成安装包、重建 CLI、触发 Actions、验证新供应商认证/外部 SSH/实体 Mac。整体对齐继续，终端专项仍按八十九/九十六实际范围。[阶段一百零四证据](evidence/local-ssh-feature-parity/stage104)。
+
+
+## 阶段一百零五：原 CLI 的明确 namespace 导航和操作状态
+
+源码 `dda248cfe` 给原 browser navigate 增加明确 namespace 分支，要求调用方提供稳定 UUID operationId；无 namespace 的原账号/host 执行体和成功输出保持原 AST。namespace resolver 原有身份、私有文件/Unix socket、PSK、instance 校验和读取路径保留；只在新的 resolver 模式中放行单条 browserNavigateV1 POST，同时要求 durableOperations 和实际 ready navigation 能力，其他 mutation/批量导航仍拒绝。新增 operation-status 使用原受保护 direct.operationStatus GET，只依赖 durable 能力；可以在浏览器 peer 不可用但 backend 仍运行时查看回执。已完成导航命令本身仍要求 ready 能力，不把状态查询当作输入相同的证明。失败/accepted/failed/unresolved 不报告成功、不自动重试，提示保留原操作 ID；服务端仍负责相同 ID 的输入冲突检查。
+
+40 项 CLI/133 断言/4 文件、CLI/i18n 类型、定向 lint、插件及完整产品构建通过。Lingui 原提取目录漏了 CLI，已纳入源目录，新增六条文案覆盖 17 目录；脚本确认原有词条和译文全部相同。初版解析夹具漏掉原 camelToKebab、CLIError 提示字段误用 hint、测试命令联合类型未扩展等失败均保留，修正夹具后通过。源码提交后的 proof 因三份新文件由 untracked 变 tracked 触发显式清单失败，补完整清单后旧 AST 与后端/共享/认证/journal/SSH/终端字节对照通过，未改产品行为来迁就断言。
+
+冻结 2205 编译文件，manifest SHA256 `8c14a328cc004fa19f60dae6d8760d74c9bd2a47778baea0e40cfaca163f5051`，77 MJS。真实 local-cli-dda248 / ssh-cli-dda248 均工具退出 0，SSH 含 20 次原窗口恢复；每端 12 次新 CLI 调用，合计 18 成功/6 次预期拒绝（改 URL、跨 workspace、缺 operationId）。同 ID 只一次实际 HTTP 页面请求；隐藏浏览器导航保留终端 tab 和键盘焦点；正常重开读取原 completed 回执，重复命令不回放/不重绑页面。SSH canonical 为远端 localhost:33337，实际 guest 事件为原转发 127.0.0.1:32923，query/fragment 保留。原导航 API 18 次、读取/截图 CLI 22 次及六张白底 PNG/剪贴板回归同步通过；原 PTY/execution/cwd 保持，原 HTTP Ctrl+C/关闭清理通过。
+
+两端 app/Xorg/报告 PID 均清理，2205 文件/77 脚本/原 CLI SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 复核不变。实际查看两端后台终端和 SSH 重开共三张图，未声称查看所有图。随包 CLI 未重建；无安装包、Actions、真实供应商认证、外部 SSH 或实体 Mac 新验收。CLI open/eval/import-login/CDP、rightPane、聊天/任务 URL 及其他功能继续，整体未完成。[阶段一百零五证据](evidence/local-ssh-feature-parity/stage105)。

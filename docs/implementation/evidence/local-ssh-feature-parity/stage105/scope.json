@@ -1,0 +1,54 @@
+{
+  "sourceCommit": "dda248cfefb9a4edf5de8a7ba838f9dcf1590f3b",
+  "tests": {
+    "cli": {
+      "passed": 40,
+      "assertions": 133,
+      "files": 4
+    }
+  },
+  "checks": [
+    "CLI and i18n TypeScript",
+    "17 strict Lingui catalogs, six messages, all previous entries unchanged",
+    "legacy navigate AST after explicit new branch removal",
+    "namespace identity/auth/default request AST after declared optional extension removal",
+    "plugin validation",
+    "complete Electron Vite build"
+  ],
+  "native": {
+    "cases": [
+      "local-cli-dda248",
+      "ssh-cli-dda248"
+    ],
+    "sourceCliNavigationCalls": 24,
+    "sourceCliNavigationSuccess": 18,
+    "sourceCliExpectedReject": 6,
+    "protectedNavigationApiCalls": 18,
+    "readCaptureCliRegressionCalls": 22,
+    "sshPriorWindowRestores": 20,
+    "samePtyExecutionCwd": true,
+    "onePageRequestPerRepeatedOperationId": true,
+    "backgroundTabAndKeyboardFocusPreserved": true,
+    "noReplayAfterReopen": true,
+    "sshCanonical": "http://localhost:33337/cli-owned-navigation",
+    "sshGuest": "http://127.0.0.1:32923/cli-owned-navigation"
+  },
+  "setupCorrections": [
+    "Initial parser fixture omitted original camelToKebab processing; corrected fixture, no parser change.",
+    "Initial suggestion assertion used a nonexistent hint field; corrected to original CLIError.suggestion.",
+    "Original Lingui extractor omitted CLI; added its source root and then translated all six new messages in 17 catalogs.",
+    "First TypeScript fixture union excluded new commands; extended the fixture union, no weakening of product types.",
+    "Post-commit scope proof needed three newly tracked files in its explicit allowlist; retained the failed proof and final passing proof."
+  ],
+  "viewedImages": [
+    "local-cli-dda248/app/browser-navigation-cli-background-terminal.png",
+    "ssh-cli-dda248/app/browser-navigation-cli-background-terminal.png",
+    "ssh-cli-dda248/app/browser-reopened.png"
+  ],
+  "limits": [
+    "Actual source CLI dev runner; pre-existing bundled CLI binary unchanged",
+    "Even completed navigation commands require a ready navigation capability; explicit operation-status works with durable capability while peer is unavailable",
+    "No installer, Actions, physical Mac, external SSH or real vendor agent authentication validation",
+    "Browser open/eval/import-login/CDP and other parity groups remain pending"
+  ]
+}

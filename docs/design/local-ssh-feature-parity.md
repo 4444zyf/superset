@@ -6,7 +6,7 @@
 
 用户强调的滚轮/触控板输入保护和终端复制粘贴已实现。阶段八十九在5dcb36689源码编译上独立回归本地与拥有的loopback SSH：历史上下翻动、无鼠标TUI回看不注入方向键、保存的stock偏好、SGR/legacy/pixel切换、中文/Emoji复制、多行括号粘贴、图片/文件路径及重挂载后OSC52通过。两个SSH套件各含20次窗口恢复。初轮数值观测失败、截图和只读诊断已保留；最终夹具等待实际渲染并保留前后数值，不重发滚轮输入。真实供应商Agent、外部SSH和物理Mac触控板/剪贴板仍未实测。
 
-内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、导航/查找、历史SQLite、所属SSH工作区的localhost转发、当前图标与V2持久化。阶段八十至九十一接回主页/终端URL与端口策略、原工具菜单/DevTools、设备预览、历史搜索/清空、浏览数据清理、下载、截图/系统图片剪贴板及显式历史/Cookie导入与原提示条、站点Cookie菜单。设置和菜单共用一个原导入弹窗，关闭父设置后继续保留，真实两端202条导入和正常重开通过。阶段九十六接回原设计模式浮层、目标端上下文/截图附件、新Agent启动和已有TUI反馈；本地/拥有SSH的合成Agent及正常重开通过，真实供应商认证仍未实测。Mac Cookie/Keychain/FDA尚未原生验证；不导入密码数据库。阶段一百零一通过原连接的鉴权WebSocket接通浏览器CLI源码的明确namespace list/console，本地及拥有SSH实窗完成12次成功读取/2次预期拒绝和正常重开，SSH含20次恢复；随包CLI二进制未重建。阶段一百零二接明确namespace截图：原capture/wake与有界分块，真实两端完成可见/隐藏/重开六张白底PNG，剪贴板不变，首轮透明背景问题与修复证据保留。rightPane、聊天/任务URL策略、CLI其余浏览器命令及其他功能仍在进行，不宣称整体对齐完成。最新设计反馈范围和失败记录见[阶段九十六](../implementation/evidence/local-ssh-feature-parity/stage96)，其他浏览器工具按各阶段实际验证范围。
+内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、导航/查找、历史SQLite、所属SSH工作区的localhost转发、当前图标与V2持久化。阶段八十至九十一接回主页/终端URL与端口策略、原工具菜单/DevTools、设备预览、历史搜索/清空、浏览数据清理、下载、截图/系统图片剪贴板及显式历史/Cookie导入与原提示条、站点Cookie菜单。设置和菜单共用一个原导入弹窗，关闭父设置后继续保留，真实两端202条导入和正常重开通过。阶段九十六接回原设计模式浮层、目标端上下文/截图附件、新Agent启动和已有TUI反馈；本地/拥有SSH的合成Agent及正常重开通过，真实供应商认证仍未实测。Mac Cookie/Keychain/FDA尚未原生验证；不导入密码数据库。阶段一百零一通过原连接的鉴权WebSocket接通浏览器CLI源码的明确namespace list/console，本地及拥有SSH实窗完成12次成功读取/2次预期拒绝和正常重开，SSH含20次恢复；随包CLI二进制未重建。阶段一百零二接明确namespace截图：原capture/wake与有界分块，真实两端完成可见/隐藏/重开六张白底PNG，剪贴板不变，首轮透明背景问题与修复证据保留。阶段一百零四至一百零五接受保护持久导航和原CLI明确namespace navigate/operation-status，双端稳定ID去重、冲突拒绝、后台焦点与重开不回放通过。rightPane、聊天/任务URL策略、CLI其余浏览器命令及其他功能仍在进行，不宣称整体对齐完成。最新设计反馈范围和失败记录见[阶段九十六](../implementation/evidence/local-ssh-feature-parity/stage96)，其他浏览器工具按各阶段实际验证范围。
 
 ## 验收原则
 
@@ -44,7 +44,7 @@
 | Agent 配置、技能、MCP 与工具配置 | settings.agentConfigs、agentTooling | 部分：Agent目录、字段、图标及脚本已接 | 阶段三十五至四十、五十四接回目标端Agent配置和原表单；技能/MCP/工具配置及托管能力继续补齐 |
 | 插件清单、安装、更新与移除 | plugins/installed_plugins.json、原插件界面 | 待接入 | 同一声明式状态，目标机器执行 |
 | 端口发现、转发、浏览器打开 | ports、已有 direct forwarding | 已接主要流程 | 阶段六十八至七十二、七十八至八十接回发现、复制/明确外部或内嵌打开、确认单端口/当前工作区批量关闭和多转发；旧后端保留手动输入，其余管理继续核对 |
-| 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 部分：原页面、常用工具、数据列表及设计反馈已接 | 阶段七十三至九十六接回导航/查找、历史、基础工具/DevTools、设备预览、下载、截图、导入及原设计浮层/目标端附件/Agent反馈；一百零一至一百零二接CLI源码namespace list/console/screenshot并完成双端实窗，随包CLI未重建；rightPane与其余CLI桥继续补齐 |
+| 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 部分：原页面、常用工具、数据列表及设计反馈已接 | 阶段七十三至九十六接回导航/查找、历史、基础工具/DevTools、设备预览、下载、截图、导入及原设计浮层/目标端附件/Agent反馈；一百零一至一百零五接CLI源码namespace list/console/screenshot/navigate和operation-status并完成双端实窗，随包CLI未重建；rightPane与其余CLI桥继续补齐 |
 | 浏览器设置、数据导入与隔离 | 原 BrowserSettings | 部分：主页、终端/端口URL策略、清理和显式导入已接 | 阶段八十至九十接回私有SQLite、原设置/菜单/提示条导入与共享弹窗；其他设置继续补齐，不自动导入历史，Mac Cookie/Keychain/FDA未原生验证 |
 | 命令面板、全局快捷键与导航 | 原 commandPalette/hotkeys | 待接入 | 原注册表、设置与当前操作实际对应 |
 | 外观、语言、主题、字体 | AppearanceSettings、i18n/themes | 部分 | 原设置与组件真正响应 |
@@ -233,3 +233,6 @@
 阶段一百零三以59b43b7f8仅准备导航持久操作：同步固定deferred执行目标后才落原journal，接受后才派发；相同ID不重复执行，改输入冲突，未知结果不重发，维护门保留。7项新增模拟pin回归+8项原journal共15项45断言、host类型/插件通过。仅两份新源码，未接真实peer/导航/RPC/cap/CLI，不能算导航功能恢复；未构建，最新实窗仍按一百零二171061643，2205文件/75脚本/CLI不变，继续实际导航通道。[阶段一百零三证据](../implementation/evidence/local-ssh-feature-parity/stage103)。
 
 阶段一百零四以3440629ee接可选navigateV1和受保护持久mutation，接受前固定peer/预留slot，接受后派发，换窗口/超时/断连不重绑重发，接受失败释放slot。主进程复用原SSH导航和URL映射，仅新路径增加current守卫；原API/认证/维护/CLI/终端语义保持。62项后端316断言、59项桌面206断言、5项共享15断言、4项实际WS、四处类型/完整构建通过。本地/拥有SSH共18次实际API调用按预期，原ID只一页请求、改URL409、跨workspace400、后台保留终端焦点、重开原回执不回放；SSH含20恢复，guest127.0.0.1:33037映射远端localhost:33421。原CLI读取/截图22次回归通过，2205文件/76脚本/CLI不变；导航CLI尚待接入，其他功能组继续。[阶段一百零四证据](../implementation/evidence/local-ssh-feature-parity/stage104)。
+
+
+阶段一百零五以dda248cfe接原navigate明确namespace与稳定operationId，原账号分支保留；新增operation-status沿原durable GET，peer离线仍可查运行backend。新resolver仅放单条版本化导航POST且检查双能力，其他写入/批量拒绝，不重试未知结果；已完成命令仍要求ready，不能用状态绕过输入冲突。40项/133断言、CLI/i18n类型、六新词条17目录、旧译文/AST、完整构建通过。两端24次新CLI含18成功/6预期拒绝、原API18次及读取/截图22次通过，SSH含20恢复，canonical localhost:33337/guest127.0.0.1:32923，原PTY/焦点/正常重开去重保持。2205文件/77脚本/随包CLI哈希复核不变；随包CLI未重建，其他功能继续。[阶段一百零五证据](../implementation/evidence/local-ssh-feature-parity/stage105)。
