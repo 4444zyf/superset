@@ -251,3 +251,6 @@
 
 
 阶段一百一十以bd1c64a73准备纯open布局，复用原pane引擎/选择保留：未固定同类替换、固定保留、new-tab、show/background、重入不抢焦点/不回导航及限额。七项新用例连同原核心20项88断言与desktop类型/lint通过，普通数组→非空元组的夹具类型修正保留。无生产调用/RPC/CLI/持久化/runtime或新实窗；只尊重传入runtime的pinned，现有适配器固定状态持久化仍未补。原58b编译2205文件/79脚本/CLI哈希保持。继续真实renderer与后台创建。[阶段一百一十证据](../implementation/evidence/local-ssh-feature-parity/stage110)。
+
+
+阶段一百一十一以4f4ca33ef准备open的main renderer生命周期：owner/epoch/订阅/scope nonce、复制意图和延迟派发、单pending、一次执行、受控ACK超时/取消/旧回执隔离，ready/accepting分开。新增target变化red揭示并修复晚回执检查，refresh取消旧目标但保留当前订阅；11项新用例连同readchannel共28项119断言/desktop类型/lint通过。无caller/IPC/协议/renderer/持久化接线、新构建或实窗，profile生命周期仍须实际绑定；原58b编译2205/79脚本/CLI哈希保持。整体继续。[阶段一百一十一证据](../implementation/evidence/local-ssh-feature-parity/stage111)。

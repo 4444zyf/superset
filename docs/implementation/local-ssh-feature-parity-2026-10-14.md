@@ -1827,3 +1827,10 @@ CLI 仍为控制机原源码 dev runner，针对本次拥有的同机 namespace�
 源码 `bd1c64a73` 仅新增 openWorkstationBrowserState 纯状态工具与七项测试。直接复用原 @superset/panes createWorkspaceStore/openPane/addTab 与原 preserveLocalPaneSelection；current-tab 按原规则先替换未固定同类浏览器，存在 pinned 浏览器则保留并分屏，new-tab 才创建独立标签。show=false 保留仍存在的原 tab/pane 选择，显式 show 才采用新焦点。资源 ID 相同的重入不再次创建/选择，也不把已导航页面改回初始 URL；冲突身份拒绝，资源限额允许同类替换但拒绝新增溢出，输入不修改，传入原 store 快照时不克隆函数成员。
 
 先记录缺模块 red；新用例与原后台打开/pane-adapter/workspace-pane-state 共 20 项、88 断言、4 文件通过，desktop 类型、lint、插件通过。首轮类型检查发现容量夹具的普通数组不符合原 addTab 非空元组类型，用显式首成员修正夹具，未放宽产品类型。生产差异只有两份新文件，无原组件/协议改变、无生产调用方、RPC/CLI/持久化或真实后台 runtime 接入，无新构建/实窗。原 Workstation 模型适配器未保存 pinned 标记；本工具只保证收到的实际 runtime state 中的 pinned 不被覆盖，不能据此宣称固定状态已持久恢复。复核原 58b1082e7 产品 2205 文件、79 MJS 和 CLI 哈希不变。下一步接实际当前 renderer/目标布局保存和后台运行时，整体继续。[阶段一百一十证据](evidence/local-ssh-feature-parity/stage110)。
+
+
+## 阶段一百一十一：open 的 renderer 订阅、视图范围与取消准备
+
+源码 `4f4ca33ef` 仅新增内部 WorkstationBrowserOpenRequests 与 11 项测试。prepare/confirmReady 用当前 owner/epoch、订阅 ID 和新的 scope nonce 建立真实监听就绪状态；旧订阅 cleanup 不退订新监听。pin 同步预留并复制描述/意图，不发送或计时，延迟执行器才派发；单 pending、一次执行、15 秒 ACK、明确完成/释放/失效/传输失败均清理，已派发的取消只发给同一 owner epoch。scope 失效更换 nonce，旧 pin/回执/释放不能影响新操作；availability 分开 ready 与 accepting，避免忙碌标志误取消已接受请求。后续需要把 scope 变化接到真实 profile/窗口生命周期，未接线前不能声称已解决实际跨 profile 创建。
+
+先记录缺模块 red；新增后端代次变化用例发现初版只验证 renderer、会接受过期 target 回执，真实失败保留并已补目标检查。refresh 可取消旧目标 pending 而不退订当前 renderer。与原 read channel 回归共 28 项、119 断言、2 文件、desktop 类型、lint、插件通过；时钟均受控，无真实超时等待。生产差异只有两份新文件，原代码/协议/CLI 未改，无生产 caller、IPC/protocol/renderer/persistence 接入，也无新构建/实窗。复核原 58b1082e7 的 2205 文件/79 脚本/CLI 哈希不变，继续真实接线。[阶段一百一十一证据](evidence/local-ssh-feature-parity/stage111)。

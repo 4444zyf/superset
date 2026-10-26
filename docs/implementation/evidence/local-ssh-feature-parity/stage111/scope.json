@@ -1,0 +1,21 @@
+{
+  "source": "4f4ca33efe7910c048d8f4bc20a159aa9e75e6f8",
+  "tests": {
+    "passed": 28,
+    "assertions": 119,
+    "files": 2,
+    "newTests": 11
+  },
+  "typecheck": "desktop passed",
+  "scope": "Internal main-process browser-open renderer lifecycle, no production caller, IPC binding, protocol, renderer creation, persistence, CLI, new build or native run.",
+  "red": [
+    "Missing new module before implementation",
+    "New target-change case showed first implementation accepted an otherwise-current renderer reply after target change; fixed with target guard before reply and refresh cancellation."
+  ],
+  "compiledSource": "58b1082e71f1d5bf186e9611b406e89ca9a3b856",
+  "limits": [
+    "Scope invalidation still needs wiring to real view/profile/window/connection lifecycle",
+    "Actual renderer listener and background layout/runtime are not connected",
+    "Overall parity incomplete"
+  ]
+}
