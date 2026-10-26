@@ -1,0 +1,65 @@
+{
+  "compiledSourceCommit": "7b2892a578fe2e45d287e0f52d36924894c582e7",
+  "acceptedFixtureCommit": "1693f1aa4de53b7b8308168014c9f110c8075fe9",
+  "tests": {
+    "host": {
+      "passed": 78,
+      "assertions": 405,
+      "files": 10
+    },
+    "desktop": {
+      "passed": 40,
+      "assertions": 114,
+      "files": 3
+    },
+    "shared": {
+      "passed": 6,
+      "assertions": 32,
+      "files": 2
+    },
+    "actualNodeWebSocket": {
+      "passed": 5
+    }
+  },
+  "types": [
+    "host-service",
+    "desktop",
+    "shared",
+    "cli"
+  ],
+  "native": {
+    "acceptedCases": [
+      "local-focus-eval-7b2892",
+      "ssh-focus-eval-7b2892"
+    ],
+    "evaluationApiCalls": 30,
+    "evaluationSuccess": 22,
+    "evaluationExpectedReject": 8,
+    "navigationApiRegressionCalls": 18,
+    "navigationCliRegressionCalls": 24,
+    "readCaptureCliRegressionCalls": 22,
+    "sshPriorWindowRestores": 20,
+    "repeatedIdOnlyOneActualEvaluation": true,
+    "throwThenRepeatDoesNotExecuteAgain": true,
+    "falsyAndUndefinedResultsPreserved": true,
+    "backgroundTerminalAndFocusPreserved": true,
+    "noReplayAfterReopen": true
+  },
+  "failuresAndCorrections": [
+    "Initial core red tests included one 5s fixture timeout while awaiting a request from an absent RPC. The fixture now races the request with early RPC settlement and fails immediately; no timeout was increased.",
+    "Initial full Biome check encountered the pre-existing navigation regex control-character rule; old regex preserved, formatting and targeted undeclared-variable checks pass.",
+    "The first shared framing test showed JSON omission of undefined results. Only the new evaluation result field became optional, retaining valid undefined evaluation semantics.",
+    "Initial local native failed in the old navigation CLI focus assertion before the evaluation suite: BODY baseline versus later original xterm autofocus. Retained failure and cleanup; fixture-only commit waits read-only for actual terminal textarea focus before baseline in three suites, with original gestures/deadlines/assertions unchanged."
+  ],
+  "viewedImages": [
+    "local-focus-eval-7b2892/app/browser-evaluation-background-terminal.png",
+    "ssh-focus-eval-7b2892/app/browser-evaluation-background-terminal.png",
+    "ssh-focus-eval-7b2892/app/browser-reopened.png"
+  ],
+  "limits": [
+    "Protected evaluation API restored; original eval CLI namespace path is not yet connected",
+    "Source navigation/read/capture CLI dev runner regression only; bundled CLI unchanged",
+    "No installer, Actions, physical Mac, external SSH or vendor agent authentication validation",
+    "Other browser commands and parity groups remain pending"
+  ]
+}

@@ -1789,3 +1789,16 @@ CLI 仍为控制机原源码 dev runner，针对本次拥有的同机 namespace�
 源码 `8743379aa` 仅新增内部 browser-evaluation-operation 和共 11 项测试。严格输入保持原 code 最大 1,000,000 字符并允许空表达式，另有新稳定 UUID 和明确 workspace/pane 边界。沿原 DirectOperationStore，fresh 操作先检查维护状态、同步 pin 返回延迟执行器，再由原 journal 接受后执行；finally 释放预留，接受因容量失败也清理。已有记录走原输入 hash/并发/冲突/完成/未知状态规则，不重新 pin 或重发。无原 journal、认证、导航核心或旧 RPC 改动。
 
 新增模块缺失时先记录真实失败，实施后和原导航/operation 共 26 项、102 断言、3 文件通过；覆盖并发/完成去重、改 pane/code 冲突、失去回执 unresolved、切窗口不重绑、维护和 peer 缺失、容量失败 release、严格输入与边界，以及 false/0/null/空字符串/undefined/结构值保留。host-service 类型、定向 lint、插件通过。本阶段没有生产调用方、RPC、能力或 wire 接入，也没有新构建/实窗。复核此前 dda248cfe 的 2205 编译文件、77 脚本及 CLI 哈希不变。eval 仍待实际通道和 CLI 接入，整体对齐继续。[阶段一百零六证据](evidence/local-ssh-feature-parity/stage106)。
+
+
+## 阶段一百零七：受保护 eval API 的实际当前 peer 执行
+
+产品源码 `7b2892a57` 增加可选 evaluateV1 帧、独立单预留 slot、受保护严格 direct.browserEvaluateV1 mutation 及 durable/实际 ready 能力；沿阶段一百零六的原 journal 接受前同步 pin/接受后派发。pin 捕获确切 peer，不重绑新 peer，一次执行器/15 秒 ACK 生命周期，释放、断线和超时均不重发。桌面仅在协商后接收执行请求，按原 owner/window epoch/namespace/backend/registration/key 固定 pane，延迟调用原 manager.evaluateJS，执行前后检查归属，旧 owner 晚结果不 ACK。新结果帧支持 JSON 省略的 undefined；旧读/导航/截图变体、协议预算、原认证/维护/journal、CLI/旧 browser RPC 与 host floor 保留。
+
+78 项 host/405 断言/10 文件、40 项 desktop/114 断言/3 文件、6 项 shared/32 断言/2 文件、5 项真实 Node 鉴权 WebSocket通过，四处类型与定向 undeclared-variable 检查通过，七份生产模块收回新增项后 AST 相同，原 journal/认证/导航助手/CLI eval/resolver 字节相同。首轮核心 red 因缺 RPC 有一处等待派发的 5 秒夹具超时；现用请求与提前结算竞速，缺 RPC 立即失败，未增加任何超时。初次完整 Biome 检查命中原有导航正则规则，原正则保持；新 framing 的 undefined 真实失败以可选字段修正。
+
+完整构建工具退出 0，冻结 2205 文件 manifest SHA256 `bb30f43a4a835169073062b16d26036eaa2d0129c982f8eae4a5fd681a117ea6`。第一轮 local-eval-7b2892 在旧导航 CLI 焦点回归、尚未进入 eval 检查时退出 1：标签已选中但 baseline 为 BODY，随后原自动聚焦到 xterm textarea。原失败、截图和 PID 清理保留；纯夹具提交 `1693f1aa4` 在三套后台操作的 baseline 前只读等待实际终端输入焦点，没有新点击/重发操作、提高期限或放宽断言。之后重新冻结 78 MJS，编译产品仍为同一 7b2892a57，没有编译文件修改或额外构建。
+
+真实 local-focus-eval-7b2892 和 ssh-focus-eval-7b2892 均工具退出 0，SSH 含 20 次原窗口恢复。每端 15 次真实受保护 eval/status API，合计 22 成功/8 预期拒绝：页面全局计数验证相同 ID 只执行一次，改 code 409、跨 workspace 400，0/null/false/undefined 保留；计数后抛异常返回 400，journal unresolved、重复 412 且计数仍为 1；后台 false 结果保留终端 tab 和键盘焦点。正常重开读原 completed 回执并重复原请求，当前新页面计数仍不存在，没有重放或重绑。原导航 API 18 次、导航 CLI 24 次、读取/截图 CLI 22 次回归同时通过；六张白底 PNG/剪贴板、原 PTY/execution/cwd 与 HTTP Ctrl+C/关闭清理保持。
+
+全部接受/失败报告 PID 和各自 app/Xorg 已退出，最终 2205 编译文件/78 脚本/随包 CLI SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 复核不变。实际仅查看两端 eval 后台终端和 SSH 重开三张图。此为 eval API，不是原 eval CLI 的 namespace 接入；随包 CLI 未重建，无安装包/Actions/外部 SSH/实体 Mac/真实供应商 Agent 新验收。下一步接 CLI eval 的稳定 ID/未知回执和原输出；其他功能对齐继续。[阶段一百零七证据](evidence/local-ssh-feature-parity/stage107)。

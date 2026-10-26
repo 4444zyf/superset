@@ -1,0 +1,386 @@
+{
+  "source": "7b2892a578fe2e45d287e0f52d36924894c582e7",
+  "mode": "Actual protected durable evaluation API through the owned Unix endpoint and original scoped Electron manager; no eval CLI claim",
+  "calls": [
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523",
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "(()=>{const key=\"__remix_owned_eval_2dd199f9b12640e5b537f41821723702\";globalThis[key]=(globalThis[key]??0)+1;return {count:globalThis[key],title:document.title,href:location.href}})()"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523",
+        "procedure": "browser.evaluateV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+        },
+        "result": {
+          "result": {
+            "count": 1,
+            "title": "Owned browser home 中文 🙂",
+            "href": "http://127.0.0.1:39677/preview?first=%E4%B8%AD#initial"
+          }
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523",
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "(()=>{const key=\"__remix_owned_eval_2dd199f9b12640e5b537f41821723702\";globalThis[key]=(globalThis[key]??0)+1;return {count:globalThis[key],title:document.title,href:location.href}})()"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523",
+        "procedure": "browser.evaluateV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+        },
+        "result": {
+          "result": {
+            "count": 1,
+            "title": "Owned browser home 中文 🙂",
+            "href": "http://127.0.0.1:39677/preview?first=%E4%B8%AD#initial"
+          }
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523",
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "globalThis[\"__remix_owned_eval_2dd199f9b12640e5b537f41821723702\"]++"
+      },
+      "status": 409,
+      "error": {
+        "message": "This operation ID has already been accepted with different inputs",
+        "code": -32009,
+        "data": {
+          "code": "CONFLICT",
+          "httpStatus": 409,
+          "stack": "TRPCError: This operation ID has already been accepted with different inputs\n    at DirectOperationStore.execute (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:49064:11)\n    at runBrowserEvaluationOperation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:80695:23)\n    at runDirectBrowserEvaluation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:80732:10)\n    at /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:81240:110\n    at resolveMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8120:26)\n    at callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8155:26)\n    at Object.next (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8161:16)\n    at inputValidatorMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:7968:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8155:20)",
+          "path": "direct.browserEvaluateV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "2b59e17c-9b97-40c9-a418-8953d7d86d4f",
+        "workspaceId": "b953ddd5-4456-4e08-97db-1acfa55c7437",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "(()=>{const key=\"__remix_owned_eval_2dd199f9b12640e5b537f41821723702\";globalThis[key]=(globalThis[key]??0)+1;return {count:globalThis[key],title:document.title,href:location.href}})()"
+      },
+      "status": 400,
+      "error": {
+        "message": "Browser evaluation failed or pane is no longer current",
+        "code": -32600,
+        "data": {
+          "code": "BAD_REQUEST",
+          "httpStatus": 400,
+          "stack": "TRPCError: Browser evaluation failed or pane is no longer current\n    at rpcError$1 (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:80720:10)\n    at execute (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:80751:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:49088:24\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:80705:14\n    at async DirectOperationStore.runMutationOperation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:48945:14)\n    at async resolveMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8120:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8155:20)",
+          "path": "direct.browserEvaluateV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "80ccf078-4255-4e21-b07f-c8865a9dd002",
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "0"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "80ccf078-4255-4e21-b07f-c8865a9dd002",
+        "procedure": "browser.evaluateV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+        },
+        "result": {
+          "result": 0
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "c92ac631-642e-40bb-957d-a1618c641b79",
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "null"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "c92ac631-642e-40bb-957d-a1618c641b79",
+        "procedure": "browser.evaluateV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+        },
+        "result": {
+          "result": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "8b6ad510-3756-4498-9b43-f58083a5d07b",
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "false"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "8b6ad510-3756-4498-9b43-f58083a5d07b",
+        "procedure": "browser.evaluateV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+        },
+        "result": {
+          "result": false
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "f9eb8799-3e71-480e-bec9-6be146694029",
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "void 0"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "f9eb8799-3e71-480e-bec9-6be146694029",
+        "procedure": "browser.evaluateV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+        },
+        "result": {}
+      }
+    },
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "8650cb40-6557-4c20-9b09-551ab77c300c",
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "(()=>{globalThis[\"__remix_owned_eval_2dd199f9b12640e5b537f41821723702_failure\"]=(globalThis[\"__remix_owned_eval_2dd199f9b12640e5b537f41821723702_failure\"]??0)+1;throw Error('OWNED-EVALUATION-FAILURE')})()"
+      },
+      "status": 400,
+      "error": {
+        "message": "Browser evaluation failed or pane is no longer current",
+        "code": -32600,
+        "data": {
+          "code": "BAD_REQUEST",
+          "httpStatus": 400,
+          "stack": "TRPCError: Browser evaluation failed or pane is no longer current\n    at rpcError$1 (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:80720:10)\n    at execute (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:80751:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:49088:24\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:80705:14\n    at async DirectOperationStore.runMutationOperation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:48945:14)\n    at async resolveMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8120:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8155:20)",
+          "path": "direct.browserEvaluateV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.operationStatus",
+      "input": {
+        "operationId": "8650cb40-6557-4c20-9b09-551ab77c300c"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "8650cb40-6557-4c20-9b09-551ab77c300c",
+        "procedure": "browser.evaluateV1",
+        "status": "unresolved",
+        "entityIds": {
+          "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+        },
+        "error": {
+          "code": "BAD_REQUEST",
+          "message": "Browser evaluation failed or pane is no longer current"
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "8650cb40-6557-4c20-9b09-551ab77c300c",
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "(()=>{globalThis[\"__remix_owned_eval_2dd199f9b12640e5b537f41821723702_failure\"]=(globalThis[\"__remix_owned_eval_2dd199f9b12640e5b537f41821723702_failure\"]??0)+1;throw Error('OWNED-EVALUATION-FAILURE')})()"
+      },
+      "status": 412,
+      "error": {
+        "message": "This operation is unresolved; inspect its status and reconcile the existing remote work before creating a new operation",
+        "code": -32012,
+        "data": {
+          "code": "PRECONDITION_FAILED",
+          "httpStatus": 412,
+          "stack": "TRPCError: This operation is unresolved; inspect its status and reconcile the existing remote work before creating a new operation\n    at DirectOperationStore.execute (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:49074:9)\n    at runBrowserEvaluationOperation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:80695:23)\n    at runDirectBrowserEvaluation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:80732:10)\n    at /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:81240:110\n    at resolveMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8120:26)\n    at callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8155:26)\n    at Object.next (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8161:16)\n    at inputValidatorMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:7968:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D6msl0wq.js:8155:20)",
+          "path": "direct.browserEvaluateV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "486114a1-392c-470f-9461-7d1dadcd52d5",
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "false"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "486114a1-392c-470f-9461-7d1dadcd52d5",
+        "procedure": "browser.evaluateV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+        },
+        "result": {
+          "result": false
+        }
+      }
+    },
+    {
+      "procedure": "direct.operationStatus",
+      "input": {
+        "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523",
+        "procedure": "browser.evaluateV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+        },
+        "result": {
+          "result": {
+            "count": 1,
+            "title": "Owned browser home 中文 🙂",
+            "href": "http://127.0.0.1:39677/preview?first=%E4%B8%AD#initial"
+          }
+        }
+      }
+    },
+    {
+      "procedure": "direct.operationStatus",
+      "input": {
+        "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523",
+        "procedure": "browser.evaluateV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+        },
+        "result": {
+          "result": {
+            "count": 1,
+            "title": "Owned browser home 中文 🙂",
+            "href": "http://127.0.0.1:39677/preview?first=%E4%B8%AD#initial"
+          }
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserEvaluateV1",
+      "input": {
+        "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523",
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a",
+        "paneId": "f0673c45-6253-4816-9f11-d4ecb2970dcc",
+        "code": "(()=>{const key=\"__remix_owned_eval_2dd199f9b12640e5b537f41821723702\";globalThis[key]=(globalThis[key]??0)+1;return {count:globalThis[key],title:document.title,href:location.href}})()"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523",
+        "procedure": "browser.evaluateV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+        },
+        "result": {
+          "result": {
+            "count": 1,
+            "title": "Owned browser home 中文 🙂",
+            "href": "http://127.0.0.1:39677/preview?first=%E4%B8%AD#initial"
+          }
+        }
+      }
+    }
+  ],
+  "undefinedResultPreserved": true,
+  "completed": {
+    "first": {
+      "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523",
+      "procedure": "browser.evaluateV1",
+      "status": "completed",
+      "entityIds": {
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+      },
+      "result": {
+        "result": {
+          "count": 1,
+          "title": "Owned browser home 中文 🙂",
+          "href": "http://127.0.0.1:39677/preview?first=%E4%B8%AD#initial"
+        }
+      }
+    },
+    "oneEvaluationForRepeatedId": true,
+    "failedEvaluationNotRetried": true,
+    "backgroundTabAndFocusPreserved": true
+  },
+  "reopened": {
+    "persisted": {
+      "operationId": "c8d61b3a-72da-416b-9d19-5a0457cf6523",
+      "procedure": "browser.evaluateV1",
+      "status": "completed",
+      "entityIds": {
+        "workspaceId": "9ca9f5a8-c59e-49e7-bd50-d0db349e7a1a"
+      },
+      "result": {
+        "result": {
+          "count": 1,
+          "title": "Owned browser home 中文 🙂",
+          "href": "http://127.0.0.1:39677/preview?first=%E4%B8%AD#initial"
+        }
+      }
+    },
+    "noReplayOrRetarget": true
+  }
+}

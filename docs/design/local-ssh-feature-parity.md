@@ -239,3 +239,6 @@
 
 
 阶段一百零六以8743379aa新增内部eval持久操作准备，接受前同步固定/接受后执行、失败release、原hash去重/未知不重发。11项新SQLite用例连同原导航/journal共26项102断言及host类型通过，保留空code/原百万字符边界和falsy/结构结果。没有RPC/能力/协议/CLI生产接入、新构建或实窗；原dda产品2205文件/77脚本/CLI哈希保持。不能据此声称eval已恢复，下一步接真实peer。[阶段一百零六证据](../implementation/evidence/local-ssh-feature-parity/stage106)。
+
+
+阶段一百零七以产品7b2892a57接可选evaluateV1/受保护持久API，接受前固定peer与pane，接受后原manager.evaluateJS，旧owner/断线/超时不重绑重发；原读取/导航/截图与认证/journal/CLI合同保持。78项host405断言、40项desktop114断言、6项shared32断言、5项真实WS/四处类型/完整构建通过。首轮旧导航CLI焦点BODY→终端的时序失败保留，1693f1aa4纯夹具只读等待实际输入焦点再取baseline，原动作/期限/断言保持；同一编译产品两端30次eval API及64次原浏览器API/CLI回归通过，计数去重、异常unresolved不重发、falsy/undefined、后台焦点及正常重开无回放通过，SSH含20恢复。2205文件/78脚本/CLI哈希稳定。原eval CLI尚待接入，其他功能继续。[阶段一百零七证据](../implementation/evidence/local-ssh-feature-parity/stage107)。
