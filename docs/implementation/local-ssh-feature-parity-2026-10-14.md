@@ -1749,3 +1749,11 @@ desktop、host-service、shared三处类型、插件及格式/未声明变量检
 两次完整产品构建分别工具确认 0，最终 2205 编译文件 manifest SHA256 `bb1e2b55adebc6cd9c16f0166ccb67684c36618321b46e75e0b9cde545b328bd`，75 脚本按消费版本冻结。最终 `local-opaque-171061`、`ssh-opaque-171061` 均工具退出 0，SSH 含 20 次原恢复。每端 11 次原源码 CLI 调用，共 18 成功/4 次预期跨工作区拒绝；实际可见/切终端隐藏/正常重开各导出 PNG，六张均内容可见和白底，剪贴板文本及图片像素 hash 不变，隐藏捕获后仍在终端标签。原 browser 导航/find/popup/选择关闭、HTTP Ctrl+C 及同 PTY/execution/cwd 保持；四轮 app/Xorg 和报告内进程均清理。实际查看十张图，名单及清理检查在 final-verification.json。
 
 CLI 仍为控制机原源码 dev runner，针对本次拥有的同机 namespace，Electron peer 使用本地/SSH 连接；未宣称远端 CLI 安装或随包二进制更新。原随包 SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 保持。没有 Actions/安装包、新供应商认证、外部 SSH 或实体 Mac 验收。完整终端专项仍按八十九/九十六实际范围；CLI open/navigation/eval/import/CDP、rightPane 及其他组继续。[阶段一百零二证据](evidence/local-ssh-feature-parity/stage102)。
+
+## 阶段一百零三：导航持久操作与执行目标固定准备（2026-10-26）
+
+源码 `59b43b7f8` 仅新增内部导航操作函数和测试。新输入要求稳定 UUID、工作区/pane/URL，严格拒绝额外字段及控制字符；新操作先通过原维护门，再同步取得只读 pin 回调所捕获的 deferred executor，随后原 DirectOperationStore 接受并持久记录，最后才允许副作用。原同 ID 并发/完成回执复用、改输入冲突、未知结果 unresolved 且不重发的语义保持；已完成回执在无 peer/维护期间仍可读，新操作在 draining/frozen 阻止。
+
+使用真实内存 SQLite 和原 journal 的 7 项新增回归，加原 8 项共 15 项/45 断言通过；包括模拟 pinned epoch 改变后拒绝、丢确认不再派发、无 peer 不落 accepted、同 ID 换 pane/URL 冲突。host 类型/未声明变量/插件检查通过。这里只验证依赖回调与 journal 顺序，尚无真实 peer/window/原导航服务绑定，不代表浏览器导航已恢复。全树相对上一阶段只新增这两份源码；原生产 app/runtime/RPC/caps/auth/CLI/SSH 均未改。
+
+没有新构建或实窗，最新产品/实窗仍为一百零二 `171061643`；2205 编译文件/75 脚本及原 CLI 哈希复核不变。继续受鉴权通道的导航协商、窗口及原 SSH forwarding/URL 映射、版本化 mutation/CLI 接入。整体对齐未完成。[阶段一百零三证据](evidence/local-ssh-feature-parity/stage103)。
