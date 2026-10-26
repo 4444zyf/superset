@@ -36,7 +36,8 @@ export async function verifyWorkstationBrowserNavigationApiUi(options, { scope, 
 	await until(async () => workspace(await readView()).activePaneTabId === terminalTab, "terminal stays foreground for background navigation");
 	await options.screenshot("browser-navigation-terminal-before");
 	const focus = () => options.getPage().evaluate("({tag:document.activeElement?.tagName,className:document.activeElement?.className})");
-	const focusBefore = await focus();
+	await until(async()=>{const current=await focus();return current.tag==="TEXTAREA"&&typeof current.className==="string"&&current.className.includes("xterm-helper-textarea");},"terminal input focus settled before background browser operation");
+    const focusBefore = await focus();
 	const hidden = { ...input, operationId: randomUUID(), url: new URL("/owned-hidden?request=" + randomUUID(), url).href };
 	const hiddenResult = await request("direct.browserNavigateV1", hidden);
 	assert.equal(hiddenResult.status, 200); assert.equal(hiddenResult.result.status, "completed");

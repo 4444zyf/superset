@@ -55,7 +55,8 @@ export async function verifyWorkstationBrowserNavigationCliUi(options, { scope, 
     const missing=await run("navigate",["--workspace",input.workspaceId,"--pane",input.paneId,"--url",url],false);assert.match(missing.stderr,/requires --operation-id/);
     await options.click(`[data-workstation-pane-tabs] [data-tab-id="${terminalTab}"]`);
     await until(async()=>workspace(await readView()).activePaneTabId===terminalTab,"terminal foreground before CLI background navigation");
-    const focus=()=>options.getPage().evaluate("({tag:document.activeElement?.tagName,className:document.activeElement?.className})");const focusBefore=await focus();
+    const focus=()=>options.getPage().evaluate("({tag:document.activeElement?.tagName,className:document.activeElement?.className})");await until(async()=>{const current=await focus();return current.tag==="TEXTAREA"&&typeof current.className==="string"&&current.className.includes("xterm-helper-textarea");},"terminal input focus settled before background browser operation");
+    const focusBefore=await focus();
     const hidden={...input,operationId:randomUUID(),url:new URL("/cli-owned-hidden?request="+randomUUID(),url).href};
     assert.deepEqual(await navigate(hidden),{ok:true});assert.equal(workspace(await readView()).activePaneTabId,terminalTab);assert.deepEqual(await focus(),focusBefore);
     await options.screenshot("browser-navigation-cli-background-terminal");

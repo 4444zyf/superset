@@ -39,7 +39,8 @@ export async function verifyWorkstationBrowserEvaluationApiUi(options,{scope,gue
  const repeatedFailure=await request("direct.browserEvaluateV1",failure);assert.equal(repeatedFailure.status,412);assert.equal(await guestRead(`globalThis[${JSON.stringify(failureKey)}]`),1);
  await options.click(`[data-workstation-pane-tabs] [data-tab-id="${terminalTab}"]`);
  await until(async()=>workspace(await readView()).activePaneTabId===terminalTab,"terminal foreground before background evaluation");
- const focus=()=>options.getPage().evaluate("({tag:document.activeElement?.tagName,className:document.activeElement?.className})");const focusBefore=await focus();
+ const focus=()=>options.getPage().evaluate("({tag:document.activeElement?.tagName,className:document.activeElement?.className})");await until(async()=>{const current=await focus();return current.tag==="TEXTAREA"&&typeof current.className==="string"&&current.className.includes("xterm-helper-textarea");},"terminal input focus settled before background browser operation");
+    const focusBefore=await focus();
  const hidden=await request("direct.browserEvaluateV1",{...input,operationId:randomUUID(),code:"false"});assert.equal(hidden.status,200);assert.equal(hidden.result.result.result,false);
  assert.equal(workspace(await readView()).activePaneTabId,terminalTab);assert.deepEqual(await focus(),focusBefore);
  await options.screenshot("browser-evaluation-background-terminal");
