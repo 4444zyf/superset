@@ -346,3 +346,73 @@ test("browser tools resolve only the current owner registration to its original 
 	expect(f.manager.registered.has(key)).toBe(true);
 	f.registry.dispose();
 });
+
+test("bridge discovery returns copies of only this window and full connection identity's registrations", async () => {
+	const f = fixture(),
+		descriptor = { ...f.dependencies.describe(connectionId) };
+	try {
+		await f.registry.register(7, { ...pane, webContentsId: 10 });
+		await f.registry.register(7, {
+			...pane,
+			connectionId: secondConnectionId,
+			webContentsId: 11,
+		});
+		const anotherWorkspace = {
+			...pane,
+			workspaceId: crypto.randomUUID(),
+			registrationId: crypto.randomUUID(),
+		};
+		await f.registry.register(7, { ...anotherWorkspace, webContentsId: 12 });
+		expect(f.registry.listRegistrations(7, descriptor)).toEqual([
+			pane,
+			anotherWorkspace,
+		]);
+		expect(
+			f.registry.listRegistrations(7, descriptor, pane.workspaceId),
+		).toEqual([pane]);
+		expect(f.registry.listRegistrations(7, descriptor, "")).toEqual([]);
+		expect(f.registry.listRegistrations(8, descriptor)).toEqual([]);
+		for (const field of [
+			"connectionId",
+			"backendId",
+			"namespaceId",
+			"instanceId",
+			"generation",
+		] as const)
+			expect(
+				f.registry.listRegistrations(7, {
+					...descriptor,
+					[field]: field === "generation" ? 2 : "other",
+				}),
+			).toEqual([]);
+		const [copy] = f.registry.listRegistrations(7, descriptor);
+		if (!copy) throw Error("Missing owned registration");
+		copy.registrationId = crypto.randomUUID();
+		expect(f.registry.getManagerPaneId(7, pane)).not.toBeNull();
+	} finally {
+		f.registry.dispose();
+	}
+});
+
+test("bridge discovery excludes pending, destroyed and superseded registrations", async () => {
+	const f = fixture(),
+		descriptor = { ...f.dependencies.describe(connectionId) };
+	try {
+		const verification = Promise.withResolvers<void>();
+		f.dependencies.checkWorkspace = () => verification.promise;
+		const pending = f.registry.register(7, { ...pane, webContentsId: 10 });
+		expect(f.registry.listRegistrations(7, descriptor)).toEqual([]);
+		verification.resolve();
+		await pending;
+		expect(f.registry.listRegistrations(7, descriptor)).toEqual([pane]);
+		f.dependencies.describe(connectionId).instanceId = "replacement";
+		expect(f.registry.listRegistrations(7, descriptor)).toEqual([]);
+		f.dependencies.describe(connectionId).instanceId = descriptor.instanceId;
+		f.guest().destroyed = true;
+		expect(f.registry.listRegistrations(7, descriptor)).toEqual([]);
+		f.registry.activateOwner(7);
+		expect(f.registry.listRegistrations(7, descriptor)).toEqual([]);
+	} finally {
+		f.registry.dispose();
+	}
+});

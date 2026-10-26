@@ -255,6 +255,26 @@ export class WorkstationBrowserRegistry {
 	getWebContentsId(ownerId: number, input: unknown): number | null {
 		return this.findRegistration(ownerId, input)?.guest.id ?? null;
 	}
+	listRegistrations(
+		ownerId: number,
+		descriptor: DirectDescriptor,
+		workspaceId?: string,
+	): WorkstationBrowserPane[] {
+		if (this.owner?.id !== ownerId) return [];
+		return [...this.registrations.values()]
+			.filter(
+				(record) =>
+					this.current(record) &&
+					record.descriptor.connectionId === descriptor.connectionId &&
+					record.descriptor.generation === descriptor.generation &&
+					record.descriptor.backendId === descriptor.backendId &&
+					record.descriptor.namespaceId === descriptor.namespaceId &&
+					record.descriptor.instanceId === descriptor.instanceId &&
+					(workspaceId === undefined ||
+						record.pane.workspaceId === workspaceId),
+			)
+			.map((record) => ({ ...record.pane }));
+	}
 
 	closeConnection(connectionId: string): void {
 		for (const [key, pending] of this.pending)
