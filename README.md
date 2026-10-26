@@ -1,3 +1,13 @@
+# Superset Remix
+
+**Based on [Superset](https://github.com/superset-sh/superset).** This is an independently maintained, unofficial modified version. It is not endorsed, sponsored or maintained by Superset, Inc. Original copyright and [Elastic License 2.0](LICENSE.md) are preserved.
+
+The accountless local and SSH workstation is being developed on [`release-local-ssh-feature-parity-1.37.7`](https://github.com/4444zyf/superset-remix/tree/release-local-ssh-feature-parity-1.37.7). See that branch's [README and build guide](https://github.com/4444zyf/superset-remix/blob/release-local-ssh-feature-parity-1.37.7/README.md), [feature progress](https://github.com/4444zyf/superset-remix/blob/release-local-ssh-feature-parity-1.37.7/docs/design/local-ssh-feature-parity.md), and [modification notice](https://github.com/4444zyf/superset-remix/blob/release-local-ssh-feature-parity-1.37.7/FORK_NOTICE.md) for its current scope and limitations. [Report fork issues here](https://github.com/4444zyf/superset-remix/issues).
+
+This default branch retains the upstream implementation. The upstream README below describes the original product; its downloads, hosted services and community belong to upstream Superset.
+
+## Upstream README (reference)
+
 <div align="center">
 
 <img src="apps/desktop/src/resources/build/icons/icon.png" alt="Superset app icon" width="96" height="96" />
