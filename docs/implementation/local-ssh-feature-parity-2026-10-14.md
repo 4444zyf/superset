@@ -1653,3 +1653,15 @@ WorkstationBrowsers复用九十三的原状态机，每个原有界128条runtime
 7项服务边界与5项runtime生命周期测试，加原终端/浏览器/设计服务合计211项3917断言、30文件通过；完整桌面类型、17严格语言编译、插件、格式及未声明变量检查通过。单测用deferred Promise及原DOM事件模型，不做真实等待、全局模块mock或私有Map访问。首轮shell工作目录错误、抽取前模块缺失、测试错误假设同一WebContents重复dom-ready会重新注册、测试workspaceId类型遗漏的日志分别保留，不冒称真实产品回归。测试改用实际新WebContents ID后，旧启用晚成功不会在新注册上等待选择。AST证明既有main动作、主frame/epoch前缀、preload旧方法、runtime原导航/state等保持；原BrowserPane/工作站页面仍未修改。
 
 本阶段为后续UI接入准备，未启用工作站设计模式界面或Agent发送，尚无新增本地/SSH实窗验收。没有重建dist，609f68608的2205编译文件及九十二73脚本全部逐一不变，CLI未重建。最新工具实窗按九十二，完整终端四场景按八十九；无Actions、安装包或后端发行归档。继续原浮层、目标端附件和明确Agent发送接入，整体功能对齐未完成。[阶段九十四证据](evidence/local-ssh-feature-parity/stage94)。
+
+## 阶段九十五：明确 Agent 身份的持久反馈发送（2026-10-26）
+
+c1e63f767为后续原设计模式发送接入提供可选workstationAgentFeedbackV1；仅direct后端同时支持durableOperations与已有终端恢复时声明。桌面在读取原terminalAgents.listByWorkspace及新增terminal.sendToAgentV1前核对明确workspace/当前generation/真实布尔能力。新发送映射原direct.execute与OperationIntents/DirectOperationStore，要求稳定operationId；回执未知保留pending，不自动重发。旧后端缺少能力时拒绝入口，不提高全局host floor，也不修改或部署云API。
+
+新发送先绑定所选Agent的agentId、launchId或startedAt及已知agentSessionId，再复用原matchesAgentBinding、restoreResources、deliverExistingTerminalScript和sendAgentMessage；校验原执行号，连接已有daemon，每次写入使用inputExisting。Agent已结束、所属工作区或launch/session变化时拒绝，不使用允许普通shell的脚本fallback。原terminal.send/listByWorkspace输入/输出/错误/默认值/认证与原粘贴、队列和送达时机主体均字节不变。direct.execute仅扩展枚举/分派项，能力字段为新增可选；原协议版本、数据库及所有旧路径保持。未发送真实供应商Agent或修改其认证。
+
+7项新delivery回归、1项能力组合回归与既有后端测试合计21项66断言/4文件；桌面含3项新边界/回执测试合计254项4098断言/31文件；完整desktop和host-service类型、插件、格式/未声明变量通过。首次controller 40通过/3失败实际发现新能力未转交，补能力allowlist后43项通过；缺少新模块的前置日志单列。AST核对controller除新增能力/持久路径外不变，原direct dispatcher除新增字段/枚举/分支外不变，所有旧workspace操作、旧发送/绑定列表/匹配/框架/回执代码保持。没有新用户文案或catalog修改，17严格语言最近通过按九十四记录。
+
+真实Electron-as-Node/PTY daemon/临时host SQLite检查1项退出0：通过实际direct.execute向拥有的cat进程发送中文/Emoji多行反馈，逐字节断言原括号粘贴，重复相同operationId返回同一完成回执而没有第二次输入；Agent标记结束后新请求拒绝，未落入仍存活的shell。绑定是测试合成的claude元数据，不是真实供应商认证；该检查是服务/PTY集成，不代替工作站浮层、本地/SSH实窗或Mac验收。拥有PID201938、临时profile/socket在完成后不存在。
+
+工作站原设计模式浮层、目标端附件与Agent选择/发送UI仍待接入。本阶段未重建dist，609f68608的2205编译文件及九十二73脚本逐一不变，CLI未重建，无Actions、安装包、后端发行归档或生产部署。最新完整终端四场景仍按八十九，浏览器工具实窗按九十二；继续整体功能对齐。[阶段九十五证据](evidence/local-ssh-feature-parity/stage95)。

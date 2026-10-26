@@ -213,3 +213,5 @@
 阶段九十三以1f00c3da9抽出原设计模式状态机/hook，注入原RPC和通知，旧单例及调用合同保持；逐字段/方法AST核对，原元素提取/脱敏/截图/Popover等字节一致。9项无真实等待的异步生命周期回归与原功能合计198项3869断言、类型/17严格语言/插件通过。仅源码准备，未启用工作站设计模式、未重建产品或进行新实窗验收，不能算设计模式功能已恢复；继续原UI/目标端附件与Agent发送接入。[阶段九十三证据](../implementation/evidence/local-ssh-feature-parity/stage93)。
 
 阶段九十四以b84f0ec5d增加可选设计模式私有API，沿原主frame/registry所有权及epoch守卫调用原选择/截图服务；过期返回拒绝，旧RPC和所有既有IPC保持。工作站runtime复用原状态机，detach/destroy/guest替换退出、导航丢弃旧确认。7项服务/5项生命周期新增回归与原功能合计211项3917断言、类型/17严格语言/插件通过。仍是服务准备，未启用UI或Agent发送、未重建产品或新增原生验收；继续原浮层与目标端发送接入。[阶段九十四证据](../implementation/evidence/local-ssh-feature-parity/stage94)。
+
+阶段九十五以c1e63f767增加可选Agent反馈能力：原绑定列表明确所属workspace，新发送使用原持久回执、Agent绑定与执行号校验及原粘贴队列，Agent结束后拒绝而不fallback到shell。原发送/查询合同、框架、数据库和host floor不变；旧后端在能力检查前禁用。桌面254项4098断言、后端21项66断言、两端类型/插件通过；真实PTY/direct.execute检查确认中文多行逐字节、同operationId不重复输入及已结束Agent拒绝。该绑定为合成夹具，非供应商认证/工作站UI/SSH实窗。未重建产品，浮层/目标端附件及发送UI继续接入。[阶段九十五证据](../implementation/evidence/local-ssh-feature-parity/stage95)。
