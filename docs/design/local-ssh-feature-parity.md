@@ -209,3 +209,5 @@
 阶段九十一接回原Signed-in sites菜单，原Cookie聚合/清除服务及发布RPC合同保持，新增可选私有IPC具当前window/epoch保护。修正搜索框Down/Up焦点进入项，原上限20/过滤/数量语义保留，读取失败可Retry/旧来源回复隔离。609f68608通过166项/3772断言、类型、17严格语言、插件与原代码核对。本地/拥有SSH的真实27域/28Cookie夹具完成跨20项搜索、键盘secure/HttpOnly与双路径清除、无关域保留、正常重开25条、原PTY/cwd/20次SSH恢复；73脚本按消费版本复核，CLI不变。首个tools附加流程Runtime.evaluate超时未定位具体调用，Cookie验收不包含其通过声明；后续诊断见阶段九十二。配置TCP代理连接被拒，外部SSH尚未到认证；其他原版功能继续。[阶段九十一证据](../implementation/evidence/local-ssh-feature-parity/stage91)。
 
 阶段九十二仅给验收夹具增加有界、无参数/返回值的可选CDP请求诊断。产品609f68608和2205编译文件不变，本地/拥有SSH各一次原tools、DevTools、设置、导航及正常重开通过，原PTY/cwd保留，SSH含20次恢复。截图请求38.39/46.86ms、同步关闭4.16/5.44ms，两张当前截图可见marker；历史九十一超时未复现，根因仍未确定，不声明已修复。445/1143请求全部配对；各一次已捕获readProof文件就绪轮询异常单独记录，renderer运行异常为空。完整终端四场景仍按八十九范围；其他功能继续。[阶段九十二证据](../implementation/evidence/local-ssh-feature-parity/stage92)。
+
+阶段九十三以1f00c3da9抽出原设计模式状态机/hook，注入原RPC和通知，旧单例及调用合同保持；逐字段/方法AST核对，原元素提取/脱敏/截图/Popover等字节一致。9项无真实等待的异步生命周期回归与原功能合计198项3869断言、类型/17严格语言/插件通过。仅源码准备，未启用工作站设计模式、未重建产品或进行新实窗验收，不能算设计模式功能已恢复；继续原UI/目标端附件与Agent发送接入。[阶段九十三证据](../implementation/evidence/local-ssh-feature-parity/stage93)。

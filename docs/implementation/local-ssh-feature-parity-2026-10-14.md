@@ -1635,3 +1635,11 @@ clipped本地/拥有SSH两端先通过全设备与原浏览器流程；随后原
 匹配appPath=/workspace/superset/apps/desktop、renderer=file:///workspace/superset/apps/desktop/dist/renderer/index.html；本地main/renderer端口34303/36913，SSH具体端口见native-summary.json。本地原PTY PID195838/execution719ecda6-3f69-4012-b971-da59dd992f70，SSH PID199587/execution6436908b-b023-435c-8768-606dc86650aa以及cwd保持。两张当前DevTools截图已实际查看，均展开body并可见唯一页面marker，存在一个warning徽标；不回溯替代阶段九十一body折叠的历史截图，其余图只捕获。
 
 2205个编译文件逐一复核，manifest仍17235ac0d8db527cc9b82de7ccc1b3a3377aa5dc25eb5b42adc71171dd075477，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。73个脚本按各轮实际消费版本保留哈希，本地/SSH间仅诊断代码格式和flag读取提取变化，原同步关闭逻辑不变。静态语法/未声明变量、插件检查通过；产品测试仍按阶段九十一166项记录，本轮没有重跑全部单测或阶段八十九完整终端四场景。拥有app/Xorg均退出0，HTTP实际Ctrl+C停止，最终拥有进程及X163 socket均不残留。无Actions、安装包、后端归档、真实供应商认证或外部SSH验收。[阶段九十二证据](evidence/local-ssh-feature-parity/stage92)。其余原版功能仍在进行。
+
+## 阶段九十三：原设计模式状态机复用准备（2026-10-26）
+
+1f00c3da9将原designModeStore类与useSyncExternalStore hook抽到相邻Core，仅把原browser RPC客户端和错误通知作为依赖注入。旧designModeStore仍是模块级单例，注入原electronTrpcClient.browser/toast.error，既有调用方导出及翻译不变。AST逐字段/方法核对，仅规范化这两项依赖；idle对象、hook订阅语义、Date.now/generation、取消/失败/截图best-effort流程保持。原browser router、BrowserManager、控制器、注入脚本、载荷校验/预算/脱敏、截图服务、共享类型、Popover/附件/Prompt和BrowserPane均字节一致，没有RPC或持久化合同变化。
+
+增加9项异步回归：真实deferred Promise控制启用/选择/截图，不使用真实等待、全局module mock或私有Map访问。覆盖DOM与匹配截图、启用中取消、重新选取丢弃旧结果、截图晚回复丢弃、截图失败仍保留DOM、启用/传输失败、两窗格取消隔离和退订。第一次缺少Core模块的日志是抽取前模块不存在，不能冒称实窗产品故障。抽取后9项31断言及合并原终端/浏览器/设计模式服务共198项3869断言、27文件通过；完整桌面类型、17严格语言编译、插件及格式检查通过。
+
+本阶段只有源码准备，没有启用工作站设计模式或新增用户界面，也没有声称元素选择/Agent发送的本地与SSH端到端验收。未重建dist，仍为609f68608的2205个文件逐一不变，CLI保持f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb；最新工具实窗按九十二，完整终端四场景按八十九。无Actions、安装包或后端发行归档。下一步继续原UI、当前窗格服务守卫、目标端附件与明确Agent发送接入，整体对齐未完成。[阶段九十三证据](evidence/local-ssh-feature-parity/stage93)。
