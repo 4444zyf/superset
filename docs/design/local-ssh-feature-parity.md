@@ -2,11 +2,11 @@
 
 2026-10-14。版本 1.37.7，分支 `release-local-ssh-feature-parity-1.37.7`，基于已验证 1.37.6 的 `0ad8c05dd`。目标：原有功能逐项保留、复用并验证；能够在本地或 SSH 上运行的功能补齐数据源，而不是因为原页面位于 `_authenticated` 下就排除。
 
-## 2026-10-25 当前重点状态
+## 2026-10-26 当前重点状态
 
-用户强调的滚轮/触控板输入保护和终端复制粘贴已实现。阶段八十在最终ca7912bc6源码编译上再次独立回归本地与拥有的loopback SSH：历史上下翻动、无鼠标TUI回看不注入方向键、保存的stock偏好、SGR/legacy/pixel切换、中文/Emoji复制、多行括号粘贴、图片/文件路径及重挂载后OSC52均通过。滚轮与剪贴板两个SSH套件各含20次窗口恢复。真实供应商Agent、外部SSH和物理Mac触控板仍未作为本轮实测范围。
+用户强调的滚轮/触控板输入保护和终端复制粘贴已实现。阶段八十九在5dcb36689源码编译上独立回归本地与拥有的loopback SSH：历史上下翻动、无鼠标TUI回看不注入方向键、保存的stock偏好、SGR/legacy/pixel切换、中文/Emoji复制、多行括号粘贴、图片/文件路径及重挂载后OSC52通过。两个SSH套件各含20次窗口恢复。初轮数值观测失败、截图和只读诊断已保留；最终夹具等待实际渲染并保留前后数值，不重发滚轮输入。真实供应商Agent、外部SSH和物理Mac触控板/剪贴板仍未实测。
 
-内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、查找、历史SQLite与V2持久化。阶段七十八至七十九已验证真实导航/查找/window.open/重开、所属SSH工作区的localhost转发与保持CSP的当前地址栏图标。阶段八十进一步接回原主页和终端四档URL策略设置、按偏好打开的端口行；明确的外部图标仍走原外部操作。偏好存入独立有界SQLite，真实本地/SSH设置操作、Ctrl点击分屏→即时改为新标签、正常重开及原PTY身份保留均通过。阶段八十一接回原工具菜单；真实本地/SSH已通过系统剪贴板中的原始URL、鼠标/键盘缩放与真实视口、强制刷新、包含当前页面DOM的独立DevTools以及浏览器设置定位。阶段八十二接回原六预设设备工具栏，并修复超高预览覆盖地址栏、滚动不同步和缩放裁剪冲突；本地/SSH真实尺寸、旋转、滚动/卡顿往返、查找、退出/标签往返和正常重开通过，原工具菜单两端回归通过。阶段八十三接回原历史Dialog；本地/SSH真实全库搜索、选择导航、明确清空、刷新新增访问和重开保持通过，并修复SSH当前历史图标的canonical匹配。阶段八十四接回原独立浏览数据清理及可见结果提示，本地/SSH取消、只选历史/Cookie/缓存、保留未选数据、实际HTTP缓存失效与正常重开通过。阶段八十五接回原下载列表及私有元数据；本地/SSH真实同名并发/取消/清空保活、关闭原pane后继续、文件哈希/保留和正常重开完成/中断状态均通过。**浏览器组仍未全部完成**：聊天/任务URL策略、右侧区域、完整标签/历史图标、其余设置/导入、设计及其余工具/关联窗格、CLI桥等仍待补。整体功能对齐仍进行中。详见[实施报告](../implementation/local-ssh-feature-parity-2026-10-14.md)、[阶段八十证据](../implementation/evidence/local-ssh-feature-parity/stage80)、[阶段八十一证据](../implementation/evidence/local-ssh-feature-parity/stage81)、[阶段八十二证据](../implementation/evidence/local-ssh-feature-parity/stage82)、[阶段八十三证据](../implementation/evidence/local-ssh-feature-parity/stage83)、[阶段八十四证据](../implementation/evidence/local-ssh-feature-parity/stage84)与[阶段八十五证据](../implementation/evidence/local-ssh-feature-parity/stage85)。
+内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、导航/查找、历史SQLite、所属SSH工作区的localhost转发、当前图标与V2持久化。阶段八十至八十九接回主页/终端URL与端口策略、原工具菜单/DevTools、设备预览、历史搜索/清空、浏览数据清理、下载、截图/系统图片剪贴板及显式历史/Cookie导入。设置和菜单共用一个原导入弹窗，关闭父设置后继续保留，真实两端202条导入和正常重开通过。Mac Cookie/Keychain/FDA尚未原生验证；不导入密码数据库。banner、设计模式、rightPane、聊天/任务URL策略、浏览器CLI桥及其他功能仍在进行，不宣称整体对齐完成。最新源码、精确验证范围与失败记录见[阶段八十九](../implementation/evidence/local-ssh-feature-parity/stage89)，历史验证见各阶段实施记录。
 
 ## 验收原则
 
@@ -16,7 +16,7 @@
 
 ## 基线清单
 
-这是工作清单，`待接入`不是实现完成。细分操作的实际覆盖随实现逐项补充。
+这是截至阶段八十九的工作清单，`待接入`不是实现完成；“已接基础操作”只覆盖本行注明的入口。状态依据现有源码和对应阶段记录更新，具体原生验证范围仍以各阶段证据为准，不代表本轮重新运行全部功能。
 
 | 功能组 | 原版实现或数据源 | 当前直连入口 | 对齐要求 |
 | --- | --- | --- | --- |
@@ -25,30 +25,30 @@
 | 侧栏分组、固定、搜索和排序 | 原 sidebar/workspace stores、tagFolders | 部分 | 目标端元数据与本地视图分别存储 |
 | 项目导入、创建、克隆、打开 | project/workspaceCreation | 部分 | 所选机器执行，不误用本机路径 |
 | Git worktree、分支与工作区归档/删除 | workspaces/workspaceCleanup | 部分 | 新建 worktree 统一到运行机器的 `~/Superset Remix/worktrees/<项目名>-<项目ID>/<分支>`；原生命周期与脚本，先展示删除影响 |
-| 项目设置、颜色、命名、稀疏检出 | project/settings | 待接入 | 复用表单，使用所选后端 |
-| 项目 setup/run/teardown 脚本 | config、runtime/setup | 待接入 | 明确运行、原终端显示输出 |
+| 项目设置、颜色、命名、稀疏检出 | project/settings | 已接基础字段 | 阶段十一至十四复用名称、描述、颜色、图标、SparseCheckoutField与脚本编辑；继续核对其余原设置与目标端保存边界 |
+| 项目 setup/run/teardown 脚本 | config、runtime/setup | 已接主要流程 | 阶段十四至二十接回目标端版本配置、原Run/Setup输出、Teardown确认和完成状态；阶段四十三至四十九补关闭等待及原脚本触发规则 |
 | 终端渲染、搜索、图像、Unicode、剪贴板 | 原 terminal surface/Search | 已接入核心 | 接齐主题、字体、链接与全部设置 |
-| Agent 终端预设、自定义命令 | 原 presets/agent configs | 待完整接入 | 原预设与命令构造，保留权限设置 |
-| 终端链接、文件定位、通知与退出行为 | 原 terminal helpers/notifications | 部分：文件点击与行列定位已接入 | 目标机器解析；目录/URL/外部编辑器、通知与退出周边待补 |
+| Agent 终端预设、自定义命令 | 原 presets/agent configs | 已接基础操作 | 阶段三十五至四十六复用原预设、Agent字段/目录/图标及终端脚本管理；目标配置与明确启动，供应商实际认证单独验证 |
+| 终端链接、文件定位、通知与退出行为 | 原 terminal helpers/notifications | 部分：文件/目录行列定位与URL策略已接 | 阶段五十五至六十七、八十接回文件/目录定位、外部URL手势和浏览器点击策略；通知、外部编辑器与其他退出周边继续核对 |
 | 文件树、展开、隐藏文件与多文件 | 原 FilesTab/FilesView | 部分 | 原交互，目标端目录数据 |
-| 文件新建、文件夹、移动、重命名、复制、删除 | filesystem | 待接入 | 原服务、冲突不覆盖、删除确认 |
-| 文件/内容搜索、快速打开与跳转 | filesystem.searchFiles/searchContent | 待接入 | 有界结果、晚回复与工作区切换隔离 |
-| 文本编辑、语法、查找、折叠、保存 | 原 CodeEditorSurface | 已接入核心 | 多文件草稿、主题/字体/缩进设置 |
-| 图片、Markdown、二进制与 Diff 预览 | 原 FilePane registry/views | 部分 | 复用原展示组件，保留只读边界 |
+| 文件新建、文件夹、移动、重命名、复制、删除 | filesystem | 已接基础操作 | 阶段一、四复用原文件服务和菜单，冲突不覆盖、永久删除确认；回收站与其他原文件操作继续核对 |
+| 文件/内容搜索、快速打开与跳转 | filesystem.searchFiles/searchContent | 部分：文件名/内容搜索与行列跳转已接 | 阶段一、五十五至五十六接回有界搜索、命中定位及重复定位；独立快速打开/命令面板等继续补齐 |
+| 文本编辑、语法、查找、折叠、保存 | 原 CodeEditorSurface | 已接核心及多文件生命周期 | 阶段三、二十八至三十一接回多文件草稿、外部变更、冲突比较/明确解决和未保存关闭保护；原设置继续核对 |
+| 图片、Markdown、二进制与 Diff 预览 | 原 FilePane registry/views | 已接主要文件视图 | 阶段五、二十二至二十四、三十复用图片、Markdown、PDF/视频与Diff视图及所选工作区资源；其余文件类型继续核对 |
 | Git 状态与工作区差异 | git.getStatus/getDiff | 已接入 | 原版 diff 与变更列表 |
-| Git 暂存、撤销暂存、提交 | git.stage*/unstage*/commit | 待接入 | 复用 StageToggleButton/CommitForm，仅明确选中范围 |
-| Git 历史、分支、基础分支、同步 | git.listCommits/listBranches/push 等 | 待接入 | 原操作，远端自身 Git 凭据，不依赖 Superset 账号 |
+| Git 暂存、撤销暂存、提交 | git.stage*/unstage*/commit | 已接基础操作 | 阶段一复用StageToggleButton/CommitForm，仅提交已暂存范围，保留意图/未知回执处理；其余Git工作流继续核对 |
+| Git 历史、分支、基础分支、同步 | git.listCommits/listBranches/push 等 | 已接主要流程 | 阶段六至十接回完整分页历史、基础分支、重命名/推送、Fetch/Pull/Sync及本地无origin边界；实际远端Git凭据独立 |
 | GitHub PR、检查、评审与 Issue | github/pullRequests/issues | 待接入 | 使用所选机器已有 GitHub 登录；没有登录显示真实原因 |
 | 聊天会话、流、Markdown、附件、审批 | chat-runtime、chat-ui、attachments | 部分 | 原协议与展示，真实模型验证单独记录 |
 | Agent 原生输入、候选命令、提及、模式/模型 | PromptInput、ACP | 待接入 | 按 `ssh-agent-native-input.md`，保留 TUI |
-| Agent 配置、技能、MCP 与工具配置 | settings.agentConfigs、agentTooling | 待接入 | 本地/SSH 配置，托管 MCP 不伪装为可用 |
+| Agent 配置、技能、MCP 与工具配置 | settings.agentConfigs、agentTooling | 部分：Agent目录、字段、图标及脚本已接 | 阶段三十五至四十、五十四接回目标端Agent配置和原表单；技能/MCP/工具配置及托管能力继续补齐 |
 | 插件清单、安装、更新与移除 | plugins/installed_plugins.json、原插件界面 | 待接入 | 同一声明式状态，目标机器执行 |
-| 端口发现、转发、浏览器打开 | ports、已有 direct forwarding | 部分 | 阶段六十八至七十二接回发现、明确外部打开、复制、确认单端口/当前工作区批量关闭和独立多转发；旧后端保留手动输入，完整端口管理/内部浏览器待补 |
-| 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 部分 | 阶段七十三至八十五接回工作区页面、原导航/查找/历史Dialog/基础工具/设备预览/下载及兼容布局；真实本地/SSH转发、搜索/清空、滚动和重开通过，其余工具/设置/CLI桥待补 |
-| 浏览器设置、数据导入与隔离 | 原 BrowserSettings | 部分：主页、终端/端口URL策略及浏览数据清理已接回 | 其余设置/导入待补；原权限与用户选择，不隐式读取其他浏览器 |
+| 端口发现、转发、浏览器打开 | ports、已有 direct forwarding | 已接主要流程 | 阶段六十八至七十二、七十八至八十接回发现、复制/明确外部或内嵌打开、确认单端口/当前工作区批量关闭和多转发；旧后端保留手动输入，其余管理继续核对 |
+| 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 部分：原页面、常用工具和数据列表已接 | 阶段七十三至八十九接回导航/查找、历史、基础工具/DevTools、设备预览、下载、截图及导入；设计模式、rightPane、CLI桥等继续补齐 |
+| 浏览器设置、数据导入与隔离 | 原 BrowserSettings | 部分：主页、终端/端口URL策略、清理和显式导入已接 | 阶段八十至八十九接回私有SQLite、原设置/菜单导入与共享弹窗；banner和其他设置继续补齐，不自动导入历史，Mac Cookie/Keychain/FDA未原生验证 |
 | 命令面板、全局快捷键与导航 | 原 commandPalette/hotkeys | 待接入 | 原注册表、设置与当前操作实际对应 |
 | 外观、语言、主题、字体 | AppearanceSettings、i18n/themes | 部分 | 原设置与组件真正响应 |
-| 文件、终端、Git、行为设置 | 原 settings 各页 | 待接入 | 原语义，有界本机 SQLite 偏好 |
+| 文件、终端、Git、行为设置 | 原 settings 各页 | 部分：自动保存、选中复制与若干关闭偏好已接 | 阶段二、三十一、六十二至六十三、八十接回有界本机偏好及原控件；其余设置继续逐项核对 |
 | 铃声、通知、连接和链接设置 | 原 settings/notifications | 待接入 | 复用原行为与 OS 权限 |
 | 实验性选项与权限设置 | 原 Experimental/PermissionsSettings | 待接入 | 默认值、权限和实际能力一致 |
 | Agent 自有登录与本地用量 | usage/agent accounts | 待接入 | 区分第三方 Agent 登录与 Superset 登录 |
@@ -201,3 +201,5 @@
 
 
 阶段八十八恢复原浏览器显式菜单导入：原View/RPC分支/读取器/Cookie主体复用，桌面OS来源白名单与窗口epoch守卫写私有历史库，Linux支持实际appData/XDG目录，旧调用默认行为保持。真实发现并修复并列Dialog相同key遗留portal，最终6faaddb89通过150项/3702断言、类型/17严格语言/插件与原代码核对。本地/拥有SSH均通过202条跨批读取/幂等合并、空来源/取消、来源文件不变、真实历史选择与重开，并连续通过PNG系统剪贴板/截图列表生命周期；长菜单滚轮0→60，SSH20次恢复及原PTY/cwd保持。两端2205文件/9脚本复核稳定，CLI不变，无Actions/打包。Mac Cookie/Keychain/FDA沿用原实现但未原生验；原菜单未实现密码数据库读取。工作站banner/settings等其他入口与其余功能继续进行。[阶段八十八证据](../implementation/evidence/local-ssh-feature-parity/stage88)。
+
+阶段八十九接回原BrowserSettings导入行，菜单/设置共用窗口级原ImportHistoryDialogView；关闭父设置保留导入和处理中关闭保护。5dcb36689通过148项/3668断言、类型、17严格语言、插件与原代码核对；本地/拥有SSH实窗均从原菜单进入设置、导入202条并保持来源文件、取消/正常重开，原PTY/cwd保持。终端数值观测失败与截图不一致的初轮及只读诊断保留，夹具a773320c7增加渲染状态等待/前后数值且不重发输入后，最终本地/SSH滚轮和独立剪贴板四场景通过；同一2205编译文件及CLI保持。15行过期清单状态按既有源码/证据更新，其余功能继续，实际供应商Agent/外部SSH/实体Mac未验。[阶段八十九证据](../implementation/evidence/local-ssh-feature-parity/stage89)。
