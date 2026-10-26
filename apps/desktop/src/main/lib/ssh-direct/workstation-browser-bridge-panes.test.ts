@@ -3,7 +3,7 @@ import type { DirectDescriptor } from "../../../shared/direct-workstation";
 import type { WorkstationBrowserPane } from "../../../shared/workstation-browser";
 import { currentWorkstationBrowserBridgePanes } from "./workstation-browser-bridge-panes";
 
-function fixture() {
+function fixture(normalizePng?: (base64: string) => string) {
 	let active = true,
 		key: string | null = "owned-manager-key";
 	let afterMetadata: () => void = () => {};
@@ -26,6 +26,7 @@ function fixture() {
 		evaluation = Promise.withResolvers<unknown>();
 	const source = currentWorkstationBrowserBridgePanes({
 		ownerId: 7,
+		normalizePng,
 		descriptor,
 		isCurrent: () => active,
 		registry: {
@@ -183,4 +184,14 @@ test("metadata collected during an owner change is not returned", () => {
 	const f = fixture();
 	f.onMetadata(f.retire);
 	expect(() => f.source.listPanes("owned")).toThrow("no longer current");
+});
+
+test("PNG normalization cannot publish a capture after its registration changes", async () => {
+	const f = fixture((base64) => {
+		f.replace();
+		return base64;
+	});
+	const capture = f.source.capturePng("page", "owned").catch((error) => error);
+	f.capture.resolve("owned-private-pixels");
+	expect(await capture).toMatchObject({ message: "Browser pane is no longer current" });
 });

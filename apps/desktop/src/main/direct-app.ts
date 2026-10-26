@@ -537,6 +537,10 @@ export async function startWorkstation(): Promise<void> {
 			isCurrent,
 			registry: browserRegistry!,
 			manager: browserManager,
+			normalizePng: (base64) => opaqueScreenshot(
+				nativeImage.createFromBuffer(Buffer.from(base64, "base64")),
+				(bitmap, size) => nativeImage.createFromBitmap(bitmap, size),
+			).toPNG().toString("base64"),
 			canonical: (owner, pane, raw) => browserNavigation.canonical(owner, pane, raw),
 		}),
 	});

@@ -21,6 +21,7 @@ interface Dependencies {
 			workspaceId: string,
 		): Pick<Electron.WebContents, "getURL" | "getTitle" | "isLoading"> | null;
 	};
+	normalizePng?(base64: string): string;
 	canonical(ownerId: number, pane: WorkstationBrowserPane, raw: string): string;
 }
 
@@ -31,6 +32,7 @@ export function currentWorkstationBrowserBridgePanes({
 	registry,
 	manager,
 	canonical,
+	normalizePng,
 }: Dependencies) {
 	const target = { ...descriptor };
 	const assertCurrent = () => {
@@ -82,8 +84,9 @@ export function currentWorkstationBrowserBridgePanes({
 		async capturePng(paneId: string, workspaceId?: string): Promise<string> {
 			const { pane, key } = requirePane(paneId, workspaceId);
 			const result = await manager.capturePng(key, pane.workspaceId);
+			const png = normalizePng ? normalizePng(result) : result;
 			assertPinned(pane, key);
-			return result;
+			return png;
 		},
 		async evaluateJS(
 			paneId: string,

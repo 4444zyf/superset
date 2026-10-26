@@ -46,6 +46,7 @@ export async function verifyWorkstationBrowserReadCliUi(options, { scope, url, m
 		assert.deepEqual(png.subarray(0, 8), Buffer.from("89504e470d0a1a0a", "hex"));
 		const image = await options.inspectClipboardImage(png.toString("base64"));
 		assert.ok(image.size.width > 100 && image.size.height > 100);
+		assert.deepEqual(image.corner, [255, 255, 255, 255], "default browser canvas is opaque white in the exported PNG");
 		assert.equal(await options.readClipboardText(), clipboardText);
 		assert.deepEqual(await options.readClipboardImage(), clipboardImage);
 		return { file, bytes: png.length, sha256: createHash("sha256").update(png).digest("hex"), image, clipboardUnchanged: true };
