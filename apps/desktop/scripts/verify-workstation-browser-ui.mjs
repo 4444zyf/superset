@@ -147,7 +147,7 @@ export async function verifyWorkstationBrowserUi(options) {
 	let started = false,
 		terminalTab,
 		browserReadCli,
-		navigationApi, navigationCli, evaluationApi;
+		navigationApi, navigationCli, evaluationApi, evaluationCli;
 	try {
 		await click(`${selector} .xterm-screen`);
 		await getPage().call("Input.insertText", { text: command });
@@ -253,6 +253,11 @@ export async function verifyWorkstationBrowserUi(options) {
             navigationCli = await verifyWorkstationBrowserNavigationCliUi(options, {scope,url,marker,readProof,guestRead,readView,workspace,terminalTab});
             report.navigationCli = navigationCli.report;
             save();
+        }
+        if(process.argv.includes("--browser-evaluation-cli")) {
+            const {verifyWorkstationBrowserEvaluationCliUi}=await import("./verify-workstation-browser-evaluation-cli-ui.mjs");
+            evaluationCli=await verifyWorkstationBrowserEvaluationCliUi(options,{scope,guestRead,readView,workspace,terminalTab});
+            report.evaluationCli=evaluationCli.report;save();
         }
         if(process.argv.includes("--browser-evaluation-api")) {
             const {verifyWorkstationBrowserEvaluationApiUi}=await import("./verify-workstation-browser-evaluation-api-ui.mjs");
@@ -659,6 +664,7 @@ export async function verifyWorkstationBrowserUi(options) {
 		if (navigationApi) await navigationApi.afterReopen();
         if (navigationCli) await navigationCli.afterReopen();
         if(evaluationApi)await evaluationApi.afterReopen();
+        if(evaluationCli)await evaluationCli.afterReopen();
 		await screenshot("browser-reopened");
 		save();
 	} finally {

@@ -15,7 +15,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { camelToKebab, parseArgv } from "@superset/cli-framework";
 import { directBackendSocketPath } from "@superset/shared/direct-backend-socket";
+import SuperJSON from "superjson";
 import browserConsole from "../../commands/browser/console/command";
+import evalBrowser from "../../commands/browser/eval/command";
 import listBrowser from "../../commands/browser/list/command";
 import navigateBrowser from "../../commands/browser/navigate/command";
 import operationStatus from "../../commands/browser/operation-status/command";
@@ -25,6 +27,7 @@ import getWorkspace from "../../commands/workspaces/get/command";
 import { createUnavailableApiClient } from "../api-client";
 import { readFromDirectNamespace } from "./readFromDirectNamespace";
 import {
+	resolveBrowserEvaluationNamespace,
 	resolveBrowserNavigationNamespace,
 	resolveDirectNamespace,
 } from "./resolveDirectNamespace";
@@ -84,6 +87,8 @@ async function fixture() {
 	}> = [];
 	let navigationResponse: { status: number; value: unknown } | null = null;
 	let receipt: unknown = null;
+	let evaluationResult: unknown = 0;
+	let evaluationResponse: { status: number; value: unknown } | null = null;
 	const workspace = {
 		id: crypto.randomUUID(),
 		name: "Namespace 工作区",
@@ -126,6 +131,26 @@ async function fixture() {
 			response.end(JSON.stringify(description));
 			return;
 		}
+		if (request.url?.startsWith("/trpc/direct.browserEvaluateV1?")) {
+			let body = "";
+			for await (const chunk of request) body += chunk;
+			const input = JSON.parse(body)["0"].json;
+			requests.at(-1)!.body = input;
+			receipt = {
+				operationId: input.operationId,
+				procedure: "browser.evaluateV1",
+				status: "completed",
+				result: { result: evaluationResult },
+			};
+			if (evaluationResponse) {
+				response.statusCode = evaluationResponse.status;
+				response.end(JSON.stringify(evaluationResponse.value));
+			} else
+				response.end(
+					JSON.stringify([{ result: { data: SuperJSON.serialize(receipt) } }]),
+				);
+			return;
+		}
 		if (request.url?.startsWith("/trpc/direct.browserNavigateV1?")) {
 			let body = "";
 			for await (const chunk of request) body += chunk;
@@ -145,7 +170,9 @@ async function fixture() {
 			return;
 		}
 		if (request.url?.startsWith("/trpc/direct.operationStatus?")) {
-			response.end(JSON.stringify([{ result: { data: { json: receipt } } }]));
+			response.end(
+				JSON.stringify([{ result: { data: SuperJSON.serialize(receipt) } }]),
+			);
 			return;
 		}
 		if (request.url?.startsWith("/trpc/direct.browserCaptureV1?")) {
@@ -235,6 +262,12 @@ async function fixture() {
 		config,
 		endpoint,
 		requests,
+		setEvaluationResult(value: unknown) {
+			evaluationResult = value;
+		},
+		setEvaluationResponse(value: typeof evaluationResponse) {
+			evaluationResponse = value;
+		},
 		setNavigationResponse(value: typeof navigationResponse) {
 			navigationResponse = value;
 		},
@@ -547,7 +580,8 @@ function runBrowser(
 		| typeof browserConsole
 		| typeof screenshotBrowser
 		| typeof navigateBrowser
-		| typeof operationStatus,
+		| typeof operationStatus
+		| typeof evalBrowser,
 	options: Record<string, unknown>,
 ) {
 	return command.run({
@@ -991,4 +1025,288 @@ test("accepted, failed and unresolved receipts never report navigation success o
 	}
 	expect(f.requests).toHaveLength(6);
 	expect(f.requests.filter((r) => r.method === "POST")).toHaveLength(3);
+});
+
+test("namespace eval uses its explicit target without an organization and preserves falsy output", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserEvaluationV1: true,
+		} as never,
+	});
+	expect(
+		await runBrowser(evalBrowser, {
+			namespace: f.homeDir,
+			operationId: crypto.randomUUID(),
+			code: "0",
+		}),
+	).toEqual({ data: { result: 0 }, message: "0" });
+});
+
+test("namespace eval preserves strings, structured values, null, false and undefined", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserEvaluationV1: true,
+		} as never,
+	});
+	for (const result of [
+		"中文 🙂",
+		{ nested: [1, false, null] },
+		false,
+		null,
+		undefined,
+	]) {
+		f.setEvaluationResult(result);
+		expect(
+			await runBrowser(evalBrowser, {
+				namespace: f.homeDir,
+				operationId: crypto.randomUUID(),
+				code: "owned-expression",
+			}),
+		).toEqual({
+			data: { result },
+			message:
+				typeof result === "string" ? result : JSON.stringify(result, null, 2),
+		});
+	}
+	expect(f.requests.filter((r) => r.method === "POST")).toHaveLength(5);
+	expect(f.requests.every((r) => r.authenticated)).toBe(true);
+});
+
+test("evaluation and navigation transports cannot write each other's operation or batch evaluations", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserEvaluationV1: true,
+			workstationBrowserNavigationV1: true,
+		} as never,
+	});
+	const input = {
+		operationId: crypto.randomUUID(),
+		workspaceId: "owned",
+		paneId: "pane",
+		code: "0",
+	};
+	const read = await resolveDirectNamespace(f.homeDir),
+		navigation = await resolveBrowserNavigationNamespace(f.homeDir),
+		evaluation = await resolveBrowserEvaluationNamespace(f.homeDir);
+	await expect(
+		read.client.direct.browserEvaluateV1.mutate(input),
+	).rejects.toThrow("read-only");
+	await expect(
+		navigation.client.direct.browserEvaluateV1.mutate(input),
+	).rejects.toThrow("read-only");
+	await expect(
+		evaluation.client.direct.browserNavigateV1.mutate(navigationInput()),
+	).rejects.toThrow("read-only");
+	await expect(
+		evaluation.client.direct.execute.mutate({} as never),
+	).rejects.toThrow("read-only");
+	await expect(
+		Promise.all([
+			evaluation.client.direct.browserEvaluateV1.mutate(input),
+			evaluation.client.direct.browserEvaluateV1.mutate(input),
+		]),
+	).rejects.toThrow("read-only");
+	expect(f.requests.every((r) => r.path === "/direct/describe")).toBe(true);
+});
+
+test("evaluation capability guards reject older or unready backends before a mutation", async () => {
+	const f = await fixture();
+	for (const capabilities of [
+		{},
+		{ durableOperations: true },
+		{ workstationBrowserEvaluationV1: true },
+		{ durableOperations: true, workstationBrowserNavigationV1: true },
+	]) {
+		f.setDescription({ capabilities: capabilities as never });
+		await expect(
+			runBrowser(evalBrowser, {
+				namespace: f.homeDir,
+				operationId: crypto.randomUUID(),
+				code: "0",
+			}),
+		).rejects.toThrow("capability");
+	}
+	expect(f.requests).toHaveLength(4);
+	expect(f.requests.every((r) => r.path === "/direct/describe")).toBe(true);
+});
+
+test("eval validates operation and target flags before touching credentials and preserves account defaults", async () => {
+	const f = await fixture();
+	await expect(
+		runBrowser(evalBrowser, { namespace: f.homeDir, code: "0" }),
+	).rejects.toThrow("requires --operation-id");
+	await expect(
+		runBrowser(evalBrowser, { operationId: crypto.randomUUID(), code: "0" }),
+	).rejects.toThrow("requires --namespace");
+	await expect(
+		runBrowser(evalBrowser, {
+			namespace: f.homeDir,
+			host: "other",
+			operationId: crypto.randomUUID(),
+			code: "0",
+		}),
+	).rejects.toThrow("either --namespace or --host");
+	await expect(
+		runBrowser(evalBrowser, {
+			namespace: f.homeDir,
+			operationId: "invalid",
+			code: "0",
+		}),
+	).rejects.toThrow();
+	await expect(runBrowser(evalBrowser, { code: "0" })).rejects.toThrow(
+		"No active organization",
+	);
+	expect(f.requests).toEqual([]);
+});
+
+test("an evaluation failure includes the stable operation ID and is not retried", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserEvaluationV1: true,
+		} as never,
+	});
+	f.setEvaluationResponse({
+		status: 412,
+		value: [
+			{
+				error: {
+					json: {
+						message: "This operation is unresolved",
+						code: -32012,
+						data: { code: "PRECONDITION_FAILED", httpStatus: 412 },
+					},
+				},
+			},
+		],
+	});
+	const operationId = crypto.randomUUID();
+	try {
+		await runBrowser(evalBrowser, {
+			namespace: f.homeDir,
+			operationId,
+			code: "0",
+		});
+		throw Error("Expected failure");
+	} catch (error) {
+		expect((error as Error).message).toContain("unresolved");
+		expect((error as { suggestion: string }).suggestion).toContain(operationId);
+		expect((error as { suggestion: string }).suggestion).toContain(
+			"operation-status",
+		);
+	}
+	expect(f.requests).toHaveLength(2);
+});
+
+test("the eval parser accepts the existing code flag and new explicit operation ID", () => {
+	const configs = Object.fromEntries(
+		Object.entries(evalBrowser.options!).map(([name, builder]) => [
+			name,
+			{ ...builder._.config, name: camelToKebab(name) },
+		]),
+	);
+	const operationId = crypto.randomUUID();
+	expect(
+		parseArgv(
+			[
+				"bun",
+				"superset",
+				"--namespace",
+				"/tmp/Namespace 中文",
+				"--operation-id",
+				operationId,
+				"--workspace",
+				"owned",
+				"--pane",
+				"pane",
+				"--code",
+				"void 0",
+			],
+			configs,
+		).options,
+	).toMatchObject({
+		namespace: "/tmp/Namespace 中文",
+		operationId,
+		workspace: "owned",
+		pane: "pane",
+		code: "void 0",
+	});
+});
+
+test("evaluation status preserves undefined while the execution peer is unavailable", async () => {
+	const f = await fixture(),
+		operationId = crypto.randomUUID();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserEvaluationV1: true,
+		} as never,
+	});
+	f.setEvaluationResult(undefined);
+	await runBrowser(evalBrowser, {
+		namespace: f.homeDir,
+		operationId,
+		code: "void 0",
+	});
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserEvaluationV1: false,
+		} as never,
+	});
+	const result = await runBrowser(operationStatus, {
+		namespace: f.homeDir,
+		operationId,
+	});
+	expect(result).toEqual({
+		data: {
+			operationId,
+			procedure: "browser.evaluateV1",
+			status: "completed",
+			result: { result: undefined },
+		},
+		message: `${operationId}\tbrowser.evaluateV1\tcompleted`,
+	});
+	expect(f.requests.at(-1)?.method).toBe("GET");
+});
+
+test("incomplete or malformed evaluation receipts cannot be mistaken for successful execution", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserEvaluationV1: true,
+		} as never,
+	});
+	for (const status of ["accepted", "failed", "unresolved", "completed"]) {
+		const operationId = crypto.randomUUID();
+		f.setEvaluationResponse({
+			status: 200,
+			value: [
+				{
+					result: {
+						data: {
+							json: {
+								operationId,
+								procedure: "browser.evaluateV1",
+								status,
+								result: {},
+							},
+						},
+					},
+				},
+			],
+		});
+		await expect(
+			runBrowser(evalBrowser, { namespace: f.homeDir, operationId, code: "0" }),
+		).rejects.toThrow(`Evaluation receipt: ${status}`);
+	}
+	expect(f.requests.filter((r) => r.method === "POST")).toHaveLength(4);
 });

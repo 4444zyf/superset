@@ -42,7 +42,15 @@ export async function resolveBrowserNavigationNamespace(input: string) {
 	return resolveNamespace(input, true);
 }
 
-async function resolveNamespace(input: string, allowNavigation: boolean) {
+export async function resolveBrowserEvaluationNamespace(input: string) {
+	return resolveNamespace(input, false, true);
+}
+
+async function resolveNamespace(
+	input: string,
+	allowNavigation: boolean,
+	allowEvaluation = false,
+) {
 	const uid = process.getuid?.();
 	if (uid === undefined || uid < 1)
 		throw new Error(
@@ -187,10 +195,16 @@ async function resolveNamespace(input: string, allowNavigation: boolean) {
 						(init?.method ?? "GET") === "POST" &&
 						procedures.length === 1 &&
 						procedures[0] === "direct.browserNavigateV1";
+					const evaluation =
+						allowEvaluation &&
+						(init?.method ?? "GET") === "POST" &&
+						procedures.length === 1 &&
+						procedures[0] === "direct.browserEvaluateV1";
 					if (
 						url.origin !== origin ||
 						!url.pathname.startsWith("/trpc/") ||
 						(!navigation &&
+							!evaluation &&
 							((init?.method ?? "GET") !== "GET" ||
 								procedures.some((path) => !readProcedures.has(path))))
 					)
@@ -202,6 +216,22 @@ async function resolveNamespace(input: string, allowNavigation: boolean) {
 						)
 							throw new Error(
 								"This backend does not support the required navigation capability",
+							);
+						const timeout = AbortSignal.timeout(20_000);
+						return request(url.pathname + url.search, {
+							...init,
+							signal: init?.signal
+								? AbortSignal.any([init.signal, timeout])
+								: timeout,
+						} as RequestInit);
+					}
+					if (evaluation) {
+						if (
+							description.capabilities.durableOperations !== true ||
+							description.capabilities.workstationBrowserEvaluationV1 !== true
+						)
+							throw new Error(
+								"This backend does not support the required evaluation capability",
 							);
 						const timeout = AbortSignal.timeout(20_000);
 						return request(url.pathname + url.search, {
