@@ -9,14 +9,12 @@ function driver(options) {
 		menu = workstationBrowserMenuDriver(options);
 	const key = async (key, code, virtualKey) => {
 		for (const type of ["keyDown", "keyUp"])
-			await options
-				.getPage()
-				.call("Input.dispatchKeyEvent", {
-					type,
-					key,
-					code,
-					windowsVirtualKeyCode: virtualKey,
-				});
+			await options.getPage().call("Input.dispatchKeyEvent", {
+				type,
+				key,
+				code,
+				windowsVirtualKeyCode: virtualKey,
+			});
 	};
 	const close = async () => {
 		for (let i = 0; i < 2; i++) {
@@ -53,29 +51,66 @@ function driver(options) {
 		);
 		return items;
 	};
+
+	let enteredSubmenu = false;
+	const liveInput = () =>
+		evaluate(
+			`(()=>{const e=document.querySelector('input[placeholder^="Search "][placeholder$="sites…"]');if(!e)return null;const m=e.closest('[role=menu]'),r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {x:r.x+r.width/2,y:r.y+r.height/2,state:m?.dataset.state,ready:m?.dataset.state==='open'&&m.getAnimations().every(a=>a.playState==='finished')&&(hit===e||e.contains(hit))};})()`,
+		);
 	const search = async (text) => {
 		const selector = 'input[placeholder^="Search "][placeholder$="sites…"]';
-		await options.click(selector);
-		for (const type of ["keyDown", "keyUp"])
+		const point = await until(async () => {
+			const v = await liveInput();
+			return v?.ready ? v : null;
+		}, "live site search input receives pointer");
+
+		if (!enteredSubmenu) {
+			const route = await evaluate(
+				`(()=>{const t=[...document.querySelectorAll('[data-slot=dropdown-menu-sub-trigger]')].find(e=>e.textContent.trim()==='Signed-in sites'),e=document.querySelector('input[placeholder^="Search "][placeholder$="sites…"]'),r=t.getBoundingClientRect(),m=e.closest('[role=menu]').getBoundingClientRect();return [{x:r.x+r.width/2,y:r.y+r.height/2},{x:r.x+r.width/2-12,y:r.y+r.height/2},{x:${point.x},y:Math.max(m.top+12,Math.min(m.bottom-12,r.y+r.height/2))},{x:${point.x},y:${point.y}}];})()`,
+			);
+			for (const position of route)
+				await options
+					.getPage()
+					.call("Input.dispatchMouseEvent", {
+						type: "mouseMoved",
+						...position,
+						button: "none",
+					});
+			enteredSubmenu = true;
+		} else
 			await options
 				.getPage()
-				.call("Input.dispatchKeyEvent", {
-					type,
-					key: "a",
-					code: "KeyA",
-					windowsVirtualKeyCode: 65,
-					modifiers: process.platform === "darwin" ? 4 : 2,
-					commands: ["selectAll"],
+				.call("Input.dispatchMouseEvent", {
+					type: "mouseMoved",
+					x: point.x,
+					y: point.y,
+					button: "none",
 				});
+
+		await until(async () => {
+			const v = await liveInput();
+			return v?.ready ? v : null;
+		}, "site search remains live after real pointer hover");
+		await options.click(selector);
+		for (const type of ["keyDown", "keyUp"])
+			await options.getPage().call("Input.dispatchKeyEvent", {
+				type,
+				key: "a",
+				code: "KeyA",
+				windowsVirtualKeyCode: 65,
+				modifiers: process.platform === "darwin" ? 4 : 2,
+				commands: ["selectAll"],
+			});
 		await options.getPage().call("Input.insertText", { text });
 		await until(
 			() =>
 				evaluate(
-					`document.querySelector(${JSON.stringify(selector)})?.value===${JSON.stringify(text)}`,
+					`document.querySelector(${JSON.stringify(selector)})?.value===${JSON.stringify(text)}&&document.querySelector(${JSON.stringify(selector)})?.closest('[role=menu]')?.dataset.state==='open'`,
 				),
-			"real site search input",
+			"real search remains in an open submenu",
 		);
 	};
+
 	return { evaluate, until, menu, key, close, open, search };
 }
 export async function verifyWorkstationBrowserSitesUi(options, context) {
@@ -87,6 +122,9 @@ export async function verifyWorkstationBrowserSitesUi(options, context) {
 			JSON.stringify(report, null, 2) + "\n",
 		);
 	try {
+		await evaluate(
+			`(()=>{const trace=[];window.__ownedSitesTrace=trace;const item=e=>({tag:e?.tagName,role:e?.getAttribute?.('role'),slot:e?.getAttribute?.('data-slot'),text:e?.getAttribute?.('role')==='menuitem'?e.textContent.slice(0,120):null});const snapshot=()=>({menus:[...document.querySelectorAll('[role=menu]')].map(e=>({slot:e.getAttribute('data-slot'),state:e.dataset.state})),active:item(document.activeElement)});const push=value=>{trace.push({time:performance.now(),...value});if(trace.length>300)trace.shift();};for(const type of ['pointermove','pointerdown','pointerup','click','focusin','focusout','keydown','keyup'])document.addEventListener(type,e=>{if(e.target?.closest?.('[role=menu]'))push({type,key:e.key,x:e.clientX,y:e.clientY,target:item(e.target),...snapshot()});},true);let previous='';new MutationObserver(()=>{const value=snapshot(),current=JSON.stringify(value);if(current!==previous){previous=current;push({type:'state',...value});}}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-state','aria-expanded']});return true;})()`,
+		);
 		report.primaryHost = await context.guestRead("location.hostname");
 		report.guestSetup = await context.guestRead(
 			"(()=>{document.cookie='owned_cookie_root=fixture; path=/; SameSite=Lax; max-age=3600';document.cookie='owned_cookie_path=fixture; path=/protected; SameSite=Lax; max-age=3600';return {host:location.hostname,visibleCookieNames:document.cookie.split(';').map(c=>c.split('=')[0].trim())};})()",
@@ -125,6 +163,15 @@ export async function verifyWorkstationBrowserSitesUi(options, context) {
 		assert.equal(report.keyboardFocus.role, "menuitem");
 		assert.ok(report.keyboardFocus.text.includes("site-24-owned.invalid"));
 		await options.screenshot("browser-sites-keyboard-target");
+		report.beforeEnter = await evaluate(
+			"({state:document.activeElement?.closest('[role=menu]')?.dataset.state,role:document.activeElement?.getAttribute('role'),text:document.activeElement?.textContent})",
+		);
+		assert.equal(
+			report.beforeEnter.state,
+			"open",
+			"selected cookie row remains in a live submenu after capture",
+		);
+		assert.equal(report.beforeEnter.role, "menuitem");
 		await key("Enter", "Enter", 13);
 		await until(
 			() =>
@@ -192,6 +239,7 @@ export async function verifyWorkstationBrowserSitesUi(options, context) {
 		await options.screenshot("browser-sites-incomplete");
 		throw error;
 	} finally {
+		report.trace = await evaluate("window.__ownedSitesTrace??[]");
 		save();
 		await close();
 	}
