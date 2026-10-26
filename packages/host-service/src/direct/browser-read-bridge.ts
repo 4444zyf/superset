@@ -1,3 +1,4 @@
+import { BrowserCaptureTransfer } from "./browser-capture-transfer";
 import { randomUUID } from "node:crypto";
 import {
 	browserBridgeConsoleResultSchema,
@@ -30,6 +31,7 @@ export interface DirectBrowserReadTransport {
 interface Peer {
 	transport: DirectBrowserReadTransport;
 	ready: boolean;
+	capturePngV1: boolean;
 	cancelHandshake(): void;
 }
 type ReadResult = BrowserBridgeListResult | BrowserBridgeConsoleResult;
@@ -51,15 +53,30 @@ export class DirectBrowserReadBridge {
 	private peer: Peer | null = null;
 	private disposed = false;
 	private readonly schedule: typeof schedule;
+	private readonly capture: BrowserCaptureTransfer;
 	constructor(
 		identity: BrowserBridgeIdentity,
 		options: { schedule?: typeof schedule } = {},
 	) {
 		this.identity = browserBridgeIdentitySchema.parse(identity);
 		this.schedule = options.schedule ?? schedule;
+		this.capture = new BrowserCaptureTransfer({
+			ready: () => this.isCaptureReady(),
+			send: (packet) => {
+				if (this.peer) this.send(this.peer, packet);
+			},
+			schedule: this.schedule,
+			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
+		});
 	}
 	isReady(): boolean {
 		return !this.disposed && this.peer?.ready === true;
+	}
+	isCaptureReady(): boolean {
+		return this.isReady() && this.peer?.capturePngV1 === true;
+	}
+	capturePng(workspaceId: string, paneId: string): Promise<{ base64: string }> {
+		return this.capture.capturePng(workspaceId, paneId);
 	}
 	attach(transport: DirectBrowserReadTransport) {
 		if (this.disposed)
@@ -72,7 +89,12 @@ export class DirectBrowserReadBridge {
 				"busy",
 				"A browser bridge is already attached",
 			);
-		const peer: Peer = { transport, ready: false, cancelHandshake: () => {} };
+		const peer: Peer = {
+			transport,
+			ready: false,
+			capturePngV1: false,
+			cancelHandshake: () => {},
+		};
 		this.peer = peer;
 		peer.cancelHandshake = this.schedule(5_000, () =>
 			this.drop(
@@ -104,6 +126,7 @@ export class DirectBrowserReadBridge {
 	): void {
 		if (this.peer !== peer) return;
 		this.peer = null;
+		this.capture.disconnect(error);
 		peer.cancelHandshake();
 		const pending = [...this.pending.values()];
 		this.pending.clear();
@@ -130,12 +153,19 @@ export class DirectBrowserReadBridge {
 					throw Error("Invalid bridge handshake");
 				peer.cancelHandshake();
 				peer.ready = true;
+				peer.capturePngV1 = packet.features.includes("capturePngV1");
 				this.send(peer, {
 					type: "ready",
 					protocol: 1,
 					...this.identity,
-					features: ["readV1"],
+					features: peer.capturePngV1 ? ["readV1", "capturePngV1"] : ["readV1"],
 				});
+				return;
+			}
+			if (packet.type === "capture-chunk" || packet.type === "capture-done") {
+				if (!peer.capturePngV1)
+					throw Error("Screenshot feature was not negotiated");
+				this.capture.receive(packet);
 				return;
 			}
 			if (packet.type !== "result") throw Error("Invalid bridge response");

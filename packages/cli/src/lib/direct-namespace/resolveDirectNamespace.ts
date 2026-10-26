@@ -10,6 +10,7 @@ import SuperJSON from "superjson";
 
 const origin = "http://superset-remix.invalid";
 const readProcedures = new Map([
+	["direct.browserCaptureV1", "workstationBrowserCaptureV1"],
 	["direct.browserReadV1", "workstationBrowserReadBridgeV1"],
 	["settings.agentConfigs.readCatalogV1", "workstationAgentCatalogReadV1"],
 	["project.list", "projects"],
@@ -188,6 +189,15 @@ export async function resolveDirectNamespace(input: string) {
 						throw new Error(
 							"This backend does not support the required read capability",
 						);
+					if (procedures.includes("direct.browserCaptureV1")) {
+						const timeout = AbortSignal.timeout(20_000);
+						return request(url.pathname + url.search, {
+							...init,
+							signal: init?.signal
+								? AbortSignal.any([init.signal, timeout])
+								: timeout,
+						} as RequestInit);
+					}
 					return request(url.pathname + url.search, init as RequestInit);
 				}) as NonNullable<Parameters<typeof httpBatchLink>[0]["fetch"]>,
 			}),

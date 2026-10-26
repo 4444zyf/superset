@@ -7,6 +7,7 @@ import { createNodeWebSocket } from "@hono/node-ws";
 import {
 	encodeBrowserBridgePacket,
 	parseBrowserBridgePacket,
+	browserCapturePackets,
 } from "@superset/shared/browser-bridge";
 import { Hono } from "hono";
 import { PskHostAuthProvider } from "../providers/host-auth/PskHostAuthProvider/PskHostAuthProvider.ts";
@@ -91,6 +92,59 @@ test(
 		});
 		assert.equal(status, 401);
 		assert.equal(bridge.isReady(), false);
+	},
+);
+
+test(
+	"negotiated screenshots cross real WebSocket frames beyond one original frame budget",
+	{ timeout: 5000 },
+	async () => {
+		const socket = new WebSocket(
+			`ws://127.0.0.1:${port}/direct/browser-read/v1?token=${secret}`,
+		);
+		clients.add(socket);
+		const ready = Promise.withResolvers<void>();
+		const base64 = Buffer.concat([
+			Buffer.from("89504e470d0a1a0a", "hex"),
+			Buffer.alloc(4 * 1024 * 1024, 42),
+		]).toString("base64");
+		socket.addEventListener("open", () =>
+			socket.send(
+				encodeBrowserBridgePacket({
+					type: "hello",
+					protocol: 1,
+					...identity,
+					features: ["readV1", "capturePngV1"],
+				}),
+			),
+		);
+		socket.addEventListener("error", () =>
+			ready.reject(Error("Owned screenshot socket failed")),
+		);
+		socket.addEventListener("message", (event) => {
+			const packet = parseBrowserBridgePacket(String(event.data));
+			if (packet.type === "ready") {
+				ready.resolve();
+				return;
+			}
+			if (packet.type === "capture-request")
+				for (const part of browserCapturePackets(packet.id, base64))
+					socket.send(encodeBrowserBridgePacket(part));
+		});
+		try {
+			await ready.promise;
+			assert.equal(bridge.isCaptureReady(), true);
+			assert.deepEqual(
+				await bridge.capturePng("owned-workspace", "owned-pane"),
+				{ base64 },
+			);
+		} finally {
+			const closed = new Promise<void>((resolve) =>
+				socket.addEventListener("close", () => resolve(), { once: true }),
+			);
+			socket.close();
+			await closed;
+		}
 	},
 );
 

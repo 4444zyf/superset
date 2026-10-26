@@ -232,7 +232,7 @@ export async function verifyWorkstationBrowserUi(options) {
 		report.loaded = loaded;
 		if (process.argv.includes("--browser-read-cli")) {
 			const { verifyWorkstationBrowserReadCliUi } = await import("./verify-workstation-browser-read-cli-ui.mjs");
-			browserReadCli = await verifyWorkstationBrowserReadCliUi(options, { scope, url, marker, readView, workspace });
+			browserReadCli = await verifyWorkstationBrowserReadCliUi(options, { scope, url, marker, readView, workspace, terminalTab });
 		}
 		if (process.argv.includes("--browser-icon-display")) {
 			report.displayedIcon = await until(

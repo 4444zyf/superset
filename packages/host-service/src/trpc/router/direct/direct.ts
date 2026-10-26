@@ -16,7 +16,10 @@ import {
 	DirectBrowserBridgeError,
 	type DirectBrowserReadBridge,
 } from "../../../direct/browser-read-bridge";
-import { browserBridgeReadOperationSchema } from "@superset/shared/browser-bridge";
+import {
+	browserBridgeReadOperationSchema,
+	browserBridgeCaptureRequestSchema,
+} from "@superset/shared/browser-bridge";
 import { HOST_SERVICE_VERSION } from "../../../install-source";
 import { supportsWorkspaceRestore } from "../../../terminal/restore-resources";
 import type { DirectBackendIdentity, HostServiceContext } from "../../../types";
@@ -26,7 +29,8 @@ export function describeDirectBackend(
 	identity: DirectBackendIdentity | undefined,
 	durableOperations = false,
 	workspaceViewRestoreV1 = false,
-	browserReads?: Pick<DirectBrowserReadBridge, "isReady">,
+	browserReads?: Pick<DirectBrowserReadBridge, "isReady"> &
+		Partial<Pick<DirectBrowserReadBridge, "isCaptureReady">>,
 ) {
 	if (!identity)
 		throw new TRPCError({
@@ -43,6 +47,7 @@ export function describeDirectBackend(
 		cloudAccountRequired: false,
 		chatHarnesses: directChatHarnesses(),
 		capabilities: {
+			workstationBrowserCaptureV1: browserReads?.isCaptureReady?.() === true,
 			workstationBrowserReadBridgeConnectV1: browserReads !== undefined,
 			workstationBrowserReadBridgeV1: browserReads?.isReady() === true,
 			workstationAgentHooksV1:
@@ -231,6 +236,45 @@ export const directRouter = router({
 							input.workspaceId,
 							input.paneId,
 						);
+			} catch (error) {
+				if (!(error instanceof DirectBrowserBridgeError)) throw error;
+				const codes: Record<
+					DirectBrowserBridgeError["kind"],
+					TRPCError["code"]
+				> = {
+					unavailable: "PRECONDITION_FAILED",
+					busy: "TOO_MANY_REQUESTS",
+					timeout: "NOT_FOUND",
+					invalid: "BAD_REQUEST",
+					failed: "BAD_REQUEST",
+				};
+				throw new TRPCError({
+					code: codes[error.kind],
+					message: error.message,
+					cause: error,
+				});
+			}
+		}),
+	browserCaptureV1: protectedProcedure
+		.input(
+			browserBridgeCaptureRequestSchema.omit({ type: true, id: true }).strict(),
+		)
+		.query(async ({ ctx, input }) => {
+			if (
+				!ctx.direct ||
+				!ctx.directBrowserReads?.isCaptureReady?.() ||
+				!ctx.directBrowserReads.capturePng
+			)
+				throw new TRPCError({
+					code: "PRECONDITION_FAILED",
+					message:
+						"This host has no browser panes (no desktop app is attached to it).",
+				});
+			try {
+				return await ctx.directBrowserReads.capturePng(
+					input.workspaceId,
+					input.paneId,
+				);
 			} catch (error) {
 				if (!(error instanceof DirectBrowserBridgeError)) throw error;
 				const codes: Record<

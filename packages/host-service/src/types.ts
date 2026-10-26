@@ -37,7 +37,8 @@ export interface HostServiceContext {
 	directBrowserReads?: Pick<
 		DirectBrowserReadBridge,
 		"isReady" | "listPanes" | "console"
-	>;
+	> &
+		Partial<Pick<DirectBrowserReadBridge, "isCaptureReady" | "capturePng">>;
 	db: HostDb;
 	runtime: HostServiceRuntime;
 	eventBus: EventBus;

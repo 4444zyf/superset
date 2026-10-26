@@ -15,6 +15,8 @@ export interface ConsoleEntry {
 }
 
 export const BROWSER_BRIDGE_MAX_MESSAGE_BYTES = 4 * 1024 * 1024;
+export const BROWSER_CAPTURE_CHUNK_CHARS = 64 * 1024;
+export const BROWSER_CAPTURE_MAX_BASE64_CHARS = 32 * 1024 * 1024;
 export const browserBridgeIdentitySchema = z.object({
 	backendId: z.string().min(1).max(128),
 	namespaceId: z.string().min(1).max(128),
@@ -54,6 +56,38 @@ export const browserBridgeConsoleResultSchema = z.object({
 		)
 		.max(500),
 });
+export const browserBridgeCaptureRequestSchema = z.object({
+	type: z.literal("capture-request"),
+	id: z.string().uuid(),
+	workspaceId,
+	paneId: z.string().min(1).max(256),
+});
+const captureChunkSchema = z.object({
+	type: z.literal("capture-chunk"),
+	id: z.string().uuid(),
+	index: z.number().int().min(0).max(511),
+	base64: z
+		.string()
+		.min(4)
+		.max(BROWSER_CAPTURE_CHUNK_CHARS)
+		.regex(/^[A-Za-z0-9+/]+={0,2}$/)
+		.refine((value) => value.length % 4 === 0),
+});
+const captureDoneSchema = z.discriminatedUnion("ok", [
+	z.object({
+		type: z.literal("capture-done"),
+		id: z.string().uuid(),
+		ok: z.literal(true),
+		chunks: z.number().int().min(1).max(512),
+		base64Chars: z.number().int().min(12).max(BROWSER_CAPTURE_MAX_BASE64_CHARS),
+	}),
+	z.object({
+		type: z.literal("capture-done"),
+		id: z.string().uuid(),
+		ok: z.literal(false),
+		error: z.object({ message: z.string().max(4096) }),
+	}),
+]);
 export const browserBridgePacketSchema = z.union([
 	browserBridgeIdentitySchema.extend({
 		type: z.literal("hello"),
@@ -82,7 +116,46 @@ export const browserBridgePacketSchema = z.union([
 		ok: z.literal(false),
 		error: z.object({ message: z.string().max(4096) }),
 	}),
+	browserBridgeCaptureRequestSchema,
+	captureChunkSchema,
+	captureDoneSchema,
 ]);
+
+export function validateBrowserCaptureBase64(base64: string): void {
+	if (
+		base64.length > BROWSER_CAPTURE_MAX_BASE64_CHARS ||
+		base64.length % 4 !== 0 ||
+		!base64.startsWith("iVBORw0KGgo") ||
+		!/^[A-Za-z0-9+/]+={0,2}$/.test(base64)
+	)
+		throw Error("Invalid or oversized browser PNG");
+}
+
+export function* browserCapturePackets(
+	id: string,
+	base64: string,
+): Generator<BrowserBridgePacket> {
+	validateBrowserCaptureBase64(base64);
+	let index = 0;
+	for (
+		let offset = 0;
+		offset < base64.length;
+		offset += BROWSER_CAPTURE_CHUNK_CHARS
+	)
+		yield {
+			type: "capture-chunk",
+			id,
+			index: index++,
+			base64: base64.slice(offset, offset + BROWSER_CAPTURE_CHUNK_CHARS),
+		};
+	yield {
+		type: "capture-done",
+		id,
+		ok: true,
+		chunks: index,
+		base64Chars: base64.length,
+	};
+}
 
 export type BrowserBridgeIdentity = z.infer<typeof browserBridgeIdentitySchema>;
 export type BrowserBridgeReadOperation = z.infer<

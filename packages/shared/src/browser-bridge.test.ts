@@ -5,6 +5,8 @@ import {
 	browserBridgeListResultSchema,
 	encodeBrowserBridgePacket,
 	parseBrowserBridgePacket,
+	browserCapturePackets,
+	BROWSER_CAPTURE_CHUNK_CHARS,
 } from "./browser-bridge";
 
 test("browser bridge frames round-trip typed scope and preserve optional feature negotiation", () => {
@@ -22,6 +24,37 @@ test("browser bridge frames round-trip typed scope and preserve optional feature
 	expect(() => parseBrowserBridgePacket("PRIVATE-OWNED-INVALID-JSON")).toThrow(
 		"Invalid browser bridge message",
 	);
+});
+
+test("screenshot packet variants retain the original frame budget and bound each chunk and index", () => {
+	const id = crypto.randomUUID();
+	for (const packet of browserCapturePackets(id, "iVBORw0KGgo="))
+		expect(parseBrowserBridgePacket(encodeBrowserBridgePacket(packet))).toEqual(
+			packet,
+		);
+	for (const packet of [
+		{ type: "capture-chunk", id, index: 512, base64: "AAAA" },
+		{
+			type: "capture-chunk",
+			id,
+			index: 0,
+			base64: "A".repeat(BROWSER_CAPTURE_CHUNK_CHARS + 4),
+		},
+		{ type: "capture-chunk", id, index: 0, base64: "中文内容" },
+	])
+		expect(() => parseBrowserBridgePacket(JSON.stringify(packet))).toThrow(
+			"Invalid browser bridge message",
+		);
+	expect(BROWSER_BRIDGE_MAX_MESSAGE_BYTES).toBe(4 * 1024 * 1024);
+});
+
+test("screenshot framing refuses non-PNG payloads before emitting a chunk", () => {
+	expect(() => [
+		...browserCapturePackets(
+			crypto.randomUUID(),
+			Buffer.from("not an image").toString("base64"),
+		),
+	]).toThrow("Invalid or oversized browser PNG");
 });
 
 test("the message budget counts UTF-8 bytes rather than JavaScript characters", () => {

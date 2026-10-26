@@ -490,7 +490,7 @@ try {
 						?.split("=")[1] ?? 20,
 				),
     readBrowserPicturesDirectory:async()=>{assert.ok(process.argv.includes("--browser-screenshots"));return main.evaluate(`(()=>{if(process.pid!==${child.pid})throw Error('Wrong owned app');return ${electron}.app.getPath('pictures');})()`);},
-    readClipboardImage:async()=>{assert.ok(process.argv.includes("--browser-screenshots"));return main.evaluate(`(()=>{if(process.pid!==${child.pid})throw Error('Wrong owned app');const image=${electron}.clipboard.readImage();return {size:image.getSize(),pixelSha256:process.getBuiltinModule('crypto').createHash('sha256').update(image.toBitmap()).digest('hex')};})()`);},
+    readClipboardImage:async()=>{assert.ok(process.argv.includes("--browser-screenshots")||process.argv.includes("--browser-capture-cli"));return main.evaluate(`(()=>{if(process.pid!==${child.pid})throw Error('Wrong owned app');const image=${electron}.clipboard.readImage();return {size:image.getSize(),pixelSha256:process.getBuiltinModule('crypto').createHash('sha256').update(image.toBitmap()).digest('hex')};})()`);},
     readBrowserDownloadDirectory:async()=>{
      assert.ok(process.argv.includes("--browser-downloads"));
      return main.evaluate(`(()=>{if(process.pid!==${child.pid})throw Error('Wrong owned app');return ${electron}.app.getPath('downloads');})()`);

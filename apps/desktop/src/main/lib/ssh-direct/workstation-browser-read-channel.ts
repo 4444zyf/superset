@@ -3,6 +3,7 @@ import {
 	browserBridgeListResultSchema,
 	encodeBrowserBridgePacket,
 	parseBrowserBridgePacket,
+	browserCapturePackets,
 	type BrowserBridgeReadOperation,
 } from "@superset/shared/browser-bridge";
 import type { DirectDescriptor } from "../../../shared/direct-workstation";
@@ -18,6 +19,8 @@ interface Entry {
 	target: BrowserReadTarget;
 	socket: Socket;
 	ready: boolean;
+	captureReady: boolean;
+	captureId: string | null;
 	closing: boolean;
 	next: BrowserReadTarget | null;
 	pending: Set<string>;
@@ -45,7 +48,7 @@ export class WorkstationBrowserReadChannels {
 				isCurrent: () => boolean,
 			): Pick<
 				ReturnType<typeof currentWorkstationBrowserBridgePanes>,
-				"listPanes" | "getConsoleLogs"
+				"listPanes" | "getConsoleLogs" | "capturePng"
 			>;
 		},
 	) {}
@@ -102,6 +105,8 @@ export class WorkstationBrowserReadChannels {
 			target,
 			socket,
 			ready: false,
+			captureReady: false,
+			captureId: null,
 			closing: false,
 			next: null,
 			pending: new Set(),
@@ -132,7 +137,7 @@ export class WorkstationBrowserReadChannels {
 						backendId: target.descriptor.backendId,
 						namespaceId: target.descriptor.namespaceId,
 						instanceId: target.descriptor.instanceId,
-						features: ["readV1"],
+						features: ["readV1", "capturePngV1"],
 					}),
 				);
 			} catch {
@@ -157,6 +162,16 @@ export class WorkstationBrowserReadChannels {
 					)
 						throw Error("Invalid ready");
 					entry.ready = true;
+					entry.captureReady = packet.features.includes("capturePngV1");
+					return;
+				}
+				if (packet.type === "capture-request") {
+					if (!entry.captureReady || entry.captureId !== null)
+						throw Error("Invalid screenshot request");
+					entry.captureId = packet.id;
+					void this.capturePng(entry, packet).catch(() =>
+						this.close(entry, 1011),
+					);
 					return;
 				}
 				if (
@@ -173,6 +188,52 @@ export class WorkstationBrowserReadChannels {
 				this.close(entry, 1008);
 			}
 		});
+	}
+	private async capturePng(
+		entry: Entry,
+		request: { id: string; workspaceId: string; paneId: string },
+	): Promise<void> {
+		try {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			const panes = this.dependencies.panes(entry.target, () =>
+				this.current(entry),
+			);
+			const base64 = await panes.capturePng(
+				request.paneId,
+				request.workspaceId,
+			);
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			for (const packet of browserCapturePackets(request.id, base64)) {
+				if (!this.current(entry)) {
+					this.close(entry);
+					return;
+				}
+				entry.socket.send(encodeBrowserBridgePacket(packet));
+			}
+		} catch {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "capture-done",
+					id: request.id,
+					ok: false,
+					error: {
+						message: "Browser screenshot failed or pane is no longer current",
+					},
+				}),
+			);
+		} finally {
+			if (entry.captureId === request.id) entry.captureId = null;
+		}
 	}
 	private async read(
 		entry: Entry,

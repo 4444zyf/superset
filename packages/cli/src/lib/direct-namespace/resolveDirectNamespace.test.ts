@@ -1,6 +1,8 @@
+import screenshotBrowser from "../../commands/browser/screenshot/command";
 import { afterEach, expect, test } from "bun:test";
 import {
 	chmodSync,
+	readFileSync,
 	existsSync,
 	mkdirSync,
 	mkdtempSync,
@@ -109,6 +111,23 @@ async function fixture() {
 		}
 		if (request.url === "/direct/describe") {
 			response.end(JSON.stringify(description));
+			return;
+		}
+		if (request.url?.startsWith("/trpc/direct.browserCaptureV1?")) {
+			response.end(
+				JSON.stringify([
+					{
+						result: {
+							data: {
+								json: {
+									base64:
+										"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a5f8AAAAASUVORK5CYII=",
+								},
+							},
+						},
+					},
+				]),
+			);
 			return;
 		}
 		if (request.url?.startsWith("/trpc/direct.browserReadV1?")) {
@@ -485,7 +504,10 @@ test("an absent namespace keeps the old command branch and conflicting targets n
 });
 
 function runBrowser(
-	command: typeof listBrowser | typeof browserConsole,
+	command:
+		| typeof listBrowser
+		| typeof browserConsole
+		| typeof screenshotBrowser,
 	options: Record<string, unknown>,
 ) {
 	return command.run({
@@ -513,8 +535,10 @@ test("browser list accepts the namespace flag and reads scoped metadata without 
 		]),
 	);
 	expect(
-		parseArgv(["bun", "superset", "--namespace", f.homeDir, "--workspace", "owned"], configs)
-			.options,
+		parseArgv(
+			["bun", "superset", "--namespace", f.homeDir, "--workspace", "owned"],
+			configs,
+		).options,
 	).toMatchObject({ namespace: f.homeDir, workspace: "owned" });
 	const result = await runBrowser(listBrowser, { namespace: f.homeDir });
 	expect(result).toEqual({
@@ -588,4 +612,53 @@ test("browser commands preserve default account requirements and reject ambiguou
 		runBrowser(browserConsole, { namespace: f.homeDir, maxLines: -1 }),
 	).rejects.toThrow("--max-lines must be >= 0");
 	expect(f.requests).toEqual([]);
+});
+
+test("namespace screenshots retain the original PNG file output without account credentials", async () => {
+	const f = await fixture(),
+		output = join(f.homeDir, "owned-capture.png");
+	f.setDescription({
+		capabilities: { workstationBrowserCaptureV1: true } as never,
+	});
+	expect(
+		await runBrowser(screenshotBrowser, { namespace: f.homeDir, out: output }),
+	).toEqual({ data: { path: output }, message: `Wrote ${output}` });
+	expect(readFileSync(output).subarray(0, 8)).toEqual(
+		Buffer.from("89504e470d0a1a0a", "hex"),
+	);
+	const url = new URL(f.requests[1]!.path, "http://fixture.invalid");
+	expect(url.pathname).toBe("/trpc/direct.browserCaptureV1");
+	expect(JSON.parse(url.searchParams.get("input")!)).toEqual({
+		"0": { json: { workspaceId: "owned", paneId: "pane" } },
+	});
+	expect(f.requests.every((request) => request.authenticated)).toBe(true);
+});
+
+test("namespace screenshots without an output path preserve the base64 envelope", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: { workstationBrowserCaptureV1: true } as never,
+	});
+	const result = (await runBrowser(screenshotBrowser, {
+		namespace: f.homeDir,
+	})) as { data: { base64: string }; message: string };
+	expect(result.message).toBe(result.data.base64);
+	expect(Buffer.from(result.data.base64, "base64").subarray(0, 8)).toEqual(
+		Buffer.from("89504e470d0a1a0a", "hex"),
+	);
+});
+
+test("read metadata capability alone cannot request a screenshot or write a PNG", async () => {
+	const f = await fixture(),
+		output = join(f.homeDir, "denied.png");
+	f.setDescription({
+		capabilities: { workstationBrowserReadBridgeV1: true } as never,
+	});
+	await expect(
+		runBrowser(screenshotBrowser, { namespace: f.homeDir, out: output }),
+	).rejects.toThrow("capability");
+	expect(f.requests.map((request) => request.path)).toEqual([
+		"/direct/describe",
+	]);
+	expect(existsSync(output)).toBe(false);
 });

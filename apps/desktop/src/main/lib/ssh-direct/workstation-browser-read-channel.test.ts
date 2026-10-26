@@ -34,6 +34,7 @@ function fixture() {
 	const sockets: Socket[] = [],
 		reads: unknown[] = [];
 	let duringRead = () => {};
+	let capture = () => Promise.resolve("iVBORw0KGgo=");
 	const channels = new WorkstationBrowserReadChannels({
 		getTarget: () => target,
 		openSocket: (id, path) => {
@@ -56,6 +57,10 @@ function fixture() {
 					},
 				];
 			},
+			capturePng: (pane, workspace) => {
+				reads.push([captured, pane, workspace, current()]);
+				return capture();
+			},
 			getConsoleLogs: (pane, workspace) => {
 				reads.push([captured, pane, workspace, current()]);
 				duringRead();
@@ -63,7 +68,7 @@ function fixture() {
 			},
 		}),
 	});
-	const ready = (socket = sockets.at(-1)!) => {
+	const ready = (socket = sockets.at(-1)!, features = ["readV1"]) => {
 		socket.dispatchEvent(new Event("open"));
 		socket.packet({
 			type: "ready",
@@ -71,7 +76,7 @@ function fixture() {
 			backendId: "backend",
 			namespaceId: "namespace",
 			instanceId: "instance",
-			features: ["readV1"],
+			features,
 		});
 	};
 	const request = (
@@ -97,6 +102,9 @@ function fixture() {
 			target = value;
 		},
 		target: () => target!,
+		capture: (callback: () => Promise<string>) => {
+			capture = callback;
+		},
 		duringRead: (callback: () => void) => {
 			duringRead = callback;
 		},
@@ -113,7 +121,7 @@ test("the desktop hello sends only protocol identity and reads through the captu
 		backendId: "backend",
 		namespaceId: "namespace",
 		instanceId: "instance",
-		features: ["readV1"],
+		features: ["readV1", "capturePngV1"],
 	});
 	f.request();
 	f.request("console");
@@ -190,7 +198,7 @@ test("a mismatched ready identity closes before any scoped read", () => {
 		backendId: "other",
 		namespaceId: "namespace",
 		instanceId: "instance",
-		features: ["readV1"],
+		features: ["readV1", "capturePngV1"],
 	});
 	f.request();
 	expect(f.sockets[0]!.closes).toEqual([1008]);
@@ -232,4 +240,60 @@ test("owner teardown cancels a queued replacement and a closed channel does not 
 	f.channels.closeAll();
 	f.sockets[0]!.dispatchEvent(new Event("close"));
 	expect(f.sockets.length).toBe(1);
+});
+
+test("negotiated screenshot requests use the captured pane scope and send bounded PNG chunks", async () => {
+	const f = fixture(),
+		capture = Promise.withResolvers<string>();
+	f.capture(() => capture.promise);
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "capturePngV1"]);
+	const id = crypto.randomUUID();
+	f.sockets[0]!.packet({
+		type: "capture-request",
+		id,
+		workspaceId: "workspace",
+		paneId: "pane",
+	});
+	expect(f.reads).toEqual([[f.target(), "pane", "workspace", true]]);
+	capture.resolve("iVBORw0KGgo=");
+	await capture.promise;
+	expect(f.sockets[0]!.sent.slice(1)).toEqual([
+		{ type: "capture-chunk", id, index: 0, base64: "iVBORw0KGgo=" },
+		{ type: "capture-done", id, ok: true, chunks: 1, base64Chars: 12 },
+	]);
+});
+
+test("a screenshot finishing after the window epoch changes cannot publish image bytes", async () => {
+	const f = fixture(),
+		capture = Promise.withResolvers<string>();
+	f.capture(() => capture.promise);
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "capturePngV1"]);
+	f.sockets[0]!.packet({
+		type: "capture-request",
+		id: crypto.randomUUID(),
+		workspaceId: "workspace",
+		paneId: "pane",
+	});
+	f.setTarget({ ...f.target(), ownerEpoch: 2 });
+	f.channels.sync("connection");
+	capture.resolve("iVBORw0KGgo=");
+	await capture.promise;
+	expect(f.sockets[0]!.sent.length).toBe(1);
+	expect(f.sockets[0]!.closes).toEqual([1000]);
+});
+
+test("a backend cannot request screenshots when that feature was not negotiated", () => {
+	const f = fixture();
+	f.channels.sync("connection");
+	f.ready();
+	f.sockets[0]!.packet({
+		type: "capture-request",
+		id: crypto.randomUUID(),
+		workspaceId: "workspace",
+		paneId: "pane",
+	});
+	expect(f.reads).toEqual([]);
+	expect(f.sockets[0]!.closes).toEqual([1008]);
 });

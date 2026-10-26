@@ -1,3 +1,4 @@
+import { browserCapturePackets } from "@superset/shared/browser-bridge";
 import { expect, test } from "bun:test";
 import {
 	DirectBrowserReadBridge,
@@ -39,6 +40,17 @@ function fixture() {
 	const peer = bridge.attach({
 		send: (raw) => {
 			const packet = JSON.parse(raw);
+			if (packet.type === "capture-request") {
+				operations.push({
+					workspaceId: packet.workspaceId,
+					paneId: packet.paneId,
+				});
+				requested.resolve();
+				if (!hold)
+					for (const part of browserCapturePackets(packet.id, "iVBORw0KGgo="))
+						peer.receive(JSON.stringify(part));
+				return;
+			}
 			if (packet.type !== "request") return;
 			operations.push(packet.operation);
 			requested.resolve();
@@ -54,13 +66,13 @@ function fixture() {
 		},
 		close: () => {},
 	});
-	const ready = () =>
+	const ready = (features = ["readV1"]) =>
 		peer.receive(
 			JSON.stringify({
 				type: "hello",
 				protocol: 1,
 				...identity,
-				features: ["readV1"],
+				features,
 			}),
 		);
 	const caller = (override: Partial<HostServiceContext> = {}) =>
@@ -92,13 +104,11 @@ test("browser read queries retain original data envelopes through the negotiated
 			await f.caller().browserReadV1({ type: "list", workspaceId: "owned" }),
 		).toEqual({ panes });
 		expect(
-			await f
-				.caller()
-				.browserReadV1({
-					type: "console",
-					workspaceId: "owned",
-					paneId: "page",
-				}),
+			await f.caller().browserReadV1({
+				type: "console",
+				workspaceId: "owned",
+				paneId: "page",
+			}),
 		).toEqual({ entries });
 		expect(f.operations).toEqual([
 			{ type: "list", workspaceId: "owned" },
@@ -227,6 +237,77 @@ test("connect support and read readiness are advertised separately and expire wi
 			describeDirectBackend(identity, false, false, f.bridge).capabilities
 				.workstationBrowserReadBridgeV1,
 		).toBe(false);
+	} finally {
+		f.bridge.dispose();
+	}
+});
+
+test("screenshot queries require independently negotiated readiness and preserve the PNG envelope", async () => {
+	const f = fixture();
+	try {
+		f.ready(["readV1", "capturePngV1"]);
+		expect(
+			describeDirectBackend(identity, false, false, f.bridge).capabilities
+				.workstationBrowserCaptureV1,
+		).toBe(true);
+		expect(
+			await f
+				.caller()
+				.browserCaptureV1({ workspaceId: "owned", paneId: "page" }),
+		).toEqual({ base64: "iVBORw0KGgo=" });
+		expect(f.operations).toEqual([{ workspaceId: "owned", paneId: "page" }]);
+		f.peer.close();
+		expect(
+			describeDirectBackend(identity, false, false, f.bridge).capabilities
+				.workstationBrowserCaptureV1,
+		).toBe(false);
+	} finally {
+		f.bridge.dispose();
+	}
+});
+
+test("screenshot queries retain authentication, require capture support and reject extra or missing scope", async () => {
+	const f = fixture();
+	try {
+		f.ready();
+		await expect(
+			f.caller().browserCaptureV1({ workspaceId: "owned", paneId: "page" }),
+		).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
+		await expect(
+			f
+				.caller({ isAuthenticated: false })
+				.browserCaptureV1({ workspaceId: "owned", paneId: "page" }),
+		).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+		await expect(
+			f.caller().browserCaptureV1({ paneId: "page" } as never),
+		).rejects.toMatchObject({ code: "BAD_REQUEST" });
+		await expect(
+			f
+				.caller()
+				.browserCaptureV1({
+					workspaceId: "owned",
+					paneId: "page",
+					code: "unsafe",
+				} as never),
+		).rejects.toMatchObject({ code: "BAD_REQUEST" });
+		expect(f.operations).toEqual([]);
+	} finally {
+		f.bridge.dispose();
+	}
+});
+
+test("a disconnected screenshot query maps to an explicit precondition failure", async () => {
+	const f = fixture();
+	try {
+		f.ready(["readV1", "capturePngV1"]);
+		f.hold();
+		const pending = f
+			.caller()
+			.browserCaptureV1({ workspaceId: "owned", paneId: "page" })
+			.catch((error) => error);
+		await f.requested.promise;
+		f.peer.close();
+		expect(await pending).toMatchObject({ code: "PRECONDITION_FAILED" });
 	} finally {
 		f.bridge.dispose();
 	}
