@@ -1813,3 +1813,10 @@ CLI 仍为控制机原源码 dev runner，针对本次拥有的同机 namespace�
 完整桌面构建工具退出 0，冻结 2205 文件 manifest SHA256 `8b586544ce0a28396ed8f9b2dd6ec4c561bbe33d1689b31443fe513c8b632ff4` 与 79 MJS。真实 local-cli-eval-58b108 和 ssh-cli-eval-58b108 首轮均工具退出 0，SSH 含 20 次原窗口恢复。每端 18 次实际原 CLI 源码运行器调用，合计 26 成功/10 预期拒绝。页面计数验证相同 ID 只执行一次，改 code/跨 workspace/缺 operationId 拒绝；抛异常后 unresolved，重复同 ID 仍拒绝且异常前计数只一次。0/null/false/Unicode/void 0 实测，undefined 沿原 CLI JSON 省略字段输出 {}；后台 false 求值保留终端 tab 与实际键盘焦点。正常重开读取原完成回执并重复原命令，当前新页面计数仍不存在，没有重新执行或重绑。
 
 两端同步通过原 eval API 30 次、导航 API 18 次、导航 CLI 24 次与读取/截图 CLI 22 次，共 94 次回归；六张 PNG 白底/剪贴板、原导航/find/popup/选择关闭、HTTP Ctrl+C 和同 PTY/execution/cwd 保持。全部 app/Xorg/报告 PID 清理，2205 文件/79 脚本/原 CLI SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 复核不变。实际查看两端后台终端和 SSH 重开三张图，未声称查看全部图。随包 CLI 未重建，无安装包/Actions/实体 Mac/外部 SSH/真实供应商 Agent 新验证。CLI open/import-login/CDP、rightPane、其他 URL 与完整功能清单继续。[阶段一百零八证据](evidence/local-ssh-feature-parity/stage108)。
+
+
+## 阶段一百零九：open 的默认后台意图与持久操作准备
+
+源码 `14e851165` 仅新增内部 browser-open-operation 与 11 项真实 SQLite 测试。新严格输入保留原 current-tab / show=false 默认值，明确 show=true/new-tab 才记录相应意图；省略与显式默认得到同一 canonical 输入 hash。沿原 journal，同步 pin 返回延迟执行器，接受后执行，容量拒绝也 release。相同 ID 的并发/完成回执只创建一次，换 workspace/URL/target/show 均冲突；换 renderer、回执丢失或维护不重新 pin/重发。新 URL 控制字符检查不改变旧 browser.open/resolveGuestUrl；实际 URL 规范化和后台运行时接入仍在后续阶段。
+
+先记录缺模块的真实失败，实施后和原 eval/navigation/operation 共 37 项、143 断言、4 文件通过，host-service 类型、lint、插件通过。生产差异只有这两份新文件，无 RPC/能力/wire/renderer/CLI 接入，也没有新构建或实窗。本阶段不宣称后台创建已恢复。复核原 58b1082e7 的 2205 编译文件、79 脚本与 CLI 哈希均不变；下一步按原 openBackgroundBrowser 的布局选择保留和后台 runtime 逐项接入，整体继续。[阶段一百零九证据](evidence/local-ssh-feature-parity/stage109)。

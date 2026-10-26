@@ -245,3 +245,6 @@
 
 
 阶段一百零八以58b1082e7接原eval CLI的明确namespace/稳定operationId，独立单条版本化POST/双能力/批量拒绝，无flag账号路径与结果格式保留；失败不重试，原status可查运行backend离线peer回执。49项171断言、CLI/i18n类型、17目录两新词条/旧译文/AST及完整构建通过。两端36次新CLI含26成功/10预期拒绝，实际页面计数去重、异常unresolved不重发、falsy/Unicode/undefined原JSON {}、后台焦点与重开不执行通过；同步94次既有API/CLI回归，SSH含20恢复。2205文件/79脚本/随包CLI哈希保持，随包CLI未重建。open/import-login/CDP及其他功能继续。[阶段一百零八证据](../implementation/evidence/local-ssh-feature-parity/stage108)。
+
+
+阶段一百零九以14e851165准备内部持久open，保留原current-tab/show=false及显式show/new-tab意图，默认同hash、接受前pin/接受后执行、容量release、并发去重/改意图冲突/未知不重发。11项新SQLite连同旧核心共37项143断言及host类型/lint通过。无RPC/能力/协议/renderer/CLI、新构建或实窗，不宣称open恢复；原58b产品2205文件/79脚本/CLI哈希保持。继续实际后台运行时和布局选择保护。[阶段一百零九证据](../implementation/evidence/local-ssh-feature-parity/stage109)。
