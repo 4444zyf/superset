@@ -161,6 +161,14 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 			`(async()=>{const v=[...document.querySelectorAll('webview')].find(v=>v.style.visibility==='visible');const p=await v.executeJavaScript(${JSON.stringify(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,width:innerWidth,height:innerHeight,armed:typeof window.__supersetDesignMode?.cancelAwait==='function'};})()`)});const r=v.getBoundingClientRect();return {x:r.left+p.x,y:r.top+p.y,viewport:{width:p.width,height:p.height},element:{left:r.left,top:r.top,width:r.width,height:r.height},ready:p.armed&&Math.abs(r.width-p.width)<1&&Math.abs(r.height-p.height)<1};})()`,
 		);
 	const guestClick = async (selector) => {
+		report.guestClicks = (report.guestClicks ?? 0) + 1;
+		const painted = await getPage().call("Page.captureScreenshot", {
+			format: "png",
+		});
+		writeFileSync(
+			join(output, `browser-design-selecting-${report.guestClicks}.png`),
+			Buffer.from(painted.data, "base64"),
+		);
 		const p = await until(async () => {
 			const sample = await point(selector);
 			report.pointerGeometry ??= [];
@@ -197,6 +205,13 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 					`(()=>{const input=document.querySelector(${JSON.stringify(form)});return input&&document.activeElement===input&&input.closest('form').getBoundingClientRect().width>100;})()`,
 				),
 			"selected element composer is laid out and focused",
+		);
+		const painted = await getPage().call("Page.captureScreenshot", {
+			format: "png",
+		});
+		writeFileSync(
+			join(output, `browser-design-confirming-${report.guestClicks}.png`),
+			Buffer.from(painted.data, "base64"),
 		);
 		return snapshot();
 	};
