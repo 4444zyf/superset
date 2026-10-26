@@ -4,6 +4,154 @@ import type { SqliteDatabase } from "@superset/direct-connection";
 import { OperationIntents } from "./operation-intents";
 import { WorkstationController } from "./workstation-controller";
 
+test("agent target reads require the optional capability and an explicit current workspace", async () => {
+	const f = fixture();
+	let enabled: unknown = false;
+	const calls: unknown[] = [];
+	const controller = new WorkstationController({
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: { workstationAgentFeedbackV1: enabled },
+		}),
+		invoke: async (_id, request) => {
+			calls.push(request);
+			return [];
+		},
+	});
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "terminalAgents.listByWorkspace",
+		type: "query" as const,
+		input: { workspaceId: "workspace" },
+	};
+	for (const value of [undefined, false, "true", 1]) {
+		enabled = value;
+		await expect(controller.invoke(request)).rejects.toThrow(
+			"required capability",
+		);
+	}
+	enabled = true;
+	await expect(
+		controller.invoke({ ...request, input: { workspaceId: "" } }),
+	).rejects.toThrow("explicit workspace");
+	await expect(
+		controller.invoke({ ...request, type: "mutation" }),
+	).rejects.toThrow("Unsupported");
+	expect(calls).toEqual([]);
+	expect(await controller.invoke(request)).toEqual([]);
+	f.nextGeneration();
+	await expect(controller.invoke(request)).rejects.toThrow(
+		"Connection changed",
+	);
+	expect(calls).toHaveLength(1);
+});
+
+test("agent feedback uses durable dispatch and rejects sending without operation tracking", async () => {
+	const f = fixture(),
+		db = new Database(":memory:");
+	const intents = new OperationIntents(db as unknown as SqliteDatabase),
+		calls: unknown[] = [];
+	const manager = {
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: {
+				workstationAgentFeedbackV1: true,
+				durableOperations: true,
+			},
+		}),
+		invoke: async (_id: string, request: unknown) => {
+			calls.push(request);
+			return { status: "completed", result: { submitted: true } };
+		},
+	};
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "terminal.sendToAgentV1",
+		type: "mutation" as const,
+		input: {
+			workspaceId: "workspace",
+			terminalId: "terminal",
+			executionId: "execution",
+			agent: { agentId: "claude", startedAt: 1 },
+			text: "feedback",
+			operationId: crypto.randomUUID(),
+		},
+	};
+	try {
+		await expect(
+			new WorkstationController(manager).invoke(request),
+		).rejects.toThrow("tracking");
+		expect(calls).toEqual([]);
+		const controller = new WorkstationController(manager, intents);
+		await expect(
+			controller.invoke({
+				...request,
+				input: { ...request.input, operationId: "" },
+			}),
+		).rejects.toThrow("stable operation ID");
+		expect(await controller.invoke(request)).toEqual({ submitted: true });
+		expect(calls).toEqual([
+			{
+				path: "direct.execute",
+				type: "mutation",
+				input: {
+					operationId: request.input.operationId,
+					procedure: "terminal.sendToAgentV1",
+					input: {
+						workspaceId: "workspace",
+						terminalId: "terminal",
+						executionId: "execution",
+						agent: { agentId: "claude", startedAt: 1 },
+						text: "feedback",
+					},
+				},
+			},
+		]);
+		expect(intents.list("machine")).toEqual([]);
+	} finally {
+		db.close();
+	}
+});
+
+test("an unknown agent-send receipt remains pending instead of being treated as success", async () => {
+	const f = fixture(),
+		db = new Database(":memory:");
+	try {
+		const intents = new OperationIntents(db as unknown as SqliteDatabase);
+		const controller = new WorkstationController(
+			{
+				...f.manager,
+				getVerifiedDescription: () => ({
+					capabilities: {
+						workstationAgentFeedbackV1: true,
+						durableOperations: true,
+					},
+				}),
+				invoke: async () => {
+					throw Error("owned receipt lost");
+				},
+			},
+			intents,
+		);
+		const operationId = crypto.randomUUID();
+		await expect(
+			controller.invoke({
+				connectionId: "machine",
+				generation: 1,
+				path: "terminal.sendToAgentV1",
+				type: "mutation",
+				input: { workspaceId: "workspace", operationId },
+			}),
+		).rejects.toThrow("receipt lost");
+		expect(intents.list("machine")).toHaveLength(1);
+		expect(intents.list("machine")[0].operationId).toBe(operationId);
+	} finally {
+		db.close();
+	}
+});
+
 test("port close uses the original scoped mutation and rejects old capability and stale generation", async () => {
 	const f = fixture();
 	let enabled = false;

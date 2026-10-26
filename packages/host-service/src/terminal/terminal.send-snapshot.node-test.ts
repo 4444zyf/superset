@@ -26,6 +26,11 @@ import { after, before, describe, mock, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { Server } from "@superset/pty-daemon";
 import { createDb, type HostDb } from "../db/index.ts";
+import {
+	DirectOperationStore,
+	type OperationDatabase,
+} from "../direct/operations.ts";
+import type { HostServiceContext } from "../types.ts";
 import { projects, workspaces } from "../db/schema.ts";
 import { buildWatchPrompt } from "../page-watch/buildPrompt.ts";
 import {
@@ -1201,7 +1206,7 @@ describe("writeFramedInputToSession / snapshotSession", () => {
 describe("terminal.send / terminal.snapshot tRPC procedures", () => {
 	const TEST_ORG_ID = "00000000-0000-4000-8000-000000000000";
 
-	async function makeCaller() {
+	async function makeCaller(extra: Partial<HostServiceContext> = {}) {
 		process.env.ORGANIZATION_ID = TEST_ORG_ID;
 		process.env.HOST_SERVICE_SECRET = "test-secret";
 		process.env.HOST_DB_PATH = path.join(TEST_HOME, "host.db");
@@ -1214,8 +1219,84 @@ describe("terminal.send / terminal.snapshot tRPC procedures", () => {
 			organizationId: TEST_ORG_ID,
 			db,
 			terminalAgentStore,
+			...extra,
 		} as unknown as Parameters<typeof appRouter.createCaller>[0]);
 	}
+
+	test("direct agent feedback pins a live execution, paste-frames once and rejects an ended target", async () => {
+		const terminalId = `e2e-direct-feedback-${randomUUID().slice(0, 8)}`;
+		const captureFile = path.join(TEST_HOME, `direct-feedback-${terminalId}`);
+		const doneFile = path.join(TEST_HOME, `direct-feedback-done-${terminalId}`);
+		const session = await createTerminalSessionInternal({
+			terminalId,
+			workspaceId,
+			db,
+			initialCommand: `printf '\\033[?2004l'; cat > "${captureFile}"; echo done > "${doneFile}"`,
+		});
+		assert.ok(!("error" in session));
+		try {
+			await waitFor(() => fs.existsSync(captureFile), 5000);
+			bindAgent(terminalId);
+			const binding = terminalAgentStore.get(terminalId);
+			assert.ok(binding);
+			const execution = (await (await getDaemonClient()).list()).find(
+				(row) => row.id === terminalId,
+			);
+			assert.ok(execution?.executionId);
+			const operations = new DirectOperationStore(
+				db.$client as unknown as OperationDatabase,
+				"feedback-instance",
+			);
+			const caller = await makeCaller({
+				direct: {
+					backendId: "backend",
+					namespaceId: "namespace",
+					instanceId: "feedback-instance",
+					serviceUid: process.getuid?.() ?? 1000,
+				},
+				directOperations: operations,
+				runtime: {} as HostServiceContext["runtime"],
+			});
+			const text = "Design feedback 中文 🙂\nChange only the selected element.";
+			const request = {
+				operationId: randomUUID(),
+				procedure: "terminal.sendToAgentV1" as const,
+				input: {
+					workspaceId,
+					terminalId,
+					executionId: execution.executionId,
+					text,
+					agent: {
+						agentId: binding.agentId,
+						launchId: binding.launchId,
+						startedAt: binding.startedAt,
+						agentSessionId: binding.agentSessionId,
+					},
+				},
+			};
+			const receipt = await caller.direct.execute(request);
+			assert.equal(receipt.status, "completed");
+			assert.deepEqual(receipt.result, {
+				terminalId,
+				executionId: execution.executionId,
+				submitted: true,
+			});
+			assert.deepEqual(await caller.direct.execute(request), receipt);
+			terminalAgentStore.markTerminalDisposed(terminalId);
+			await assert.rejects(
+				caller.direct.execute({ ...request, operationId: randomUUID() }),
+				/selected agent is no longer current/,
+			);
+			writeInputToSession({ terminalId, workspaceId, data: "\x04" });
+			await waitFor(() => fs.existsSync(doneFile), 5000);
+			assert.equal(
+				fs.readFileSync(captureFile, "utf8"),
+				`\x1b[200~${text}\x1b[201~\n`,
+			);
+		} finally {
+			await disposeSessionAndWait(terminalId, db);
+		}
+	});
 
 	test("send preserves paste framing after startup output is evicted and the host restarts", async () => {
 		const caller = await makeCaller();
