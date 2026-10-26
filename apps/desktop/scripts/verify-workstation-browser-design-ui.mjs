@@ -64,6 +64,9 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 	const diagnostic = process.argv.includes("--design-diagnostic");
 	if (diagnostic) {
 		await evaluate("window.__ownedDesignTrace=[]");
+		await evaluate(
+			"(()=>{window.__ownedDesignHostPointerTrace=[];for(const type of ['mousedown','click'])window.addEventListener(type,e=>{const rows=window.__ownedDesignHostPointerTrace;if(rows.length<128)rows.push({type,x:e.clientX,y:e.clientY,tag:e.target?.tagName,label:e.target?.closest('button')?.getAttribute('aria-label'),state:e.target?.closest('button')?.getAttribute('data-state'),at:performance.now()});},true);})()",
+		);
 		await getPage().call("Debugger.enable");
 		const assets = fileURLToPath(
 			new URL("../dist/renderer/assets/", import.meta.url),
@@ -108,7 +111,7 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 	const saveDiagnostic = async () => {
 		if (!diagnostic) return;
 		const state = await evaluate(
-			"({trace:window.__ownedDesignTrace,toasts:[...document.querySelectorAll('[data-sonner-toast]')].map(e=>e.textContent),focus:document.activeElement?.tagName})",
+			"({trace:window.__ownedDesignTrace,host:window.__ownedDesignHostPointerTrace,toasts:[...document.querySelectorAll('[data-sonner-toast]')].map(e=>e.textContent),focus:document.activeElement?.tagName,controls:[...document.querySelectorAll('[aria-label=\"Choose agent\"]')].map(e=>{const r=e.getBoundingClientRect();return {tag:e.tagName,state:e.getAttribute('data-state'),left:r.left,top:r.top,width:r.width,height:r.height};})})",
 		);
 		state.guest = await guestRead("window.__ownedDesignPointerTrace");
 		writeFileSync(
@@ -503,6 +506,7 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 		return report;
 	} catch (error) {
 		report.error = String(error);
+		report.failureSnapshot = await snapshot();
 		save();
 		await saveDiagnostic();
 		await screenshot("browser-design-incomplete");
