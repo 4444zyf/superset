@@ -16,6 +16,8 @@ import {
 } from "./lib/ssh-direct/workstation-browser-screenshots";
 import { captureCurrentPage } from "./lib/browser/capture-current-page";
 import { WorkstationBrowserDownloads } from "./lib/ssh-direct/workstation-browser-downloads";
+import { WorkstationBrowserReadChannels } from "./lib/ssh-direct/workstation-browser-read-channel";
+import { currentWorkstationBrowserBridgePanes } from "./lib/ssh-direct/workstation-browser-bridge-panes";
 import { clearBrowserSessionData } from "./lib/browser/clear-browser-session-data";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync } from "node:fs";
@@ -382,6 +384,8 @@ export async function startWorkstation(): Promise<void> {
 		});
 	};
 	let browserRegistry: WorkstationBrowserRegistry | null = null;
+	let browserReadChannels: WorkstationBrowserReadChannels | null = null;
+	let rendererBrowserReadReady = false;
 	const cleanBrowser = (operation: () => void) => {
 		try {
 			operation();
@@ -393,6 +397,7 @@ export async function startWorkstation(): Promise<void> {
 		registry,
 		local,
 		onStatus: (id, status) => {
+			browserReadChannels?.sync(id);
 			if (status.state !== "ready")
 				cleanBrowser(() => browserRegistry?.closeConnection(id));
 			if (["probing", "forwarding", "verifying"].includes(status.state))
@@ -516,6 +521,25 @@ export async function startWorkstation(): Promise<void> {
 	let quitRequested = false;
 	const closeGate = new WindowCloseGate();
 	let rendererOwnerEpoch = 0;
+	browserReadChannels = new WorkstationBrowserReadChannels({
+		getTarget: (id) => {
+			if (!rendererBrowserReadReady || !window || window.isDestroyed() || window.webContents.isDestroyed()) return null;
+			const lease = manager.getLease(id);
+			if (!lease || manager.getStatus(id).state !== "ready") return null;
+			const capabilities = manager.getVerifiedDescription(id).capabilities as Record<string, unknown> | undefined;
+			if (capabilities?.workstationBrowserReadBridgeConnectV1 !== true) return null;
+			return { ownerId: window.webContents.id, ownerEpoch: rendererOwnerEpoch, descriptor: controller.describe(id) };
+		},
+		openSocket: (id, socketPath) => manager.openSocket(id, socketPath),
+		panes: (target, isCurrent) => currentWorkstationBrowserBridgePanes({
+			ownerId: target.ownerId,
+			descriptor: target.descriptor,
+			isCurrent,
+			registry: browserRegistry!,
+			manager: browserManager,
+			canonical: (owner, pane, raw) => browserNavigation.canonical(owner, pane, raw),
+		}),
+	});
 	const reconnect = new AutomaticReconnect({
 		getStatus: (id) => manager.getStatus(id),
 		connect: async (id) => {
@@ -672,6 +696,8 @@ export async function startWorkstation(): Promise<void> {
 			"did-start-navigation",
 			(_event, _url, isInPlace, isMainFrame) => {
 				if (isMainFrame && !isInPlace) {
+					rendererBrowserReadReady = false;
+					browserReadChannels?.closeAll();
 					cleanBrowser(() => browserRegistry?.activateOwner(owner));
 					rendererOwnerEpoch++;
 					closeGate.invalidate();
@@ -684,6 +710,11 @@ export async function startWorkstation(): Promise<void> {
 				}
 			},
 		);
+		window.webContents.on("did-finish-load", () => {
+			if (window?.webContents.id !== owner) return;
+			rendererBrowserReadReady = true;
+			for (const profile of registry.list()) browserReadChannels?.sync(profile.id);
+		});
 		if (saved?.window.maximized) window.maximize();
 		const currentWindow = window;
 		const changedBounds = () => {
@@ -700,6 +731,8 @@ export async function startWorkstation(): Promise<void> {
 		let closing = false;
 		let allowClose = false;
 		window.webContents.on("render-process-gone", () => {
+			rendererBrowserReadReady = false;
+			browserReadChannels?.closeAll();
 			cleanBrowser(() => browserRegistry?.activateOwner(null));
 			closeGate.invalidate();
 		});
@@ -731,6 +764,8 @@ export async function startWorkstation(): Promise<void> {
 				});
 		});
 		window.on("closed", () => {
+			rendererBrowserReadReady = false;
+			browserReadChannels?.closeAll();
 			cleanBrowser(() => browserRegistry?.activateOwner(null));
 			closeGate.invalidate();
 			clearTimeout(windowSaveTimer);
@@ -1976,6 +2011,8 @@ export async function startWorkstation(): Promise<void> {
 					rendererOwnerEpoch++;
 					closeGate.invalidate();
 					views?.activateOwner(null);
+					rendererBrowserReadReady = false;
+					browserReadChannels?.closeAll();
 					cleanBrowser(() => browserDownloads?.manager.stop());
 					cleanBrowser(() => browserRegistry?.dispose());
 					forwards.dispose();

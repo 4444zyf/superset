@@ -67,6 +67,7 @@ export async function verifyWorkstationBrowserUi(options) {
 		`  body=('<!doctype html><meta charset="utf-8"><title>'+title+'</title><h1>'+state['marker']+'</h1><a id="next" href="/next?value=%E4%B8%AD%20hello#section">Next page</a><br><a id="popup" target="_blank" href="/popup">Open second pane</a><p>needle needle needle</p>').encode()`,
 		`  body=body.replace(b'<title>',b'<link rel="icon" href="/icon.svg"><title>')`,
 		...(downloadsFixture ? [downloadsFixture.body] : []),
+		...(process.argv.includes("--browser-read-cli") ? ["  body=body+b'<script>console.warn(document.querySelector(\"h1\").textContent)</script>'"] : []),
 		...(process.argv.includes("--browser-screenshots")
 			? [
 					`  body=body+b'<button id="capture-color" onclick="document.body.style.backgroundColor=String.fromCharCode(35,50,56,53,97,56,50)">Change capture color</button>'`,
@@ -144,7 +145,8 @@ export async function verifyWorkstationBrowserUi(options) {
 			`(()=>{const image=document.querySelector('[data-workstation-browser-toolbar] img');return image?.src.startsWith('data:image/')&&image.complete&&image.naturalWidth===16&&image.naturalHeight===16?{src:image.src,width:image.naturalWidth,height:image.naturalHeight}:null;})()`,
 		);
 	let started = false,
-		terminalTab;
+		terminalTab,
+		browserReadCli;
 	try {
 		await click(`${selector} .xterm-screen`);
 		await getPage().call("Input.insertText", { text: command });
@@ -228,6 +230,10 @@ export async function verifyWorkstationBrowserUi(options) {
 		assert.equal(loaded.node, "undefined");
 		assert.equal(loaded.process, "undefined");
 		report.loaded = loaded;
+		if (process.argv.includes("--browser-read-cli")) {
+			const { verifyWorkstationBrowserReadCliUi } = await import("./verify-workstation-browser-read-cli-ui.mjs");
+			browserReadCli = await verifyWorkstationBrowserReadCliUi(options, { scope, url, marker, readView, workspace });
+		}
 		if (process.argv.includes("--browser-icon-display")) {
 			report.displayedIcon = await until(
 				readDisplayedIcon,
@@ -631,6 +637,7 @@ export async function verifyWorkstationBrowserUi(options) {
 			);
 			save();
 		}
+		if (browserReadCli) await browserReadCli.afterReopen(`http://localhost:${proof.port}/next?value=%E4%B8%AD%20hello#section`);
 		await screenshot("browser-reopened");
 		save();
 	} finally {

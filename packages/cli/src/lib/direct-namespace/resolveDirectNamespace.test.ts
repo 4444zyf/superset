@@ -15,6 +15,8 @@ import { join } from "node:path";
 import { parseArgv } from "@superset/cli-framework";
 import { directBackendSocketPath } from "@superset/shared/direct-backend-socket";
 import readTerminal from "../../commands/terminals/read/command";
+import listBrowser from "../../commands/browser/list/command";
+import browserConsole from "../../commands/browser/console/command";
 import getWorkspace from "../../commands/workspaces/get/command";
 import { createUnavailableApiClient } from "../api-client";
 import { readFromDirectNamespace } from "./readFromDirectNamespace";
@@ -107,6 +109,31 @@ async function fixture() {
 		}
 		if (request.url === "/direct/describe") {
 			response.end(JSON.stringify(description));
+			return;
+		}
+		if (request.url?.startsWith("/trpc/direct.browserReadV1?")) {
+			const url = new URL(request.url, "http://fixture.invalid");
+			const operation = JSON.parse(url.searchParams.get("input")!)["0"].json;
+			const result =
+				operation.type === "list"
+					? {
+							panes: [
+								{
+									paneId: "pane",
+									workspaceId: operation.workspaceId,
+									url: "http://localhost:3000/中文",
+									title: "中文 page",
+									isLoading: false,
+								},
+							],
+						}
+					: {
+							entries: [
+								{ level: "info", message: "first", timestamp: 1 },
+								{ level: "warn", message: "中文 output", timestamp: 2 },
+							],
+						};
+			response.end(JSON.stringify([{ result: { data: { json: result } } }]));
 			return;
 		}
 		if (request.url?.startsWith("/trpc/workspace.list?")) {
@@ -454,5 +481,111 @@ test("an absent namespace keeps the old command branch and conflicting targets n
 		),
 	).rejects.toThrow("either --namespace or --host");
 	expect(entered).toBe(false);
+	expect(f.requests).toEqual([]);
+});
+
+function runBrowser(
+	command: typeof listBrowser | typeof browserConsole,
+	options: Record<string, unknown>,
+) {
+	return command.run({
+		ctx: {
+			config: {},
+			bearer: "",
+			authSource: "direct",
+			api: createUnavailableApiClient(),
+		},
+		args: {} as never,
+		options: { workspace: "owned", pane: "pane", ...options } as never,
+		signal: new AbortController().signal,
+	});
+}
+
+test("browser list accepts the namespace flag and reads scoped metadata without an organization", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: { workstationBrowserReadBridgeV1: true } as never,
+	});
+	const configs = Object.fromEntries(
+		Object.entries(listBrowser.options ?? {}).map(([name, builder]) => [
+			name,
+			{ ...builder._.config, name },
+		]),
+	);
+	expect(
+		parseArgv(["bun", "superset", "--namespace", f.homeDir, "--workspace", "owned"], configs)
+			.options,
+	).toMatchObject({ namespace: f.homeDir, workspace: "owned" });
+	const result = await runBrowser(listBrowser, { namespace: f.homeDir });
+	expect(result).toEqual({
+		data: [
+			{
+				paneId: "pane",
+				workspaceId: "owned",
+				url: "http://localhost:3000/中文",
+				title: "中文 page",
+				isLoading: false,
+			},
+		],
+		message: "pane\thttp://localhost:3000/中文\t中文 page",
+	});
+	const url = new URL(f.requests[1]!.path, "http://fixture.invalid");
+	expect(JSON.parse(url.searchParams.get("input")!)).toEqual({
+		"0": { json: { type: "list", workspaceId: "owned" } },
+	});
+	expect(f.requests.every((request) => request.authenticated)).toBe(true);
+});
+
+test("browser console retains the original bottom limit including zero through namespace reads", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: { workstationBrowserReadBridgeV1: true } as never,
+	});
+	expect(
+		await runBrowser(browserConsole, { namespace: f.homeDir, maxLines: 1 }),
+	).toEqual({
+		data: [{ level: "warn", message: "中文 output", timestamp: 2 }],
+		message: "[warn] 中文 output",
+	});
+	expect(
+		await runBrowser(browserConsole, { namespace: f.homeDir, maxLines: 0 }),
+	).toEqual({ data: [], message: "No console output captured." });
+	const url = new URL(f.requests[1]!.path, "http://fixture.invalid");
+	expect(JSON.parse(url.searchParams.get("input")!)).toEqual({
+		"0": { json: { type: "console", workspaceId: "owned", paneId: "pane" } },
+	});
+});
+
+test("browser read support without a ready desktop peer is rejected before a namespace RPC", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: { workstationBrowserReadBridgeConnectV1: true } as never,
+	});
+	await expect(
+		runBrowser(listBrowser, { namespace: f.homeDir }),
+	).rejects.toThrow("capability");
+	await expect(
+		runBrowser(browserConsole, { namespace: f.homeDir }),
+	).rejects.toThrow("capability");
+	expect(f.requests.map((request) => request.path)).toEqual([
+		"/direct/describe",
+		"/direct/describe",
+	]);
+});
+
+test("browser commands preserve default account requirements and reject ambiguous namespace targets", async () => {
+	const f = await fixture();
+	await expect(runBrowser(listBrowser, {})).rejects.toThrow(
+		"No active organization",
+	);
+	await expect(runBrowser(browserConsole, {})).rejects.toThrow(
+		"No active organization",
+	);
+	await expect(
+		runBrowser(listBrowser, { namespace: f.homeDir, host: "other" }),
+	).rejects.toThrow("either --namespace or --host");
+	await expect(
+		runBrowser(browserConsole, { namespace: f.homeDir, maxLines: -1 }),
+	).rejects.toThrow("--max-lines must be >= 0");
 	expect(f.requests).toEqual([]);
 });

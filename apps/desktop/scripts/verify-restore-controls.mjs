@@ -43,6 +43,10 @@ export function ownedRestoreControls(home, fixture) {
 	);
 	let originals = [];
 	return {
+		browserNamespaceHome() {
+			assert.equal(lstatSync(home).uid, process.getuid());
+			return home;
+		},
 		async prepareTerminalPreset(worktreePath) {
 			assert.equal(process.platform, "linux");
 			assert.ok(worktreePath.startsWith(join(fixture.homeDir, "Superset Remix", "worktrees") + "/"));

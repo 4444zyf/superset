@@ -10,6 +10,7 @@ import SuperJSON from "superjson";
 
 const origin = "http://superset-remix.invalid";
 const readProcedures = new Map([
+	["direct.browserReadV1", "workstationBrowserReadBridgeV1"],
 	["settings.agentConfigs.readCatalogV1", "workstationAgentCatalogReadV1"],
 	["project.list", "projects"],
 	["workspace.list", "sessions"],
