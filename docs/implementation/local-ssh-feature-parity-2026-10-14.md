@@ -1834,3 +1834,14 @@ CLI 仍为控制机原源码 dev runner，针对本次拥有的同机 namespace�
 源码 `4f4ca33ef` 仅新增内部 WorkstationBrowserOpenRequests 与 11 项测试。prepare/confirmReady 用当前 owner/epoch、订阅 ID 和新的 scope nonce 建立真实监听就绪状态；旧订阅 cleanup 不退订新监听。pin 同步预留并复制描述/意图，不发送或计时，延迟执行器才派发；单 pending、一次执行、15 秒 ACK、明确完成/释放/失效/传输失败均清理，已派发的取消只发给同一 owner epoch。scope 失效更换 nonce，旧 pin/回执/释放不能影响新操作；availability 分开 ready 与 accepting，避免忙碌标志误取消已接受请求。后续需要把 scope 变化接到真实 profile/窗口生命周期，未接线前不能声称已解决实际跨 profile 创建。
 
 先记录缺模块 red；新增后端代次变化用例发现初版只验证 renderer、会接受过期 target 回执，真实失败保留并已补目标检查。refresh 可取消旧目标 pending 而不退订当前 renderer。与原 read channel 回归共 28 项、119 断言、2 文件、desktop 类型、lint、插件通过；时钟均受控，无真实超时等待。生产差异只有两份新文件，原代码/协议/CLI 未改，无生产 caller、IPC/protocol/renderer/persistence 接入，也无新构建/实窗。复核原 58b1082e7 的 2205 文件/79 脚本/CLI 哈希不变，继续真实接线。[阶段一百一十一证据](evidence/local-ssh-feature-parity/stage111)。
+
+
+## 阶段一百一十二：open 的可选范围协议与受保护持久 RPC 核心
+
+源码 `332956a4f` 增加只在协商 openV1 后使用的严格 open-availability/request/result 帧。availability 分开 scope/ready 与 accepting：同一 scope 的忙碌只禁止新操作，不取消已接受请求；scope 改变或 renderer 不可用只取消 open pending，不断开原读取/导航/eval/截图。host pin 同步固定 peer 和 scope，接受后才发请求，旧回执 ID/nonce 不匹配时忽略，未知结果不重发。桌面 channel 为新能力增加可选 supplier/deferred pin，但原 main 仍未启用 openV1，旧 peer 不收到新帧。
+
+新增严格受保护 direct.browserOpenV1 沿阶段一百零九 journal；fresh pin 从原 getLocalWorkspace 的真实目标 DB 读取 workspace/project 元数据，projectless null 保留，找不到工作区在接受前拒绝，客户端元数据注入拒绝。完成回执在工作区删除/无 DB 或 peer/维护时仍可通过原记录读取，不再查询或绑定新 renderer。新可选能力由 durable 与真实 ready/accepting 决定，没有抬高 host floor 或修改旧 browser.open/direct.execute。
+
+实际 in-memory host SQLite 完整迁移与原 Drizzle/getLocalWorkspace、原 full direct caller/auth 参与测试；101 项 host/495 断言/13 文件、33 项 desktop/139 断言/2 文件、8 项 shared/42 断言/3 文件、6 项真实鉴权 Node WebSocket 通过，四处类型、定向 lint 与插件通过。先保留缺能力 red；额外 release red 发现关闭 channel 尚未释放新 renderer 预留，现于明确关闭/实际 socket close/finally 精确释放一次，原 closing-owner 队列和读取行为回归通过。新增真实 WS 通过原只读往返作为 availability 已按序处理的屏障，无轮询睡眠或增加超时。
+
+五份现有模块收回新增项后 AST 相同；main/preload/原 browser API/实际 renderer、认证/journal/CLI 字节保持。无实际 renderer 接线/后台创建/持久化调用方，原主进程不声明 openV1；这是协议/RPC 核心，不是 open 功能恢复完成。未新构建/实窗，复核原 58b1082e7 的 2205 文件/79 脚本/CLI 哈希不变。下一步绑定真实视图范围/renderer 和原后台 runtime，再验收 API 与 CLI，整体继续。[阶段一百一十二证据](evidence/local-ssh-feature-parity/stage112)。

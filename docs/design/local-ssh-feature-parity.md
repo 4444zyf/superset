@@ -254,3 +254,6 @@
 
 
 阶段一百一十一以4f4ca33ef准备open的main renderer生命周期：owner/epoch/订阅/scope nonce、复制意图和延迟派发、单pending、一次执行、受控ACK超时/取消/旧回执隔离，ready/accepting分开。新增target变化red揭示并修复晚回执检查，refresh取消旧目标但保留当前订阅；11项新用例连同readchannel共28项119断言/desktop类型/lint通过。无caller/IPC/协议/renderer/持久化接线、新构建或实窗，profile生命周期仍须实际绑定；原58b编译2205/79脚本/CLI哈希保持。整体继续。[阶段一百一十一证据](../implementation/evidence/local-ssh-feature-parity/stage111)。
+
+
+阶段一百一十二以332956a4f接可选scope/ready/accepting协议与受保护持久open RPC核心，真实DB读workspace/projectless元数据，完成回执不重查/重绑；同scope忙碌不取消已接受请求，换scope仅取消open。release红例补齐关闭/实际socket close/finally精确取消，101项host495断言、33项desktop139断言、8项shared42断言、6项真实WS/四处类型与兼容对照通过。main仍未启用openV1，也无真实renderer/保存/后台创建；不宣称open恢复，无新构建或实窗，原58b编译2205/79脚本/CLI哈希保持。继续真实接线。[阶段一百一十二证据](../implementation/evidence/local-ssh-feature-parity/stage112)。

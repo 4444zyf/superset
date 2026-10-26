@@ -1,0 +1,44 @@
+{
+  "source": "332956a4f6bac03e0a9c3e749e07069f778e2cdd",
+  "tests": {
+    "host": {
+      "passed": 101,
+      "assertions": 495,
+      "files": 13
+    },
+    "desktop": {
+      "passed": 33,
+      "assertions": 139,
+      "files": 2
+    },
+    "shared": {
+      "passed": 8,
+      "assertions": 42,
+      "files": 3
+    },
+    "actualNodeWebSocket": {
+      "passed": 6
+    }
+  },
+  "typechecks": [
+    "host-service",
+    "desktop",
+    "shared",
+    "cli"
+  ],
+  "scope": "Optional scoped open protocol and protected durable RPC core. Production main still does not advertise openV1 and no actual renderer handler/persistence/background runtime is bound.",
+  "red": [
+    "Backend bridge and protected RPC missing before implementation",
+    "Desktop channel did not support open availability/dispatch before implementation",
+    "Closing the new channel first failed to release its pending renderer reservation; added exactly-once release on explicit close, socket close and final settlement"
+  ],
+  "realData": "Protected RPC tests migrate an actual in-memory host SQLite database and call original getLocalWorkspace, including projectless workspace metadata, deleted workspace completed receipts, not-found before acceptance and capacity failure.",
+  "compatibility": "Five existing modules normalize to their old AST after declared optional additions; original main/preload/browser API/renderer/auth/journal/CLI bytes unchanged.",
+  "compiledSource": "58b1082e71f1d5bf186e9611b406e89ca9a3b856",
+  "limits": [
+    "No new product build or native UI acceptance",
+    "Actual scope lifecycle, renderer listener and background layout/runtime remain pending",
+    "Browser open CLI namespace path is not connected",
+    "Overall parity incomplete"
+  ]
+}
