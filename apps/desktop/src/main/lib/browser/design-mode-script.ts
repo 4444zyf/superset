@@ -545,15 +545,31 @@ const ARM_SCRIPT = `(function() {
   }
 
   var lastPointer = null;
+  var highlightFrame = null;
+
+  function cancelHighlightFrame() {
+    if (highlightFrame === null) return;
+    cancelAnimationFrame(highlightFrame);
+    highlightFrame = null;
+  }
+
+  function elementAtPoint(x, y) {
+    host.style.pointerEvents = 'none';
+    var el = document.elementFromPoint(x, y);
+    host.style.pointerEvents = 'all';
+    return el;
+  }
 
   function refreshHitTest() {
     if (!lastPointer) return;
     // Momentarily hide the overlay to hit-test the element underneath.
-    host.style.pointerEvents = 'none';
-    var el = document.elementFromPoint(lastPointer.x, lastPointer.y);
-    host.style.pointerEvents = 'all';
+    var el = elementAtPoint(lastPointer.x, lastPointer.y);
+    cancelHighlightFrame();
     if (el) {
-      requestAnimationFrame(function() { updateHighlight(el); });
+      highlightFrame = requestAnimationFrame(function() {
+        highlightFrame = null;
+        updateHighlight(el);
+      });
     }
   }
 
@@ -572,10 +588,16 @@ const ARM_SCRIPT = `(function() {
     host: host,
     extractPayload: extractPayload,
     getCurrentElement: function() { return currentEl; },
+    selectElement: function(x, y) {
+      cancelHighlightFrame();
+      updateHighlight(elementAtPoint(x, y));
+      return currentEl;
+    },
     // Freeze keeps the selected element outlined while the renderer shows the
     // composer anchored next to it; the label pill would duplicate the
     // composer's header, so it hides.
     freezeHighlight: function() {
+      cancelHighlightFrame();
       host.removeEventListener('mousemove', onPointerMove);
       window.removeEventListener('scroll', refreshHitTest, true);
       host.style.pointerEvents = 'none';
@@ -583,6 +605,7 @@ const ARM_SCRIPT = `(function() {
       hoverLabel.style.display = 'none';
     },
     cleanup: function() {
+      cancelHighlightFrame();
       host.removeEventListener('mousemove', onPointerMove);
       window.removeEventListener('scroll', refreshHitTest, true);
       try { host.remove(); } catch (e) {}
@@ -618,7 +641,7 @@ const AWAIT_CLICK_SCRIPT = `(async function() {
       e.stopPropagation();
       e.stopImmediatePropagation();
       removeListeners();
-      var el = design.getCurrentElement();
+      var el = design.selectElement(e.clientX, e.clientY);
       if (!el) {
         design.cleanup();
         resolve({ __supersetDesignCancelled: true });
