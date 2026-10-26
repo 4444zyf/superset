@@ -1682,3 +1682,14 @@ c1e63f767为后续原设计模式发送接入提供可选workstationAgentFeedbac
 Agent PTY本地PID211613/execution84f2e9e8-2f14-421f-b576-825974f65850，SSH PID215195/execution14098b1a-84f3-4531-a79a-eea41229680c；Python进程分别211621/215215。最终appPath=/workspace/superset/apps/desktop，renderer=file:///workspace/superset/apps/desktop/dist/renderer/index.html；本地最终main/renderer端口39819/44159，SSH35537/41509。两端原HTTP终端与Agent各自前后身份保持，所有拥有app/Xorg/Agent/HTTP进程及X163 socket均已退出，renderer运行异常数组为空。实际查看图共13张见visual-review.json，包含新旧失败、本地/SSH原表单和选区PNG、SSH重开后的TUI；其他图仅称捕获。
 
 初版完整桌面271项4272断言/36文件通过；guest点击修复后浏览器154项395断言/20文件通过；最终回调修复后端96项282断言/8文件、两端完整类型通过，不将不同轮次相加冒称一次全量回归。17语言extract/严格编译、插件、格式/未声明变量及原代码AST核对通过；抽取早期JSX、测试matcher和类型夹具错误另留日志，不混称产品红灯。最终编译由工具确认退出0后才冻结运行：2205文件manifest SHA256 afe94ed264db2443eb839bb75d9e596858f146e7cd7f5293d9b68478787596a4，全部运行后逐文件与74脚本一致，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。无Actions、CLI重建、安装包或后端发行归档。真实供应商认证、外部SSH、实体Mac、设备模式下设计反馈、CLI浏览器桥、rightPane及其余原版功能仍未完成整体对齐。[阶段九十六证据](evidence/local-ssh-feature-parity/stage96)。
+
+
+## 阶段九十七：原浏览器桥 HTTP 处理复用准备（2026-10-26）
+
+495b1f1a5把原browser-bridge.ts中的11个HTTP处理主体原样移入registerBrowserBridgeHttpRoutes，注入manager、原URL解析、原来源发现/Cookie服务。旧startBrowserBridge仍传入原实现，在相同位置安装处理；其bearer鉴权、2MB JSON限制、127.0.0.1绑定、秘密的生命周期和CDP连接主体保持。requireScope及withPane主体、响应包络/错误码、打开请求默认值、15秒期限、8项等待上限及成功/关闭后的监听清理均保持，openQueues/openDepth改为每次注册各自独立，legacy仍只有一个注册实例。新依赖只有类型层的窄guest/manager结构及默认globalThis的可选clock，测试可直接触发deadline，不等待15秒。没有新环境变量、IPC、数据库或工作站能力标志。
+
+9项测试使用新建并清理的本地Express监听与真实HTTP请求，覆盖原列表可选workspace过滤、缺少/错误作用域、原URL和hard reload、截图/eval/console包络、打开只接受当前工作区的新注册、控制期限、同工作区并发打开获得不同pane、两个注册实例不共享队列、原Cookie来源/目标session。无全局module mock或私有Map访问。首轮fixture在Bun上先closeAllConnections再close，服务器已停止而清理报错；修正只close。第二轮对原resolveGuestUrl误加尾斜杠，且未完成open在finally被fake clock悬挂至测试5秒上限；恢复原字符串并在清理时控制结算，未提高超时。类型检查先发现直接Pick BrowserManager.on带入私有实现返回类型，再发现fixture console level变宽，分别窄化公开事件接口和保留info字面量。日志均保留，不把这些预期/类型/清理问题称为真实用户故障。
+
+最终188项530断言/24文件及完整桌面类型、插件、格式/未声明变量检查通过。首个组合命令的日志为188通过/0失败，但工具返回退出1，原因未定位；明确保留此不一致，未假称已找到根因。最终同一测试集合在仅类型层修正后由工具确认退出0。AST逐条核对11个原HTTP处理、scope/helper、旧启动除注册调用外的语句、鉴权/CDP、默认期限及队列上限一致；BrowserManager、旧browser RPC、host browser router/client/CDP route、CLI browser解析和认证、host鉴权等均字节保持。没有新增或修改消息，17语言严格编译最近通过仍按九十六，不把本轮说成重新提取全体catalog。
+
+此为直连CLI浏览器桥的后续复用准备，不代表CLI已经能操作工作站浏览器；还需完整的连接/namespace/window/pane归属及后端通道。没有重建dist：仍为fe7156d5a的2205文件、九十六74脚本逐项一致，CLI哈希仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。无新原生验收、Actions、CLI重建、安装包或后端发行归档。最新设计反馈实窗按九十六，完整终端四场景按八十九；整体功能对齐继续。[阶段九十七证据](evidence/local-ssh-feature-parity/stage97)。

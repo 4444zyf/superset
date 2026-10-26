@@ -1,0 +1,42 @@
+{
+  "source": "495b1f1a55de1bf5a41bad6a181579bcebde3254",
+  "scope": "source-only original browser bridge HTTP route extraction; no new Workstation or CLI capability enabled",
+  "tests": {
+    "pass": 188,
+    "assertions": 530,
+    "files": 24,
+    "toolConfirmedExit": 0
+  },
+  "newHttpTests": {
+    "pass": 9,
+    "assertions": 42,
+    "realOwnedLoopbackHttp": true,
+    "noRealDeadlineWait": true,
+    "noGlobalModuleMocks": true
+  },
+  "desktopTypesExit": 0,
+  "pluginsExit": 0,
+  "httpHandlersPreserved": 11,
+  "legacyAuthCdpScopeDefaultsPreserved": true,
+  "releasedRpcAndCliByteUnchanged": true,
+  "failureRecords": {
+    "module-baseline.log": "module absent before installing the extraction; not a UI product failure",
+    "http-tests-first.log": "fixture called closeAllConnections before close; Bun already stopped the server, causing cleanup errors",
+    "http-tests-v2.log": "fixture expected an added URL slash not present in the original resolver; failing open assertion also left fake timeout pending until the test deadline; fixed expectation and controlled cleanup, no timeout raised",
+    "desktop-types.log": "dependency EventEmitter return type captured BrowserManager private shape; narrowed public on/off interface and retained concrete fixture type",
+    "desktop-types-verified.log": "fixture console level widened to string; corrected literal type",
+    "desktop-tests-final.log": "188 pass/0 fail but command tool reported exit 1; cause unresolved, retained without claiming a diagnosis",
+    "desktop-tests-verified.log": "same 188 assertions/tests after type-only interface correction; tool explicitly confirmed exit 0"
+  },
+  "locales": "no macro/message changes; original route bodies preserved; latest 17 strict catalogs stage96",
+  "native": "no build or new native run; latest design local/SSH stage96; last full four terminal suites stage89",
+  "unchangedProduct": {
+    "productSource": "fe7156d5a07f66333699bf4d73d0324a2cf06b3d",
+    "compiledFileCount": 2205,
+    "productChanged": [],
+    "fixtureCount": 74,
+    "fixturesChanged": [],
+    "cliSha256": "f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb"
+  },
+  "noActionsOrCliRebuildOrPackaging": true
+}
