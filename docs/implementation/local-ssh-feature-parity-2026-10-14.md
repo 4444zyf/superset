@@ -1757,3 +1757,17 @@ CLI 仍为控制机原源码 dev runner，针对本次拥有的同机 namespace�
 使用真实内存 SQLite 和原 journal 的 7 项新增回归，加原 8 项共 15 项/45 断言通过；包括模拟 pinned epoch 改变后拒绝、丢确认不再派发、无 peer 不落 accepted、同 ID 换 pane/URL 冲突。host 类型/未声明变量/插件检查通过。这里只验证依赖回调与 journal 顺序，尚无真实 peer/window/原导航服务绑定，不代表浏览器导航已恢复。全树相对上一阶段只新增这两份源码；原生产 app/runtime/RPC/caps/auth/CLI/SSH 均未改。
 
 没有新构建或实窗，最新产品/实窗仍为一百零二 `171061643`；2205 编译文件/75 脚本及原 CLI 哈希复核不变。继续受鉴权通道的导航协商、窗口及原 SSH forwarding/URL 映射、版本化 mutation/CLI 接入。整体对齐未完成。[阶段一百零三证据](evidence/local-ssh-feature-parity/stage103)。
+
+## 阶段一百零四：固定 peer 的持久导航 API 与 SSH 实窗（2026-10-26）
+
+源码 `3440629ee` 接通可选 navigateV1 协商、受保护严格 browserNavigateV1 mutation 与原 journal。同步 pin 固定实际 peer 并预留单导航 slot，接受后才派发；peer 换代、超时/断连不重绑或重发。接受失败 finally 释放 slot，解决 journal 满时未执行但位置可能残留的问题；旧 pin 函数无 release 时仍保持原行为。新 slot 与旧 8 项读取、单截图分别管理，原 4MiB 帧/截图分块边界保持。
+
+主进程根据当前 owner/epoch、连接和 namespace 注册表固定 pane，复用原 WorkstationBrowserNavigation 的 SSH forwarding、sequence 和 navigation-map。仅新通道传可选 current 守卫，转发等待结束、load 前后失效均拒绝；旧 GUI 三参数默认值及行为保留。新 mutation 由原认证/维护门和 durable journal 执行，完成回执/同 ID 冲突语义保留，预期 domain error 在落 journal 前映射原 TRPC 分类，未知结果仍 unresolved。原 direct.execute enum/dispatch、原 browser RPC、SSH/终端、CLI 字节及 host floor 保持，已有 app/导航/读取协议 AST 收回新增项后相同。
+
+62 项后端/316 断言/8 文件、59 项桌面/206 断言/6 文件、5 项共享/15 断言、4 项真实自有 Node WebSocket 通过；四处类型/插件/未声明变量检查通过。初版 RPC 测试直接调用 directRouter，路径没有 direct 前缀，误进入旧冻结规则；改为真实 router({direct:directRouter}).direct，未改旧 middleware。一次根路径 patch 在 package cwd 未执行、hook 匹配到初始/重开两处、根 cwd 缺 tsx、Node 数组断言导致 TS 窄化等夹具/启动问题均修正并保留原记录，未增加等待或重试手势。
+
+产品完整构建经工具确认 0，冻结 2205 文件 manifest SHA256 `f975a5bd74a84c39d58754ae3b0e996e321d732c62158f4a96ed3dd4a54328e2` 与 76 MJS。真实 `local-navigation-344062` 和 `ssh-navigation-344062` 均工具退出 0，SSH 含 20 次原窗口恢复。每端实际私有 endpoint 共 9 次 mutation/status 调用，合计 14 成功/4 次预期拒绝：相同 operationId 只一次 HTTP 页面请求，改 URL 返回 409，其他 workspace 返回 400；后台导航保留终端 tab 及键盘焦点；正常重开读取和重复调用原完成回执，不回放/不重绑当前页面。实际 guest 事件记录显示 SSH 新导航是 `127.0.0.1:33037/owned-navigation`，保存 canonical 是远端 `localhost:33421/owned-navigation`，query/fragment 保留。
+
+原源码 CLI list/console/screenshot 的两端 22 次回归、六张 PNG 白底/剪贴板检查、原导航/find/popup/选择关闭及 HTTP Ctrl+C 同时通过；同 PTY/execution/cwd 保持。app/Xorg/报告 PID 均清理，2205 文件/76 脚本/原 CLI SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 复核不变。仅实际查看三张图，清单在 final-verification.json。
+
+这是导航 API 实窗，不是原 navigate CLI 的 namespace 参数接入；CLI 写入目标、稳定 operationId 与状态查询入口继续。未生成安装包、重建 CLI、触发 Actions、验证新供应商认证/外部 SSH/实体 Mac。整体对齐继续，终端专项仍按八十九/九十六实际范围。[阶段一百零四证据](evidence/local-ssh-feature-parity/stage104)。

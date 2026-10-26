@@ -1,0 +1,58 @@
+{
+  "sourceCommit": "3440629ee6d9f1be1303ca8e01ca795db8aa8dc5",
+  "tests": {
+    "host": {
+      "passed": 62,
+      "assertions": 316,
+      "files": 8
+    },
+    "desktop": {
+      "passed": 59,
+      "assertions": 206,
+      "files": 6
+    },
+    "shared": {
+      "passed": 5,
+      "assertions": 15
+    },
+    "realNodeWebSocket": {
+      "passed": 4
+    }
+  },
+  "types": [
+    "host-service",
+    "desktop",
+    "cli",
+    "shared"
+  ],
+  "implementation": "Optional navigateV1; exact peer pinned and slot reserved before original durable journal acceptance. Release on acceptance failure; no rebind/replay; original main navigation plus optional current guard; original SSH forwarding and UI map events. Strict protected versioned mutation with original auth/maintenance and typed error mapping.",
+  "native": {
+    "accepted": [
+      "local-navigation-344062",
+      "ssh-navigation-344062"
+    ],
+    "apiCalls": 18,
+    "apiSuccessful": 14,
+    "apiExpectedRejected": 4,
+    "sourceCliReadCaptureRegressionCalls": 22,
+    "sshPriorRestores": 20,
+    "canonicalTarget": "http://localhost:33421/owned-navigation",
+    "actualSshGuestTarget": "http://127.0.0.1:33037/owned-navigation",
+    "noReplayAfterReopen": true,
+    "backgroundTabAndKeyboardFocusPreserved": true
+  },
+  "setupCorrections": [
+    "An initial fixture called directRouter without the direct prefix and accidentally exercised the old non-direct frozen guard. Corrected fixture to original router({direct:directRouter}).direct; no middleware change.",
+    "A patch used a root-relative path from package cwd and did not apply; corrected absolute path, retained both failed fixture runs.",
+    "A browser-design hook selector matched initial and reopen branches; inserted by unique initial import before any native run.",
+    "Root cwd had no tsx preload package; reran Node test from host-service, no dependency change.",
+    "Node assert.deepEqual(requests,[]) narrowed the array to empty for TypeScript; used typed request packets and explicit count assertion."
+  ],
+  "limits": [
+    "Protected navigation API restored; original navigation CLI namespace flag not added yet",
+    "Native driver uses actual private owned endpoint, not navigation CLI",
+    "Bundled CLI unchanged",
+    "No installer, Actions, external SSH, vendor authentication or physical Mac verification",
+    "Other CLI commands and parity groups pending"
+  ]
+}
