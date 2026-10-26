@@ -16,6 +16,6 @@ Een nieuwe onafhankelijke map superset-remix wordt gebruikt zonder automatische 
 
 De knop voor de onofficieel gewijzigde versie opent de werkelijke versie, volledige oorspronkelijke licentie en wijzigingsmelding offline. Website, cloud, mobiele app en abonnementen van het oorspronkelijke project worden niet door deze fork beheerd.
 
-[Downloads](https://github.com/4444zyf/superset/releases) · [Issues](https://github.com/4444zyf/superset/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
+[Downloads](https://github.com/4444zyf/superset-remix/releases) · [Issues](https://github.com/4444zyf/superset-remix/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
 
 [Upstream Superset](https://github.com/superset-sh/superset) · [Elastic License 2.0](../LICENSE.md) · [FORK_NOTICE.md](../FORK_NOTICE.md) · [Scope / audit](../docs/design/branding-audit.md)

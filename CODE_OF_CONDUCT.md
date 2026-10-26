@@ -60,7 +60,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to this fork’s maintainers through a non-sensitive
-[request for a private contact](https://github.com/4444zyf/superset/issues).
+[request for a private contact](https://github.com/4444zyf/superset-remix/issues).
 A dedicated private contact is not configured. Do not post private incident details publicly.
 The upstream project’s email addresses are not fork reporting channels.
 

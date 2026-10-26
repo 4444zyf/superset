@@ -16,6 +16,6 @@ macOS Apple Silicon と Intel のプレビューを個別にビルド・検証�
 
 「非公式の改変版」ボタンから、実際のバージョン、元のライセンス全文、改変通知とリンクをオフラインで確認できます。上流のサイト、クラウド、モバイル、購読サービスは本フォークの運営対象ではありません。
 
-[Downloads](https://github.com/4444zyf/superset/releases) · [Issues](https://github.com/4444zyf/superset/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
+[Downloads](https://github.com/4444zyf/superset-remix/releases) · [Issues](https://github.com/4444zyf/superset-remix/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
 
 [Upstream Superset](https://github.com/superset-sh/superset) · [Elastic License 2.0](../LICENSE.md) · [FORK_NOTICE.md](../FORK_NOTICE.md) · [Scope / audit](../docs/design/branding-audit.md)

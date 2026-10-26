@@ -16,6 +16,6 @@ macOS Apple Silicon 和 Intel 预览安装包分别构建和验证；尚未发�
 
 界面中的“非官方修改版本”按钮打开关于窗口，可离线查看实际版本、完整原始许可、修改说明及上游与分支链接。上游网站、云服务、移动端和订阅不由此分支运营。
 
-[Downloads](https://github.com/4444zyf/superset/releases) · [Issues](https://github.com/4444zyf/superset/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
+[Downloads](https://github.com/4444zyf/superset-remix/releases) · [Issues](https://github.com/4444zyf/superset-remix/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
 
 [Upstream Superset](https://github.com/superset-sh/superset) · [Elastic License 2.0](../LICENSE.md) · [FORK_NOTICE.md](../FORK_NOTICE.md) · [Scope / audit](../docs/design/branding-audit.md)

@@ -1,4 +1,4 @@
-<!-- This PR targets the Superset Remix fork (4444zyf/superset), an unofficial modified version. Preserve upstream attribution and technical contracts. Document actual shipped scope; include native package/source evidence for release changes and real CDP screenshots for UI changes. -->
+<!-- This PR targets the Superset Remix fork (4444zyf/superset-remix), an unofficial modified version. Preserve upstream attribution and technical contracts. Document actual shipped scope; include native package/source evidence for release changes and real CDP screenshots for UI changes. -->
 
 <!--
 PR titles become the squash-merge commit subject, so use conventional commit format:

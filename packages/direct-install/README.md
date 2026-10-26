@@ -59,7 +59,7 @@ Both complete signed targets are uploaded as CI artifacts, downloaded by each de
 
 Desktop packaging fails if signed resources or independent pins are absent. `electron-vite` development and normal web checks do not require these release secrets. An explicitly local development package can use `SUPERSET_DIRECT_DEVELOPMENT_PACKAGE=1` only when the backend payload and public-key resources are absent; remove stale `dist/resources/direct-backend` and `direct-release-keys.json` before this mode. It cannot deploy a managed remote backend. Selecting an offline directory still requires its signer to match the packaged application pins.
 
-Stable and canary publisher metadata use the validated `GITHUB_REPOSITORY` owner/repository from the release job; local packaging defaults to this fork, `4444zyf/superset`, instead of the official upstream. The release workflow still packages with `--publish never` and publishes through its existing release job. Backend assets are carried inside the desktop package; no unconfigured runtime backend download URL is assumed.
+Stable and canary publisher metadata use the validated `GITHUB_REPOSITORY` owner/repository from the release job; local packaging defaults to this fork, `4444zyf/superset-remix`, instead of the official upstream. The release workflow still packages with `--publish never` and publishes through its existing release job. Backend assets are carried inside the desktop package; no unconfigured runtime backend download URL is assumed.
 
 For manual release assembly, keep both validated backend directories under one input directory named `darwin-arm64` and `darwin-x64`, set `DIRECT_RELEASE_PUBLIC_KEYS_JSON` from the independent public configuration, and run:
 

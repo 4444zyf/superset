@@ -16,6 +16,6 @@ macOS Apple Silicon 및 Intel 미리 보기는 별도로 빌드하고 검증합�
 
 비공식 수정 버전 버튼에서 실제 버전, 원본 라이선스 전문 및 수정 안내를 오프라인으로 확인할 수 있습니다. 원본 프로젝트의 사이트, 클라우드, 모바일 및 구독 서비스는 이 포크에서 운영하지 않습니다.
 
-[Downloads](https://github.com/4444zyf/superset/releases) · [Issues](https://github.com/4444zyf/superset/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
+[Downloads](https://github.com/4444zyf/superset-remix/releases) · [Issues](https://github.com/4444zyf/superset-remix/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
 
 [Upstream Superset](https://github.com/superset-sh/superset) · [Elastic License 2.0](../LICENSE.md) · [FORK_NOTICE.md](../FORK_NOTICE.md) · [Scope / audit](../docs/design/branding-audit.md)

@@ -16,6 +16,6 @@ Dùng thư mục dữ liệu độc lập mới superset-remix, không tự đ�
 
 Nút bản sửa đổi không chính thức mở phiên bản thực tế, toàn bộ giấy phép gốc và thông báo sửa đổi khi ngoại tuyến. Website, đám mây, ứng dụng di động và gói đăng ký của dự án gốc không do fork này vận hành.
 
-[Downloads](https://github.com/4444zyf/superset/releases) · [Issues](https://github.com/4444zyf/superset/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
+[Downloads](https://github.com/4444zyf/superset-remix/releases) · [Issues](https://github.com/4444zyf/superset-remix/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
 
 [Upstream Superset](https://github.com/superset-sh/superset) · [Elastic License 2.0](../LICENSE.md) · [FORK_NOTICE.md](../FORK_NOTICE.md) · [Scope / audit](../docs/design/branding-audit.md)

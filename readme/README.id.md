@@ -16,6 +16,6 @@ Direktori data independen baru superset-remix digunakan tanpa mengimpor data lam
 
 Tombol versi modifikasi tidak resmi membuka versi sebenarnya, lisensi asli lengkap, dan pemberitahuan perubahan secara offline. Situs, layanan cloud, aplikasi seluler, dan langganan proyek asal tidak dioperasikan oleh fork ini.
 
-[Downloads](https://github.com/4444zyf/superset/releases) · [Issues](https://github.com/4444zyf/superset/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
+[Downloads](https://github.com/4444zyf/superset-remix/releases) · [Issues](https://github.com/4444zyf/superset-remix/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
 
 [Upstream Superset](https://github.com/superset-sh/superset) · [Elastic License 2.0](../LICENSE.md) · [FORK_NOTICE.md](../FORK_NOTICE.md) · [Scope / audit](../docs/design/branding-audit.md)

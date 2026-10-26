@@ -2,15 +2,15 @@ import { expect, test } from "bun:test";
 import { directPublisher } from "./direct-publisher";
 
 test("release publishing follows the current GitHub repository and local packages use the configured fork", () => {
-	expect(directPublisher("4444zyf/superset")).toEqual({
+	expect(directPublisher("4444zyf/superset-remix")).toEqual({
 		provider: "github",
 		owner: "4444zyf",
-		repo: "superset",
+		repo: "superset-remix",
 	});
 	expect(directPublisher()).toEqual({
 		provider: "github",
 		owner: "4444zyf",
-		repo: "superset",
+		repo: "superset-remix",
 	});
 	expect(directPublisher("another-team/my-fork").repo).toBe("my-fork");
 });

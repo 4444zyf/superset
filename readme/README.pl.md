@@ -16,6 +16,6 @@ Nowy niezależny katalog superset-remix nie importuje automatycznie starych dany
 
 Przycisk nieoficjalnej zmodyfikowanej wersji otwiera rzeczywistą wersję, pełną oryginalną licencję i informacje o zmianach offline. Witryna, chmura, aplikacja mobilna i subskrypcje projektu źródłowego nie są obsługiwane przez ten fork.
 
-[Downloads](https://github.com/4444zyf/superset/releases) · [Issues](https://github.com/4444zyf/superset/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
+[Downloads](https://github.com/4444zyf/superset-remix/releases) · [Issues](https://github.com/4444zyf/superset-remix/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
 
 [Upstream Superset](https://github.com/superset-sh/superset) · [Elastic License 2.0](../LICENSE.md) · [FORK_NOTICE.md](../FORK_NOTICE.md) · [Scope / audit](../docs/design/branding-audit.md)

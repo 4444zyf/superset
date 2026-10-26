@@ -16,6 +16,6 @@ Používá se nový samostatný adresář superset-remix bez automatického impo
 
 Tlačítko neoficiální upravené verze zobrazí skutečnou verzi, úplnou původní licenci a oznámení změn offline. Web, cloud, mobilní aplikaci a předplatné původního projektu tento fork neprovozuje.
 
-[Downloads](https://github.com/4444zyf/superset/releases) · [Issues](https://github.com/4444zyf/superset/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
+[Downloads](https://github.com/4444zyf/superset-remix/releases) · [Issues](https://github.com/4444zyf/superset-remix/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
 
 [Upstream Superset](https://github.com/superset-sh/superset) · [Elastic License 2.0](../LICENSE.md) · [FORK_NOTICE.md](../FORK_NOTICE.md) · [Scope / audit](../docs/design/branding-audit.md)

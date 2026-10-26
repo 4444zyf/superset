@@ -16,6 +16,6 @@ Si usa una nuova directory indipendente superset-remix senza importare automatic
 
 Il pulsante della versione modificata non ufficiale apre versione effettiva, licenza originale completa e avvisi di modifica anche offline. Sito, cloud, app mobile e abbonamenti del progetto originale non sono gestiti da questo fork.
 
-[Downloads](https://github.com/4444zyf/superset/releases) · [Issues](https://github.com/4444zyf/superset/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
+[Downloads](https://github.com/4444zyf/superset-remix/releases) · [Issues](https://github.com/4444zyf/superset-remix/issues) · [Development](../DEVELOPMENT.md) · [English](../README.md)
 
 [Upstream Superset](https://github.com/superset-sh/superset) · [Elastic License 2.0](../LICENSE.md) · [FORK_NOTICE.md](../FORK_NOTICE.md) · [Scope / audit](../docs/design/branding-audit.md)

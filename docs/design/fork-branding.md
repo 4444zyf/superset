@@ -48,7 +48,7 @@
 | `displayName` | `Superset Remix`，工作名 | 应用、README、发布标题的唯一产品名 |
 | `slug` | `superset-remix`，随最终名称确定 | 新安装包元数据、资源命名 |
 | `artifactStem` | `Superset-Remix`，随最终名称确定 | 新发布文件，例如 `<stem>-<version>-<arch>.dmg` |
-| `forkRepository` | `https://github.com/4444zyf/superset` | 当前 `origin` 已核实；未来仓库迁移时一起更新 |
+| `forkRepository` | `https://github.com/4444zyf/superset-remix` | 当前 `origin` 已核实；未来仓库迁移时一起更新 |
 | `forkIssues` | 本分支仓库的 `/issues` | 修改版问题反馈 |
 | `forkReleases` | 本分支仓库的 `/releases` | 没有确认具体版本前使用版本列表 |
 | `upstreamName` | `Superset` | 来源、致谢、兼容说明 |
@@ -282,8 +282,8 @@
 基于 [Superset](https://github.com/superset-sh/superset) 的非官方修改版。
 本分支独立维护，保留原项目版权与 [Elastic License 2.0](LICENSE.md)。
 
-[下载本分支版本](https://github.com/4444zyf/superset/releases) ·
-[反馈本分支问题](https://github.com/4444zyf/superset/issues) ·
+[下载本分支版本](https://github.com/4444zyf/superset-remix/releases) ·
+[反馈本分支问题](https://github.com/4444zyf/superset-remix/issues) ·
 [来源与修改说明](FORK_NOTICE.md)
 ```
 

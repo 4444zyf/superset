@@ -1,4 +1,4 @@
-export function directPublisher(repository = "4444zyf/superset"): {
+export function directPublisher(repository = "4444zyf/superset-remix"): {
 	provider: "github";
 	owner: string;
 	repo: string;
