@@ -1723,3 +1723,15 @@ desktop、host-service、shared三处类型、插件及格式/未声明变量检
 6 项新 RPC 回归与 14 项核心、3 项原能力回归共 23 项/97 断言通过；两项真实自有 loopback HTTP 升级/WebSocket 帧测试确认未认证 401 不占 peer、认证后 list/console 往返和断连结算。该 peer 是合成桌面夹具，并非完整 Electron/SSH 产品验收。host/desktop 类型、未声明变量和插件检查通过。首轮 Node 夹具导入缺失 ws，改用 Node 内建 HTTP/WebSocket；首次哈希脚本写错 CLI 路径，修正到实际 dist 资源；原记录保留。格式化引起的既有 app/types 无关改写已收回，逐项兼容证明通过。
 
 未构建产品、未接真实桌面 peer 或 CLI；九十六 2205 编译文件、74 个验收脚本和原 CLI 哈希不变。本阶段不能算浏览器 CLI 恢复，继续桌面所属连接及明确 namespace 读取。外部 SSH/供应商账号/实体 Mac 仍无新增验收。[阶段一百证据](evidence/local-ssh-feature-parity/stage100)。
+
+## 阶段一百零一：所属桌面窗格的 CLI list/console 与正常重开（2026-10-26）
+
+源码 `37360297e` 接通原连接管理器的受鉴权 WebSocket。主进程只在当前 renderer 加载完成且后端明确支持 Connect 时建立通道，捕获窗口 owner/epoch、connection generation/backend/namespace/instance；原注册表解析所属 manager key，再复用原 metadata、console 和远端 canonical URL。导航、崩溃、关闭、退出及连接状态变化结束通道，旧 socket 关闭后才开启排队的新 owner；不自动重连失败通道。新回归先暴露 hello 带多余 descriptor 字段、关闭中旧 socket 的 error 丢掉新 owner 两处问题，已精简身份包并保留关闭队列，8 项回归通过。
+
+原 browser list/console 增加明确 --namespace，通过已有 owner-only 私有目录/Unix socket 和实际 Ready 能力守卫查询；不传参数的原账号路径、原输出及 console 底部行数/零语义保持，--host 冲突拒绝。47 项桌面/173 断言/5 文件、22 项 CLI/72 断言/2 文件及 desktop/CLI 类型、未声明变量、插件检查通过。首轮 parser 夹具漏了 argv 的程序/脚本两项，修正夹具后通过；原失败保留。兼容证明逐 AST 收回新增分支后等同原 app/CLI，原后端 RPC/鉴权、SSH、终端输入/封装和 host floor 字节保持。
+
+完整产品构建经工具确认退出 0 后冻结 2205 个 main/preload/renderer 文件（manifest SHA256 `8d545ce1fd17589cc43173c75e61ef46f02ea109c807915925ecc6912da18251`），75 个 MJS 同源码冻结。本地 `local-read-373602` 与拥有 loopback SSH `ssh-read-373602` 实窗均工具退出 0，后者含 20 次原恢复。每端原源码 CLI dev runner 实际运行 7 次：list、中文 console、零行、其他工作区空列表、其他工作区 console 明确拒绝、正常重开后的同 pane list/console，共 12 次成功/2 次预期失败。SSH guest 实际 URL 为 `127.0.0.1:36123`，CLI 输出恢复远端 `localhost:44377`。原浏览器导航/查找/popup/选择关闭及正常重开同时通过，原终端执行号/PID/cwd 保持，真实 Ctrl+C 结束 HTTP；两端 app/Xorg 与报告内 PID 均已消失。仅实际查看三张图，名单和清理结果在 final-verification.json。
+
+该 CLI 是控制机上的原源码入口，读取本次拥有的 namespace；Electron peer 在所选本地/SSH 连接上传输。没有宣称远端 CLI 安装、随包新 CLI 或供应商认证。原随包二进制 SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 保持。初轮提交/构建脚本误在 desktop cwd 使用根路径，提交失败后误启构建；仅终止自己的 Vite PID 222624，退出 143，正确提交后重新完整构建，再冻结/验收，日志保留。
+
+用户手动将仓库改名为 `superset-remix`。`2e349c5c0` 更新当前分支链接/发布目标，`f48d452b9` 仅更新默认 main 首页的独立来源说明并指向功能分支；所有原许可和历史链接保留。主分支插件检查初因独立 worktree 无依赖失败，临时引用现有依赖后通过，推送后已移除该 worktree。远端 origin 和 README blob 已读回复核；仓库 About 的描述/Website 仍为上游值，API 修改被 403 拒绝，已告知用户手动设置。无 Actions 或安装包。浏览器截图/open/navigation/eval/import/CDP CLI、rightPane 和其他功能组继续，完整终端专项仍按阶段八十九/九十六实际范围。[阶段一百零一证据](evidence/local-ssh-feature-parity/stage101)。

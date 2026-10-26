@@ -6,7 +6,7 @@
 
 用户强调的滚轮/触控板输入保护和终端复制粘贴已实现。阶段八十九在5dcb36689源码编译上独立回归本地与拥有的loopback SSH：历史上下翻动、无鼠标TUI回看不注入方向键、保存的stock偏好、SGR/legacy/pixel切换、中文/Emoji复制、多行括号粘贴、图片/文件路径及重挂载后OSC52通过。两个SSH套件各含20次窗口恢复。初轮数值观测失败、截图和只读诊断已保留；最终夹具等待实际渲染并保留前后数值，不重发滚轮输入。真实供应商Agent、外部SSH和物理Mac触控板/剪贴板仍未实测。
 
-内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、导航/查找、历史SQLite、所属SSH工作区的localhost转发、当前图标与V2持久化。阶段八十至九十一接回主页/终端URL与端口策略、原工具菜单/DevTools、设备预览、历史搜索/清空、浏览数据清理、下载、截图/系统图片剪贴板及显式历史/Cookie导入与原提示条、站点Cookie菜单。设置和菜单共用一个原导入弹窗，关闭父设置后继续保留，真实两端202条导入和正常重开通过。阶段九十六接回原设计模式浮层、目标端上下文/截图附件、新Agent启动和已有TUI反馈；本地/拥有SSH的合成Agent及正常重开通过，真实供应商认证仍未实测。Mac Cookie/Keychain/FDA尚未原生验证；不导入密码数据库。rightPane、聊天/任务URL策略、浏览器CLI桥及其他功能仍在进行，不宣称整体对齐完成。最新设计反馈范围和失败记录见[阶段九十六](../implementation/evidence/local-ssh-feature-parity/stage96)，其他浏览器工具按各阶段实际验证范围。
+内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、导航/查找、历史SQLite、所属SSH工作区的localhost转发、当前图标与V2持久化。阶段八十至九十一接回主页/终端URL与端口策略、原工具菜单/DevTools、设备预览、历史搜索/清空、浏览数据清理、下载、截图/系统图片剪贴板及显式历史/Cookie导入与原提示条、站点Cookie菜单。设置和菜单共用一个原导入弹窗，关闭父设置后继续保留，真实两端202条导入和正常重开通过。阶段九十六接回原设计模式浮层、目标端上下文/截图附件、新Agent启动和已有TUI反馈；本地/拥有SSH的合成Agent及正常重开通过，真实供应商认证仍未实测。Mac Cookie/Keychain/FDA尚未原生验证；不导入密码数据库。阶段一百零一通过原连接的鉴权WebSocket接通浏览器CLI源码的明确namespace list/console，本地及拥有SSH实窗完成12次成功读取/2次预期拒绝和正常重开，SSH含20次恢复；随包CLI二进制未重建。rightPane、聊天/任务URL策略、CLI其余浏览器命令及其他功能仍在进行，不宣称整体对齐完成。最新设计反馈范围和失败记录见[阶段九十六](../implementation/evidence/local-ssh-feature-parity/stage96)，其他浏览器工具按各阶段实际验证范围。
 
 ## 验收原则
 
@@ -44,7 +44,7 @@
 | Agent 配置、技能、MCP 与工具配置 | settings.agentConfigs、agentTooling | 部分：Agent目录、字段、图标及脚本已接 | 阶段三十五至四十、五十四接回目标端Agent配置和原表单；技能/MCP/工具配置及托管能力继续补齐 |
 | 插件清单、安装、更新与移除 | plugins/installed_plugins.json、原插件界面 | 待接入 | 同一声明式状态，目标机器执行 |
 | 端口发现、转发、浏览器打开 | ports、已有 direct forwarding | 已接主要流程 | 阶段六十八至七十二、七十八至八十接回发现、复制/明确外部或内嵌打开、确认单端口/当前工作区批量关闭和多转发；旧后端保留手动输入，其余管理继续核对 |
-| 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 部分：原页面、常用工具、数据列表及设计反馈已接 | 阶段七十三至九十六接回导航/查找、历史、基础工具/DevTools、设备预览、下载、截图、导入及原设计浮层/目标端附件/Agent反馈；rightPane、CLI桥等继续补齐 |
+| 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 部分：原页面、常用工具、数据列表及设计反馈已接 | 阶段七十三至九十六接回导航/查找、历史、基础工具/DevTools、设备预览、下载、截图、导入及原设计浮层/目标端附件/Agent反馈；一百零一接CLI源码namespace list/console并完成双端实窗，随包CLI未重建；rightPane与其余CLI桥继续补齐 |
 | 浏览器设置、数据导入与隔离 | 原 BrowserSettings | 部分：主页、终端/端口URL策略、清理和显式导入已接 | 阶段八十至九十接回私有SQLite、原设置/菜单/提示条导入与共享弹窗；其他设置继续补齐，不自动导入历史，Mac Cookie/Keychain/FDA未原生验证 |
 | 命令面板、全局快捷键与导航 | 原 commandPalette/hotkeys | 待接入 | 原注册表、设置与当前操作实际对应 |
 | 外观、语言、主题、字体 | AppearanceSettings、i18n/themes | 部分 | 原设置与组件真正响应 |
@@ -225,3 +225,5 @@
 阶段九十九以e41fbfeb0增加浏览器只读协议核心：原BrowserPane/ConsoleEntry类型移至共享路径，接口AST及原type-only模块JS相同；新核心只协商readV1，按backend/namespace/instance和单peer绑定请求，8项pending、4MiB UTF-8帧、原128pane/500console边界，断连/关闭/超时结算并丢弃晚回复，不重发。14核心+3既有能力测试17项74断言、共享3项8断言及desktop/host/shared类型/插件通过。核心不是鉴权替代；尚无真实WebSocket路由/RPC/能力标志/桌面接入/CLI入口，不算浏览器CLI恢复。无构建/原生验收，九十六2205文件/74脚本/CLI不变，继续鉴权通道接入。[阶段九十九证据](../implementation/evidence/local-ssh-feature-parity/stage99)。
 
 阶段一百以ba2ecb1ff在原direct鉴权后挂载只读WebSocket，runtime正常/异常关闭清理peer；新增严格受保护browserReadV1查询和分离Connect/Ready可选能力，旧RPC/鉴权/execute/dispatch/原browser桥保持。23项97断言及2项实际自有loopback升级/帧测试、两端类型通过；未认证401不占peer，断连结算。合成桌面peer不等于Electron/SSH验收；真实桌面连接和CLI尚待接入，未构建，九十六2205文件/74脚本/CLI不变。整体对齐继续。[阶段一百证据](../implementation/evidence/local-ssh-feature-parity/stage100)。
+
+阶段一百零一以37360297e将当前窗口epoch、连接代次及所属注册表接入原鉴权WebSocket，复用原manager的metadata/console和SSH URL恢复；旧peer关闭后才切换owner，过期/跨工作区结果拒绝，旧后端无Connect能力不建通道。原CLI list/console增加明确--namespace，原鉴权/输出/行数语义保持；47项桌面173断言、22项CLI72断言、双端类型和完整产品构建通过。真实本地/拥有SSH各7次源码CLI调用均按预期，SSH含20次恢复，实际guest127.0.0.1:36123在CLI恢复为远端localhost:44377；重开相同pane与原PTY执行号/PID/cwd保持。2205编译文件/75脚本冻结复核，CLI原二进制不变；全终端专项仍按八十九和设计反馈九十六范围，不重复认定供应商、外部SSH或实体Mac。其余CLI命令和功能组继续。[阶段一百零一证据](../implementation/evidence/local-ssh-feature-parity/stage101)。
