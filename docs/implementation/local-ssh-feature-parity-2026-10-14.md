@@ -1802,3 +1802,14 @@ CLI 仍为控制机原源码 dev runner，针对本次拥有的同机 namespace�
 真实 local-focus-eval-7b2892 和 ssh-focus-eval-7b2892 均工具退出 0，SSH 含 20 次原窗口恢复。每端 15 次真实受保护 eval/status API，合计 22 成功/8 预期拒绝：页面全局计数验证相同 ID 只执行一次，改 code 409、跨 workspace 400，0/null/false/undefined 保留；计数后抛异常返回 400，journal unresolved、重复 412 且计数仍为 1；后台 false 结果保留终端 tab 和键盘焦点。正常重开读原 completed 回执并重复原请求，当前新页面计数仍不存在，没有重放或重绑。原导航 API 18 次、导航 CLI 24 次、读取/截图 CLI 22 次回归同时通过；六张白底 PNG/剪贴板、原 PTY/execution/cwd 与 HTTP Ctrl+C/关闭清理保持。
 
 全部接受/失败报告 PID 和各自 app/Xorg 已退出，最终 2205 编译文件/78 脚本/随包 CLI SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 复核不变。实际仅查看两端 eval 后台终端和 SSH 重开三张图。此为 eval API，不是原 eval CLI 的 namespace 接入；随包 CLI 未重建，无安装包/Actions/外部 SSH/实体 Mac/真实供应商 Agent 新验收。下一步接 CLI eval 的稳定 ID/未知回执和原输出；其他功能对齐继续。[阶段一百零七证据](evidence/local-ssh-feature-parity/stage107)。
+
+
+## 阶段一百零八：原 eval CLI 的明确 namespace 与稳定操作 ID
+
+源码 `58b1082e7` 给原 browser eval 增加明确 namespace 和调用方稳定 operationId 分支。仅新的 resolver 模式放行单条 browserEvaluateV1 POST，要求 durableOperations 与实际 ready evaluation 能力；原只读 resolver、navigation resolver、旧读/导航默认请求和身份/私有文件/Unix socket/PSK/instance 边界保留，其他写入与批量 eval 仍拒绝。新 helper 接收 completed 且包含 result 的真实回执，支持 false/0/null/undefined，不用 truthiness 判定结果。失败提示保留操作 ID、不重试，继续用原 operation-status 查询；完成命令本身仍要求 ready peer，查询不替代同 ID 输入 hash 检查。无 namespace 时原组织/host 分支、输入和结果格式保持 AST；backend/shared/main 通道/导航 helper 字节未变。
+
+先记录原命令在明确 namespace 夹具中走 No active organization 的失败，再实施。49 项 CLI/171 断言/4 文件、CLI/i18n 类型、lint、原 AST 对照、插件通过；两条新文案覆盖 17 Lingui 目录，原所有词条和译文保持，严格编译通过。用真实 Unix socket fixture 验证独立三种 transport/能力/批量拒绝、参数先校验、原解析器、falsy/结构/Unicode/undefined、peer 不可用时 GET status，以及 accepted/failed/unresolved/不完整 completed 不冒充成功。
+
+完整桌面构建工具退出 0，冻结 2205 文件 manifest SHA256 `8b586544ce0a28396ed8f9b2dd6ec4c561bbe33d1689b31443fe513c8b632ff4` 与 79 MJS。真实 local-cli-eval-58b108 和 ssh-cli-eval-58b108 首轮均工具退出 0，SSH 含 20 次原窗口恢复。每端 18 次实际原 CLI 源码运行器调用，合计 26 成功/10 预期拒绝。页面计数验证相同 ID 只执行一次，改 code/跨 workspace/缺 operationId 拒绝；抛异常后 unresolved，重复同 ID 仍拒绝且异常前计数只一次。0/null/false/Unicode/void 0 实测，undefined 沿原 CLI JSON 省略字段输出 {}；后台 false 求值保留终端 tab 与实际键盘焦点。正常重开读取原完成回执并重复原命令，当前新页面计数仍不存在，没有重新执行或重绑。
+
+两端同步通过原 eval API 30 次、导航 API 18 次、导航 CLI 24 次与读取/截图 CLI 22 次，共 94 次回归；六张 PNG 白底/剪贴板、原导航/find/popup/选择关闭、HTTP Ctrl+C 和同 PTY/execution/cwd 保持。全部 app/Xorg/报告 PID 清理，2205 文件/79 脚本/原 CLI SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 复核不变。实际查看两端后台终端和 SSH 重开三张图，未声称查看全部图。随包 CLI 未重建，无安装包/Actions/实体 Mac/外部 SSH/真实供应商 Agent 新验证。CLI open/import-login/CDP、rightPane、其他 URL 与完整功能清单继续。[阶段一百零八证据](evidence/local-ssh-feature-parity/stage108)。

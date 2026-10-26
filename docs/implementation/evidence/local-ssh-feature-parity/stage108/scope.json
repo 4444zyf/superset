@@ -1,0 +1,50 @@
+{
+  "sourceCommit": "58b1082e71f1d5bf186e9611b406e89ca9a3b856",
+  "tests": {
+    "cli": {
+      "passed": 49,
+      "assertions": 171,
+      "files": 4
+    }
+  },
+  "checks": [
+    "CLI and i18n TypeScript",
+    "strict Lingui catalogs: 17 locales, two new messages; all prior entries unchanged",
+    "legacy eval and namespace read/navigation AST compatibility",
+    "backend/shared/main-channel/navigation-helper bytes unchanged",
+    "lint",
+    "complete desktop Vite build",
+    "plugins"
+  ],
+  "native": {
+    "acceptedCases": [
+      "local-cli-eval-58b108",
+      "ssh-cli-eval-58b108"
+    ],
+    "evaluationCliCalls": 36,
+    "evaluationCliSuccess": 26,
+    "evaluationCliExpectedReject": 10,
+    "evaluationApiRegressionCalls": 30,
+    "navigationApiRegressionCalls": 18,
+    "navigationCliRegressionCalls": 24,
+    "readCaptureCliRegressionCalls": 22,
+    "sshPriorWindowRestores": 20,
+    "dedupedActualPageExecution": true,
+    "failedEvaluationNotRetried": true,
+    "backgroundTabAndKeyboardFocusPreserved": true,
+    "noReplayAfterReopen": true,
+    "originalUndefinedJsonOmissionPreserved": true
+  },
+  "red": "Original eval command rejects the explicit namespace fixture through its original No active organization branch before implementation.",
+  "viewedImages": [
+    "local-cli-eval-58b108/app/browser-evaluation-cli-background-terminal.png",
+    "ssh-cli-eval-58b108/app/browser-evaluation-cli-background-terminal.png",
+    "ssh-cli-eval-58b108/app/browser-reopened.png"
+  ],
+  "limits": [
+    "Original source CLI dev runner; previously bundled CLI binary unchanged",
+    "Completed eval command still requires a ready evaluation peer; use operation-status while it is unavailable",
+    "No installer, Actions, physical Mac, external SSH or real vendor agent authentication verification",
+    "Browser open/import-login/CDP, rightPane and other parity groups remain pending"
+  ]
+}

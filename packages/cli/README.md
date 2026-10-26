@@ -40,3 +40,16 @@ Choose and retain one UUID for each intended navigation. Repeating the same ID w
 If the request fails or the connection closes, inspect its operation status before issuing another navigation. The CLI does not retry or generate another ID. A status query can read an existing receipt while the browser peer is unavailable, provided that backend is still running. `accepted` and `unresolved` receipts do not prove that navigation finished. Even a previously completed navigation command requires the ready navigation capability; use the status command to inspect it when that peer is unavailable.
 
 These additions are validated through the original source CLI dev runner. The previously bundled CLI has not been rebuilt, and this does not publish a new installer. Commands without `--namespace` retain their existing account and host behavior.
+
+
+## Evaluate a namespace browser page
+
+The source `browser eval` command also accepts an explicit namespace and stable operation ID:
+
+```sh
+superset browser eval --namespace "$SUPERSET_HOME_DIR" --workspace <workspace-id> --pane <pane-id> --code 'document.title' --operation-id <uuid> --json
+```
+
+Keep the operation ID for that exact workspace, pane and code. Repeating a completed ID returns its original result without running JavaScript again; changed input is refused. After a failure or lost connection, use `browser operation-status` with the same namespace and ID before issuing another evaluation. The CLI does not retry. A code exception leaves an unresolved receipt and repeating that ID does not execute it again.
+
+Evaluation requires durable operations and the selected backend's ready evaluation capability. Existing status queries need only the durable capability while that backend is running. JSON output retains the original `{ "result": ... }` shape; an `undefined` result omits the field and produces `{}`. Strings, structured values, `0`, `false` and `null` retain their original formatting. This is verified with the source CLI runner; the previously bundled executable remains unchanged.
