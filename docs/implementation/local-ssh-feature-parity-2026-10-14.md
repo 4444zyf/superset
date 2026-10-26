@@ -1715,3 +1715,11 @@ DirectBrowserReadBridge核心捕获backend/namespace/instance副本，每实例�
 14项核心回归控制所有deadline，不做真实等待，覆盖捕获身份/协议/feature、单peer与旧关闭、原列表/console包络、错误/重复id、超时和晚结果、断连/替代会话、错误结构与foreign workspace、pending上限/关闭、写失败及握手ack失败。加原3项能力回归合计17项74断言/2文件通过；共享3项8断言检查消息往返、实际UTF-8字节超限及原数据形状/边界。第一轮前5项通过后，fixture把Bun拒绝断言放在手动触发时钟之前，断言自身等待导致无法走到触发代码；只停止拥有的测试进程217972，退出143并确认不存在。改为先附普通catch、触发后再断言，未提高超时或改变正确的产品结算逻辑。初版findLast不在既有TS lib中，改为fixture的reverse/find，不改target/lib。全部过程日志保留。
 
 desktop、host-service、shared三处类型、插件及格式/未声明变量检查通过。原app/runtime、RPC/鉴权/能力、BrowserBridgeClient/CDP路由、终端、SSH manager、CLI浏览器解析和host floor均字节保持；没有新增已发布RPC输入/输出/错误或环境变量。没有新UI或catalog变更，17严格语言最近通过按九十六。本轮为源码准备，不能称为真实WebSocket、CLI、本地/SSH界面验收。未重建dist，九十六fe7156d5a的2205文件/74脚本逐项不变，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb；无Actions、CLI重建、安装包或后端发行归档。继续把原浏览器读取接到鉴权通道和所属桌面生命周期，其他原版功能对齐未完成。[阶段九十九证据](evidence/local-ssh-feature-parity/stage99)。
+
+## 阶段一百：原鉴权后的浏览器只读通道与可选 RPC（2026-10-26）
+
+源码 `ba2ecb1ff` 将九十九的 broker 接入 direct runtime 的启动、停止和启动失败清理。新增 WebSocket 路由挂在原 `/direct/*` 鉴权之后；没有替换 PSK、全局 origin 检查、旧 BrowserBridgeClient 或 CDP 路由。`direct.browserReadV1` 为严格输入的受保护只读查询，明确工作区及 console pane；未接入返回原无桌面浏览器的 precondition 文案，断连/繁忙/超时/坏响应分别映射明确非内部错误。新增可选 Connect 能力与实际 Ready 能力分开，旧字段、默认值、execute/dispatch 和鉴权 AST/字节保持。
+
+6 项新 RPC 回归与 14 项核心、3 项原能力回归共 23 项/97 断言通过；两项真实自有 loopback HTTP 升级/WebSocket 帧测试确认未认证 401 不占 peer、认证后 list/console 往返和断连结算。该 peer 是合成桌面夹具，并非完整 Electron/SSH 产品验收。host/desktop 类型、未声明变量和插件检查通过。首轮 Node 夹具导入缺失 ws，改用 Node 内建 HTTP/WebSocket；首次哈希脚本写错 CLI 路径，修正到实际 dist 资源；原记录保留。格式化引起的既有 app/types 无关改写已收回，逐项兼容证明通过。
+
+未构建产品、未接真实桌面 peer 或 CLI；九十六 2205 编译文件、74 个验收脚本和原 CLI 哈希不变。本阶段不能算浏览器 CLI 恢复，继续桌面所属连接及明确 namespace 读取。外部 SSH/供应商账号/实体 Mac 仍无新增验收。[阶段一百证据](evidence/local-ssh-feature-parity/stage100)。
