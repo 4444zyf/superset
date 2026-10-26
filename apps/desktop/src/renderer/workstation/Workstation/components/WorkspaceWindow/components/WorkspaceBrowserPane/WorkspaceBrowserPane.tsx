@@ -1,3 +1,9 @@
+import { ChromeImportBanner } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/ChromeImportBanner";
+import { useBrowserImportSource } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/ChromeImportBanner/hooks/useBrowserImportSource";
+import {
+	BROWSER_IMPORT_BANNER_ID,
+	useBrowserImportBannerDismissalsStore,
+} from "renderer/stores/browser-import-banner-dismissals";
 import { useWorkstationBrowserImport } from "../../../../providers/WorkstationBrowserImport";
 import { ScreenshotsDialogView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/ScreenshotsDialog/components/ScreenshotsDialogView";
 import { useScreenshotToast } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/hooks/useScreenshotToast/useScreenshotToast";
@@ -74,6 +80,15 @@ export function WorkspaceBrowserPane({
 	const [historyPane, setHistoryPane] = useState<string | null>(null);
 	const [clearPane, setClearPane] = useState<string | null>(null);
 	const openImport = useWorkstationBrowserImport();
+	const isBannerDismissed = useBrowserImportBannerDismissalsStore((state) =>
+		state.isDismissed(BROWSER_IMPORT_BANNER_ID),
+	);
+	const dismissBanner = useBrowserImportBannerDismissalsStore(
+		(state) => state.dismiss,
+	);
+	const importSource = useBrowserImportSource(
+		openImport && !isBannerDismissed ? api.browser?.importData : undefined,
+	);
 	const [screenshotsPane, setScreenshotsPane] = useState<string | null>(null);
 	const [downloadsPane, setDownloadsPane] = useState<string | null>(null);
 	const [navigationError, setNavigationError] = useState<string | null>(null);
@@ -463,6 +478,14 @@ export function WorkspaceBrowserPane({
 				/>
 			)}
 
+			{importSource && openImport && !isBannerDismissed && (
+				<ChromeImportBanner
+					browserKey={importSource.browserKey}
+					browserName={importSource.browserName}
+					onImport={openImport}
+					onDismiss={() => dismissBanner(BROWSER_IMPORT_BANNER_ID)}
+				/>
+			)}
 			<BrowserViewportView
 				deviceToolbar={deviceToolbar}
 				deviceToolbarSize={deviceToolbarSize}

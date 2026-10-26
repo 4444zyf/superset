@@ -195,6 +195,16 @@ export async function verifyWorkstationBrowserUi(options) {
 			return;
 		}
 
+		if (process.argv.includes("--browser-import-banner")) {
+			const { prepareBrowserImportBannerFixture } = await import(
+				"./verify-workstation-browser-import-banner-ui.mjs"
+			);
+			prepareBrowserImportBannerFixture(
+				options,
+				`http://localhost:${proof.port}/preview?first=%E4%B8%AD#initial`,
+			);
+		}
+
 		await click("[data-workstation-new-browser]");
 		await until(
 			() =>
@@ -277,6 +287,15 @@ export async function verifyWorkstationBrowserUi(options) {
 				guestRead,
 				readProof,
 			});
+			save();
+		}
+
+		if (process.argv.includes("--browser-import-banner")) {
+			const { verifyWorkstationBrowserImportBannerUi } = await import(
+				"./verify-workstation-browser-import-banner-ui.mjs"
+			);
+			report.importBanner =
+				await verifyWorkstationBrowserImportBannerUi(options);
 			save();
 		}
 
@@ -542,6 +561,18 @@ export async function verifyWorkstationBrowserUi(options) {
 				await verifyWorkstationBrowserScreenshotsReopened(
 					options,
 					report.screenshots,
+				);
+			save();
+		}
+
+		if (process.argv.includes("--browser-import-banner")) {
+			const { verifyWorkstationBrowserImportBannerReopened } = await import(
+				"./verify-workstation-browser-import-banner-ui.mjs"
+			);
+			report.importBannerReopened =
+				await verifyWorkstationBrowserImportBannerReopened(
+					options,
+					report.importBanner,
 				);
 			save();
 		}

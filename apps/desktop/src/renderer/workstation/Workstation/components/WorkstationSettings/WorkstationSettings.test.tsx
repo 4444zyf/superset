@@ -8,6 +8,10 @@ import {
 	waitFor,
 } from "@testing-library/react";
 import { useState } from "react";
+import {
+	BROWSER_IMPORT_BANNER_ID,
+	useBrowserImportBannerDismissalsStore,
+} from "renderer/stores/browser-import-banner-dismissals";
 import type { BrowserImportApi } from "shared/browser-import";
 import type { WorkstationPreferenceSnapshot } from "../../../../../shared/workstation-preferences";
 import type { BrowserPreferencesState } from "../../hooks/useBrowserPreferences";
@@ -26,7 +30,12 @@ afterAll(() => {
 	else Reflect.deleteProperty(document, "fonts");
 });
 
-afterEach(cleanup);
+afterEach(() => {
+	cleanup();
+	useBrowserImportBannerDismissalsStore
+		.getState()
+		.reset(BROWSER_IMPORT_BANNER_ID);
+});
 const snapshot: WorkstationPreferenceSnapshot = {
 	revision: 0,
 	invalid: false,
@@ -217,6 +226,11 @@ test("settings imports remain visible and protected while pending after the sett
 	await act(async () => finish({ imported: 1 }));
 	expect(screen.queryByRole("dialog")).toBeNull();
 	expect(writes).toBe(1);
+	expect(
+		useBrowserImportBannerDismissalsStore
+			.getState()
+			.isDismissed(BROWSER_IMPORT_BANNER_ID),
+	).toBe(true);
 });
 test("settings omit the import action when the connected desktop does not expose import data", () => {
 	render(
@@ -234,4 +248,67 @@ test("settings omit the import action when the connected desktop does not expose
 		</WorkstationBrowserImport>,
 	);
 	expect(screen.queryByRole("button", { name: "Import…" })).toBeNull();
+});
+
+test.each([
+	"cancel",
+	"empty",
+	"failed",
+])("%s imports leave the global browser import offer available", async (outcome) => {
+	let writes = 0;
+	const source: BrowserImportApi = {
+		getSources: async () => ({
+			needsFullDiskAccess: false,
+			sources: [
+				{
+					id: "/owned/profile",
+					browserKey: "chrome",
+					browserName: "Chrome",
+					profileName: "Owned",
+				},
+			],
+		}),
+		importHistory: async () => {
+			writes++;
+			if (outcome === "failed") throw Error("Owned read failed");
+			return { imported: 0 };
+		},
+		importCookies: async () => ({
+			imported: 0,
+			skipped: 0,
+			keyUnavailable: true,
+		}),
+		requestFullDiskAccess: async () => {},
+	};
+	render(
+		<WorkstationBrowserImport source={source}>
+			<WorkstationSettings
+				open
+				onOpenChange={() => {}}
+				snapshot={snapshot}
+				saving={false}
+				error={null}
+				onUpdate={async () => {}}
+				onReload={async () => {}}
+				browserPreferences={browserPreferences}
+			/>
+		</WorkstationBrowserImport>,
+	);
+	await act(async () =>
+		fireEvent.click(screen.getByRole("button", { name: "Import…" })),
+	);
+	expect(writes).toBe(0);
+	await act(async () =>
+		fireEvent.click(
+			screen.getByRole("button", {
+				name: outcome === "cancel" ? "Cancel" : "Import",
+			}),
+		),
+	);
+	expect(writes).toBe(outcome === "cancel" ? 0 : 1);
+	expect(
+		useBrowserImportBannerDismissalsStore
+			.getState()
+			.isDismissed(BROWSER_IMPORT_BANNER_ID),
+	).toBe(false);
 });

@@ -1,3 +1,4 @@
+import { useBrowserImportSource } from "./components/ChromeImportBanner/hooks/useBrowserImportSource";
 import { Trans, useLingui } from "@lingui/react/macro";
 import type { RendererContext, Tab } from "@superset/panes";
 import { useParams } from "@tanstack/react-router";
@@ -28,6 +29,10 @@ import {
 import { findBarStore, useFindBarOpen } from "./findBarStore";
 import { useBrowserState } from "./hooks/useBrowserState";
 import { usePersistentWebview } from "./hooks/usePersistentWebview";
+
+const browserImportSources = {
+	getSources: () => electronTrpcClient.browserHistory.getImportSources.query(),
+};
 
 function getSingleBrowserPane(
 	tab: Tab<PaneViewerData>,
@@ -197,36 +202,12 @@ export function BrowserPane({
 	// detected, so the CTA is never a dead end. Dismissal is persisted and
 	// app-wide (see the store): local state here would reset on every remount
 	// and bleed between panes through the unkeyed pane-component reuse.
-	const [importSource, setImportSource] = useState<{
-		browserKey: string;
-		browserName: string;
-	} | null>(null);
+	const importSource = useBrowserImportSource(browserImportSources);
 	const [isImportOpen, setIsImportOpen] = useState(false);
 	const isBannerDismissed = useBrowserImportBannerDismissalsStore((s) =>
 		s.isDismissed(BROWSER_IMPORT_BANNER_ID),
 	);
 	const dismissBanner = useBrowserImportBannerDismissalsStore((s) => s.dismiss);
-	useEffect(() => {
-		let cancelled = false;
-		electronTrpcClient.browserHistory.getImportSources
-			.query()
-			.then((result) => {
-				if (cancelled) return;
-				const source = result.sources[0];
-				setImportSource(
-					source
-						? {
-								browserKey: source.browserKey,
-								browserName: source.browserName,
-							}
-						: null,
-				);
-			})
-			.catch(() => {});
-		return () => {
-			cancelled = true;
-		};
-	}, []);
 
 	return (
 		// min-w-0: without it the banner row's intrinsic width becomes the pane
