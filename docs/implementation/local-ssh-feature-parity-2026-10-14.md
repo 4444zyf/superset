@@ -1614,7 +1614,7 @@ clipped本地/拥有SSH两端先通过全设备与原浏览器流程；随后原
 
 原搜索框拦截所有非Escape键，真实焦点单测复现ArrowDown仍停在input，3通过1失败；现在Down/Up进入首/末个可用项再Enter选择，4项通过。原Cookie聚合/leading dot/secure方案/路径/名称与失败、惰性session获取、旧窗口未完成读取，以及菜单上限/键盘/错误Retry/来源晚回复均有回归。最终166项/3772断言/22文件、桌面类型、17严格语言、插件与AST/字节核对通过。Cookie测试夹具补sameSite字段、UI测试路径和键盘测试编辑定位的设置失败日志保留，未作为产品行为红灯。
 
-旧1e140编译的首次含原tools附加流程在进入Cookie测试前遇到DevTools关闭Runtime.evaluate超时，compiled2205逐文件不变，不能归因于尚未编译的新代码。该失败保留并待单独诊断；DevTools截图已查看，body折叠，DOM遍历包含标记不等同截图可见标记。随后Cookie独立基线/新版使用同一scoped流程，保留原导航/查找/window.open/重开/PTy，但不包含该DevTools附加验收。基线实际有28个自有Cookie而capability=false，菜单缺少Signed-in sites，预期失败截图已查看；不把独立Cookie通过当作DevTools超时已解决。
+旧1e140编译的首次含原tools附加流程在进入Cookie测试前遇到DevTools附加流程Runtime.evaluate超时，原日志没有请求位置，无法确认具体调用，compiled2205逐文件不变，不能归因于尚未编译的新代码。该失败保留并待单独诊断；DevTools截图已查看，body折叠，DOM遍历包含标记不等同截图可见标记。随后Cookie独立基线/新版使用同一scoped流程，保留原导航/查找/window.open/重开/PTy，但不包含该DevTools附加验收。基线实际有28个自有Cookie而capability=false，菜单缺少Signed-in sites，预期失败截图已查看；不把独立Cookie通过当作DevTools超时已解决。
 
 初版609本地真实列表为27域/20可见项，脚本在搜索后对子菜单已关闭的旧元素继续按键，Cookie库显示目标尚未删除。只读事件/菜单状态跟踪进一步记录移入搜索框时焦点回到父menu并关闭子菜单。夹具3230bd16b改为从原触发项先在行内向子菜单方向移动，再横向进入子菜单、纵向到搜索框，核对live state/前后命中并只点击一次；原截图等待后再次确认选中行仍open再Enter。没有重试删除、增加等待上限、强制展开DOM或调整布局，产品编译不变。轨迹脚本一次编辑定位失败而重复使用了前一版夹具，单独记为setup失败。SSH首轮漏转交新增SDK夹具回调，未到菜单测试；181fc037a仅补SSH验收桥转交，本地消费路径不变。
 
@@ -1625,3 +1625,13 @@ clipped本地/拥有SSH两端先通过全设备与原浏览器流程；随后原
 构建明确退出0后冻结2205文件manifest SHA25617235ac0d8db527cc9b82de7ccc1b3a3377aa5dc25eb5b42adc71171dd075477，全部原生后逐文件一致；最终73个mjs复核。本地版本3230与SSH版本181f之间唯一脚本差异为SSH桥转交，分别保留哈希。CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。无Actions、CLI重建、安装包或后端发行归档；raw profile/DB/私钥不进入证据。实际查看的基线、初轮列表/关闭状态、最终选中行/No matches与SSH重开截图列表见visual-review.json，其余只捕获。最新完整终端四场景原生回归仍按阶段八十九范围，当前合跑相关单测与原PTY生命周期。[阶段九十一证据](evidence/local-ssh-feature-parity/stage91)。
 
 外部SSH环境变量readiness为ready，但配置TCP代理的实际socket连接返回ConnectionRefusedError，未建立隧道、未发送SSH密码或运行远端命令。不能据此称SSH认证失败或403策略拒绝，也不绕过代理；外部SSH、真实供应商Agent、实体Mac/Keychain/FDA仍未验。设计模式、rightPane、聊天/任务URL、CLI桥及其他原版功能继续，整体目标未完成。
+
+## 阶段九十二：DevTools 请求定位与两端回归（2026-10-26）
+
+针对阶段九十一进入Cookie流程前的Runtime.evaluate超时，夹具d8000d3fa新增可选`--cdp-diagnostic`，按连接/请求ID记录main或renderer、方法、调用位置及耗时，最多12000条。没有记录表达式、参数、返回值、Cookie或凭据；原10000ms超时、重试次数和同步closeDevTools主体保持。仅验证脚本变化，未改变产品609f68608或重建dist/CLI。
+
+本地及拥有loopback SSH各一次完整原tools流程均退出0，历史超时未复现，不能宣称根因已定位或已修复。捕获请求本地38.39ms、SSH46.86ms，关闭请求本地4.16ms、SSH5.44ms；随后原设置可见/焦点、导航/查找、window.open分屏和正常重开继续通过。SSH含20次此前恢复。两端分别445/1143个请求全部配对，无协议错误或超时。各有一次现有readProof在自有HTTP夹具写出文件前的已捕获evaluate异常，保留位置，不把它与renderer未捕获运行异常混为一谈；后者数组均为空。诊断本身可能影响时序，因此不将本轮通过当作历史问题不存在的证明。
+
+匹配appPath=/workspace/superset/apps/desktop、renderer=file:///workspace/superset/apps/desktop/dist/renderer/index.html；本地main/renderer端口34303/36913，SSH具体端口见native-summary.json。本地原PTY PID195838/execution719ecda6-3f69-4012-b971-da59dd992f70，SSH PID199587/execution6436908b-b023-435c-8768-606dc86650aa以及cwd保持。两张当前DevTools截图已实际查看，均展开body并可见唯一页面marker，存在一个warning徽标；不回溯替代阶段九十一body折叠的历史截图，其余图只捕获。
+
+2205个编译文件逐一复核，manifest仍17235ac0d8db527cc9b82de7ccc1b3a3377aa5dc25eb5b42adc71171dd075477，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。73个脚本按各轮实际消费版本保留哈希，本地/SSH间仅诊断代码格式和flag读取提取变化，原同步关闭逻辑不变。静态语法/未声明变量、插件检查通过；产品测试仍按阶段九十一166项记录，本轮没有重跑全部单测或阶段八十九完整终端四场景。拥有app/Xorg均退出0，HTTP实际Ctrl+C停止，最终拥有进程及X163 socket均不残留。无Actions、安装包、后端归档、真实供应商认证或外部SSH验收。[阶段九十二证据](evidence/local-ssh-feature-parity/stage92)。其余原版功能仍在进行。
