@@ -161,7 +161,12 @@ test("an evaluation disconnect is unresolved with a non-internal error and canno
 			.caller()
 			.browserEvaluateV1(f.input)
 			.catch((error) => error);
-		await f.requested.promise;
+		await Promise.race([
+			f.requested.promise,
+			pending.then(() => {
+				throw Error("Evaluation settled before its request was dispatched");
+			}),
+		]);
 		f.peer.close();
 		expect(await pending).toMatchObject({ code: "PRECONDITION_FAILED" });
 		expect(f.operations.status(f.input.operationId)).toMatchObject({
