@@ -1,0 +1,17 @@
+{
+  "rootCause": "A login bash with errexit executes its logout clear_console command on explicit exit; that command fails without a console and overrides the intended zero status. The minimal reproducer uses no tests.",
+  "cases": [
+    {
+      "login": true,
+      "exitCode": 1,
+      "output": "+ exit 0\n++ '[' 1 = 1 ']'\n++ '[' -x /usr/bin/clear_console ']'\n++ /usr/bin/clear_console -q\n"
+    },
+    {
+      "login": false,
+      "exitCode": 0,
+      "output": "+ exit 0\n"
+    }
+  ],
+  "verificationUseLogin": false,
+  "productAndTestsChangedToAddressThis": false
+}

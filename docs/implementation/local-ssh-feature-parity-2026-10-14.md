@@ -1693,3 +1693,14 @@ Agent PTY本地PID211613/execution84f2e9e8-2f14-421f-b576-825974f65850，SSH PID
 最终188项530断言/24文件及完整桌面类型、插件、格式/未声明变量检查通过。首个组合命令的日志为188通过/0失败，但工具返回退出1，原因未定位；明确保留此不一致，未假称已找到根因。最终同一测试集合在仅类型层修正后由工具确认退出0。AST逐条核对11个原HTTP处理、scope/helper、旧启动除注册调用外的语句、鉴权/CDP、默认期限及队列上限一致；BrowserManager、旧browser RPC、host browser router/client/CDP route、CLI browser解析和认证、host鉴权等均字节保持。没有新增或修改消息，17语言严格编译最近通过仍按九十六，不把本轮说成重新提取全体catalog。
 
 此为直连CLI浏览器桥的后续复用准备，不代表CLI已经能操作工作站浏览器；还需完整的连接/namespace/window/pane归属及后端通道。没有重建dist：仍为fe7156d5a的2205文件、九十六74脚本逐项一致，CLI哈希仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。无新原生验收、Actions、CLI重建、安装包或后端发行归档。最新设计反馈实窗按九十六，完整终端四场景按八十九；整体功能对齐继续。[阶段九十七证据](evidence/local-ssh-feature-parity/stage97)。
+
+
+## 阶段九十八：浏览器桥所属注册发现与异步结果保护（2026-10-26）
+
+1565720e9给原WorkstationBrowserRegistry增加listRegistrations，只有当前窗口且connection/generation/backend/namespace/instance完整一致的存活已提交注册可见；支持工作区过滤，空工作区不会变成全量，返回pane副本，不暴露私有Map。原constructor、已有成员、注册/清理/事件逻辑AST保持。两个实际注册表回归覆盖跨连接同pane ID、同连接另一工作区、每个身份字段不符、返回副本修改、pending、guest销毁和同ID窗口reload后的排除。
+
+新增currentWorkstationBrowserBridgePanes仅为后续桥接提供元数据、截图、eval和console访问。构造时捕获连接身份，调用方需提供固定窗口epoch的isCurrent；从注册表取得本连接的真实manager key，所有操作带原workspace调用原BrowserManager。元数据只读取这些key的guest，不枚举其他连接的全局manager列表；输出公共paneId与原navigation提供的canonical URL，保留title/isLoading。每次读取前后及异步返回后重新检查epoch和同一registration/key，过期时不返回原截图/执行结果。Console返回副本，原capturePng/evaluateJS的值不包装或改写。7项受控Promise回归覆盖捕获身份不受调用者修改影响、所属key/原值、缺少/错误工作区和pane拒绝、过期epoch、晚截图/晚执行及元数据读取中owner变化。初轮两个并发预期拒绝中后一个尚未绑定处理器，被Bun识别为未处理拒绝；拆成每项一个行为后通过，未修改正确的产品拒绝逻辑。
+
+组合197项562断言/25文件、完整桌面类型、插件及格式/未声明变量检查通过。九十七及本轮曾记录全测试通过而工具退出1；本轮shell xtrace明确显示bun test返回0、随后exit 0，却继续执行登录shell退出脚本中的clear_console -q并失败。无测试的最小命令set -ex; exit 0在login=true复现退出1，login=false退出0，排除了测试断言。最终使用非登录shell验证，工具明确退出0；只调整执行选项，没有修改用户的shell配置、产品或测试来掩盖结果。原九十七记录按当时观察保留，本轮补充已定位根因与原始诊断。
+
+原BrowserManager、HTTP处理/启动/CDP、导航转发、旧RPC/鉴权、CLI浏览器解析和host floor均字节一致，没有新主进程动作、后端通道或可用能力标志。此为源码准备，尚未把CLI连到工作站浏览器；不能把注入isCurrent的单测称为实际后端窗口epoch接入或本地/SSH端到端。无新文案/catalog修改，17严格语言最近通过按九十六。未重建产品：仍为fe7156d5a的2205文件、九十六74脚本逐项不变，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb，无Actions、CLI重建、安装包或后端发行归档。最新设计反馈实窗按九十六，完整终端四场景按八十九；继续原版功能对齐。[阶段九十八证据](evidence/local-ssh-feature-parity/stage98)。

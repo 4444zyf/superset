@@ -1,0 +1,43 @@
+{
+  "source": "1565720e9803f3c8ad5609406b33b7953f35f271",
+  "scope": "source-only copied registration discovery and pinned browser metadata/capture/eval/console adapter; no CLI transport or new capability enabled",
+  "tests": {
+    "pass": 197,
+    "assertions": 562,
+    "files": 25,
+    "toolConfirmedExit": 0,
+    "loginShell": false
+  },
+  "newRegressions": {
+    "registrationDiscovery": 2,
+    "scopedPaneAccess": 7,
+    "noRealWaitsOrGlobalModuleMocksOrPrivateMapAccess": true
+  },
+  "desktopTypesExit": 0,
+  "pluginsExit": 0,
+  "existingRegistryMembersAstUnchanged": true,
+  "originalBrowserManagerAndHttpAndNavigationAndReleasedRpcAuthCliHostFloorByteUnchanged": true,
+  "lateEpochOrRegistrationResultsRejected": true,
+  "failureRecords": {
+    "registry-red.log": "13 pass/2 fail because new registration discovery method is absent",
+    "panes-module-baseline.log": "new adapter module not yet present; not a UI baseline",
+    "panes-green.log": "20 pass/1 fail: concurrent expected rejection lacked a handler before awaiting another; separated into one behavior per test",
+    "desktop-tests.log": "197 pass/0 fail; login shell logout command overrode exit status",
+    "desktop-tests-shell-trace.log": "197 pass; shell traced test exit=0 and explicit exit 0, followed by logout clear_console failure",
+    "shell-exit-diagnosis.json": "minimal set -ex; exit 0 reproduces tool exit1 in login shell and exit0 in non-login shell, without any tests",
+    "desktop-tests-verified.log": "197 pass/0 fail; non-login shell and tool both confirm exit0"
+  },
+  "stage97CommandExitAnomalyNowDiagnosed": "login bash logout clear_console failure under errexit, not a failed test assertion; no product/test changes or user shell settings changed for that diagnosis",
+  "locales": "no UI/macros or catalog edits; latest 17 strict catalogs stage96",
+  "productUnbuilt": {
+    "productSource": "fe7156d5a07f66333699bf4d73d0324a2cf06b3d",
+    "fileCount": 2205,
+    "productChanged": [],
+    "fixtureCount": 74,
+    "fixturesChanged": [],
+    "cliSha256": "f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb",
+    "x163SocketPresent": false
+  },
+  "native": "latest local/owned SSH design flow stage96; last full four terminal suites stage89; no new native or CLI proof here",
+  "noActionsCliRebuildOrPackaging": true
+}
