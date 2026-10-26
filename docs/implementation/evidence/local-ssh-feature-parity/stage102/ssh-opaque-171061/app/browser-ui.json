@@ -1,0 +1,903 @@
+{
+  "available": true,
+  "scope": {
+    "d": {
+      "connectionId": "df314ec5-545e-4f5b-a585-3a772515cbf6",
+      "generation": 1,
+      "backendId": "96cfd980-d581-400e-9604-d3b3c8e2a009",
+      "namespaceId": "181bf814-65f6-4693-9960-69da4c6462f9",
+      "instanceId": "1260ad23-567e-4977-8e06-09ab970c9093",
+      "capabilities": {
+        "projects": true,
+        "sessions": true,
+        "terminals": true,
+        "chat": true,
+        "files": true,
+        "attachments": true,
+        "workstationChatAttachmentInputV1": true,
+        "workstationTerminalPresetsV1": true,
+        "workstationAgentSettingsV1": true,
+        "workstationAgentManagementV1": true,
+        "workstationAgentCatalogV2": true,
+        "workstationTerminalScriptsV1": true,
+        "workstationTerminalScriptExecutionV1": true,
+        "workstationAgentFeedbackV1": true,
+        "workstationAgentHooksV1": true,
+        "git": true,
+        "durableOperations": true,
+        "workspaceViewRestoreV1": true,
+        "workstationFilesV1": true,
+        "workstationFileEventsV1": true,
+        "workstationGitV1": true,
+        "workstationGitIdentityV1": true,
+        "workstationGitHistoryV1": true,
+        "workstationGitSyncV1": true,
+        "workstationManagedWorktreesV1": true,
+        "workstationProjectsV1": true,
+        "workstationProjectScriptsV1": true,
+        "workstationWorkspaceRunV1": true,
+        "workstationWorkspaceRunV2": true,
+        "workstationWorkspaceCleanupV1": true,
+        "workstationWorkspaceSetupV1": true,
+        "workstationPortsV1": true
+      },
+      "chatHarnesses": [
+        {
+          "id": "claude-code",
+          "available": false,
+          "reason": "Install claude on the remote machine and add it to the service user's login-shell PATH"
+        },
+        {
+          "id": "codex",
+          "available": true,
+          "reason": "CLI found on the remote machine; sign-in and version are checked when a chat starts. Sign in on B using CODEX_HOME=/home/agent/.superset-ssh-test-crDYJM/backend-home/.superset-direct/providers/codex"
+        }
+      ]
+    },
+    "w": {
+      "tabId": "27ce2a4a-1c7e-478a-aea6-ba9b46bc4d05",
+      "workspaceId": "9f1730f9-4486-4be1-9a49-1bfcb5f41c21",
+      "label": "Restore lifecycle",
+      "activeTool": "terminal",
+      "activePaneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548",
+      "panes": [
+        {
+          "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446",
+          "kind": "terminal",
+          "resourceId": "bb0f991f-4660-4a91-a369-d0e69cb1ca56",
+          "executionId": "fda7557b-3db7-42fb-85e8-d21cdffe55ce",
+          "label": "Claude"
+        },
+        {
+          "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59",
+          "kind": "terminal",
+          "resourceId": "1c07f669-a330-456a-a003-590ff34e7d6f",
+          "executionId": "697fd49e-d00e-4ab6-b38b-572f9e005bc0",
+          "label": "Codex"
+        },
+        {
+          "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548",
+          "kind": "terminal",
+          "resourceId": "959ab1fa-dfb6-45b4-a854-111494f5e097",
+          "executionId": "45dcb9fd-323d-4b87-b4c5-27450f688e8b",
+          "label": "OMP"
+        }
+      ],
+      "layout": {
+        "type": "split",
+        "axis": "horizontal",
+        "ratio": 0.5,
+        "first": {
+          "type": "pane",
+          "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446"
+        },
+        "second": {
+          "type": "split",
+          "axis": "vertical",
+          "ratio": 0.5,
+          "first": {
+            "type": "pane",
+            "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59"
+          },
+          "second": {
+            "type": "pane",
+            "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548"
+          }
+        }
+      },
+      "paneTabs": [
+        {
+          "tabId": "6ed02123-c933-46f5-8774-0b9f39bbdc65",
+          "label": "Terminal",
+          "createdAt": 1793012392388,
+          "activePaneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548",
+          "layout": {
+            "type": "split",
+            "axis": "horizontal",
+            "ratio": 0.37,
+            "first": {
+              "type": "split",
+              "axis": "vertical",
+              "ratio": 0.5,
+              "first": {
+                "type": "pane",
+                "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446"
+              },
+              "second": {
+                "type": "pane",
+                "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548"
+              }
+            },
+            "second": {
+              "type": "pane",
+              "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59"
+            }
+          }
+        }
+      ],
+      "activePaneTabId": "6ed02123-c933-46f5-8774-0b9f39bbdc65"
+    },
+    "root": "/home/agent/.superset-ssh-test-crDYJM/backend-home/Superset Remix/worktrees/Unified Project-5074b3f9-f482-48e5-968b-f8619affd385/restore-lifecycle"
+  },
+  "marker": "OWNED-BROWSER-b42d170f-f947-44bb-ac0c-2e0975a204e4",
+  "terminalBefore": {
+    "id": "0eaeb96a-3920-4e17-b7cf-6f3c40793b5a",
+    "executionId": "c2030ff8-d77e-4f30-beb8-efc35666cf0f",
+    "pid": 237824,
+    "cols": 110,
+    "rows": 30,
+    "cwd": "/home/agent/.superset-ssh-test-crDYJM/backend-home/Superset Remix/worktrees/Unified Project-5074b3f9-f482-48e5-968b-f8619affd385/restore-lifecycle",
+    "alive": true,
+    "processExists": true,
+    "output": "\u001b[?2004hagent@691d642e31ed:~/Superset Remix/worktrees/Unified Project-5074b3f9-f482-48e5-968b-f8619affd385/restore-lifecycle$ \r\u001b[K\ragent@691d642e31ed:~/Superset Remix/worktrees/Unified Project-5074b3f9-f482-48e5-968b-f8619affd385/restore-lifecycle$ python3 -c 'import base64;exec(base64.b64decode(\"aW1wb3J0IGh0dHAuc2VydmVyLGpzb24sb3Msc2lnbmFsCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aApzdGF0ZT17Im1hcmtlciI6Ik9XTkVELUJST1dTRVItYjQyZDE3MGYtZjk0Ny00NGJiLWFjMGMtMmUwOTc1YTIwNGU0IiwicmVxdWVzdHMiOltdLCJydW5uaW5nIjpUcnVlLCJwaWQiOm9zLmdldHBpZCgpfQpkZWYgc2F2ZSgpOiB0ZW1wPVBhdGgoJ2Jyb3dzZXItcHJvb2YudG1wJyk7dGVtcC53cml0ZV90ZXh0KGpzb24uZHVtcHMoc3RhdGUpKTt0ZW1wLnJlcGxhY2UoJ2Jyb3dzZXItcHJvb2YuanNvbicpCmNsYXNzIEhhbmRsZXIoaHR0cC5zZXJ2ZXIuQmFzZUhUVFBSZXF1ZXN0SGFuZGxlcik6CiBkZWYgZG9fR0VUKHNlbGYpOgogIHN0YXRlWydyZXF1ZXN0cyddLmFwcGVuZChzZWxmLnBhdGgpO3NhdmUoKQogIHRpdGxlPSdPd25lZCBicm93c2VyICcrKCduZXh0JyBpZiBzZWxmLnBhdGguc3RhcnRzd2l0aCgnL25leHQnKSBlbHNlICdob21lJykrJyDkuK3mlocg8J+ZgicKICBib2R5PSgnPCFkb2N0eXBlIGh0bWw+PG1ldGEgY2hhcnNldD0idXRmLTgiPjx0aXRsZT4nK3RpdGxlKyc8L3RpdGxlPjxoMT4nK3N0YXRlWydtYXJrZXInXSsnPC9oMT48YSBpZD0ibmV4dCIgaHJlZj0iL25leHQ/dmFsdWU9JUU0JUI4JUFEJTIwaGVsbG8jc2VjdGlvbiI+TmV4dCBwYWdlPC9hPjxicj48YSBpZD0icG9wdXAiIHRhcmdldD0iX2JsYW5rIiBocmVmPSIvcG9wdXAiPk9wZW4gc2Vjb25kIHBhbmU8L2E+PHA+bmVlZGxlIG5lZWRsZSBuZWVkbGU8L3A+JykuZW5jb2RlKCkKICBib2R5PWJvZHkucmVwbGFjZShiJzx0aXRsZT4nLGInPGxpbmsgcmVsPSJpY29uIiBocmVmPSIvaWNvbi5zdmciPjx0aXRsZT4nKQogIGJvZHk9Ym9keStiJzxzY3JpcHQ+Y29uc29sZS53YXJuKGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoImgxIikudGV4dENvbnRlbnQpPC9zY3JpcHQ+JwogIHBhc3MKICBjb250ZW50X3R5cGU9J3RleHQvaHRtbDsgY2hhcnNldD11dGYtOCcKICBpZiBzZWxmLnBhdGguc3RhcnRzd2l0aCgnL2ljb24uc3ZnJyk6IGJvZHk9KCc8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgZGF0YS1vd25lZD0iJytzdGF0ZVsnbWFya2VyJ10rJyIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2Ij48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9ImdyZWVuIi8+PC9zdmc+JykuZW5jb2RlKCk7Y29udGVudF90eXBlPSdpbWFnZS9zdmcreG1sJwogIGNhY2hlX2NvbnRyb2w9J25vLXN0b3JlJwogIHNlbGYuc2VuZF9yZXNwb25zZSgyMDApO3NlbGYuc2VuZF9oZWFkZXIoJ0NvbnRlbnQtVHlwZScsY29udGVudF90eXBlKTtzZWxmLnNlbmRfaGVhZGVyKCdDYWNoZS1Db250cm9sJyxjYWNoZV9jb250cm9sKTtzZWxmLnNlbmRfaGVhZGVyKCdDb250ZW50LUxlbmd0aCcsc3RyKGxlbihib2R5KSkpO3NlbGYuZW5kX2hlYWRlcnMoKTtzZWxmLndmaWxlLndyaXRlKGJvZHkpCiBkZWYgbG9nX21lc3NhZ2Uoc2VsZiwqYXJncyk6IHBhc3MKc2VydmVyPWh0dHAuc2VydmVyLkhUVFBTZXJ2ZXIoKCcxMjcuMC4wLjEnLDApLEhhbmRsZXIpCnN0YXRlWydwb3J0J109c2VydmVyLnNlcnZlcl9wb3J0O3NhdmUoKQpwYXNzCnRyeTogc2VydmVyLnNlcnZlX2ZvcmV2ZXIoKQpleGNlcHQgS2V5Ym9hcmRJbnRlcnJ1cHQ6IHBhc3MKZmluYWxseTogc2VydmVyLnNlcnZlcl9jbG9zZSgpO3N0YXRlWydydW5uaW5nJ109RmFsc2U7c2F2ZSgp\"))'\r\n\u001b[?2004l\r"
+  },
+  "detectedPort": {
+    "port": 38449,
+    "pid": 237833,
+    "processName": "python3",
+    "terminalId": "0eaeb96a-3920-4e17-b7cf-6f3c40793b5a",
+    "workspaceId": "9f1730f9-4486-4be1-9a49-1bfcb5f41c21",
+    "detectedAt": 1793012447509,
+    "address": "127.0.0.1",
+    "label": null
+  },
+  "loaded": {
+    "body": "OWNED-BROWSER-b42d170f-f947-44bb-ac0c-2e0975a204e4\nNext page\nOpen second pane\n\nneedle needle needle",
+    "title": "Owned browser home 中文 🙂",
+    "url": "http://127.0.0.1:34577/preview?first=%E4%B8%AD#initial",
+    "node": "undefined",
+    "process": "undefined",
+    "head": "<meta charset=\"utf-8\"><link rel=\"icon\" href=\"/icon.svg\"><title>Owned browser home 中文 🙂</title>"
+  },
+  "popup": {
+    "paneId": "664df4b9-4b4d-413c-9907-126d624cb5d2",
+    "view": {
+      "tabId": "27ce2a4a-1c7e-478a-aea6-ba9b46bc4d05",
+      "workspaceId": "9f1730f9-4486-4be1-9a49-1bfcb5f41c21",
+      "label": "Restore lifecycle",
+      "activeTool": "terminal",
+      "activePaneId": "664df4b9-4b4d-413c-9907-126d624cb5d2",
+      "panes": [
+        {
+          "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446",
+          "kind": "terminal",
+          "resourceId": "bb0f991f-4660-4a91-a369-d0e69cb1ca56",
+          "executionId": "fda7557b-3db7-42fb-85e8-d21cdffe55ce",
+          "label": "Claude"
+        },
+        {
+          "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59",
+          "kind": "terminal",
+          "resourceId": "1c07f669-a330-456a-a003-590ff34e7d6f",
+          "executionId": "697fd49e-d00e-4ab6-b38b-572f9e005bc0",
+          "label": "Codex"
+        },
+        {
+          "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548",
+          "kind": "terminal",
+          "resourceId": "959ab1fa-dfb6-45b4-a854-111494f5e097",
+          "executionId": "45dcb9fd-323d-4b87-b4c5-27450f688e8b",
+          "label": "OMP"
+        },
+        {
+          "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5",
+          "kind": "terminal",
+          "resourceId": "0eaeb96a-3920-4e17-b7cf-6f3c40793b5a",
+          "executionId": "c2030ff8-d77e-4f30-beb8-efc35666cf0f",
+          "label": "Terminal"
+        },
+        {
+          "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522",
+          "kind": "browser",
+          "resourceId": "8f21683a-e1dc-46eb-ad62-c7677fb499f4",
+          "browser": {
+            "url": "http://localhost:38449/next?value=%E4%B8%AD%20hello#section",
+            "pageTitle": "Owned browser next 中文 🙂",
+            "faviconUrl": "http://localhost:38449/icon.svg"
+          }
+        },
+        {
+          "paneId": "664df4b9-4b4d-413c-9907-126d624cb5d2",
+          "kind": "browser",
+          "resourceId": "24c714ee-c31f-4938-868a-82d6dcdc94e4",
+          "browser": {
+            "url": "http://localhost:38449/popup",
+            "pageTitle": "",
+            "faviconUrl": null
+          }
+        }
+      ],
+      "layout": {
+        "type": "split",
+        "axis": "horizontal",
+        "ratio": 0.5,
+        "first": {
+          "type": "split",
+          "axis": "vertical",
+          "ratio": 0.5,
+          "first": {
+            "type": "pane",
+            "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446"
+          },
+          "second": {
+            "type": "split",
+            "axis": "horizontal",
+            "ratio": 0.5,
+            "first": {
+              "type": "pane",
+              "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59"
+            },
+            "second": {
+              "type": "pane",
+              "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548"
+            }
+          }
+        },
+        "second": {
+          "type": "split",
+          "axis": "vertical",
+          "ratio": 0.5,
+          "first": {
+            "type": "pane",
+            "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5"
+          },
+          "second": {
+            "type": "split",
+            "axis": "horizontal",
+            "ratio": 0.5,
+            "first": {
+              "type": "pane",
+              "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522"
+            },
+            "second": {
+              "type": "pane",
+              "paneId": "664df4b9-4b4d-413c-9907-126d624cb5d2"
+            }
+          }
+        }
+      },
+      "paneTabs": [
+        {
+          "tabId": "6ed02123-c933-46f5-8774-0b9f39bbdc65",
+          "label": "Terminal",
+          "createdAt": 1793012392388,
+          "activePaneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548",
+          "layout": {
+            "type": "split",
+            "axis": "horizontal",
+            "ratio": 0.37,
+            "first": {
+              "type": "split",
+              "axis": "vertical",
+              "ratio": 0.5,
+              "first": {
+                "type": "pane",
+                "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446"
+              },
+              "second": {
+                "type": "pane",
+                "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548"
+              }
+            },
+            "second": {
+              "type": "pane",
+              "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59"
+            }
+          }
+        },
+        {
+          "tabId": "4661d76f-afdf-43bd-ab8e-3c3054b8eb35",
+          "label": "Terminal",
+          "createdAt": 1793012446819,
+          "activePaneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5",
+          "layout": {
+            "type": "pane",
+            "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5"
+          }
+        },
+        {
+          "tabId": "7dc9519e-1852-43a8-a55f-af7d9319db96",
+          "createdAt": 1793012447591,
+          "activePaneId": "664df4b9-4b4d-413c-9907-126d624cb5d2",
+          "layout": {
+            "type": "split",
+            "axis": "horizontal",
+            "ratio": 0.5,
+            "first": {
+              "type": "pane",
+              "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522"
+            },
+            "second": {
+              "type": "pane",
+              "paneId": "664df4b9-4b4d-413c-9907-126d624cb5d2"
+            }
+          }
+        }
+      ],
+      "activePaneTabId": "7dc9519e-1852-43a8-a55f-af7d9319db96"
+    }
+  },
+  "beforeReopen": {
+    "tabId": "27ce2a4a-1c7e-478a-aea6-ba9b46bc4d05",
+    "workspaceId": "9f1730f9-4486-4be1-9a49-1bfcb5f41c21",
+    "label": "Restore lifecycle",
+    "activeTool": "terminal",
+    "activePaneId": "47097d6b-5b52-4092-a46a-fcdf538f4522",
+    "panes": [
+      {
+        "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446",
+        "kind": "terminal",
+        "resourceId": "bb0f991f-4660-4a91-a369-d0e69cb1ca56",
+        "executionId": "fda7557b-3db7-42fb-85e8-d21cdffe55ce",
+        "label": "Claude"
+      },
+      {
+        "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59",
+        "kind": "terminal",
+        "resourceId": "1c07f669-a330-456a-a003-590ff34e7d6f",
+        "executionId": "697fd49e-d00e-4ab6-b38b-572f9e005bc0",
+        "label": "Codex"
+      },
+      {
+        "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548",
+        "kind": "terminal",
+        "resourceId": "959ab1fa-dfb6-45b4-a854-111494f5e097",
+        "executionId": "45dcb9fd-323d-4b87-b4c5-27450f688e8b",
+        "label": "OMP"
+      },
+      {
+        "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5",
+        "kind": "terminal",
+        "resourceId": "0eaeb96a-3920-4e17-b7cf-6f3c40793b5a",
+        "executionId": "c2030ff8-d77e-4f30-beb8-efc35666cf0f",
+        "label": "Terminal"
+      },
+      {
+        "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522",
+        "kind": "browser",
+        "resourceId": "8f21683a-e1dc-46eb-ad62-c7677fb499f4",
+        "browser": {
+          "url": "http://localhost:38449/next?value=%E4%B8%AD%20hello#section",
+          "pageTitle": "Owned browser next 中文 🙂",
+          "faviconUrl": "http://localhost:38449/icon.svg"
+        }
+      }
+    ],
+    "layout": {
+      "type": "split",
+      "axis": "horizontal",
+      "ratio": 0.5,
+      "first": {
+        "type": "split",
+        "axis": "vertical",
+        "ratio": 0.5,
+        "first": {
+          "type": "pane",
+          "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446"
+        },
+        "second": {
+          "type": "pane",
+          "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59"
+        }
+      },
+      "second": {
+        "type": "split",
+        "axis": "vertical",
+        "ratio": 0.5,
+        "first": {
+          "type": "pane",
+          "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548"
+        },
+        "second": {
+          "type": "split",
+          "axis": "horizontal",
+          "ratio": 0.5,
+          "first": {
+            "type": "pane",
+            "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5"
+          },
+          "second": {
+            "type": "pane",
+            "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522"
+          }
+        }
+      }
+    },
+    "paneTabs": [
+      {
+        "tabId": "6ed02123-c933-46f5-8774-0b9f39bbdc65",
+        "label": "Terminal",
+        "createdAt": 1793012392388,
+        "activePaneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548",
+        "layout": {
+          "type": "split",
+          "axis": "horizontal",
+          "ratio": 0.37,
+          "first": {
+            "type": "split",
+            "axis": "vertical",
+            "ratio": 0.5,
+            "first": {
+              "type": "pane",
+              "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446"
+            },
+            "second": {
+              "type": "pane",
+              "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548"
+            }
+          },
+          "second": {
+            "type": "pane",
+            "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59"
+          }
+        }
+      },
+      {
+        "tabId": "4661d76f-afdf-43bd-ab8e-3c3054b8eb35",
+        "label": "Terminal",
+        "createdAt": 1793012446819,
+        "activePaneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5",
+        "layout": {
+          "type": "pane",
+          "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5"
+        }
+      },
+      {
+        "tabId": "7dc9519e-1852-43a8-a55f-af7d9319db96",
+        "createdAt": 1793012447591,
+        "activePaneId": "47097d6b-5b52-4092-a46a-fcdf538f4522",
+        "layout": {
+          "type": "pane",
+          "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522"
+        }
+      }
+    ],
+    "activePaneTabId": "7dc9519e-1852-43a8-a55f-af7d9319db96"
+  },
+  "history": [
+    {
+      "id": "77aaf6f6-0429-4986-bb57-31008d6bc12d",
+      "url": "http://localhost:38449/popup",
+      "title": "Owned browser home 中文 🙂",
+      "faviconUrl": "http://localhost:38449/icon.svg",
+      "lastVisitedAt": 1793012456493,
+      "visitCount": 2
+    },
+    {
+      "id": "e17858c8-217b-461d-b5d9-a5a0c8d441d2",
+      "url": "http://localhost:38449/next?value=%E4%B8%AD%20hello#section",
+      "title": "Owned browser next 中文 🙂",
+      "faviconUrl": "http://localhost:38449/icon.svg",
+      "lastVisitedAt": 1793012456103,
+      "visitCount": 3
+    },
+    {
+      "id": "cd077b90-c784-428e-b6b8-5cda0bdc61a5",
+      "url": "http://localhost:38449/preview?first=%E4%B8%AD#initial",
+      "title": "Owned browser home 中文 🙂",
+      "faviconUrl": "http://localhost:38449/icon.svg",
+      "lastVisitedAt": 1793012455978,
+      "visitCount": 3
+    }
+  ],
+  "guestEventsBeforeReopen": [
+    {
+      "type": "did-navigate",
+      "url": "about:blank"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "about:blank"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://127.0.0.1:34577/preview?first=%E4%B8%AD#initial"
+    },
+    {
+      "type": "page-title-updated",
+      "title": "Owned browser home 中文 🙂"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "page-favicon-updated",
+      "favicons": [
+        "http://127.0.0.1:34577/icon.svg"
+      ]
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://127.0.0.1:34577/next?value=%E4%B8%AD%20hello#section"
+    },
+    {
+      "type": "page-title-updated",
+      "title": "Owned browser next 中文 🙂"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://127.0.0.1:34577/preview?first=%E4%B8%AD#initial"
+    },
+    {
+      "type": "page-title-updated",
+      "title": "Owned browser home 中文 🙂"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://127.0.0.1:34577/next?value=%E4%B8%AD%20hello#section"
+    },
+    {
+      "type": "page-title-updated",
+      "title": "Owned browser next 中文 🙂"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    },
+    {
+      "type": "did-navigate",
+      "url": "http://127.0.0.1:34577/next?value=%E4%B8%AD%20hello#section"
+    },
+    {
+      "type": "dom-ready"
+    },
+    {
+      "type": "did-stop-loading"
+    }
+  ],
+  "rendererBeforeReopen": [],
+  "afterReopen": {
+    "tabId": "27ce2a4a-1c7e-478a-aea6-ba9b46bc4d05",
+    "workspaceId": "9f1730f9-4486-4be1-9a49-1bfcb5f41c21",
+    "label": "Restore lifecycle",
+    "activeTool": "terminal",
+    "activePaneId": "47097d6b-5b52-4092-a46a-fcdf538f4522",
+    "panes": [
+      {
+        "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446",
+        "kind": "terminal",
+        "resourceId": "bb0f991f-4660-4a91-a369-d0e69cb1ca56",
+        "executionId": "fda7557b-3db7-42fb-85e8-d21cdffe55ce",
+        "label": "Claude"
+      },
+      {
+        "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59",
+        "kind": "terminal",
+        "resourceId": "1c07f669-a330-456a-a003-590ff34e7d6f",
+        "executionId": "697fd49e-d00e-4ab6-b38b-572f9e005bc0",
+        "label": "Codex"
+      },
+      {
+        "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548",
+        "kind": "terminal",
+        "resourceId": "959ab1fa-dfb6-45b4-a854-111494f5e097",
+        "executionId": "45dcb9fd-323d-4b87-b4c5-27450f688e8b",
+        "label": "OMP"
+      },
+      {
+        "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5",
+        "kind": "terminal",
+        "resourceId": "0eaeb96a-3920-4e17-b7cf-6f3c40793b5a",
+        "executionId": "c2030ff8-d77e-4f30-beb8-efc35666cf0f",
+        "label": "Terminal"
+      },
+      {
+        "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522",
+        "kind": "browser",
+        "resourceId": "8f21683a-e1dc-46eb-ad62-c7677fb499f4",
+        "browser": {
+          "url": "http://localhost:38449/next?value=%E4%B8%AD%20hello#section",
+          "pageTitle": "Owned browser next 中文 🙂",
+          "faviconUrl": "http://localhost:38449/icon.svg"
+        }
+      }
+    ],
+    "layout": {
+      "type": "split",
+      "axis": "horizontal",
+      "ratio": 0.5,
+      "first": {
+        "type": "split",
+        "axis": "vertical",
+        "ratio": 0.5,
+        "first": {
+          "type": "pane",
+          "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446"
+        },
+        "second": {
+          "type": "pane",
+          "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59"
+        }
+      },
+      "second": {
+        "type": "split",
+        "axis": "vertical",
+        "ratio": 0.5,
+        "first": {
+          "type": "pane",
+          "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548"
+        },
+        "second": {
+          "type": "split",
+          "axis": "horizontal",
+          "ratio": 0.5,
+          "first": {
+            "type": "pane",
+            "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5"
+          },
+          "second": {
+            "type": "pane",
+            "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522"
+          }
+        }
+      }
+    },
+    "paneTabs": [
+      {
+        "tabId": "6ed02123-c933-46f5-8774-0b9f39bbdc65",
+        "label": "Terminal",
+        "createdAt": 1793012392388,
+        "activePaneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548",
+        "layout": {
+          "type": "split",
+          "axis": "horizontal",
+          "ratio": 0.37,
+          "first": {
+            "type": "split",
+            "axis": "vertical",
+            "ratio": 0.5,
+            "first": {
+              "type": "pane",
+              "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446"
+            },
+            "second": {
+              "type": "pane",
+              "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548"
+            }
+          },
+          "second": {
+            "type": "pane",
+            "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59"
+          }
+        }
+      },
+      {
+        "tabId": "4661d76f-afdf-43bd-ab8e-3c3054b8eb35",
+        "label": "Terminal",
+        "createdAt": 1793012446819,
+        "activePaneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5",
+        "layout": {
+          "type": "pane",
+          "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5"
+        }
+      },
+      {
+        "tabId": "7dc9519e-1852-43a8-a55f-af7d9319db96",
+        "createdAt": 1793012447591,
+        "activePaneId": "47097d6b-5b52-4092-a46a-fcdf538f4522",
+        "layout": {
+          "type": "pane",
+          "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522"
+        }
+      }
+    ],
+    "activePaneTabId": "7dc9519e-1852-43a8-a55f-af7d9319db96"
+  },
+  "terminalAfter": {
+    "id": "0eaeb96a-3920-4e17-b7cf-6f3c40793b5a",
+    "executionId": "c2030ff8-d77e-4f30-beb8-efc35666cf0f",
+    "pid": 237824,
+    "cols": 110,
+    "rows": 30,
+    "cwd": "/home/agent/.superset-ssh-test-crDYJM/backend-home/Superset Remix/worktrees/Unified Project-5074b3f9-f482-48e5-968b-f8619affd385/restore-lifecycle",
+    "alive": true,
+    "processExists": true,
+    "output": "\u001b[?2004hagent@691d642e31ed:~/Superset Remix/worktrees/Unified Project-5074b3f9-f482-48e5-968b-f8619affd385/restore-lifecycle$ \r\u001b[K\ragent@691d642e31ed:~/Superset Remix/worktrees/Unified Project-5074b3f9-f482-48e5-968b-f8619affd385/restore-lifecycle$ python3 -c 'import base64;exec(base64.b64decode(\"aW1wb3J0IGh0dHAuc2VydmVyLGpzb24sb3Msc2lnbmFsCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aApzdGF0ZT17Im1hcmtlciI6Ik9XTkVELUJST1dTRVItYjQyZDE3MGYtZjk0Ny00NGJiLWFjMGMtMmUwOTc1YTIwNGU0IiwicmVxdWVzdHMiOltdLCJydW5uaW5nIjpUcnVlLCJwaWQiOm9zLmdldHBpZCgpfQpkZWYgc2F2ZSgpOiB0ZW1wPVBhdGgoJ2Jyb3dzZXItcHJvb2YudG1wJyk7dGVtcC53cml0ZV90ZXh0KGpzb24uZHVtcHMoc3RhdGUpKTt0ZW1wLnJlcGxhY2UoJ2Jyb3dzZXItcHJvb2YuanNvbicpCmNsYXNzIEhhbmRsZXIoaHR0cC5zZXJ2ZXIuQmFzZUhUVFBSZXF1ZXN0SGFuZGxlcik6CiBkZWYgZG9fR0VUKHNlbGYpOgogIHN0YXRlWydyZXF1ZXN0cyddLmFwcGVuZChzZWxmLnBhdGgpO3NhdmUoKQogIHRpdGxlPSdPd25lZCBicm93c2VyICcrKCduZXh0JyBpZiBzZWxmLnBhdGguc3RhcnRzd2l0aCgnL25leHQnKSBlbHNlICdob21lJykrJyDkuK3mlocg8J+ZgicKICBib2R5PSgnPCFkb2N0eXBlIGh0bWw+PG1ldGEgY2hhcnNldD0idXRmLTgiPjx0aXRsZT4nK3RpdGxlKyc8L3RpdGxlPjxoMT4nK3N0YXRlWydtYXJrZXInXSsnPC9oMT48YSBpZD0ibmV4dCIgaHJlZj0iL25leHQ/dmFsdWU9JUU0JUI4JUFEJTIwaGVsbG8jc2VjdGlvbiI+TmV4dCBwYWdlPC9hPjxicj48YSBpZD0icG9wdXAiIHRhcmdldD0iX2JsYW5rIiBocmVmPSIvcG9wdXAiPk9wZW4gc2Vjb25kIHBhbmU8L2E+PHA+bmVlZGxlIG5lZWRsZSBuZWVkbGU8L3A+JykuZW5jb2RlKCkKICBib2R5PWJvZHkucmVwbGFjZShiJzx0aXRsZT4nLGInPGxpbmsgcmVsPSJpY29uIiBocmVmPSIvaWNvbi5zdmciPjx0aXRsZT4nKQogIGJvZHk9Ym9keStiJzxzY3JpcHQ+Y29uc29sZS53YXJuKGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoImgxIikudGV4dENvbnRlbnQpPC9zY3JpcHQ+JwogIHBhc3MKICBjb250ZW50X3R5cGU9J3RleHQvaHRtbDsgY2hhcnNldD11dGYtOCcKICBpZiBzZWxmLnBhdGguc3RhcnRzd2l0aCgnL2ljb24uc3ZnJyk6IGJvZHk9KCc8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgZGF0YS1vd25lZD0iJytzdGF0ZVsnbWFya2VyJ10rJyIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2Ij48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIGZpbGw9ImdyZWVuIi8+PC9zdmc+JykuZW5jb2RlKCk7Y29udGVudF90eXBlPSdpbWFnZS9zdmcreG1sJwogIGNhY2hlX2NvbnRyb2w9J25vLXN0b3JlJwogIHNlbGYuc2VuZF9yZXNwb25zZSgyMDApO3NlbGYuc2VuZF9oZWFkZXIoJ0NvbnRlbnQtVHlwZScsY29udGVudF90eXBlKTtzZWxmLnNlbmRfaGVhZGVyKCdDYWNoZS1Db250cm9sJyxjYWNoZV9jb250cm9sKTtzZWxmLnNlbmRfaGVhZGVyKCdDb250ZW50LUxlbmd0aCcsc3RyKGxlbihib2R5KSkpO3NlbGYuZW5kX2hlYWRlcnMoKTtzZWxmLndmaWxlLndyaXRlKGJvZHkpCiBkZWYgbG9nX21lc3NhZ2Uoc2VsZiwqYXJncyk6IHBhc3MKc2VydmVyPWh0dHAuc2VydmVyLkhUVFBTZXJ2ZXIoKCcxMjcuMC4wLjEnLDApLEhhbmRsZXIpCnN0YXRlWydwb3J0J109c2VydmVyLnNlcnZlcl9wb3J0O3NhdmUoKQpwYXNzCnRyeTogc2VydmVyLnNlcnZlX2ZvcmV2ZXIoKQpleGNlcHQgS2V5Ym9hcmRJbnRlcnJ1cHQ6IHBhc3MKZmluYWxseTogc2VydmVyLnNlcnZlcl9jbG9zZSgpO3N0YXRlWydydW5uaW5nJ109RmFsc2U7c2F2ZSgp\"))'\r\n\u001b[?2004l\r"
+  },
+  "rendererAfterReopen": [],
+  "guestEvents": [],
+  "finalView": {
+    "tabId": "27ce2a4a-1c7e-478a-aea6-ba9b46bc4d05",
+    "workspaceId": "9f1730f9-4486-4be1-9a49-1bfcb5f41c21",
+    "label": "Restore lifecycle",
+    "activeTool": "terminal",
+    "activePaneId": "47097d6b-5b52-4092-a46a-fcdf538f4522",
+    "panes": [
+      {
+        "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446",
+        "kind": "terminal",
+        "resourceId": "bb0f991f-4660-4a91-a369-d0e69cb1ca56",
+        "executionId": "fda7557b-3db7-42fb-85e8-d21cdffe55ce",
+        "label": "Claude"
+      },
+      {
+        "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59",
+        "kind": "terminal",
+        "resourceId": "1c07f669-a330-456a-a003-590ff34e7d6f",
+        "executionId": "697fd49e-d00e-4ab6-b38b-572f9e005bc0",
+        "label": "Codex"
+      },
+      {
+        "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548",
+        "kind": "terminal",
+        "resourceId": "959ab1fa-dfb6-45b4-a854-111494f5e097",
+        "executionId": "45dcb9fd-323d-4b87-b4c5-27450f688e8b",
+        "label": "OMP"
+      },
+      {
+        "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5",
+        "kind": "terminal",
+        "resourceId": "0eaeb96a-3920-4e17-b7cf-6f3c40793b5a",
+        "executionId": "c2030ff8-d77e-4f30-beb8-efc35666cf0f",
+        "label": "Terminal"
+      },
+      {
+        "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522",
+        "kind": "browser",
+        "resourceId": "8f21683a-e1dc-46eb-ad62-c7677fb499f4",
+        "browser": {
+          "url": "http://localhost:38449/next?value=%E4%B8%AD%20hello#section",
+          "pageTitle": "Owned browser next 中文 🙂",
+          "faviconUrl": "http://localhost:38449/icon.svg"
+        }
+      }
+    ],
+    "layout": {
+      "type": "split",
+      "axis": "horizontal",
+      "ratio": 0.5,
+      "first": {
+        "type": "split",
+        "axis": "vertical",
+        "ratio": 0.5,
+        "first": {
+          "type": "pane",
+          "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446"
+        },
+        "second": {
+          "type": "pane",
+          "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59"
+        }
+      },
+      "second": {
+        "type": "split",
+        "axis": "vertical",
+        "ratio": 0.5,
+        "first": {
+          "type": "pane",
+          "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548"
+        },
+        "second": {
+          "type": "split",
+          "axis": "horizontal",
+          "ratio": 0.5,
+          "first": {
+            "type": "pane",
+            "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5"
+          },
+          "second": {
+            "type": "pane",
+            "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522"
+          }
+        }
+      }
+    },
+    "paneTabs": [
+      {
+        "tabId": "6ed02123-c933-46f5-8774-0b9f39bbdc65",
+        "label": "Terminal",
+        "createdAt": 1793012392388,
+        "activePaneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548",
+        "layout": {
+          "type": "split",
+          "axis": "horizontal",
+          "ratio": 0.37,
+          "first": {
+            "type": "split",
+            "axis": "vertical",
+            "ratio": 0.5,
+            "first": {
+              "type": "pane",
+              "paneId": "98c3331e-fd88-429b-aac0-49a3b40b3446"
+            },
+            "second": {
+              "type": "pane",
+              "paneId": "f04803cd-d8e8-4f10-83fe-8a1e91a1a548"
+            }
+          },
+          "second": {
+            "type": "pane",
+            "paneId": "49c0a7a2-bbeb-4418-8acb-f91290f45c59"
+          }
+        }
+      },
+      {
+        "tabId": "4661d76f-afdf-43bd-ab8e-3c3054b8eb35",
+        "label": "Terminal",
+        "createdAt": 1793012446819,
+        "activePaneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5",
+        "layout": {
+          "type": "pane",
+          "paneId": "44b617c7-6d16-473a-8b37-5f1bc57af9a5"
+        }
+      },
+      {
+        "tabId": "7dc9519e-1852-43a8-a55f-af7d9319db96",
+        "createdAt": 1793012447591,
+        "activePaneId": "47097d6b-5b52-4092-a46a-fcdf538f4522",
+        "layout": {
+          "type": "pane",
+          "paneId": "47097d6b-5b52-4092-a46a-fcdf538f4522"
+        }
+      }
+    ],
+    "activePaneTabId": "7dc9519e-1852-43a8-a55f-af7d9319db96"
+  },
+  "cleanup": {
+    "marker": "OWNED-BROWSER-b42d170f-f947-44bb-ac0c-2e0975a204e4",
+    "requests": [
+      "/preview?first=%E4%B8%AD",
+      "/icon.svg",
+      "/next?value=%E4%B8%AD%20hello",
+      "/preview?first=%E4%B8%AD",
+      "/next?value=%E4%B8%AD%20hello",
+      "/next?value=%E4%B8%AD%20hello",
+      "/popup",
+      "/icon.svg",
+      "/next?value=%E4%B8%AD%20hello",
+      "/icon.svg"
+    ],
+    "running": false,
+    "pid": 237833,
+    "port": 38449
+  }
+}

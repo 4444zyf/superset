@@ -1,0 +1,73 @@
+{
+  "sourceCommits": [
+    "433ee8740d9d1215a6c3ee8dda8f3c3056bdd335",
+    "171061643a5ef01518583c9029c30cf417d832a3"
+  ],
+  "tests": {
+    "host": {
+      "passed": 34,
+      "assertions": 218,
+      "files": 4
+    },
+    "desktop": {
+      "passed": 52,
+      "assertions": 187,
+      "files": 6
+    },
+    "cli": {
+      "passed": 25,
+      "assertions": 82,
+      "files": 2
+    },
+    "shared": {
+      "passed": 5,
+      "assertions": 15,
+      "files": 1
+    },
+    "realOwnedNodeWebSocket": {
+      "passed": 3
+    }
+  },
+  "typechecks": [
+    "host-service",
+    "desktop",
+    "cli",
+    "shared"
+  ],
+  "captureContract": {
+    "feature": "capturePngV1",
+    "perChunkBase64Chars": 65536,
+    "totalBase64Chars": 33554432,
+    "onePendingCapture": true,
+    "captureDeadlineMs": 20000,
+    "oldReadFrameBytes": 4194304,
+    "oldReadPendingLimit": 8,
+    "originalManagerCaptureDeadlineMsUnchanged": 15000
+  },
+  "native": {
+    "finalAccepted": [
+      "local-opaque-171061",
+      "ssh-opaque-171061"
+    ],
+    "baselineTransportOnly": [
+      "local-capture-433ee",
+      "ssh-capture-433ee"
+    ],
+    "finalCalls": 22,
+    "finalSuccesses": 18,
+    "finalExpectedScopeDenials": 4,
+    "actualPngs": 6,
+    "sshPriorWindowRestores": 20,
+    "clipboard": "Original text and image pixel hash preserved across visible/hidden/reopen capture",
+    "cli": "Original source dev runner executes on this Linux control machine against each owned namespace; no remote CLI installation or bundled binary update claim"
+  },
+  "observedProblem": "Both first native commands exited0 and transferred PNGs, but viewing revealed transparent default backgrounds hiding black text in dark viewers. Numeric RGBA corner red [0,0,0,0] retained. New optional namespace-only callback reuses original opaqueScreenshot; six final captures have white [255,255,255,255] corners and visible markers.",
+  "fixtureCorrection": "A unit dependency unnecessarily wrapped its controlled capture promise in async; assertions observed it before adoption finished. Removed that fixture-only wrapper without sleeps or deadline changes.",
+  "limits": [
+    "Original legacy browser.screenshot and capturePng bytes remain unchanged",
+    "Large real-WS payload test is synthetic PNG-signature framing data, not a decoded valid large image",
+    "Bundled CLI unchanged",
+    "No new installer, external SSH, vendor authentication or physical Mac verification",
+    "Open/navigation/eval/import/CDP browser CLI and many parity rows still pending"
+  ]
+}

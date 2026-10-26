@@ -1735,3 +1735,17 @@ desktop、host-service、shared三处类型、插件及格式/未声明变量检
 该 CLI 是控制机上的原源码入口，读取本次拥有的 namespace；Electron peer 在所选本地/SSH 连接上传输。没有宣称远端 CLI 安装、随包新 CLI 或供应商认证。原随包二进制 SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 保持。初轮提交/构建脚本误在 desktop cwd 使用根路径，提交失败后误启构建；仅终止自己的 Vite PID 222624，退出 143，正确提交后重新完整构建，再冻结/验收，日志保留。
 
 用户手动将仓库改名为 `superset-remix`。`2e349c5c0` 更新当前分支链接/发布目标，`f48d452b9` 仅更新默认 main 首页的独立来源说明并指向功能分支；所有原许可和历史链接保留。主分支插件检查初因独立 worktree 无依赖失败，临时引用现有依赖后通过，推送后已移除该 worktree。远端 origin 和 README blob 已读回复核；仓库 About 的描述/Website 仍为上游值，API 修改被 403 拒绝，已告知用户手动设置。无 Actions 或安装包。浏览器截图/open/navigation/eval/import/CDP CLI、rightPane 和其他功能组继续，完整终端专项仍按阶段八十九/九十六实际范围。[阶段一百零一证据](evidence/local-ssh-feature-parity/stage101)。
+
+## 阶段一百零二：CLI 截图、有界传输及隐藏页面（2026-10-26）
+
+源码 `433ee8740` 在原鉴权通道上独立协商 capturePngV1，原 readV1/4MiB UTF-8 帧/8 项 pending 和列表/console schema 保持。新 capture-request/chunk/done 按 UUID、64KiB base64 chunk、顺序/计数/总字符检查传递，单 capture slot 与旧读取队列隔离，总 base64 上限 32MiB。只在双方支持时启用；缺块、乱序、超量、断连和超时结算并丢弃晚 ID，不自动重发。原 BrowserManager capture/wake/deadline 15 秒不变，新功能 20 秒界限及其独立 CLI abort 不改变既有查询的超时。
+
+新增受保护严格 browserCaptureV1 查询和实际协商能力，原 browser.screenshot mutation 保留。原 CLI screenshot 只增加明确 --namespace，继续原 --out 文件/无 out base64 输出；metadata 能力不能代替 capture 能力，旧后端在发 RPC 前拒绝。主进程按原窗口/代次/注册表检查调用所属 capture，await 后及每个 chunk 前检查当前身份；过期结果不给新窗口。
+
+首轮本地/拥有 SSH 实窗和传输均工具退出 0，但查看 PNG 发现默认 canvas 透明，深色查看器中黑色文字不可读。RGBA 角点为 [0,0,0,0] 的数字断言退出 1，原图和原两轮完整记录保留，不把传输成功算视觉通过。修复 `171061643` 给 scoped pane 访问器增加可选同步 normalizePng（默认原样），仅新 namespace provider 注入已有 opaqueScreenshot 与 Electron nativeImage；处理后再次检查 registration。原 BrowserManager/白底算法字节及旧 CLI 路径语义保持，随包 CLI 字节和实际剪贴板内容不变。增加处理过程中 registration 变化拒绝的回归，原白底像素测试同时通过。新实窗断言默认页面角点 [255,255,255,255]，不靠提高超时或重试手势通过。
+
+最终桌面 52 项/187 断言/6 文件，后端 34 项/218 断言/4 文件，CLI 25 项/82 断言/2 文件，共享 5 项/15 断言/1 文件通过；四处类型、未声明变量、插件及兼容 AST/字节证明通过。3 项真实自有 Node HTTP/WebSocket 测试含 >4MiB 合成 PNG 前缀 payload 的分块往返（非解码有效的大图），旧读取和未认证 401 仍通过。一个新增单元夹具多包了一层 async，导致读取完成断言早于 Promise adoption；改回直接受控 Promise，未改产品或添加等待，原失败保留。
+
+两次完整产品构建分别工具确认 0，最终 2205 编译文件 manifest SHA256 `bb1e2b55adebc6cd9c16f0166ccb67684c36618321b46e75e0b9cde545b328bd`，75 脚本按消费版本冻结。最终 `local-opaque-171061`、`ssh-opaque-171061` 均工具退出 0，SSH 含 20 次原恢复。每端 11 次原源码 CLI 调用，共 18 成功/4 次预期跨工作区拒绝；实际可见/切终端隐藏/正常重开各导出 PNG，六张均内容可见和白底，剪贴板文本及图片像素 hash 不变，隐藏捕获后仍在终端标签。原 browser 导航/find/popup/选择关闭、HTTP Ctrl+C 及同 PTY/execution/cwd 保持；四轮 app/Xorg 和报告内进程均清理。实际查看十张图，名单及清理检查在 final-verification.json。
+
+CLI 仍为控制机原源码 dev runner，针对本次拥有的同机 namespace，Electron peer 使用本地/SSH 连接；未宣称远端 CLI 安装或随包二进制更新。原随包 SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 保持。没有 Actions/安装包、新供应商认证、外部 SSH 或实体 Mac 验收。完整终端专项仍按八十九/九十六实际范围；CLI open/navigation/eval/import/CDP、rightPane 及其他组继续。[阶段一百零二证据](evidence/local-ssh-feature-parity/stage102)。
