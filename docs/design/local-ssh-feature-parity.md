@@ -248,3 +248,6 @@
 
 
 阶段一百零九以14e851165准备内部持久open，保留原current-tab/show=false及显式show/new-tab意图，默认同hash、接受前pin/接受后执行、容量release、并发去重/改意图冲突/未知不重发。11项新SQLite连同旧核心共37项143断言及host类型/lint通过。无RPC/能力/协议/renderer/CLI、新构建或实窗，不宣称open恢复；原58b产品2205文件/79脚本/CLI哈希保持。继续实际后台运行时和布局选择保护。[阶段一百零九证据](../implementation/evidence/local-ssh-feature-parity/stage109)。
+
+
+阶段一百一十以bd1c64a73准备纯open布局，复用原pane引擎/选择保留：未固定同类替换、固定保留、new-tab、show/background、重入不抢焦点/不回导航及限额。七项新用例连同原核心20项88断言与desktop类型/lint通过，普通数组→非空元组的夹具类型修正保留。无生产调用/RPC/CLI/持久化/runtime或新实窗；只尊重传入runtime的pinned，现有适配器固定状态持久化仍未补。原58b编译2205文件/79脚本/CLI哈希保持。继续真实renderer与后台创建。[阶段一百一十证据](../implementation/evidence/local-ssh-feature-parity/stage110)。

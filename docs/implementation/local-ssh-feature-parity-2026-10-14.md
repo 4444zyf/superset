@@ -1820,3 +1820,10 @@ CLI 仍为控制机原源码 dev runner，针对本次拥有的同机 namespace�
 源码 `14e851165` 仅新增内部 browser-open-operation 与 11 项真实 SQLite 测试。新严格输入保留原 current-tab / show=false 默认值，明确 show=true/new-tab 才记录相应意图；省略与显式默认得到同一 canonical 输入 hash。沿原 journal，同步 pin 返回延迟执行器，接受后执行，容量拒绝也 release。相同 ID 的并发/完成回执只创建一次，换 workspace/URL/target/show 均冲突；换 renderer、回执丢失或维护不重新 pin/重发。新 URL 控制字符检查不改变旧 browser.open/resolveGuestUrl；实际 URL 规范化和后台运行时接入仍在后续阶段。
 
 先记录缺模块的真实失败，实施后和原 eval/navigation/operation 共 37 项、143 断言、4 文件通过，host-service 类型、lint、插件通过。生产差异只有这两份新文件，无 RPC/能力/wire/renderer/CLI 接入，也没有新构建或实窗。本阶段不宣称后台创建已恢复。复核原 58b1082e7 的 2205 编译文件、79 脚本与 CLI 哈希均不变；下一步按原 openBackgroundBrowser 的布局选择保留和后台 runtime 逐项接入，整体继续。[阶段一百零九证据](evidence/local-ssh-feature-parity/stage109)。
+
+
+## 阶段一百一十：沿原 pane 引擎准备 open 布局与后台选择
+
+源码 `bd1c64a73` 仅新增 openWorkstationBrowserState 纯状态工具与七项测试。直接复用原 @superset/panes createWorkspaceStore/openPane/addTab 与原 preserveLocalPaneSelection；current-tab 按原规则先替换未固定同类浏览器，存在 pinned 浏览器则保留并分屏，new-tab 才创建独立标签。show=false 保留仍存在的原 tab/pane 选择，显式 show 才采用新焦点。资源 ID 相同的重入不再次创建/选择，也不把已导航页面改回初始 URL；冲突身份拒绝，资源限额允许同类替换但拒绝新增溢出，输入不修改，传入原 store 快照时不克隆函数成员。
+
+先记录缺模块 red；新用例与原后台打开/pane-adapter/workspace-pane-state 共 20 项、88 断言、4 文件通过，desktop 类型、lint、插件通过。首轮类型检查发现容量夹具的普通数组不符合原 addTab 非空元组类型，用显式首成员修正夹具，未放宽产品类型。生产差异只有两份新文件，无原组件/协议改变、无生产调用方、RPC/CLI/持久化或真实后台 runtime 接入，无新构建/实窗。原 Workstation 模型适配器未保存 pinned 标记；本工具只保证收到的实际 runtime state 中的 pinned 不被覆盖，不能据此宣称固定状态已持久恢复。复核原 58b1082e7 产品 2205 文件、79 MJS 和 CLI 哈希不变。下一步接实际当前 renderer/目标布局保存和后台运行时，整体继续。[阶段一百一十证据](evidence/local-ssh-feature-parity/stage110)。
