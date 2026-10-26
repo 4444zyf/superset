@@ -10,6 +10,7 @@ import SuperJSON from "superjson";
 
 const origin = "http://superset-remix.invalid";
 const readProcedures = new Map([
+	["direct.operationStatus", "durableOperations"],
 	["direct.browserCaptureV1", "workstationBrowserCaptureV1"],
 	["direct.browserReadV1", "workstationBrowserReadBridgeV1"],
 	["settings.agentConfigs.readCatalogV1", "workstationAgentCatalogReadV1"],
@@ -34,6 +35,14 @@ export interface NamespaceDescription {
 }
 
 export async function resolveDirectNamespace(input: string) {
+	return resolveNamespace(input, false);
+}
+
+export async function resolveBrowserNavigationNamespace(input: string) {
+	return resolveNamespace(input, true);
+}
+
+async function resolveNamespace(input: string, allowNavigation: boolean) {
 	const uid = process.getuid?.();
 	if (uid === undefined || uid < 1)
 		throw new Error(
@@ -173,13 +182,35 @@ export async function resolveDirectNamespace(input: string) {
 					const procedures = decodeURIComponent(
 						url.pathname.slice("/trpc/".length),
 					).split(",");
+					const navigation =
+						allowNavigation &&
+						(init?.method ?? "GET") === "POST" &&
+						procedures.length === 1 &&
+						procedures[0] === "direct.browserNavigateV1";
 					if (
 						url.origin !== origin ||
 						!url.pathname.startsWith("/trpc/") ||
-						(init?.method ?? "GET") !== "GET" ||
-						procedures.some((path) => !readProcedures.has(path))
+						(!navigation &&
+							((init?.method ?? "GET") !== "GET" ||
+								procedures.some((path) => !readProcedures.has(path))))
 					)
 						throw new Error("Only read-only namespace procedures are allowed");
+					if (navigation) {
+						if (
+							description.capabilities.durableOperations !== true ||
+							description.capabilities.workstationBrowserNavigationV1 !== true
+						)
+							throw new Error(
+								"This backend does not support the required navigation capability",
+							);
+						const timeout = AbortSignal.timeout(20_000);
+						return request(url.pathname + url.search, {
+							...init,
+							signal: init?.signal
+								? AbortSignal.any([init.signal, timeout])
+								: timeout,
+						} as RequestInit);
+					}
 					if (
 						procedures.some(
 							(path) =>

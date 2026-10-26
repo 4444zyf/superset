@@ -147,7 +147,7 @@ export async function verifyWorkstationBrowserUi(options) {
 	let started = false,
 		terminalTab,
 		browserReadCli,
-		navigationApi;
+		navigationApi, navigationCli;
 	try {
 		await click(`${selector} .xterm-screen`);
 		await getPage().call("Input.insertText", { text: command });
@@ -248,6 +248,12 @@ export async function verifyWorkstationBrowserUi(options) {
 			);
 			save();
 		}
+        if (process.argv.includes("--browser-navigation-cli")) {
+            const {verifyWorkstationBrowserNavigationCliUi} = await import("./verify-workstation-browser-navigation-cli-ui.mjs");
+            navigationCli = await verifyWorkstationBrowserNavigationCliUi(options, {scope,url,marker,readProof,guestRead,readView,workspace,terminalTab});
+            report.navigationCli = navigationCli.report;
+            save();
+        }
 		if (process.argv.includes("--browser-navigation-api")) {
 			const {verifyWorkstationBrowserNavigationApiUi} = await import("./verify-workstation-browser-navigation-api-ui.mjs");
 			navigationApi = await verifyWorkstationBrowserNavigationApiUi(options, {scope, url, marker, readProof, guestRead, readView, workspace, terminalTab});
@@ -646,6 +652,7 @@ export async function verifyWorkstationBrowserUi(options) {
 		}
 		if (browserReadCli) await browserReadCli.afterReopen(`http://localhost:${proof.port}/next?value=%E4%B8%AD%20hello#section`);
 		if (navigationApi) await navigationApi.afterReopen();
+        if (navigationCli) await navigationCli.afterReopen();
 		await screenshot("browser-reopened");
 		save();
 	} finally {

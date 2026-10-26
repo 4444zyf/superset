@@ -1,11 +1,10 @@
-import screenshotBrowser from "../../commands/browser/screenshot/command";
 import { afterEach, expect, test } from "bun:test";
 import {
 	chmodSync,
-	readFileSync,
 	existsSync,
 	mkdirSync,
 	mkdtempSync,
+	readFileSync,
 	rmSync,
 	symlinkSync,
 	unlinkSync,
@@ -14,15 +13,21 @@ import {
 import { createServer, type Server } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseArgv } from "@superset/cli-framework";
+import { camelToKebab, parseArgv } from "@superset/cli-framework";
 import { directBackendSocketPath } from "@superset/shared/direct-backend-socket";
-import readTerminal from "../../commands/terminals/read/command";
-import listBrowser from "../../commands/browser/list/command";
 import browserConsole from "../../commands/browser/console/command";
+import listBrowser from "../../commands/browser/list/command";
+import navigateBrowser from "../../commands/browser/navigate/command";
+import operationStatus from "../../commands/browser/operation-status/command";
+import screenshotBrowser from "../../commands/browser/screenshot/command";
+import readTerminal from "../../commands/terminals/read/command";
 import getWorkspace from "../../commands/workspaces/get/command";
 import { createUnavailableApiClient } from "../api-client";
 import { readFromDirectNamespace } from "./readFromDirectNamespace";
-import { resolveDirectNamespace } from "./resolveDirectNamespace";
+import {
+	resolveBrowserNavigationNamespace,
+	resolveDirectNamespace,
+} from "./resolveDirectNamespace";
 
 const roots: string[] = [],
 	servers: Server[] = [];
@@ -71,7 +76,14 @@ async function fixture() {
 	);
 	write("credentials/host-secret", "a".repeat(64));
 	write("state/endpoint.json", JSON.stringify(endpoint));
-	const requests: Array<{ path: string; authenticated: boolean }> = [];
+	const requests: Array<{
+		path: string;
+		authenticated: boolean;
+		method?: string;
+		body?: unknown;
+	}> = [];
+	let navigationResponse: { status: number; value: unknown } | null = null;
+	let receipt: unknown = null;
 	const workspace = {
 		id: crypto.randomUUID(),
 		name: "Namespace 工作区",
@@ -97,9 +109,10 @@ async function fixture() {
 			workstationTerminalScriptsV1: true,
 		},
 	};
-	const server = createServer((request, response) => {
+	const server = createServer(async (request, response) => {
 		requests.push({
 			path: request.url ?? "",
+			method: request.method,
 			authenticated:
 				request.headers.authorization === `Bearer ${"a".repeat(64)}`,
 		});
@@ -111,6 +124,28 @@ async function fixture() {
 		}
 		if (request.url === "/direct/describe") {
 			response.end(JSON.stringify(description));
+			return;
+		}
+		if (request.url?.startsWith("/trpc/direct.browserNavigateV1?")) {
+			let body = "";
+			for await (const chunk of request) body += chunk;
+			const input = JSON.parse(body)["0"].json;
+			requests.at(-1)!.body = input;
+			receipt = {
+				operationId: input.operationId,
+				procedure: "browser.navigateV1",
+				status: "completed",
+				result: { ok: true },
+			};
+			if (navigationResponse) {
+				response.statusCode = navigationResponse.status;
+				response.end(JSON.stringify(navigationResponse.value));
+			} else
+				response.end(JSON.stringify([{ result: { data: { json: receipt } } }]));
+			return;
+		}
+		if (request.url?.startsWith("/trpc/direct.operationStatus?")) {
+			response.end(JSON.stringify([{ result: { data: { json: receipt } } }]));
 			return;
 		}
 		if (request.url?.startsWith("/trpc/direct.browserCaptureV1?")) {
@@ -200,6 +235,9 @@ async function fixture() {
 		config,
 		endpoint,
 		requests,
+		setNavigationResponse(value: typeof navigationResponse) {
+			navigationResponse = value;
+		},
 		workspace,
 		setWorkspaceRows: (rows: Array<Record<string, unknown>>) => {
 			workspaceRows = rows;
@@ -507,7 +545,9 @@ function runBrowser(
 	command:
 		| typeof listBrowser
 		| typeof browserConsole
-		| typeof screenshotBrowser,
+		| typeof screenshotBrowser
+		| typeof navigateBrowser
+		| typeof operationStatus,
 	options: Record<string, unknown>,
 ) {
 	return command.run({
@@ -661,4 +701,294 @@ test("read metadata capability alone cannot request a screenshot or write a PNG"
 		"/direct/describe",
 	]);
 	expect(existsSync(output)).toBe(false);
+});
+
+const navigationInput = () => ({
+	operationId: crypto.randomUUID(),
+	workspaceId: "owned",
+	paneId: "pane",
+	url: "http://localhost:3000/中文#section",
+});
+
+test("namespace navigate accepts the stable operation flag and preserves original success output", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserNavigationV1: true,
+		} as never,
+	});
+	const input = navigationInput();
+	const configs = Object.fromEntries(
+		Object.entries(navigateBrowser.options!).map(([name, builder]) => [
+			name,
+			{ ...builder._.config, name: camelToKebab(name) },
+		]),
+	);
+	expect(
+		parseArgv(
+			[
+				"bun",
+				"superset",
+				"--namespace",
+				f.homeDir,
+				"--operation-id",
+				input.operationId,
+				"--workspace",
+				"owned",
+				"--pane",
+				"pane",
+				"--url",
+				input.url,
+			],
+			configs,
+		).options,
+	).toMatchObject({ operationId: input.operationId, namespace: f.homeDir });
+	expect(
+		await runBrowser(navigateBrowser, {
+			namespace: f.homeDir,
+			operationId: input.operationId,
+			url: input.url,
+		}),
+	).toEqual({ data: { ok: true }, message: "Navigated pane" });
+	expect(f.requests).toHaveLength(2);
+	expect(f.requests[1]).toMatchObject({
+		method: "POST",
+		authenticated: true,
+		body: input,
+	});
+	expect(new URL(f.requests[1]!.path, "http://fixture.invalid").pathname).toBe(
+		"/trpc/direct.browserNavigateV1",
+	);
+});
+
+test("only the navigation resolver can send one versioned navigation mutation", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserNavigationV1: true,
+		} as never,
+	});
+	const read = await resolveDirectNamespace(f.homeDir);
+	await expect(
+		read.client.direct.browserNavigateV1.mutate(navigationInput()),
+	).rejects.toThrow("read-only");
+	const write = await resolveBrowserNavigationNamespace(f.homeDir);
+	await expect(write.client.project.update.mutate({} as never)).rejects.toThrow(
+		"read-only",
+	);
+	await expect(write.client.direct.execute.mutate({} as never)).rejects.toThrow(
+		"read-only",
+	);
+	await expect(
+		Promise.all([
+			write.client.direct.browserNavigateV1.mutate(navigationInput()),
+			write.client.direct.browserNavigateV1.mutate(navigationInput()),
+		]),
+	).rejects.toThrow("read-only");
+	expect(f.requests.every((r) => r.path === "/direct/describe")).toBe(true);
+});
+
+test("navigation requires both durable operations and the ready navigation capability", async () => {
+	const f = await fixture();
+	for (const capabilities of [
+		{},
+		{ durableOperations: true },
+		{ workstationBrowserNavigationV1: true },
+		{ workstationBrowserReadBridgeV1: true, durableOperations: true },
+	]) {
+		f.setDescription({ capabilities: capabilities as never });
+		await expect(
+			runBrowser(navigateBrowser, {
+				namespace: f.homeDir,
+				operationId: crypto.randomUUID(),
+				url: "http://localhost:3000",
+			}),
+		).rejects.toThrow("capability");
+	}
+	expect(f.requests).toHaveLength(4);
+	expect(f.requests.every((r) => r.path === "/direct/describe")).toBe(true);
+});
+
+test("navigation validates explicit target and operation flags before reading credentials", async () => {
+	const f = await fixture();
+	await expect(
+		runBrowser(navigateBrowser, {
+			namespace: f.homeDir,
+			url: "https://example.com",
+		}),
+	).rejects.toThrow("requires --operation-id");
+	await expect(
+		runBrowser(navigateBrowser, {
+			operationId: crypto.randomUUID(),
+			url: "https://example.com",
+		}),
+	).rejects.toThrow("requires --namespace");
+	await expect(
+		runBrowser(navigateBrowser, {
+			namespace: f.homeDir,
+			host: "other",
+			operationId: crypto.randomUUID(),
+			url: "https://example.com",
+		}),
+	).rejects.toThrow("either --namespace or --host");
+	await expect(
+		runBrowser(navigateBrowser, {
+			namespace: f.homeDir,
+			operationId: "not-a-uuid",
+			url: "https://example.com",
+		}),
+	).rejects.toThrow();
+	await expect(
+		runBrowser(navigateBrowser, { url: "https://example.com" }),
+	).rejects.toThrow("No active organization");
+	expect(f.requests).toEqual([]);
+});
+
+test("a navigation conflict retains its operation ID for inspection and is never retried", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserNavigationV1: true,
+		} as never,
+	});
+	f.setNavigationResponse({
+		status: 409,
+		value: [
+			{
+				error: {
+					json: {
+						message: "Operation ID was used with different input",
+						code: -32009,
+						data: {
+							code: "CONFLICT",
+							httpStatus: 409,
+							path: "direct.browserNavigateV1",
+						},
+					},
+				},
+			},
+		],
+	});
+	const input = navigationInput();
+	try {
+		await runBrowser(navigateBrowser, {
+			namespace: f.homeDir,
+			operationId: input.operationId,
+			url: input.url,
+		});
+		throw new Error("expected rejection");
+	} catch (error) {
+		expect((error as Error).message).toContain("different input");
+		expect((error as { suggestion?: string }).suggestion).toContain(
+			input.operationId,
+		);
+		expect((error as { suggestion?: string }).suggestion).toContain(
+			"operation-status",
+		);
+	}
+	expect(f.requests).toHaveLength(2);
+});
+
+test("operation status remains a durable guarded GET when the desktop navigation peer is unavailable", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserNavigationV1: true,
+		} as never,
+	});
+	const input = navigationInput();
+	await runBrowser(navigateBrowser, {
+		namespace: f.homeDir,
+		operationId: input.operationId,
+		url: input.url,
+	});
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserNavigationV1: false,
+		} as never,
+	});
+	const result = await runBrowser(operationStatus, {
+		namespace: f.homeDir,
+		operationId: input.operationId,
+	});
+	expect(result).toEqual({
+		data: {
+			operationId: input.operationId,
+			procedure: "browser.navigateV1",
+			status: "completed",
+			result: { ok: true },
+		},
+		message: `${input.operationId}\tbrowser.navigateV1\tcompleted`,
+	});
+	expect(f.requests.at(-1)).toMatchObject({
+		method: "GET",
+		authenticated: true,
+	});
+	expect(
+		new URL(f.requests.at(-1)!.path, "http://fixture.invalid").pathname,
+	).toBe("/trpc/direct.operationStatus");
+	f.setDescription({ capabilities: {} as never });
+	await expect(
+		runBrowser(operationStatus, {
+			namespace: f.homeDir,
+			operationId: input.operationId,
+		}),
+	).rejects.toThrow("capability");
+	expect(f.requests.at(-1)!.path).toBe("/direct/describe");
+});
+
+test("missing operation status returns an explicit null without issuing a navigation", async () => {
+	const f = await fixture();
+	f.setDescription({ capabilities: { durableOperations: true } as never });
+	expect(
+		await runBrowser(operationStatus, {
+			namespace: f.homeDir,
+			operationId: crypto.randomUUID(),
+		}),
+	).toEqual({ data: null, message: "Operation not found" });
+	expect(f.requests).toHaveLength(2);
+	expect(f.requests.every((r) => r.method === "GET")).toBe(true);
+});
+
+test("accepted, failed and unresolved receipts never report navigation success or trigger a retry", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserNavigationV1: true,
+		} as never,
+	});
+	for (const status of ["accepted", "failed", "unresolved"]) {
+		const input = navigationInput();
+		f.setNavigationResponse({
+			status: 200,
+			value: [
+				{
+					result: {
+						data: {
+							json: {
+								operationId: input.operationId,
+								procedure: "browser.navigateV1",
+								status,
+							},
+						},
+					},
+				},
+			],
+		});
+		await expect(
+			runBrowser(navigateBrowser, {
+				namespace: f.homeDir,
+				operationId: input.operationId,
+				url: input.url,
+			}),
+		).rejects.toThrow(`Navigation receipt: ${status}`);
+	}
+	expect(f.requests).toHaveLength(6);
+	expect(f.requests.filter((r) => r.method === "POST")).toHaveLength(3);
 });
