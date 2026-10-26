@@ -78,6 +78,7 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 	const saveDiagnostic = async () => {
 		if (!diagnostic) return;
 		const state = await evaluate("({trace:window.__ownedDesignTrace,toasts:[...document.querySelectorAll('[data-sonner-toast]')].map(e=>e.textContent),focus:document.activeElement?.tagName})");
+		state.guest = await guestRead("window.__ownedDesignPointerTrace");
 		writeFileSync(join(output, "browser-design-diagnostic.json"), JSON.stringify(state, null, 2) + "\n");
 	};
 	const report = {
@@ -102,6 +103,7 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 			await getPage().call("Input.dispatchMouseEvent", { type, ...p, button: type === "mouseMoved" ? "none" : "left", clickCount: 1 });
 	};
 	const capture = async (selector = "h1") => {
+		if (diagnostic) await guestRead("(()=>{if(window.__ownedDesignPointerTrace)return;const rows=window.__ownedDesignPointerTrace=[];for(const type of ['mousemove','mousedown','click'])window.addEventListener(type,e=>{const row={type,x:e.clientX,y:e.clientY,target:e.target?.id,current:window.__supersetDesignMode?.getCurrentElement()?.tagName,at:performance.now()};if(rows.length<128)rows.push(row);if(type==='mousemove')requestAnimationFrame(()=>{row.afterFrame=window.__supersetDesignMode?.getCurrentElement()?.tagName;});},true);})()");
 		await click(button);
 		await until(() => evaluate(`document.querySelector(${JSON.stringify(button)})?.getAttribute('aria-pressed')==='true'`), "picker selecting");
 		await guestClick(selector);
