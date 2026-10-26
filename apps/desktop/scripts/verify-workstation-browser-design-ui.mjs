@@ -367,11 +367,18 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 		await until(
 			() =>
 				evaluate(
-					`Boolean(document.querySelector('[cmdk-item][data-value="new:${configId}"]'))`,
+					`(()=>{const rows=[...document.querySelectorAll('[cmdk-item]')].filter(e=>e.getClientRects().length);return document.querySelector('input[aria-label="Choose agent"]')?.value===${JSON.stringify(label)}&&rows.length===1&&rows[0].getAttribute('data-value')==='new:${configId}';})()`,
 				),
 			"owned agent config in original picker",
 		);
 		await click(`[cmdk-item][data-value="new:${configId}"]`);
+		await until(
+			() =>
+				evaluate(
+					`localStorage.getItem('lastSelectedDiffCommentNewAgentConfigId')==='${configId}'&&document.querySelector('button[aria-label="Choose agent"]')?.textContent.includes(${JSON.stringify(label)})`,
+				),
+			"the actual picker selected the owned config before any launch",
+		);
 		await click(form);
 		const comment = "把这个标题改成蓝色 🙂";
 		await getPage().call("Input.insertText", { text: comment });
@@ -456,12 +463,19 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 		await until(
 			() =>
 				evaluate(
-					`Boolean(document.querySelector('[cmdk-item][data-value="existing:${report.newAgent.terminalId}"]'))`,
+					`(()=>{const rows=[...document.querySelectorAll('[cmdk-item]')].filter(e=>e.getClientRects().length);return document.querySelector('input[aria-label="Choose agent"]')?.value==='${report.newAgent.terminalId}'&&rows.length===1&&rows[0].getAttribute('data-value')==='existing:${report.newAgent.terminalId}';})()`,
 				),
 			"owned running agent is listed by its terminal identity",
 		);
 		await click(
 			`[cmdk-item][data-value="existing:${report.newAgent.terminalId}"]`,
+		);
+		await until(
+			() =>
+				evaluate(
+					`localStorage.getItem('lastSelectedDiffCommentTerminalId')==='${report.newAgent.terminalId}'&&document.querySelector('button[aria-label="Choose agent"]')?.getAttribute('data-state')==='closed'`,
+				),
+			"the actual picker selected the owned terminal before any send",
 		);
 		await click(form);
 		const followup = "仅修改选中的链接，保留其他元素。";
