@@ -1,0 +1,30 @@
+import ts from '/workspace/superset/apps/desktop/node_modules/@typescript/typescript6/lib/typescript.js';
+import {readFileSync,writeFileSync} from 'node:fs';import {execFileSync} from 'node:child_process';import {createHash} from 'node:crypto';import assert from 'node:assert/strict';
+const root='/workspace/superset/',base='87759151a',parse=s=>ts.createSourceFile('code.tsx',s,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),old=p=>execFileSync('git',['show',base+':'+p],{cwd:root,encoding:'utf8'}),cur=p=>readFileSync(root+p,'utf8');
+function find(t,p){let r;function visit(n){if(p(n))r=n;ts.forEachChild(n,visit);}visit(t);assert.ok(r);return r;}
+function shape(n){const ch=[];ts.forEachChild(n,c=>ch.push(shape(c)));return[n.kind,ts.isIdentifier(n)||ts.isLiteralExpression(n)?n.text:null,ch];}
+const router='apps/desktop/src/lib/trpc/routers/browser/browser.ts',helper='apps/desktop/src/main/lib/browser/browser-site-cookies.ts',property=(t,key)=>find(t,n=>ts.isPropertyAssignment(n)&&n.name.getText()===key),oldTree=parse(old(router)),newTree=parse(cur(router)),core=parse(cur(helper));
+const oldGet=property(oldTree,'getCookieDomains').initializer.arguments[0].body,newGet=property(core,'getDomains').initializer.body;
+const fetch=find(oldGet,n=>ts.isAwaitExpression(n));let expected=oldGet.getText().replace(fetch.expression.getText(),'getCookies().get({})');assert.deepEqual(shape(parse(expected)),shape(parse(newGet.getText())));
+const oldForget=property(oldTree,'clearCookiesForDomain').initializer.arguments[0].body,newForget=property(core,'forget').initializer.body;
+const ses=find(oldForget,n=>ts.isVariableStatement(n)&&n.declarationList.declarations.some(d=>d.name.getText()==='ses'));expected=oldForget.getText().replace(ses.getText(),'const cookieStore = getCookies();').replaceAll('ses.cookies','cookieStore').replace('const domain =','const cookieDomain =').replace('${domain}','${cookieDomain}').replaceAll('input.domain','domain');assert.deepEqual(shape(parse(expected)),shape(parse(newForget.getText())));
+for(const key of ['getCookieDomains','clearCookiesForDomain']){const a=property(oldTree,key).initializer,b=property(newTree,key).initializer;assert.equal(a.expression.name.getText(),b.expression.name.getText());assert.deepEqual(shape(a.expression.expression),shape(b.expression.expression));}
+const allProps=t=>find(t,n=>ts.isCallExpression(n)&&n.expression.getText()==='router').arguments[0].properties,unchangedProcedures=[];for(const a of allProps(oldTree)){const key=a.name.getText();if(['getCookieDomains','clearCookiesForDomain'].includes(key))continue;const b=allProps(newTree).find(p=>p.name.getText()===key);assert.deepEqual(shape(a),shape(b));unchangedProcedures.push(key);}
+assert.ok(cur(router).includes('createBrowserSiteCookies(')&&cur(router).includes('session.fromPartition("persist:superset").cookies'));
+const ui='apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/SignedInSitesSubmenu/SignedInSitesSubmenu.tsx',view=ui.replace('/SignedInSitesSubmenu.tsx','/components/SignedInSitesSubmenuView/SignedInSitesSubmenuView.tsx');
+function uiShape(n){
+ if(ts.isJsxAttribute(n)&&['onOpenChange','onKeyDown'].includes(n.name.getText()))return 'controlled-ui-handler';
+ if(ts.isJsxAttribute(n)&&['open','disabled','ref'].includes(n.name.getText()))return null;
+ if(ts.isConditionalExpression(n)&&n.condition.getText()==='failedSource === source')return uiShape(n.whenFalse);
+ if(ts.isJsxText(n)){const v=n.text.replace(/\s+/g,' ').trim();return v?['text',v]:null;}
+ if(ts.isJsxExpression(n)&&!n.expression)return null;
+ const ch=[];ts.forEachChild(n,c=>{const v=uiShape(c);if(v)ch.push(v);});return[n.kind,ts.isIdentifier(n)||ts.isLiteralExpression(n)?n.text:null,ch];
+}
+const jsx=t=>find(t,n=>ts.isReturnStatement(n)&&n.expression&&ts.isParenthesizedExpression(n.expression)&&ts.isJsxElement(n.expression.expression));assert.deepEqual(uiShape(jsx(parse(old(ui)))),uiShape(jsx(parse(cur(view)))));
+for(const text of ['electronTrpcClient.browser.getCookieDomains.query()','electronTrpcClient.browser.clearCookiesForDomain.mutate(input)'])assert.ok(cur(ui).includes(text));
+const unchanged={};for(const p of ['apps/desktop/src/shared/browser-import.ts','apps/desktop/src/main/lib/browser/browser-import-service.ts','apps/desktop/src/main/lib/browser/browser-history-repository.ts','apps/desktop/src/lib/trpc/routers/browser-history/index.ts']){assert.equal(cur(p),old(p));unchanged[p]=createHash('sha256').update(cur(p)).digest('hex');}
+const main='apps/desktop/src/main/direct-app.ts',handler=t=>find(t,n=>ts.isCallExpression(n)&&n.expression.getText()==='ipcMain.handle'&&n.arguments[0]?.getText()==='DIRECT_CHANNEL').arguments[1].body;
+const beforeHandler=handler(parse(old(main))),afterHandler=handler(parse(cur(main))),switchOf=t=>find(t,n=>ts.isSwitchStatement(n)&&n.expression.getText()==='action');
+const aPrefix=beforeHandler.statements.filter(n=>!ts.isSwitchStatement(n)),bPrefix=afterHandler.statements.filter(n=>!ts.isSwitchStatement(n));assert.deepEqual(aPrefix.map(shape),bPrefix.map(shape));
+const existingMainActions=[];for(const a of switchOf(beforeHandler).caseBlock.clauses){const id=ts.isCaseClause(a)?a.expression.getText():'default',b=switchOf(afterHandler).caseBlock.clauses.find(n=>(ts.isCaseClause(n)?n.expression.getText():'default')===id);assert.ok(b);assert.deepEqual(shape(a),shape(b));existingMainActions.push(id);}
+writeFileSync('/workspace/scratch/parity-91/extraction-proof.json',JSON.stringify({base,originalCookieAggregationSortAndForgetBodiesPreserved:true,originalSessionPartitionAndReleasedSchemasQueryMutationTypesPreserved:true,allOtherBrowserProceduresUnchanged:unchangedProcedures,originalSubmenuJsxPreservedExceptControlledOpenBusyDisabledKeyboardFocusAndVisibleReadFailure:true,originalLegacyWrapperRpcPreserved:true,existingMainActionsUnchanged:existingMainActions,primaryMainFrameGuardUnchanged:true,unchanged},null,2)+'\n');console.log('Original cookie bodies, session partition, released schemas, all other browser procedures and submenu JSX preserved within stated additions');
