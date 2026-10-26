@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { request } from "node:http";
 import { after, before, test } from "node:test";
 import { serve, type ServerType } from "@hono/node-server";
@@ -206,6 +206,108 @@ test(
 			assert.deepEqual(
 				{ ...requests[0]!, id: "request" },
 				{ type: "navigate-request", id: "request", ...input },
+			);
+			pinned.release?.();
+		} finally {
+			const closed = new Promise<void>((resolve) =>
+				socket.addEventListener("close", () => resolve(), { once: true }),
+			);
+			socket.close();
+			await closed;
+		}
+	},
+);
+test(
+	"negotiated open crosses the authenticated socket only after its pin executes",
+	{ timeout: 5000 },
+	async () => {
+		const socket = new WebSocket(
+			`ws://127.0.0.1:${port}/direct/browser-read/v1?token=${secret}`,
+		);
+		clients.add(socket);
+		const ready = Promise.withResolvers<void>();
+		const scopeId = randomUUID();
+		const requests: Extract<BrowserBridgePacket, { type: "open-request" }>[] =
+			[];
+		socket.addEventListener("open", () =>
+			socket.send(
+				encodeBrowserBridgePacket({
+					type: "hello",
+					protocol: 1,
+					...identity,
+					features: ["readV1", "openV1"],
+				}),
+			),
+		);
+		socket.addEventListener("error", () =>
+			ready.reject(Error("Owned open socket failed")),
+		);
+		socket.addEventListener("message", (event) => {
+			const packet = parseBrowserBridgePacket(String(event.data));
+			if (packet.type === "ready") {
+				socket.send(
+					encodeBrowserBridgePacket({
+						type: "open-availability",
+						scopeId,
+						ready: true,
+						accepting: true,
+					}),
+				);
+				ready.resolve();
+				return;
+			}
+			if (packet.type === "request") {
+				socket.send(
+					encodeBrowserBridgePacket({
+						type: "result",
+						id: packet.id,
+						ok: true,
+						value: { panes: [] },
+					}),
+				);
+				return;
+			}
+			if (packet.type === "open-request") {
+				requests.push(packet);
+				socket.send(
+					encodeBrowserBridgePacket({
+						type: "open-result",
+						id: packet.id,
+						scopeId: packet.scopeId,
+						ok: true,
+						result: {
+							paneId: "created-pane",
+							url: "http://localhost:3000/中文",
+							title: "",
+						},
+					}),
+				);
+			}
+		});
+		try {
+			await ready.promise;
+			assert.deepEqual(await bridge.listPanes("owned-workspace"), {
+				panes: [],
+			});
+			const input = {
+				workspaceId: "owned-workspace",
+				projectId: null,
+				workspaceName: "Owned",
+				target: "current-tab" as const,
+				show: false,
+				url: "http://localhost:3000/中文",
+			};
+			const pinned = bridge.pinOpen(input);
+			assert.equal(requests.length, 0);
+			assert.deepEqual(await pinned(), {
+				paneId: "created-pane",
+				url: "http://localhost:3000/中文",
+				title: "",
+			});
+			assert.equal(requests.length, 1);
+			assert.deepEqual(
+				{ ...requests[0]!, id: "request" },
+				{ type: "open-request", id: "request", scopeId, ...input },
 			);
 			pinned.release?.();
 		} finally {

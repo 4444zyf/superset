@@ -94,6 +94,45 @@ const evaluateResultSchema = z.discriminatedUnion("ok", [
 		error: z.object({ message: z.string().max(4096) }),
 	}),
 ]);
+export const browserBridgeOpenRequestSchema = z.strictObject({
+	type: z.literal("open-request"),
+	id: z.string().uuid(),
+	scopeId: z.string().uuid(),
+	workspaceId,
+	url: browserBridgeNavigateRequestSchema.shape.url,
+	target: z.enum(["current-tab", "new-tab"]),
+	show: z.boolean(),
+	projectId: z.string().min(1).max(256).nullable(),
+	workspaceName: z.string().max(4096),
+});
+const openAvailabilitySchema = z
+	.strictObject({
+		type: z.literal("open-availability"),
+		scopeId: z.string().uuid(),
+		ready: z.boolean(),
+		accepting: z.boolean(),
+	})
+	.refine((value) => !value.accepting || value.ready);
+const openResultSchema = z.discriminatedUnion("ok", [
+	z.strictObject({
+		type: z.literal("open-result"),
+		id: z.string().uuid(),
+		scopeId: z.string().uuid(),
+		ok: z.literal(true),
+		result: z.strictObject({
+			paneId: z.string().min(1).max(128),
+			url: browserBridgeNavigateRequestSchema.shape.url,
+			title: z.string().max(4096),
+		}),
+	}),
+	z.strictObject({
+		type: z.literal("open-result"),
+		id: z.string().uuid(),
+		scopeId: z.string().uuid(),
+		ok: z.literal(false),
+		error: z.object({ message: z.string().max(4096) }),
+	}),
+]);
 const navigateResultSchema = z.discriminatedUnion("ok", [
 	z.object({
 		type: z.literal("navigate-result"),
@@ -168,6 +207,9 @@ export const browserBridgePacketSchema = z.union([
 	navigateResultSchema,
 	browserBridgeEvaluateRequestSchema,
 	evaluateResultSchema,
+	browserBridgeOpenRequestSchema,
+	openAvailabilitySchema,
+	openResultSchema,
 ]);
 
 export function validateBrowserCaptureBase64(base64: string): void {

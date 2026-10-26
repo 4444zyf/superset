@@ -1,3 +1,5 @@
+import { runDirectBrowserOpen } from "../../../direct/browser-open-rpc";
+import { browserOpenOperationSchema } from "../../../direct/browser-open-operation";
 import os from "node:os";
 import {
 	browserBridgeCaptureRequestSchema,
@@ -37,7 +39,10 @@ export function describeDirectBackend(
 		Partial<
 			Pick<
 				DirectBrowserReadBridge,
-				"isCaptureReady" | "isNavigationReady" | "isEvaluationReady"
+				| "isCaptureReady"
+				| "isNavigationReady"
+				| "isEvaluationReady"
+				| "isOpenReady"
 			>
 		>,
 ) {
@@ -56,6 +61,8 @@ export function describeDirectBackend(
 		cloudAccountRequired: false,
 		chatHarnesses: directChatHarnesses(),
 		capabilities: {
+			workstationBrowserOpenV1:
+				durableOperations && browserReads?.isOpenReady?.() === true,
 			workstationBrowserEvaluationV1:
 				durableOperations && browserReads?.isEvaluationReady?.() === true,
 			workstationBrowserNavigationV1:
@@ -307,6 +314,9 @@ export const directRouter = router({
 				});
 			}
 		}),
+	browserOpenV1: protectedProcedure
+		.input(browserOpenOperationSchema)
+		.mutation(({ ctx, input }) => runDirectBrowserOpen(ctx, input)),
 	browserEvaluateV1: protectedProcedure
 		.input(browserEvaluationOperationSchema)
 		.mutation(({ ctx, input }) => runDirectBrowserEvaluation(ctx, input)),

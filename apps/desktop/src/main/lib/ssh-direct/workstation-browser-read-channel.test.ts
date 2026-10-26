@@ -19,7 +19,7 @@ class Socket extends EventTarget {
 		);
 	}
 }
-function fixture(navigationV1 = false, evaluationV1 = false) {
+function fixture(navigationV1 = false, evaluationV1 = false, openV1 = false) {
 	let target: BrowserReadTarget | null = {
 		ownerId: 10,
 		ownerEpoch: 1,
@@ -37,9 +37,30 @@ function fixture(navigationV1 = false, evaluationV1 = false) {
 	let capture = () => Promise.resolve("iVBORw0KGgo=");
 	const navigation = Promise.withResolvers<{ ok: true }>();
 	const evaluation = Promise.withResolvers<{ result: unknown }>();
+	let openReleases = 0;
+	const open = Promise.withResolvers<{
+		paneId: string;
+		url: string;
+		title: string;
+	}>();
+	let openStatus = {
+		scopeId: crypto.randomUUID(),
+		ready: true,
+		accepting: true,
+	};
 	const channels = new WorkstationBrowserReadChannels({
 		navigationV1,
 		evaluationV1,
+		openV1,
+		openAvailability: () => openStatus,
+		pinOpen: (captured, request, current) => {
+			reads.push(["open", captured, request, current()]);
+			return Object.assign(() => open.promise, {
+				release: () => {
+					openReleases++;
+				},
+			});
+		},
 		getTarget: () => target,
 		openSocket: (id, path) => {
 			expect([id, path]).toEqual(["connection", "/direct/browser-read/v1"]);
@@ -108,6 +129,12 @@ function fixture(navigationV1 = false, evaluationV1 = false) {
 		channels,
 		navigation,
 		evaluation,
+		open,
+		openReleases: () => openReleases,
+		openStatus: () => openStatus,
+		setOpenStatus: (value: typeof openStatus) => {
+			openStatus = value;
+		},
 		sockets,
 		reads,
 		ready,
@@ -434,4 +461,140 @@ test("a backend cannot evaluate when the desktop did not advertise evaluation su
 	});
 	expect(f.reads).toEqual([]);
 	expect(f.sockets[0]!.closes).toEqual([1008]);
+});
+
+test("open availability is published only after openV1 is negotiated", () => {
+	const f = fixture(false, false, true);
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "openV1"]);
+	expect(f.sockets[0]!.sent[0]?.features).toEqual([
+		"readV1",
+		"capturePngV1",
+		"openV1",
+	]);
+	expect(f.sockets[0]!.sent[1]).toEqual({
+		type: "open-availability",
+		...f.openStatus(),
+	});
+	f.setOpenStatus({ ...f.openStatus(), accepting: false });
+	f.channels.publishOpenAvailability();
+	expect(f.sockets[0]!.sent.at(-1)).toEqual({
+		type: "open-availability",
+		...f.openStatus(),
+	});
+	const old = fixture();
+	old.channels.sync("connection");
+	old.ready(old.sockets[0], ["readV1", "openV1"]);
+	old.channels.publishOpenAvailability();
+	expect(old.sockets[0]!.sent).toHaveLength(1);
+});
+
+test("an open result carries its original view scope while busy availability changes", async () => {
+	const f = fixture(false, false, true);
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "openV1"]);
+	const request = {
+		type: "open-request",
+		id: crypto.randomUUID(),
+		scopeId: f.openStatus().scopeId,
+		workspaceId: "workspace",
+		projectId: null,
+		workspaceName: "Owned",
+		url: "http://localhost:3000",
+		target: "current-tab",
+		show: false,
+	};
+	f.sockets[0]!.packet(request);
+	expect(f.reads).toEqual([["open", f.target(), request, true]]);
+	f.setOpenStatus({ ...f.openStatus(), accepting: false });
+	f.channels.publishOpenAvailability();
+	const result = { paneId: "created", url: request.url, title: "" };
+	f.open.resolve(result);
+	await f.open.promise;
+	expect(f.sockets[0]!.sent.at(-1)).toEqual({
+		type: "open-result",
+		id: request.id,
+		scopeId: request.scopeId,
+		ok: true,
+		result,
+	});
+});
+
+test("an old view scope is rejected before renderer dispatch without closing the read channel", async () => {
+	const f = fixture(false, false, true);
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "openV1"]);
+	const request = {
+		type: "open-request",
+		id: crypto.randomUUID(),
+		scopeId: crypto.randomUUID(),
+		workspaceId: "workspace",
+		projectId: null,
+		workspaceName: "Owned",
+		url: "http://localhost:3000",
+		target: "new-tab",
+		show: false,
+	};
+	f.sockets[0]!.packet(request);
+	expect(f.reads).toEqual([]);
+	expect(f.sockets[0]!.sent.at(-1)).toMatchObject({
+		type: "open-result",
+		id: request.id,
+		scopeId: request.scopeId,
+		ok: false,
+	});
+	expect(f.sockets[0]!.closes).toEqual([]);
+});
+
+test("a scope change while the renderer is running cannot acknowledge the old open", async () => {
+	const f = fixture(false, false, true);
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "openV1"]);
+	const request = {
+		type: "open-request",
+		id: crypto.randomUUID(),
+		scopeId: f.openStatus().scopeId,
+		workspaceId: "workspace",
+		projectId: null,
+		workspaceName: "Owned",
+		url: "http://localhost:3000",
+		target: "current-tab",
+		show: false,
+	};
+	f.sockets[0]!.packet(request);
+	f.setOpenStatus({ ...f.openStatus(), scopeId: crypto.randomUUID() });
+	f.channels.publishOpenAvailability();
+	f.open.resolve({ paneId: "old", url: request.url, title: "" });
+	await f.open.promise;
+	expect(f.sockets[0]!.sent.at(-1)).toMatchObject({
+		type: "open-result",
+		id: request.id,
+		scopeId: request.scopeId,
+		ok: false,
+	});
+	expect(f.sockets[0]!.closes).toEqual([]);
+});
+
+test("closing a read channel releases its deferred renderer open exactly once", async () => {
+	const f = fixture(false, false, true);
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "openV1"]);
+	const request = {
+		type: "open-request",
+		id: crypto.randomUUID(),
+		scopeId: f.openStatus().scopeId,
+		workspaceId: "workspace",
+		projectId: null,
+		workspaceName: "Owned",
+		url: "http://localhost:3000",
+		target: "current-tab",
+		show: false,
+	};
+	f.sockets[0]!.packet(request);
+	f.channels.closeAll();
+	expect(f.openReleases()).toBe(1);
+	f.open.resolve({ paneId: "old", url: request.url, title: "" });
+	await f.open.promise;
+	expect(f.openReleases()).toBe(1);
+	expect(f.sockets[0]!.sent.some((p) => p.type === "open-result")).toBe(false);
 });

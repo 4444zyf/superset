@@ -5,10 +5,16 @@ import {
 	parseBrowserBridgePacket,
 	browserCapturePackets,
 	type BrowserBridgeReadOperation,
+	type BrowserBridgePacket,
 } from "@superset/shared/browser-bridge";
 import type { DirectDescriptor } from "../../../shared/direct-workstation";
 import type { currentWorkstationBrowserBridgePanes } from "./workstation-browser-bridge-panes";
 
+type OpenRequest = Extract<BrowserBridgePacket, { type: "open-request" }>;
+type OpenResult = Extract<
+	BrowserBridgePacket,
+	{ type: "open-result"; ok: true }
+>["result"];
 export interface BrowserReadTarget {
 	ownerId: number;
 	ownerEpoch: number;
@@ -24,6 +30,9 @@ interface Entry {
 	navigationReady: boolean;
 	evaluationReady: boolean;
 	evaluationId: string | null;
+	openNegotiated: boolean;
+	openId: string | null;
+	openRelease: (() => void) | null;
 	navigationId: string | null;
 	closing: boolean;
 	next: BrowserReadTarget | null;
@@ -47,6 +56,17 @@ export class WorkstationBrowserReadChannels {
 		private readonly dependencies: {
 			navigationV1?: boolean;
 			evaluationV1?: boolean;
+			openV1?: boolean;
+			openAvailability?(target: BrowserReadTarget): {
+				scopeId: string;
+				ready: boolean;
+				accepting: boolean;
+			};
+			pinOpen?(
+				target: BrowserReadTarget,
+				request: OpenRequest,
+				current: () => boolean,
+			): (() => Promise<OpenResult>) & { release?(): void };
 			getTarget(id: string): BrowserReadTarget | null;
 			openSocket(id: string, path: string): Socket;
 			panes(
@@ -64,6 +84,31 @@ export class WorkstationBrowserReadChannels {
 				>;
 		},
 	) {}
+	private supportsOpen(): boolean {
+		return (
+			this.dependencies.openV1 === true &&
+			!!this.dependencies.openAvailability &&
+			!!this.dependencies.pinOpen
+		);
+	}
+	publishOpenAvailability(): void {
+		for (const entry of this.entries.values()) {
+			try {
+				this.sendOpenAvailability(entry);
+			} catch {
+				this.close(entry, 1011);
+			}
+		}
+	}
+	private sendOpenAvailability(entry: Entry): void {
+		if (!entry.ready || !entry.openNegotiated || !this.current(entry)) return;
+		const availability = this.dependencies.openAvailability?.(entry.target);
+		if (!availability) throw Error("Browser open availability is missing");
+		if (!this.current(entry)) return;
+		entry.socket.send(
+			encodeBrowserBridgePacket({ type: "open-availability", ...availability }),
+		);
+	}
 	private target(id: string): BrowserReadTarget | null {
 		try {
 			const target = this.dependencies.getTarget(id);
@@ -89,9 +134,17 @@ export class WorkstationBrowserReadChannels {
 			this.close(entry);
 		}
 	}
+	private releaseOpen(entry: Entry): void {
+		const release = entry.openRelease;
+		entry.openRelease = null;
+		try {
+			release?.();
+		} catch {}
+	}
 	private close(entry: Entry, code = 1000): void {
 		if (entry.closing) return;
 		entry.closing = true;
+		this.releaseOpen(entry);
 		try {
 			entry.socket.close(code, "Browser read channel closed");
 		} catch {}
@@ -122,6 +175,9 @@ export class WorkstationBrowserReadChannels {
 			navigationReady: false,
 			evaluationReady: false,
 			evaluationId: null,
+			openNegotiated: false,
+			openId: null,
+			openRelease: null,
 			navigationId: null,
 			closing: false,
 			next: null,
@@ -129,6 +185,7 @@ export class WorkstationBrowserReadChannels {
 		};
 		this.entries.set(id, entry);
 		socket.addEventListener("close", () => {
+			this.releaseOpen(entry);
 			if (this.entries.get(id) !== entry) return;
 			this.entries.delete(id);
 			const next = entry.next,
@@ -158,6 +215,7 @@ export class WorkstationBrowserReadChannels {
 							"capturePngV1",
 							...(this.dependencies.navigationV1 ? ["navigateV1"] : []),
 							...(this.dependencies.evaluationV1 ? ["evaluateV1"] : []),
+							...(this.supportsOpen() ? ["openV1"] : []),
 						],
 					}),
 				);
@@ -183,6 +241,8 @@ export class WorkstationBrowserReadChannels {
 					)
 						throw Error("Invalid ready");
 					entry.ready = true;
+					entry.openNegotiated =
+						this.supportsOpen() && packet.features.includes("openV1");
 					entry.captureReady = packet.features.includes("capturePngV1");
 					entry.evaluationReady =
 						this.dependencies.evaluationV1 === true &&
@@ -190,6 +250,16 @@ export class WorkstationBrowserReadChannels {
 					entry.navigationReady =
 						this.dependencies.navigationV1 === true &&
 						packet.features.includes("navigateV1");
+					this.sendOpenAvailability(entry);
+					return;
+				}
+				if (packet.type === "open-request") {
+					if (!entry.openNegotiated || entry.openId !== null)
+						throw Error("Invalid browser open request");
+					entry.openId = packet.id;
+					void this.openBrowser(entry, packet).catch(() =>
+						this.close(entry, 1011),
+					);
 					return;
 				}
 				if (packet.type === "evaluate-request") {
@@ -233,6 +303,63 @@ export class WorkstationBrowserReadChannels {
 				this.close(entry, 1008);
 			}
 		});
+	}
+	private async openBrowser(entry: Entry, request: OpenRequest): Promise<void> {
+		let release: (() => void) | null = null;
+		try {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			const availability = this.dependencies.openAvailability?.(entry.target);
+			if (
+				!availability?.ready ||
+				availability.scopeId !== request.scopeId ||
+				!this.dependencies.pinOpen
+			)
+				throw Error("Browser open scope is unavailable");
+			const execute = this.dependencies.pinOpen(entry.target, request, () =>
+				this.current(entry),
+			);
+			release = () => execute.release?.();
+			entry.openRelease = release;
+			const result = await execute();
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			const current = this.dependencies.openAvailability?.(entry.target);
+			if (!current?.ready || current.scopeId !== request.scopeId)
+				throw Error("Browser open scope changed");
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "open-result",
+					id: request.id,
+					scopeId: request.scopeId,
+					ok: true,
+					result,
+				}),
+			);
+		} catch {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "open-result",
+					id: request.id,
+					scopeId: request.scopeId,
+					ok: false,
+					error: {
+						message: "Browser open failed or view scope is no longer current",
+					},
+				}),
+			);
+		} finally {
+			if (release && entry.openRelease === release) this.releaseOpen(entry);
+			if (entry.openId === request.id) entry.openId = null;
+		}
 	}
 	private async navigate(
 		entry: Entry,

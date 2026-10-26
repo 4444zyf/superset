@@ -1,3 +1,5 @@
+import { BrowserOpenTransfer } from "./browser-open-transfer";
+import type { BrowserOpenInput } from "./browser-open-operation";
 import { randomUUID } from "node:crypto";
 import {
 	type BrowserBridgeConsoleResult,
@@ -38,6 +40,9 @@ interface Peer {
 	capturePngV1: boolean;
 	navigateV1: boolean;
 	evaluateV1: boolean;
+	openV1: boolean;
+	openScopeId: string | null;
+	openAccepting: boolean;
 	cancelHandshake(): void;
 }
 type ReadResult = BrowserBridgeListResult | BrowserBridgeConsoleResult;
@@ -62,12 +67,17 @@ export class DirectBrowserReadBridge {
 	private readonly capture: BrowserCaptureTransfer;
 	private readonly navigation: BrowserNavigationTransfer;
 	private readonly evaluation: BrowserEvaluationTransfer;
+	private readonly openTransfer: BrowserOpenTransfer;
 	constructor(
 		identity: BrowserBridgeIdentity,
 		options: { schedule?: typeof schedule } = {},
 	) {
 		this.identity = browserBridgeIdentitySchema.parse(identity);
 		this.schedule = options.schedule ?? schedule;
+		this.openTransfer = new BrowserOpenTransfer({
+			schedule: this.schedule,
+			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
+		});
 		this.evaluation = new BrowserEvaluationTransfer({
 			schedule: this.schedule,
 			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
@@ -146,6 +156,44 @@ export class DirectBrowserReadBridge {
 				),
 		});
 	}
+	isOpenReady(): boolean {
+		return (
+			this.isReady() && !!this.peer?.openScopeId && this.peer.openAccepting
+		);
+	}
+	pinOpen(
+		input: BrowserOpenInput & {
+			projectId: string | null;
+			workspaceName: string;
+		},
+	) {
+		const peer = this.peer,
+			scopeId = peer?.openScopeId;
+		if (!peer || !scopeId || !this.isOpenReady())
+			throw new DirectBrowserBridgeError(
+				"unavailable",
+				"Browser open bridge is unavailable",
+			);
+		return this.openTransfer.pin(
+			{ ...input, scopeId },
+			{
+				current: () =>
+					this.peer === peer && peer.ready && peer.openScopeId === scopeId,
+				send: (packet) => this.send(peer, packet),
+				invalidate: (error) =>
+					this.drop(
+						peer,
+						error instanceof DirectBrowserBridgeError
+							? error
+							: new DirectBrowserBridgeError(
+									"unavailable",
+									"Browser open disconnected",
+								),
+						1011,
+					),
+			},
+		);
+	}
 	attach(transport: DirectBrowserReadTransport) {
 		if (this.disposed)
 			throw new DirectBrowserBridgeError(
@@ -163,6 +211,9 @@ export class DirectBrowserReadBridge {
 			capturePngV1: false,
 			navigateV1: false,
 			evaluateV1: false,
+			openV1: false,
+			openScopeId: null,
+			openAccepting: false,
 			cancelHandshake: () => {},
 		};
 		this.peer = peer;
@@ -199,6 +250,7 @@ export class DirectBrowserReadBridge {
 		this.capture.disconnect(error);
 		this.navigation.disconnect(error);
 		this.evaluation.disconnect(error);
+		this.openTransfer.disconnect(error);
 		peer.cancelHandshake();
 		const pending = [...this.pending.values()];
 		this.pending.clear();
@@ -228,6 +280,7 @@ export class DirectBrowserReadBridge {
 				peer.capturePngV1 = packet.features.includes("capturePngV1");
 				peer.navigateV1 = packet.features.includes("navigateV1");
 				peer.evaluateV1 = packet.features.includes("evaluateV1");
+				peer.openV1 = packet.features.includes("openV1");
 				this.send(peer, {
 					type: "ready",
 					protocol: 1,
@@ -237,8 +290,28 @@ export class DirectBrowserReadBridge {
 						...(peer.capturePngV1 ? ["capturePngV1"] : []),
 						...(peer.navigateV1 ? ["navigateV1"] : []),
 						...(peer.evaluateV1 ? ["evaluateV1"] : []),
+						...(peer.openV1 ? ["openV1"] : []),
 					],
 				});
+				return;
+			}
+			if (packet.type === "open-availability") {
+				if (!peer.openV1) throw Error("Open feature was not negotiated");
+				const scopeId = packet.ready ? packet.scopeId : null;
+				if (peer.openScopeId !== scopeId)
+					this.openTransfer.disconnect(
+						new DirectBrowserBridgeError(
+							"unavailable",
+							"Browser open view scope changed",
+						),
+					);
+				peer.openScopeId = scopeId;
+				peer.openAccepting = packet.ready && packet.accepting;
+				return;
+			}
+			if (packet.type === "open-result") {
+				if (!peer.openV1) throw Error("Open feature was not negotiated");
+				this.openTransfer.receive(packet);
 				return;
 			}
 			if (packet.type === "evaluate-result") {

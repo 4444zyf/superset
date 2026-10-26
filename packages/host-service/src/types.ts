@@ -51,6 +51,8 @@ export interface HostServiceContext {
 				| "pinNavigation"
 				| "isEvaluationReady"
 				| "pinEvaluation"
+				| "isOpenReady"
+				| "pinOpen"
 			>
 		>;
 	db: HostDb;
