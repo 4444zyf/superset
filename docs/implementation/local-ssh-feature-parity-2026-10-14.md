@@ -1643,3 +1643,13 @@ clipped本地/拥有SSH两端先通过全设备与原浏览器流程；随后原
 增加9项异步回归：真实deferred Promise控制启用/选择/截图，不使用真实等待、全局module mock或私有Map访问。覆盖DOM与匹配截图、启用中取消、重新选取丢弃旧结果、截图晚回复丢弃、截图失败仍保留DOM、启用/传输失败、两窗格取消隔离和退订。第一次缺少Core模块的日志是抽取前模块不存在，不能冒称实窗产品故障。抽取后9项31断言及合并原终端/浏览器/设计模式服务共198项3869断言、27文件通过；完整桌面类型、17严格语言编译、插件及格式检查通过。
 
 本阶段只有源码准备，没有启用工作站设计模式或新增用户界面，也没有声称元素选择/Agent发送的本地与SSH端到端验收。未重建dist，仍为609f68608的2205个文件逐一不变，CLI保持f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb；最新工具实窗按九十二，完整终端四场景按八十九。无Actions、安装包或后端发行归档。下一步继续原UI、当前窗格服务守卫、目标端附件与明确Agent发送接入，整体对齐未完成。[阶段九十三证据](evidence/local-ssh-feature-parity/stage93)。
+
+## 阶段九十四：设计模式所属窗格服务与生命周期（2026-10-26）
+
+b84f0ec5d增加可选WorkstationBrowserApi.designMode与三个私有IPC动作，继续使用原主frame守卫，通过原registry解析完整window/connection/generation/backend/namespace/instance/workspace/pane/registration对应manager key。调用原BrowserManager的setDesignMode/awaitDesignSelection/captureDesignScreenshot，异步返回前再次核对window epoch及同一注册，过期时拒绝旧选择/截图。严格输入和opId上限只属于这三个新私有动作；发布browser RPC、输入/输出/错误、manager/控制器/guest脚本/载荷脱敏预算/截图主体均未改。
+
+WorkstationBrowsers复用九十三的原状态机，每个原有界128条runtime只保留当前designPane，不增加持久化。启用/选择/截图沿用完整注册身份；detach、destroy和新WebContents注册前退出，页面加载时丢弃旧confirming内容。没有打开浏览器即自动启用设计模式或发送Agent的副作用。新增API缺失时原浏览器流程继续可用。
+
+7项服务边界与5项runtime生命周期测试，加原终端/浏览器/设计服务合计211项3917断言、30文件通过；完整桌面类型、17严格语言编译、插件、格式及未声明变量检查通过。单测用deferred Promise及原DOM事件模型，不做真实等待、全局模块mock或私有Map访问。首轮shell工作目录错误、抽取前模块缺失、测试错误假设同一WebContents重复dom-ready会重新注册、测试workspaceId类型遗漏的日志分别保留，不冒称真实产品回归。测试改用实际新WebContents ID后，旧启用晚成功不会在新注册上等待选择。AST证明既有main动作、主frame/epoch前缀、preload旧方法、runtime原导航/state等保持；原BrowserPane/工作站页面仍未修改。
+
+本阶段为后续UI接入准备，未启用工作站设计模式界面或Agent发送，尚无新增本地/SSH实窗验收。没有重建dist，609f68608的2205编译文件及九十二73脚本全部逐一不变，CLI未重建。最新工具实窗按九十二，完整终端四场景按八十九；无Actions、安装包或后端发行归档。继续原浮层、目标端附件和明确Agent发送接入，整体功能对齐未完成。[阶段九十四证据](evidence/local-ssh-feature-parity/stage94)。

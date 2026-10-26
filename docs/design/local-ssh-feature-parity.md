@@ -211,3 +211,5 @@
 阶段九十二仅给验收夹具增加有界、无参数/返回值的可选CDP请求诊断。产品609f68608和2205编译文件不变，本地/拥有SSH各一次原tools、DevTools、设置、导航及正常重开通过，原PTY/cwd保留，SSH含20次恢复。截图请求38.39/46.86ms、同步关闭4.16/5.44ms，两张当前截图可见marker；历史九十一超时未复现，根因仍未确定，不声明已修复。445/1143请求全部配对；各一次已捕获readProof文件就绪轮询异常单独记录，renderer运行异常为空。完整终端四场景仍按八十九范围；其他功能继续。[阶段九十二证据](../implementation/evidence/local-ssh-feature-parity/stage92)。
 
 阶段九十三以1f00c3da9抽出原设计模式状态机/hook，注入原RPC和通知，旧单例及调用合同保持；逐字段/方法AST核对，原元素提取/脱敏/截图/Popover等字节一致。9项无真实等待的异步生命周期回归与原功能合计198项3869断言、类型/17严格语言/插件通过。仅源码准备，未启用工作站设计模式、未重建产品或进行新实窗验收，不能算设计模式功能已恢复；继续原UI/目标端附件与Agent发送接入。[阶段九十三证据](../implementation/evidence/local-ssh-feature-parity/stage93)。
+
+阶段九十四以b84f0ec5d增加可选设计模式私有API，沿原主frame/registry所有权及epoch守卫调用原选择/截图服务；过期返回拒绝，旧RPC和所有既有IPC保持。工作站runtime复用原状态机，detach/destroy/guest替换退出、导航丢弃旧确认。7项服务/5项生命周期新增回归与原功能合计211项3917断言、类型/17严格语言/插件通过。仍是服务准备，未启用UI或Agent发送、未重建产品或新增原生验收；继续原浮层与目标端发送接入。[阶段九十四证据](../implementation/evidence/local-ssh-feature-parity/stage94)。
