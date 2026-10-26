@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import {
 	existsSync,
 	lstatSync,
@@ -21,6 +21,7 @@ import { applyLoginShellEnvToProcess } from "../runtime/login-shell-env";
 import { startTerminalBaseEnvResolution } from "../terminal/env";
 import { configureDirectAgentEnvironment } from "./agent-environment";
 import { registerDirectAgentHookPort } from "./agent-hook-url";
+import { createDirectAgentHookFetch } from "./agent-hook-fetch";
 import {
 	type DirectEndpoint,
 	loadDirectConfig,
@@ -188,8 +189,13 @@ export async function startDirectBackend(
 			announce = resolve;
 			fail = reject;
 		});
+		const hookToken = randomBytes(32).toString("hex");
 		const server = serve(
-			{ fetch: service.app.fetch, port: 0, hostname: "127.0.0.1" },
+			{
+				fetch: createDirectAgentHookFetch(service.app.fetch, hookToken, secret),
+				port: 0,
+				hostname: "127.0.0.1",
+			},
 			(info) => {
 				const endpoint: DirectEndpoint = {
 					...identity,
@@ -198,7 +204,7 @@ export async function startDirectBackend(
 					protocolVersion: 1,
 				};
 				try {
-					releaseAgentHook = registerDirectAgentHookPort(info.port);
+					releaseAgentHook = registerDirectAgentHookPort(info.port, hookToken);
 					endpointPath = publishDirectEndpoint(config.homeDir, endpoint);
 					announce(endpoint);
 				} catch (error) {

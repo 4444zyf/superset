@@ -13,7 +13,7 @@ test("agent hook readiness is advertised only after this direct listener has reg
 		describeDirectBackend(identity, true, true).capabilities
 			.workstationAgentHooksV1,
 	).toBe(false);
-	const release = registerDirectAgentHookPort(43123);
+	const release = registerDirectAgentHookPort(43123, "a".repeat(64));
 	try {
 		expect(
 			describeDirectBackend(identity, true, true).capabilities

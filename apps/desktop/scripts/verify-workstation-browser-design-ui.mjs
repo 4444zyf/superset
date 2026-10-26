@@ -10,7 +10,7 @@ from pathlib import Path
 root=Path(sys.argv[2]).resolve()
 assert Path.cwd().resolve()==root and os.environ.get('SUPERSET_WORKSPACE_ID')==sys.argv[1]
 terminal=os.environ['SUPERSET_TERMINAL_ID'];hook=os.environ['SUPERSET_HOST_AGENT_HOOK_URL'];u=urllib.parse.urlparse(hook)
-assert u.scheme=='http' and u.hostname=='127.0.0.1' and u.path=='/trpc/notifications.hook'
+assert u.scheme=='http' and u.hostname=='127.0.0.1' and re.fullmatch(r'/agent-hook/[a-f0-9]{64}',u.path)
 marker='OWNED-DESIGN-'+str(uuid.uuid4());launch='owned-'+str(uuid.uuid4());session='owned-'+str(uuid.uuid4())
 proof=root/'.superset/owned-design-received.json';state={'marker':marker,'terminalId':terminal,'pid':os.getpid(),'cwd':str(root),'launchId':launch,'sessionId':session,'running':True,'feedbacks':[]}
 def save():
