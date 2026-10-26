@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+	appendFileSync,
 	existsSync,
 	mkdirSync,
 	readFileSync,
@@ -21,6 +22,7 @@ const restoreWindows = process.argv.includes("--restore-windows");
 const localParity = process.argv.includes("--local-parity-only");
 const localWheel = process.argv.includes("--local-wheel-only") || localParity;
 const sourceTest = process.argv.includes("--source-test");
+const cdpDiagnostic = process.argv.includes("--cdp-diagnostic");
 if (!sourceTest) {
 	assert.equal(process.platform, "darwin");
 	assert.equal(process.env.GITHUB_ACTIONS, "true");
@@ -117,7 +119,20 @@ async function target(port, predicate, child) {
 	}
 	throw new Error(`Inspector unavailable: ${child.log}`);
 }
+let cdpConnectionIndex = 0;
+let cdpTraceCount = 0;
+function diagnosticCdpTrace(record) {
+	if (!cdpDiagnostic || ++cdpTraceCount > 12000) return;
+	appendFileSync(
+		join(output, "cdp-diagnostic.ndjson"),
+		`${JSON.stringify({ time: Date.now(), ...record })}\n`,
+	);
+}
 async function connect(entry) {
+	const scope = entry.type === "node"
+		? "main"
+		: entry.url?.startsWith("devtools:") ? "devtools" : "renderer";
+	const connection = ++cdpConnectionIndex;
 	const socket = new WebSocket(entry.webSocketDebuggerUrl);
 	await new Promise((accept, reject) => {
 		socket.addEventListener("open", accept, { once: true });
@@ -133,6 +148,13 @@ async function connect(entry) {
 			pending.delete(message.id);
 			if (!callback) return;
 			clearTimeout(callback.timer);
+			diagnosticCdpTrace({
+				...callback.diagnostic,
+				phase: "reply",
+				elapsed: performance.now() - callback.started,
+				protocolError: Boolean(message.error),
+				evaluationException: Boolean(message.result?.exceptionDetails),
+			});
 			message.error
 				? callback.reject(new Error(message.error.message))
 				: callback.accept(message.result);
@@ -149,11 +171,24 @@ async function connect(entry) {
 	const call = (method, params = {}) =>
 		new Promise((accept, reject) => {
 			const id = ++next;
+			const started = performance.now();
+			const diagnostic = {
+				scope, connection, id, method,
+				caller: cdpDiagnostic
+					? new Error().stack?.split("\n").slice(2, 10).join("\n")
+					: undefined,
+			};
+			diagnosticCdpTrace({ ...diagnostic, phase: "request" });
 			const timer = setTimeout(() => {
 				pending.delete(id);
-				reject(new Error(`Timeout: ${method}`));
+				diagnosticCdpTrace({
+					...diagnostic,
+					phase: "timeout",
+					elapsed: performance.now() - started,
+				});
+				reject(new Error(`Timeout: ${method}${cdpDiagnostic ? ` [${scope} #${id}]` : ""}`));
 			}, 10000);
-			pending.set(id, { accept, reject, timer });
+			pending.set(id, { accept, reject, timer, started, diagnostic });
 			socket.send(JSON.stringify({ id, method, params }));
 		});
 	const evaluate = async (expression) => {
