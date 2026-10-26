@@ -155,14 +155,21 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 		);
 	const point = async (selector) =>
 		evaluate(
-			`(async()=>{const v=[...document.querySelectorAll('webview')].find(v=>v.style.visibility==='visible');const p=await v.executeJavaScript(${JSON.stringify(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,width:innerWidth,height:innerHeight};})()`)});const r=v.getBoundingClientRect();return {x:r.left+p.x*r.width/p.width,y:r.top+p.y*r.height/p.height};})()`,
+			`(async()=>{const v=[...document.querySelectorAll('webview')].find(v=>v.style.visibility==='visible');const p=await v.executeJavaScript(${JSON.stringify(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,width:innerWidth,height:innerHeight,armed:typeof window.__supersetDesignMode?.cancelAwait==='function'};})()`)});const r=v.getBoundingClientRect();return {x:r.left+p.x,y:r.top+p.y,viewport:{width:p.width,height:p.height},element:{left:r.left,top:r.top,width:r.width,height:r.height},ready:p.armed&&Math.abs(r.width-p.width)<1&&Math.abs(r.height-p.height)<1};})()`,
 		);
 	const guestClick = async (selector) => {
-		const p = await point(selector);
+		const p = await until(async () => {
+			const sample = await point(selector);
+			report.pointerGeometry ??= [];
+			if (report.pointerGeometry.length < 32)
+				report.pointerGeometry.push({ selector, ...sample });
+			return sample.ready ? sample : null;
+		}, "guest viewport matches the rendered picker before one click");
 		for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
 			await getPage().call("Input.dispatchMouseEvent", {
 				type,
-				...p,
+				x: p.x,
+				y: p.y,
 				button: type === "mouseMoved" ? "none" : "left",
 				clickCount: 1,
 			});
