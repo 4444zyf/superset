@@ -7,6 +7,32 @@ export type WorkspaceTrpcClient = ReturnType<
 	typeof workspaceTrpc.useUtils
 >["client"];
 
+export interface DesignModeAttachmentClient {
+	workspace: {
+		get: {
+			query(input: {
+				id: string;
+			}): Promise<{ worktreePath?: string | null } | null | undefined>;
+		};
+	};
+	filesystem: {
+		createDirectory: {
+			mutate(input: {
+				workspaceId: string;
+				absolutePath: string;
+				recursive: boolean;
+			}): Promise<unknown>;
+		};
+		writeFile: {
+			mutate(input: {
+				workspaceId: string;
+				absolutePath: string;
+				content: string | { kind: "base64"; data: string };
+			}): Promise<unknown>;
+		};
+	};
+}
+
 function joinAbsolutePath(parentAbsolutePath: string, name: string): string {
 	const separator = parentAbsolutePath.includes("\\") ? "\\" : "/";
 	return `${parentAbsolutePath.replace(/[\\/]+$/, "")}${separator}${name}`;
@@ -34,13 +60,15 @@ export async function writeDesignModeAttachments({
 	paneId,
 	payload,
 	comment,
+	livePaneAvailable = true,
 }: {
-	client: WorkspaceTrpcClient;
+	client: DesignModeAttachmentClient;
 	workspaceId: string;
 	/** Browser pane the element was picked in, for the live-verify hints. */
 	paneId: string;
 	payload: DesignModePayload;
 	comment: string;
+	livePaneAvailable?: boolean;
 }): Promise<DesignModeAttachmentPaths> {
 	const workspace = await client.workspace.get.query({ id: workspaceId });
 	if (!workspace?.worktreePath) {
@@ -63,10 +91,16 @@ export async function writeDesignModeAttachments({
 	await client.filesystem.writeFile.mutate({
 		workspaceId,
 		absolutePath: joinAbsolutePath(attachmentsDirectory, contextName),
-		content: formatDesignModeContextMarkdown(payload, comment, {
-			workspaceId,
-			paneId,
-		}),
+		content: formatDesignModeContextMarkdown(
+			payload,
+			comment,
+			livePaneAvailable
+				? {
+						workspaceId,
+						paneId,
+					}
+				: undefined,
+		),
 	});
 
 	let screenshotPath: string | null = null;

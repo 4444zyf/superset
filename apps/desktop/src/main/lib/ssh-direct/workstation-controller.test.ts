@@ -4,6 +4,74 @@ import type { SqliteDatabase } from "@superset/direct-connection";
 import { OperationIntents } from "./operation-intents";
 import { WorkstationController } from "./workstation-controller";
 
+test("new feedback agents require capability and durable tracking before the original launch pipeline runs", async () => {
+	const f = fixture(),
+		db = new Database(":memory:");
+	let enabled = false;
+	const calls: unknown[] = [],
+		intents = new OperationIntents(db as unknown as SqliteDatabase);
+	const manager = {
+		...f.manager,
+		getVerifiedDescription: () => ({
+			capabilities: {
+				workstationAgentFeedbackV1: true,
+				workstationAgentHooksV1: enabled,
+				durableOperations: true,
+			},
+		}),
+		invoke: async (_id: string, request: unknown) => {
+			calls.push(request);
+			return {
+				status: "completed",
+				result: { kind: "terminal", sessionId: "terminal", label: "Owned" },
+			};
+		},
+	};
+	const request = {
+		connectionId: "machine",
+		generation: 1,
+		path: "agents.run",
+		type: "mutation" as const,
+		input: {
+			workspaceId: "workspace",
+			agent: "config",
+			prompt: "owned feedback",
+			surface: "terminal",
+			operationId: crypto.randomUUID(),
+		},
+	};
+	try {
+		const controller = new WorkstationController(manager, intents);
+		await expect(controller.invoke(request)).rejects.toThrow(
+			"required capability",
+		);
+		enabled = true;
+		await expect(
+			new WorkstationController(manager).invoke(request),
+		).rejects.toThrow("tracking");
+		expect(calls).toEqual([]);
+		expect(await controller.invoke(request)).toEqual({
+			kind: "terminal",
+			sessionId: "terminal",
+			label: "Owned",
+		});
+		expect(calls[0]).toMatchObject({
+			path: "direct.execute",
+			input: {
+				operationId: request.input.operationId,
+				procedure: "agents.run",
+				input: {
+					agent: "config",
+					prompt: "owned feedback",
+					surface: "terminal",
+				},
+			},
+		});
+	} finally {
+		db.close();
+	}
+});
+
 test("agent target reads require the optional capability and an explicit current workspace", async () => {
 	const f = fixture();
 	let enabled: unknown = false;

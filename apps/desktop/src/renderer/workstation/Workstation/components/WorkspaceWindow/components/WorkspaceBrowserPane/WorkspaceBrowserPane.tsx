@@ -1,4 +1,8 @@
 import { SignedInSitesSubmenuView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/SignedInSitesSubmenu/components/SignedInSitesSubmenuView";
+import { DesignModeBanner } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/DesignModeBanner";
+import { DesignModeButton } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/BrowserPaneToolbar/components/DesignModeButton";
+import { useDesignModePane } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/hooks/useDesignModePane/useDesignModePane";
+import { WorkspaceDesignModePopover } from "./components/WorkspaceDesignModePopover";
 import { ChromeImportBanner } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/ChromeImportBanner";
 import { useBrowserImportSource } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/ChromeImportBanner/hooks/useBrowserImportSource";
 import {
@@ -73,6 +77,7 @@ export function WorkspaceBrowserPane({
 	const { t } = useLingui();
 	const runtime = workstationBrowsers(api);
 	const placeholder = useRef<HTMLDivElement | null>(null);
+	const rootRef = useRef<HTMLDivElement | null>(null);
 	const [overlay, setOverlay] = useState<HTMLElement | null>(null);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const dialogTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -122,6 +127,19 @@ export function WorkspaceBrowserPane({
 			),
 	});
 	const state = useBrowserStateCore(id, runtime.state);
+	const { designMode, popoverStyle } = useDesignModePane({
+		paneId: id,
+		store: runtime.designs,
+		isLoading: state.isLoading,
+		placeholderRef: placeholder,
+		rootRef,
+		overlayContainer: overlay,
+	});
+	const designAvailable =
+		!!api.browser?.designMode &&
+		connection.capabilities?.workstationAgentFeedbackV1 === true &&
+		connection.capabilities?.workstationAgentHooksV1 === true &&
+		connection.capabilities?.workstationFilesV1 === true;
 	const deviceToolbar = useDeviceToolbarStateCore(id, runtime.devices);
 	const deviceToolbarSize = getDeviceToolbarSize(deviceToolbar);
 	useEffect(() => () => runtime.devices.reset(id), [runtime, id]);
@@ -312,6 +330,7 @@ export function WorkspaceBrowserPane({
 
 	return (
 		<div
+			ref={rootRef}
 			className="flex h-full min-h-0 flex-col bg-background"
 			data-workstation-browser-pane={pane.paneId}
 			onKeyDown={(event) => {
@@ -341,6 +360,23 @@ export function WorkspaceBrowserPane({
 						onNavigate={navigate}
 					/>
 				</div>
+				<DesignModeButton
+					active={designMode.phase !== "idle"}
+					disabled={
+						!designAvailable ||
+						!state.currentUrl ||
+						state.currentUrl === "about:blank"
+					}
+					onToggle={() => runtime.designs.toggle(id)}
+					unavailableReason={
+						designAvailable
+							? undefined
+							: t({
+									message:
+										"This backend does not support the required capability",
+								})
+					}
+				/>
 				<button
 					type="button"
 					className="ws-button small"
@@ -423,6 +459,12 @@ export function WorkspaceBrowserPane({
 					}
 				/>
 			</div>
+			{designMode.phase !== "idle" && (
+				<DesignModeBanner
+					phase={designMode.phase}
+					onExit={() => runtime.designs.exit(id)}
+				/>
+			)}
 			{navigationError && (
 				<output role="alert" className="ws-error">
 					{navigationError}
@@ -500,6 +542,30 @@ export function WorkspaceBrowserPane({
 			{overlay &&
 				createPortal(
 					<>
+						{designMode.phase === "confirming" && designMode.payload && (
+							<>
+								<button
+									type="button"
+									aria-label={t({ message: "Discard captured element" })}
+									onClick={() => runtime.designs.rearm(id)}
+									className="pointer-events-auto absolute inset-0 z-10 cursor-default"
+								/>
+								<WorkspaceDesignModePopover
+									key={id}
+									api={api}
+									connection={connection}
+									workspaceId={workspaceId}
+									paneId={pane.paneId}
+									id={id}
+									runtime={runtime}
+									payload={designMode.payload}
+									style={popoverStyle}
+									actions={actions}
+									onDismiss={() => runtime.designs.rearm(id)}
+									onSent={() => runtime.designs.exit(id)}
+								/>
+							</>
+						)}
 						{find && (
 							<BrowserFindBarView
 								registry={runtime.core}

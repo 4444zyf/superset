@@ -241,6 +241,11 @@ export async function verifyWorkstationBrowserUi(options) {
 			);
 			save();
 		}
+		if (process.argv.includes("--browser-design")) {
+			const { verifyWorkstationBrowserDesignUi } = await import("./verify-workstation-browser-design-ui.mjs");
+			report.design = await verifyWorkstationBrowserDesignUi(options, {scope, url, marker, readProof, guestRead, key, readView, workspace, terminalTab});
+			save();
+		}
 		if (process.argv.includes("--browser-tools")) {
 			const { verifyWorkstationBrowserToolsUi } = await import(
 				"./verify-workstation-browser-tools-ui.mjs"
@@ -542,6 +547,11 @@ export async function verifyWorkstationBrowserUi(options) {
 		assert.equal(report.terminalAfter.cwd, report.terminalBefore.cwd);
 		report.rendererAfterReopen = getPage().errors;
 		assert.deepEqual(report.rendererAfterReopen, []);
+		if (process.argv.includes("--browser-design")) {
+			const { verifyWorkstationBrowserDesignReopened } = await import("./verify-workstation-browser-design-ui.mjs");
+			report.designReopened = await verifyWorkstationBrowserDesignReopened(options, report.design, {scope, key, readView, workspace});
+			save();
+		}
 		if (process.argv.includes("--browser-history-dialog")) {
 			const { verifyWorkstationBrowserHistoryReopened } = await import(
 				"./verify-workstation-browser-history-ui.mjs"

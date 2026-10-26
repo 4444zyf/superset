@@ -185,6 +185,7 @@ export function formatDesignModeContextMarkdown(
 }
 
 interface BuildDesignModePromptInput {
+	livePaneAvailable?: boolean;
 	payload: DesignModePayload;
 	comment: string;
 	/** Repo-relative path of the written context markdown file. */
@@ -202,6 +203,7 @@ export function buildDesignModePrompt({
 	comment,
 	contextPath,
 	screenshotPath,
+	livePaneAvailable = true,
 }: BuildDesignModePromptInput): string {
 	const element = describeDesignModeElement(payload);
 	const source = payload.target.sourceFile
@@ -214,6 +216,8 @@ export function buildDesignModePrompt({
 		`Design feedback on ${payload.page.sanitizedUrl || "the current page"}: ${inlineText(comment, 1000)} ` +
 		`(element ${element}, selector \`${inlineText(payload.target.selector, 200)}\`${source}). ` +
 		`Read ${contextPath}${screenshot} for full element context before making changes, ` +
-		`then verify your change in the live browser pane (see the context file's Live page section).`
+		(livePaneAvailable
+			? `then verify your change in the live browser pane (see the context file's Live page section).`
+			: `then verify your change at the captured page URL.`)
 	);
 }

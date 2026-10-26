@@ -6,6 +6,7 @@ import type {
 } from "shared/direct-workstation";
 import type { DesignModeSelectionResult } from "shared/browser-design-mode";
 import type { WorkstationBrowserDesignModeApi } from "shared/workstation-browser-design-mode";
+import type { WorkstationBrowserEvent } from "shared/workstation-browser";
 import { WorkstationBrowsers } from "./workstation-browsers";
 
 async function drain() {
@@ -27,6 +28,7 @@ function payload() {
 	return result;
 }
 async function fixture(options?: { deferEnable?: boolean }) {
+	let onEvent: (event: WorkstationBrowserEvent) => void = () => {};
 	const ready = Promise.withResolvers<void>();
 	const enable = Promise.withResolvers<{ ok: boolean }>();
 	const selection = Promise.withResolvers<DesignModeSelectionResult>();
@@ -52,7 +54,10 @@ async function fixture(options?: { deferEnable?: boolean }) {
 				ready.resolve();
 				return { status: "navigated" };
 			},
-			onEvent: () => () => {},
+			onEvent: (listener: typeof onEvent) => {
+				onEvent = listener;
+				return () => {};
+			},
 			designMode: {
 				set: async (input: (typeof sets)[number]) => {
 					sets.push(input);
@@ -118,6 +123,7 @@ async function fixture(options?: { deferEnable?: boolean }) {
 		sets,
 		awaits,
 		captures,
+		emit: (event: WorkstationBrowserEvent) => onEvent(event),
 		cleanup: () => {
 			runtime.clear();
 			container?.remove();
@@ -147,6 +153,38 @@ test("design selection and capture carry the same complete registered pane ident
 			phase: "confirming",
 			payload: selected,
 		});
+	} finally {
+		f.cleanup();
+	}
+});
+
+test("design feedback uses the workspace URL instead of the desktop's SSH forwarding port", async () => {
+	const f = await fixture();
+	try {
+		f.emit({
+			...f.pane,
+			type: "navigation-map",
+			url: "http://localhost:3000/owned",
+			guestUrl: "http://127.0.0.1:40555/owned",
+		});
+		f.runtime.designs.toggle(f.id);
+		await drain();
+		const selected = payload();
+		selected.page.sanitizedUrl =
+			"http://127.0.0.1:40555/owned?view=grid#target";
+		f.selection.resolve({
+			kind: "selected",
+			opId: f.awaits[0].opId,
+			payload: selected,
+		});
+		await drain();
+		await drain();
+		expect(f.runtime.designs.getState(f.id).payload?.page.sanitizedUrl).toBe(
+			"http://localhost:3000/owned?view=grid#target",
+		);
+		expect(selected.page.sanitizedUrl).toBe(
+			"http://127.0.0.1:40555/owned?view=grid#target",
+		);
 	} finally {
 		f.cleanup();
 	}

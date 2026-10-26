@@ -22,7 +22,11 @@ import fs from "node:fs";
 import os from "node:os";
 import { resolveSupersetHomeDir } from "@superset/agent-setup";
 import { TERMINAL_IDENTITY_ENV_KEYS } from "@superset/shared/constants";
-import { isolateDirectAgentEnvironment } from "../direct/agent-environment";
+import {
+	directAgentProfiles,
+	isolateDirectAgentEnvironment,
+} from "../direct/agent-environment";
+import { currentDirectAgentHookUrl } from "../direct/agent-hook-url";
 import { getManagedEnv } from "../runtime/sandbox-managed-env/sandbox-managed-env.ts";
 import {
 	augmentPathForMacOS,
@@ -219,7 +223,7 @@ export function buildHostLaunchEnv(params: {
 	hostAgentHookUrl?: string;
 }): Record<string, string> {
 	const baseEnv = getTerminalBaseEnv();
-	return isolateDirectAgentEnvironment(
+	const env = isolateDirectAgentEnvironment(
 		buildV2TerminalEnv({
 			baseEnv,
 			shell: resolveLaunchShell(baseEnv),
@@ -238,6 +242,9 @@ export function buildHostLaunchEnv(params: {
 			hostAgentHookUrl: params.hostAgentHookUrl,
 		}),
 	);
+	const hook = currentDirectAgentHookUrl();
+	if (directAgentProfiles() && hook) env.SUPERSET_HOST_AGENT_HOOK_URL = hook;
+	return env;
 }
 
 /**

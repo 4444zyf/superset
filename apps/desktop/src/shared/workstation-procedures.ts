@@ -14,10 +14,12 @@ export interface WorkspaceProcedure {
 		| "workstationWorkspaceCleanupV1"
 		| "workstationWorkspaceSetupV1"
 		| "workstationTerminalScriptExecutionV1"
-		| "workstationAgentFeedbackV1";
+		| "workstationAgentFeedbackV1"
+		| "workstationAgentHooksV1";
 }
 
 export const workspaceProcedures: Record<string, WorkspaceProcedure> = {
+	"agents.run": { type: "mutation", capability: "workstationAgentHooksV1" },
 	"terminalAgents.listByWorkspace": {
 		type: "query",
 		capability: "workstationAgentFeedbackV1",

@@ -1,9 +1,11 @@
+import { DesignModeBanner } from "./components/DesignModeBanner";
+import { useDesignModePane } from "./hooks/useDesignModePane/useDesignModePane";
 import { useBrowserImportSource } from "./components/ChromeImportBanner/hooks/useBrowserImportSource";
 import { Trans, useLingui } from "@lingui/react/macro";
 import type { RendererContext, Tab } from "@superset/panes";
 import { useParams } from "@tanstack/react-router";
-import { GlobeIcon, SquareDashedMousePointer, XIcon } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { GlobeIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ImportHistoryDialog } from "renderer/components/ImportHistoryDialog";
 import { electronTrpcClient } from "renderer/lib/trpc-client";
@@ -21,7 +23,7 @@ import { DesignModePopover } from "./components/DesignModePopover";
 import { DeviceToolbar } from "./components/DeviceToolbar";
 import { getDeviceToolbarSize } from "./deviceToolbarStoreCore";
 import { BrowserViewportView } from "./components/BrowserViewportView";
-import { designModeStore, useDesignModeState } from "./designModeStore";
+import { designModeStore } from "./designModeStore";
 import {
 	deviceToolbarStore,
 	useDeviceToolbarState,
@@ -86,116 +88,31 @@ export function BrowserPane({
 		ctx,
 	});
 	const { workspaceId } = useParams({ strict: false });
-	const designMode = useDesignModeState(paneId);
+
 	const isFindBarOpen = useFindBarOpen(paneId);
 	const deviceToolbar = useDeviceToolbarState(paneId);
 	const rootRef = useRef<HTMLDivElement | null>(null);
+	const { designMode, popoverStyle } = useDesignModePane({
+		paneId,
+		store: designModeStore,
+		isLoading: state.isLoading,
+		rootRef,
+		placeholderRef,
+		overlayContainer,
+	});
 
 	// A pane switch or unmount must not leave a stale picker overlay armed in
 	// the guest, nor an await resolving into a pane that no longer shows it.
 	useEffect(() => {
 		return () => {
-			if (designModeStore.getState(paneId).phase !== "idle") {
-				designModeStore.exit(paneId);
-			}
 			findBarStore.close(paneId);
 			deviceToolbarStore.reset(paneId);
 		};
 	}, [paneId]);
 
-	// Esc while the host (not the guest) owns focus: with a captured element it
-	// discards the capture and goes back to picking; while picking it exits.
-	// The injected overlay handles Esc itself when the guest has focus, and the
-	// composer's own Esc handler covers its textarea. Scoped to keystrokes that
-	// belong to this pane (or to nothing — body): Esc aimed at a portal
-	// (dropdown, dialog, the composer's agent picker) must close that instead.
-	// The pane's overlay layer counts as the pane: the composer lives there.
-	useEffect(() => {
-		if (designMode.phase === "idle") return;
-		const phase = designMode.phase;
-		const handleKeyDown = (e: KeyboardEvent): void => {
-			if (e.key !== "Escape" || e.defaultPrevented) return;
-			const target = e.target as HTMLElement | null;
-			if (
-				target &&
-				(target.isContentEditable ||
-					target.tagName === "INPUT" ||
-					target.tagName === "TEXTAREA")
-			) {
-				return;
-			}
-			const root = rootRef.current;
-			const inScope =
-				target === document.body ||
-				(root != null && target != null && root.contains(target)) ||
-				(overlayContainer != null &&
-					target != null &&
-					overlayContainer.contains(target));
-			if (!inScope) return;
-			e.preventDefault();
-			e.stopPropagation();
-			if (phase === "confirming") {
-				designModeStore.rearm(paneId);
-			} else {
-				designModeStore.exit(paneId);
-			}
-		};
-		window.addEventListener("keydown", handleKeyDown, true);
-		return () => window.removeEventListener("keydown", handleKeyDown, true);
-	}, [designMode.phase, paneId, overlayContainer]);
-
-	// A full navigation replaces the document a capture described — drop the
-	// composer instead of staging a payload (selector, bounds, verify hints)
-	// for a page that no longer exists.
-	useEffect(() => {
-		if (designMode.phase === "confirming" && state.isLoading) {
-			designModeStore.exit(paneId);
-		}
-	}, [designMode.phase, state.isLoading, paneId]);
-
 	const isBlankPage = !state.currentUrl || state.currentUrl === "about:blank";
 
 	const deviceToolbarSize = getDeviceToolbarSize(deviceToolbar);
-
-	// Anchor the composer under the clicked element. The composer renders in
-	// the pane's overlay layer, which mirrors the placeholder's box, so the
-	// capture's viewport rect (guest CSS pixels) is already in its coordinate
-	// space. Computed in a layout effect (refs are unset during the first
-	// render of a remount) and re-clamped when the page area resizes so the
-	// card stays inside it.
-	const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({
-		top: 12,
-		left: 12,
-	});
-	const confirmingRect =
-		designMode.phase === "confirming"
-			? designMode.payload?.target.rectViewport
-			: undefined;
-	useLayoutEffect(() => {
-		if (!confirmingRect) return;
-		const placeholder = placeholderRef.current;
-		if (!placeholder) return;
-		const compute = () => {
-			const areaWidth = placeholder.clientWidth;
-			const areaHeight = placeholder.clientHeight;
-			const width = Math.min(420, areaWidth - 16);
-			const estimatedHeight = 170;
-			const left = Math.min(
-				Math.max(confirmingRect.x, 8),
-				Math.max(8, areaWidth - width - 8),
-			);
-			const below = confirmingRect.y + confirmingRect.height + 4;
-			const top =
-				below + estimatedHeight > areaHeight
-					? Math.max(8, confirmingRect.y - estimatedHeight - 4)
-					: below;
-			setPopoverStyle({ top, left, width });
-		};
-		compute();
-		const observer = new ResizeObserver(compute);
-		observer.observe(placeholder);
-		return () => observer.disconnect();
-	}, [confirmingRect, placeholderRef]);
 
 	// Offer importing from another browser — as a banner above the page, not
 	// just on the empty new-tab state — but only when one is actually
@@ -215,37 +132,10 @@ export function BrowserPane({
 		// follows the placeholder rect, painting over the neighbor pane.
 		<div ref={rootRef} className="relative flex h-full min-w-0 flex-1 flex-col">
 			{designMode.phase !== "idle" && (
-				<div className="flex shrink-0 items-center gap-2 border-b border-border/60 bg-[#0d99ff]/10 px-3 py-1.5 text-xs text-foreground/90">
-					<SquareDashedMousePointer className="size-3.5 shrink-0 text-[#0d99ff]" />
-					<span className="min-w-0 flex-1 truncate">
-						{designMode.phase === "selecting" ? (
-							<Trans>
-								Design mode — click any element in the page to send it to an
-								agent.
-							</Trans>
-						) : (
-							<Trans>
-								Element captured — describe the change, or press esc to pick
-								again.
-							</Trans>
-						)}
-					</span>
-					{designMode.phase === "selecting" && (
-						<span className="shrink-0 text-muted-foreground/70">
-							<Trans>esc to exit</Trans>
-						</span>
-					)}
-					<button
-						type="button"
-						onClick={() => designModeStore.exit(paneId)}
-						aria-label={t({
-							message: "Exit design mode",
-						})}
-						className="shrink-0 rounded p-0.5 text-muted-foreground/60 transition-colors hover:text-muted-foreground"
-					>
-						<XIcon className="size-3.5" />
-					</button>
-				</div>
+				<DesignModeBanner
+					phase={designMode.phase}
+					onExit={() => designModeStore.exit(paneId)}
+				/>
 			)}
 			{importSource && !isBannerDismissed && (
 				<ChromeImportBanner

@@ -1,8 +1,5 @@
-import { Trans } from "@lingui/react/macro";
+import { DesignModeButton } from "./components/DesignModeButton";
 import type { RendererContext } from "@superset/panes";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@superset/ui/tooltip";
-import { cn } from "@superset/ui/utils";
-import { SquareDashedMousePointer } from "lucide-react";
 import { useCallback } from "react";
 import { OpenBrowserPageInAppButton } from "renderer/components/OpenBrowserPageInAppButton";
 import type { PaneViewerData } from "../../../../../../types";
@@ -74,40 +71,11 @@ export function BrowserPaneToolbar({ ctx }: BrowserPaneToolbarProps) {
 						replaceBrowserPane(ctx.store, ctx.tab.id, paneId, newPane)
 					}
 				/>
-				<Tooltip disableHoverableContent>
-					<TooltipTrigger asChild>
-						<button
-							type="button"
-							onClick={handleToggleDesignMode}
-							disabled={isBlankPage}
-							aria-pressed={designMode.phase !== "idle"}
-							className={cn(
-								"flex h-[22px] shrink-0 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium leading-none transition-colors disabled:opacity-40",
-								// Armed color matches the in-page picker outline
-								// (design-mode-script.ts), not the theme primary.
-								designMode.phase !== "idle"
-									? "bg-[#0d99ff] text-white hover:bg-[#0d99ff]/90"
-									: "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-							)}
-						>
-							<SquareDashedMousePointer className="size-3" />
-							{/* Icon-only in a narrow pane; the label comes back with room. */}
-							<span className="hidden @min-[360px]/pane-header:inline">
-								<Trans>Design</Trans>
-							</span>
-						</button>
-					</TooltipTrigger>
-					<TooltipContent side="bottom">
-						{designMode.phase !== "idle" ? (
-							<Trans>Exit design mode (esc)</Trans>
-						) : (
-							<Trans>
-								Design mode — click any element in the page to send it to an
-								agent
-							</Trans>
-						)}
-					</TooltipContent>
-				</Tooltip>
+				<DesignModeButton
+					active={designMode.phase !== "idle"}
+					disabled={isBlankPage}
+					onToggle={handleToggleDesignMode}
+				/>
 				<BrowserOverflowMenu
 					paneId={paneId}
 					currentUrl={state.currentUrl}

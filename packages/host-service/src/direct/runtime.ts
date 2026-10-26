@@ -20,6 +20,7 @@ import { PskHostAuthProvider } from "../providers/host-auth";
 import { applyLoginShellEnvToProcess } from "../runtime/login-shell-env";
 import { startTerminalBaseEnvResolution } from "../terminal/env";
 import { configureDirectAgentEnvironment } from "./agent-environment";
+import { registerDirectAgentHookPort } from "./agent-hook-url";
 import {
 	type DirectEndpoint,
 	loadDirectConfig,
@@ -86,6 +87,7 @@ export async function startDirectBackend(
 	let result: ReturnType<typeof createApp> | null = null;
 	let operationDb: Database.Database | null = null;
 	let stopBackend: (() => Promise<void>) | undefined;
+	let releaseAgentHook: (() => void) | undefined;
 	const transportServers: Server[] = [];
 	const transportSockets = new Set<Socket>();
 	const trackServer = (server: Server) => {
@@ -196,6 +198,7 @@ export async function startDirectBackend(
 					protocolVersion: 1,
 				};
 				try {
+					releaseAgentHook = registerDirectAgentHookPort(info.port);
 					endpointPath = publishDirectEndpoint(config.homeDir, endpoint);
 					announce(endpoint);
 				} catch (error) {
@@ -215,6 +218,7 @@ export async function startDirectBackend(
 				await closeTransports();
 				await service.dispose();
 			} finally {
+				releaseAgentHook?.();
 				if (endpointPath) {
 					try {
 						if (
@@ -230,6 +234,7 @@ export async function startDirectBackend(
 		};
 		return { endpoint, stop: stopBackend };
 	} catch (error) {
+		releaseAgentHook?.();
 		await closeTransports();
 		await result?.dispose();
 		operationDb?.close();

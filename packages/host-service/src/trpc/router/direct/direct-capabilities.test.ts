@@ -1,5 +1,36 @@
 import { expect, test } from "bun:test";
 import { describeDirectBackend } from "./direct";
+import { registerDirectAgentHookPort } from "../../../direct/agent-hook-url";
+
+test("agent hook readiness is advertised only after this direct listener has registered its port", () => {
+	const identity = {
+		backendId: "backend",
+		namespaceId: "namespace",
+		instanceId: "instance",
+		serviceUid: 1000,
+	};
+	expect(
+		describeDirectBackend(identity, true, true).capabilities
+			.workstationAgentHooksV1,
+	).toBe(false);
+	const release = registerDirectAgentHookPort(43123);
+	try {
+		expect(
+			describeDirectBackend(identity, true, true).capabilities
+				.workstationAgentHooksV1,
+		).toBe(true);
+		expect(
+			describeDirectBackend(identity, false, true).capabilities
+				.workstationAgentHooksV1,
+		).toBe(false);
+	} finally {
+		release();
+	}
+	expect(
+		describeDirectBackend(identity, true, true).capabilities
+			.workstationAgentHooksV1,
+	).toBe(false);
+});
 
 test("agent feedback requires durable operations and existing-terminal restore support", () => {
 	const identity = {

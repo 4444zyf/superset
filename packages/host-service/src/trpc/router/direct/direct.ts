@@ -11,6 +11,7 @@ import {
 import { managedSetupCompletionRoot } from "../../../direct/managed-paths";
 import { runTerminalScriptOperation } from "../../../direct/terminal-script-operation";
 import { runTerminalAgentFeedbackOperation } from "../../../direct/terminal-agent-feedback-operation";
+import { currentDirectAgentHookUrl } from "../../../direct/agent-hook-url";
 import { HOST_SERVICE_VERSION } from "../../../install-source";
 import { supportsWorkspaceRestore } from "../../../terminal/restore-resources";
 import type { DirectBackendIdentity, HostServiceContext } from "../../../types";
@@ -36,6 +37,10 @@ export function describeDirectBackend(
 		cloudAccountRequired: false,
 		chatHarnesses: directChatHarnesses(),
 		capabilities: {
+			workstationAgentHooksV1:
+				durableOperations &&
+				workspaceViewRestoreV1 &&
+				currentDirectAgentHookUrl() !== null,
 			workstationAgentFeedbackV1: durableOperations && workspaceViewRestoreV1,
 			workspaceViewRestoreV1,
 			workstationFilesV1: true,

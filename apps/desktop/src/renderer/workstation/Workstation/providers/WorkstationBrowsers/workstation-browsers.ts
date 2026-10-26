@@ -85,6 +85,22 @@ export class WorkstationBrowsers {
 							opId,
 						});
 						scope.assertCurrent();
+						if (result.kind === "selected") {
+							const runtime = this.entries.get(paneId)!;
+							return {
+								...result,
+								payload: {
+									...result.payload,
+									page: {
+										...result.payload.page,
+										sanitizedUrl: this.canonical(
+											runtime,
+											result.payload.page.sanitizedUrl,
+										),
+									},
+								},
+							};
+						}
 						return result;
 					},
 				},

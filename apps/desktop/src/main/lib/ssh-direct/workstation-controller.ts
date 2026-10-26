@@ -140,6 +140,7 @@ export class WorkstationController {
 				"workstationTerminalScriptsV1",
 				"workstationTerminalScriptExecutionV1",
 				"workstationAgentFeedbackV1",
+				"workstationAgentHooksV1",
 				"git",
 				"durableOperations",
 				"workspaceViewRestoreV1",
@@ -309,6 +310,7 @@ export class WorkstationController {
 				"terminal.createSession": "terminal.createSession",
 				"terminal.runScriptV1": "terminal.runScriptV1",
 				"terminal.sendToAgentV1": "terminal.sendToAgentV1",
+				"agents.run": "agents.run",
 				"terminal.launchSession": "terminal.createSession",
 				"chat.createSession": "chat.createSession",
 				"chat.prompt": "chat.prompt",
@@ -325,6 +327,7 @@ export class WorkstationController {
 		if (
 			request.path === "terminal.runScriptV1" ||
 			request.path === "terminal.sendToAgentV1" ||
+			request.path === "agents.run" ||
 			request.path === "git.commit" ||
 			request.path === "git.push" ||
 			request.path === "git.syncBranchV1" ||
