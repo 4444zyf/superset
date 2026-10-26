@@ -156,7 +156,11 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 		await click(`[data-workstation-pane-tabs] [data-tab-id="${browserTab}"]`);
 		await capture("#next");
 		assert.ok((await guestRead("location.href")).includes("/preview?"), "picking a link does not navigate");
-		await until(() => evaluate("document.querySelector('button[aria-label=\"Choose agent\"]')?.textContent.includes('claude')||document.querySelector('button[aria-label=\"Choose agent\"]')?.textContent.includes('Owned')"), "existing agent is available");
+		await click('button[aria-label="Choose agent"]');
+		await click('input[aria-label="Choose agent"]');
+		await getPage().call("Input.insertText", { text: report.newAgent.terminalId });
+		await until(() => evaluate(`Boolean(document.querySelector('[cmdk-item][data-value="existing:${report.newAgent.terminalId}"]'))`), "owned running agent is listed by its terminal identity");
+		await click(`[cmdk-item][data-value="existing:${report.newAgent.terminalId}"]`);
 		await click(form);
 		const followup = "仅修改选中的链接，保留其他元素。";
 		await getPage().call("Input.insertText", { text: followup });
