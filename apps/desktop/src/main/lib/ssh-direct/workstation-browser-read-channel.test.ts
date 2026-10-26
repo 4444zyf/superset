@@ -19,7 +19,7 @@ class Socket extends EventTarget {
 		);
 	}
 }
-function fixture(navigationV1 = false) {
+function fixture(navigationV1 = false, evaluationV1 = false) {
 	let target: BrowserReadTarget | null = {
 		ownerId: 10,
 		ownerEpoch: 1,
@@ -36,8 +36,10 @@ function fixture(navigationV1 = false) {
 	let duringRead = () => {};
 	let capture = () => Promise.resolve("iVBORw0KGgo=");
 	const navigation = Promise.withResolvers<{ ok: true }>();
+	const evaluation = Promise.withResolvers<{ result: unknown }>();
 	const channels = new WorkstationBrowserReadChannels({
 		navigationV1,
+		evaluationV1,
 		getTarget: () => target,
 		openSocket: (id, path) => {
 			expect([id, path]).toEqual(["connection", "/direct/browser-read/v1"]);
@@ -46,6 +48,10 @@ function fixture(navigationV1 = false) {
 			return s as unknown as WebSocket;
 		},
 		panes: (captured, current) => ({
+			pinEvaluation: (pane, workspace, code) => {
+				reads.push(["evaluation", captured, pane, workspace, code, current()]);
+				return () => evaluation.promise;
+			},
 			pinNavigation: (pane, workspace, url) => {
 				reads.push(["navigation", captured, pane, workspace, url, current()]);
 				return () => navigation.promise;
@@ -101,6 +107,7 @@ function fixture(navigationV1 = false) {
 	return {
 		channels,
 		navigation,
+		evaluation,
 		sockets,
 		reads,
 		ready,
@@ -365,6 +372,65 @@ test("a backend cannot navigate when the desktop did not advertise navigation su
 		workspaceId: "workspace",
 		paneId: "pane",
 		url: "http://localhost:3000",
+	});
+	expect(f.reads).toEqual([]);
+	expect(f.sockets[0]!.closes).toEqual([1008]);
+});
+
+test("evaluation replies preserve a falsy result through the negotiated owner", async () => {
+	const f = fixture(false, true);
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "evaluateV1"]);
+	const id = crypto.randomUUID();
+	f.sockets[0]!.packet({
+		type: "evaluate-request",
+		id,
+		workspaceId: "workspace",
+		paneId: "pane",
+		code: "0",
+	});
+	expect(f.reads).toEqual([
+		["evaluation", f.target(), "pane", "workspace", "0", true],
+	]);
+	expect(f.sockets[0]!.sent).toHaveLength(1);
+	f.evaluation.resolve({ result: 0 });
+	await f.evaluation.promise;
+	expect(f.sockets[0]!.sent[1]).toEqual({
+		type: "evaluate-result",
+		id,
+		ok: true,
+		result: 0,
+	});
+});
+
+test("an old evaluation cannot acknowledge a changed window epoch", async () => {
+	const f = fixture(false, true);
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "evaluateV1"]);
+	f.sockets[0]!.packet({
+		type: "evaluate-request",
+		id: crypto.randomUUID(),
+		workspaceId: "workspace",
+		paneId: "pane",
+		code: "document.title",
+	});
+	f.setTarget({ ...f.target(), ownerEpoch: 2 });
+	f.evaluation.resolve({ result: "old" });
+	await f.evaluation.promise;
+	expect(f.sockets[0]!.sent).toHaveLength(1);
+	expect(f.sockets[0]!.closes).toEqual([1000]);
+});
+
+test("a backend cannot evaluate when the desktop did not advertise evaluation support", () => {
+	const f = fixture();
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "evaluateV1"]);
+	f.sockets[0]!.packet({
+		type: "evaluate-request",
+		id: crypto.randomUUID(),
+		workspaceId: "workspace",
+		paneId: "pane",
+		code: "document.title",
 	});
 	expect(f.reads).toEqual([]);
 	expect(f.sockets[0]!.closes).toEqual([1008]);

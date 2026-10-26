@@ -523,6 +523,7 @@ export async function startWorkstation(): Promise<void> {
 	let rendererOwnerEpoch = 0;
 	browserReadChannels = new WorkstationBrowserReadChannels({
 		navigationV1: true,
+        evaluationV1:true,
 		getTarget: (id) => {
 			if (!rendererBrowserReadReady || !window || window.isDestroyed() || window.webContents.isDestroyed()) return null;
 			const lease = manager.getLease(id);

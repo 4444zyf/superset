@@ -3,8 +3,8 @@ import type { ChatRuntime } from "@superset/chat-runtime";
 import type { AppRouter } from "@superset/trpc";
 import type { TRPCClient } from "@trpc/client";
 import type { HostDb } from "./db";
-import type { DirectOperationStore } from "./direct/operations";
 import type { DirectBrowserReadBridge } from "./direct/browser-read-bridge";
+import type { DirectOperationStore } from "./direct/operations";
 import type { EventBus } from "./events";
 import type { PageWatchManager } from "./page-watch/index.ts";
 import type { WorkspaceFilesystemManager } from "./runtime/filesystem";
@@ -21,7 +21,11 @@ export interface HostServiceRuntime {
 	pageWatch: PageWatchManager | null;
 	chat?: () => ChatRuntime;
 	closeChats?: (scopeId: string) => Promise<void>;
-	chatMaintenanceStatus?: () => { activeChat: number; queuedPrompts: number; waitingApprovals: number };
+	chatMaintenanceStatus?: () => {
+		activeChat: number;
+		queuedPrompts: number;
+		waitingApprovals: number;
+	};
 	activateBackground?: () => void;
 	suspendBackground?: () => void;
 }
@@ -41,7 +45,12 @@ export interface HostServiceContext {
 		Partial<
 			Pick<
 				DirectBrowserReadBridge,
-				"isCaptureReady" | "capturePng" | "isNavigationReady" | "pinNavigation"
+				| "isCaptureReady"
+				| "capturePng"
+				| "isNavigationReady"
+				| "pinNavigation"
+				| "isEvaluationReady"
+				| "pinEvaluation"
 			>
 		>;
 	db: HostDb;

@@ -22,6 +22,8 @@ interface Entry {
 	captureReady: boolean;
 	captureId: string | null;
 	navigationReady: boolean;
+	evaluationReady: boolean;
+	evaluationId: string | null;
 	navigationId: string | null;
 	closing: boolean;
 	next: BrowserReadTarget | null;
@@ -44,6 +46,7 @@ export class WorkstationBrowserReadChannels {
 	constructor(
 		private readonly dependencies: {
 			navigationV1?: boolean;
+			evaluationV1?: boolean;
 			getTarget(id: string): BrowserReadTarget | null;
 			openSocket(id: string, path: string): Socket;
 			panes(
@@ -56,7 +59,7 @@ export class WorkstationBrowserReadChannels {
 				Partial<
 					Pick<
 						ReturnType<typeof currentWorkstationBrowserBridgePanes>,
-						"pinNavigation"
+						"pinNavigation" | "pinEvaluation"
 					>
 				>;
 		},
@@ -117,6 +120,8 @@ export class WorkstationBrowserReadChannels {
 			captureReady: false,
 			captureId: null,
 			navigationReady: false,
+			evaluationReady: false,
+			evaluationId: null,
 			navigationId: null,
 			closing: false,
 			next: null,
@@ -152,6 +157,7 @@ export class WorkstationBrowserReadChannels {
 							"readV1",
 							"capturePngV1",
 							...(this.dependencies.navigationV1 ? ["navigateV1"] : []),
+							...(this.dependencies.evaluationV1 ? ["evaluateV1"] : []),
 						],
 					}),
 				);
@@ -178,9 +184,21 @@ export class WorkstationBrowserReadChannels {
 						throw Error("Invalid ready");
 					entry.ready = true;
 					entry.captureReady = packet.features.includes("capturePngV1");
+					entry.evaluationReady =
+						this.dependencies.evaluationV1 === true &&
+						packet.features.includes("evaluateV1");
 					entry.navigationReady =
 						this.dependencies.navigationV1 === true &&
 						packet.features.includes("navigateV1");
+					return;
+				}
+				if (packet.type === "evaluate-request") {
+					if (!entry.evaluationReady || entry.evaluationId !== null)
+						throw Error("Invalid evaluation request");
+					entry.evaluationId = packet.id;
+					void this.evaluate(entry, packet).catch(() =>
+						this.close(entry, 1011),
+					);
 					return;
 				}
 				if (packet.type === "navigate-request") {
@@ -263,6 +281,56 @@ export class WorkstationBrowserReadChannels {
 			);
 		} finally {
 			if (entry.navigationId === request.id) entry.navigationId = null;
+		}
+	}
+	private async evaluate(
+		entry: Entry,
+		request: { id: string; paneId: string; workspaceId: string; code: string },
+	): Promise<void> {
+		try {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			const panes = this.dependencies.panes(entry.target, () =>
+				this.current(entry),
+			);
+			if (!panes.pinEvaluation)
+				throw Error("Browser evaluation is unavailable");
+			const value = await panes.pinEvaluation(
+				request.paneId,
+				request.workspaceId,
+				request.code,
+			)();
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "evaluate-result",
+					id: request.id,
+					ok: true,
+					result: value.result,
+				}),
+			);
+		} catch {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "evaluate-result",
+					id: request.id,
+					ok: false,
+					error: {
+						message: "Browser evaluation failed or pane is no longer current",
+					},
+				}),
+			);
+		} finally {
+			if (entry.evaluationId === request.id) entry.evaluationId = null;
 		}
 	}
 	private async capturePng(

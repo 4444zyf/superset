@@ -217,6 +217,75 @@ test(
 		}
 	},
 );
+test(
+	"negotiated evaluation crosses the authenticated socket only after its pin executes",
+	{ timeout: 5000 },
+	async () => {
+		const socket = new WebSocket(
+			`ws://127.0.0.1:${port}/direct/browser-read/v1?token=${secret}`,
+		);
+		clients.add(socket);
+		const ready = Promise.withResolvers<void>();
+		const requests: Extract<
+			BrowserBridgePacket,
+			{ type: "evaluate-request" }
+		>[] = [];
+		socket.addEventListener("open", () =>
+			socket.send(
+				encodeBrowserBridgePacket({
+					type: "hello",
+					protocol: 1,
+					...identity,
+					features: ["readV1", "evaluateV1"],
+				}),
+			),
+		);
+		socket.addEventListener("error", () =>
+			ready.reject(Error("Owned evaluation socket failed")),
+		);
+		socket.addEventListener("message", (event) => {
+			const packet = parseBrowserBridgePacket(String(event.data));
+			if (packet.type === "ready") {
+				ready.resolve();
+				return;
+			}
+			if (packet.type === "evaluate-request") {
+				requests.push(packet);
+				socket.send(
+					encodeBrowserBridgePacket({
+						type: "evaluate-result",
+						id: packet.id,
+						ok: true,
+						result: false,
+					}),
+				);
+			}
+		});
+		try {
+			await ready.promise;
+			const input = {
+				workspaceId: "owned-workspace",
+				paneId: "owned-pane",
+				code: "document.title",
+			};
+			const pinned = bridge.pinEvaluation(input);
+			assert.equal(requests.length, 0);
+			assert.deepEqual(await pinned(), { result: false });
+			assert.equal(requests.length, 1);
+			assert.deepEqual(
+				{ ...requests[0]!, id: "request" },
+				{ type: "evaluate-request", id: "request", ...input },
+			);
+			pinned.release?.();
+		} finally {
+			const closed = new Promise<void>((resolve) =>
+				socket.addEventListener("close", () => resolve(), { once: true }),
+			);
+			socket.close();
+			await closed;
+		}
+	},
+);
 
 test(
 	"the authenticated read channel exchanges real frames and disconnect rejects a pending read",

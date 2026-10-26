@@ -73,6 +73,27 @@ export const browserBridgeNavigateRequestSchema = z.strictObject({
 		.max(8192)
 		.regex(/^[^\x00-\x1f\x7f]+$/),
 });
+export const browserBridgeEvaluateRequestSchema = z.strictObject({
+	type: z.literal("evaluate-request"),
+	id: z.string().uuid(),
+	workspaceId,
+	paneId: z.string().min(1).max(256),
+	code: z.string().max(1_000_000),
+});
+const evaluateResultSchema = z.discriminatedUnion("ok", [
+	z.object({
+		type: z.literal("evaluate-result"),
+		id: z.string().uuid(),
+		ok: z.literal(true),
+		result: z.unknown().optional(),
+	}),
+	z.object({
+		type: z.literal("evaluate-result"),
+		id: z.string().uuid(),
+		ok: z.literal(false),
+		error: z.object({ message: z.string().max(4096) }),
+	}),
+]);
 const navigateResultSchema = z.discriminatedUnion("ok", [
 	z.object({
 		type: z.literal("navigate-result"),
@@ -145,6 +166,8 @@ export const browserBridgePacketSchema = z.union([
 	captureDoneSchema,
 	browserBridgeNavigateRequestSchema,
 	navigateResultSchema,
+	browserBridgeEvaluateRequestSchema,
+	evaluateResultSchema,
 ]);
 
 export function validateBrowserCaptureBase64(base64: string): void {

@@ -252,3 +252,43 @@ test("navigation cannot pin a pane from another workspace", () => {
 	).toThrow("No live pane");
 	expect(calls).toBe(0);
 });
+
+test("evaluation pins the public pane and defers the original manager execution", async () => {
+	const f = fixture();
+	const execute = f.source.pinEvaluation("page", "owned", "document.title");
+	expect(f.calls.filter((c) => c[0] === "eval")).toEqual([]);
+	const pending = execute();
+	f.evaluation.resolve(false);
+	expect(await pending).toEqual({ result: false });
+	expect(f.calls.filter((c) => c[0] === "eval")).toEqual([
+		["eval", "owned-manager-key", "document.title", "owned"],
+	]);
+});
+
+test("evaluation refuses a replaced pane before dispatch and discards its late result", async () => {
+	const before = fixture(),
+		pinned = before.source.pinEvaluation("page", "owned", "document.title");
+	before.replace();
+	await expect(pinned()).rejects.toThrow("no longer current");
+	expect(before.calls.filter((c) => c[0] === "eval")).toEqual([]);
+	const after = fixture();
+	const pending = after.source.pinEvaluation(
+		"page",
+		"owned",
+		"document.title",
+	)();
+	after.replace();
+	after.evaluation.resolve(0);
+	await expect(pending).rejects.toThrow("no longer current");
+});
+
+test("evaluation cannot pin another workspace or a retired owner", () => {
+	const f = fixture();
+	expect(() =>
+		f.source.pinEvaluation("page", "other", "document.title"),
+	).toThrow("No live pane");
+	f.retire();
+	expect(() =>
+		f.source.pinEvaluation("page", "owned", "document.title"),
+	).toThrow("no longer current");
+});

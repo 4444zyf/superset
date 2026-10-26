@@ -1,27 +1,29 @@
-import { runDirectBrowserNavigation } from "../../../direct/browser-navigation-rpc";
-import { browserNavigationOperationSchema } from "../../../direct/browser-navigation-operation";
 import os from "node:os";
+import {
+	browserBridgeCaptureRequestSchema,
+	browserBridgeReadOperationSchema,
+} from "@superset/shared/browser-bridge";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createResolveCwd } from "../../../chat-v3/resolveCwd";
 import { directAgentProfiles } from "../../../direct/agent-environment";
+import { currentDirectAgentHookUrl } from "../../../direct/agent-hook-url";
+import { browserEvaluationOperationSchema } from "../../../direct/browser-evaluation-operation";
+import { runDirectBrowserEvaluation } from "../../../direct/browser-evaluation-rpc";
+import { browserNavigationOperationSchema } from "../../../direct/browser-navigation-operation";
+import { runDirectBrowserNavigation } from "../../../direct/browser-navigation-rpc";
+import {
+	DirectBrowserBridgeError,
+	type DirectBrowserReadBridge,
+} from "../../../direct/browser-read-bridge";
 import { directChatHarnesses } from "../../../direct/chat-readiness";
 import {
 	beginDirectDrain,
 	directMaintenanceStatus,
 } from "../../../direct/maintenance";
 import { managedSetupCompletionRoot } from "../../../direct/managed-paths";
-import { runTerminalScriptOperation } from "../../../direct/terminal-script-operation";
 import { runTerminalAgentFeedbackOperation } from "../../../direct/terminal-agent-feedback-operation";
-import { currentDirectAgentHookUrl } from "../../../direct/agent-hook-url";
-import {
-	DirectBrowserBridgeError,
-	type DirectBrowserReadBridge,
-} from "../../../direct/browser-read-bridge";
-import {
-	browserBridgeReadOperationSchema,
-	browserBridgeCaptureRequestSchema,
-} from "@superset/shared/browser-bridge";
+import { runTerminalScriptOperation } from "../../../direct/terminal-script-operation";
 import { HOST_SERVICE_VERSION } from "../../../install-source";
 import { supportsWorkspaceRestore } from "../../../terminal/restore-resources";
 import type { DirectBackendIdentity, HostServiceContext } from "../../../types";
@@ -33,7 +35,10 @@ export function describeDirectBackend(
 	workspaceViewRestoreV1 = false,
 	browserReads?: Pick<DirectBrowserReadBridge, "isReady"> &
 		Partial<
-			Pick<DirectBrowserReadBridge, "isCaptureReady" | "isNavigationReady">
+			Pick<
+				DirectBrowserReadBridge,
+				"isCaptureReady" | "isNavigationReady" | "isEvaluationReady"
+			>
 		>,
 ) {
 	if (!identity)
@@ -51,6 +56,8 @@ export function describeDirectBackend(
 		cloudAccountRequired: false,
 		chatHarnesses: directChatHarnesses(),
 		capabilities: {
+			workstationBrowserEvaluationV1:
+				durableOperations && browserReads?.isEvaluationReady?.() === true,
 			workstationBrowserNavigationV1:
 				durableOperations && browserReads?.isNavigationReady?.() === true,
 			workstationBrowserCaptureV1: browserReads?.isCaptureReady?.() === true,
@@ -300,6 +307,9 @@ export const directRouter = router({
 				});
 			}
 		}),
+	browserEvaluateV1: protectedProcedure
+		.input(browserEvaluationOperationSchema)
+		.mutation(({ ctx, input }) => runDirectBrowserEvaluation(ctx, input)),
 	browserNavigateV1: protectedProcedure
 		.input(browserNavigationOperationSchema)
 		.mutation(({ ctx, input }) => runDirectBrowserNavigation(ctx, input)),

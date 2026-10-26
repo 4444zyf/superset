@@ -1,20 +1,22 @@
-import { BrowserNavigationTransfer } from "./browser-navigation-transfer";
-import type { BrowserNavigationInput } from "./browser-navigation-operation";
-import { BrowserCaptureTransfer } from "./browser-capture-transfer";
 import { randomUUID } from "node:crypto";
 import {
+	type BrowserBridgeConsoleResult,
+	type BrowserBridgeIdentity,
+	type BrowserBridgeListResult,
+	type BrowserBridgePacket,
+	type BrowserBridgeReadOperation,
 	browserBridgeConsoleResultSchema,
 	browserBridgeIdentitySchema,
 	browserBridgeListResultSchema,
 	browserBridgeReadOperationSchema,
 	encodeBrowserBridgePacket,
 	parseBrowserBridgePacket,
-	type BrowserBridgeIdentity,
-	type BrowserBridgeReadOperation,
-	type BrowserBridgeListResult,
-	type BrowserBridgeConsoleResult,
-	type BrowserBridgePacket,
 } from "@superset/shared/browser-bridge";
+import { BrowserCaptureTransfer } from "./browser-capture-transfer";
+import type { BrowserEvaluationInput } from "./browser-evaluation-operation";
+import { BrowserEvaluationTransfer } from "./browser-evaluation-transfer";
+import type { BrowserNavigationInput } from "./browser-navigation-operation";
+import { BrowserNavigationTransfer } from "./browser-navigation-transfer";
 
 type FailureKind = "unavailable" | "busy" | "timeout" | "invalid" | "failed";
 export class DirectBrowserBridgeError extends Error {
@@ -35,6 +37,7 @@ interface Peer {
 	ready: boolean;
 	capturePngV1: boolean;
 	navigateV1: boolean;
+	evaluateV1: boolean;
 	cancelHandshake(): void;
 }
 type ReadResult = BrowserBridgeListResult | BrowserBridgeConsoleResult;
@@ -58,12 +61,17 @@ export class DirectBrowserReadBridge {
 	private readonly schedule: typeof schedule;
 	private readonly capture: BrowserCaptureTransfer;
 	private readonly navigation: BrowserNavigationTransfer;
+	private readonly evaluation: BrowserEvaluationTransfer;
 	constructor(
 		identity: BrowserBridgeIdentity,
 		options: { schedule?: typeof schedule } = {},
 	) {
 		this.identity = browserBridgeIdentitySchema.parse(identity);
 		this.schedule = options.schedule ?? schedule;
+		this.evaluation = new BrowserEvaluationTransfer({
+			schedule: this.schedule,
+			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
+		});
 		this.navigation = new BrowserNavigationTransfer({
 			schedule: this.schedule,
 			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
@@ -112,6 +120,32 @@ export class DirectBrowserReadBridge {
 				),
 		});
 	}
+	isEvaluationReady(): boolean {
+		return this.isReady() && this.peer?.evaluateV1 === true;
+	}
+	pinEvaluation(input: BrowserEvaluationInput) {
+		const peer = this.peer;
+		if (!peer || !this.isEvaluationReady())
+			throw new DirectBrowserBridgeError(
+				"unavailable",
+				"Browser evaluation bridge is unavailable",
+			);
+		return this.evaluation.pin(input, {
+			current: () => this.peer === peer && this.isEvaluationReady(),
+			send: (packet) => this.send(peer, packet),
+			invalidate: (error) =>
+				this.drop(
+					peer,
+					error instanceof DirectBrowserBridgeError
+						? error
+						: new DirectBrowserBridgeError(
+								"unavailable",
+								"Browser evaluation disconnected",
+							),
+					1011,
+				),
+		});
+	}
 	attach(transport: DirectBrowserReadTransport) {
 		if (this.disposed)
 			throw new DirectBrowserBridgeError(
@@ -128,6 +162,7 @@ export class DirectBrowserReadBridge {
 			ready: false,
 			capturePngV1: false,
 			navigateV1: false,
+			evaluateV1: false,
 			cancelHandshake: () => {},
 		};
 		this.peer = peer;
@@ -163,6 +198,7 @@ export class DirectBrowserReadBridge {
 		this.peer = null;
 		this.capture.disconnect(error);
 		this.navigation.disconnect(error);
+		this.evaluation.disconnect(error);
 		peer.cancelHandshake();
 		const pending = [...this.pending.values()];
 		this.pending.clear();
@@ -191,6 +227,7 @@ export class DirectBrowserReadBridge {
 				peer.ready = true;
 				peer.capturePngV1 = packet.features.includes("capturePngV1");
 				peer.navigateV1 = packet.features.includes("navigateV1");
+				peer.evaluateV1 = packet.features.includes("evaluateV1");
 				this.send(peer, {
 					type: "ready",
 					protocol: 1,
@@ -199,8 +236,15 @@ export class DirectBrowserReadBridge {
 						"readV1",
 						...(peer.capturePngV1 ? ["capturePngV1"] : []),
 						...(peer.navigateV1 ? ["navigateV1"] : []),
+						...(peer.evaluateV1 ? ["evaluateV1"] : []),
 					],
 				});
+				return;
+			}
+			if (packet.type === "evaluate-result") {
+				if (!peer.evaluateV1)
+					throw Error("Evaluation feature was not negotiated");
+				this.evaluation.receive(packet);
 				return;
 			}
 			if (packet.type === "navigate-result") {

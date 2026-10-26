@@ -69,6 +69,19 @@ export function currentWorkstationBrowserBridgePanes({
 		return pin(pane);
 	};
 	return {
+		pinEvaluation(
+			paneId: string,
+			workspaceId: string,
+			code: string,
+		): () => Promise<{ result: unknown }> {
+			const { pane, key } = requirePane(paneId, workspaceId);
+			return async () => {
+				assertPinned(pane, key);
+				const result = await manager.evaluateJS(key, code, pane.workspaceId);
+				assertPinned(pane, key);
+				return { result };
+			};
+		},
 		pinNavigation(
 			paneId: string,
 			workspaceId: string,
