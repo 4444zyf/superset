@@ -431,6 +431,15 @@ try {
  const owner=await main.evaluate(`({ownerWindowId:${electron}.BrowserWindow.getAllWindows()[0].getNativeWindowHandle().readUInt32LE(),ownerPid:process.pid})`);
  return driveOwnedX11FileDialog({...owner,action});
  }:undefined,
+ prepareBrowserSiteCookies: async (primaryHost) => {
+  assert.ok(process.argv.includes("--browser-sites"));
+  return main.evaluate(`(async()=>{const e=${electron};if(process.pid!==${child.pid}||e.app.getPath('appData')!==${JSON.stringify(join(output,'../config'))})throw Error('Wrong owned cookie fixture profile');const cookies=e.session.fromPartition('persist:superset').cookies;const before=await cookies.get({});if(before.filter(c=>c.name.startsWith('owned_cookie_')).length!==2)throw Error('Unexpected owned primary cookies');for(const domain of ['other-owned.invalid',...Array.from({length:25},(_,i)=>'site-'+String(i).padStart(2,'0')+'-owned.invalid')])await cookies.set({url:'https://'+domain+'/protected',name:'owned_cookie_other',value:'owned-fixture',path:'/protected',secure:true,httpOnly:true,expirationDate:Date.now()/1000+3600});const rows=await cookies.get({});return {cookieCount:rows.length,primaryCount:rows.filter(c=>c.domain===${JSON.stringify(primaryHost)}).length,foreignCount:rows.filter(c=>c.domain==='other-owned.invalid').length};})()`);
+ },
+ readBrowserSiteCookies: async () => {
+  assert.ok(process.argv.includes("--browser-sites"));
+  return main.evaluate(`(async()=>{const e=${electron};if(process.pid!==${child.pid}||e.app.getPath('appData')!==${JSON.stringify(join(output,'../config'))})throw Error('Wrong owned cookie fixture profile');return (await e.session.fromPartition('persist:superset').cookies.get({})).map(c=>({domain:c.domain,path:c.path,name:c.name,secure:c.secure,httpOnly:c.httpOnly}));})()`);
+ },
+
 				setClipboard: async (value) =>
 					main.evaluate(
 						`(()=>{const e=${electron};e.clipboard.clear();${value.fileUri ? `e.clipboard.writeBuffer('text/uri-list',Buffer.from(${JSON.stringify(value.fileUri + "\r\n")}));` : value.imageBase64 ? `e.clipboard.writeImage(e.nativeImage.createFromBuffer(Buffer.from(${JSON.stringify(value.imageBase64)},'base64')));` : `e.clipboard.writeText(${JSON.stringify(value.text)});`}const image=e.clipboard.readImage();return {formats:e.clipboard.availableFormats(),image:image.isEmpty()?null:{size:image.getSize(),pixelSha256:process.getBuiltinModule('crypto').createHash('sha256').update(image.toBitmap()).digest('hex')}};})()`,

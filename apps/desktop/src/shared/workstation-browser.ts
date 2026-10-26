@@ -1,3 +1,4 @@
+import type { BrowserSiteCookiesApi } from "./browser-site-cookies";
 import type { BrowserImportApi } from "./browser-import";
 import type { SelectScreenshot } from "@superset/local-db/screenshots";
 import type { SelectDownload } from "@superset/local-db/downloads";
@@ -104,6 +105,7 @@ export interface WorkstationScreenshotsApi {
 	): () => void;
 }
 export interface WorkstationBrowserApi {
+	siteCookies?: BrowserSiteCookiesApi;
 	importData?: BrowserImportApi;
 	screenshots?: WorkstationScreenshotsApi;
 	captureScreenshot?(input: {

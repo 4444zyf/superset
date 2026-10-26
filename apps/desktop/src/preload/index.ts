@@ -64,6 +64,10 @@ const directWorkstation: DirectWorkstationApi = {
 			},
 		},
 		clearData: (input) => invoke("clearBrowserData", input),
+		siteCookies: {
+			getDomains: () => invoke("getBrowserCookieDomains"),
+			forget: (input) => invoke("forgetBrowserCookieDomain", input),
+		},
 		setDeviceEmulation: (input) => invoke("setBrowserDeviceEmulation", input),
 		openDevTools: (input) => invoke("openBrowserDevTools", input),
 		reload: (input) => invoke("reloadBrowser", input),

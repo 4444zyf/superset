@@ -1,3 +1,5 @@
+import { createBrowserSiteCookies } from "./lib/browser/browser-site-cookies";
+import { currentBrowserCookies } from "./lib/browser/current-browser-cookies";
 import { BrowserImportService } from "./lib/browser/browser-import-service";
 import {
 	listAllChromiumProfiles,
@@ -808,6 +810,24 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "getBrowserCookieDomains":
+				case "forgetBrowserCookieDomain": {
+					const siteCookies = createBrowserSiteCookies(
+						currentBrowserCookies(
+							() => session.fromPartition("persist:superset").cookies,
+							() =>
+								window === callerWindow &&
+								rendererOwnerEpoch === callerEpoch &&
+								!callerWindow.isDestroyed(),
+						),
+					);
+					if (action === "getBrowserCookieDomains")
+						return siteCookies.getDomains();
+					const input = z
+						.strictObject({ domain: z.string().min(1).max(253) })
+						.parse(payload);
+					return siteCookies.forget(input);
+				}
 				case "getBrowserImportSources":
 					return browserImports.getSources();
 				case "requestBrowserImportPermissions":

@@ -1,3 +1,4 @@
+import { SignedInSitesSubmenuView } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/SignedInSitesSubmenu/components/SignedInSitesSubmenuView";
 import { ChromeImportBanner } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/ChromeImportBanner";
 import { useBrowserImportSource } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/components/ChromeImportBanner/hooks/useBrowserImportSource";
 import {
@@ -388,6 +389,11 @@ export function WorkspaceBrowserPane({
 						onBrowserSettings
 							? () => openBrowserDialog(onBrowserSettings)
 							: undefined
+					}
+					signedInSites={
+						api.browser?.siteCookies ? (
+							<SignedInSitesSubmenuView source={api.browser.siteCookies} />
+						) : undefined
 					}
 					onImport={
 						openImport ? () => openBrowserDialog(openImport) : undefined

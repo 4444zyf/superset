@@ -1,16 +1,20 @@
-import { clearBrowserSessionData } from "main/lib/browser/clear-browser-session-data";
 import { observable } from "@trpc/server/observable";
 import { session } from "electron";
 import {
 	type BrowserOpenRequest,
 	browserManager,
 } from "main/lib/browser/browser-manager";
+import { createBrowserSiteCookies } from "main/lib/browser/browser-site-cookies";
+import { clearBrowserSessionData } from "main/lib/browser/clear-browser-session-data";
 import { screenshotManager } from "main/lib/browser/screenshot-manager";
 import type { ForwardedKey } from "shared/hotkey-chord";
 import { z } from "zod";
 import { publicProcedure, router } from "../..";
 
 export const createBrowserRouter = () => {
+	const siteCookies = createBrowserSiteCookies(
+		() => session.fromPartition("persist:superset").cookies,
+	);
 	return router({
 		register: publicProcedure
 			.input(
@@ -371,35 +375,10 @@ export const createBrowserRouter = () => {
 		// Sites the browser session has cookies for — the closest thing to
 		// "signed-in sites" this app can show without a real credential vault
 		// (imported "logins" are cookies, not stored passwords).
-		getCookieDomains: publicProcedure.query(async () => {
-			const cookies = await session
-				.fromPartition("persist:superset")
-				.cookies.get({});
-			const domains = new Map<string, number>();
-			for (const cookie of cookies) {
-				if (!cookie.domain) continue;
-				const domain = cookie.domain.replace(/^\./, "");
-				domains.set(domain, (domains.get(domain) ?? 0) + 1);
-			}
-			return [...domains.entries()]
-				.map(([domain, cookieCount]) => ({ domain, cookieCount }))
-				.sort((a, b) => a.domain.localeCompare(b.domain));
-		}),
+		getCookieDomains: publicProcedure.query(() => siteCookies.getDomains()),
 
 		clearCookiesForDomain: publicProcedure
 			.input(z.object({ domain: z.string() }))
-			.mutation(async ({ input }) => {
-				const ses = session.fromPartition("persist:superset");
-				const cookies = await ses.cookies.get({ domain: input.domain });
-				await Promise.all(
-					cookies.map((cookie) => {
-						const scheme = cookie.secure ? "https" : "http";
-						const domain = (cookie.domain ?? input.domain).replace(/^\./, "");
-						const url = `${scheme}://${domain}${cookie.path}`;
-						return ses.cookies.remove(url, cookie.name);
-					}),
-				);
-				return { success: true };
-			}),
+			.mutation(({ input }) => siteCookies.forget(input)),
 	});
 };
