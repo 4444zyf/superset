@@ -1704,3 +1704,14 @@ Agent PTY本地PID211613/execution84f2e9e8-2f14-421f-b576-825974f65850，SSH PID
 组合197项562断言/25文件、完整桌面类型、插件及格式/未声明变量检查通过。九十七及本轮曾记录全测试通过而工具退出1；本轮shell xtrace明确显示bun test返回0、随后exit 0，却继续执行登录shell退出脚本中的clear_console -q并失败。无测试的最小命令set -ex; exit 0在login=true复现退出1，login=false退出0，排除了测试断言。最终使用非登录shell验证，工具明确退出0；只调整执行选项，没有修改用户的shell配置、产品或测试来掩盖结果。原九十七记录按当时观察保留，本轮补充已定位根因与原始诊断。
 
 原BrowserManager、HTTP处理/启动/CDP、导航转发、旧RPC/鉴权、CLI浏览器解析和host floor均字节一致，没有新主进程动作、后端通道或可用能力标志。此为源码准备，尚未把CLI连到工作站浏览器；不能把注入isCurrent的单测称为实际后端窗口epoch接入或本地/SSH端到端。无新文案/catalog修改，17严格语言最近通过按九十六。未重建产品：仍为fe7156d5a的2205文件、九十六74脚本逐项不变，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb，无Actions、CLI重建、安装包或后端发行归档。最新设计反馈实窗按九十六，完整终端四场景按八十九；继续原版功能对齐。[阶段九十八证据](evidence/local-ssh-feature-parity/stage98)。
+
+
+## 阶段九十九：有界浏览器只读请求协议核心（2026-10-26）
+
+e41fbfeb0把原host BrowserPane/ConsoleEntry接口定义移到共享browser-bridge子路径，原位置只做type re-export。两接口字段/可空性/类型AST完全一致，旧type-only文件编译JS相同；shared package只新增这一export，未增依赖或改既有export。新消息层协议版本1，显式协商readV1并忽略未知可选feature，只支持list/console两类只读请求。消息按UTF-8字节限制4MiB，列表/日志分别保留原窗口128pane、console500项预算；列表回复必须属于请求工作区，原数据包络保持。
+
+DirectBrowserReadBridge核心捕获backend/namespace/instance副本，每实例只允许一个peer，未完成匹配握手不能读取。请求id独立，最多8项pending，握手5秒/读取10秒的时钟可注入；超时、断连、写失败和dispose结算并移除回调，不重发。旧peer的关闭或数据不能影响替代peer，未知/重复/迟到id不结算另一项请求；结构或工作区不匹配的数据拒绝并关闭该通道。单项peer错误返回只结算该项，不假称连接整体失败。这里的身份协商不等于鉴权，后续必须先接已有PSK WebSocket守卫，才能让peer进入该核心。当前未注册任何真实socket路由或RPC，也没有发布可用能力或桌面/CLI调用。
+
+14项核心回归控制所有deadline，不做真实等待，覆盖捕获身份/协议/feature、单peer与旧关闭、原列表/console包络、错误/重复id、超时和晚结果、断连/替代会话、错误结构与foreign workspace、pending上限/关闭、写失败及握手ack失败。加原3项能力回归合计17项74断言/2文件通过；共享3项8断言检查消息往返、实际UTF-8字节超限及原数据形状/边界。第一轮前5项通过后，fixture把Bun拒绝断言放在手动触发时钟之前，断言自身等待导致无法走到触发代码；只停止拥有的测试进程217972，退出143并确认不存在。改为先附普通catch、触发后再断言，未提高超时或改变正确的产品结算逻辑。初版findLast不在既有TS lib中，改为fixture的reverse/find，不改target/lib。全部过程日志保留。
+
+desktop、host-service、shared三处类型、插件及格式/未声明变量检查通过。原app/runtime、RPC/鉴权/能力、BrowserBridgeClient/CDP路由、终端、SSH manager、CLI浏览器解析和host floor均字节保持；没有新增已发布RPC输入/输出/错误或环境变量。没有新UI或catalog变更，17严格语言最近通过按九十六。本轮为源码准备，不能称为真实WebSocket、CLI、本地/SSH界面验收。未重建dist，九十六fe7156d5a的2205文件/74脚本逐项不变，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb；无Actions、CLI重建、安装包或后端发行归档。继续把原浏览器读取接到鉴权通道和所属桌面生命周期，其他原版功能对齐未完成。[阶段九十九证据](evidence/local-ssh-feature-parity/stage99)。

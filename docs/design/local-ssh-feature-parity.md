@@ -16,7 +16,7 @@
 
 ## 基线清单
 
-这是截至阶段九十八的工作清单，`待接入`不是实现完成；“已接基础操作”只覆盖本行注明的入口。状态依据现有源码和对应阶段记录更新，具体原生验证范围仍以各阶段证据为准，不代表本轮重新运行全部功能。
+这是截至阶段九十九的工作清单，`待接入`不是实现完成；“已接基础操作”只覆盖本行注明的入口。状态依据现有源码和对应阶段记录更新，具体原生验证范围仍以各阶段证据为准，不代表本轮重新运行全部功能。
 
 | 功能组 | 原版实现或数据源 | 当前直连入口 | 对齐要求 |
 | --- | --- | --- | --- |
@@ -221,3 +221,5 @@
 阶段九十七以495b1f1a5提取原浏览器桥11个HTTP处理主体为注入manager/来源服务的注册函数，旧启动仍接原实现，鉴权/CDP/作用域/15秒超时/8项队列上限保持；每个注册实例自己的队列隔离。9项真实自有loopback HTTP测试控制超时回调，不等待真实deadline；合并188项530断言/24文件、桌面类型/插件通过，RPC/CLI字节不变。仅源码准备，未启用工作站CLI桥/新能力、未重建产品；阶段九十六的2205编译文件/74脚本/CLI逐项不变，最新实窗仍按九十六。首轮夹具/类型错误及188通过但命令退出1的未解释观测已保留，最终工具确认退出0；继续所属连接通道接入，整体对齐未完成。[阶段九十七证据](../implementation/evidence/local-ssh-feature-parity/stage97)。
 
 阶段九十八以1565720e9增加只读注册发现和浏览器桥窗格访问准备：原注册表新增返回副本的方法，按窗口、连接代次/backend/namespace/instance/工作区过滤；原manager key执行截图/eval/console，元数据恢复远端URL，窗口epoch或registration变化拒绝晚结果。2项发现/7项访问回归及原功能197项562断言/25文件、桌面类型/插件通过；原registry成员、HTTP/manager/navigation/RPC/鉴权/CLI及host floor保持。九十七的退出码异常已用无测试最小复现定位为登录bash退出时clear_console失败覆盖退出码；改用非登录验证shell后明确退出0，未改用户shell配置或为此改产品/测试。仍未启用CLI桥、无新构建/原生验收，九十六2205编译文件/74脚本/CLI不变，继续后端通道。[阶段九十八证据](../implementation/evidence/local-ssh-feature-parity/stage98)。
+
+阶段九十九以e41fbfeb0增加浏览器只读协议核心：原BrowserPane/ConsoleEntry类型移至共享路径，接口AST及原type-only模块JS相同；新核心只协商readV1，按backend/namespace/instance和单peer绑定请求，8项pending、4MiB UTF-8帧、原128pane/500console边界，断连/关闭/超时结算并丢弃晚回复，不重发。14核心+3既有能力测试17项74断言、共享3项8断言及desktop/host/shared类型/插件通过。核心不是鉴权替代；尚无真实WebSocket路由/RPC/能力标志/桌面接入/CLI入口，不算浏览器CLI恢复。无构建/原生验收，九十六2205文件/74脚本/CLI不变，继续鉴权通道接入。[阶段九十九证据](../implementation/evidence/local-ssh-feature-parity/stage99)。
