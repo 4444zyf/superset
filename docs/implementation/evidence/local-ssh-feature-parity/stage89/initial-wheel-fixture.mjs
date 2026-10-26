@@ -1,0 +1,103 @@
+import assert from "node:assert/strict";
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
+import { agentUiDriver } from "./verify-workstation-agent-ui-driver.mjs";
+export async function verifyWorkstationWheelUi({getPage, click, screenshot, output, setClipboard, pasteClipboard, readClipboardText, scope: suppliedScope}) {
+ const {evaluate, until} = agentUiDriver({getPage,click,screenshot,output});
+ const scope = suppliedScope ?? await evaluate(`(async()=>{const d=(await window.directWorkstation.getWorkspaceRestore()).descriptor;const {snapshot:v}=await window.directWorkstation.getWorkspaceView();const t=v.targets.find(t=>t.connectionId===d.connectionId),w=t.workspaces.find(w=>w.tabId===t.activeTabId);const row=await window.directWorkstation.rpc({connectionId:d.connectionId,generation:d.generation,path:'workspace.get',type:'query',input:{id:w.workspaceId}});return {d,w,root:row.worktreePath};})()`);
+ const rpc=(path,input)=>evaluate(`window.directWorkstation.rpc(${JSON.stringify({connectionId:scope.d.connectionId,generation:scope.d.generation,path,type:'query',input:{workspaceId:scope.w.workspaceId,...input}})})`);
+ await click('text:New terminal');
+ const terminal=await until(()=>evaluate(`[...document.querySelectorAll('[data-terminal-id]')].map(e=>({id:e.dataset.terminalId,state:e.dataset.restoreState})).find(e=>e.state==='attached'&&!${JSON.stringify(scope.w.panes.map(p=>p.resourceId))}.includes(e.id))`),'new terminal attached');
+ const selector=`[data-terminal-id="${terminal.id}"]`;
+ await click(`${selector} .xterm-screen`);
+ const key=async(key,code)=>{for(const type of ['keyDown','keyUp'])await getPage().call('Input.dispatchKeyEvent',{type,key,code:key,windowsVirtualKeyCode:code});};
+ const text=value=>getPage().call('Input.insertText',{text:value});
+ const file=`${scope.root}/wheel-input.json`;
+ const program=`import os,sys,tty,termios,json,time,re\nf=sys.stdin.fileno();old=termios.tcgetattr(f);received=[];stage='normal';offset=100;pending=b''\ndef state():\n open(${JSON.stringify(file)},'w').write(json.dumps({'stage':stage,'received':received,'offset':offset}))\ndef screen(label):\n sys.stdout.write('\\x1b[2J\\x1b[H'+label+' 中文 🙂\\r\\n'+''.join('TUI line %03d\\r\\n'%i for i in range(offset,offset+11)));sys.stdout.flush()\ntry:\n tty.setraw(f)\n sys.stdout.write(''.join('SHELL HISTORY %03d\\r\\n'%i for i in range(1,201)));sys.stdout.flush();state()\n while True:\n  data=os.read(f,4096);received.append(data.hex())\n  pending+=data\n  while pending.startswith(b'\\x1b'):\n   report=re.match(rb'\\x1b\\[<([0-9]+);[0-9]+;[0-9]+[Mm]',pending)\n   if report:\n    button=int(report[1]);pending=pending[report.end():]\n   elif pending.startswith(b'\\x1b[M') and len(pending)>=6:\n    button=pending[3]-32;pending=pending[6:]\n   else: break\n   if button in (64,65): offset+=-1 if button==64 else 1;screen(stage+' OFFSET '+str(offset))\n  if not pending.startswith(b'\\x1b'): pending=b''\n  if data==b'a':\n   stage='alternate';sys.stdout.write('\\x1b[?1049h');screen('FIRST SCREEN')\n  elif data==b'n':\n   stage='redraw';screen('SECOND SCREEN')\n  elif data==b's':\n   stage='mouse';sys.stdout.write('\\x1b[?1000h\\x1b[?1006h');sys.stdout.flush()\n  elif data==b'r':\n   stage='legacy';sys.stdout.write('\\x1bc\\x1b[?1049h\\x1b[?1000h');screen('RESET LEGACY MOUSE')\n  elif data==b'p':\n   stage='pixels';sys.stdout.write('\\x1b[?1006;1016h');screen('PIXEL MOUSE')\n  elif data==b'q':\n   stage='finished';state();break\n  state()\nfinally:\n sys.stdout.write('\\x1b[?1000l\\x1b[?1006l\\x1b[?1049l');sys.stdout.flush();termios.tcsetattr(f,termios.TCSADRAIN,old)\n`;
+ const command="python3 -u -c \"exec(bytes.fromhex('"+Buffer.from(program).toString('hex')+"').decode())\"";
+ await text(command);await key('Enter',13);
+ const state=async()=>{try{const row=await rpc('filesystem.readFile',{absolutePath:file,maxBytes:64*1024});return JSON.parse(row.kind==='text'?row.content:Buffer.from(row.content,'base64').toString());}catch{return null;}};
+ await until(async()=>{const s=await state();return s?.stage==='normal'&&s;},'normal raw terminal fixture');
+ const wheel=async(deltaY,edge=false)=>{const point=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}+' .xterm-screen'),r=e.getBoundingClientRect();return {x:${edge ? "r.right-10" : "r.x+r.width/2"},y:r.y+Math.min(60,r.height/2)};})()`);await getPage().call('Input.dispatchMouseEvent',{type:'mouseWheel',...point,deltaX:0,deltaY});await delay(180);};
+ const slider=()=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}+' .xterm-scrollbar.xterm-vertical .xterm-slider');return e&&{top:parseFloat(e.style.top),height:parseFloat(e.style.height)};})()`);
+ const traces=[];
+ const normalBefore=await slider();
+ await screenshot('wheel-normal-before');await wheel(-150);await screenshot('wheel-normal-after');
+ const normalAfter=await slider();
+ assert.ok(normalBefore&&normalAfter&&normalAfter.top<normalBefore.top,'normal viewport actually scrolls upward');
+ await wheel(150);const normalDown=await slider();assert.ok(normalDown.top>normalAfter.top,'normal viewport actually scrolls downward');
+ traces.push({phase:'normal-viewport',normalBefore,normalAfter,normalDown});
+ traces.push({phase:'normal',state:await state()});assert.deepEqual(traces.at(-1).state.received,[],'shell wheel never generates input');
+ await text('a');await until(async()=>(await state())?.stage==='alternate','alternate fixture');await delay(150);
+ await text('n');await until(async()=>(await state())?.stage==='redraw','TUI full redraw');await delay(150);
+ const before=await state();await screenshot('wheel-tui-before');await wheel(-100);
+ const after=await state();traces.push({phase:'alternate',before,after});writeFileSync(join(output,'wheel-input-traces.json'),JSON.stringify(traces,null,2)+'\n');
+ await screenshot('wheel-tui-after');
+ assert.deepEqual(after.received,before.received,'TUI wheel must review content without emitting cursor keys');
+ const review=await until(()=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}+' [data-terminal-scrollback-review]'),p=e?.querySelector('pre');return p&&{text:p.textContent,scrollTop:p.scrollTop,scrollHeight:p.scrollHeight,clientHeight:p.clientHeight};})()`),'client history review visible');
+ assert.ok(review.text.includes('FIRST SCREEN')&&review.text.includes('SECOND SCREEN')&&review.text.includes('SHELL HISTORY 001'));
+ assert.ok(review.scrollTop < review.scrollHeight-review.clientHeight);
+ if(process.argv.includes('--wheel-clipboard')) {
+  const selectionRect=await evaluate(`(()=>{const p=document.querySelector(${JSON.stringify(selector)}+' [data-terminal-scrollback-review] pre'),n=p.firstChild,i=n.textContent.indexOf('FIRST SCREEN');const range=document.createRange();range.setStart(n,i);range.setEnd(n,i+'FIRST SCREEN 中文'.length);const r=range.getBoundingClientRect();return {x:r.x+1,y:r.y+r.height/2,endX:r.right-1};})()`);
+  await getPage().call('Input.dispatchMouseEvent',{type:'mousePressed',x:selectionRect.x,y:selectionRect.y,button:'left',clickCount:1});
+  await getPage().call('Input.dispatchMouseEvent',{type:'mouseMoved',x:selectionRect.endX,y:selectionRect.y,button:'left',buttons:1});
+  await getPage().call('Input.dispatchMouseEvent',{type:'mouseReleased',x:selectionRect.endX,y:selectionRect.y,button:'left',clickCount:1});
+  const selection=await evaluate(`window.getSelection()?.toString()`);
+  writeFileSync(join(output,'wheel-history-selection.json'),JSON.stringify({selectionRect,selection},null,2)+'\n');
+  assert.ok(selection?.includes('FIRST SCREEN'),'mouse drag selects visible client history text');
+  for(const type of ['keyDown','keyUp'])await getPage().call('Input.dispatchKeyEvent',{type,key:'c',code:'KeyC',windowsVirtualKeyCode:67,modifiers:process.platform==='darwin'?4:2});
+  assert.equal(await readClipboardText(),selection,'native copy preserves the history selection');
+  await evaluate(`(()=>{window.wheelReviewPastes=[];document.addEventListener('paste',e=>window.wheelReviewPastes.push({review:Boolean(e.target.closest?.('[data-terminal-scrollback-review]')),files:e.clipboardData.files.length}),true);return true;})()`);
+  const files=async()=>{try{return (await rpc('filesystem.listDirectory',{absolutePath:scope.root+'/.superset/attachments'})).entries.map(e=>e.name).sort();}catch{return [];}};
+  const filesBefore=await files();
+  await setClipboard({imageBase64:readFileSync(join(output,'wheel-tui-after.png')).toString('base64')});await pasteClipboard();
+  const pasted=await until(()=>evaluate('window.wheelReviewPastes.length&&window.wheelReviewPastes'),'real image paste dispatched');
+  await delay(250);const filesAfter=await files(),inputAfter=await state();
+  writeFileSync(join(output,'wheel-review-clipboard.json'),JSON.stringify({pasted,filesBefore,filesAfter,inputAfter},null,2)+'\n');
+  assert.equal(pasted[0].review,true);assert.ok(pasted[0].files>0);assert.deepEqual(filesAfter,filesBefore,'history image paste must not upload an attachment');assert.deepEqual(inputAfter.received,before.received);
+  await screenshot('wheel-readonly-history-copy-and-paste');
+ }
+ for(const delta of [-1,-3,1,-80,40,-150,20])await wheel(delta);
+ assert.deepEqual((await state()).received,before.received);
+ await key('Escape',27);await until(()=>evaluate(`!document.querySelector(${JSON.stringify(selector)}+' [data-terminal-scrollback-review]')`),'escape closes review');
+ assert.deepEqual((await state()).received,before.received,'Escape closes client review without sending Escape to the TUI');
+ if(process.argv.includes('--wheel-mode-transitions')) {
+  await evaluate(`localStorage.setItem('SUPERSET_TERMINAL_STOCK_WHEEL','1')`);
+  try {
+   await wheel(-100);
+   const stockAfter=await state();
+   await screenshot('wheel-saved-stock-preference');
+   writeFileSync(join(output,'wheel-saved-stock-preference.json'),JSON.stringify({before,after:stockAfter},null,2)+'\n');
+   assert.deepEqual(stockAfter.received,before.received,'saved stock-wheel preference must not inject arrow keys');
+  } finally { await evaluate(`localStorage.removeItem('SUPERSET_TERMINAL_STOCK_WHEEL')`); }
+  await key('Escape',27);
+ }
+ await text('s');await until(async()=>(await state())?.stage==='mouse','SGR TUI mouse mode');
+ const mouseBefore=await state();await wheel(-80);const mouseUp=await state();assert.ok(mouseUp.offset<mouseBefore.offset,'TUI content scrolls up');await screenshot('wheel-tui-mouse-up');await wheel(80);const mouseAfter=await state();assert.ok(mouseAfter.offset>mouseUp.offset,'TUI content scrolls down');
+ const reports=Buffer.from(mouseAfter.received.slice(mouseBefore.received.length).join(''),'hex').toString();
+ assert.match(reports,/\x1b\[<64;/);assert.match(reports,/\x1b\[<65;/);assert.doesNotMatch(reports,/\x1b(?:\[|O)[AB]/);
+ await screenshot('wheel-tui-native-mouse');
+ if(process.argv.includes('--wheel-mode-transitions')) {
+  const priorRemount=await state();
+  await click('text:Files');await until(()=>evaluate(`Boolean(document.querySelector('[data-workspace-files]'))`),'files before wheel remount');
+  await click('text:Terminal');await until(()=>evaluate(`Boolean(document.querySelector(${JSON.stringify(selector)}+'[data-restore-state="attached"] .xterm-screen'))`),'same terminal reattached');
+  assert.deepEqual((await state()).received,priorRemount.received,'remount does not inject input');
+  await click(`${selector} .xterm-screen`);
+  const transitions=[];
+  for(const [command,stage] of [['r','legacy'],['p','pixels']]) {
+   await text(command);await until(async()=>(await state())?.stage===stage,stage+' mouse fixture');
+   const previous=await state();await wheel(-80,stage==='legacy');const upward=await state();assert.ok(upward.offset<previous.offset,stage+' TUI scrolls up');await screenshot('wheel-'+stage+'-up');await wheel(80,stage==='legacy');const current=await state();assert.ok(current.offset>upward.offset,stage+' TUI scrolls down');
+   const bytes=Buffer.from(current.received.slice(previous.received.length).join(''),'hex').toString('latin1');
+   transitions.push({stage,previous,upward,current,bytes});
+   writeFileSync(join(output,'wheel-mode-transitions.json'),JSON.stringify(transitions,null,2)+'\n');
+   if(stage==='legacy') { assert.match(bytes,/\x1b\[M`/);assert.match(bytes,/\x1b\[Ma/);assert.doesNotMatch(bytes,/\x1b\[</);assert.ok([...bytes].some(c=>c.charCodeAt(0)>127),'legacy high coordinates remain raw bytes'); }
+   else { const coords=[...bytes.matchAll(/\x1b\[<(64|65);(\d+);(\d+)M/g)];assert.equal(coords.length,2);assert.ok(coords.every(c=>Number(c[2])>100&&Number(c[3])>40),'SGR pixel mode keeps pixel coordinates'); }
+   assert.doesNotMatch(bytes,/\x1b(?:\[|O)[AB]/);
+   await screenshot('wheel-'+stage+'-mouse');
+  }
+ }
+ await text('q');await until(async()=>(await state())?.stage==='finished','input still usable');
+ writeFileSync(join(output,'wheel-acceptance.json'),JSON.stringify({connectionKind:scope.d.kind,terminal,review,mouseBefore,mouseUp,mouseAfter,reports,errors:getPage().errors},null,2)+'\n');
+ assert.deepEqual(getPage().errors,[]);
+}
