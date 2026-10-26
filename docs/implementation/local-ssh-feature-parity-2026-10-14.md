@@ -1665,3 +1665,20 @@ c1e63f767为后续原设计模式发送接入提供可选workstationAgentFeedbac
 真实Electron-as-Node/PTY daemon/临时host SQLite检查1项退出0：通过实际direct.execute向拥有的cat进程发送中文/Emoji多行反馈，逐字节断言原括号粘贴，重复相同operationId返回同一完成回执而没有第二次输入；Agent标记结束后新请求拒绝，未落入仍存活的shell。绑定是测试合成的claude元数据，不是真实供应商认证；该检查是服务/PTY集成，不代替工作站浮层、本地/SSH实窗或Mac验收。拥有PID201938、临时profile/socket在完成后不存在。
 
 工作站原设计模式浮层、目标端附件与Agent选择/发送UI仍待接入。本阶段未重建dist，609f68608的2205编译文件及九十二73脚本逐一不变，CLI未重建，无Actions、安装包、后端发行归档或生产部署。最新完整终端四场景仍按八十九，浏览器工具实窗按九十二；继续整体功能对齐。[阶段九十五证据](evidence/local-ssh-feature-parity/stage95)。
+
+
+## 阶段九十六：原设计反馈浮层、目标端附件与 Agent 生命周期（2026-10-26）
+
+6fe8f7733从原DesignModePopover、AgentSessionSelect及其选项、Design按钮/提示条提取展示组件，原wrapper保留RPC、账号图标依赖和提交主体；工作站使用同一展示/原目标选择偏好，接所属后端的绑定、Agent配置、终端标题和pending状态。原Escape与锚定逻辑复用，离开窗格、替换guest、导航及发送完成丢弃旧捕获。读取和每次附件操作前后验证完整连接/工作区/注册身份；目标端使用原上下文格式、脱敏预算、截图裁剪和文件写入。SSH上下文URL还原为远端localhost。浏览器CLI桥尚未接入，工作站明确不生成不可用的CLI操作提示，legacy默认Prompt保持。
+
+新Agent复用原agents.run持久操作及配置，已有Agent复用九十五的sendToAgentV1、原绑定/执行校验和粘贴队列。同步busy门避免双Enter，确认送达先退出捕获，再揭示原终端；界面打开失败不留可重发的表单。未知回执保留评论并显示原pending操作入口，刷新只读，不自动确认或重发。新Agent另要求可选workstationAgentHooksV1；旧后端在操作前禁用，不提高host floor。
+
+实际启动环境先经过原isolateDirectAgentEnvironment，初版传入的回调URL被它清除。确定性测试2通过/1失败复现后，改为隔离后仅恢复本后端实际监听地址。随后实窗又发现原direct公共Procedure仍要求鉴权，合成Agent的原notifications.hook返回401。最终fe7156d5a给TCP listener增加随机专用回调URL，只将精确POST且无query的该URL转交原notifications.hook，由服务端内部附加自身凭据；终端环境只得到此有限回调能力。错误token、其他路径/方法、原RPC及Origin检查保持。app.ts、原tRPC鉴权和notifications处理字节不变，Unix控制socket不增加该入口。所有权token防止旧listener清理新listener的地址，停止/启动失败均释放。未把后端PSK或供应商凭据放入Agent环境。
+
+原生失败与修复分开记录。旧609f68608无Design入口；6fe8f7733第一次捕获和Escape通过，返回标签后重选失败。只读CDP条件断点/guest事件确认返回cancelled/user，同时看到鼠标移动与点击之间页面位置改变。7bdd6aca7让选择按点击坐标重新命中并取消排队的悬停绘制；新增脚本行为测试在旧实现失败，新实现覆盖尚未绘制/布局移动后仍选中实际h1。测试首次对原selector误写为#heading，改回原h1#heading，仅属夹具预期修正。此产品修复本身未令整个实窗立即通过：后续诊断仍见webview原生事件位置落后31像素，单纯比较DOM尺寸不足。夹具补充只读实际viewport就绪观测、每次选择/确认画面截图，再发送一次真实手势；没有重发点击、提高超时或调整页面布局。搜索菜单也会异步过滤，初轮仅等待目标条目存在可能点中旧默认项；最后0a22ebc2b等待唯一可见的搜索结果，并在任何启动/发送前核对原选择记录和实际按钮。一次错误默认Claude启动因可执行文件不存在而拒绝，原unresolved回执保留，没有供应商进程执行或自动重发。10次基线/失败的报告、截图、数值、源码/脚本快照及清理记录全部保留。
+
+最终本地choice-local-fe715与拥有loopback SSH的verified-ssh-fe715均退出0，使用同一fe7156d5a产品和0a22ebc2b的74脚本。实际h1捕获、中文评论、原搜索选择自有配置、Enter启动Python合成TUI，原目标端Markdown与PNG被其实际读取；第二次选择链接不导航，明确选同一Agent，原粘贴模式关闭时仍收到精确ESC[200~中文提示ESC[201~。原执行号/PID/cwd保持且绑定唯一。正常关闭重开不重新发送、附件仍为两组，原TUI仍在并已显示Feedback received；通过实际Ctrl+C发送Detached并停止。此为合成协议夹具，非真实Claude/Codex认证。SSH上下文不含桌面转发origin，先执行20次原恢复采样。原查找/导航/window.open分屏/选择性关闭/正常重开与自有HTTP服务也通过，服务实际Ctrl+C退出；本轮未执行DevTools工具子套件或阶段八十九完整四终端套件。
+
+Agent PTY本地PID211613/execution84f2e9e8-2f14-421f-b576-825974f65850，SSH PID215195/execution14098b1a-84f3-4531-a79a-eea41229680c；Python进程分别211621/215215。最终appPath=/workspace/superset/apps/desktop，renderer=file:///workspace/superset/apps/desktop/dist/renderer/index.html；本地最终main/renderer端口39819/44159，SSH35537/41509。两端原HTTP终端与Agent各自前后身份保持，所有拥有app/Xorg/Agent/HTTP进程及X163 socket均已退出，renderer运行异常数组为空。实际查看图共13张见visual-review.json，包含新旧失败、本地/SSH原表单和选区PNG、SSH重开后的TUI；其他图仅称捕获。
+
+初版完整桌面271项4272断言/36文件通过；guest点击修复后浏览器154项395断言/20文件通过；最终回调修复后端96项282断言/8文件、两端完整类型通过，不将不同轮次相加冒称一次全量回归。17语言extract/严格编译、插件、格式/未声明变量及原代码AST核对通过；抽取早期JSX、测试matcher和类型夹具错误另留日志，不混称产品红灯。最终编译由工具确认退出0后才冻结运行：2205文件manifest SHA256 afe94ed264db2443eb839bb75d9e596858f146e7cd7f5293d9b68478787596a4，全部运行后逐文件与74脚本一致，CLI仍f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb。无Actions、CLI重建、安装包或后端发行归档。真实供应商认证、外部SSH、实体Mac、设备模式下设计反馈、CLI浏览器桥、rightPane及其余原版功能仍未完成整体对齐。[阶段九十六证据](evidence/local-ssh-feature-parity/stage96)。

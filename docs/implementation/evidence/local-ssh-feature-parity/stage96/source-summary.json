@@ -1,0 +1,90 @@
+{
+  "source": "fe7156d5a07f66333699bf4d73d0324a2cf06b3d",
+  "fixtureCommit": "0a22ebc2b2f79ffc53c5c9cf14aa618cd5cc23e6",
+  "scope": "original design feedback UI, target-machine attachments, original new-agent launch, scoped durable existing-agent send, and capability-limited direct callback relay",
+  "compiled": {
+    "source": "fe7156d5a07f66333699bf4d73d0324a2cf06b3d",
+    "fileCount": 2205,
+    "manifestSha256": "afe94ed264db2443eb839bb75d9e596858f146e7cd7f5293d9b68478787596a4",
+    "cliSha256": "f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb"
+  },
+  "fixtures": 74,
+  "cliSha256": "f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb",
+  "checks": {
+    "desktopBeforeNativeFix": {
+      "tests": 271,
+      "assertions": 4272,
+      "files": 36
+    },
+    "browserAfterClickFix": {
+      "tests": 154,
+      "assertions": 395,
+      "files": 20
+    },
+    "hostAfterRelayFix": {
+      "tests": 96,
+      "assertions": 282,
+      "files": 8
+    },
+    "desktopTypesExit": 0,
+    "hostTypesExit": 0,
+    "strictLocales": 17,
+    "pluginsExit": 0
+  },
+  "verified": [
+    {
+      "case": "choice-local-fe715",
+      "cleanup": {
+        "ownedXorgPid": 211335,
+        "ownedXorgExit": 0,
+        "appExit": 0
+      },
+      "appPid": 211647,
+      "ownedAppAndXorgAbsent": true,
+      "agentPid": 211613,
+      "programPid": 211621,
+      "agentExecutionId": "84f2e9e8-2f14-421f-b576-825974f65850",
+      "httpPid": 211579,
+      "httpExecutionId": "a4804046-0250-4e83-aecb-c397e1c3c7d7",
+      "inspectPorts": {
+        "main": 39819,
+        "renderer": 44159
+      },
+      "rendererUrl": "file:///workspace/superset/apps/desktop/dist/renderer/index.html",
+      "feedbacks": 2,
+      "normalReopen": true,
+      "syntheticTuiNotVendorAuthentication": true
+    },
+    {
+      "case": "verified-ssh-fe715",
+      "cleanup": {
+        "ownedXorgPid": 211754,
+        "ownedXorgExit": 0,
+        "appExit": 0
+      },
+      "appPid": 215278,
+      "ownedAppAndXorgAbsent": true,
+      "agentPid": 215195,
+      "programPid": 215215,
+      "agentExecutionId": "14098b1a-84f3-4531-a79a-eea41229680c",
+      "httpPid": 215133,
+      "httpExecutionId": "19f6f246-8d98-48c8-a653-d7c4da1f264f",
+      "inspectPorts": {
+        "main": 35537,
+        "renderer": 41509
+      },
+      "rendererUrl": "file:///workspace/superset/apps/desktop/dist/renderer/index.html",
+      "feedbacks": 2,
+      "normalReopen": true,
+      "syntheticTuiNotVendorAuthentication": true
+    }
+  ],
+  "oldAuthenticationAndNotificationRpcByteUnchanged": true,
+  "failuresRetained": 10,
+  "lastFullTerminalFourScenarios": "stage89 product5dcb36689, not rerun here",
+  "limits": [
+    "synthetic TUI and owned loopback SSH only; no actual vendor authentication, external SSH, or physical Mac acceptance",
+    "CLI browser bridge, right pane and remaining parity work continue",
+    "no Actions, CLI rebuild, installer or sealed backend archive"
+  ]
+}
