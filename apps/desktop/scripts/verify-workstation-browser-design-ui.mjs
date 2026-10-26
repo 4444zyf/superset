@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { agentUiDriver } from "./verify-workstation-agent-ui-driver.mjs";
 
 const agentProgram = String.raw`import os,sys,json,re,hashlib,base64,struct,termios,tty,urllib.request,urllib.parse,uuid
@@ -50,6 +51,35 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 	const { getPage, click, screenshot, output, controls } = options;
 	const { scope, url, marker, readProof, guestRead, key, readView, workspace, terminalTab } = context;
 	const { evaluate, until } = agentUiDriver(options);
+	const diagnostic = process.argv.includes("--design-diagnostic");
+	if (diagnostic) {
+		await evaluate("window.__ownedDesignTrace=[]");
+		await getPage().call("Debugger.enable");
+		const assets = fileURLToPath(new URL("../dist/renderer/assets/", import.meta.url));
+		const file = readdirSync(assets).find(name => name.endsWith(".js") && readFileSync(join(assets, name), "utf8").includes("class DesignModeStoreCore"));
+		assert.ok(file, "compiled design store is available for passive diagnostics");
+		const source = readFileSync(join(assets, file), "utf8"), start = source.indexOf("class DesignModeStoreCore");
+		for (const [name, needle, extra] of [
+			["state", "    if (state.phase === \"idle\")", "phase:state.phase"],
+			["exit", "    this.bumpGeneration(paneId);", ""],
+			["enabled", "    if (superseded()) return;", "ok:setResult.ok,superseded:superseded()"],
+			["selection", "    if (result.kind === \"selected\")", "kind:result.kind,reason:result.reason"],
+		]) {
+			const offset = source.indexOf(needle, start);
+			assert.ok(offset > start, `compiled diagnostic location ${name}`);
+			await getPage().call("Debugger.setBreakpointByUrl", {
+				url: pathToFileURL(join(assets, file)).href,
+				lineNumber: source.slice(0, offset).split("\n").length - 1,
+				columnNumber: 4,
+				condition: `(window.__ownedDesignTrace.length<128&&window.__ownedDesignTrace.push({name:${JSON.stringify(name)},at:performance.now(),stack:new Error().stack,${extra}}),false)`,
+			});
+		}
+	}
+	const saveDiagnostic = async () => {
+		if (!diagnostic) return;
+		const state = await evaluate("({trace:window.__ownedDesignTrace,toasts:[...document.querySelectorAll('[data-sonner-toast]')].map(e=>e.textContent),focus:document.activeElement?.tagName})");
+		writeFileSync(join(output, "browser-design-diagnostic.json"), JSON.stringify(state, null, 2) + "\n");
+	};
 	const report = {
 		api: await evaluate("Boolean(window.directWorkstation.browser?.designMode)"),
 		button: await evaluate("Boolean(document.querySelector('[data-workstation-browser-pane] button[aria-label=\"Design\"]'))"),
@@ -87,6 +117,7 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 		assert.equal(report.firstCapture.focused, true);
 		assert.ok(report.firstCapture.form.left >= report.firstCapture.guest.left && report.firstCapture.form.right <= report.firstCapture.guest.right);
 		await screenshot("browser-design-captured");
+		await saveDiagnostic();
 		await key("Escape", "Escape");
 		await until(() => evaluate(`!document.querySelector(${JSON.stringify(form)})&&document.querySelector(${JSON.stringify(button)})?.getAttribute('aria-pressed')==='true'`), "Escape repicks");
 		await key("Escape", "Escape");
@@ -186,6 +217,7 @@ export async function verifyWorkstationBrowserDesignUi(options, context) {
 	} catch (error) {
 		report.error = String(error);
 		save();
+		await saveDiagnostic();
 		await screenshot("browser-design-incomplete");
 		throw error;
 	}
