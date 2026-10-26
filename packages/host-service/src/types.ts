@@ -4,6 +4,7 @@ import type { AppRouter } from "@superset/trpc";
 import type { TRPCClient } from "@trpc/client";
 import type { HostDb } from "./db";
 import type { DirectOperationStore } from "./direct/operations";
+import type { DirectBrowserReadBridge } from "./direct/browser-read-bridge";
 import type { EventBus } from "./events";
 import type { PageWatchManager } from "./page-watch/index.ts";
 import type { WorkspaceFilesystemManager } from "./runtime/filesystem";
@@ -33,6 +34,10 @@ export interface HostServiceContext {
 	api: ApiClient | null;
 	direct?: DirectBackendIdentity;
 	directOperations?: DirectOperationStore;
+	directBrowserReads?: Pick<
+		DirectBrowserReadBridge,
+		"isReady" | "listPanes" | "console"
+	>;
 	db: HostDb;
 	runtime: HostServiceRuntime;
 	eventBus: EventBus;

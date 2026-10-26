@@ -22,6 +22,7 @@ import { startTerminalBaseEnvResolution } from "../terminal/env";
 import { configureDirectAgentEnvironment } from "./agent-environment";
 import { registerDirectAgentHookPort } from "./agent-hook-url";
 import { createDirectAgentHookFetch } from "./agent-hook-fetch";
+import { DirectBrowserReadBridge } from "./browser-read-bridge";
 import {
 	type DirectEndpoint,
 	loadDirectConfig,
@@ -86,6 +87,7 @@ export async function startDirectBackend(
 	};
 	let endpointPath: string | null = null;
 	let result: ReturnType<typeof createApp> | null = null;
+	let browserReads: DirectBrowserReadBridge | null = null;
 	let operationDb: Database.Database | null = null;
 	let stopBackend: (() => Promise<void>) | undefined;
 	let releaseAgentHook: (() => void) | undefined;
@@ -145,11 +147,13 @@ export async function startDirectBackend(
 		await prepareDirectRuntime(directOperations.maintenance(), () =>
 			getSupervisor().ensure(config.namespaceId),
 		);
+		browserReads = new DirectBrowserReadBridge(identity);
 		result = createApp({
 			config: {
 				runtimeMode: "direct",
 				direct: identity,
 				directOperations,
+				directBrowserReads: browserReads,
 				requestDirectShutdown: (stopTerminals) => {
 					if (stopTerminals)
 						writeFileSync(
@@ -221,6 +225,7 @@ export async function startDirectBackend(
 			if (stopped) return;
 			stopped = true;
 			try {
+				browserReads?.dispose();
 				await closeTransports();
 				await service.dispose();
 			} finally {
@@ -240,6 +245,7 @@ export async function startDirectBackend(
 		};
 		return { endpoint, stop: stopBackend };
 	} catch (error) {
+		browserReads?.dispose();
 		releaseAgentHook?.();
 		await closeTransports();
 		await result?.dispose();

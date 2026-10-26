@@ -12,6 +12,11 @@ import { managedSetupCompletionRoot } from "../../../direct/managed-paths";
 import { runTerminalScriptOperation } from "../../../direct/terminal-script-operation";
 import { runTerminalAgentFeedbackOperation } from "../../../direct/terminal-agent-feedback-operation";
 import { currentDirectAgentHookUrl } from "../../../direct/agent-hook-url";
+import {
+	DirectBrowserBridgeError,
+	type DirectBrowserReadBridge,
+} from "../../../direct/browser-read-bridge";
+import { browserBridgeReadOperationSchema } from "@superset/shared/browser-bridge";
 import { HOST_SERVICE_VERSION } from "../../../install-source";
 import { supportsWorkspaceRestore } from "../../../terminal/restore-resources";
 import type { DirectBackendIdentity, HostServiceContext } from "../../../types";
@@ -21,6 +26,7 @@ export function describeDirectBackend(
 	identity: DirectBackendIdentity | undefined,
 	durableOperations = false,
 	workspaceViewRestoreV1 = false,
+	browserReads?: Pick<DirectBrowserReadBridge, "isReady">,
 ) {
 	if (!identity)
 		throw new TRPCError({
@@ -37,6 +43,8 @@ export function describeDirectBackend(
 		cloudAccountRequired: false,
 		chatHarnesses: directChatHarnesses(),
 		capabilities: {
+			workstationBrowserReadBridgeConnectV1: browserReads !== undefined,
+			workstationBrowserReadBridgeV1: browserReads?.isReady() === true,
 			workstationAgentHooksV1:
 				durableOperations &&
 				workspaceViewRestoreV1 &&
@@ -199,8 +207,49 @@ export const directRouter = router({
 			ctx.direct,
 			!!ctx.directOperations,
 			await supportsWorkspaceRestore(),
+			ctx.directBrowserReads,
 		),
 	),
+	browserReadV1: protectedProcedure
+		.input(
+			z.discriminatedUnion("type", [
+				browserBridgeReadOperationSchema.options[0].strict(),
+				browserBridgeReadOperationSchema.options[1].strict(),
+			]),
+		)
+		.query(async ({ ctx, input }) => {
+			if (!ctx.direct || !ctx.directBrowserReads?.isReady())
+				throw new TRPCError({
+					code: "PRECONDITION_FAILED",
+					message:
+						"This host has no browser panes (no desktop app is attached to it).",
+				});
+			try {
+				return input.type === "list"
+					? await ctx.directBrowserReads.listPanes(input.workspaceId)
+					: await ctx.directBrowserReads.console(
+							input.workspaceId,
+							input.paneId,
+						);
+			} catch (error) {
+				if (!(error instanceof DirectBrowserBridgeError)) throw error;
+				const codes: Record<
+					DirectBrowserBridgeError["kind"],
+					TRPCError["code"]
+				> = {
+					unavailable: "PRECONDITION_FAILED",
+					busy: "TOO_MANY_REQUESTS",
+					timeout: "NOT_FOUND",
+					invalid: "BAD_REQUEST",
+					failed: "BAD_REQUEST",
+				};
+				throw new TRPCError({
+					code: codes[error.kind],
+					message: error.message,
+					cause: error,
+				});
+			}
+		}),
 	execute: protectedProcedure
 		.input(
 			z.object({

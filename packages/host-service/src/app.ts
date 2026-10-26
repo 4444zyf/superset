@@ -37,6 +37,8 @@ import type { ApiAuthProvider } from "./providers/auth";
 import type { HostAuthProvider } from "./providers/host-auth";
 import { runArchivedWorkspaceReconcile } from "./runtime/archived-workspace-reconcile";
 import { registerBrowserCdpRoute } from "./runtime/browser-bridge/browser-cdp-route";
+import { registerDirectBrowserReadRoute } from "./direct/browser-read-route";
+import type { DirectBrowserReadBridge } from "./direct/browser-read-bridge";
 import { WorkspaceFilesystemManager } from "./runtime/filesystem";
 import type { GitCredentialProvider } from "./runtime/git";
 import { createGitEnvResolver, createGitFactory } from "./runtime/git";
@@ -88,6 +90,7 @@ export interface CreateAppOptions {
 		runtimeMode?: "direct";
 		direct?: DirectBackendIdentity;
 		directOperations?: DirectOperationStore;
+		directBrowserReads?: DirectBrowserReadBridge;
 		requestDirectShutdown?: (stopTerminals: boolean) => void;
 		organizationId: string;
 		dbPath: string;
@@ -497,7 +500,7 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 	}
 	app.get("/direct/describe", async (c) => {
 		if (!config.direct) return c.json({ error: "Not found" }, 404);
-		return c.json(describeDirectBackend(config.direct, !!config.directOperations, await supportsWorkspaceRestore()));
+		return c.json(describeDirectBackend(config.direct, !!config.directOperations, await supportsWorkspaceRestore(), config.directBrowserReads));
 	});
 	if (isDirect && config.directOperations) {
 		app.get("/direct/maintenance", (c) => c.json(directMaintenanceStatus(config.directOperations, runtime)));
@@ -574,6 +577,12 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 	);
 
 	registerEventBusRoute({ app, eventBus, upgradeWebSocket });
+	if (isDirect && config.directBrowserReads)
+		registerDirectBrowserReadRoute({
+			app,
+			upgradeWebSocket,
+			bridge: config.directBrowserReads,
+		});
 	registerBrowserCdpRoute({
 		app,
 		upgradeWebSocket,
@@ -634,6 +643,7 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 					organizationId: config.organizationId,
 					direct: config.direct,
 					directOperations: config.directOperations,
+					directBrowserReads: config.directBrowserReads,
 					isAuthenticated,
 					clientMachineId:
 						c.req.header("x-superset-client-machine-id") ?? undefined,
