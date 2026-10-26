@@ -1,5 +1,7 @@
 import { msg } from "@lingui/core/macro";
 import { i18n } from "@superset/i18n";
+import { toast } from "@superset/ui/sonner";
+import { DesignModeStoreCore } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/designModeStoreCore";
 import { DeviceToolbarStoreCore } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/deviceToolbarStoreCore";
 import type { WorkstationBrowserDeviceEmulation } from "shared/workstation-browser";
 import {
@@ -31,6 +33,7 @@ interface Runtime {
 	origins: Map<string, string>;
 	version: number;
 	deviceRevision: number;
+	designPane?: WorkstationBrowserPane;
 	offState?: () => void;
 	lastPersist?: string;
 	cached?: {
@@ -62,12 +65,43 @@ export function workstationBrowsers(
 export class WorkstationBrowsers {
 	readonly core: BrowserRuntimeRegistryCore;
 	readonly devices: DeviceToolbarStoreCore;
+	readonly designs: DesignModeStoreCore;
 	private readonly entries = new Map<string, Runtime>();
 	private readonly agentListeners = new Set<
 		(data: { paneIds: string[] }) => void
 	>();
 	private readonly agentActive = new Set<string>();
 	constructor(private readonly api: DirectWorkstationApi) {
+		this.designs = new DesignModeStoreCore(
+			{
+				designModeSet: {
+					mutate: ({ paneId, enabled }) => this.setDesignMode(paneId, enabled),
+				},
+				designModeAwaitSelection: {
+					mutate: async ({ paneId, opId }) => {
+						const scope = this.designScope(paneId);
+						const result = await scope.source.awaitSelection({
+							pane: scope.pane,
+							opId,
+						});
+						scope.assertCurrent();
+						return result;
+					},
+				},
+				designModeScreenshot: {
+					mutate: async ({ paneId, rect }) => {
+						const scope = this.designScope(paneId);
+						const result = await scope.source.screenshot({
+							pane: scope.pane,
+							rect,
+						});
+						scope.assertCurrent();
+						return result;
+					},
+				},
+			},
+			toast.error,
+		);
 		this.devices = new DeviceToolbarStoreCore(({ paneId, params }) =>
 			this.setDeviceEmulation(paneId, params),
 		);
@@ -78,6 +112,7 @@ export class WorkstationBrowsers {
 						const runtime = this.entries.get(paneId);
 						if (!runtime || !api.browser?.navigate)
 							throw Error("Browser runtime is unavailable");
+						this.exitDesignMode(paneId);
 						const registration = {
 							connectionId: runtime.descriptor.connectionId,
 							generation: runtime.descriptor.generation,
@@ -108,6 +143,7 @@ export class WorkstationBrowsers {
 					mutate: async ({ paneId }) => {
 						const runtime = this.entries.get(paneId);
 						if (!runtime) return;
+						this.exitDesignMode(paneId);
 						const registration = runtime.registration;
 						runtime.registration = null;
 						runtime.ready = null;
@@ -264,6 +300,8 @@ export class WorkstationBrowsers {
 			const entry = runtime;
 			runtime.offState = this.core.onStateChange(id, () => {
 				const state = this.core.getState(id);
+				if (state.isLoading && this.designs.getState(id).phase === "confirming")
+					this.designs.exit(id);
 				this.persist(entry, {
 					url: state.currentUrl,
 					pageTitle: state.pageTitle,
@@ -344,6 +382,7 @@ export class WorkstationBrowsers {
 		);
 	}
 	detach(id: string): void {
+		this.exitDesignMode(id);
 		this.core.detach(id);
 	}
 	registration(id: string): WorkstationBrowserPane | null {
@@ -399,6 +438,48 @@ export class WorkstationBrowsers {
 			if (!pane) this.destroy(entry.id);
 		}
 	}
+	private exitDesignMode(id: string): void {
+		if (this.designs.getState(id).phase !== "idle") this.designs.exit(id);
+	}
+	private designScope(id: string) {
+		const runtime = this.entries.get(id),
+			pane = runtime?.designPane,
+			source = this.api.browser?.designMode;
+		const assertCurrent = () => {
+			if (
+				!runtime ||
+				!pane ||
+				!source ||
+				this.entries.get(id) !== runtime ||
+				runtime.designPane !== pane ||
+				runtime.registration !== pane ||
+				!runtime.registered
+			)
+				throw Error(i18n._(msg({ message: "Session status unavailable." })));
+		};
+		assertCurrent();
+		return { source: source!, pane: pane!, assertCurrent };
+	}
+	private async setDesignMode(
+		id: string,
+		enabled: boolean,
+	): Promise<{ ok: boolean }> {
+		const runtime = this.entries.get(id),
+			source = this.api.browser?.designMode;
+		if (!runtime || !runtime.registered || !runtime.registration || !source)
+			return { ok: false };
+		const pane = enabled
+			? runtime.registration
+			: (runtime.designPane ?? runtime.registration);
+		if (enabled) runtime.designPane = pane;
+		else runtime.designPane = undefined;
+		const result = await source.set({ pane, enabled });
+		return this.entries.get(id) === runtime &&
+			runtime.registration === pane &&
+			(!enabled || runtime.designPane === pane)
+			? result
+			: { ok: false };
+	}
 	private async setDeviceEmulation(
 		id: string,
 		params: WorkstationBrowserDeviceEmulation,
@@ -433,6 +514,7 @@ export class WorkstationBrowsers {
 		}
 	}
 	destroy(id: string): void {
+		this.exitDesignMode(id);
 		this.devices.reset(id);
 		this.entries.get(id)?.offState?.();
 		this.core.destroy(id);

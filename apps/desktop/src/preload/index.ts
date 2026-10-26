@@ -25,6 +25,11 @@ const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
 	browser: {
+		designMode: {
+			set: (input) => invoke("setBrowserDesignMode", input),
+			awaitSelection: (input) => invoke("awaitBrowserDesignSelection", input),
+			screenshot: (input) => invoke("captureBrowserDesignScreenshot", input),
+		},
 		importData: {
 			getSources: () => invoke("getBrowserImportSources"),
 			importHistory: (input) => invoke("importBrowserHistory", input),

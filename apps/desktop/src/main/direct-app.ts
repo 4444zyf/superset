@@ -1,5 +1,6 @@
 import { createBrowserSiteCookies } from "./lib/browser/browser-site-cookies";
 import { currentBrowserCookies } from "./lib/browser/current-browser-cookies";
+import { currentBrowserDesignMode } from "./lib/browser/current-browser-design-mode";
 import { BrowserImportService } from "./lib/browser/browser-import-service";
 import {
 	listAllChromiumProfiles,
@@ -810,6 +811,54 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "setBrowserDesignMode":
+				case "awaitBrowserDesignSelection":
+				case "captureBrowserDesignScreenshot": {
+					const { pane } = z
+						.object({ pane: workstationBrowserPaneSchema })
+						.parse(payload);
+					const key = browserRegistry?.getManagerPaneId(owner, pane);
+					if (!key) throw new Error("Browser pane is no longer current");
+					const designMode = currentBrowserDesignMode(
+						browserManager,
+						key,
+						() =>
+							window === callerWindow &&
+							rendererOwnerEpoch === callerEpoch &&
+							!callerWindow.isDestroyed() &&
+							browserRegistry?.getManagerPaneId(owner, pane) === key,
+					);
+					if (action === "setBrowserDesignMode") {
+						const { enabled } = z
+							.strictObject({
+								pane: workstationBrowserPaneSchema,
+								enabled: z.boolean(),
+							})
+							.parse(payload);
+						return designMode.set(enabled);
+					}
+					if (action === "awaitBrowserDesignSelection") {
+						const { opId } = z
+							.strictObject({
+								pane: workstationBrowserPaneSchema,
+								opId: z.string().min(1).max(128),
+							})
+							.parse(payload);
+						return designMode.awaitSelection(opId);
+					}
+					const { rect } = z
+						.strictObject({
+							pane: workstationBrowserPaneSchema,
+							rect: z.strictObject({
+								x: z.number(),
+								y: z.number(),
+								width: z.number().nonnegative(),
+								height: z.number().nonnegative(),
+							}),
+						})
+						.parse(payload);
+					return designMode.screenshot(rect);
+				}
 				case "getBrowserCookieDomains":
 				case "forgetBrowserCookieDomain": {
 					const siteCookies = createBrowserSiteCookies(
