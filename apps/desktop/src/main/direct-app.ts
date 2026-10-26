@@ -522,6 +522,7 @@ export async function startWorkstation(): Promise<void> {
 	const closeGate = new WindowCloseGate();
 	let rendererOwnerEpoch = 0;
 	browserReadChannels = new WorkstationBrowserReadChannels({
+		navigationV1: true,
 		getTarget: (id) => {
 			if (!rendererBrowserReadReady || !window || window.isDestroyed() || window.webContents.isDestroyed()) return null;
 			const lease = manager.getLease(id);
@@ -537,6 +538,7 @@ export async function startWorkstation(): Promise<void> {
 			isCurrent,
 			registry: browserRegistry!,
 			manager: browserManager,
+			navigate: (owner, pane, url, current) => browserNavigation.navigate(owner, pane, url, current),
 			normalizePng: (base64) => opaqueScreenshot(
 				nativeImage.createFromBuffer(Buffer.from(base64, "base64")),
 				(bitmap, size) => nativeImage.createFromBitmap(bitmap, size),

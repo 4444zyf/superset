@@ -3,7 +3,12 @@ import type { DirectDescriptor } from "../../../shared/direct-workstation";
 import type { WorkstationBrowserPane } from "../../../shared/workstation-browser";
 import { currentWorkstationBrowserBridgePanes } from "./workstation-browser-bridge-panes";
 
-function fixture(normalizePng?: (base64: string) => string) {
+function fixture(
+	normalizePng?: (base64: string) => string,
+	navigate?: Parameters<
+		typeof currentWorkstationBrowserBridgePanes
+	>[0]["navigate"],
+) {
 	let active = true,
 		key: string | null = "owned-manager-key";
 	let afterMetadata: () => void = () => {};
@@ -27,6 +32,7 @@ function fixture(normalizePng?: (base64: string) => string) {
 	const source = currentWorkstationBrowserBridgePanes({
 		ownerId: 7,
 		normalizePng,
+		navigate,
 		descriptor,
 		isCurrent: () => active,
 		registry: {
@@ -193,5 +199,56 @@ test("PNG normalization cannot publish a capture after its registration changes"
 	});
 	const capture = f.source.capturePng("page", "owned").catch((error) => error);
 	f.capture.resolve("owned-private-pixels");
-	expect(await capture).toMatchObject({ message: "Browser pane is no longer current" });
+	expect(await capture).toMatchObject({
+		message: "Browser pane is no longer current",
+	});
+});
+
+test("navigation pins the current public pane before invoking the original scoped navigator", async () => {
+	const calls: unknown[] = [];
+	const f = fixture(undefined, async (owner, pane, url, current) => {
+		calls.push([owner, pane, url, current()]);
+		return { status: "navigated", url, guestUrl: url };
+	});
+	const execute = f.source.pinNavigation(
+		"page",
+		"owned",
+		"http://localhost:3000/中文",
+	);
+	expect(calls).toEqual([]);
+	expect(await execute()).toEqual({ ok: true });
+	expect(calls).toEqual([[7, f.pane, "http://localhost:3000/中文", true]]);
+});
+
+test("a navigation acknowledgement from a replaced pane cannot complete successfully", async () => {
+	const done = Promise.withResolvers<{
+		status: "navigated";
+		url: string;
+		guestUrl: string;
+	}>();
+	const f = fixture(undefined, () => done.promise);
+	const pending = f.source
+		.pinNavigation("page", "owned", "http://localhost:3000")()
+		.catch((error) => error);
+	f.replace();
+	done.resolve({
+		status: "navigated",
+		url: "http://localhost:3000",
+		guestUrl: "http://127.0.0.1:48000",
+	});
+	expect(await pending).toMatchObject({
+		message: "Browser pane is no longer current",
+	});
+});
+
+test("navigation cannot pin a pane from another workspace", () => {
+	let calls = 0;
+	const f = fixture(undefined, async () => {
+		calls++;
+		return { status: "navigated", url: "", guestUrl: "" };
+	});
+	expect(() =>
+		f.source.pinNavigation("page", "other", "http://localhost:3000"),
+	).toThrow("No live pane");
+	expect(calls).toBe(0);
 });

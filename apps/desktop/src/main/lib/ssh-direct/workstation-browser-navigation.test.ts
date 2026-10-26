@@ -209,3 +209,21 @@ test("a late icon forward cannot cross a replaced registration even if its clien
 	expect(await pending).toBeNull();
 	detach();
 });
+
+test("a navigation channel closing during SSH preparation cannot load its old target", async () => {
+	const f = fixture(),
+		forwarding = Promise.withResolvers<{ url: string }>();
+	let channelCurrent = true;
+	f.setPrepare(() => forwarding.promise);
+	const pending = f.navigation
+		.navigate(1, f.pane, "http://localhost:3000/owned", () => channelCurrent)
+		.catch((error) => error);
+	channelCurrent = false;
+	forwarding.resolve({ url: "http://127.0.0.1:48000" });
+	expect(await pending).toMatchObject({
+		message: "Browser navigation changed",
+	});
+	expect(f.loads).toEqual([]);
+	expect(f.events).toEqual([]);
+	f.detach();
+});

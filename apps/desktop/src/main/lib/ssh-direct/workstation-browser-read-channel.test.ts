@@ -19,7 +19,7 @@ class Socket extends EventTarget {
 		);
 	}
 }
-function fixture() {
+function fixture(navigationV1 = false) {
 	let target: BrowserReadTarget | null = {
 		ownerId: 10,
 		ownerEpoch: 1,
@@ -35,7 +35,9 @@ function fixture() {
 		reads: unknown[] = [];
 	let duringRead = () => {};
 	let capture = () => Promise.resolve("iVBORw0KGgo=");
+	const navigation = Promise.withResolvers<{ ok: true }>();
 	const channels = new WorkstationBrowserReadChannels({
+		navigationV1,
 		getTarget: () => target,
 		openSocket: (id, path) => {
 			expect([id, path]).toEqual(["connection", "/direct/browser-read/v1"]);
@@ -44,6 +46,10 @@ function fixture() {
 			return s as unknown as WebSocket;
 		},
 		panes: (captured, current) => ({
+			pinNavigation: (pane, workspace, url) => {
+				reads.push(["navigation", captured, pane, workspace, url, current()]);
+				return () => navigation.promise;
+			},
 			listPanes: (workspace) => {
 				reads.push([captured, workspace, current()]);
 				duringRead();
@@ -94,6 +100,7 @@ function fixture() {
 		});
 	return {
 		channels,
+		navigation,
 		sockets,
 		reads,
 		ready,
@@ -293,6 +300,71 @@ test("a backend cannot request screenshots when that feature was not negotiated"
 		id: crypto.randomUUID(),
 		workspaceId: "workspace",
 		paneId: "pane",
+	});
+	expect(f.reads).toEqual([]);
+	expect(f.sockets[0]!.closes).toEqual([1008]);
+});
+
+test("negotiated navigation routes only through the pinned owner and acknowledges completion", async () => {
+	const f = fixture(true);
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "navigateV1"]);
+	const id = crypto.randomUUID();
+	f.sockets[0]!.packet({
+		type: "navigate-request",
+		id,
+		workspaceId: "workspace",
+		paneId: "pane",
+		url: "http://localhost:3000/中文",
+	});
+	expect(f.reads).toEqual([
+		[
+			"navigation",
+			f.target(),
+			"pane",
+			"workspace",
+			"http://localhost:3000/中文",
+			true,
+		],
+	]);
+	expect(f.sockets[0]!.sent).toHaveLength(1);
+	f.navigation.resolve({ ok: true });
+	await f.navigation.promise;
+	expect(f.sockets[0]!.sent[1]).toEqual({
+		type: "navigate-result",
+		id,
+		ok: true,
+	});
+});
+
+test("an old navigation completion cannot acknowledge a changed window epoch", async () => {
+	const f = fixture(true);
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "navigateV1"]);
+	f.sockets[0]!.packet({
+		type: "navigate-request",
+		id: crypto.randomUUID(),
+		workspaceId: "workspace",
+		paneId: "pane",
+		url: "http://localhost:3000",
+	});
+	f.setTarget({ ...f.target(), ownerEpoch: 2 });
+	f.navigation.resolve({ ok: true });
+	await f.navigation.promise;
+	expect(f.sockets[0]!.sent).toHaveLength(1);
+	expect(f.sockets[0]!.closes).toEqual([1000]);
+});
+
+test("a backend cannot navigate when the desktop did not advertise navigation support", () => {
+	const f = fixture();
+	f.channels.sync("connection");
+	f.ready(f.sockets[0], ["readV1", "navigateV1"]);
+	f.sockets[0]!.packet({
+		type: "navigate-request",
+		id: crypto.randomUUID(),
+		workspaceId: "workspace",
+		paneId: "pane",
+		url: "http://localhost:3000",
 	});
 	expect(f.reads).toEqual([]);
 	expect(f.sockets[0]!.closes).toEqual([1008]);

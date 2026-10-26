@@ -146,7 +146,8 @@ export async function verifyWorkstationBrowserUi(options) {
 		);
 	let started = false,
 		terminalTab,
-		browserReadCli;
+		browserReadCli,
+		navigationApi;
 	try {
 		await click(`${selector} .xterm-screen`);
 		await getPage().call("Input.insertText", { text: command });
@@ -245,6 +246,12 @@ export async function verifyWorkstationBrowserUi(options) {
 					.includes(marker),
 				"displayed icon bytes came from this owned server",
 			);
+			save();
+		}
+		if (process.argv.includes("--browser-navigation-api")) {
+			const {verifyWorkstationBrowserNavigationApiUi} = await import("./verify-workstation-browser-navigation-api-ui.mjs");
+			navigationApi = await verifyWorkstationBrowserNavigationApiUi(options, {scope, url, marker, readProof, guestRead, readView, workspace, terminalTab});
+			report.navigationApi = navigationApi.report;
 			save();
 		}
 		if (process.argv.includes("--browser-design")) {
@@ -638,6 +645,7 @@ export async function verifyWorkstationBrowserUi(options) {
 			save();
 		}
 		if (browserReadCli) await browserReadCli.afterReopen(`http://localhost:${proof.port}/next?value=%E4%B8%AD%20hello#section`);
+		if (navigationApi) await navigationApi.afterReopen();
 		await screenshot("browser-reopened");
 		save();
 	} finally {

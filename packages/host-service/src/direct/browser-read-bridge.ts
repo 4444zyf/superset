@@ -1,3 +1,5 @@
+import { BrowserNavigationTransfer } from "./browser-navigation-transfer";
+import type { BrowserNavigationInput } from "./browser-navigation-operation";
 import { BrowserCaptureTransfer } from "./browser-capture-transfer";
 import { randomUUID } from "node:crypto";
 import {
@@ -32,6 +34,7 @@ interface Peer {
 	transport: DirectBrowserReadTransport;
 	ready: boolean;
 	capturePngV1: boolean;
+	navigateV1: boolean;
 	cancelHandshake(): void;
 }
 type ReadResult = BrowserBridgeListResult | BrowserBridgeConsoleResult;
@@ -54,12 +57,17 @@ export class DirectBrowserReadBridge {
 	private disposed = false;
 	private readonly schedule: typeof schedule;
 	private readonly capture: BrowserCaptureTransfer;
+	private readonly navigation: BrowserNavigationTransfer;
 	constructor(
 		identity: BrowserBridgeIdentity,
 		options: { schedule?: typeof schedule } = {},
 	) {
 		this.identity = browserBridgeIdentitySchema.parse(identity);
 		this.schedule = options.schedule ?? schedule;
+		this.navigation = new BrowserNavigationTransfer({
+			schedule: this.schedule,
+			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
+		});
 		this.capture = new BrowserCaptureTransfer({
 			ready: () => this.isCaptureReady(),
 			send: (packet) => {
@@ -78,6 +86,32 @@ export class DirectBrowserReadBridge {
 	capturePng(workspaceId: string, paneId: string): Promise<{ base64: string }> {
 		return this.capture.capturePng(workspaceId, paneId);
 	}
+	isNavigationReady(): boolean {
+		return this.isReady() && this.peer?.navigateV1 === true;
+	}
+	pinNavigation(input: BrowserNavigationInput) {
+		const peer = this.peer;
+		if (!peer || !this.isNavigationReady())
+			throw new DirectBrowserBridgeError(
+				"unavailable",
+				"Browser navigation bridge is unavailable",
+			);
+		return this.navigation.pin(input, {
+			current: () => this.peer === peer && this.isNavigationReady(),
+			send: (packet) => this.send(peer, packet),
+			invalidate: (error) =>
+				this.drop(
+					peer,
+					error instanceof DirectBrowserBridgeError
+						? error
+						: new DirectBrowserBridgeError(
+								"unavailable",
+								"Browser navigation disconnected",
+							),
+					1011,
+				),
+		});
+	}
 	attach(transport: DirectBrowserReadTransport) {
 		if (this.disposed)
 			throw new DirectBrowserBridgeError(
@@ -93,6 +127,7 @@ export class DirectBrowserReadBridge {
 			transport,
 			ready: false,
 			capturePngV1: false,
+			navigateV1: false,
 			cancelHandshake: () => {},
 		};
 		this.peer = peer;
@@ -127,6 +162,7 @@ export class DirectBrowserReadBridge {
 		if (this.peer !== peer) return;
 		this.peer = null;
 		this.capture.disconnect(error);
+		this.navigation.disconnect(error);
 		peer.cancelHandshake();
 		const pending = [...this.pending.values()];
 		this.pending.clear();
@@ -154,12 +190,23 @@ export class DirectBrowserReadBridge {
 				peer.cancelHandshake();
 				peer.ready = true;
 				peer.capturePngV1 = packet.features.includes("capturePngV1");
+				peer.navigateV1 = packet.features.includes("navigateV1");
 				this.send(peer, {
 					type: "ready",
 					protocol: 1,
 					...this.identity,
-					features: peer.capturePngV1 ? ["readV1", "capturePngV1"] : ["readV1"],
+					features: [
+						"readV1",
+						...(peer.capturePngV1 ? ["capturePngV1"] : []),
+						...(peer.navigateV1 ? ["navigateV1"] : []),
+					],
 				});
+				return;
+			}
+			if (packet.type === "navigate-result") {
+				if (!peer.navigateV1)
+					throw Error("Navigation feature was not negotiated");
+				this.navigation.receive(packet);
 				return;
 			}
 			if (packet.type === "capture-chunk" || packet.type === "capture-done") {

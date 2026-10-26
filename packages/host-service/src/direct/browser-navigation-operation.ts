@@ -16,6 +16,9 @@ export type BrowserNavigationInput = Omit<
 	z.infer<typeof browserNavigationOperationSchema>,
 	"operationId"
 >;
+export type PinnedBrowserNavigation = (() => Promise<{ ok: true }>) & {
+	release?(): void;
+};
 
 export function runBrowserNavigationOperation(
 	value: unknown,
@@ -24,7 +27,7 @@ export function runBrowserNavigationOperation(
 			DirectOperationStore,
 			"status" | "execute" | "assertCanCreate" | "runMutationOperation"
 		>;
-		pin(input: BrowserNavigationInput): () => Promise<{ ok: true }>;
+		pin(input: BrowserNavigationInput): PinnedBrowserNavigation;
 	},
 ) {
 	const { operationId, ...input } =
@@ -39,8 +42,12 @@ export function runBrowserNavigationOperation(
 			});
 		});
 	operations.assertCanCreate();
-	return operations.runMutationOperation(() => {
+	return operations.runMutationOperation(async () => {
 		const execute = dependencies.pin(input);
-		return operations.execute(operationId, procedure, input, execute);
+		try {
+			return await operations.execute(operationId, procedure, input, execute);
+		} finally {
+			execute.release?.();
+		}
 	});
 }

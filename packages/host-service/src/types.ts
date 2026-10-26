@@ -38,7 +38,12 @@ export interface HostServiceContext {
 		DirectBrowserReadBridge,
 		"isReady" | "listPanes" | "console"
 	> &
-		Partial<Pick<DirectBrowserReadBridge, "isCaptureReady" | "capturePng">>;
+		Partial<
+			Pick<
+				DirectBrowserReadBridge,
+				"isCaptureReady" | "capturePng" | "isNavigationReady" | "pinNavigation"
+			>
+		>;
 	db: HostDb;
 	runtime: HostServiceRuntime;
 	eventBus: EventBus;

@@ -1,3 +1,5 @@
+import { runDirectBrowserNavigation } from "../../../direct/browser-navigation-rpc";
+import { browserNavigationOperationSchema } from "../../../direct/browser-navigation-operation";
 import os from "node:os";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -30,7 +32,9 @@ export function describeDirectBackend(
 	durableOperations = false,
 	workspaceViewRestoreV1 = false,
 	browserReads?: Pick<DirectBrowserReadBridge, "isReady"> &
-		Partial<Pick<DirectBrowserReadBridge, "isCaptureReady">>,
+		Partial<
+			Pick<DirectBrowserReadBridge, "isCaptureReady" | "isNavigationReady">
+		>,
 ) {
 	if (!identity)
 		throw new TRPCError({
@@ -47,6 +51,8 @@ export function describeDirectBackend(
 		cloudAccountRequired: false,
 		chatHarnesses: directChatHarnesses(),
 		capabilities: {
+			workstationBrowserNavigationV1:
+				durableOperations && browserReads?.isNavigationReady?.() === true,
 			workstationBrowserCaptureV1: browserReads?.isCaptureReady?.() === true,
 			workstationBrowserReadBridgeConnectV1: browserReads !== undefined,
 			workstationBrowserReadBridgeV1: browserReads?.isReady() === true,
@@ -294,6 +300,9 @@ export const directRouter = router({
 				});
 			}
 		}),
+	browserNavigateV1: protectedProcedure
+		.input(browserNavigationOperationSchema)
+		.mutation(({ ctx, input }) => runDirectBrowserNavigation(ctx, input)),
 	execute: protectedProcedure
 		.input(
 			z.object({

@@ -62,6 +62,30 @@ export const browserBridgeCaptureRequestSchema = z.object({
 	workspaceId,
 	paneId: z.string().min(1).max(256),
 });
+export const browserBridgeNavigateRequestSchema = z.strictObject({
+	type: z.literal("navigate-request"),
+	id: z.string().uuid(),
+	workspaceId,
+	paneId: z.string().min(1).max(256),
+	url: z
+		.string()
+		.min(1)
+		.max(8192)
+		.regex(/^[^\x00-\x1f\x7f]+$/),
+});
+const navigateResultSchema = z.discriminatedUnion("ok", [
+	z.object({
+		type: z.literal("navigate-result"),
+		id: z.string().uuid(),
+		ok: z.literal(true),
+	}),
+	z.object({
+		type: z.literal("navigate-result"),
+		id: z.string().uuid(),
+		ok: z.literal(false),
+		error: z.object({ message: z.string().max(4096) }),
+	}),
+]);
 const captureChunkSchema = z.object({
 	type: z.literal("capture-chunk"),
 	id: z.string().uuid(),
@@ -119,6 +143,8 @@ export const browserBridgePacketSchema = z.union([
 	browserBridgeCaptureRequestSchema,
 	captureChunkSchema,
 	captureDoneSchema,
+	browserBridgeNavigateRequestSchema,
+	navigateResultSchema,
 ]);
 
 export function validateBrowserCaptureBase64(base64: string): void {

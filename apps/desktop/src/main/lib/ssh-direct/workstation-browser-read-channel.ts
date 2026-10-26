@@ -21,6 +21,8 @@ interface Entry {
 	ready: boolean;
 	captureReady: boolean;
 	captureId: string | null;
+	navigationReady: boolean;
+	navigationId: string | null;
 	closing: boolean;
 	next: BrowserReadTarget | null;
 	pending: Set<string>;
@@ -41,6 +43,7 @@ export class WorkstationBrowserReadChannels {
 	private readonly entries = new Map<string, Entry>();
 	constructor(
 		private readonly dependencies: {
+			navigationV1?: boolean;
 			getTarget(id: string): BrowserReadTarget | null;
 			openSocket(id: string, path: string): Socket;
 			panes(
@@ -49,7 +52,13 @@ export class WorkstationBrowserReadChannels {
 			): Pick<
 				ReturnType<typeof currentWorkstationBrowserBridgePanes>,
 				"listPanes" | "getConsoleLogs" | "capturePng"
-			>;
+			> &
+				Partial<
+					Pick<
+						ReturnType<typeof currentWorkstationBrowserBridgePanes>,
+						"pinNavigation"
+					>
+				>;
 		},
 	) {}
 	private target(id: string): BrowserReadTarget | null {
@@ -107,6 +116,8 @@ export class WorkstationBrowserReadChannels {
 			ready: false,
 			captureReady: false,
 			captureId: null,
+			navigationReady: false,
+			navigationId: null,
 			closing: false,
 			next: null,
 			pending: new Set(),
@@ -137,7 +148,11 @@ export class WorkstationBrowserReadChannels {
 						backendId: target.descriptor.backendId,
 						namespaceId: target.descriptor.namespaceId,
 						instanceId: target.descriptor.instanceId,
-						features: ["readV1", "capturePngV1"],
+						features: [
+							"readV1",
+							"capturePngV1",
+							...(this.dependencies.navigationV1 ? ["navigateV1"] : []),
+						],
 					}),
 				);
 			} catch {
@@ -163,6 +178,18 @@ export class WorkstationBrowserReadChannels {
 						throw Error("Invalid ready");
 					entry.ready = true;
 					entry.captureReady = packet.features.includes("capturePngV1");
+					entry.navigationReady =
+						this.dependencies.navigationV1 === true &&
+						packet.features.includes("navigateV1");
+					return;
+				}
+				if (packet.type === "navigate-request") {
+					if (!entry.navigationReady || entry.navigationId !== null)
+						throw Error("Invalid navigation request");
+					entry.navigationId = packet.id;
+					void this.navigate(entry, packet).catch(() =>
+						this.close(entry, 1011),
+					);
 					return;
 				}
 				if (packet.type === "capture-request") {
@@ -188,6 +215,55 @@ export class WorkstationBrowserReadChannels {
 				this.close(entry, 1008);
 			}
 		});
+	}
+	private async navigate(
+		entry: Entry,
+		request: { id: string; paneId: string; workspaceId: string; url: string },
+	): Promise<void> {
+		try {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			const panes = this.dependencies.panes(entry.target, () =>
+				this.current(entry),
+			);
+			if (!panes.pinNavigation)
+				throw Error("Browser navigation is unavailable");
+			await panes.pinNavigation(
+				request.paneId,
+				request.workspaceId,
+				request.url,
+			)();
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "navigate-result",
+					id: request.id,
+					ok: true,
+				}),
+			);
+		} catch {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "navigate-result",
+					id: request.id,
+					ok: false,
+					error: {
+						message: "Browser navigation failed or pane is no longer current",
+					},
+				}),
+			);
+		} finally {
+			if (entry.navigationId === request.id) entry.navigationId = null;
+		}
 	}
 	private async capturePng(
 		entry: Entry,

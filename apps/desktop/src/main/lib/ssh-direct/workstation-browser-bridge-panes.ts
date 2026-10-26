@@ -1,7 +1,10 @@
 import type { BrowserBridgeManager } from "../browser/browser-bridge-http";
 import type { BrowserPaneInfo } from "../browser/browser-manager";
 import type { DirectDescriptor } from "../../../shared/direct-workstation";
-import type { WorkstationBrowserPane } from "../../../shared/workstation-browser";
+import type {
+	WorkstationBrowserPane,
+	WorkstationBrowserNavigationResult,
+} from "../../../shared/workstation-browser";
 import type { WorkstationBrowserRegistry } from "./workstation-browser-registry";
 
 interface Dependencies {
@@ -22,6 +25,12 @@ interface Dependencies {
 		): Pick<Electron.WebContents, "getURL" | "getTitle" | "isLoading"> | null;
 	};
 	normalizePng?(base64: string): string;
+	navigate?(
+		owner: number,
+		pane: WorkstationBrowserPane,
+		url: string,
+		isCurrent: () => boolean,
+	): Promise<WorkstationBrowserNavigationResult>;
 	canonical(ownerId: number, pane: WorkstationBrowserPane, raw: string): string;
 }
 
@@ -33,6 +42,7 @@ export function currentWorkstationBrowserBridgePanes({
 	manager,
 	canonical,
 	normalizePng,
+	navigate,
 }: Dependencies) {
 	const target = { ...descriptor };
 	const assertCurrent = () => {
@@ -59,6 +69,30 @@ export function currentWorkstationBrowserBridgePanes({
 		return pin(pane);
 	};
 	return {
+		pinNavigation(
+			paneId: string,
+			workspaceId: string,
+			url: string,
+		): () => Promise<{ ok: true }> {
+			if (!navigate) throw Error("Browser navigation is unavailable");
+			const { pane, key } = requirePane(paneId, workspaceId);
+			const current = () => {
+				try {
+					assertPinned(pane, key);
+					return true;
+				} catch {
+					return false;
+				}
+			};
+			return async () => {
+				assertPinned(pane, key);
+				const result = await navigate(ownerId, pane, url, current);
+				assertPinned(pane, key);
+				if (result.status !== "navigated")
+					throw Error("Browser navigation was superseded");
+				return { ok: true };
+			};
+		},
 		listPanes(workspaceId?: string): BrowserPaneInfo[] {
 			assertCurrent();
 			const pins = registry

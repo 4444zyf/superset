@@ -43,6 +43,25 @@ export function ownedRestoreControls(home, fixture) {
 	);
 	let originals = [];
 	return {
+		async browserNavigationRequest(procedure, input) {
+			assert.ok(["direct.browserNavigateV1", "direct.operationStatus"].includes(procedure));
+			const current = endpoint();
+			assert.equal(current.namespaceId, identity.namespaceId);
+			assert.equal(current.backendId, identity.backendId);
+			const config = JSON.parse(readFileSync(join(home, "service-config.json"), "utf8"));
+			assert.equal(lstatSync(config.secretFile).uid, process.getuid());
+			const secret = readFileSync(config.secretFile, "utf8").trim();
+			const mutation = procedure === "direct.browserNavigateV1";
+			const payload = JSON.stringify({json: input});
+			const response = await privateSocketFetch(current.socketPath, "/trpc/" + procedure + (mutation ? "" : "?input=" + encodeURIComponent(payload)), {
+				method: mutation ? "POST" : "GET",
+				headers: {Authorization: `Bearer ${secret}`, "Content-Type": "application/json"},
+				...(mutation ? {body: payload} : {}),
+				signal: AbortSignal.timeout(5000),
+			});
+			const envelope = await response.json();
+			return {status: response.status, result: envelope.result?.data?.json, error: envelope.error?.json};
+		},
 		browserNamespaceHome() {
 			assert.equal(lstatSync(home).uid, process.getuid());
 			return home;

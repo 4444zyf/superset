@@ -251,7 +251,9 @@ export class WorkstationBrowserNavigation {
 		owner: number,
 		pane: WorkstationBrowserPane,
 		raw: string,
+		isCurrent: () => boolean = () => true,
 	): Promise<WorkstationBrowserNavigationResult> {
+		if (!isCurrent()) throw new Error("Browser navigation changed");
 		const entry = this.require(owner, pane),
 			key = this.key(owner, pane),
 			sequence = ++entry.sequence;
@@ -272,7 +274,7 @@ export class WorkstationBrowserNavigation {
 				pane.workspaceId,
 				target.port,
 			);
-			if (!this.active(key, entry))
+			if (!isCurrent() || !this.active(key, entry))
 				throw new Error("Browser navigation changed");
 			if (entry.sequence !== sequence) return { status: "superseded" };
 			const forwarded = forwardedTerminalUrl(target.url, forward.url);
@@ -285,7 +287,8 @@ export class WorkstationBrowserNavigation {
 				throw new Error("Browser forward limit exceeded");
 			entry.origins.set(new URL(guestUrl).origin, new URL(target.url).origin);
 		}
-		if (!this.active(key, entry)) throw new Error("Browser navigation changed");
+		if (!isCurrent() || !this.active(key, entry))
+			throw new Error("Browser navigation changed");
 		if (entry.sequence !== sequence) return { status: "superseded" };
 		const url = target?.url ?? raw;
 		this.dependencies.send(owner, {
@@ -301,7 +304,8 @@ export class WorkstationBrowserNavigation {
 				return { status: "superseded" };
 			throw error;
 		}
-		if (!this.active(key, entry)) throw new Error("Browser navigation changed");
+		if (!isCurrent() || !this.active(key, entry))
+			throw new Error("Browser navigation changed");
 		if (entry.sequence !== sequence) return { status: "superseded" };
 		return { status: "navigated", url, guestUrl };
 	}

@@ -8,6 +8,7 @@ import {
 	encodeBrowserBridgePacket,
 	parseBrowserBridgePacket,
 	browserCapturePackets,
+	type BrowserBridgePacket,
 } from "@superset/shared/browser-bridge";
 import { Hono } from "hono";
 import { PskHostAuthProvider } from "../providers/host-auth/PskHostAuthProvider/PskHostAuthProvider.ts";
@@ -138,6 +139,75 @@ test(
 				await bridge.capturePng("owned-workspace", "owned-pane"),
 				{ base64 },
 			);
+		} finally {
+			const closed = new Promise<void>((resolve) =>
+				socket.addEventListener("close", () => resolve(), { once: true }),
+			);
+			socket.close();
+			await closed;
+		}
+	},
+);
+
+test(
+	"negotiated navigation crosses the authenticated socket only after its pin executes",
+	{ timeout: 5000 },
+	async () => {
+		const socket = new WebSocket(
+			`ws://127.0.0.1:${port}/direct/browser-read/v1?token=${secret}`,
+		);
+		clients.add(socket);
+		const ready = Promise.withResolvers<void>();
+		const requests: Extract<
+			BrowserBridgePacket,
+			{ type: "navigate-request" }
+		>[] = [];
+		socket.addEventListener("open", () =>
+			socket.send(
+				encodeBrowserBridgePacket({
+					type: "hello",
+					protocol: 1,
+					...identity,
+					features: ["readV1", "navigateV1"],
+				}),
+			),
+		);
+		socket.addEventListener("error", () =>
+			ready.reject(Error("Owned navigation socket failed")),
+		);
+		socket.addEventListener("message", (event) => {
+			const packet = parseBrowserBridgePacket(String(event.data));
+			if (packet.type === "ready") {
+				ready.resolve();
+				return;
+			}
+			if (packet.type === "navigate-request") {
+				requests.push(packet);
+				socket.send(
+					encodeBrowserBridgePacket({
+						type: "navigate-result",
+						id: packet.id,
+						ok: true,
+					}),
+				);
+			}
+		});
+		try {
+			await ready.promise;
+			const input = {
+				workspaceId: "owned-workspace",
+				paneId: "owned-pane",
+				url: "http://localhost:3000/中文",
+			};
+			const pinned = bridge.pinNavigation(input);
+			assert.equal(requests.length, 0);
+			assert.deepEqual(await pinned(), { ok: true });
+			assert.equal(requests.length, 1);
+			assert.deepEqual(
+				{ ...requests[0]!, id: "request" },
+				{ type: "navigate-request", id: "request", ...input },
+			);
+			pinned.release?.();
 		} finally {
 			const closed = new Promise<void>((resolve) =>
 				socket.addEventListener("close", () => resolve(), { once: true }),
