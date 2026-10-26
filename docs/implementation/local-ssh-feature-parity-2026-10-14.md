@@ -1782,3 +1782,10 @@ CLI 仍为控制机原源码 dev runner，针对本次拥有的同机 namespace�
 冻结 2205 编译文件，manifest SHA256 `8c14a328cc004fa19f60dae6d8760d74c9bd2a47778baea0e40cfaca163f5051`，77 MJS。真实 local-cli-dda248 / ssh-cli-dda248 均工具退出 0，SSH 含 20 次原窗口恢复；每端 12 次新 CLI 调用，合计 18 成功/6 次预期拒绝（改 URL、跨 workspace、缺 operationId）。同 ID 只一次实际 HTTP 页面请求；隐藏浏览器导航保留终端 tab 和键盘焦点；正常重开读取原 completed 回执，重复命令不回放/不重绑页面。SSH canonical 为远端 localhost:33337，实际 guest 事件为原转发 127.0.0.1:32923，query/fragment 保留。原导航 API 18 次、读取/截图 CLI 22 次及六张白底 PNG/剪贴板回归同步通过；原 PTY/execution/cwd 保持，原 HTTP Ctrl+C/关闭清理通过。
 
 两端 app/Xorg/报告 PID 均清理，2205 文件/77 脚本/原 CLI SHA256 `f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb` 复核不变。实际查看两端后台终端和 SSH 重开共三张图，未声称查看所有图。随包 CLI 未重建；无安装包、Actions、真实供应商认证、外部 SSH 或实体 Mac 新验收。CLI open/eval/import-login/CDP、rightPane、聊天/任务 URL 及其他功能继续，整体未完成。[阶段一百零五证据](evidence/local-ssh-feature-parity/stage105)。
+
+
+## 阶段一百零六：eval 的接受前固定与持久回执准备
+
+源码 `8743379aa` 仅新增内部 browser-evaluation-operation 和共 11 项测试。严格输入保持原 code 最大 1,000,000 字符并允许空表达式，另有新稳定 UUID 和明确 workspace/pane 边界。沿原 DirectOperationStore，fresh 操作先检查维护状态、同步 pin 返回延迟执行器，再由原 journal 接受后执行；finally 释放预留，接受因容量失败也清理。已有记录走原输入 hash/并发/冲突/完成/未知状态规则，不重新 pin 或重发。无原 journal、认证、导航核心或旧 RPC 改动。
+
+新增模块缺失时先记录真实失败，实施后和原导航/operation 共 26 项、102 断言、3 文件通过；覆盖并发/完成去重、改 pane/code 冲突、失去回执 unresolved、切窗口不重绑、维护和 peer 缺失、容量失败 release、严格输入与边界，以及 false/0/null/空字符串/undefined/结构值保留。host-service 类型、定向 lint、插件通过。本阶段没有生产调用方、RPC、能力或 wire 接入，也没有新构建/实窗。复核此前 dda248cfe 的 2205 编译文件、77 脚本及 CLI 哈希不变。eval 仍待实际通道和 CLI 接入，整体对齐继续。[阶段一百零六证据](evidence/local-ssh-feature-parity/stage106)。

@@ -236,3 +236,6 @@
 
 
 阶段一百零五以dda248cfe接原navigate明确namespace与稳定operationId，原账号分支保留；新增operation-status沿原durable GET，peer离线仍可查运行backend。新resolver仅放单条版本化导航POST且检查双能力，其他写入/批量拒绝，不重试未知结果；已完成命令仍要求ready，不能用状态绕过输入冲突。40项/133断言、CLI/i18n类型、六新词条17目录、旧译文/AST、完整构建通过。两端24次新CLI含18成功/6预期拒绝、原API18次及读取/截图22次通过，SSH含20恢复，canonical localhost:33337/guest127.0.0.1:32923，原PTY/焦点/正常重开去重保持。2205文件/77脚本/随包CLI哈希复核不变；随包CLI未重建，其他功能继续。[阶段一百零五证据](../implementation/evidence/local-ssh-feature-parity/stage105)。
+
+
+阶段一百零六以8743379aa新增内部eval持久操作准备，接受前同步固定/接受后执行、失败release、原hash去重/未知不重发。11项新SQLite用例连同原导航/journal共26项102断言及host类型通过，保留空code/原百万字符边界和falsy/结构结果。没有RPC/能力/协议/CLI生产接入、新构建或实窗；原dda产品2205文件/77脚本/CLI哈希保持。不能据此声称eval已恢复，下一步接真实peer。[阶段一百零六证据](../implementation/evidence/local-ssh-feature-parity/stage106)。
