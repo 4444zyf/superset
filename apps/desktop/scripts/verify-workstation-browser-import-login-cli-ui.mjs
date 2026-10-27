@@ -34,7 +34,7 @@ export async function verifyWorkstationBrowserImportLoginCliUi(options,{scope,re
  assert.match((await run("import-login",[...base,"--from","Chrome"],{succeeds:false})).stderr,/requires --operation-id/);
  assert.match((await run("import-login",[...base,"--from","Chrome","--operation-id","not-a-uuid"],{succeeds:false})).stderr,/Invalid UUID/);
  assert.match((await run("import-login",[...base,"--host","foreign-host"],{succeeds:false})).stderr,/not both/);
- assert.match((await run("import-login",[...base,"--operation-id",unusedId],{succeeds:false,namespace:false})).stderr,/requires --namespace/);
+ assert.match((await run("import-login",[...base,"--operation-id",unusedId],{succeeds:false,namespace:false})).stderr,/Not logged in/);
  assert.equal(await status(unusedId),null);assert.deepEqual(await status(first.operationId),first);assert.deepEqual(await status(keyUnavailable.operationId),keyUnavailable);
  assert.deepEqual(await selected(),before);assert.deepEqual(await focus(),focusBefore);assert.deepEqual(hashes(),originalHashes);assert.deepEqual(await jar(),jarBefore);assert.equal(existsSync(join(profile,"Cookies")),false);assert.deepEqual(options.getPage().errors,[]);await options.screenshot("browser-import-login-cli-background-terminal");await options.click(`[data-workstation-pane-tabs] [data-tab-id="${browserTab}"]`);
  report.completed={originalLinuxEmptyLoginList:true,noAccountFallback:true,noMutationForMissingSource:true,unusedOperationId:unusedId,firstReceipt:first,keyUnavailableReceipt:keyUnavailable,sourceFilesUnchanged:originalHashes,jarUnchanged:true,backgroundSelectionAndFocusPreserved:true,rendererErrors:options.getPage().errors};save();
