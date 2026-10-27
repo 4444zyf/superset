@@ -394,6 +394,11 @@ function toSetDetails(cookie: Electron.Cookie): Electron.CookiesSetDetails {
 	};
 }
 
+function assertCookieImportCurrent(current?: () => boolean): void {
+	if (current && !current())
+		throw Error("Browser cookie import is no longer current");
+}
+
 /**
  * Deletes the `.host` twins named in `doomed` (slot keys, see `cookieKey`),
  * one host-only slot at a time, and puts back every other cookie the removal
@@ -405,12 +410,14 @@ async function dropDottedTwins(
 	targetSession: Session,
 	jar: Electron.Cookie[],
 	slots: Array<{ host: string; name: string; path: string }>,
+	current?: () => boolean,
 ): Promise<number> {
 	const doomed = new Set(
 		slots.map((slot) => cookieKey(`.${slot.host}`, slot.name, slot.path)),
 	);
 	let dropped = 0;
 	for (const slot of slots) {
+		assertCookieImportCurrent(current);
 		const hit = cookiesRemovedBy(jar, slot.host, slot.path, slot.name);
 		const keep = hit.filter((cookie) => !doomed.has(slotOf(cookie)));
 		try {
@@ -419,19 +426,27 @@ async function dropDottedTwins(
 				slot.name,
 			);
 		} catch {
+			assertCookieImportCurrent(current);
 			continue;
 		}
+		assertCookieImportCurrent(current);
 		try {
 			for (const cookie of keep) {
+				assertCookieImportCurrent(current);
 				await targetSession.cookies.set(toSetDetails(cookie));
+				assertCookieImportCurrent(current);
 			}
 			dropped++;
 		} catch {
+			assertCookieImportCurrent(current);
 			for (const cookie of hit) {
+				assertCookieImportCurrent(current);
 				await targetSession.cookies.set(toSetDetails(cookie)).catch(() => {});
+				assertCookieImportCurrent(current);
 			}
 		}
 	}
+	assertCookieImportCurrent(current);
 	return dropped;
 }
 
@@ -465,7 +480,9 @@ function dottedTwinSlots(cookies: Electron.Cookie[]): Set<string> {
 export async function importCookies(
 	targetSession: Session,
 	cookies: ImportedCookie[],
+	current?: () => boolean,
 ): Promise<Omit<CookieImportResult, "keyUnavailable">> {
+	assertCookieImportCurrent(current);
 	const accepted = cookies.filter(
 		(cookie) => !isProtectedCookieHost(cookieHost(cookie)),
 	);
@@ -477,6 +494,7 @@ export async function importCookies(
 			),
 	);
 	const jar = await targetSession.cookies.get({});
+	assertCookieImportCurrent(current);
 	const staleTwins = dottedTwinSlots(jar);
 	const twinsToDrop = accepted
 		.filter((cookie) => cookie.domain === undefined)
@@ -489,11 +507,12 @@ export async function importCookies(
 			const key = cookieKey(slot.host, slot.name, slot.path);
 			return staleTwins.has(key) && !sourceDomainSlots.has(key);
 		});
-	await dropDottedTwins(targetSession, jar, twinsToDrop);
+	await dropDottedTwins(targetSession, jar, twinsToDrop, current);
 
 	let imported = 0;
 	let skipped = cookies.length - accepted.length;
 	for (const cookie of accepted) {
+		assertCookieImportCurrent(current);
 		try {
 			await targetSession.cookies.set(cookie);
 			imported++;
@@ -502,7 +521,9 @@ export async function importCookies(
 			// combinations, etc.). Skip rather than fail.
 			skipped++;
 		}
+		assertCookieImportCurrent(current);
 	}
+	assertCookieImportCurrent(current);
 	return { imported, skipped };
 }
 
@@ -514,11 +535,15 @@ export async function importCookiesIntoSession(
 	targetSession: Session,
 	profileDir: string,
 	browserKey: string,
+	current?: () => boolean,
 ): Promise<CookieImportResult> {
+	assertCookieImportCurrent(current);
 	const cookies = await readCookiesFromProfile(profileDir, browserKey);
+	assertCookieImportCurrent(current);
 	if (cookies === null) {
 		return { imported: 0, skipped: 0, keyUnavailable: true };
 	}
-	const result = await importCookies(targetSession, cookies);
+	const result = await importCookies(targetSession, cookies, current);
+	assertCookieImportCurrent(current);
 	return { ...result, keyUnavailable: false };
 }
