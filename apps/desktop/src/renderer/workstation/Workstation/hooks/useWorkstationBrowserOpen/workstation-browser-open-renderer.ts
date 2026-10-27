@@ -1,14 +1,20 @@
 import type { DirectWorkstationApi } from "shared/direct-workstation";
+import type { WorkspaceViewSnapshotV2 } from "shared/workspace-view-v2";
 import type {
 	WorkstationBrowserOpenEvent,
-	WorkstationBrowserOpenInput,
 	WorkstationBrowserOpenIdentity,
+	WorkstationBrowserOpenInput,
 } from "shared/workstation-browser-open";
-import type { WorkspaceViewSnapshotV2 } from "shared/workspace-view-v2";
 import { workstationBrowsers } from "../../providers/WorkstationBrowsers/workstation-browsers";
 import { openWorkstationBrowserView } from "../../utils/workspace-browser-open/workspace-browser-open-view";
+import {
+	openWorkstationBrowserViewV3,
+	projectBrowserOpenSnapshotV2,
+} from "../../utils/workspace-browser-open/workspace-browser-open-view-v3";
 import { captureWorkstationPaneRuntime } from "../../utils/workstation-pane-runtime/workstation-pane-runtime";
+
 interface Dependencies {
+	paneAreas?: boolean;
 	flush(): Promise<void>;
 	enqueue<T>(action: () => Promise<T>): Promise<T>;
 	accept(
@@ -103,7 +109,18 @@ export function startWorkstationBrowserOpenRenderer(
 			await current();
 			await dependencies().enqueue(async () => {
 				await current();
-				const before = await api.getWorkspaceViewV2!();
+				const useAreas = dependencies().paneAreas,
+					readV3 = useAreas ? api.getWorkspaceViewV3 : undefined,
+					saveV3 = useAreas ? source.saveViewV3 : undefined,
+					areaBefore = readV3 && saveV3 ? await readV3.call(api) : null,
+					before = areaBefore
+						? {
+								...areaBefore,
+								snapshot: areaBefore.snapshot
+									? projectBrowserOpenSnapshotV2(areaBefore.snapshot)
+									: null,
+							}
+						: await api.getWorkspaceViewV2!();
 				await current();
 				if (before.invalid)
 					throw Error("Workspace view storage is unavailable");
@@ -127,29 +144,48 @@ export function startWorkstationBrowserOpenRenderer(
 						abort.abort();
 						fail("Workspace pane layout changed");
 					});
-				const opened = openWorkstationBrowserView({
-					snapshot: before.snapshot,
-					input,
+				const ids = {
 					paneId: crypto.randomUUID(),
 					resourceId: crypto.randomUUID(),
 					tabId: crypto.randomUUID(),
-					runtimeState: runtime?.state,
-				});
+				};
+				const openedV3 = areaBefore
+					? openWorkstationBrowserViewV3({
+							snapshot: areaBefore.snapshot,
+							input,
+							...ids,
+							runtimeState: runtime?.state,
+						})
+					: null;
+				const opened =
+					openedV3 ??
+					openWorkstationBrowserView({
+						snapshot: before.snapshot,
+						input,
+						...ids,
+						runtimeState: runtime?.state,
+					});
 				await current();
-				const saved = await source.saveView({
-					...identity,
-					save: {
-						expectedRevision: before.revision,
-						navigationRevision: before.navigationRevision,
-						view: opened.view,
-						browserLeases: [
-							{
-								connectionId: input.descriptor.connectionId,
-								generation: input.descriptor.generation,
-							},
-						],
-					},
-				});
+				const save = {
+					expectedRevision: before.revision,
+					navigationRevision: before.navigationRevision,
+					view: opened.view,
+					browserLeases: [
+						{
+							connectionId: input.descriptor.connectionId,
+							generation: input.descriptor.generation,
+						},
+					],
+				};
+				const saved =
+					openedV3 && saveV3
+						? projectBrowserOpenSnapshotV2(
+								await saveV3.call(source, {
+									...identity,
+									save: { ...save, view: openedV3.view },
+								}),
+							)
+						: await source.saveView({ ...identity, save });
 				await current();
 				stop();
 				stop = () => {};

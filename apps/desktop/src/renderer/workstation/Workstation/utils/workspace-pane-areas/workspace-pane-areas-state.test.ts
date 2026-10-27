@@ -361,3 +361,14 @@ test("focusing the right browser does not close the center Files tool", () => {
 	expect(saved.activeTool).toBe("files");
 	expect(saved.activePaneId).toBe("browser");
 });
+test("a selection-only edit preserves a newly saved browser resource", () => {
+	const e = edit(areas => { areas.activate("right"); });
+	const current = structuredClone(e.source), w = workspace(current);
+	w.panes.push({ paneId: "opened-browser", kind: "browser", resourceId: "opened-page", browser: { url: "about:blank", pageTitle: "", faviconUrl: null } });
+	w.layout = { type: "split", axis: "vertical", ratio: 0.5, first: required(w.layout), second: { type: "pane", paneId: "opened-browser" } };
+	required(w.paneTabs?.[0]).layout = { type: "split", axis: "horizontal", ratio: 0.5, first: { type: "pane", paneId: "terminal" }, second: { type: "pane", paneId: "opened-browser" } };
+	const saved = workspace(required(applyWorkspacePaneAreas(current, e.scope, e.next, e.before)));
+	expect(saved.panes.map(p => p.resourceId)).toEqual(["pty", "browser-resource", "opened-page"]);
+	expect(saved.activePaneId).toBe("browser");
+	expect(saved.paneTabs?.[0]?.layout).toEqual(w.paneTabs?.[0]?.layout);
+});

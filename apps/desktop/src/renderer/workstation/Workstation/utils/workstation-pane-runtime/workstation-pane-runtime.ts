@@ -8,6 +8,7 @@ import type { WorkspacePaneV2 } from "shared/workspace-view-v2";
 type State = WorkspaceState<WorkspacePaneV2>;
 interface Port {
 	read(): State;
+	fingerprint?(): string;
 	replace(state: State): void;
 	subscribe(listener: () => void): () => void;
 }
@@ -51,6 +52,10 @@ function structure(state: State): string {
 		]),
 	);
 }
+function readFingerprint(port: Port, state = port.read()): string {
+	return port.fingerprint?.() ?? structure(state);
+}
+export { structure as workstationPaneRuntimeStructure };
 export function preserveRuntimePanePins(previous: State, next: State): State {
 	const old = new Map(
 		previous.tabs
@@ -105,9 +110,9 @@ export function registerWorkstationPaneRuntime(
 	}
 	const listeners = new Set<() => void>(),
 		entry: Entry = { port, listeners, off: () => {} };
-	let previous = structure(port.read());
+	let previous = readFingerprint(port);
 	entry.off = port.subscribe(() => {
-		const next = structure(port.read());
+		const next = readFingerprint(port);
 		if (next === previous) return;
 		previous = next;
 		for (const listener of [...listeners]) listener();
@@ -130,10 +135,10 @@ export function captureWorkstationPaneRuntime(
 		entry = entries?.get(scope);
 	if (!entry) return null;
 	const previous = entry.port.read(),
-		fingerprint = structure(previous);
+		fingerprint = readFingerprint(entry.port, previous);
 	const current = () => entries!.get(scope) === entry;
 	const unchanged = () =>
-		current() && structure(entry.port.read()) === fingerprint;
+		current() && readFingerprint(entry.port) === fingerprint;
 	return {
 		state: previous,
 		isCurrent: current,

@@ -225,3 +225,34 @@ test("closing the runtime retires and notifies a pending capture once", () => {
 	expect(captured.unchanged()).toBe(false);
 	expect(f.capture()).toBeNull();
 });
+
+test("an optional whole-area fingerprint invalidates a center capture when only its peer changes", () => {
+	const f = fixture();
+	let peer = "right-before",
+		notices = 0;
+	const off = registerWorkstationPaneRuntime(
+		f.api,
+		f.descriptor,
+		"workspace",
+		"workspace-tab",
+		{ ...f.port, fingerprint: () => peer },
+	);
+	try {
+		const captured = f.capture();
+		if (!captured) throw Error("Missing runtime capture");
+		captured.watch(() => {
+			notices++;
+		});
+		const before = captured.state.tabs;
+		peer = "right-after";
+		f.store.setState({ ...f.store.getState() });
+		expect(f.store.getState().tabs).toBe(before);
+		expect(notices).toBe(1);
+		expect(captured.unchanged()).toBe(false);
+		expect(() => captured.apply(captured.state)).toThrow(
+			"Workspace pane layout changed",
+		);
+	} finally {
+		off();
+	}
+});

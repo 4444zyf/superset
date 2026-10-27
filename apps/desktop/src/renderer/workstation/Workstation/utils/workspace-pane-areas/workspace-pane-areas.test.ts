@@ -9,6 +9,7 @@ import {
 	createWorkspacePaneAreas,
 	readWorkspacePaneAreas,
 	type WorkspacePaneAreasState,
+	workspacePaneAreasStructureKey,
 } from "./workspace-pane-areas";
 
 function runtime() {
@@ -247,6 +248,21 @@ test("snapshot subscriptions see synchronized data without echoing a user edit",
 		expect(f.areas.read()).not.toBe(before);
 		expect(f.areas.read()).toBe(f.areas.read());
 		expect(f.areas.read().rightPaneOpen).toBe(true);
+	} finally {
+		f.areas.dispose();
+	}
+});
+
+test("the browser-open structure stamp ignores selections but includes right-side pins", () => {
+	const f = runtime();
+	try {
+		const before = workspacePaneAreasStructureKey(f.areas.read());
+		f.areas.activate("right");
+		f.drain();
+		expect(workspacePaneAreasStructureKey(f.areas.read())).toBe(before);
+		f.areas.right.getState().setPanePinned({ paneId: "browser", pinned: true });
+		f.drain();
+		expect(workspacePaneAreasStructureKey(f.areas.read())).not.toBe(before);
 	} finally {
 		f.areas.dispose();
 	}

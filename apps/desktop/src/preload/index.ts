@@ -36,6 +36,7 @@ const directWorkstation: DirectWorkstationApi = {
 			complete: (input) => invoke("completeBrowserOpen", input),
 			isCurrent: (input) => invoke("isBrowserOpenCurrent", input),
 			saveView: (input) => invoke("saveBrowserOpenView", input),
+			saveViewV3: (input) => invoke("saveBrowserOpenViewV3", input),
 			onEvent: (listener) => {
 				const wrapped = (
 					_event: unknown,

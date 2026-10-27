@@ -5,6 +5,11 @@ import type {
 	WorkspaceViewV2Save,
 } from "./workspace-view-v2";
 import type { DirectDescriptor } from "./direct-workstation";
+import {
+	type WorkspaceViewSnapshotV3,
+	type WorkspaceViewV3Save,
+	workspaceViewV3SaveInputSchema,
+} from "./workspace-view-v3";
 
 export interface WorkstationBrowserOpenInput {
 	descriptor: DirectDescriptor;
@@ -99,6 +104,9 @@ export const browserOpenSaveSchema = browserOpenIdentitySchema.extend({
 			.optional(),
 	}),
 });
+export const browserOpenSaveV3Schema = browserOpenIdentitySchema.extend({
+	save: workspaceViewV3SaveInputSchema,
+});
 export interface WorkstationBrowserOpenAvailability {
 	scopeId: string;
 	ready: boolean;
@@ -116,6 +124,9 @@ export interface WorkstationBrowserOpenApi {
 	saveView(
 		input: WorkstationBrowserOpenIdentity & { save: WorkspaceViewV2Save },
 	): Promise<WorkspaceViewSnapshotV2>;
+	saveViewV3?(
+		input: WorkstationBrowserOpenIdentity & { save: WorkspaceViewV3Save },
+	): Promise<WorkspaceViewSnapshotV3>;
 	onEvent(listener: (event: WorkstationBrowserOpenEvent) => void): () => void;
 	onAvailability(
 		listener: (event: WorkstationBrowserOpenAvailability) => void,

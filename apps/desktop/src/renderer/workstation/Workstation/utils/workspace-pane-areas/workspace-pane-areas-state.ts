@@ -7,29 +7,23 @@ import { fromPaneLayout } from "../pane-adapter/pane-adapter";
 import { applyWorkspacePaneState } from "../workspace-pane-state/workspace-pane-state";
 import {
 	readWorkspacePaneAreas,
+	selectedWorkspacePane as selectedPane,
+	stateForLegacyMetadataMerge,
 	type WorkspacePaneArea,
 	type WorkspacePaneAreasState,
 } from "./workspace-pane-areas";
+import {
+	mergePaneAreaValue as merge,
+	mergePaneAreaSelectionOnly,
+	mergePaneAreaSelections,
+} from "./workspace-pane-areas-selection";
 
 type Target = WorkspaceViewInputV3["targets"][number];
-type State = WorkspacePaneAreasState["center"];
 export type WorkspacePaneAreasScope = Pick<
 	Target,
 	"connectionId" | "backendId" | "namespaceId" | "serviceUid" | "targetRevision"
 > & { workspaceId: string; tabId: string };
 
-function merge<T>(current: T, before: T, next: T): T {
-	const key = (value: T) => JSON.stringify(value);
-	if (key(next) === key(before)) return current;
-	if (key(current) === key(before) || key(current) === key(next)) return next;
-	throw new Error("Pane area changed in another edit");
-}
-function stateForLegacyMetadataMerge(state: WorkspacePaneAreasState): State {
-	const tabs = [...state.center.tabs, ...state.right.tabs].sort((a, b) =>
-		a.id.localeCompare(b.id),
-	);
-	return { version: 1, tabs, activeTabId: tabs[0]?.id ?? null };
-}
 function membership(
 	state: WorkspacePaneAreasState,
 ): Map<string, WorkspacePaneArea> {
@@ -47,11 +41,6 @@ function pinValues(
 				Object.values(tab.panes).map((pane) => [pane.id, pane.pinned] as const),
 			),
 		),
-	);
-}
-function selectedPane(state: State): string | null {
-	return (
-		state.tabs.find((tab) => tab.id === state.activeTabId)?.activePaneId ?? null
 	);
 }
 
@@ -93,6 +82,17 @@ export function applyWorkspacePaneAreas(
 		}));
 		projected.activePaneTabId = currentFlat.activeTabId;
 		projected.activePaneId = selectedPane(currentFlat);
+		const selection = mergePaneAreaSelectionOnly(
+			workspace,
+			projected,
+			current,
+			next,
+			before,
+		);
+		if (selection) {
+			target.workspaces[index] = selection;
+			return validateWorkspaceViewV3(view);
+		}
 		if (
 			!applyWorkspacePaneState(
 				projected,
@@ -138,30 +138,6 @@ export function applyWorkspacePaneAreas(
 		};
 		const centerTabs = ordered("center"),
 			rightTabs = ordered("right");
-		const centerId = merge(
-			current.center.activeTabId,
-			before.center.activeTabId,
-			next.center.activeTabId,
-		);
-		const rightId = merge(
-			current.right.activeTabId,
-			before.right.activeTabId,
-			next.right.activeTabId,
-		);
-		const open = merge(
-			current.rightPaneOpen,
-			before.rightPaneOpen,
-			next.rightPaneOpen,
-		);
-		let active = merge(
-			current.activePaneArea,
-			before.activePaneArea,
-			next.activePaneArea,
-		);
-		if (!open || !rightTabs.length) active = "center";
-		const focused = (active === "right" ? rightTabs : centerTabs).find(
-			(tab) => tab.tabId === (active === "right" ? rightId : centerId),
-		);
 		const currentPins = new Map(
 				workspace.panes.map((pane) => [pane.paneId, pane.pinned]),
 			),
@@ -175,26 +151,15 @@ export function applyWorkspacePaneAreas(
 				nextPins.get(pane.paneId),
 			),
 		}));
-		const centerFocusChanged =
-			before.center.activeTabId !== next.center.activeTabId ||
-			selectedPane(before.center) !== selectedPane(next.center);
-		const pane = panes.find((pane) => pane.paneId === focused?.activePaneId);
-		target.workspaces[index] = {
-			...projected,
+		target.workspaces[index] = mergePaneAreaSelections(
+			{ ...workspace, ...projected, activeTool: workspace.activeTool },
+			current,
+			next,
+			before,
+			centerTabs,
+			rightTabs,
 			panes,
-			paneTabs: centerTabs,
-			activePaneTabId: centerId,
-			rightPaneLayout: { version: 1, tabs: rightTabs, activeTabId: rightId },
-			rightPaneOpen: open,
-			activePaneArea: active,
-			activePaneId: focused?.activePaneId ?? null,
-			activeTool:
-				active === "center" && centerFocusChanged && pane
-					? pane.kind === "browser"
-						? "terminal"
-						: pane.kind
-					: workspace.activeTool,
-		};
+		);
 		return validateWorkspaceViewV3(view);
 	} catch {
 		return null;

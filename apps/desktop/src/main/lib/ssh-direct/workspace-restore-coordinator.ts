@@ -488,6 +488,13 @@ export class WorkspaceRestoreCoordinator {
 	): Promise<WorkspaceViewSnapshotV2> {
 		return this.saveView(owner, input, 2, isCurrent);
 	}
+	saveBrowserOpenV3(
+		owner: number,
+		input: ViewSaveInput,
+		isCurrent: () => boolean,
+	): Promise<WorkspaceViewSnapshotV3> {
+		return this.saveView(owner, input, 3, isCurrent);
+	}
 	private saveView(
 		owner: number,
 		input: ViewSaveInput,

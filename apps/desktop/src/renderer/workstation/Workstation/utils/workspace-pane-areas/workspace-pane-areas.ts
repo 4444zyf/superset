@@ -2,6 +2,7 @@ import { createWorkspaceStore, type WorkspaceState } from "@superset/panes";
 import type { WorkspaceViewV3 } from "../../../../../shared/workspace-view-v3";
 import { toPaneState } from "../pane-adapter/pane-adapter";
 import { paneStateMetadataKey } from "../workspace-pane-state/workspace-pane-state";
+import { workstationPaneRuntimeStructure } from "../workstation-pane-runtime/workstation-pane-runtime";
 
 type PaneData = WorkspaceViewV3["panes"][number];
 type State = WorkspaceState<PaneData>;
@@ -11,6 +12,19 @@ export interface WorkspacePaneAreasState {
 	right: State;
 	activePaneArea: WorkspacePaneArea;
 	rightPaneOpen: boolean;
+}
+export function stateForLegacyMetadataMerge(
+	state: WorkspacePaneAreasState,
+): State {
+	const tabs = [...state.center.tabs, ...state.right.tabs].sort((a, b) =>
+		a.id.localeCompare(b.id),
+	);
+	return { version: 1, tabs, activeTabId: tabs[0]?.id ?? null };
+}
+export function selectedWorkspacePane(state: State): string | null {
+	return (
+		state.tabs.find((tab) => tab.id === state.activeTabId)?.activePaneId ?? null
+	);
 }
 type EditListener = (
 	next: WorkspacePaneAreasState,
@@ -82,6 +96,14 @@ export function workspacePaneAreasMetadataKey(
 		activePaneArea: state.activePaneArea,
 		rightPaneOpen: state.rightPaneOpen,
 	});
+}
+export function workspacePaneAreasStructureKey(
+	state: WorkspacePaneAreasState,
+): string {
+	return JSON.stringify([
+		workstationPaneRuntimeStructure(state.center),
+		workstationPaneRuntimeStructure(state.right),
+	]);
 }
 function fingerprint(state: WorkspacePaneAreasState): string {
 	const layouts = (value: State) =>

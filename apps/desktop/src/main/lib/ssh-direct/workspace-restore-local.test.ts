@@ -948,3 +948,80 @@ test("a newer V3 navigation prevents an older validated layout from committing",
 		f.close();
 	}
 });
+
+test("a cancelled V3 browser open cannot commit its pane areas after validation", async () => {
+	const f = fixture(),
+		started = Promise.withResolvers<void>(),
+		checked = Promise.withResolvers<unknown>();
+	let delivered: WorkstationBrowserOpenEvent | undefined;
+	const opens = new WorkstationBrowserOpenRequests({
+		getOwner: () => ({ ownerId: 1, ownerEpoch: 1 }),
+		changed: () => {},
+		dispatch: (_owner, event) => {
+			delivered = event;
+		},
+		schedule: () => () => {},
+	});
+	try {
+		await seedTerminal(f);
+		const before = f.store.readV3(),
+			subscriptionId = randomUUID(),
+			scope = opens.prepare(1, subscriptionId);
+		expect(opens.confirmReady(1, { ...scope, subscriptionId })).toBe(true);
+		const execute = opens.pin(
+			{
+				descriptor: f.descriptor(),
+				workspaceId: "workspace",
+				projectId: null,
+				workspaceName: "Owned",
+				url: "https://old.invalid/",
+				target: "current-tab",
+				show: false,
+			},
+			scope.scopeId,
+			() => true,
+		);
+		const receipt = execute().catch((error) => error);
+		const event = delivered;
+		if (!event || event.type !== "open")
+			throw Error("Missing renderer request");
+		f.setWorkspaceCheck(() => {
+			started.resolve();
+			return checked.promise;
+		});
+		const save = f.coordinator
+			.saveBrowserOpenV3(
+				1,
+				{
+					expectedRevision: before.revision,
+					navigationRevision: 0,
+					view: browserAreaInput(f),
+					browserLeases: [
+						{ connectionId: f.id, generation: f.descriptor().generation },
+					],
+				},
+				() => opens.isCurrent(1, event),
+			)
+			.catch((error) => error);
+		await Promise.race([
+			started.promise,
+			save.then(() => {
+				throw Error("Save settled before validation");
+			}),
+		]);
+		expect(
+			opens.complete(1, {
+				...event,
+				ok: false,
+				error: "Renderer layout changed",
+			}),
+		).toBe(true);
+		checked.resolve({ id: "workspace" });
+		expect((await save).message).toContain("Browser open scope");
+		expect((await receipt).message).toBe("Renderer layout changed");
+		expect(f.store.readV3()).toEqual(before);
+	} finally {
+		opens.dispose();
+		f.close();
+	}
+});

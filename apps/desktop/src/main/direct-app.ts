@@ -10,6 +10,7 @@ import {
 	browserOpenIdentitySchema,
 	browserOpenReplySchema,
 	browserOpenSaveSchema,
+	browserOpenSaveV3Schema,
 } from "../shared/workstation-browser-open";
 import { createBrowserSiteCookies } from "./lib/browser/browser-site-cookies";
 import { currentBrowserCookies } from "./lib/browser/current-browser-cookies";
@@ -1070,6 +1071,17 @@ export async function startWorkstation(): Promise<void> {
 						owner,
 						browserOpenIdentitySchema.parse(payload),
 					);
+				case "saveBrowserOpenViewV3": {
+					const input = browserOpenSaveV3Schema.parse(payload);
+					return requireViews().saveBrowserOpenV3(
+						owner,
+						input.save,
+						() =>
+							!quitting &&
+							!browserOpenClosing &&
+							browserOpenRequests?.isCurrent(owner, input) === true,
+					);
+				}
 				case "saveBrowserOpenView": {
 					const input = browserOpenSaveSchema.parse(payload);
 					return requireViews().saveBrowserOpenV2(

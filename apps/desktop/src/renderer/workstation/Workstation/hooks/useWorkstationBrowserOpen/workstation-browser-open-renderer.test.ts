@@ -22,7 +22,12 @@ import {
 } from "shared/workspace-view-v2";
 import { workstationBrowsers } from "../../providers/WorkstationBrowsers/workstation-browsers";
 import { startWorkstationBrowserOpenRenderer } from "./workstation-browser-open-renderer";
-function fixture(blockSave = false, rotateConfirmation = false) {
+import { validateWorkspaceViewV3, type WorkspaceViewSnapshotV3, type WorkspaceViewInputV3 } from "shared/workspace-view-v3";
+import { browserOpenSaveV3Schema } from "shared/workstation-browser-open";
+import { mergeLegacyWorkspaceViewAreas } from "../../../../../main/lib/ssh-direct/workspace-view-area-merge";
+import { projectBrowserOpenSnapshotV2 } from "../../utils/workspace-browser-open/workspace-browser-open-view-v3";
+import { createWorkspacePaneAreas, workspacePaneAreasStructureKey } from "../../utils/workspace-pane-areas/workspace-pane-areas";
+function fixture(blockSave = false, rotateConfirmation = false, paneAreas = false) {
 	const a = crypto.randomUUID(),
 		b = crypto.randomUUID(),
 		workspaceId = crypto.randomUUID(),
@@ -89,6 +94,22 @@ function fixture(blockSave = false, rotateConfirmation = false) {
 		activeConnectionId: a,
 		targets: [target(a), target(b)],
 	};
+	let areaSnapshot: WorkspaceViewSnapshotV3 | undefined, areaReads = 0, areaSaves = 0;
+ const areaSaveSettled = Promise.withResolvers<void>();
+ if (paneAreas) {
+  const { schemaVersion: _, revision, updatedAt, ...view } = snapshot;
+  const input: WorkspaceViewInputV3 = structuredClone(view);
+  const workspace = input.targets.find(t => t.connectionId === b)?.workspaces[0];
+  if (!workspace) throw Error("Missing fixture workspace");
+  workspace.panes.push({ paneId: "right-browser", kind: "browser", resourceId: "right-page", pinned: false, browser: { url: "https://right.invalid/", pageTitle: "Right", faviconUrl: null } });
+  workspace.paneTabs = [{ tabId: "center-tab", createdAt: 1, activePaneId: "terminal", layout: { type: "pane", paneId: "terminal" } }];
+  workspace.activePaneTabId = "center-tab";
+  workspace.rightPaneLayout = { version: 1, activeTabId: "right-tab", tabs: [{ tabId: "right-tab", createdAt: 2, activePaneId: "right-browser", layout: { type: "pane", paneId: "right-browser" } }] };
+  workspace.layout = { type: "split", axis: "horizontal", ratio: 0.5, first: { type: "pane", paneId: "terminal" }, second: { type: "pane", paneId: "right-browser" } };
+  workspace.rightPaneOpen = true; workspace.activePaneArea = "right"; workspace.activePaneId = "right-browser";
+  areaSnapshot = { ...validateWorkspaceViewV3(input), schemaVersion: 3, revision, updatedAt };
+  snapshot = projectBrowserOpenSnapshotV2(areaSnapshot);
+ }
 	let onEvent: ((event: WorkstationBrowserOpenEvent) => void) | undefined,
 		onAvailability:
 			| ((event: WorkstationBrowserOpenAvailability) => void)
@@ -144,7 +165,12 @@ function fixture(blockSave = false, rotateConfirmation = false) {
 				revision: snapshot.revision + 1,
 				updatedAt: 2,
 			};
-			saves++;
+			if (areaSnapshot) {
+    const { schemaVersion: _, revision: __, updatedAt: ___, ...previous } = areaSnapshot;
+    areaSnapshot = { ...mergeLegacyWorkspaceViewAreas(previous, view), schemaVersion: 3, revision: snapshot.revision, updatedAt: snapshot.updatedAt };
+    snapshot = projectBrowserOpenSnapshotV2(areaSnapshot);
+   }
+   saves++;
 			return structuredClone(snapshot);
 		},
 		onEvent: (listener) => {
@@ -160,7 +186,24 @@ function fixture(blockSave = false, rotateConfirmation = false) {
 			};
 		},
 	};
+ if (paneAreas) source.saveViewV3 = async value => {
+  const parsed = browserOpenSaveV3Schema.parse(value);
+  saveStarted.resolve();
+  try {
+   await saveGate.promise;
+   if (!requests.isCurrent(1, value)) throw Error("Browser open scope changed");
+   if (!areaSnapshot) throw Error("Missing owned V3 state");
+   areaSnapshot = { ...validateWorkspaceViewV3(parsed.save.view), schemaVersion: 3, revision: areaSnapshot.revision + 1, updatedAt: 2 };
+   snapshot = projectBrowserOpenSnapshotV2(areaSnapshot); areaSaves++;
+   return structuredClone(areaSnapshot);
+  } finally { areaSaveSettled.resolve(); }
+ };
 	const api = {
+  ...(paneAreas ? { getWorkspaceViewV3: async () => {
+   if (!areaSnapshot) throw Error("Missing owned V3 state");
+   areaReads++;
+   return { revision: areaSnapshot.revision, snapshot: structuredClone(areaSnapshot), invalid: false, navigationRevision: 0 };
+  } } : {}),
 		getWorkspaceViewV2: async () => {
 			reads++;
 			return {
@@ -191,6 +234,7 @@ function fixture(blockSave = false, rotateConfirmation = false) {
 		},
 	} as unknown as DirectWorkstationApi;
 	const stop = startWorkstationBrowserOpenRenderer(api, () => ({
+  paneAreas,
 		flush: async () => {},
 		enqueue: async (action) => action(),
 		accept: () => {
@@ -204,6 +248,10 @@ function fixture(blockSave = false, rotateConfirmation = false) {
 	if (!blockSave) saveGate.resolve();
 	return {
 		api,
+  areaSnapshot: () => areaSnapshot,
+  areaReads: () => areaReads,
+  areaSaves: () => areaSaves,
+  areaSaveSettled,
 		input,
 		requests,
 		ready,
@@ -383,6 +431,127 @@ test("a scope changed during confirmation is re-established before advertising r
 		expect(f.reads()).toBe(0);
 		expect(f.saves()).toBe(0);
 	} finally {
+		f.close();
+	}
+});
+
+test("the opt-in V3 renderer saves the center while retaining the active right area", async () => {
+	const f = fixture(false, false, true);
+	try {
+		await f.ready.promise;
+		const receipt = f.execute()();
+		await f.accepted.promise;
+		const guest = [...document.querySelectorAll("webview")].at(-1);
+		if (!guest) throw Error("Missing background guest");
+		Object.assign(guest, {
+			getWebContentsId: () => 42,
+			executeJavaScript: async () => {
+				throw Error("No viewport stream in owned unit guest");
+			},
+		});
+		guest.dispatchEvent(new Event("dom-ready"));
+		await f.registerStarted.promise;
+		f.registerGate.resolve();
+		const result = await receipt;
+		expect(f.areaReads()).toBe(1);
+		expect(f.reads()).toBe(0);
+		expect(f.areaSaves()).toBe(1);
+		expect(f.saves()).toBe(0);
+		const saved = f
+			.areaSnapshot()
+			?.targets.find((t) => t.connectionId === f.input.descriptor.connectionId)
+			?.workspaces[0];
+		expect(saved?.rightPaneLayout?.tabs[0]?.activePaneId).toBe("right-browser");
+		expect(saved?.activePaneArea).toBe("right");
+		expect(saved?.activePaneId).toBe("right-browser");
+		expect(saved?.paneTabs).toHaveLength(2);
+		expect(saved?.panes.some((p) => p.paneId === result.paneId)).toBe(true);
+		expect(f.terminalCalls()).toBe(0);
+	} finally {
+		f.close();
+	}
+});
+test("an incomplete V3 API falls back to the original V2 transport", async () => {
+	const f = fixture(false, false, true);
+	try {
+		await f.ready.promise;
+		f.api.getWorkspaceViewV3 = undefined;
+		const receipt = f.execute()();
+		await f.accepted.promise;
+		const guest = [...document.querySelectorAll("webview")].at(-1);
+		if (!guest) throw Error("Missing background guest");
+		Object.assign(guest, {
+			getWebContentsId: () => 42,
+			executeJavaScript: async () => {
+				throw Error("No viewport stream in owned unit guest");
+			},
+		});
+		guest.dispatchEvent(new Event("dom-ready"));
+		await f.registerStarted.promise;
+		f.registerGate.resolve();
+		await receipt;
+		expect(f.areaReads()).toBe(0);
+		expect(f.reads()).toBe(1);
+		expect(f.areaSaves()).toBe(0);
+		expect(f.saves()).toBe(1);
+		expect(
+			f
+				.areaSnapshot()
+				?.targets.find(
+					(t) => t.connectionId === f.input.descriptor.connectionId,
+				)?.workspaces[0]?.rightPaneLayout?.tabs,
+		).toHaveLength(1);
+	} finally {
+		f.close();
+	}
+});
+test("a structural right-side edit retires an in-flight center open before its V3 save", async () => {
+	const f = fixture(true, false, true);
+	const workspace = f
+		.areaSnapshot()
+		?.targets.find((t) => t.connectionId === f.input.descriptor.connectionId)
+		?.workspaces[0];
+	if (!workspace) throw Error("Missing area workspace");
+	const areas = createWorkspacePaneAreas(workspace, {
+		scheduleMicrotask: () => {},
+	});
+	const off = registerWorkstationPaneRuntime(
+		f.api,
+		f.input.descriptor,
+		f.input.workspaceId,
+		workspace.tabId,
+		{
+			read: () => areas.center.getState(),
+			replace: (state) => areas.center.getState().replaceState(state),
+			subscribe: (listener) => areas.subscribe(listener),
+			fingerprint: () => workspacePaneAreasStructureKey(areas.read()),
+		},
+	);
+	try {
+		await f.ready.promise;
+		const receipt = f
+			.execute()()
+			.catch((error) => error);
+		await f.saveStarted.promise;
+		areas.right
+			.getState()
+			.setPanePinned({ paneId: "right-browser", pinned: true });
+		areas.flush();
+		await f.completed.promise;
+		expect((await receipt).message).toContain("Workspace pane layout changed");
+		f.saveGate.resolve();
+		await f.areaSaveSettled.promise;
+		expect(f.areaSaves()).toBe(0);
+		expect(
+			f
+				.areaSnapshot()
+				?.targets.find(
+					(t) => t.connectionId === f.input.descriptor.connectionId,
+				)?.workspaces[0]?.panes,
+		).toHaveLength(2);
+	} finally {
+		off();
+		areas.dispose();
 		f.close();
 	}
 });
