@@ -365,3 +365,16 @@ namespace切换直接归档原V3目标并用同版本验证/保存，保留两�
 新applyWorkspacePaneAreas先验证完整V3输入和精确connection/backend/namespace/uid/targetRevision/workspace/tab归属，使用稳定排序/中立全局选择的扁平状态调用原applyWorkspacePaneState，随后独立三方合并区域归属、区域内顺序/选择、可见性和固定字段，最后再次验证整份模型。稳定排序只用于原合并器核对，真实各侧顺序不会被排序覆盖。不同区域的标题/固定/选择、移动叠加并发标题可合并，冲突标题/固定、旧execution、未知资源和旧目标身份返回null且不修改调用方输入。中心为空、右侧隐藏时不从兼容投影合成右侧焦点；右侧浏览器取得焦点不关闭中心Files工具。新metadata key复用原key并补固定/区域字段，纯layout变化仍可由后续调用者按原防抖策略保存。
 
 缺模块红例保留；26项新增连同原模型、SQLite、restore、pane适配/状态共112项412断言/11文件、桌面类型和新四文件lint通过；初次唯一警告为夹具未使用的split导入，补上真实跨区域split持久化用例后清零。验证包括两个区域各自选择并发合并、实际重排、先同步未保存pin再接受权威false、过期回调清理和无变化反馈。十九份现有IPC/存储/renderer/原pane引擎与版本模块逐字节不变，127的2205编译文件、86个MJS、3639个CLI源码图及原随包CLI哈希保持。无新生产调用方、构建、实窗、安装包或Actions。本阶段仍是尚未注册的renderer核心；启用UI前先为原中心区域CLI browser-open及其V2回执接上V3兼容，再接单个workspace runtime注册、V3视图hook和原区域界面。[阶段一百三十一证据](../implementation/evidence/local-ssh-feature-parity/stage131)。
+
+
+## 阶段一百三十二：双区域中心浏览器打开与受保护保存
+
+源码96350b428新增openWorkstationBrowserViewV3，复用原浏览器打开引擎，目标仍是原版的中心区域。临时中心投影只供原引擎使用；写回完整V3前重组原右侧资源、布局、选择、可见性与显式固定状态，并再次通过原总资源/深度限制。右侧同ID/同资源冲突不能通过去重隐藏，隐藏右侧不因旧投影而被打开，后台请求保留右侧焦点及中心Files；show显式选择中心。原V2 helper逐字节保持，新增工作区仍需已核实的目标身份，不合成serviceUid或终端。
+
+新增可选browser.openRequests.saveViewV3及对应preload/main方法，复用原浅层V3 wrapper和协调器saveView版本3。主进程沿原受信sender/frame、owner、quitting/closing与准确请求scope检查；实际请求在异步资源验证期间取消后不能提交新V3布局。renderer新增默认关闭的paneAreas选项，只有完整V3读取和受保护保存方法同时存在才走新路径；缺接口回退原V2，不另读两次数据库。保存回执暂投影成原V2 callback格式，未来V3视图hook必须刷新完整V3，不能直接把回执标为V3。本阶段未启用当前Workstation入口。
+
+原单workspace runtime新增可选整体fingerprint；默认沿原structure函数，其正文不变。新双侧结构stamp包含两侧布局/资源/标题/固定字段，忽略选择，所以右侧结构变化能取消正在保存的中心打开，而纯焦点操作不取消。为此补上选择意图的并发合并：保存中新增中心浏览器后，仍保留新资源和布局并合并用户的右侧焦点；资源身份/执行、原tab归属或选择冲突依旧拒绝。没有两个PaneGrid争夺同一个runtime注册。
+
+保留helper缺失、选择合并、请求取消和renderer红例；renderer最初新路径未接线，右侧取消例按原5秒超时失败，没有延长超时或重试。一次从仓库根运行renderer测试因缺桌面DOM setup失败，日志保留；改在桌面包目录运行后9项通过。最终相关134项510断言/14文件，加原请求/restore生命周期21项104断言/2文件，全通过；桌面类型、31项品牌资源、插件和新增核心lint通过。既有文件保留34项警告，renderer保留3项旧非空断言警告；共享文件原控制字符正则保持，lint单独跳过该原规则，没有更改产品校验或降低类型。
+
+四份main/preload/coordinator/API模块去掉明确新增V3成员后完整AST相同，证明包含末语句变异自检；原structure/pin保留函数AST相同，十五份模型、存储、视图入口、原引擎及host floor逐字节保持。原127的2205编译文件、86个MJS、3639个CLI源码图和随包CLI哈希复核保持。本阶段是源码兼容准备，未构建新实窗、安装包或Actions，不将127的验收归给新源码。下一步接V3视图回执、单个双侧runtime及原右区域界面，再做实际本地/拥有SSH验收。[阶段一百三十二证据](../implementation/evidence/local-ssh-feature-parity/stage132)。
