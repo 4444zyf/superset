@@ -1,0 +1,29 @@
+{
+  "sourceCommit": "dcb7cd71d7d073f1a9f944457ec0b5540bb40dd5",
+  "feature": "Private durable cookie import intent and optional current-owner guards around original cookie jar writes; no exposed import RPC yet",
+  "tests": {
+    "cases": 88,
+    "assertions": 291,
+    "files": 9,
+    "newCases": 16,
+    "guardRed": "1 pass, 6 fail",
+    "guardGreen": "33 pass across original and guarded cookie/service tests",
+    "journalGreen": "55 pass across new import and original durable operations",
+    "hostTypesExit": 0,
+    "desktopTypesExit": 0
+  },
+  "oldDefaults": "Old UI/HTTP callers omit the optional guard. Full old Cookie importer AST equal after declared optional parameters, argument forwarding and checks are removed; protected hosts, decryptor and counters preserved.",
+  "noNewRpc": true,
+  "noNewCapability": true,
+  "noMainBinding": true,
+  "noNewCli": true,
+  "noNewBuild": true,
+  "noNewNative": true,
+  "noActions": true,
+  "limitations": [
+    "Already-issued asynchronous cookie writes cannot be undone by retirement; subsequent removal/set/restoration writes stop and errors propagate",
+    "Real peer/actual registered session, operation acknowledgement and namespace CLI still need wiring",
+    "Original Keychain prompt is 120 seconds; future import transfer must account for it rather than blindly using the navigation deadline",
+    "No physical macOS, external SSH or real vendor login claim"
+  ]
+}
