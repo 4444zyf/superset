@@ -389,3 +389,14 @@ namespace切换直接归档原V3目标并用同版本验证/保存，保留两�
 16项新增覆盖读取期间才发生的右侧焦点变化、部分接口、原this绑定、show、最近存活选择、隐藏资源、身份变化、过期scope/导航、较旧revision与已forget结果。forget并发红例实际发现更高本地revision会被null清掉；现返回stale，较新的确已忘记结果仍为null，旧回执不能复活布局。初次类型检查发现测试未收窄browser联合类型，改为kind判别；不加类型断言。最终171项675断言/18文件、桌面类型、新四文件lint和插件通过。
 
 既有24个IPC/renderer/原pane引擎/存储/模型/host floor模块逐字节保持，原2205编译文件、86个MJS、3639个CLI源码图及随包CLI哈希不变。新适配器尚未由useWorkspaceViews调用，不把内部测试宣称为双侧UI恢复或新本地/SSH实窗验收。无构建、安装包或Actions。下一步接真实hook的V3读写、回执与双侧操作，在完整调用链后再启用界面。[阶段一百三十三证据](../implementation/evidence/local-ssh-feature-parity/stage133)。
+
+
+## 阶段一百三十四：真实 V3 视图 hook 与等待浏览器回执
+
+源码af6247870为原useWorkspaceViews增加默认关闭的paneAreas选项。完整接口与明确开启同时满足时才读写完整V3；默认/部分接口仍走原V1/V2分支，原Workstation根调用未开启此选项。输入类型允许V3可选区域字段，快照保留2|3判别，不把V2回执重标为3。原全局设置/窗口操作保留两侧数据，新增savePaneAreas在原mutate队列内用准确目标/工作区scope合并原两个store快照，沿原revision CAS、navigation和browserLeases保存；资源变更冲突不落盘。原单pane操作尚待区域适配，启用双侧UI前不能跳过。
+
+旧浏览器页面更新和CLI打开回执在新模式中调用阶段133适配器，重新读取完整V3，并读取刷新完成时的本地选择及较新乐观意图。areaStorage ref、mounted和navigation同时保护异步结果，导航/卸载后明确browser-open回执拒绝；普通旧页面刷新过期则忽略。renderer accept现在可返回Promise，异步刷新结束且请求再次核实后才创建后台guest/确认，普通同步callback保持原流程；页面持久回调返回异步结果给原catch，避免遗漏拒绝。测试以真实DOM MutationObserver观察guest创建，无增加截止时间或事件重试。请求在刷新期间release不能创建guest。浏览器reconcile只增加可接受V3的参数类型，方法正文保持，未放宽页面/资源归属。
+
+新7项实际React hook测试和2项renderer测试先红后绿：V3完整读取/部分接口退回、全局设置保存、刷新中较新Files意图、导航和卸载、实际跨区域tab转移、页面V2回执刷新、等待异步accept和中途release。初轮类型检查指出reconcile只接受schemaVersion2，改为明确2|3输入类型而不作断言。最终相关232项1024断言/25文件、桌面类型、插件通过；新测试lint清洁，既有三个文件保留11条原非空断言警告，renderer保留3条同类警告。
+
+完整AST遍历含末语句变异自检：58个原hook声明、36个原返回属性和全部原effects保持；对照时仅排除新增areaStorageRef赋值，第一轮未排除该明确新语句的证明失败也保留。prepare/current/offEvent/offAvailability四个renderer scope声明相同；provider去掉新增参数类型后全模块AST相同。22个原IPC/模型/存储/入口/pane引擎模块逐字节保持。127的2205编译文件、86个MJS、3639个CLI源码图及随包CLI哈希保持，没有新构建/实窗/安装包/Actions。下一步适配剩余单pane操作、单workspace双store runtime与原右区域UI，再做本地/拥有SSH实际验收。[阶段一百三十四证据](../implementation/evidence/local-ssh-feature-parity/stage134)。
