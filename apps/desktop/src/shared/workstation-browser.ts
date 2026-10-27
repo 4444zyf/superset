@@ -1,3 +1,4 @@
+import type { WorkstationBrowserOpenApi } from "./workstation-browser-open";
 import type { BrowserSiteCookiesApi } from "./browser-site-cookies";
 import type { WorkstationBrowserDesignModeApi } from "./workstation-browser-design-mode";
 import type { BrowserImportApi } from "./browser-import";
@@ -106,6 +107,7 @@ export interface WorkstationScreenshotsApi {
 	): () => void;
 }
 export interface WorkstationBrowserApi {
+	openRequests?: WorkstationBrowserOpenApi;
 	designMode?: WorkstationBrowserDesignModeApi;
 	siteCookies?: BrowserSiteCookiesApi;
 	importData?: BrowserImportApi;

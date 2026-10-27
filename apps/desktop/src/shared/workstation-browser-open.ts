@@ -1,7 +1,22 @@
+import { z } from "zod";
+import type {
+	TargetViewV2,
+	WorkspaceViewSnapshotV2,
+	WorkspaceViewV2Save,
+} from "./workspace-view-v2";
 import type { DirectDescriptor } from "./direct-workstation";
 
 export interface WorkstationBrowserOpenInput {
 	descriptor: DirectDescriptor;
+	viewIdentity?: Pick<
+		TargetViewV2,
+		| "connectionId"
+		| "targetRevision"
+		| "backendId"
+		| "namespaceId"
+		| "serviceUid"
+		| "autoConnect"
+	>;
 	workspaceId: string;
 	projectId: string | null;
 	workspaceName: string;
@@ -33,3 +48,76 @@ export type WorkstationBrowserOpenReply = WorkstationBrowserOpenIdentity &
 		| { ok: true; result: WorkstationBrowserOpenResult }
 		| { ok: false; error: string }
 	);
+
+export const WORKSTATION_BROWSER_OPEN_CHANNEL =
+	"direct-workstation:browser-open";
+export const WORKSTATION_BROWSER_OPEN_AVAILABILITY_CHANNEL =
+	"direct-workstation:browser-open-availability";
+export const browserOpenSubscriptionSchema = z.strictObject({
+	subscriptionId: z.string().uuid(),
+});
+export const browserOpenScopeSchema = browserOpenSubscriptionSchema.extend({
+	scopeId: z.string().uuid(),
+});
+export const browserOpenIdentitySchema = browserOpenScopeSchema.extend({
+	id: z.string().uuid(),
+});
+export const browserOpenReplySchema = z.discriminatedUnion("ok", [
+	browserOpenIdentitySchema.extend({
+		ok: z.literal(true),
+		result: z.strictObject({
+			paneId: z
+				.string()
+				.min(1)
+				.max(128)
+				.regex(/^[\w-]+$/),
+			url: z
+				.string()
+				.max(8192)
+				.regex(/^[^\u0000-\u001f\u007f]*$/),
+			title: z.string().max(4096),
+		}),
+	}),
+	browserOpenIdentitySchema.extend({
+		ok: z.literal(false),
+		error: z.string().min(1).max(4096),
+	}),
+]);
+export const browserOpenSaveSchema = browserOpenIdentitySchema.extend({
+	save: z.strictObject({
+		expectedRevision: z.number().int().nonnegative(),
+		navigationRevision: z.number().int().nonnegative(),
+		view: z.unknown(),
+		browserLeases: z
+			.array(
+				z.strictObject({
+					connectionId: z.string().uuid(),
+					generation: z.number().int().positive(),
+				}),
+			)
+			.max(10)
+			.optional(),
+	}),
+});
+export interface WorkstationBrowserOpenAvailability {
+	scopeId: string;
+	ready: boolean;
+	accepting: boolean;
+}
+export interface WorkstationBrowserOpenApi {
+	prepare(input: { subscriptionId: string }): Promise<{ scopeId: string }>;
+	confirmReady(input: {
+		scopeId: string;
+		subscriptionId: string;
+	}): Promise<boolean>;
+	end(input: { subscriptionId: string }): Promise<void>;
+	complete(input: WorkstationBrowserOpenReply): Promise<boolean>;
+	isCurrent(input: WorkstationBrowserOpenIdentity): Promise<boolean>;
+	saveView(
+		input: WorkstationBrowserOpenIdentity & { save: WorkspaceViewV2Save },
+	): Promise<WorkspaceViewSnapshotV2>;
+	onEvent(listener: (event: WorkstationBrowserOpenEvent) => void): () => void;
+	onAvailability(
+		listener: (event: WorkstationBrowserOpenAvailability) => void,
+	): () => void;
+}

@@ -1,10 +1,17 @@
 import { expect, test } from "bun:test";
 import {
 	type WorkstationBrowserOpenEvent,
+	type WorkstationBrowserOpenInput,
+	type WorkstationBrowserOpenResult,
 	WorkstationBrowserOpenRequests,
 } from "./workstation-browser-open-requests";
 
-function fixture() {
+function fixture(
+	validateResult?: (
+		input: WorkstationBrowserOpenInput,
+		result: WorkstationBrowserOpenResult,
+	) => boolean,
+) {
 	let owner: { ownerId: number; ownerEpoch: number } | null = {
 		ownerId: 7,
 		ownerEpoch: 1,
@@ -14,6 +21,7 @@ function fixture() {
 		tasks = new Set<() => void>();
 	let changes = 0;
 	const requests = new WorkstationBrowserOpenRequests({
+		validateResult,
 		getOwner: () => owner,
 		changed: () => {
 			changes++;
@@ -346,4 +354,32 @@ test("renderer owner replacement invalidates an accepted save guard before refre
 	const settled = pending.catch((error) => error);
 	f.requests.refresh();
 	expect((await settled).message).toContain("target changed");
+});
+
+test("a successful acknowledgement must match the pinned request and a registered owned pane", async () => {
+	const observed: Array<WorkstationBrowserOpenInput> = [];
+	const f = fixture((input, result) => {
+		observed.push(input);
+		return result.paneId === "owned-pane" && result.url === input.url;
+	});
+	const lease = f.ready(),
+		original = structuredClone(f.input),
+		execute = f.requests.pin(f.input, lease.scopeId, () => true),
+		pending = execute();
+	const event = f.events[0]?.event;
+	if (!event || event.type !== "open") throw Error("Missing open event");
+	f.input.url = "https://changed.invalid/";
+	expect(f.requests.complete(7, { ...event, ok: true, result: f.result })).toBe(
+		false,
+	);
+	expect(f.requests.isCurrent(7, event)).toBe(true);
+	expect(
+		f.requests.complete(7, {
+			...event,
+			ok: true,
+			result: { ...f.result, paneId: "owned-pane" },
+		}),
+	).toBe(true);
+	expect(await pending).toEqual({ ...f.result, paneId: "owned-pane" });
+	expect(observed).toEqual([original, original]);
 });

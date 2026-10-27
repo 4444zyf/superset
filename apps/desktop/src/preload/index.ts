@@ -1,3 +1,7 @@
+import {
+	WORKSTATION_BROWSER_OPEN_CHANNEL,
+	WORKSTATION_BROWSER_OPEN_AVAILABILITY_CHANNEL,
+} from "../shared/workstation-browser-open";
 import { contextBridge, ipcRenderer } from "electron";
 import {
 	DIRECT_CHANNEL,
@@ -25,6 +29,35 @@ const invoke = (action: string, payload?: unknown) =>
 	ipcRenderer.invoke(DIRECT_CHANNEL, action, payload);
 const directWorkstation: DirectWorkstationApi = {
 	browser: {
+		openRequests: {
+			prepare: (input) => invoke("prepareBrowserOpen", input),
+			confirmReady: (input) => invoke("confirmBrowserOpenReady", input),
+			end: (input) => invoke("endBrowserOpen", input),
+			complete: (input) => invoke("completeBrowserOpen", input),
+			isCurrent: (input) => invoke("isBrowserOpenCurrent", input),
+			saveView: (input) => invoke("saveBrowserOpenView", input),
+			onEvent: (listener) => {
+				const wrapped = (
+					_event: unknown,
+					data: Parameters<typeof listener>[0],
+				) => listener(data);
+				ipcRenderer.on(WORKSTATION_BROWSER_OPEN_CHANNEL, wrapped);
+				return () =>
+					ipcRenderer.removeListener(WORKSTATION_BROWSER_OPEN_CHANNEL, wrapped);
+			},
+			onAvailability: (listener) => {
+				const wrapped = (
+					_event: unknown,
+					data: Parameters<typeof listener>[0],
+				) => listener(data);
+				ipcRenderer.on(WORKSTATION_BROWSER_OPEN_AVAILABILITY_CHANNEL, wrapped);
+				return () =>
+					ipcRenderer.removeListener(
+						WORKSTATION_BROWSER_OPEN_AVAILABILITY_CHANNEL,
+						wrapped,
+					);
+			},
+		},
 		designMode: {
 			set: (input) => invoke("setBrowserDesignMode", input),
 			awaitSelection: (input) => invoke("awaitBrowserDesignSelection", input),

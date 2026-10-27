@@ -21,6 +21,7 @@ interface Lease extends Owner {
 	subscriptionId: string;
 }
 interface Pending {
+	input: WorkstationBrowserOpenInput;
 	id: string;
 	lease: Lease;
 	isTargetCurrent(): boolean;
@@ -55,6 +56,10 @@ export class WorkstationBrowserOpenRequests {
 			getOwner(): Owner | null;
 			dispatch(ownerId: number, event: WorkstationBrowserOpenEvent): void;
 			changed(): void;
+			validateResult?(
+				input: WorkstationBrowserOpenInput,
+				result: WorkstationBrowserOpenResult,
+			): boolean;
 			schedule?: typeof schedule;
 		},
 	) {}
@@ -188,6 +193,7 @@ export class WorkstationBrowserOpenRequests {
 			);
 		const captured = structuredClone(input),
 			pending: Pending = {
+				input: captured,
 				id: randomUUID(),
 				lease,
 				started: false,
@@ -282,6 +288,12 @@ export class WorkstationBrowserOpenRequests {
 	complete(ownerId: number, reply: WorkstationBrowserOpenReply): boolean {
 		const pending = this.pending;
 		if (!pending || !this.isCurrent(ownerId, reply)) return false;
+		if (
+			reply.ok &&
+			this.dependencies.validateResult &&
+			!this.dependencies.validateResult(pending.input, reply.result)
+		)
+			return false;
 		if (reply.ok) this.clear(pending, undefined, false, reply.result);
 		else
 			this.clear(

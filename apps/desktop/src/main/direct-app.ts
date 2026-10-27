@@ -1,3 +1,14 @@
+import { WorkstationBrowserOpenRequests } from "./lib/ssh-direct/workstation-browser-open-requests";
+import { resolveGuestUrl } from "./lib/browser/browser-manager";
+import {
+	WORKSTATION_BROWSER_OPEN_CHANNEL,
+	WORKSTATION_BROWSER_OPEN_AVAILABILITY_CHANNEL,
+	browserOpenSubscriptionSchema,
+	browserOpenScopeSchema,
+	browserOpenIdentitySchema,
+	browserOpenReplySchema,
+	browserOpenSaveSchema,
+} from "../shared/workstation-browser-open";
 import { createBrowserSiteCookies } from "./lib/browser/browser-site-cookies";
 import { currentBrowserCookies } from "./lib/browser/current-browser-cookies";
 import { currentBrowserDesignMode } from "./lib/browser/current-browser-design-mode";
@@ -385,6 +396,7 @@ export async function startWorkstation(): Promise<void> {
 	};
 	let browserRegistry: WorkstationBrowserRegistry | null = null;
 	let browserReadChannels: WorkstationBrowserReadChannels | null = null;
+	let browserOpenRequests: WorkstationBrowserOpenRequests | null = null;
 	let rendererBrowserReadReady = false;
 	const cleanBrowser = (operation: () => void) => {
 		try {
@@ -397,6 +409,7 @@ export async function startWorkstation(): Promise<void> {
 		registry,
 		local,
 		onStatus: (id, status) => {
+			browserOpenRequests?.refresh();
 			browserReadChannels?.sync(id);
 			if (status.state !== "ready")
 				cleanBrowser(() => browserRegistry?.closeConnection(id));
@@ -518,34 +531,148 @@ export async function startWorkstation(): Promise<void> {
 			: manager.openSocket(id, socketPath),
 	);
 	let quitting = false;
+	let browserOpenClosing = false;
 	let quitRequested = false;
 	const closeGate = new WindowCloseGate();
 	let rendererOwnerEpoch = 0;
+	browserOpenRequests = new WorkstationBrowserOpenRequests({
+		getOwner: () =>
+			window && !window.isDestroyed() && !window.webContents.isDestroyed()
+				? { ownerId: window.webContents.id, ownerEpoch: rendererOwnerEpoch }
+				: null,
+		dispatch: (owner, event) => {
+			if (
+				!window ||
+				window.isDestroyed() ||
+				window.webContents.isDestroyed() ||
+				window.webContents.id !== owner
+			)
+				throw Error("Browser open renderer is unavailable");
+			window.webContents.send(WORKSTATION_BROWSER_OPEN_CHANNEL, event);
+		},
+		changed: () => {
+			browserReadChannels?.publishOpenAvailability();
+			if (window && !window.isDestroyed() && !window.webContents.isDestroyed())
+				window.webContents.send(
+					WORKSTATION_BROWSER_OPEN_AVAILABILITY_CHANNEL,
+					browserOpenRequests!.availability(),
+				);
+		},
+		validateResult: (input, result) =>
+			!!window &&
+			result.url === input.url &&
+			!!browserRegistry
+				?.listRegistrations(
+					window.webContents.id,
+					input.descriptor,
+					input.workspaceId,
+				)
+				.some((pane) => pane.paneId === result.paneId),
+	});
 	browserReadChannels = new WorkstationBrowserReadChannels({
+		openV1: true,
+		openAvailability: (target) => {
+			const availability = browserOpenRequests!.availability();
+			const capabilities = manager.getVerifiedDescription(
+				target.descriptor.connectionId,
+			).capabilities as Record<string, unknown> | undefined;
+			const ready =
+				availability.ready &&
+				!!viewStore &&
+				!quitting &&
+				!browserOpenClosing &&
+				capabilities?.workspaceViewRestoreV1 === true;
+			return {
+				...availability,
+				ready,
+				accepting: ready && availability.accepting,
+			};
+		},
+		pinOpen: (target, request, current) => {
+			const descriptor = target.descriptor,
+				profile = registry.get(descriptor.connectionId),
+				targetRevision = registry.getTargetRevision(descriptor.connectionId);
+			if (
+				!profile ||
+				!targetRevision ||
+				!profile.backendId ||
+				!profile.namespaceId ||
+				!profile.serviceUid ||
+				profile.serviceUid < 1 ||
+				quitting ||
+				browserOpenClosing
+			)
+				throw Error("Browser open view identity is unavailable");
+			const previous = views
+				?.readV2()
+				.snapshot?.targets.find(
+					(item) => item.connectionId === descriptor.connectionId,
+				);
+			return browserOpenRequests!.pin(
+				{
+					descriptor,
+					workspaceId: request.workspaceId,
+					projectId: request.projectId,
+					workspaceName: request.workspaceName,
+					url: resolveGuestUrl(request.url),
+					target: request.target,
+					show: request.show,
+					viewIdentity: {
+						connectionId: descriptor.connectionId,
+						targetRevision,
+						backendId: profile.backendId,
+						namespaceId: profile.namespaceId,
+						serviceUid: profile.serviceUid,
+						autoConnect: previous?.autoConnect ?? false,
+					},
+				},
+				request.scopeId,
+				() => !quitting && !browserOpenClosing && current(),
+			);
+		},
 		navigationV1: true,
-        evaluationV1:true,
+		evaluationV1: true,
 		getTarget: (id) => {
-			if (!rendererBrowserReadReady || !window || window.isDestroyed() || window.webContents.isDestroyed()) return null;
+			if (
+				!rendererBrowserReadReady ||
+				!window ||
+				window.isDestroyed() ||
+				window.webContents.isDestroyed()
+			)
+				return null;
 			const lease = manager.getLease(id);
 			if (!lease || manager.getStatus(id).state !== "ready") return null;
-			const capabilities = manager.getVerifiedDescription(id).capabilities as Record<string, unknown> | undefined;
-			if (capabilities?.workstationBrowserReadBridgeConnectV1 !== true) return null;
-			return { ownerId: window.webContents.id, ownerEpoch: rendererOwnerEpoch, descriptor: controller.describe(id) };
+			const capabilities = manager.getVerifiedDescription(id).capabilities as
+				| Record<string, unknown>
+				| undefined;
+			if (capabilities?.workstationBrowserReadBridgeConnectV1 !== true)
+				return null;
+			return {
+				ownerId: window.webContents.id,
+				ownerEpoch: rendererOwnerEpoch,
+				descriptor: controller.describe(id),
+			};
 		},
 		openSocket: (id, socketPath) => manager.openSocket(id, socketPath),
-		panes: (target, isCurrent) => currentWorkstationBrowserBridgePanes({
-			ownerId: target.ownerId,
-			descriptor: target.descriptor,
-			isCurrent,
-			registry: browserRegistry!,
-			manager: browserManager,
-			navigate: (owner, pane, url, current) => browserNavigation.navigate(owner, pane, url, current),
-			normalizePng: (base64) => opaqueScreenshot(
-				nativeImage.createFromBuffer(Buffer.from(base64, "base64")),
-				(bitmap, size) => nativeImage.createFromBitmap(bitmap, size),
-			).toPNG().toString("base64"),
-			canonical: (owner, pane, raw) => browserNavigation.canonical(owner, pane, raw),
-		}),
+		panes: (target, isCurrent) =>
+			currentWorkstationBrowserBridgePanes({
+				ownerId: target.ownerId,
+				descriptor: target.descriptor,
+				isCurrent,
+				registry: browserRegistry!,
+				manager: browserManager,
+				navigate: (owner, pane, url, current) =>
+					browserNavigation.navigate(owner, pane, url, current),
+				normalizePng: (base64) =>
+					opaqueScreenshot(
+						nativeImage.createFromBuffer(Buffer.from(base64, "base64")),
+						(bitmap, size) => nativeImage.createFromBitmap(bitmap, size),
+					)
+						.toPNG()
+						.toString("base64"),
+				canonical: (owner, pane, raw) =>
+					browserNavigation.canonical(owner, pane, raw),
+			}),
 	});
 	const reconnect = new AutomaticReconnect({
 		getStatus: (id) => manager.getStatus(id),
@@ -697,12 +824,14 @@ export async function startWorkstation(): Promise<void> {
 		window.webContents.on("will-navigate", (event) => event.preventDefault());
 		const owner = window.webContents.id;
 		cleanBrowser(() => browserRegistry?.activateOwner(owner));
+		browserOpenClosing = false;
 		rendererOwnerEpoch++;
 		views?.activateOwner(owner);
 		window.webContents.on(
 			"did-start-navigation",
 			(_event, _url, isInPlace, isMainFrame) => {
 				if (isMainFrame && !isInPlace) {
+					browserOpenRequests?.invalidate();
 					rendererBrowserReadReady = false;
 					browserReadChannels?.closeAll();
 					cleanBrowser(() => browserRegistry?.activateOwner(owner));
@@ -720,7 +849,8 @@ export async function startWorkstation(): Promise<void> {
 		window.webContents.on("did-finish-load", () => {
 			if (window?.webContents.id !== owner) return;
 			rendererBrowserReadReady = true;
-			for (const profile of registry.list()) browserReadChannels?.sync(profile.id);
+			for (const profile of registry.list())
+				browserReadChannels?.sync(profile.id);
 		});
 		if (saved?.window.maximized) window.maximize();
 		const currentWindow = window;
@@ -738,6 +868,7 @@ export async function startWorkstation(): Promise<void> {
 		let closing = false;
 		let allowClose = false;
 		window.webContents.on("render-process-gone", () => {
+			browserOpenRequests?.invalidate();
 			rendererBrowserReadReady = false;
 			browserReadChannels?.closeAll();
 			cleanBrowser(() => browserRegistry?.activateOwner(null));
@@ -755,6 +886,8 @@ export async function startWorkstation(): Promise<void> {
 				.then(async (allowed) => {
 					if (!allowed || quitRequested || quitting || window !== currentWindow)
 						return;
+					browserOpenClosing = true;
+					browserOpenRequests?.invalidate();
 					views?.invalidate();
 					try {
 						await flushWindow(currentWindow);
@@ -771,6 +904,7 @@ export async function startWorkstation(): Promise<void> {
 				});
 		});
 		window.on("closed", () => {
+			browserOpenRequests?.invalidate();
 			rendererBrowserReadReady = false;
 			browserReadChannels?.closeAll();
 			cleanBrowser(() => browserRegistry?.activateOwner(null));
@@ -796,6 +930,12 @@ export async function startWorkstation(): Promise<void> {
 	}) => {
 		const profile = registry.get(localConnectionId);
 		if (!profile) throw new Error("The local connection is missing");
+		if (
+			profile.backendId !== namespace.backendId ||
+			profile.namespaceId !== namespace.namespaceId ||
+			profile.serviceUid !== process.getuid?.()
+		)
+			browserOpenRequests?.invalidate();
 		registry.save({
 			...profile,
 			backendId: namespace.backendId,
@@ -853,6 +993,42 @@ export async function startWorkstation(): Promise<void> {
 			const callerEpoch = rendererOwnerEpoch;
 			const owner = event.sender.id;
 			switch (action) {
+				case "prepareBrowserOpen":
+					return browserOpenRequests!.prepare(
+						owner,
+						browserOpenSubscriptionSchema.parse(payload).subscriptionId,
+					);
+				case "confirmBrowserOpenReady":
+					return browserOpenRequests!.confirmReady(
+						owner,
+						browserOpenScopeSchema.parse(payload),
+					);
+				case "endBrowserOpen":
+					return browserOpenRequests!.end(
+						owner,
+						browserOpenSubscriptionSchema.parse(payload).subscriptionId,
+					);
+				case "completeBrowserOpen":
+					return browserOpenRequests!.complete(
+						owner,
+						browserOpenReplySchema.parse(payload),
+					);
+				case "isBrowserOpenCurrent":
+					return browserOpenRequests!.isCurrent(
+						owner,
+						browserOpenIdentitySchema.parse(payload),
+					);
+				case "saveBrowserOpenView": {
+					const input = browserOpenSaveSchema.parse(payload);
+					return requireViews().saveBrowserOpenV2(
+						owner,
+						input.save,
+						() =>
+							!quitting &&
+							!browserOpenClosing &&
+							browserOpenRequests!.isCurrent(owner, input),
+					);
+				}
 				case "setBrowserDesignMode":
 				case "awaitBrowserDesignSelection":
 				case "captureBrowserDesignScreenshot": {
@@ -2008,6 +2184,7 @@ export async function startWorkstation(): Promise<void> {
 				quitRequested = false;
 				if (!allow || window !== current) return;
 				quitting = true;
+				browserOpenRequests?.invalidate();
 				reconnect.dispose();
 				views?.invalidate();
 				void (async () => {
@@ -2022,6 +2199,7 @@ export async function startWorkstation(): Promise<void> {
 					browserReadChannels?.closeAll();
 					cleanBrowser(() => browserDownloads?.manager.stop());
 					cleanBrowser(() => browserRegistry?.dispose());
+					browserOpenRequests?.dispose();
 					forwards.dispose();
 					await controller.dispose();
 				})().finally(() => {
