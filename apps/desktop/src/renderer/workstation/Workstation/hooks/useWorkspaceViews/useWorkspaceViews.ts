@@ -40,6 +40,11 @@ import { createWorkspaceViewAreaStorage } from "./utils/workspace-view-area-stor
 import { projectBrowserOpenSnapshotV2 } from "../../utils/workspace-browser-open/workspace-browser-open-view-v3";
 import type { WorkspacePaneAreasState } from "../../utils/workspace-pane-areas/workspace-pane-areas";
 import { applyWorkspacePaneAreas } from "../../utils/workspace-pane-areas/workspace-pane-areas-state";
+import {
+	editWorkspacePaneArea,
+	type WorkspacePaneAreaEdit,
+} from "../../utils/workspace-pane-area-edit/workspace-pane-area-edit";
+import { readWorkspacePaneAreas } from "../../utils/workspace-pane-areas/workspace-pane-areas";
 type WorkspaceViewSnapshot = WorkspaceViewSnapshotV2 | WorkspaceViewSnapshotV3;
 import type { RemoteWorkspace } from "../../types";
 import { sanitizeUrl } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/sanitizeUrl";
@@ -533,8 +538,35 @@ export function useWorkspaceViews(
 				workspace: WorkspaceViewInput["targets"][number]["workspaces"][number],
 			) => void,
 			optimistic = true,
+			paneEdit?: WorkspacePaneAreaEdit,
 		) => {
-			const id = targetId();
+			const id =
+				areaStorage && paneEdit?.connectionId
+					? paneEdit.connectionId
+					: targetId();
+			if (areaStorage && paneEdit) {
+				const target = viewRef.current?.targets.find(
+					(item) => item.connectionId === id,
+				);
+				const workspace = target?.workspaces.find(
+					(item) => item.workspaceId === workspaceId,
+				);
+				if (!target || !workspace) return Promise.resolve(null);
+				const scope = {
+					connectionId: target.connectionId,
+					backendId: target.backendId,
+					namespaceId: target.namespaceId,
+					serviceUid: target.serviceUid,
+					targetRevision: target.targetRevision,
+					workspaceId,
+					tabId: workspace.tabId,
+				};
+				return mutate((input) => {
+					const merged = editWorkspacePaneArea(input, scope, paneEdit, change);
+					if (!merged) throw Error("Workspace pane area changed");
+					Object.assign(input, merged);
+				}, false);
+			}
 			return mutate((input) => {
 				const target = input.targets.find((t) => t.connectionId === id);
 				const workspace = target?.workspaces.find(
@@ -543,7 +575,7 @@ export function useWorkspaceViews(
 				if (workspace) change(workspace);
 			}, optimistic);
 		},
-		[mutate, targetId],
+		[mutate, targetId, areaStorage],
 	);
 	const reloadForConnection = useRef<string | null>(null);
 	useEffect(() => {
@@ -834,6 +866,13 @@ export function useWorkspaceViews(
 					workspace.activePaneId = pane.paneId;
 				},
 				pane.kind !== "browser",
+				{
+					resource: {
+						kind: pane.kind,
+						resourceId: pane.resourceId,
+						replaceResourceId: options?.replaceResourceId,
+					},
+				},
 			);
 		},
 		[changeWorkspace],
@@ -927,7 +966,9 @@ export function useWorkspaceViews(
 				mounted.current &&
 				captured === navigation.current &&
 				connectionRef.current === descriptor;
-			const state = toPaneState(workspace),
+			const paneAreas = areaStorage ? readWorkspacePaneAreas(workspace) : null;
+			const selectedArea = paneAreas?.activePaneArea ?? "center";
+			const state = paneAreas?.[selectedArea] ?? toPaneState(workspace),
 				activeTabId = state.activeTabId;
 			const activeTerminal = workspace.panes.find(
 				(p) =>
@@ -1097,31 +1138,36 @@ export function useWorkspaceViews(
 							panes: inputs as [(typeof inputs)[number], ...typeof inputs],
 						});
 					let rejected = false;
-					const saved = await changeWorkspace(workspaceId, (w) => {
-						const before = toPaneState(w),
-							store = createWorkspaceStore({ initialState: before });
-						if (
-							plan === "active-tab-single" ||
-							plan === "active-tab-multi-pane"
-						) {
-							if (!activeTabId || !store.getState().getTab(activeTabId)) {
+					const saved = await changeWorkspace(
+						workspaceId,
+						(w) => {
+							const before = toPaneState(w),
+								store = createWorkspaceStore({ initialState: before });
+							if (
+								plan === "active-tab-single" ||
+								plan === "active-tab-multi-pane"
+							) {
+								if (!activeTabId || !store.getState().getTab(activeTabId)) {
+									rejected = true;
+									return false;
+								}
+								for (const pane of inputs)
+									store
+										.getState()
+										.addPane({ tabId: activeTabId, pane, position: "right" });
+							} else
+								for (const tab of prepared.getState().tabs)
+									store.getState().insertTab({ tab });
+							const original = w.panes;
+							w.panes = [...original, ...created];
+							if (!applyWorkspacePaneState(w, store.getState(), before)) {
+								w.panes = original;
 								rejected = true;
-								return false;
 							}
-							for (const pane of inputs)
-								store
-									.getState()
-									.addPane({ tabId: activeTabId, pane, position: "right" });
-						} else
-							for (const tab of prepared.getState().tabs)
-								store.getState().insertTab({ tab });
-						const original = w.panes;
-						w.panes = [...original, ...created];
-						if (!applyWorkspacePaneState(w, store.getState(), before)) {
-							w.panes = original;
-							rejected = true;
-						}
-					});
+						},
+						true,
+						{ area: selectedArea },
+					);
 					if (!saved) return false;
 					if (rejected) {
 						callbacksRef.current.onError(labelsRef.current.saveFailed);
@@ -1135,7 +1181,7 @@ export function useWorkspaceViews(
 				return false;
 			}
 		},
-		[api, changeWorkspace],
+		[api, changeWorkspace, areaStorage],
 	);
 	const executePresetTrigger = useCallback(
 		async (
@@ -1267,7 +1313,7 @@ export function useWorkspaceViews(
 				tab.layout = toPaneLayout(layout);
 				return applyWorkspacePaneState(w, next, before);
 			};
-			if (viewRef.current) {
+			if (viewRef.current && !areaStorage) {
 				const optimistic = structuredClone(viewRef.current);
 				const workspace = optimistic.targets
 					.find((t) => t.connectionId === targetId())
@@ -1279,9 +1325,14 @@ export function useWorkspaceViews(
 			clearTimeout(debounce.current);
 			const action = async () => {
 				let rejected = false;
-				const result = await changeWorkspace(workspaceId, (w) => {
-					if (!patch(w)) rejected = true;
-				});
+				const result = await changeWorkspace(
+					workspaceId,
+					(w) => {
+						if (!patch(w)) rejected = true;
+					},
+					true,
+					{ paneTabId, focus: false },
+				);
 				if (rejected)
 					callbacksRef.current.onError(labelsRef.current.saveFailed);
 				return result;
@@ -1297,7 +1348,7 @@ export function useWorkspaceViews(
 				}, 250);
 			}
 		},
-		[changeWorkspace, setSaved, targetId],
+		[changeWorkspace, setSaved, targetId, areaStorage],
 	);
 	const savePaneState = useCallback(
 		async (
@@ -1318,10 +1369,19 @@ export function useWorkspaceViews(
 			clearTimeout(debounce.current);
 			deferred.current = null;
 			let rejected = false;
-			const result = await changeWorkspace(workspaceId, (w) => {
-				if (!applyWorkspacePaneState(w, capturedNext, capturedBefore))
-					rejected = true;
-			});
+			const result = await changeWorkspace(
+				workspaceId,
+				(w) => {
+					if (!applyWorkspacePaneState(w, capturedNext, capturedBefore))
+						rejected = true;
+				},
+				true,
+				{
+					paneTabId:
+						capturedBefore.activeTabId ?? capturedNext.activeTabId ?? undefined,
+					focus: false,
+				},
+			);
 			if (rejected) {
 				callbacksRef.current.onError(labelsRef.current.saveFailed);
 				return null;
@@ -1505,8 +1565,31 @@ export function useWorkspaceViews(
 			workspaceId: string,
 			paneId: string,
 			resourceId: string,
-		) =>
-			mutate((input) => {
+		) => {
+			if (areaStorage)
+				return changeWorkspace(
+					workspaceId,
+					(workspace) => {
+						const pane = workspace.panes.find(
+							(item) =>
+								item.kind === "browser" &&
+								item.paneId === paneId &&
+								item.resourceId === resourceId,
+						);
+						if (!pane) return;
+						const before = toPaneState(workspace),
+							store = createWorkspaceStore({ initialState: before }),
+							found = store.getState().getPane(paneId);
+						if (!found) return;
+						store
+							.getState()
+							.closePane({ tabId: found.tabId, paneId, intent: "remove" });
+						applyWorkspacePaneState(workspace, store.getState(), before);
+					},
+					false,
+					{ connectionId, paneId, focus: false, ignoreMissing: true },
+				);
+			return mutate((input) => {
 				const workspace = input.targets
 					.find((t) => t.connectionId === connectionId)
 					?.workspaces.find((w) => w.workspaceId === workspaceId);
@@ -1533,7 +1616,8 @@ export function useWorkspaceViews(
 					if (workspace.activePaneId === paneId)
 						workspace.activePaneId = workspace.panes[0]?.paneId ?? null;
 				}
-			}),
+			});
+		},
 		view,
 		invalid,
 		restore,
@@ -1561,65 +1645,81 @@ export function useWorkspaceViews(
 			});
 		},
 		focusPane: (workspaceId: string, paneId: string) =>
-			changeWorkspace(workspaceId, (w) => {
-				if (w.paneTabs) {
-					const before = toPaneState(w),
-						store = createWorkspaceStore({ initialState: before }),
-						found = store.getState().getPane(paneId);
-					if (found) {
-						store.getState().setActivePane({ tabId: found.tabId, paneId });
-						applyWorkspacePaneState(w, store.getState(), before);
+			changeWorkspace(
+				workspaceId,
+				(w) => {
+					if (w.paneTabs) {
+						const before = toPaneState(w),
+							store = createWorkspaceStore({ initialState: before }),
+							found = store.getState().getPane(paneId);
+						if (found) {
+							store.getState().setActivePane({ tabId: found.tabId, paneId });
+							applyWorkspacePaneState(w, store.getState(), before);
+						}
+						return;
 					}
-					return;
-				}
-				w.activePaneId = paneId;
-			}),
+					w.activePaneId = paneId;
+				},
+				true,
+				{ paneId },
+			),
 		renamePane: (workspaceId: string, paneId: string, label: string) =>
 			changeWorkspace(workspaceId, (w) => {
 				const p = w.panes.find((p) => p.paneId === paneId);
 				if (p) p.label = label.slice(0, 128);
 			}),
 		selectChat: (workspaceId: string, paneId: string, resourceId: string) =>
-			changeWorkspace(workspaceId, (w) => {
-				const existing = w.panes.find(
-					(p) => p.kind === "chat" && p.resourceId === resourceId,
-				);
-				if (existing) {
+			changeWorkspace(
+				workspaceId,
+				(w) => {
+					const existing = w.panes.find(
+						(p) => p.kind === "chat" && p.resourceId === resourceId,
+					);
+					if (existing) {
+						if (w.paneTabs) {
+							const before = toPaneState(w),
+								store = createWorkspaceStore({ initialState: before }),
+								found = store.getState().getPane(existing.paneId);
+							if (found) {
+								store.getState().setActivePane({
+									tabId: found.tabId,
+									paneId: existing.paneId,
+								});
+								applyWorkspacePaneState(w, store.getState(), before);
+							}
+						} else w.activePaneId = existing.paneId;
+						return;
+					}
+					const p = w.panes.find((p) => p.paneId === paneId);
+					if (p) p.resourceId = resourceId;
+				},
+				true,
+				{ paneId, resource: { kind: "chat", resourceId } },
+			),
+		closePane: (workspaceId: string, paneId: string) =>
+			changeWorkspace(
+				workspaceId,
+				(w) => {
 					if (w.paneTabs) {
 						const before = toPaneState(w),
 							store = createWorkspaceStore({ initialState: before }),
-							found = store.getState().getPane(existing.paneId);
+							found = store.getState().getPane(paneId);
 						if (found) {
 							store
 								.getState()
-								.setActivePane({ tabId: found.tabId, paneId: existing.paneId });
+								.closePane({ tabId: found.tabId, paneId, intent: "remove" });
 							applyWorkspacePaneState(w, store.getState(), before);
 						}
-					} else w.activePaneId = existing.paneId;
-					return;
-				}
-				const p = w.panes.find((p) => p.paneId === paneId);
-				if (p) p.resourceId = resourceId;
-			}),
-		closePane: (workspaceId: string, paneId: string) =>
-			changeWorkspace(workspaceId, (w) => {
-				if (w.paneTabs) {
-					const before = toPaneState(w),
-						store = createWorkspaceStore({ initialState: before }),
-						found = store.getState().getPane(paneId);
-					if (found) {
-						store
-							.getState()
-							.closePane({ tabId: found.tabId, paneId, intent: "remove" });
-						applyWorkspacePaneState(w, store.getState(), before);
+						return;
 					}
-					return;
-				}
-				w.panes = w.panes.filter((p) => p.paneId !== paneId);
-				w.layout = removePane(w.layout, paneId);
-				if (w.activePaneId === paneId)
-					w.activePaneId = w.panes[0]?.paneId ?? null;
-			}),
+					w.panes = w.panes.filter((p) => p.paneId !== paneId);
+					w.layout = removePane(w.layout, paneId);
+					if (w.activePaneId === paneId)
+						w.activePaneId = w.panes[0]?.paneId ?? null;
+				},
+				true,
+				{ paneId, focus: false, ignoreMissing: true },
+			),
 		setTool: (workspaceId: string, tool: "terminal" | "chat" | "files") =>
 			changeWorkspace(workspaceId, (w) => {
 				w.activeTool = tool;

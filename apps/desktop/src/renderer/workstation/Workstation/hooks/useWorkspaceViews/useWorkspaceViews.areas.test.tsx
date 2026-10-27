@@ -1,8 +1,9 @@
 import { afterEach, expect, test } from "bun:test";
-import { transferTabToIndex } from "@superset/panes";
+import { createWorkspaceStore, transferTabToIndex } from "@superset/panes";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import type {
 	DirectDescriptor,
+	DirectRpc,
 	DirectWorkstationApi,
 } from "shared/direct-workstation";
 import type { WorkspaceViewV2Save } from "shared/workspace-view-v2";
@@ -16,12 +17,21 @@ import {
 	required,
 	workspace,
 } from "../../../../../main/lib/ssh-direct/workspace-view-area-fixtures.test-data";
+import { fromPaneLayout } from "../../utils/pane-adapter/pane-adapter";
+import { buildPaneTree } from "../../utils/pane-layout/pane-layout";
 import { projectBrowserOpenSnapshotV2 } from "../../utils/workspace-browser-open/workspace-browser-open-view-v3";
-import { createWorkspacePaneAreas } from "../../utils/workspace-pane-areas/workspace-pane-areas";
+import {
+	createWorkspacePaneAreas,
+	readWorkspacePaneAreas,
+} from "../../utils/workspace-pane-areas/workspace-pane-areas";
 import { useWorkspaceViews } from "./useWorkspaceViews";
 
 afterEach(cleanup);
-function setup(enabled = true, complete = true) {
+function setup(
+	enabled = true,
+	complete = true,
+	handler?: (request: DirectRpc) => Promise<unknown>,
+) {
 	let backing: WorkspaceViewSnapshotV3 = {
 			...fixture(),
 			restoreOnLaunch: false,
@@ -96,8 +106,8 @@ function setup(enabled = true, complete = true) {
 		async beginWorkspaceRestore() {
 			throw Error("Must not connect");
 		},
-		async rpc() {
-			return [];
+		async rpc(request: DirectRpc) {
+			return handler ? handler(request) : [];
 		},
 		browser: {
 			history: {},
@@ -308,5 +318,240 @@ test("an unmounted hook rejects a late browser receipt without accepting its ref
 	const error = await pending;
 	if (!(error instanceof Error)) throw Error("Missing retired view error");
 	expect(error.message).toContain("scope changed");
+	expect(f.errors).toEqual([]);
+});
+test("V3 pane focus reaches a hidden right browser without moving center resources or Files", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () => {
+		await f.hook.result.current.setTool("workspace", "files");
+		await f.hook.result.current.focusPane("workspace", "browser");
+	});
+	const w = workspace(f.backing());
+	expect(w.activePaneArea).toBe("right");
+	expect(w.rightPaneOpen).toBe(true);
+	expect(w.activePaneId).toBe("browser");
+	expect(w.activeTool).toBe("files");
+	expect(w.panes).toHaveLength(2);
+	expect(f.errors).toEqual([]);
+});
+test("closing a right browser through the real V3 hook retains the center terminal and pin", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () => {
+		await f.hook.result.current.closePane("workspace", "browser");
+	});
+	const w = workspace(f.backing());
+	expect(w.panes.map((p) => p.paneId)).toEqual(["terminal"]);
+	expect(w.panes[0]?.pinned).toBe(true);
+	expect(w.rightPaneLayout?.tabs).toEqual([]);
+	expect(f.errors).toEqual([]);
+});
+test("a new browser added by the V3 hook preserves the hidden right page and its explicit false pin", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () => {
+		await f.hook.result.current.newBrowser(
+			"workspace",
+			"http://localhost:3004/",
+		);
+	});
+	const w = workspace(f.backing());
+	expect(w.panes).toHaveLength(3);
+	expect(w.rightPaneLayout?.tabs).toHaveLength(1);
+	expect(w.panes.find((p) => p.paneId === "browser")?.pinned).toBe(false);
+	expect(w.rightPaneOpen).toBe(false);
+	expect(f.errors).toEqual([]);
+});
+
+test("a background browser close targets its owning connection rather than the selected connection", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const other = structuredClone(required(f.backing().targets[0]));
+	other.connectionId = "other";
+	other.backendId = "other-backend";
+	f.backing().targets.push(other);
+	await act(async () => {
+		await f.hook.result.current.read();
+		await f.hook.result.current.closeBrowserPane(
+			"other",
+			"workspace",
+			"browser",
+			"browser-resource",
+		);
+	});
+	expect(
+		f.backing().targets.find((t) => t.connectionId === "local")?.workspaces[0]
+			?.panes,
+	).toHaveLength(2);
+	expect(
+		f
+			.backing()
+			.targets.find((t) => t.connectionId === "other")
+			?.workspaces[0]?.panes.map((p) => p.paneId),
+	).toEqual(["terminal"]);
+	expect(f.errors).toEqual([]);
+});
+
+test("right-side legacy pane metadata saves preserve center resources and explicit pins", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const before = readWorkspacePaneAreas(workspace(f.backing())).right,
+		store = createWorkspaceStore({ initialState: before });
+	store.getState().setPaneTitleOverride({
+		tabId: "right-tab",
+		paneId: "browser",
+		titleOverride: "Right title",
+	});
+	await act(async () => {
+		await f.hook.result.current.savePaneState(
+			"workspace",
+			store.getState(),
+			before,
+		);
+	});
+	expect(workspace(f.backing()).panes).toHaveLength(2);
+	expect(
+		workspace(f.backing()).panes.find((p) => p.paneId === "browser")?.label,
+	).toBe("Right title");
+	expect(workspace(f.backing()).panes[0]?.pinned).toBe(true);
+	expect(workspace(f.backing()).panes[1]?.pinned).toBe(false);
+	expect(f.errors).toEqual([]);
+});
+test("right-side splits and layout saves retain center Files, layout and execution", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const center = structuredClone(workspace(f.backing()).paneTabs);
+	await act(async () => {
+		await f.hook.result.current.setTool("workspace", "files");
+		await f.hook.result.current.focusPane("workspace", "browser");
+		await f.hook.result.current.newBrowser(
+			"workspace",
+			"http://localhost:3005/",
+			"split",
+		);
+	});
+	const right = readWorkspacePaneAreas(workspace(f.backing())).right,
+		tab = required(right.tabs[0]);
+	if (tab.layout.type !== "split") throw Error("Missing right split");
+	const layout = fromPaneLayout({ ...tab.layout, splitPercentage: 70 });
+	expect(layout).toMatchObject({ ratio: 0.7 });
+	await act(async () => {
+		f.hook.result.current.saveLayout("workspace", layout, true, tab.id);
+		await f.hook.result.current.flush();
+	});
+	const w = workspace(f.backing());
+	expect(w.paneTabs).toEqual(center);
+	expect(w.activeTool).toBe("files");
+	expect(w.rightPaneLayout?.tabs[0]?.layout).toEqual(layout);
+	expect(w.panes[0]?.executionId).toBe("execution");
+	expect(f.errors).toEqual([]);
+});
+
+test("a split preset appends sessions to the selected right tab and retains the center execution", async () => {
+	const calls: DirectRpc[] = [],
+		f = setup(true, true, async (request) => {
+			calls.push(request);
+			if (request.path === "workspace.get")
+				return { projectId: "project", worktreePath: "/remote/project" };
+			return [];
+		});
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	f.descriptor.capabilities = {
+		...f.descriptor.capabilities,
+		terminals: true,
+		durableOperations: true,
+		workstationTerminalScriptExecutionV1: true,
+	};
+	const center = structuredClone(workspace(f.backing()).paneTabs);
+	await act(async () => {
+		await f.hook.result.current.focusPane("workspace", "browser");
+		await f.hook.result.current.launchTerminalPreset(
+			"workspace",
+			{
+				id: "preset",
+				name: "Tools",
+				commands: ["printf first", "printf second"],
+				cwd: "scripts",
+				projectIds: ["project"],
+				executionMode: "split-pane",
+				createdAt: new Date(0),
+				tabOrder: 0,
+			},
+			[],
+		);
+	});
+	const w = workspace(f.backing());
+	expect(w.paneTabs).toEqual(center);
+	expect(w.panes).toHaveLength(4);
+	expect(w.rightPaneLayout?.tabs).toHaveLength(1);
+	expect(
+		readWorkspacePaneAreas(w).right.tabs[0]?.panes.browser?.data.resourceId,
+	).toBe("browser-resource");
+	expect(
+		calls
+			.filter((r) => r.path === "terminal.createSession")
+			.map((r) => r.input),
+	).toEqual([
+		expect.objectContaining({
+			initialCommand: "printf first",
+			cwd: "/remote/project/scripts",
+		}),
+		expect.objectContaining({
+			initialCommand: "printf second",
+			cwd: "/remote/project/scripts",
+		}),
+	]);
+	expect(w.panes[0]?.executionId).toBe("execution");
+	expect(f.errors).toEqual([]);
+});
+test("closing an already removed right pane is harmless", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	await act(async () => {
+		await f.hook.result.current.closePane("workspace", "browser");
+		await f.hook.result.current.closePane("workspace", "browser");
+		await f.hook.result.current.closeBrowserPane(
+			"local",
+			"workspace",
+			"browser",
+			"browser-resource",
+		);
+	});
+	expect(workspace(f.backing()).panes.map((p) => p.paneId)).toEqual([
+		"terminal",
+	]);
+	expect(f.errors).toEqual([]);
+});
+
+test("selecting an existing chat uses the chat owner area rather than the pane that initiated the action", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const w = workspace(f.backing()),
+		right = structuredClone(w.rightPaneLayout);
+	w.panes.push({ paneId: "chat", kind: "chat", resourceId: "conversation" });
+	w.layout = buildPaneTree(w.panes.map((p) => p.paneId));
+	w.paneTabs?.push({
+		tabId: "chat-tab",
+		createdAt: 3,
+		activePaneId: "chat",
+		layout: { type: "pane", paneId: "chat" },
+	});
+	await act(async () => {
+		await f.hook.result.current.read();
+		await f.hook.result.current.selectChat(
+			"workspace",
+			"browser",
+			"conversation",
+		);
+	});
+	const saved = workspace(f.backing());
+	expect(saved.activePaneArea).toBe("center");
+	expect(saved.activePaneId).toBe("chat");
+	expect(saved.rightPaneLayout).toEqual(right);
+	expect(saved.panes).toHaveLength(3);
+	expect(saved.panes.find((p) => p.paneId === "browser")?.resourceId).toBe(
+		"browser-resource",
+	);
 	expect(f.errors).toEqual([]);
 });
