@@ -30,6 +30,11 @@ import {
 	type WorkspaceViewInputV2,
 	type WorkspaceViewSnapshotV2,
 } from "../../../shared/workspace-view-v2";
+import {
+	projectWorkspaceViewV2,
+	validateWorkspaceViewV3,
+	type WorkspaceViewSnapshotV3,
+} from "../../../shared/workspace-view-v3";
 import type { WorkstationBrowserPane } from "../../../shared/workstation-browser";
 import type { WorkspaceViewStore } from "./workspace-view-store";
 
@@ -173,6 +178,21 @@ export class WorkspaceRestoreCoordinator {
 		try {
 			return {
 				...this.options.store.readV2(),
+				navigationRevision: this.navigationRevision,
+			};
+		} catch {
+			return {
+				revision: 0,
+				snapshot: null,
+				invalid: true,
+				navigationRevision: this.navigationRevision,
+			};
+		}
+	}
+	readV3() {
+		try {
+			return {
+				...this.options.store.readV3(),
 				navigationRevision: this.navigationRevision,
 			};
 		} catch {
@@ -455,6 +475,12 @@ export class WorkspaceRestoreCoordinator {
 	): Promise<WorkspaceViewSnapshotV2> {
 		return this.saveView(owner, input, 2);
 	}
+	saveV3(
+		owner: number,
+		input: ViewSaveInput,
+	): Promise<WorkspaceViewSnapshotV3> {
+		return this.saveView(owner, input, 3);
+	}
 	saveBrowserOpenV2(
 		owner: number,
 		input: ViewSaveInput,
@@ -477,9 +503,17 @@ export class WorkspaceRestoreCoordinator {
 	private saveView(
 		owner: number,
 		input: ViewSaveInput,
-		version: 1 | 2,
+		version: 3,
 		isBrowserOpenCurrent?: () => boolean,
-	): Promise<WorkspaceViewSnapshot | WorkspaceViewSnapshotV2> {
+	): Promise<WorkspaceViewSnapshotV3>;
+	private saveView(
+		owner: number,
+		input: ViewSaveInput,
+		version: 1 | 2 | 3,
+		isBrowserOpenCurrent?: () => boolean,
+	): Promise<
+		WorkspaceViewSnapshot | WorkspaceViewSnapshotV2 | WorkspaceViewSnapshotV3
+	> {
 		const assertBrowserOpenCurrent = () => {
 			if (isBrowserOpenCurrent && !isBrowserOpenCurrent())
 				throw new Error("Browser open scope changed");
@@ -496,9 +530,15 @@ export class WorkspaceRestoreCoordinator {
 			if (previous.revision !== input.expectedRevision)
 				throw new Error("Workspace view revision changed");
 			const fullView =
-				version === 2 ? validateWorkspaceViewV2(input.view) : null;
+				version === 3
+					? validateWorkspaceViewV3(input.view)
+					: version === 2
+						? validateWorkspaceViewV2(input.view)
+						: null;
 			const view = fullView
-				? projectWorkspaceViewV1(fullView)
+				? projectWorkspaceViewV1(
+						version === 3 ? projectWorkspaceViewV2(fullView) : fullView,
+					)
 				: validateWorkspaceView(input.view);
 			for (const target of view.targets) {
 				const old = previous.snapshot?.targets.find(
@@ -616,6 +656,12 @@ export class WorkspaceRestoreCoordinator {
 				throw new Error("Workspace navigation changed");
 			verifyBrowserView?.();
 			assertBrowserOpenCurrent();
+			if (version === 3 && fullView)
+				return this.options.store.saveV3({
+					owner: String(owner),
+					expectedRevision: input.expectedRevision,
+					view: fullView,
+				});
 			if (fullView)
 				return this.options.store.saveV2({
 					owner: String(owner),

@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
 	validateWorkspaceViewV2,
 	type WorkspaceViewInputV2,
+	type WorkspaceViewV2Save,
 	workspaceViewInputV2Schema,
 } from "./workspace-view-v2";
 
@@ -42,6 +43,23 @@ export interface WorkspaceViewSnapshotV3 extends WorkspaceViewInputV3 {
 	revision: number;
 	updatedAt: number;
 }
+export interface WorkspaceViewV3Save extends Omit<WorkspaceViewV2Save, "view"> {
+	view: WorkspaceViewInputV3;
+}
+export const workspaceViewV3SaveInputSchema = z.strictObject({
+	expectedRevision: z.number().int().nonnegative(),
+	navigationRevision: z.number().int().nonnegative(),
+	view: z.unknown(),
+	browserLeases: z
+		.array(
+			z.strictObject({
+				connectionId: z.string().uuid(),
+				generation: z.number().int().positive(),
+			}),
+		)
+		.max(10)
+		.optional(),
+});
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === "object" && !Array.isArray(value);

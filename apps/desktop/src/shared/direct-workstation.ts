@@ -16,6 +16,10 @@ import type {
 	WorkspaceViewSnapshotV2,
 	WorkspaceViewV2Save,
 } from "./workspace-view-v2";
+import type {
+	WorkspaceViewSnapshotV3,
+	WorkspaceViewV3Save,
+} from "./workspace-view-v3";
 import type { WorkstationBrowserApi } from "./workstation-browser";
 import type {
 	WorkstationChatDraftSnapshot,
@@ -200,6 +204,15 @@ export interface DirectWorkstationApi {
 	saveWorkspaceViewV2?(
 		input: WorkspaceViewV2Save,
 	): Promise<WorkspaceViewSnapshotV2>;
+	getWorkspaceViewV3?(): Promise<{
+		revision: number;
+		snapshot: WorkspaceViewSnapshotV3 | null;
+		invalid: boolean;
+		navigationRevision: number;
+	}>;
+	saveWorkspaceViewV3?(
+		input: WorkspaceViewV3Save,
+	): Promise<WorkspaceViewSnapshotV3>;
 	beginWorkspaceRestore?(input: {
 		reason: "launch" | "manual";
 		navigationRevision: number;

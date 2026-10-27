@@ -3,6 +3,7 @@ import { expect, test } from "bun:test";
 import { randomUUID } from "node:crypto";
 import type { DirectRpc } from "../../../shared/direct-workstation";
 import type { WorkspaceViewInputV2 } from "../../../shared/workspace-view-v2";
+import type { WorkspaceViewInputV3 } from "../../../shared/workspace-view-v3";
 import {
 	ConnectionRegistry,
 	LOCAL_CONNECTION_ID,
@@ -658,6 +659,292 @@ test("cancelling the actual renderer request during validation prevents its dura
 		expect(f.store.readV2()).toEqual(before);
 	} finally {
 		opens.dispose();
+		f.close();
+	}
+});
+
+function browserAreaInput(f: ReturnType<typeof fixture>): WorkspaceViewInputV3 {
+	const view: WorkspaceViewInputV3 = browserInput(f);
+	const w = view.targets[0]?.workspaces[0];
+	if (!w) throw new Error("Missing fixture workspace");
+	w.paneTabs = [
+		{
+			tabId: "center-tab",
+			createdAt: 1,
+			activePaneId: "pane",
+			layout: { type: "pane", paneId: "pane" },
+		},
+	];
+	w.activePaneTabId = "center-tab";
+	w.activePaneId = "pane";
+	w.rightPaneLayout = {
+		version: 1,
+		activeTabId: "right-tab",
+		tabs: [
+			{
+				tabId: "right-tab",
+				createdAt: 2,
+				activePaneId: "browser",
+				layout: { type: "pane", paneId: "browser" },
+			},
+		],
+	};
+	w.rightPaneOpen = false;
+	w.activePaneArea = "center";
+	for (const pane of w.panes) pane.pinned = true;
+	return view;
+}
+function saveBrowserArea(
+	f: ReturnType<typeof fixture>,
+	view = browserAreaInput(f),
+) {
+	return f.coordinator.saveV3(1, {
+		expectedRevision: f.store.readV3().revision,
+		navigationRevision: 0,
+		view,
+		browserLeases: [
+			{ connectionId: f.id, generation: f.descriptor().generation },
+		],
+	});
+}
+
+test("V3 coordinator validates browser ownership while preserving both pane areas across window restore", async () => {
+	const f = fixture();
+	try {
+		await seedTerminal(f);
+		const view = browserAreaInput(f),
+			saved = await saveBrowserArea(f, view);
+		expect(saved.schemaVersion).toBe(3);
+		expect(f.coordinator.readV3().snapshot).toEqual(saved);
+		expect(f.requests.map((r) => r.path)).toEqual(["workspace.get"]);
+		f.requests.length = 0;
+		f.coordinator.activateOwner(2);
+		f.coordinator.begin(2, { reason: "launch", navigationRevision: 0 });
+		await f.coordinator.idle();
+		expect(f.coordinator.get()?.status).toBe("ready");
+		expect(
+			f.store.readV3().snapshot?.targets[0]?.workspaces[0]?.rightPaneLayout,
+		).toEqual(view.targets[0]?.workspaces[0]?.rightPaneLayout);
+		expect(
+			f.store
+				.readV3()
+				.snapshot?.targets[0]?.workspaces[0]?.panes.map((p) => p.pinned),
+		).toEqual([true, true]);
+		expect(
+			f.requests
+				.filter((r) => r.path === "workspace.restoreResources")
+				.map((r) => r.input),
+		).toEqual([
+			{
+				refs: [
+					{
+						workspaceId: "workspace",
+						kind: "terminal",
+						resourceId: "terminal",
+						executionId: "execution-a",
+					},
+				],
+			},
+		]);
+	} finally {
+		f.close();
+	}
+});
+test("V3 new right browser requires the original current generation binding", async () => {
+	const f = fixture();
+	try {
+		await seedTerminal(f);
+		const before = f.store.readV3();
+		for (const browserLeases of [
+			undefined,
+			[{ connectionId: f.id, generation: 99 }],
+		]) {
+			await expect(
+				f.coordinator.saveV3(1, {
+					expectedRevision: before.revision,
+					navigationRevision: 0,
+					view: browserAreaInput(f),
+					browserLeases,
+				}),
+			).rejects.toThrow("generation");
+		}
+		expect(f.requests).toEqual([]);
+		expect(f.store.readV3()).toEqual(before);
+	} finally {
+		f.close();
+	}
+});
+test("V3 browser validation cannot commit after a generation retires", async () => {
+	const f = fixture();
+	try {
+		await seedTerminal(f);
+		const before = f.store.readV3();
+		let release: (value: { id: string }) => void = () => {},
+			started: () => void = () => {};
+		const entered = new Promise<void>((resolve) => {
+			started = resolve;
+		});
+		const pending = new Promise<{ id: string }>((resolve) => {
+			release = resolve;
+		});
+		f.setWorkspaceCheck(() => {
+			started();
+			return pending;
+		});
+		const save = saveBrowserArea(f);
+		await entered;
+		f.advanceGeneration();
+		release({ id: "workspace" });
+		await expect(save).rejects.toThrow("generation");
+		expect(f.store.readV3()).toEqual(before);
+	} finally {
+		f.close();
+	}
+});
+test("V3 browser validation cannot commit after the owning window changes", async () => {
+	const f = fixture();
+	try {
+		await seedTerminal(f);
+		const before = f.store.readV3();
+		let release: (value: { id: string }) => void = () => {},
+			started: () => void = () => {};
+		const entered = new Promise<void>((resolve) => {
+			started = resolve;
+		});
+		const pending = new Promise<{ id: string }>((resolve) => {
+			release = resolve;
+		});
+		f.setWorkspaceCheck(() => {
+			started();
+			return pending;
+		});
+		const save = saveBrowserArea(f);
+		await entered;
+		f.coordinator.activateOwner(2);
+		release({ id: "workspace" });
+		await expect(save).rejects.toThrow("owner changed");
+		expect(f.store.readV3()).toEqual(before);
+	} finally {
+		f.close();
+	}
+});
+test("V3 still requires the original active registration for changed browser page state", async () => {
+	const f = fixture();
+	try {
+		await seedTerminal(f);
+		const saved = await saveBrowserArea(f),
+			before = f.store.readV3();
+		const {
+			schemaVersion: _,
+			revision: __,
+			updatedAt: ___,
+			...view
+		} = structuredClone(saved);
+		const pane = view.targets[0]?.workspaces[0]?.panes.find(
+			(p) => p.kind === "browser",
+		);
+		if (pane?.kind !== "browser") throw new Error("Missing browser");
+		pane.browser.pageTitle = "Unregistered page state";
+		await expect(saveBrowserArea(f, view)).rejects.toThrow(
+			"active registration",
+		);
+		expect(f.store.readV3()).toEqual(before);
+	} finally {
+		f.close();
+	}
+});
+test("V3 right terminal references are confirmed through the existing authenticated resource check", async () => {
+	const f = fixture();
+	try {
+		await seedTerminal(f);
+		const view = browserAreaInput(f),
+			w = view.targets[0]?.workspaces[0];
+		if (!w?.layout || !w.rightPaneLayout)
+			throw new Error("Missing workspace areas");
+		w.panes.push({
+			paneId: "right-terminal",
+			kind: "terminal",
+			resourceId: "right-pty",
+			executionId: "right-execution",
+			pinned: true,
+		});
+		w.layout = {
+			type: "split",
+			axis: "vertical",
+			ratio: 0.5,
+			first: w.layout,
+			second: { type: "pane", paneId: "right-terminal" },
+		};
+		w.rightPaneLayout.tabs.push({
+			tabId: "right-terminal-tab",
+			createdAt: 3,
+			activePaneId: "right-terminal",
+			layout: { type: "pane", paneId: "right-terminal" },
+		});
+		const saved = await saveBrowserArea(f, view);
+		expect(
+			f.requests
+				.filter((r) => r.path === "workspace.restoreResources")
+				.map((r) => r.input),
+		).toEqual([
+			{
+				refs: [
+					{
+						workspaceId: "workspace",
+						kind: "terminal",
+						resourceId: "right-pty",
+						executionId: "right-execution",
+					},
+				],
+			},
+		]);
+		expect(
+			saved.targets[0]?.workspaces[0]?.rightPaneLayout?.tabs.map(
+				(t) => t.tabId,
+			),
+		).toEqual(["right-tab", "right-terminal-tab"]);
+		expect(
+			saved.targets[0]?.workspaces[0]?.panes.find(
+				(p) => p.paneId === "right-terminal",
+			)?.pinned,
+		).toBe(true);
+	} finally {
+		f.close();
+	}
+});
+
+test("a newer V3 navigation prevents an older validated layout from committing", async () => {
+	const f = fixture();
+	try {
+		await seedTerminal(f);
+		const revision = f.store.readV3().revision;
+		let release: (value: { id: string }) => void = () => {},
+			started: () => void = () => {};
+		const entered = new Promise<void>((resolve) => {
+			started = resolve;
+		});
+		const pending = new Promise<{ id: string }>((resolve) => {
+			release = resolve;
+		});
+		f.setWorkspaceCheck(() => {
+			started();
+			return pending;
+		});
+		const older = saveBrowserArea(f);
+		await entered;
+		const newer = f.coordinator.saveV3(1, {
+			expectedRevision: revision,
+			navigationRevision: 1,
+			view: f.input(),
+		});
+		release({ id: "workspace" });
+		await expect(older).rejects.toThrow("Workspace navigation changed");
+		const saved = await newer;
+		expect(saved.targets[0]?.workspaces[0]?.panes.map((p) => p.kind)).toEqual([
+			"terminal",
+		]);
+		expect(f.coordinator.readV3().navigationRevision).toBe(1);
+	} finally {
 		f.close();
 	}
 });

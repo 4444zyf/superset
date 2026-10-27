@@ -97,6 +97,7 @@ import {
 	workstationBrowserDeviceEmulationSchema,
 } from "../shared/workstation-browser";
 import { browserPageStateSchema } from "../shared/workspace-view-v2";
+import { workspaceViewV3SaveInputSchema } from "../shared/workspace-view-v3";
 import { browserManager, CdpBusyError } from "./lib/browser/browser-manager";
 import { lockProductProfile } from "./lib/product-identity";
 import { isSafeExternalUrl } from "./lib/safe-url/scheme";
@@ -1518,6 +1519,10 @@ export async function startWorkstation(): Promise<void> {
 							navigationRevision: 0,
 						}
 					);
+				case "getWorkspaceViewV3":
+					return requireViews().readV3();
+				case "saveWorkspaceViewV3":
+					return requireViews().saveV3(owner, workspaceViewV3SaveInputSchema.parse(payload));
 				case "getWorkspaceViewV2":
 					return requireViews().readV2();
 				case "saveWorkspaceViewV2":
