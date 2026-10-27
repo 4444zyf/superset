@@ -576,9 +576,19 @@ export async function startWorkstation(): Promise<void> {
 			const capabilities = manager.getVerifiedDescription(
 				target.descriptor.connectionId,
 			).capabilities as Record<string, unknown> | undefined;
+			const profile = registry.get(target.descriptor.connectionId);
+			let storageReady = false;
+			try {
+				storageReady = !!viewStore && !viewStore.readV2().invalid;
+			} catch {}
 			const ready =
 				availability.ready &&
-				!!viewStore &&
+				storageReady &&
+				!!registry.getTargetRevision(target.descriptor.connectionId) &&
+				!!profile?.serviceUid &&
+				profile.serviceUid > 0 &&
+				profile.backendId === target.descriptor.backendId &&
+				profile.namespaceId === target.descriptor.namespaceId &&
 				!quitting &&
 				!browserOpenClosing &&
 				capabilities?.workspaceViewRestoreV1 === true;

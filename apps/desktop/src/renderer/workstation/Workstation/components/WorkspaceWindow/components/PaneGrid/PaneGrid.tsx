@@ -1,3 +1,7 @@
+import {
+	registerWorkstationPaneRuntime,
+	preserveRuntimePanePins,
+} from "../../../../utils/workstation-pane-runtime/workstation-pane-runtime";
 import type { ModifierEvent } from "renderer/lib/clickPolicy/types";
 import type { BrowserLinkAction } from "shared/workstation-browser-preferences";
 import { Trans, useLingui } from "@lingui/react/macro";
@@ -113,9 +117,45 @@ export function PaneGrid({
 	const syncing = useRef(false);
 	useLayoutEffect(() => {
 		syncing.current = true;
-		store.getState().replaceState(toPaneState(workspace));
+		store
+			.getState()
+			.replaceState(
+				preserveRuntimePanePins(store.getState(), toPaneState(workspace)),
+			);
 		syncing.current = false;
 	}, [store, workspace]);
+	useLayoutEffect(() => {
+		if (!connection) return;
+		return registerWorkstationPaneRuntime(
+			api,
+			connection,
+			workspace.workspaceId,
+			workspace.tabId,
+			{
+				read: () => store.getState(),
+				replace: (state) => {
+					syncing.current = true;
+					try {
+						store.getState().replaceState(state);
+					} finally {
+						syncing.current = false;
+					}
+				},
+				subscribe: (listener) => store.subscribe(listener),
+			},
+		);
+	}, [
+		api,
+		store,
+		workspace.workspaceId,
+		workspace.tabId,
+		connection?.connectionId,
+		connection?.generation,
+		connection?.backendId,
+		connection?.namespaceId,
+		connection?.instanceId,
+	]);
+
 	useEffect(
 		() =>
 			store.subscribe((state, previous) => {

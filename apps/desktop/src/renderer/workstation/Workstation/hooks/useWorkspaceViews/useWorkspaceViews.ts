@@ -1,3 +1,4 @@
+import { preserveBrowserOpenSelection } from "../../utils/workspace-browser-open/workspace-browser-open-selection";
 import { useLingui } from "@lingui/react/macro";
 import type {
 	HostAgentConfig,
@@ -154,6 +155,7 @@ export function useWorkspaceViews(
 	const revision = useRef(0);
 	const intent = useRef(0);
 	const queue = useRef<Promise<unknown>>(Promise.resolve());
+	const browserOpenIntent = useRef<number | null>(null);
 	const job = useRef<WorkspaceRestoreSnapshot | null>(null);
 	const restoredScope = useRef<string | null>(null);
 	const mounted = useRef(false);
@@ -1298,6 +1300,37 @@ export function useWorkspaceViews(
 		enabled,
 		browserEnabled,
 		persistBrowserPage,
+		enqueueBrowserOpen: <T>(action: () => Promise<T>): Promise<T> => {
+			const pending = queue.current.then(async () => {
+				browserOpenIntent.current = intent.current;
+				try {
+					return await action();
+				} finally {
+					browserOpenIntent.current = null;
+				}
+			});
+			queue.current = pending.catch(() => {});
+			return pending;
+		},
+		acceptBrowserOpen: (
+			saved: WorkspaceViewSnapshot,
+			connectionId: string,
+			workspaceId: string,
+			show: boolean,
+		) => {
+			revision.current = Math.max(revision.current, saved.revision);
+			setSaved(
+				preserveBrowserOpenSelection(
+					viewRef.current,
+					saved,
+					connectionId,
+					workspaceId,
+					show,
+					browserOpenIntent.current !== null &&
+						browserOpenIntent.current !== intent.current,
+				),
+			);
+		},
 		newBrowser: async (
 			workspaceId: string,
 			url?: string,

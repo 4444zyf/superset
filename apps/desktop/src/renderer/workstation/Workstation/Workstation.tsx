@@ -1,3 +1,4 @@
+import { startWorkstationBrowserOpenRenderer } from "./hooks/useWorkstationBrowserOpen/workstation-browser-open-renderer";
 import { WorkstationBrowserImport } from "./providers/WorkstationBrowserImport";
 import { Toaster } from "@superset/ui/sonner";
 import { tierFor } from "renderer/lib/clickPolicy/tiers";
@@ -181,6 +182,49 @@ export function Workstation({
 		},
 		onError: ui.setError,
 	});
+	const browserOpenDependencies = useRef({ views, ui, select });
+	browserOpenDependencies.current = { views, ui, select };
+	useEffect(() => {
+		if (!views.browserEnabled) return;
+		return startWorkstationBrowserOpenRenderer(api, () => ({
+			flush: () => browserOpenDependencies.current.views.flush(),
+			enqueue: (action) =>
+				browserOpenDependencies.current.views.enqueueBrowserOpen(action),
+			accept: (snapshot, input, show) =>
+				browserOpenDependencies.current.views.acceptBrowserOpen(
+					snapshot,
+					input.descriptor.connectionId,
+					input.workspaceId,
+					show,
+				),
+			close: (input, paneId, resourceId) => {
+				void browserOpenDependencies.current.views.closeBrowserPane(
+					input.descriptor.connectionId,
+					input.workspaceId,
+					paneId,
+					resourceId,
+				);
+			},
+			captureShow: (input) => {
+				const navigation = navigationRevision.current;
+				return async (signal, current) => {
+					const descriptor = await api.refreshFeatures(input.descriptor);
+					await current();
+					if (signal.aborted || navigationRevision.current !== navigation)
+						return;
+					await browserOpenDependencies.current.ui.adoptConnection(descriptor);
+					await current();
+					if (signal.aborted || navigationRevision.current !== navigation)
+						return;
+					browserOpenDependencies.current.select(descriptor.connectionId);
+					browserOpenDependencies.current.ui.restoreWorkspaceSelection(
+						input.workspaceId,
+					);
+					setPage("workspaces");
+				};
+			},
+		}));
+	}, [api, views.browserEnabled]);
 	useEffect(() => {
 		if (views.browserEnabled)
 			workstationBrowsers(api).reconcile(views.view, ui.connection);
