@@ -411,3 +411,16 @@ namespace切换直接归档原V3目标并用同版本验证/保存，保留两�
 17项新增先红后绿：隐藏右页聚焦、关闭右页、中心新增不丢右页、后台连接关闭、右侧旧标题与分栏比例、右侧多命令预设、重复关闭和跨区域既有chat选择；原pane store真实参与。限制测试先确认区域内原引擎接受操作，再单独断言两侧重组后的重复资源/65窗格拒绝，避免被适配器catch吞掉测试断言造成假阳性；62新中心加原两侧共64仍通过。早期fixture漏tabId和误把ratio用在原引擎splitPercentage上，均改为准确原参数；类型检查另指出V2/V3联合值的in读取不能确定区域类型，现从已存在区域codec读取，不作类型断言。
 
 最终249项1132断言/26文件、桌面类型、新核心lint及插件通过；旧hook保留6项原警告。完整AST遍历含末语句变异自检，去掉明确新增区域分支/selector参数后原默认hook整体AST相同；8个原RPC调用AST直接相同，22个IPC/模型/存储/入口/原引擎模块逐字节保持。原127的2205编译文件、86个MJS、3639个CLI源码图及随包CLI哈希不变，无新构建/实窗/安装包/Actions。单workspace双store runtime、合并防抖编辑/窗口flush和原右区域UI仍待接线，不能把本阶段测试视作界面或SSH实机完成。[阶段一百三十五证据](../implementation/evidence/local-ssh-feature-parity/stage135)。
+
+
+## 阶段一百三十六：原子编辑防抖、运行时 flush 与完整捕获
+
+源码bd7edfeaa为双store controller增加replaceFromRuntime：先交付已排队用户编辑，再静默更新授权侧，立即通知快照而不回声保存；另一侧store/pin/焦点保留，flush回调中若已dispose则不再替换。新增编辑合并器保留最早before和最新next，纯布局沿原250ms防抖，metadata变化立即携带全部待保存布局，回到原布局取消写入，旧timer token不能重复保存。状态只复制version/tabs/active字段，已排队保存可被flush等待；异常报告并拒绝flush，不引入自动重试，dispose不启动旧scope未派发任务。
+
+原runtime Port新增可选readAreas/flush；默认旧结构函数、注册128上限与归属检查保留。新的统一flush等待当前所有注册port，单个失败仍排空其他port后报告；原hook只在V3模式调用它，随后继续原页面/终端/队列排空，不另注册会提前确认的preload关闭监听。savePaneAreas可携带复制的显式目标scope，后台/cleanup不因当前连接变化而写错设备；完整V3合并成功后才更新同revision乐观视图，让异步browser回执看到新的本地右侧选择。坏旧namespace不能写入或替换乐观状态。
+
+实际保存链路红例发现：原引擎的隐式50/50分栏与持久化后的显式50表示不同，刚保存转移后立即resize会被误判冲突。新区域状态比较先用原from/toPaneLayout规范化表示，布局预检仍限16层、64标签及127树节点，原资源/唯一性和整份V3校验不变；非法深布局给结构stamp有界失败标记，保存拒绝而不令快照监听递归崩溃。原适配器、pane store与transfer源码未改。集成测试直接复用原两个store、原transfer/resize、真实hook保存队列和原flush，未靠人为重同步消除该红例。
+
+浏览器路径另复现两个并发窗口：保存前捕获到的右侧pin必须随中心操作保存；保存后等待异步accept时右侧结构变化必须取消请求。新可选runtime完整area捕获先经原V3三方合并后交给中心打开helper，仍固定CLI目标为中心；授权apply后重新捕获/监听两侧结构，忽略自身已应用状态的通知。这里取消不撤销已提交视图，测试明确验证不创建后台guest；不宣称跨进程提交与UI回执能原子回滚。授权替换不会取消自身请求，且无额外终端创建。
+
+新增19项；最终相关268项1225断言/27文件、桌面类型、新核心lint与插件通过。旧四文件保留17项警告，renderer仍有3项原警告。初轮Input缺新增可选runtimeAreas类型、以及默认分栏表示的真实链路失败日志均保留，修复后没有提高超时/重试。完整AST证明包含末语句变异及const/let自检：64个旧hook声明、全部effects/返回对象相同；原flush、runtime整模块、browser renderer整模块去掉明确新增可选分支/字段后相同，20个模型/IPC/存储/入口/原引擎模块逐字节保持。原2205编译文件、86个MJS、3639个CLI源码图和随包CLI哈希不变。当前Workstation/PaneGrid尚未启用双侧模式，没有新构建、实窗、安装包或Actions；下一步接原右区域呈现和单个父级runtime，检查待保存布局与权威快照同步，再做实际本地/拥有SSH验收。[阶段一百三十六证据](../implementation/evidence/local-ssh-feature-parity/stage136)。

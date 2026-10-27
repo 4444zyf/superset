@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';import {readFileSync,writeFileSync} from 'node:fs';import {execFileSync} from 'node:child_process';import ts from '/workspace/superset/apps/desktop/node_modules/@typescript/typescript6/lib/typescript.js';
+const root='/workspace/superset',base='98aba1c82',read=p=>readFileSync(root+'/'+p,'utf8'),old=p=>execFileSync('git',['show',base+':'+p],{cwd:root,encoding:'utf8'}),parse=s=>ts.createSourceFile('f.ts',s,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
+function shape(n){const children=[];ts.forEachChild(n,c=>{children.push(shape(c));});return[n.kind,ts.isVariableDeclarationList(n)?n.flags&(ts.NodeFlags.Const|ts.NodeFlags.Let):null,ts.isIdentifier(n)||ts.isLiteralExpression(n)?n.text:null,children];}
+assert.notDeepEqual(shape(parse('const first=1;const last=2;')),shape(parse('const first=1;const last=3;')));assert.notDeepEqual(shape(parse('const first=1;')),shape(parse('let first=1;')));
+const hook='apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts',a=parse(old(hook)),b=parse(read(hook)),body=s=>s.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='useWorkspaceViews').body;
+const declarations=s=>body(s).statements.filter(ts.isVariableStatement).flatMap(n=>[...n.declarationList.declarations]),da=declarations(a),db=declarations(b),same=[];
+for(const node of da){const name=node.name.getText(a);if(['flush','savePaneAreas'].includes(name))continue;const other=db.find(n=>n.name.getText(b)===name);assert.ok(other,name);assert.deepEqual(shape(other),shape(node),name);same.push(name);}
+const oldFlush=da.find(n=>n.name.getText(a)==='flush'),newFlush=db.find(n=>n.name.getText(b)==='flush');
+const normalizedFlush=ts.transform(newFlush,[ctx=>{const visit=n=>{
+if(ts.isIfStatement(n)&&n.expression.getText(b)==='areaStorage')return undefined;
+if(ts.isArrayLiteralExpression(n)&&n.elements.some(e=>ts.isIdentifier(e)&&e.text==='drainBrowserPages'))return ts.factory.updateArrayLiteralExpression(n,n.elements.filter(e=>!(ts.isIdentifier(e)&&['areaStorage','api'].includes(e.text))));
+return ts.visitEachChild(n,visit,ctx);};return n=>ts.visitNode(n,visit);}]).transformed[0];assert.deepEqual(shape(normalizedFlush),shape(oldFlush));
+const effects=s=>body(s).statements.filter(ts.isExpressionStatement);assert.deepEqual(effects(a).map(shape),effects(b).map(shape));
+const returned=s=>body(s).statements.find(ts.isReturnStatement).expression;assert.deepEqual(shape(returned(a)),shape(returned(b)));
+const runtime='apps/desktop/src/renderer/workstation/Workstation/utils/workstation-pane-runtime/workstation-pane-runtime.ts',rs=parse(read(runtime));
+const normalizedRuntime=ts.transform(rs,[ctx=>{const visit=n=>{
+if(ts.isImportDeclaration(n)&&n.moduleSpecifier.text==='../workspace-pane-areas/workspace-pane-areas')return undefined;
+if(ts.isMethodSignature(n)&&['readAreas','flush'].includes(n.name.getText(rs)))return undefined;
+if(ts.isPropertyAssignment(n)&&n.name.getText(rs)==='areas')return undefined;
+if(ts.isFunctionDeclaration(n)&&n.name?.text==='flushWorkstationPaneRuntimes')return undefined;
+return ts.visitEachChild(n,visit,ctx);};return n=>ts.visitNode(n,visit);}]).transformed[0];assert.deepEqual(shape(normalizedRuntime),shape(parse(old(runtime))),runtime);
+const renderer='apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkstationBrowserOpen/workstation-browser-open-renderer.ts',br=parse(read(renderer)),compact=n=>n.getText(br).replace(/\s+/g,'');
+const normalizedRenderer=ts.transform(br,[ctx=>{const visit=n=>{
+if(ts.isPropertyAssignment(n)&&n.name.getText(br)==='runtimeAreas')return undefined;
+if(ts.isIfStatement(n)&&compact(n.expression)==='areaBefore&&runtime&&oldWorkspace')return undefined;
+return ts.visitEachChild(n,visit,ctx);};return n=>ts.visitNode(n,visit);}]).transformed[0];assert.deepEqual(shape(normalizedRenderer),shape(parse(old(renderer))),renderer);
+const prior=JSON.parse(readFileSync('/workspace/scratch/parity-135/compatibility-proof.json','utf8')),byteEqual=prior.byteEqual.filter(p=>p!==runtime&&!p.endsWith('/workspace-pane-areas.ts'));for(const p of byteEqual)assert.equal(read(p),old(p),p);
+const proof={base,fullAstTraversal:true,lastStatementMutationSmoke:true,constLetSmoke:true,oldHookDeclarationsDirectAstEqual:same,oldHookEffectsAndReturnedPropertiesDirectAstEqual:true,oldFlushAstEqualAfterOnlyOptionalRuntimeFlushBranchRemoved:true,wholeRuntimeAstEqualAfterOnlyOptionalMethodsAndCapturedAreaPropertyRemoved:true,wholeBrowserRendererAstEqualAfterOnlyOptionalV3AreasAndPostApplyWatchRemoved:true,byteEqual,newBehavior:'Controller authorized replacement flushes pending edits, notifies snapshots without edit echo. Bounded canonical layouts use original adapters so implicit 50/50 and serialized geometry compare equally. Debouncer captures first before/last next; metadata carries pending layout. Existing hook flush awaits all registered current ports and original queue. Paired edits are optimistic only after full V3 validation and may carry explicit immutable owner scope. Runtime capture optionally carries full area state; V3 browser open merges captured right edits before its guarded save and re-arms structural watching after authorized center apply.',scope:'Current root/PaneGrid still do not enable V3 mode. No new build/native window/installer/Actions. Main/preload/host floors and old pane engine are unchanged.'};writeFileSync('/workspace/scratch/parity-136/compatibility-proof.json',JSON.stringify(proof,null,2)+'\n');console.log(JSON.stringify({oldHookDeclarations:same.length,wholeRuntimeDefaultAst:true,wholeRendererDefaultAst:true,byteEqual:byteEqual.length}));
