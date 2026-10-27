@@ -1,3 +1,5 @@
+import type { BrowserCookieImportInput } from "./browser-cookie-import-operation";
+import { BrowserCookieImportTransfer } from "./browser-cookie-import-transfer";
 import { BrowserImportSourcesTransfer } from "./browser-import-sources-transfer";
 import type { BrowserReloadInput } from "./browser-reload-operation";
 import { BrowserReloadTransfer } from "./browser-reload-transfer";
@@ -41,6 +43,7 @@ interface Peer {
 	transport: DirectBrowserReadTransport;
 	ready: boolean;
 	capturePngV1: boolean;
+	importCookiesV1: boolean;
 	importSourcesV1: boolean;
 	reloadV1: boolean;
 	navigateV1: boolean;
@@ -70,6 +73,7 @@ export class DirectBrowserReadBridge {
 	private disposed = false;
 	private readonly schedule: typeof schedule;
 	private readonly capture: BrowserCaptureTransfer;
+	private readonly cookieImportTransfer: BrowserCookieImportTransfer;
 	private readonly importSourcesTransfer: BrowserImportSourcesTransfer;
 	private readonly reload: BrowserReloadTransfer;
 	private readonly navigation: BrowserNavigationTransfer;
@@ -86,6 +90,10 @@ export class DirectBrowserReadBridge {
 			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
 		});
 		this.evaluation = new BrowserEvaluationTransfer({
+			schedule: this.schedule,
+			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
+		});
+		this.cookieImportTransfer = new BrowserCookieImportTransfer({
 			schedule: this.schedule,
 			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
 		});
@@ -142,6 +150,32 @@ export class DirectBrowserReadBridge {
 						: new DirectBrowserBridgeError(
 								"unavailable",
 								"Browser login source disconnected",
+							),
+					1011,
+				),
+		});
+	}
+	isCookieImportReady(): boolean {
+		return this.isReady() && this.peer?.importCookiesV1 === true;
+	}
+	pinCookieImport(input: BrowserCookieImportInput) {
+		const peer = this.peer;
+		if (!peer || !this.isCookieImportReady())
+			throw new DirectBrowserBridgeError(
+				"unavailable",
+				"Browser cookie import bridge is unavailable",
+			);
+		return this.cookieImportTransfer.pin(input, {
+			current: () => this.peer === peer && this.isCookieImportReady(),
+			send: (packet) => this.send(peer, packet),
+			invalidate: (error) =>
+				this.drop(
+					peer,
+					error instanceof DirectBrowserBridgeError
+						? error
+						: new DirectBrowserBridgeError(
+								"unavailable",
+								"Browser cookie import disconnected",
 							),
 					1011,
 				),
@@ -278,6 +312,7 @@ export class DirectBrowserReadBridge {
 			transport,
 			ready: false,
 			capturePngV1: false,
+			importCookiesV1: false,
 			importSourcesV1: false,
 			reloadV1: false,
 			navigateV1: false,
@@ -319,6 +354,7 @@ export class DirectBrowserReadBridge {
 		if (this.peer !== peer) return;
 		this.peer = null;
 		this.capture.disconnect(error);
+		this.cookieImportTransfer.disconnect(error);
 		this.importSourcesTransfer.disconnect(error);
 		this.reload.disconnect(error);
 		this.navigation.disconnect(error);
@@ -351,6 +387,7 @@ export class DirectBrowserReadBridge {
 				peer.cancelHandshake();
 				peer.ready = true;
 				peer.capturePngV1 = packet.features.includes("capturePngV1");
+				peer.importCookiesV1 = packet.features.includes("importCookiesV1");
 				peer.importSourcesV1 = packet.features.includes("importSourcesV1");
 				peer.reloadV1 = packet.features.includes("reloadV1");
 				peer.navigateV1 = packet.features.includes("navigateV1");
@@ -368,6 +405,7 @@ export class DirectBrowserReadBridge {
 						...(peer.openV1 ? ["openV1"] : []),
 						...(peer.reloadV1 ? ["reloadV1"] : []),
 						...(peer.importSourcesV1 ? ["importSourcesV1"] : []),
+						...(peer.importCookiesV1 ? ["importCookiesV1"] : []),
 					],
 				});
 				return;
@@ -395,6 +433,12 @@ export class DirectBrowserReadBridge {
 				if (!peer.evaluateV1)
 					throw Error("Evaluation feature was not negotiated");
 				this.evaluation.receive(packet);
+				return;
+			}
+			if (packet.type === "import-cookies-result") {
+				if (!peer.importCookiesV1)
+					throw Error("Cookie import feature was not negotiated");
+				this.cookieImportTransfer.receive(packet);
 				return;
 			}
 			if (packet.type === "import-sources-result") {

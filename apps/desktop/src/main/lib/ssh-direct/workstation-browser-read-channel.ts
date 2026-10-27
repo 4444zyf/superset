@@ -1,4 +1,6 @@
+import { WorkstationBrowserCookieImportError } from "./workstation-browser-cookie-imports";
 import {
+	browserBridgeCookieImportResultSchema,
 	browserBridgeImportSourcesResultSchema,
 	browserBridgeConsoleResultSchema,
 	browserBridgeListResultSchema,
@@ -28,6 +30,9 @@ interface Entry {
 	ready: boolean;
 	captureReady: boolean;
 	captureId: string | null;
+	cookieImportReady: boolean;
+	cookieImportId: string | null;
+	cookieImportRelease: (() => void) | null;
 	importSourcesReady: boolean;
 	importSourcesId: string | null;
 	reloadReady: boolean;
@@ -59,6 +64,15 @@ export class WorkstationBrowserReadChannels {
 	private readonly entries = new Map<string, Entry>();
 	constructor(
 		private readonly dependencies: {
+			importCookiesV1?: boolean;
+			pinCookieImport?(
+				target: BrowserReadTarget,
+				request: Extract<
+					BrowserBridgePacket,
+					{ type: "import-cookies-request" }
+				>,
+				current: () => boolean,
+			): (() => Promise<unknown>) & { release?(): void };
 			importSourcesV1?: boolean;
 			importSources?(
 				target: BrowserReadTarget,
@@ -95,6 +109,12 @@ export class WorkstationBrowserReadChannels {
 				>;
 		},
 	) {}
+	private supportsCookieImport(): boolean {
+		return (
+			this.dependencies.importCookiesV1 === true &&
+			!!this.dependencies.pinCookieImport
+		);
+	}
 	private supportsImportSources(): boolean {
 		return (
 			this.dependencies.importSourcesV1 === true &&
@@ -151,6 +171,13 @@ export class WorkstationBrowserReadChannels {
 			this.close(entry);
 		}
 	}
+	private releaseCookieImport(entry: Entry): void {
+		const release = entry.cookieImportRelease;
+		entry.cookieImportRelease = null;
+		try {
+			release?.();
+		} catch {}
+	}
 	private releaseOpen(entry: Entry): void {
 		const release = entry.openRelease;
 		entry.openRelease = null;
@@ -161,6 +188,7 @@ export class WorkstationBrowserReadChannels {
 	private close(entry: Entry, code = 1000): void {
 		if (entry.closing) return;
 		entry.closing = true;
+		this.releaseCookieImport(entry);
 		this.releaseOpen(entry);
 		try {
 			entry.socket.close(code, "Browser read channel closed");
@@ -189,6 +217,9 @@ export class WorkstationBrowserReadChannels {
 			ready: false,
 			captureReady: false,
 			captureId: null,
+			cookieImportReady: false,
+			cookieImportId: null,
+			cookieImportRelease: null,
 			importSourcesReady: false,
 			importSourcesId: null,
 			reloadReady: false,
@@ -206,6 +237,7 @@ export class WorkstationBrowserReadChannels {
 		};
 		this.entries.set(id, entry);
 		socket.addEventListener("close", () => {
+			this.releaseCookieImport(entry);
 			this.releaseOpen(entry);
 			if (this.entries.get(id) !== entry) return;
 			this.entries.delete(id);
@@ -237,6 +269,7 @@ export class WorkstationBrowserReadChannels {
 							...(this.dependencies.navigationV1 ? ["navigateV1"] : []),
 							...(this.dependencies.reloadV1 ? ["reloadV1"] : []),
 							...(this.supportsImportSources() ? ["importSourcesV1"] : []),
+							...(this.supportsCookieImport() ? ["importCookiesV1"] : []),
 							...(this.dependencies.evaluationV1 ? ["evaluateV1"] : []),
 							...(this.supportsOpen() ? ["openV1"] : []),
 						],
@@ -270,6 +303,9 @@ export class WorkstationBrowserReadChannels {
 					entry.evaluationReady =
 						this.dependencies.evaluationV1 === true &&
 						packet.features.includes("evaluateV1");
+					entry.cookieImportReady =
+						this.supportsCookieImport() &&
+						packet.features.includes("importCookiesV1");
 					entry.importSourcesReady =
 						this.supportsImportSources() &&
 						packet.features.includes("importSourcesV1");
@@ -296,6 +332,15 @@ export class WorkstationBrowserReadChannels {
 						throw Error("Invalid evaluation request");
 					entry.evaluationId = packet.id;
 					void this.evaluate(entry, packet).catch(() =>
+						this.close(entry, 1011),
+					);
+					return;
+				}
+				if (packet.type === "import-cookies-request") {
+					if (!entry.cookieImportReady || entry.cookieImportId !== null)
+						throw Error("Invalid browser cookie import request");
+					entry.cookieImportId = packet.id;
+					void this.importCookies(entry, packet).catch(() =>
 						this.close(entry, 1011),
 					);
 					return;
@@ -404,6 +449,66 @@ export class WorkstationBrowserReadChannels {
 		} finally {
 			if (release && entry.openRelease === release) this.releaseOpen(entry);
 			if (entry.openId === request.id) entry.openId = null;
+		}
+	}
+	private async importCookies(
+		entry: Entry,
+		request: Extract<BrowserBridgePacket, { type: "import-cookies-request" }>,
+	): Promise<void> {
+		let release: (() => void) | undefined;
+		try {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			if (!this.dependencies.pinCookieImport)
+				throw Error("Browser cookie import is unavailable");
+			const execute = this.dependencies.pinCookieImport(
+				entry.target,
+				request,
+				() => this.current(entry),
+			);
+			release = execute.release;
+			entry.cookieImportRelease = release ?? null;
+			const result = await execute();
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			const value = browserBridgeCookieImportResultSchema.parse(result);
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "import-cookies-result",
+					id: request.id,
+					ok: true,
+					result: value,
+				}),
+			);
+		} catch (error) {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			const kind =
+				error instanceof WorkstationBrowserCookieImportError
+					? error.kind
+					: "failed";
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "import-cookies-result",
+					id: request.id,
+					ok: false,
+					error: {
+						kind,
+						message:
+							"Browser cookie import failed or target is no longer current",
+					},
+				}),
+			);
+		} finally {
+			if (release && entry.cookieImportRelease === release)
+				this.releaseCookieImport(entry);
+			if (entry.cookieImportId === request.id) entry.cookieImportId = null;
 		}
 	}
 	private async readImportSources(

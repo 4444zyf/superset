@@ -56,6 +56,39 @@ export const browserBridgeConsoleResultSchema = z.object({
 		)
 		.max(500),
 });
+export const BROWSER_COOKIE_IMPORT_ACK_TIMEOUT_MS = 180_000;
+export const browserBridgeCookieImportResultSchema = z.object({
+	imported: z.number().int().nonnegative(),
+	skipped: z.number().int().nonnegative(),
+	keyUnavailable: z.boolean(),
+});
+export type BrowserBridgeCookieImportResult = z.infer<
+	typeof browserBridgeCookieImportResultSchema
+>;
+export const browserBridgeCookieImportRequestSchema = z.strictObject({
+	type: z.literal("import-cookies-request"),
+	id: z.string().uuid(),
+	workspaceId,
+	paneId: z.string().min(1).max(256),
+	sourceId: z.string().min(1).max(8192),
+});
+const cookieImportResultSchema = z.discriminatedUnion("ok", [
+	z.strictObject({
+		type: z.literal("import-cookies-result"),
+		id: z.string().uuid(),
+		ok: z.literal(true),
+		result: browserBridgeCookieImportResultSchema,
+	}),
+	z.strictObject({
+		type: z.literal("import-cookies-result"),
+		id: z.string().uuid(),
+		ok: z.literal(false),
+		error: z.object({
+			message: z.string().max(4096),
+			kind: z.enum(["unavailable", "busy", "invalid", "failed"]).optional(),
+		}),
+	}),
+]);
 export const browserBridgeImportSourcesResultSchema = z.object({
 	sources: z
 		.array(
@@ -228,6 +261,8 @@ const captureDoneSchema = z.discriminatedUnion("ok", [
 	}),
 ]);
 export const browserBridgePacketSchema = z.union([
+	browserBridgeCookieImportRequestSchema,
+	cookieImportResultSchema,
 	importSourcesRequestSchema,
 	importSourcesResultSchema,
 	browserBridgeIdentitySchema.extend({

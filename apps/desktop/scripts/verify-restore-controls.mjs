@@ -135,6 +135,22 @@ export function ownedRestoreControls(home, fixture) {
             const envelope = await response.json();
             return {status: response.status, result: envelope.result?.data ? SuperJSON.deserialize(envelope.result.data) : undefined, error: envelope.error?.json};
         },
+        async browserCookieImportRequest(procedure, input, authenticated = true) {
+            assert.ok(["direct.browserImportCookiesV1", "direct.operationStatus"].includes(procedure));
+            const current = endpoint();
+            assert.equal(current.namespaceId, identity.namespaceId);
+            assert.equal(current.backendId, identity.backendId);
+            const headers = {"Content-Type": "application/json"};
+            if (authenticated) {
+                const config = JSON.parse(readFileSync(join(home, "service-config.json"), "utf8"));
+                assert.equal(lstatSync(config.secretFile).uid, process.getuid());
+                headers.Authorization = `Bearer ${readFileSync(config.secretFile, "utf8").trim()}`;
+            }
+            const mutation = procedure === "direct.browserImportCookiesV1", payload = JSON.stringify({json: input});
+            const response = await privateSocketFetch(current.socketPath, "/trpc/" + procedure + (mutation ? "" : "?input=" + encodeURIComponent(payload)), {method: mutation ? "POST" : "GET", headers, ...(mutation ? {body: payload} : {}), signal: AbortSignal.timeout(5000)});
+            const envelope = await response.json();
+            return {status: response.status, result: envelope.result?.data ? SuperJSON.deserialize(envelope.result.data) : undefined, error: envelope.error?.json};
+        },
 		browserNamespaceHome() {
 			assert.equal(lstatSync(home).uid, process.getuid());
 			return home;

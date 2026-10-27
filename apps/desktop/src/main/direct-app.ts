@@ -1,3 +1,4 @@
+import { WorkstationBrowserCookieImports } from "./lib/ssh-direct/workstation-browser-cookie-imports";
 import { WorkstationBrowserOpenRequests } from "./lib/ssh-direct/workstation-browser-open-requests";
 import { resolveGuestUrl } from "./lib/browser/browser-manager";
 import {
@@ -20,6 +21,7 @@ import {
 import {
 	readHistoryFromProfile,
 	listLoginImportSources,
+	resolveImportProfile,
 } from "./lib/browser/chrome-history-import";
 import {
 	importCookiesIntoSession,
@@ -575,6 +577,12 @@ export async function startWorkstation(): Promise<void> {
 				)
 				.some((pane) => pane.paneId === result.paneId),
 	});
+	const browserCookieImports = new WorkstationBrowserCookieImports({
+		registry: () => browserRegistry,
+		manager: browserManager,
+		resolveProfile: resolveImportProfile,
+		importCookies: importCookiesIntoSession,
+	});
 	browserReadChannels = new WorkstationBrowserReadChannels({
 		openV1: true,
 		openAvailability: (target) => {
@@ -646,6 +654,9 @@ export async function startWorkstation(): Promise<void> {
 				() => !quitting && !browserOpenClosing && current(),
 			);
 		},
+		importCookiesV1: true,
+		pinCookieImport: (target, request, current) =>
+			browserCookieImports.pin(target, request, current),
 		importSourcesV1: true,
 		importSources: async () => ({
 			sources: await listLoginImportSources(hasSafeStorageKey),
@@ -1114,6 +1125,7 @@ export async function startWorkstation(): Promise<void> {
 					const input = z
 						.strictObject({ domain: z.string().min(1).max(253) })
 						.parse(payload);
+					browserCookieImports.invalidate();
 					return siteCookies.forget(input);
 				}
 				case "getBrowserImportSources":
@@ -1136,6 +1148,7 @@ export async function startWorkstation(): Promise<void> {
 					const { sourceId } = z
 						.strictObject({ sourceId: z.string().min(1).max(32768) })
 						.parse(payload);
+					browserCookieImports.invalidate();
 					return browserImports.importCookies(sourceId);
 				}
 				case "captureBrowserScreenshot": {
@@ -1259,6 +1272,7 @@ export async function startWorkstation(): Promise<void> {
 					const input = z
 						.strictObject({ type: workstationBrowserDataTypeSchema })
 						.parse(payload);
+					if (input.type === "cookies") browserCookieImports.invalidate();
 					return clearBrowserSessionData(
 						session.fromPartition("persist:superset"),
 						input,
