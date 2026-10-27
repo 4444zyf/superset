@@ -1,8 +1,5 @@
 import { lstatSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
-import { msg } from "@lingui/core/macro";
-import { CLIError } from "@superset/cli-framework";
-import { i18n } from "@superset/i18n";
 import { mintBrowserCdpToken } from "@superset/shared/browser-cdp-token";
 import { privateSocketFetch } from "@superset/direct-connection/private-socket";
 import { readPrivateBackendFile } from "@superset/direct-install/health";
@@ -59,6 +56,13 @@ export async function resolveBrowserImportNamespace(input: string) {
 	return resolveNamespace(input, false, false, false, true);
 }
 
+export class BrowserCdpNamespaceUnavailableError extends Error {
+	constructor() {
+		super("Browser CDP is unavailable for the selected namespace");
+		this.name = "BrowserCdpNamespaceUnavailableError";
+	}
+}
+
 export async function resolveBrowserCdpNamespace(
 	input: string,
 	scope: { workspaceId: string; paneId: string },
@@ -71,14 +75,7 @@ export async function resolveBrowserCdpNamespace(
 		false,
 		scope,
 	);
-	if (!target.ws)
-		throw new CLIError(
-			i18n._(
-				msg({
-					message: "Browser CDP is unavailable for the selected namespace",
-				}),
-			),
-		);
+	if (!target.ws) throw new BrowserCdpNamespaceUnavailableError();
 	return {
 		description: target.description,
 		client: target.client,
