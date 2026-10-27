@@ -378,3 +378,14 @@ namespace切换直接归档原V3目标并用同版本验证/保存，保留两�
 保留helper缺失、选择合并、请求取消和renderer红例；renderer最初新路径未接线，右侧取消例按原5秒超时失败，没有延长超时或重试。一次从仓库根运行renderer测试因缺桌面DOM setup失败，日志保留；改在桌面包目录运行后9项通过。最终相关134项510断言/14文件，加原请求/restore生命周期21项104断言/2文件，全通过；桌面类型、31项品牌资源、插件和新增核心lint通过。既有文件保留34项警告，renderer保留3项旧非空断言警告；共享文件原控制字符正则保持，lint单独跳过该原规则，没有更改产品校验或降低类型。
 
 四份main/preload/coordinator/API模块去掉明确新增V3成员后完整AST相同，证明包含末语句变异自检；原structure/pin保留函数AST相同，十五份模型、存储、视图入口、原引擎及host floor逐字节保持。原127的2205编译文件、86个MJS、3639个CLI源码图和随包CLI哈希复核保持。本阶段是源码兼容准备，未构建新实窗、安装包或Actions，不将127的验收归给新源码。下一步接V3视图回执、单个双侧runtime及原右区域界面，再做实际本地/拥有SSH验收。[阶段一百三十二证据](../implementation/evidence/local-ssh-feature-parity/stage132)。
+
+
+## 阶段一百三十三：V2 回执刷新完整 V3 与本地选择
+
+源码871154246新增内部V3视图存储适配与选择合并四文件。只有调用方明确开启且get/saveWorkspaceViewV3、browser.openRequests.saveViewV3三项完整才返回适配器；默认和部分接口均不启用、不读库。read/save保持原API receiver和准确保存输入，不另造队列、重试、租约或导航修订号。refreshAfterLegacy只把V2回执当最低revision凭据，重新读取并验证完整V3，绝不重标旧快照为V3；读取前后scope及返回navigation必须仍匹配，invalid、落后回执的revision、快照revision不一致拒绝接受。
+
+新preserveBrowserOpenSelectionV3沿原preserveLocalPaneSelection为每侧选择存活本地项，保留后台操作期间的右侧焦点、可见性及中心Files；保留保存端的新中心资源、布局、页面内容与权威固定字段。移除的pane不被复活，空中心/隐藏右侧保持null焦点；旧单区域工作区不凭空获得右侧元数据。show采用明确请求的保存选择；重叠目标namespace/serviceUid/targetRevision变化拒绝，不跨身份复制。可选“已有较新乐观意图”分支保留其他工作区/连接原元数据，默认接受规范化结果。完整结果再次验证V3。
+
+16项新增覆盖读取期间才发生的右侧焦点变化、部分接口、原this绑定、show、最近存活选择、隐藏资源、身份变化、过期scope/导航、较旧revision与已forget结果。forget并发红例实际发现更高本地revision会被null清掉；现返回stale，较新的确已忘记结果仍为null，旧回执不能复活布局。初次类型检查发现测试未收窄browser联合类型，改为kind判别；不加类型断言。最终171项675断言/18文件、桌面类型、新四文件lint和插件通过。
+
+既有24个IPC/renderer/原pane引擎/存储/模型/host floor模块逐字节保持，原2205编译文件、86个MJS、3639个CLI源码图及随包CLI哈希不变。新适配器尚未由useWorkspaceViews调用，不把内部测试宣称为双侧UI恢复或新本地/SSH实窗验收。无构建、安装包或Actions。下一步接真实hook的V3读写、回执与双侧操作，在完整调用链后再启用界面。[阶段一百三十三证据](../implementation/evidence/local-ssh-feature-parity/stage133)。
