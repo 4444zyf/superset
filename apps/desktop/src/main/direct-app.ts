@@ -21,6 +21,7 @@ import {
 import {
 	readHistoryFromProfile,
 	listLoginImportSources,
+	listChromeImportSources,
 	resolveImportProfile,
 } from "./lib/browser/chrome-history-import";
 import {
@@ -580,7 +581,11 @@ export async function startWorkstation(): Promise<void> {
 	const browserCookieImports = new WorkstationBrowserCookieImports({
 		registry: () => browserRegistry,
 		manager: browserManager,
-		resolveProfile: resolveImportProfile,
+		resolveProfile: (sourceId) =>
+			resolveImportProfile(
+				sourceId,
+				listAllChromiumProfiles(app.getPath("home"), app.getPath("appData")),
+			),
 		importCookies: importCookiesIntoSession,
 	});
 	browserReadChannels = new WorkstationBrowserReadChannels({
@@ -659,7 +664,12 @@ export async function startWorkstation(): Promise<void> {
 			browserCookieImports.pin(target, request, current),
 		importSourcesV1: true,
 		importSources: async () => ({
-			sources: await listLoginImportSources(hasSafeStorageKey),
+			sources: await listLoginImportSources(
+				hasSafeStorageKey,
+				listChromeImportSources(
+					listAllChromiumProfiles(app.getPath("home"), app.getPath("appData")),
+				),
+			),
 		}),
 		reloadV1: true,
 		navigationV1: true,
