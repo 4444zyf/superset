@@ -306,3 +306,44 @@ test("target refresh cancels a stale request without retiring the current render
 	});
 	expect(f.events.map((row) => row.event.type)).toEqual(["open", "cancel"]);
 });
+
+test("a pending save guard requires the exact current request, owner and target", async () => {
+	const f = fixture(),
+		lease = f.ready();
+	let targetCurrent = true;
+	const execute = f.requests.pin(f.input, lease.scopeId, () => targetCurrent);
+	expect(f.requests.isCurrent(7, { ...lease, id: crypto.randomUUID() })).toBe(
+		false,
+	);
+	const pending = execute();
+	const event = f.events[0]?.event;
+	if (!event || event.type !== "open") throw Error("Missing open event");
+	expect(f.requests.isCurrent(7, event)).toBe(true);
+	expect(f.requests.isCurrent(8, event)).toBe(false);
+	for (const field of ["id", "scopeId", "subscriptionId"] as const)
+		expect(
+			f.requests.isCurrent(7, { ...event, [field]: crypto.randomUUID() }),
+		).toBe(false);
+	targetCurrent = false;
+	expect(f.requests.isCurrent(7, event)).toBe(false);
+	targetCurrent = true;
+	expect(f.requests.isCurrent(7, event)).toBe(true);
+	const settled = pending.catch((error) => error);
+	execute.release?.();
+	expect((await settled).message).toContain("released");
+	expect(f.requests.isCurrent(7, event)).toBe(false);
+});
+
+test("renderer owner replacement invalidates an accepted save guard before refresh", async () => {
+	const f = fixture(),
+		lease = f.ready(),
+		execute = f.requests.pin(f.input, lease.scopeId, () => true),
+		pending = execute();
+	const event = f.events[0]?.event;
+	if (!event || event.type !== "open") throw Error("Missing open event");
+	f.owner({ ownerId: 7, ownerEpoch: 2 });
+	expect(f.requests.isCurrent(7, event)).toBe(false);
+	const settled = pending.catch((error) => error);
+	f.requests.refresh();
+	expect((await settled).message).toContain("target changed");
+});

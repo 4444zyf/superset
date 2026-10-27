@@ -455,24 +455,40 @@ export class WorkspaceRestoreCoordinator {
 	): Promise<WorkspaceViewSnapshotV2> {
 		return this.saveView(owner, input, 2);
 	}
+	saveBrowserOpenV2(
+		owner: number,
+		input: ViewSaveInput,
+		isCurrent: () => boolean,
+	): Promise<WorkspaceViewSnapshotV2> {
+		return this.saveView(owner, input, 2, isCurrent);
+	}
 	private saveView(
 		owner: number,
 		input: ViewSaveInput,
 		version: 1,
+		isBrowserOpenCurrent?: () => boolean,
 	): Promise<WorkspaceViewSnapshot>;
 	private saveView(
 		owner: number,
 		input: ViewSaveInput,
 		version: 2,
+		isBrowserOpenCurrent?: () => boolean,
 	): Promise<WorkspaceViewSnapshotV2>;
 	private saveView(
 		owner: number,
 		input: ViewSaveInput,
 		version: 1 | 2,
+		isBrowserOpenCurrent?: () => boolean,
 	): Promise<WorkspaceViewSnapshot | WorkspaceViewSnapshotV2> {
+		const assertBrowserOpenCurrent = () => {
+			if (isBrowserOpenCurrent && !isBrowserOpenCurrent())
+				throw new Error("Browser open scope changed");
+		};
+		assertBrowserOpenCurrent();
 		this.acceptNavigation(owner, input.navigationRevision);
 		const ownerEpoch = this.ownerEpoch;
 		return this.enqueue(async () => {
+			assertBrowserOpenCurrent();
 			this.assertOwner(owner, ownerEpoch);
 			if (input.navigationRevision !== this.navigationRevision)
 				throw new Error("Workspace navigation changed");
@@ -599,6 +615,7 @@ export class WorkspaceRestoreCoordinator {
 			if (input.navigationRevision !== this.navigationRevision)
 				throw new Error("Workspace navigation changed");
 			verifyBrowserView?.();
+			assertBrowserOpenCurrent();
 			if (fullView)
 				return this.options.store.saveV2({
 					owner: String(owner),

@@ -7,6 +7,10 @@ import {
 	ConnectionRegistry,
 	LOCAL_CONNECTION_ID,
 } from "@superset/direct-connection";
+import {
+	WorkstationBrowserOpenRequests,
+	type WorkstationBrowserOpenEvent,
+} from "./workstation-browser-open-requests";
 import { WorkspaceRestoreCoordinator } from "./workspace-restore-coordinator";
 import { WorkspaceViewStore } from "./workspace-view-store";
 
@@ -483,6 +487,177 @@ test("a registered callback cannot update a replacement resource using the same 
 		).toEqual({ status: "stale" });
 		expect(f.store.readV2()).toEqual(before);
 	} finally {
+		f.close();
+	}
+});
+
+test("an expired browser-open scope cannot advance navigation or write a view", async () => {
+	const f = fixture();
+	try {
+		await seedTerminal(f);
+		const before = f.store.readV2();
+		expect(() =>
+			f.coordinator.saveBrowserOpenV2(
+				1,
+				{
+					expectedRevision: before.revision,
+					navigationRevision: 9,
+					view: browserInput(f),
+					browserLeases: [
+						{ connectionId: f.id, generation: f.descriptor().generation },
+					],
+				},
+				() => false,
+			),
+		).toThrow("Browser open scope");
+		expect(f.store.readV2()).toEqual(before);
+		expect(f.coordinator.readV2().navigationRevision).toBe(0);
+		expect(f.requests).toEqual([]);
+	} finally {
+		f.close();
+	}
+});
+
+test("a scope lost during original workspace validation prevents the final browser write", async () => {
+	const f = fixture(),
+		started = Promise.withResolvers<void>(),
+		checked = Promise.withResolvers<unknown>();
+	let current = true;
+	try {
+		await seedTerminal(f);
+		const before = f.store.readV2();
+		f.setWorkspaceCheck(() => {
+			started.resolve();
+			return checked.promise;
+		});
+		const pending = f.coordinator
+			.saveBrowserOpenV2(
+				1,
+				{
+					expectedRevision: before.revision,
+					navigationRevision: 0,
+					view: browserInput(f),
+					browserLeases: [
+						{ connectionId: f.id, generation: f.descriptor().generation },
+					],
+				},
+				() => current,
+			)
+			.catch((error) => error);
+		await Promise.race([
+			started.promise,
+			pending.then(() => {
+				throw Error("Save settled before its workspace check");
+			}),
+		]);
+		current = false;
+		checked.resolve({ id: "workspace" });
+		expect((await pending).message).toContain("Browser open scope");
+		expect(f.store.readV2()).toEqual(before);
+	} finally {
+		f.close();
+	}
+});
+
+test("a current browser-open scope uses the original V2 workspace and terminal validation", async () => {
+	const f = fixture();
+	try {
+		await seedTerminal(f);
+		const saved = await f.coordinator.saveBrowserOpenV2(
+			1,
+			{
+				expectedRevision: f.store.readV2().revision,
+				navigationRevision: 0,
+				view: browserInput(f),
+				browserLeases: [
+					{ connectionId: f.id, generation: f.descriptor().generation },
+				],
+			},
+			() => true,
+		);
+		expect(saved.targets[0]?.workspaces[0]?.panes.map((p) => p.kind)).toEqual([
+			"terminal",
+			"browser",
+		]);
+		expect(f.requests.map((r) => r.path)).toEqual(["workspace.get"]);
+	} finally {
+		f.close();
+	}
+});
+
+test("cancelling the actual renderer request during validation prevents its durable view commit", async () => {
+	const f = fixture(),
+		started = Promise.withResolvers<void>(),
+		checked = Promise.withResolvers<unknown>();
+	let delivered: WorkstationBrowserOpenEvent | undefined;
+	const opens = new WorkstationBrowserOpenRequests({
+		getOwner: () => ({ ownerId: 1, ownerEpoch: 1 }),
+		changed: () => {},
+		dispatch: (_owner, event) => {
+			delivered = event;
+		},
+		schedule: () => () => {},
+	});
+	try {
+		await seedTerminal(f);
+		const before = f.store.readV2(),
+			subscriptionId = randomUUID(),
+			scope = opens.prepare(1, subscriptionId);
+		expect(opens.confirmReady(1, { ...scope, subscriptionId })).toBe(true);
+		const execute = opens.pin(
+			{
+				descriptor: f.descriptor(),
+				workspaceId: "workspace",
+				projectId: null,
+				workspaceName: "Owned",
+				url: "https://old.invalid/",
+				target: "current-tab",
+				show: false,
+			},
+			scope.scopeId,
+			() => true,
+		);
+		const receipt = execute().catch((error) => error);
+		const event = delivered;
+		if (!event || event.type !== "open")
+			throw Error("Missing renderer request");
+		f.setWorkspaceCheck(() => {
+			started.resolve();
+			return checked.promise;
+		});
+		const save = f.coordinator
+			.saveBrowserOpenV2(
+				1,
+				{
+					expectedRevision: before.revision,
+					navigationRevision: 0,
+					view: browserInput(f),
+					browserLeases: [
+						{ connectionId: f.id, generation: f.descriptor().generation },
+					],
+				},
+				() => opens.isCurrent(1, event),
+			)
+			.catch((error) => error);
+		await Promise.race([
+			started.promise,
+			save.then(() => {
+				throw Error("Save settled before validation");
+			}),
+		]);
+		expect(
+			opens.complete(1, {
+				...event,
+				ok: false,
+				error: "Renderer layout changed",
+			}),
+		).toBe(true);
+		checked.resolve({ id: "workspace" });
+		expect((await save).message).toContain("Browser open scope");
+		expect((await receipt).message).toBe("Renderer layout changed");
+		expect(f.store.readV2()).toEqual(before);
+	} finally {
+		opens.dispose();
 		f.close();
 	}
 });

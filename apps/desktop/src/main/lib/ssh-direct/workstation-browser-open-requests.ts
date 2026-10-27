@@ -1,20 +1,17 @@
 import { randomUUID } from "node:crypto";
-import type { DirectDescriptor } from "../../../shared/direct-workstation";
+import type {
+	WorkstationBrowserOpenInput,
+	WorkstationBrowserOpenResult,
+	WorkstationBrowserOpenEvent,
+	WorkstationBrowserOpenReply,
+	WorkstationBrowserOpenIdentity,
+} from "../../../shared/workstation-browser-open";
+export type {
+	WorkstationBrowserOpenInput,
+	WorkstationBrowserOpenResult,
+	WorkstationBrowserOpenEvent,
+} from "../../../shared/workstation-browser-open";
 
-export interface WorkstationBrowserOpenInput {
-	descriptor: DirectDescriptor;
-	workspaceId: string;
-	projectId: string | null;
-	workspaceName: string;
-	url: string;
-	target: "current-tab" | "new-tab";
-	show: boolean;
-}
-export interface WorkstationBrowserOpenResult {
-	paneId: string;
-	url: string;
-	title: string;
-}
 interface Owner {
 	ownerId: number;
 	ownerEpoch: number;
@@ -23,19 +20,6 @@ interface Lease extends Owner {
 	scopeId: string;
 	subscriptionId: string;
 }
-export type WorkstationBrowserOpenEvent =
-	| {
-			type: "open";
-			id: string;
-			scopeId: string;
-			subscriptionId: string;
-			input: WorkstationBrowserOpenInput;
-	  }
-	| { type: "cancel"; id: string; scopeId: string; subscriptionId: string };
-type Reply = { id: string; scopeId: string; subscriptionId: string } & (
-	| { ok: true; result: WorkstationBrowserOpenResult }
-	| { ok: false; error: string }
-);
 interface Pending {
 	id: string;
 	lease: Lease;
@@ -279,19 +263,25 @@ export class WorkstationBrowserOpenRequests {
 			);
 		return execute;
 	}
-	complete(ownerId: number, reply: Reply): boolean {
+	isCurrent(
+		ownerId: number,
+		identity: WorkstationBrowserOpenIdentity,
+	): boolean {
 		const pending = this.pending;
-		if (
-			!pending ||
-			!pending.started ||
-			pending.lease !== this.currentLease() ||
-			!pending.isTargetCurrent() ||
-			pending.lease.ownerId !== ownerId ||
-			pending.id !== reply.id ||
-			pending.lease.scopeId !== reply.scopeId ||
-			pending.lease.subscriptionId !== reply.subscriptionId
-		)
-			return false;
+		return (
+			!!pending &&
+			pending.started &&
+			pending.lease === this.currentLease() &&
+			pending.isTargetCurrent() &&
+			pending.lease.ownerId === ownerId &&
+			pending.id === identity.id &&
+			pending.lease.scopeId === identity.scopeId &&
+			pending.lease.subscriptionId === identity.subscriptionId
+		);
+	}
+	complete(ownerId: number, reply: WorkstationBrowserOpenReply): boolean {
+		const pending = this.pending;
+		if (!pending || !this.isCurrent(ownerId, reply)) return false;
 		if (reply.ok) this.clear(pending, undefined, false, reply.result);
 		else
 			this.clear(
