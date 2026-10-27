@@ -27,13 +27,14 @@ import { browserOpenSaveV3Schema } from "shared/workstation-browser-open";
 import { mergeLegacyWorkspaceViewAreas } from "../../../../../main/lib/ssh-direct/workspace-view-area-merge";
 import { projectBrowserOpenSnapshotV2 } from "../../utils/workspace-browser-open/workspace-browser-open-view-v3";
 import { createWorkspacePaneAreas, workspacePaneAreasStructureKey } from "../../utils/workspace-pane-areas/workspace-pane-areas";
-function fixture(blockSave = false, rotateConfirmation = false, paneAreas = false) {
+function fixture(blockSave = false, rotateConfirmation = false, paneAreas = false, blockAccept = false) {
 	const a = crypto.randomUUID(),
 		b = crypto.randomUUID(),
 		workspaceId = crypto.randomUUID(),
 		ready = Promise.withResolvers<void>(),
 		renewed = Promise.withResolvers<void>(),
 		accepted = Promise.withResolvers<void>(),
+		acceptGate = Promise.withResolvers<void>(),
 		saveStarted = Promise.withResolvers<void>(),
 		saveGate = Promise.withResolvers<void>(),
 		registerStarted = Promise.withResolvers<void>(),
@@ -239,6 +240,7 @@ function fixture(blockSave = false, rotateConfirmation = false, paneAreas = fals
 		enqueue: async (action) => action(),
 		accept: () => {
 			accepted.resolve();
+			if (blockAccept) return acceptGate.promise;
 		},
 		close: () => {},
 		captureShow: () => async () => {
@@ -257,6 +259,7 @@ function fixture(blockSave = false, rotateConfirmation = false, paneAreas = fals
 		ready,
 		renewed,
 		accepted,
+		acceptGate,
 		saveStarted,
 		saveGate,
 		registerStarted,
@@ -274,6 +277,7 @@ function fixture(blockSave = false, rotateConfirmation = false, paneAreas = fals
 				() => true,
 			),
 		close() {
+			acceptGate.resolve();
 			saveGate.resolve();
 			registerGate.resolve();
 			stop();
@@ -554,4 +558,33 @@ test("a structural right-side edit retires an in-flight center open before its V
 		areas.dispose();
 		f.close();
 	}
+});
+
+test("an asynchronous view refresh must finish before background guest creation and acknowledgement", async () => {
+ const f=fixture(false,false,true,true), guestCreated=Promise.withResolvers<Element>();
+ const observer=new MutationObserver(()=>{const guest=document.querySelector("webview");if(guest)guestCreated.resolve(guest);});
+ observer.observe(document.body,{childList:true,subtree:true});
+ try {
+ await f.ready.promise;
+ const receipt=f.execute()().catch(error=>error);
+ await f.accepted.promise;
+ expect(document.querySelectorAll("webview")).toHaveLength(0);
+ f.acceptGate.resolve();
+ const guest=await guestCreated.promise;
+ Object.assign(guest,{getWebContentsId:()=>42,executeJavaScript:async()=>{throw Error("No viewport stream in owned unit guest");}});
+ guest.dispatchEvent(new Event("dom-ready"));
+ await f.registerStarted.promise;f.registerGate.resolve();
+ expect((await receipt).paneId).toBeDefined();
+ } finally {observer.disconnect();f.close();}
+});
+
+test("retiring a main request during an asynchronous view refresh prevents background creation",async()=>{
+ const f=fixture(false,false,true,true);
+ try {
+ await f.ready.promise;const execute=f.execute(),receipt=execute().catch(error=>error);
+ await f.accepted.promise;execute.release?.();
+ expect((await receipt).message).toContain("released");
+ f.acceptGate.resolve();await f.completed.promise;
+ expect(document.querySelectorAll("webview")).toHaveLength(0);
+ }finally{f.close();}
 });

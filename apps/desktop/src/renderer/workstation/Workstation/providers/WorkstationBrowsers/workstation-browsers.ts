@@ -20,6 +20,8 @@ import type {
 	WorkspaceViewSnapshotV2,
 } from "shared/workspace-view-v2";
 
+import type { WorkspaceViewSnapshotV3 } from "shared/workspace-view-v3";
+
 type BrowserPane = Extract<WorkspacePaneV2, { kind: "browser" }>;
 interface RegistrationWaiter {
 	finish(error?: Error): void;
@@ -512,7 +514,7 @@ export class WorkstationBrowsers {
 		await this.api.browser?.navigate?.({ pane: registration, url });
 	}
 	reconcile(
-		view: WorkspaceViewSnapshotV2 | null,
+		view: WorkspaceViewSnapshotV2 | WorkspaceViewSnapshotV3 | null,
 		connection?: DirectDescriptor | null,
 	): void {
 		if (!view) {

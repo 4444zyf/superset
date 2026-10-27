@@ -21,7 +21,7 @@ interface Dependencies {
 		snapshot: WorkspaceViewSnapshotV2,
 		input: WorkstationBrowserOpenInput,
 		show: boolean,
-	): void;
+	): void | Promise<void>;
 	close(
 		input: WorkstationBrowserOpenInput,
 		paneId: string,
@@ -212,7 +212,7 @@ export function startWorkstationBrowserOpenRenderer(
 									browsers.registration(id) === registration &&
 									(result.status === "saved" || result.status === "unchanged")
 								)
-									dependencies().accept(result.snapshot, input, false);
+									return dependencies().accept(result.snapshot, input, false);
 							})
 							.catch(() => {});
 					},
@@ -223,7 +223,11 @@ export function startWorkstationBrowserOpenRenderer(
 					onFind() {},
 					onError() {},
 				});
-				dependencies().accept(saved, input, input.show);
+				const accepted = dependencies().accept(saved, input, input.show);
+				if (accepted) {
+					await accepted;
+					await current();
+				}
 				await browsers.openBackground(id, abort.signal);
 				await current();
 				if (input.show) {

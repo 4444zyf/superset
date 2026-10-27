@@ -9,7 +9,7 @@ import { formatNumber } from "@superset/i18n/format";
 import { createWorkspaceStore, type WorkspaceState } from "@superset/panes";
 import { buildTerminalCommand } from "@superset/shared/terminal-command";
 import type { RestoreResourceCheck } from "@superset/shared/workspace-restore";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { resolvePresetLaunchCommands } from "renderer/lib/agent-launch-command";
 import {
 	buildFocusedTerminalCommand,
@@ -30,9 +30,17 @@ import {
 } from "../../../../../shared/workspace-view";
 import type {
 	WorkspacePaneV2 as WorkspacePane,
-	WorkspaceViewInputV2 as WorkspaceViewInput,
-	WorkspaceViewSnapshotV2 as WorkspaceViewSnapshot,
+	WorkspaceViewSnapshotV2,
 } from "../../../../../shared/workspace-view-v2";
+import type {
+	WorkspaceViewInputV3 as WorkspaceViewInput,
+	WorkspaceViewSnapshotV3,
+} from "../../../../../shared/workspace-view-v3";
+import { createWorkspaceViewAreaStorage } from "./utils/workspace-view-area-storage/workspace-view-area-storage";
+import { projectBrowserOpenSnapshotV2 } from "../../utils/workspace-browser-open/workspace-browser-open-view-v3";
+import type { WorkspacePaneAreasState } from "../../utils/workspace-pane-areas/workspace-pane-areas";
+import { applyWorkspacePaneAreas } from "../../utils/workspace-pane-areas/workspace-pane-areas-state";
+type WorkspaceViewSnapshot = WorkspaceViewSnapshotV2 | WorkspaceViewSnapshotV3;
 import type { RemoteWorkspace } from "../../types";
 import { sanitizeUrl } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/sanitizeUrl";
 import { hasBrowserPanes } from "../../../../../shared/workspace-view-v2";
@@ -93,8 +101,15 @@ export function useWorkspaceViews(
 		onError(message: string): void;
 		getBrowserHomepage?(): { ready: boolean; url: string | null };
 	},
+	options: { paneAreas?: boolean } = {},
 ) {
 	const { t } = useLingui();
+	const areaStorage = useMemo(
+		() => createWorkspaceViewAreaStorage(api, options.paneAreas),
+		[api, options.paneAreas],
+	);
+	const areaStorageRef = useRef(areaStorage);
+	areaStorageRef.current = areaStorage;
 	const enabled =
 		!!api.getWorkspaceView &&
 		!!api.saveWorkspaceView &&
@@ -106,6 +121,7 @@ export function useWorkspaceViews(
 		!!api.browser.history &&
 		!!api.browser.navigate;
 	const readSnapshot = useCallback(async () => {
+		if (areaStorage) return areaStorage.read();
 		const result = versioned
 			? await api.getWorkspaceViewV2!()
 			: await api.getWorkspaceView?.();
@@ -117,7 +133,7 @@ export function useWorkspaceViews(
 						: null,
 				}
 			: undefined;
-	}, [api, versioned]);
+	}, [api, versioned, areaStorage]);
 	const saveSnapshot = useCallback(
 		async (input: {
 			expectedRevision: number;
@@ -125,6 +141,7 @@ export function useWorkspaceViews(
 			view: WorkspaceViewInput;
 			browserLeases?: { connectionId: string; generation: number }[];
 		}): Promise<WorkspaceViewSnapshot> => {
+			if (areaStorage) return areaStorage.save(input);
 			if (versioned) return api.saveWorkspaceViewV2!(input);
 			if (hasBrowserPanes(input.view))
 				throw new Error("Browser pages require V2 workspace storage");
@@ -135,7 +152,7 @@ export function useWorkspaceViews(
 			});
 			return { ...saved, schemaVersion: 2 };
 		},
-		[api, versioned],
+		[api, versioned, areaStorage],
 	);
 	const [view, setView] = useState<WorkspaceViewSnapshot | null>(null);
 	const [invalid, setInvalid] = useState(false);
@@ -173,6 +190,45 @@ export function useWorkspaceViews(
 		viewRef.current = saved;
 		setView(saved);
 	}, []);
+	const acceptAreaBrowserSnapshot = useCallback(
+		async (
+			snapshot: WorkspaceViewSnapshotV2,
+			connectionId: string,
+			workspaceId: string,
+			show: boolean,
+			requireCurrent = false,
+		) => {
+			if (!areaStorage) return;
+			const capturedNavigation = navigation.current,
+				capturedIntent = intent.current;
+			const result = await areaStorage.refreshAfterLegacy(snapshot, {
+				navigationRevision: capturedNavigation,
+				isCurrent: () =>
+					mounted.current &&
+					navigation.current === capturedNavigation &&
+					areaStorageRef.current === areaStorage,
+				current: () =>
+					viewRef.current?.schemaVersion === 3 ? viewRef.current : null,
+				connectionId,
+				workspaceId,
+				show,
+				get preserveOtherTargets() {
+					return (
+						capturedIntent !== intent.current ||
+						(browserOpenIntent.current !== null &&
+							browserOpenIntent.current !== intent.current)
+					);
+				},
+			});
+			if (result.status !== "ready") {
+				if (requireCurrent) throw Error("Browser open scope changed");
+				return;
+			}
+			revision.current = Math.max(revision.current, result.revision);
+			setSaved(result.snapshot);
+		},
+		[areaStorage, setSaved],
+	);
 	const read = useCallback(async () => {
 		const captured = intent.current;
 		const result = await readSnapshot();
@@ -257,8 +313,16 @@ export function useWorkspaceViews(
 								revision.current,
 								result.snapshot.revision,
 							);
-							if (mounted.current && captured === intent.current)
-								setSaved(result.snapshot);
+							if (mounted.current && captured === intent.current) {
+								if (areaStorage)
+									await acceptAreaBrowserSnapshot(
+										result.snapshot,
+										update.pane.connectionId,
+										update.pane.workspaceId,
+										false,
+									);
+								else setSaved(result.snapshot);
+							}
 						}
 					}
 				});
@@ -284,7 +348,7 @@ export function useWorkspaceViews(
 		};
 		void drain.then(clear, clear);
 		return drain;
-	}, [api, setSaved]);
+	}, [api, setSaved, areaStorage, acceptAreaBrowserSnapshot]);
 	const persistBrowserPage = useCallback(
 		(update: PageUpdate) => {
 			if (!browserEnabled || !mounted.current) return;
@@ -400,7 +464,7 @@ export function useWorkspaceViews(
 				change(updated);
 				setSaved({
 					...updated,
-					schemaVersion: 2,
+					schemaVersion: areaStorage ? 3 : 2,
 					revision: viewRef.current.revision,
 					updatedAt: viewRef.current.updatedAt,
 				});
@@ -453,7 +517,7 @@ export function useWorkspaceViews(
 				return null;
 			});
 		},
-		[enabled, read, readSnapshot, saveSnapshot, setSaved],
+		[enabled, read, readSnapshot, saveSnapshot, setSaved, areaStorage],
 	);
 	const targetId = useCallback(
 		() =>
@@ -1266,6 +1330,60 @@ export function useWorkspaceViews(
 		},
 		[changeWorkspace],
 	);
+	const savePaneAreas = useCallback(
+		async (
+			workspaceId: string,
+			next: WorkspacePaneAreasState,
+			before: WorkspacePaneAreasState,
+		) => {
+			if (!areaStorage || viewRef.current?.schemaVersion !== 3) return null;
+			const target = viewRef.current.targets.find(
+				(item) => item.connectionId === targetId(),
+			);
+			const workspace = target?.workspaces.find(
+				(item) => item.workspaceId === workspaceId,
+			);
+			if (!target || !workspace) return null;
+			const scope = {
+				connectionId: target.connectionId,
+				backendId: target.backendId,
+				namespaceId: target.namespaceId,
+				serviceUid: target.serviceUid,
+				targetRevision: target.targetRevision,
+				workspaceId,
+				tabId: workspace.tabId,
+			};
+			const capture = (
+				state: WorkspacePaneAreasState,
+			): WorkspacePaneAreasState => ({
+				activePaneArea: state.activePaneArea,
+				rightPaneOpen: state.rightPaneOpen,
+				center: {
+					version: 1,
+					activeTabId: state.center.activeTabId,
+					tabs: structuredClone(state.center.tabs),
+				},
+				right: {
+					version: 1,
+					activeTabId: state.right.activeTabId,
+					tabs: structuredClone(state.right.tabs),
+				},
+			});
+			const capturedNext = capture(next),
+				capturedBefore = capture(before);
+			return mutate((input) => {
+				const merged = applyWorkspacePaneAreas(
+					input,
+					scope,
+					capturedNext,
+					capturedBefore,
+				);
+				if (!merged) throw Error("Workspace pane area changed");
+				Object.assign(input, merged);
+			}, false);
+		},
+		[areaStorage, mutate, targetId],
+	);
 	const restoreManual = useCallback(async () => {
 		navigate();
 		const target = viewRef.current?.activeConnectionId;
@@ -1299,6 +1417,7 @@ export function useWorkspaceViews(
 	return {
 		enabled,
 		browserEnabled,
+		paneAreasEnabled: !!areaStorage,
 		persistBrowserPage,
 		enqueueBrowserOpen: <T>(action: () => Promise<T>): Promise<T> => {
 			const pending = queue.current.then(async () => {
@@ -1313,15 +1432,25 @@ export function useWorkspaceViews(
 			return pending;
 		},
 		acceptBrowserOpen: (
-			saved: WorkspaceViewSnapshot,
+			saved: WorkspaceViewSnapshotV2,
 			connectionId: string,
 			workspaceId: string,
 			show: boolean,
 		) => {
+			if (areaStorage)
+				return acceptAreaBrowserSnapshot(
+					saved,
+					connectionId,
+					workspaceId,
+					show,
+					true,
+				);
 			revision.current = Math.max(revision.current, saved.revision);
 			setSaved(
 				preserveBrowserOpenSelection(
-					viewRef.current,
+					viewRef.current?.schemaVersion === 3
+						? projectBrowserOpenSnapshotV2(viewRef.current)
+						: viewRef.current,
 					saved,
 					connectionId,
 					workspaceId,
@@ -1421,6 +1550,7 @@ export function useWorkspaceViews(
 		runWorkspaceCreationPresets,
 		saveLayout,
 		savePaneState,
+		savePaneAreas,
 		restoreManual,
 		forget,
 		refreshResources,
