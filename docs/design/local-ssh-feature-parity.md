@@ -400,3 +400,14 @@ namespace切换直接归档原V3目标并用同版本验证/保存，保留两�
 新7项实际React hook测试和2项renderer测试先红后绿：V3完整读取/部分接口退回、全局设置保存、刷新中较新Files意图、导航和卸载、实际跨区域tab转移、页面V2回执刷新、等待异步accept和中途release。初轮类型检查指出reconcile只接受schemaVersion2，改为明确2|3输入类型而不作断言。最终相关232项1024断言/25文件、桌面类型、插件通过；新测试lint清洁，既有三个文件保留11条原非空断言警告，renderer保留3条同类警告。
 
 完整AST遍历含末语句变异自检：58个原hook声明、36个原返回属性和全部原effects保持；对照时仅排除新增areaStorageRef赋值，第一轮未排除该明确新语句的证明失败也保留。prepare/current/offEvent/offAvailability四个renderer scope声明相同；provider去掉新增参数类型后全模块AST相同。22个原IPC/模型/存储/入口/pane引擎模块逐字节保持。127的2205编译文件、86个MJS、3639个CLI源码图及随包CLI哈希保持，没有新构建/实窗/安装包/Actions。下一步适配剩余单pane操作、单workspace双store runtime与原右区域UI，再做本地/拥有SSH实际验收。[阶段一百三十四证据](../implementation/evidence/local-ssh-feature-parity/stage134)。
+
+
+## 阶段一百三十五：按所属区域执行原 pane 操作与预设
+
+源码30d37be5c新增纯区域编辑适配器，在完整V3和准确target/workspace/tab scope验证后，只将选定侧的真实原store状态投影给原单区域操作，再合并完整另一侧资源和布局并重新验证整份V3。选择可沿pane、tab或既有同kind/resource定位所属侧；显式操作区域/当前活动区域作为新增目标。两侧合计仍受原64资源、深度/大小和唯一性限制，禁止靠去重藏冲突。固定信息仅沿同pane/kind/resource/execution继承，资源/执行更换清掉旧pin；右侧获得焦点可打开隐藏侧但保留中心Files工具，非焦点操作不抢走另一侧选择。关闭已缺失pane可明确无操作，旧目标身份仍不能编辑。
+
+真实V3 hook的focus/close/selectChat/addPane、旧单区域pane元数据/布局保存和脚本预设均带准确区域选择；后台浏览器关闭携带其connectionId，不误改当前连接。新增浏览器/终端默认进入当前活动侧，既有资源沿原所属区域选择；CLI浏览器打开仍按阶段132单独固定中心。预设读取活动侧store并把同一次计划插入该侧，原命令、operationId、能力/目标/执行验证和RPC调用不变。纯布局仍沿原250ms/final策略，V3不把仅一侧的乐观布局对象写成完整视图。原Workstation入口仍未启用新模式。
+
+17项新增先红后绿：隐藏右页聚焦、关闭右页、中心新增不丢右页、后台连接关闭、右侧旧标题与分栏比例、右侧多命令预设、重复关闭和跨区域既有chat选择；原pane store真实参与。限制测试先确认区域内原引擎接受操作，再单独断言两侧重组后的重复资源/65窗格拒绝，避免被适配器catch吞掉测试断言造成假阳性；62新中心加原两侧共64仍通过。早期fixture漏tabId和误把ratio用在原引擎splitPercentage上，均改为准确原参数；类型检查另指出V2/V3联合值的in读取不能确定区域类型，现从已存在区域codec读取，不作类型断言。
+
+最终249项1132断言/26文件、桌面类型、新核心lint及插件通过；旧hook保留6项原警告。完整AST遍历含末语句变异自检，去掉明确新增区域分支/selector参数后原默认hook整体AST相同；8个原RPC调用AST直接相同，22个IPC/模型/存储/入口/原引擎模块逐字节保持。原127的2205编译文件、86个MJS、3639个CLI源码图及随包CLI哈希不变，无新构建/实窗/安装包/Actions。单workspace双store runtime、合并防抖编辑/窗口flush和原右区域UI仍待接线，不能把本阶段测试视作界面或SSH实机完成。[阶段一百三十五证据](../implementation/evidence/local-ssh-feature-parity/stage135)。
