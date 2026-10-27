@@ -6,7 +6,7 @@
 
 用户强调的滚轮/触控板输入保护和终端复制粘贴已实现。阶段八十九在5dcb36689源码编译上独立回归本地与拥有的loopback SSH：历史上下翻动、无鼠标TUI回看不注入方向键、保存的stock偏好、SGR/legacy/pixel切换、中文/Emoji复制、多行括号粘贴、图片/文件路径及重挂载后OSC52通过。两个SSH套件各含20次窗口恢复。初轮数值观测失败、截图和只读诊断已保留；最终夹具等待实际渲染并保留前后数值，不重发滚轮输入。真实供应商Agent、外部SSH和物理Mac触控板/剪贴板仍未实测。
 
-内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、导航/查找、历史SQLite、所属SSH工作区的localhost转发、当前图标与V2持久化。阶段八十至九十一接回主页/终端URL与端口策略、原工具菜单/DevTools、设备预览、历史搜索/清空、浏览数据清理、下载、截图/系统图片剪贴板及显式历史/Cookie导入与原提示条、站点Cookie菜单。设置和菜单共用一个原导入弹窗，关闭父设置后继续保留，真实两端202条导入和正常重开通过。阶段九十六接回原设计模式浮层、目标端上下文/截图附件、新Agent启动和已有TUI反馈；本地/拥有SSH的合成Agent及正常重开通过，真实供应商认证仍未实测。Mac Cookie/Keychain/FDA尚未原生验证；不导入密码数据库。阶段一百零一通过原连接的鉴权WebSocket接通浏览器CLI源码的明确namespace list/console，本地及拥有SSH实窗完成12次成功读取/2次预期拒绝和正常重开，SSH含20次恢复；随包CLI二进制未重建。阶段一百零二接明确namespace截图：原capture/wake与有界分块，真实两端完成可见/隐藏/重开六张白底PNG，剪贴板不变，首轮透明背景问题与修复证据保留。阶段一百零四至一百零五接受保护持久导航和原CLI明确namespace navigate/operation-status，双端稳定ID去重、冲突拒绝、后台焦点与重开不回放通过。rightPane、聊天/任务URL策略、CLI其余浏览器命令及其他功能仍在进行，不宣称整体对齐完成。最新设计反馈范围和失败记录见[阶段九十六](../implementation/evidence/local-ssh-feature-parity/stage96)，其他浏览器工具按各阶段实际验证范围。
+内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、导航/查找、历史SQLite、所属SSH工作区的localhost转发、当前图标与V2持久化。阶段八十至九十一接回主页/终端URL与端口策略、原工具菜单/DevTools、设备预览、历史搜索/清空、浏览数据清理、下载、截图/系统图片剪贴板及显式历史/Cookie导入与原提示条、站点Cookie菜单。设置和菜单共用一个原导入弹窗，关闭父设置后继续保留，真实两端202条导入和正常重开通过。阶段九十六接回原设计模式浮层、目标端上下文/截图附件、新Agent启动和已有TUI反馈；本地/拥有SSH的合成Agent及正常重开通过，真实供应商认证仍未实测。Mac Cookie/Keychain/FDA尚未原生验证；不导入密码数据库。阶段一百零一通过原连接的鉴权WebSocket接通浏览器CLI源码的明确namespace list/console，本地及拥有SSH实窗完成12次成功读取/2次预期拒绝和正常重开，SSH含20次恢复；随包CLI二进制未重建。阶段一百零二接明确namespace截图：原capture/wake与有界分块，真实两端完成可见/隐藏/重开六张白底PNG，剪贴板不变，首轮透明背景问题与修复证据保留。阶段一百零四至一百零五接受保护持久导航和原CLI明确namespace navigate/operation-status，双端稳定ID去重、冲突拒绝、后台焦点与重开不回放通过。阶段一百一十六接通受保护持久open API的真实renderer/后台运行时与私有布局保存，两端28次新增调用及130次原浏览器API/CLI回归通过，默认后台保留终端焦点、显式show、当前/新标签与重开原回执不回放；CLI open namespace仍待下一阶段。rightPane、聊天/任务URL策略、CLI其余浏览器命令及其他功能仍在进行，不宣称整体对齐完成。最新设计反馈范围和失败记录见[阶段九十六](../implementation/evidence/local-ssh-feature-parity/stage96)，其他浏览器工具按各阶段实际验证范围。
 
 ## 验收原则
 
@@ -44,7 +44,7 @@
 | Agent 配置、技能、MCP 与工具配置 | settings.agentConfigs、agentTooling | 部分：Agent目录、字段、图标及脚本已接 | 阶段三十五至四十、五十四接回目标端Agent配置和原表单；技能/MCP/工具配置及托管能力继续补齐 |
 | 插件清单、安装、更新与移除 | plugins/installed_plugins.json、原插件界面 | 待接入 | 同一声明式状态，目标机器执行 |
 | 端口发现、转发、浏览器打开 | ports、已有 direct forwarding | 已接主要流程 | 阶段六十八至七十二、七十八至八十接回发现、复制/明确外部或内嵌打开、确认单端口/当前工作区批量关闭和多转发；旧后端保留手动输入，其余管理继续核对 |
-| 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 部分：原页面、常用工具、数据列表及设计反馈已接 | 阶段七十三至九十六接回导航/查找、历史、基础工具/DevTools、设备预览、下载、截图、导入及原设计浮层/目标端附件/Agent反馈；一百零一至一百零八接CLI源码namespace list/console/screenshot/navigate/eval和operation-status并完成双端实窗，随包CLI未重建；rightPane与其余CLI桥继续补齐 |
+| 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 部分：原页面、常用工具、数据列表及设计反馈已接 | 阶段七十三至九十六接回导航/查找、历史、基础工具/DevTools、设备预览、下载、截图、导入及原设计浮层/目标端附件/Agent反馈；一百零一至一百零八接CLI源码namespace list/console/screenshot/navigate/eval和operation-status并完成双端实窗，随包CLI未重建；阶段一百一十六接持久open API真实renderer，后台/显式show/当前与新标签、重开去重及两端28次新增调用通过；CLI open namespace、rightPane与其余CLI桥继续补齐 |
 | 浏览器设置、数据导入与隔离 | 原 BrowserSettings | 部分：主页、终端/端口URL策略、清理和显式导入已接 | 阶段八十至九十接回私有SQLite、原设置/菜单/提示条导入与共享弹窗；其他设置继续补齐，不自动导入历史，Mac Cookie/Keychain/FDA未原生验证 |
 | 命令面板、全局快捷键与导航 | 原 commandPalette/hotkeys | 待接入 | 原注册表、设置与当前操作实际对应 |
 | 外观、语言、主题、字体 | AppearanceSettings、i18n/themes | 部分 | 原设置与组件真正响应 |
@@ -266,3 +266,6 @@
 
 
 阶段一百一十五以e827476ae补后台guest注册等待接口，沿原core.openBackground创建/复用1280×720停放guest，无挂载或聚焦；必须等真实main注册完成才确认，不等页面加载。取消单个等待不影响其他等待，移除/注册替换/同步及异步失败拒绝旧等待，最多八个并清理取消监听。八项新用例连同原runtime/design/layout/main共36项171断言、desktop类型/lint/兼容对照通过。夹具曾重设模拟guestId导致超时，修正getter并在等待前断言实际替换；导航时序改用受控started承诺，无加长期限或重试掩盖。Root尚无消费方，无新构建或实窗；原da67产品2205文件/79脚本/CLI哈希保持。继续布局与Root接入。[阶段一百一十五证据](../implementation/evidence/local-ssh-feature-parity/stage115)。
+
+
+阶段一百一十六以314a6a300接通受保护持久open API的真实Root消费与原后台guest创建：全局V2视图/原pane引擎，后台保留选择，显式show才采纳目标连接；作用域在异步保存/注册前后校验，结构或pin变化取消、选中变化保留最新，旧namespace页面回调不覆盖新视图。实际PaneGrid作用域读取/静默应用、同资源runtime pins保留，仍不宣称原生pin控件或重启pin持久化。142项681断言、desktop类型/lint/旧AST与合同对照及完整构建通过。三次夹具失败保留：scope缺tabId、关闭按钮缺真实hover、B后台guest与旧全局单guest检查的次序冲突；最终3d74917dc夹具只读实际tabId、真实hover后一次点击，将新增用例放在旧清理断言后，原产品/动作/期限/断言保持。相同编译产品两端新增28次open API及原130次浏览器API/CLI回归通过，SSH含20恢复；无终端工作区、后台焦点、显式show/new-tab/未固定当前替换、默认去重/冲突、SSH真实HTTP与正常重开含已关闭pane原回执不重建通过。2205编译文件/80脚本/随包CLI哈希固定，进程清理通过；不同连接后台仅unit覆盖，物理Mac/外部SSH/真实Agent不混称。CLI open明确namespace仍待接入，其他功能继续。[阶段一百一十六证据](../implementation/evidence/local-ssh-feature-parity/stage116)。
