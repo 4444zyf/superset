@@ -22,6 +22,7 @@ import { authorizeDirectBrowserCdpUpgrade } from "./browser-cdp-auth.ts";
 import { registerDirectBrowserCdpRoute } from "./browser-cdp-route.ts";
 import { DirectBrowserReadBridge } from "./browser-read-bridge.ts";
 import { registerDirectBrowserReadRoute } from "./browser-read-route.ts";
+import { registerDirectRequestAuth } from "./request-auth.ts";
 
 const identity = {
 	backendId: "owned-backend",
@@ -33,6 +34,13 @@ async function fixture() {
 	const app = new Hono(),
 		auth = new PskHostAuthProvider(secret),
 		bridge = new DirectBrowserReadBridge(identity);
+	registerDirectRequestAuth({
+		app,
+		auth,
+		identity,
+		allowedOrigins: () => [],
+		isFrozen: () => false,
+	});
 	app.use("/direct/*", async (context, next) => {
 		const token = context.req.query("token");
 		if (

@@ -40,6 +40,7 @@ import { registerBrowserCdpRoute } from "./runtime/browser-bridge/browser-cdp-ro
 import { registerDirectBrowserReadRoute } from "./direct/browser-read-route";
 import { registerDirectBrowserCdpRoute } from "./direct/browser-cdp-route";
 import { authorizeDirectBrowserCdpUpgrade } from "./direct/browser-cdp-auth";
+import { registerDirectRequestAuth } from "./direct/request-auth";
 import type { DirectBrowserReadBridge } from "./direct/browser-read-bridge";
 import { WorkspaceFilesystemManager } from "./runtime/filesystem";
 import type { GitCredentialProvider } from "./runtime/git";
@@ -221,19 +222,12 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 
 	const app = new Hono();
 	if (isDirect) {
-		app.use("*", async (c, next) => {
-			const origin = c.req.header("origin");
-			const allowed = Array.isArray(config.allowedOrigins) ? config.allowedOrigins : [config.allowedOrigins];
-			if (origin && !allowed.includes(origin)) return c.json({ error: "Forbidden origin" }, 403);
-			if (c.req.method === "OPTIONS" && origin && allowed.includes(origin)) return next();
-			if (c.req.path.startsWith("/trpc/")) return next();
-			const isWebSocket = c.req.header("upgrade")?.toLowerCase() === "websocket";
-			const token = isWebSocket ? c.req.query("token") : undefined;
-			if (!(await providers.hostAuth.validate(c.req.raw)) && !(token && await providers.hostAuth.validateToken(token))) {
-				return c.json({ error: "Unauthorized" }, 401);
-			}
-			if (config.directOperations?.maintenance().frozen && !c.req.path.startsWith("/direct/")) return c.json({ error: "The backend is frozen for maintenance" }, 503);
-			return next();
+		registerDirectRequestAuth({
+			app,
+			auth: providers.hostAuth,
+			identity: config.direct,
+			allowedOrigins: () => config.allowedOrigins,
+			isFrozen: () => config.directOperations?.maintenance().frozen === true,
 		});
 	}
 	const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
