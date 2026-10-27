@@ -1,0 +1,28 @@
+{
+  "base": "c44dc93e4",
+  "normalizedOldAstEqual": [
+    "packages/cli/src/commands/browser/import-login/command.ts",
+    "packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts",
+    "apps/desktop/scripts/verify-workstation-browser-ui.mjs"
+  ],
+  "byteEqual": [
+    "packages/cli/src/commands/browser/import-login/utils/matchSources/matchSources.ts",
+    "packages/cli/src/commands/browser/shared.ts",
+    "packages/host-service/src/trpc/router/browser/browser.ts",
+    "packages/host-service/src/direct/browser-cookie-import-operation.ts",
+    "packages/host-service/src/direct/operations.ts",
+    "packages/shared/src/browser-bridge.ts",
+    "packages/shared/src/host-version.ts",
+    "apps/desktop/src/main/direct-app.ts",
+    "apps/desktop/src/main/lib/browser/chrome-cookie-import.ts",
+    "apps/desktop/src/main/lib/browser/chrome-history-import.ts",
+    "apps/desktop/src/preload/index.ts",
+    "apps/desktop/scripts/verify-workstation-browser-cookie-import-api-ui.mjs",
+    "apps/desktop/scripts/verify-restore-controls.mjs"
+  ],
+  "additions": "Two explicit CLI flags, count-only adapter and independent single-POST import transport; source listing guarded GET added to existing reads, no old mutation access widened",
+  "defaults": "Without namespace uses original account/host resolver and unchanged matching/errors/output; with namespace requires stable UUID only when --from requests import",
+  "noRetry": true,
+  "desktopMainPreloadRendererUnchanged": true,
+  "packagedCliNotRebuilt": true
+}

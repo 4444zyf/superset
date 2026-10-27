@@ -1,0 +1,98 @@
+{
+  "source": "ab50895d2",
+  "mode": "Original source import-login CLI with explicit local or owned SSH namespace and no Superset account; real original Linux empty login list/rejections plus durable API receipt inspection, no positive credential or CLI mutation claim",
+  "calls": [
+    {
+      "command": "import-login",
+      "flags": [
+        "--workspace",
+        "7fe3a7fa-385e-4c8c-8ee0-577f19075881",
+        "--pane",
+        "79eb2409-461e-40f1-91dc-01911fffd4c5"
+      ],
+      "namespace": true,
+      "stdout": "",
+      "stderr": "Error: No Chromium browsers found to import from\nHint: Superset can import from Chromium-based browsers such as Chrome, Edge, Brave, Arc, Dia, Comet, Aside, Helium, Vivaldi, and Opera.\n",
+      "code": 1
+    },
+    {
+      "command": "import-login",
+      "flags": [
+        "--workspace",
+        "7fe3a7fa-385e-4c8c-8ee0-577f19075881",
+        "--pane",
+        "79eb2409-461e-40f1-91dc-01911fffd4c5",
+        "--from",
+        "Chrome",
+        "--operation-id",
+        "787759bb-1173-41c9-ac7a-909ebbd197d8"
+      ],
+      "namespace": true,
+      "stdout": "",
+      "stderr": "Error: No Chromium browsers found to import from\nHint: Superset can import from Chromium-based browsers such as Chrome, Edge, Brave, Arc, Dia, Comet, Aside, Helium, Vivaldi, and Opera.\n",
+      "code": 1
+    },
+    {
+      "command": "import-login",
+      "flags": [
+        "--workspace",
+        "7fe3a7fa-385e-4c8c-8ee0-577f19075881",
+        "--pane",
+        "79eb2409-461e-40f1-91dc-01911fffd4c5",
+        "--from",
+        "Chrome"
+      ],
+      "namespace": true,
+      "stdout": "",
+      "stderr": "Error: --namespace browser login import with --from requires --operation-id\n",
+      "code": 1
+    },
+    {
+      "command": "import-login",
+      "flags": [
+        "--workspace",
+        "7fe3a7fa-385e-4c8c-8ee0-577f19075881",
+        "--pane",
+        "79eb2409-461e-40f1-91dc-01911fffd4c5",
+        "--from",
+        "Chrome",
+        "--operation-id",
+        "not-a-uuid"
+      ],
+      "namespace": true,
+      "stdout": "",
+      "stderr": "Error: input: Invalid UUID\n",
+      "code": 1
+    },
+    {
+      "command": "import-login",
+      "flags": [
+        "--workspace",
+        "7fe3a7fa-385e-4c8c-8ee0-577f19075881",
+        "--pane",
+        "79eb2409-461e-40f1-91dc-01911fffd4c5",
+        "--host",
+        "foreign-host"
+      ],
+      "namespace": true,
+      "stdout": "",
+      "stderr": "Error: Pass either --namespace or --host, not both\n",
+      "code": 1
+    },
+    {
+      "command": "import-login",
+      "flags": [
+        "--workspace",
+        "7fe3a7fa-385e-4c8c-8ee0-577f19075881",
+        "--pane",
+        "79eb2409-461e-40f1-91dc-01911fffd4c5",
+        "--operation-id",
+        "787759bb-1173-41c9-ac7a-909ebbd197d8"
+      ],
+      "namespace": false,
+      "stdout": "",
+      "stderr": "Error: Not logged in\nHint: Run: superset auth login (or set SUPERSET_API_KEY)\n",
+      "code": 1
+    }
+  ]
+}
