@@ -298,3 +298,8 @@
 
 
 阶段一百二十四以4f3cdad4a准备原browserManager.attachCdp的私有归属coordinator：pin复制owner/descriptor/注册/key及实际guest，打开前后检查同一归属；每个pin只尝试打开一次，未执行release和拒绝的旧pin不能恢复后再绑定。原raw CDP帧/忙碌错误不改，旧归属双向帧停止并释放捕获的原session；原native detach后清除旧handle，旧release不能误detach后来的新debugger。同步attach中退役/已detach、事件发送与detach同时失败均测试，回调异常不逃入Main。缺失模块、detach回调异常、过期pin复活红例已独立保留，最终11项新增连同原CDP shim/manager/registry共69项218断言及桌面类型/lint通过。原manager/shim/HTTP与host CDP路由、Main、preload、CLI、协议/版本floor逐字节保持；123的2205编译文件、85个MJS和3624个CLI源码/生成目录图文件均保持。尚无新WS协议、能力、Main生产注册或CLI路径，没有新构建/实窗，不能据此宣称CDP已恢复；继续后端与桌面连接协议。[阶段一百二十四证据](../implementation/evidence/local-ssh-feature-parity/stage124)。
+
+
+阶段一百二十五以8ab031c8f准备独立CDP协议和Host客户端transfer，57b2c4c29区分请求/响应预算：原bridge的4MiB限制针对传入命令，并非同等限制返回；新cdp-input明确保持4MiB UTF-8，cdp-output采用现有截图32MiB base64加64KiB元数据预算，保留raw空白/Unicode并限制JSON外壳。这个有界响应预算不混称原版无限大小返回等价。接受前固定current peer、每会话生成不可覆盖UUID，最多16连接，等待确认时最多64帧/4MiB命令；15秒确认使用受控计时，超时关闭捕获peer/客户端而不重试。close/disconnect/坏transport与回调失败均释放资源；快照清理防止误关在旧close回调中创建的新连接，busy/原native detach按code关闭对应客户端。旧浏览器packet/最大帧预算、原WS路由/Main/CLI/版本floor原字节不变，共享package仅新增一个导出。
+
+初轮新schema重复discriminator、清理回调失败/替换连接、请求覆写生成ID和4MiB以上响应被误拒绝的红例已保留，最终18项新增连同原桥接回归共96项469断言及host/shared类型/lint通过。旧2205编译文件、85个MJS、随包CLI和既有CLI源码图除新增shared导出外保持；无新构建/实窗/二进制/Actions。仍为未注册的内部准备，没有hello/ready协商、公开CDP能力、WS入口或CLI路径，不能宣称CDP恢复，继续真实peer和Main/受保护route接线。[阶段一百二十五证据](../implementation/evidence/local-ssh-feature-parity/stage125)。

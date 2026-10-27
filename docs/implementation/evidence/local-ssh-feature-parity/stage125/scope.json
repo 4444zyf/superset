@@ -1,0 +1,51 @@
+{
+  "stage": 125,
+  "initialSource": "8ab031c8ff290f099b2d0fd682f561ad91dc36d6",
+  "finalSource": "57b2c4c2945170dd44353578dc36cb85d79dc235",
+  "scope": "Independent CDP input/output packet codec and private Host transfer; not wired to any peer, public capability, Main or route yet",
+  "budgets": {
+    "requestUtf8Bytes": 4194304,
+    "responseUtf8Bytes": 33619968,
+    "packetBytes": 67244032,
+    "pendingFrames": 64,
+    "pendingRequestBytes": 4194304,
+    "maxConnections": 16,
+    "openAckMs": 15000,
+    "timersControlledInTests": true,
+    "sourceNote": "Original browser bridge limits inbound WebSocket requests to four MiB; it does not impose that same outbound limit. New bounded responses use the existing screenshot base64 budget plus 64 KiB metadata, not a claim of unlimited old response equivalence."
+  },
+  "tests": {
+    "new": 18,
+    "total": 96,
+    "assertions": 469,
+    "files": 16,
+    "hostTypesPassed": true,
+    "sharedTypesPassed": true,
+    "lintPassed": true,
+    "realTimeoutWaits": false,
+    "redLogs": [
+      "shared-red.log",
+      "host-red.log",
+      "shared-green-first.log",
+      "cleanup-red.log",
+      "identity-red.log",
+      "response-budget-red.log"
+    ]
+  },
+  "behavior": [
+    "Separate strict cdp-input/cdp-output directions and UTF-8 limits retain raw whitespace/Unicode",
+    "Pinned current peer and generated session identity; unknown or old-session frames ignored",
+    "Queue before ack, no retry after timeout; retire captured sessions",
+    "Cancel and release on close/disconnect/error; busy and native detach codes retained",
+    "Snapshot cleanup cannot close a replacement created by teardown callback",
+    "Large screenshot-sized response above four MiB passes while request bound stays four MiB"
+  ],
+  "compatibility": "preservation-proof.json; original browser packets remain byte-identical, only one new shared package export added",
+  "notVerified": [
+    "New WS handshake/routing/auth integration",
+    "Actual Electron CDP connection through the new path",
+    "CLI namespace CDP",
+    "Responses above the explicit new response budget"
+  ],
+  "noNewBuildNativeBinaryOrActions": true
+}
