@@ -1,0 +1,43 @@
+{
+  "stage": 126,
+  "source": "b97cebbefbe456a8904037c7ee4826827730ad65",
+  "sourceFeature": "Negotiated optional cdpV1 peer plus protected direct raw-CDP socket route and original Main runtime pin",
+  "tests": {
+    "newBun": 22,
+    "bunTotal": 203,
+    "assertions": 813,
+    "bunFiles": 19,
+    "newNodeWs": 6,
+    "nodeWsTotal": 12,
+    "nodeFiles": 2,
+    "hostTypesPassed": true,
+    "desktopTypesPassed": true,
+    "allNewFilesLintPassed": true,
+    "legacyWarnings": 20,
+    "inheritedHostAppFormatterNoiseExcluded": true
+  },
+  "contracts": {
+    "desktopOptInAndPinRequired": true,
+    "oldUnknownFeatureDefaultPreserved": true,
+    "readyCdpCapabilityRequiresNegotiation": true,
+    "rawCdpEphemeralNoJournalDependency": true,
+    "requestByteBudget": 4194304,
+    "responseByteBudget": 33619968,
+    "perSocketQueueCheckedBeforeNewCdpSends": true,
+    "textAndUtf8BinaryFrontendCommandsSupported": true,
+    "originalDirectPrefixPskAuthBeforeNewRoute": true,
+    "originalCloudCdpRouteUntouched": true,
+    "originalTargetShimAndWakeRuntimeReused": true,
+    "oldVersionFloorUnchanged": true
+  },
+  "sourceRoute": "/direct/browser/:paneId/cdp-v1?workspaceId=...&token=... (credential URLs must never be stored in evidence)",
+  "redLogs": [
+    "main-red.log",
+    "host-red.log",
+    "read-channel-red.log"
+  ],
+  "nodeFirstFailure": "Fixture used close() without a code and expected1000; Node reports valid no-status1005. Changed fixture to close(1000), product unchanged. route-node-first.log retained.",
+  "compatibilityProof": "compatibility-proof.json",
+  "nativeDesktopAcceptance": "Not yet run on these new sources; next source CLI and actual Electron/local+owned SSH acceptance required",
+  "buildStatus": "Source build started separately after the source commit; result will be recorded by the next compiled-product acceptance stage. No installer or CLI binary build."
+}

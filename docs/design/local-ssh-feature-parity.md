@@ -303,3 +303,10 @@
 阶段一百二十五以8ab031c8f准备独立CDP协议和Host客户端transfer，57b2c4c29区分请求/响应预算：原bridge的4MiB限制针对传入命令，并非同等限制返回；新cdp-input明确保持4MiB UTF-8，cdp-output采用现有截图32MiB base64加64KiB元数据预算，保留raw空白/Unicode并限制JSON外壳。这个有界响应预算不混称原版无限大小返回等价。接受前固定current peer、每会话生成不可覆盖UUID，最多16连接，等待确认时最多64帧/4MiB命令；15秒确认使用受控计时，超时关闭捕获peer/客户端而不重试。close/disconnect/坏transport与回调失败均释放资源；快照清理防止误关在旧close回调中创建的新连接，busy/原native detach按code关闭对应客户端。旧浏览器packet/最大帧预算、原WS路由/Main/CLI/版本floor原字节不变，共享package仅新增一个导出。
 
 初轮新schema重复discriminator、清理回调失败/替换连接、请求覆写生成ID和4MiB以上响应被误拒绝的红例已保留，最终18项新增连同原桥接回归共96项469断言及host/shared类型/lint通过。旧2205编译文件、85个MJS、随包CLI和既有CLI源码图除新增shared导出外保持；无新构建/实窗/二进制/Actions。仍为未注册的内部准备，没有hello/ready协商、公开CDP能力、WS入口或CLI路径，不能宣称CDP恢复，继续真实peer和Main/受保护route接线。[阶段一百二十五证据](../implementation/evidence/local-ssh-feature-parity/stage125)。
+
+
+阶段一百二十六以b97cebbef接通可选cdpV1协商、Host connectCdp及受原/direct/* PSK守卫的新/direct/browser/:paneId/cdp-v1路由，Main明确启用pin到124原guest/session，并用独立channel双向转发原始帧；原云/browser路由、旧read parser/4MiB预算、账号auth/版本floor、原manager/shim保持。默认缺flag或pin不协商，只有完整ready peer公开workstationBrowserCdpV1；原raw CDP是临时协议，会修改页面，不依赖mutation journal，也不自动重放。独立请求/响应预算、每次发送前新CDP socket队列检查、16会话上限、窗口epoch/实际socket关闭和回调清理均落实；客户端UTF-8二进制和文本帧都支持。
+
+22项新增Bun连同原桥接/manager/registry共203项813断言及host/desktop类型通过；新增6项真实Node WS与原6项合计12项通过：实际PSK401、hello/ready、确认前排队、文本/二进制中文Emoji、超过4MiB响应、忙碌/跨scope拒绝码、未协商关闭、peer实际断开和过大输入1009及Main释放。首个Node夹具close()无code实际1005而预期1000，已仅改成显式close(1000)，失败保留。7个既有文件去明确新增分支后整体AST等价，原函数/WS/auth、CLI、shared schema/floor字节对照通过。为避免无关格式变动恢复host app原格式，AST与已测版本全等；六个新文件lint通过，旧文件20条继承警告保留并对原大文件跳过继承格式噪声。Node新套件加入原本地integration:direct任务，没有Actions。
+
+这还不是新的实际Electron CDP验收：新源码已生产注册，但沿用的8af桌面编译产物不能代表新功能。提交后启动源码构建，具体结果与新的不可变产品/CLI图及本地/拥有SSH原生测试由下一阶段记录；未生成安装包/新CLI二进制。CLI cdp明确namespace、实际单guest target隔离、后台wake/焦点和正常重开仍需后续验收，不宣称整体浏览器/功能对齐完成。[阶段一百二十六证据](../implementation/evidence/local-ssh-feature-parity/stage126)。

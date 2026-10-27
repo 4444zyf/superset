@@ -1,0 +1,37 @@
+{
+  "base": "ca6d088c4",
+  "normalizedOldAstEqual": [
+    "apps/desktop/src/main/direct-app.ts",
+    "apps/desktop/src/main/lib/ssh-direct/workstation-browser-read-channel.ts",
+    "packages/host-service/src/direct/browser-read-bridge.ts",
+    "packages/host-service/src/direct/browser-read-route.ts",
+    "packages/host-service/src/trpc/router/direct/direct.ts",
+    "packages/host-service/src/types.ts",
+    "packages/host-service/src/app.ts"
+  ],
+  "byteEqual": [
+    "packages/shared/src/browser-bridge.ts",
+    "packages/shared/src/browser-cdp-bridge.ts",
+    "packages/host-service/src/direct/runtime.ts",
+    "packages/host-service/src/runtime/browser-bridge/browser-cdp-route.ts",
+    "packages/host-service/src/direct/browser-cdp-transfer.ts",
+    "packages/host-service/src/direct/operations.ts",
+    "packages/host-service/src/trpc/router/browser/browser.ts",
+    "apps/desktop/src/main/lib/ssh-direct/workstation-browser-cdp-sessions.ts",
+    "apps/desktop/src/main/lib/browser/browser-manager.ts",
+    "apps/desktop/src/main/lib/browser/cdp-target-shim.ts",
+    "apps/desktop/src/main/lib/browser/browser-bridge.ts",
+    "apps/desktop/src/preload/index.ts",
+    "packages/shared/src/host-version.ts",
+    "packages/cli/src/commands/browser/cdp/command.ts",
+    "packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts"
+  ],
+  "newRoute": "/direct/browser/:paneId/cdp-v1 under original earlier /direct/* wsAuth; original /browser route unchanged",
+  "newCapability": "Optional workstationBrowserCdpV1 requires ready negotiated cdpV1; no durable journal requirement for original raw ephemeral CDP",
+  "oldDefault": "Desktop cdpV1 and pinCdp both required, omitted options keep old behavior; original parser budget unchanged and separate parser only after explicit negotiation",
+  "sourceMainEnabled": true,
+  "legacyAuthenticationAndVersionFloorUnchanged": true,
+  "newNodeTestAddedToExistingIntegrationTask": true,
+  "appFormattingRestoreAstEqualsTestedApp": true,
+  "newBuildOrNativeAcceptanceYet": false
+}
