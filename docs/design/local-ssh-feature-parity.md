@@ -325,3 +325,12 @@ CLI72项/305断言、shared23项/104断言、host90项/436断言及四处类型�
 最终local-cdp-d2b7c8和ssh-cdp-d2b7c8均工具退出0，每端6次CDP CLI调用/4次认证拒绝和16条实际CDP命令，合计新增20次检查、32条命令；连同原276次API/CLI，共296次检查。实际单page target不暴露应用shell，flatten session、中文Emoji求值、原Input.dispatchMouseEvent、后台wake和截图、第二连接1013而原连接继续、主动关闭1000、重新attach不重放均通过。正常关窗令持有连接退休，新窗新连接页面计数0；SSH另含20次原窗口恢复。每端五张新增PNG均已查看，保留原raw Page.captureScreenshot透明像素（940×437、角像素RGBA 0/0/0/0），不混称已规范化为白底的截图CLI；剪贴板未变。所有接受/失败运行的app、Xorg及报告进程已清理。
 
 随包CLI SHA256仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb，没有新CLI二进制、安装包或Actions。此为Linux源码Electron和拥有的loopback SSH，未扩称实体Mac、外部SSH、Mac正向凭据或真实供应商Agent/Playwright验收。九个现有browser源码命令已有明确namespace路径，rightPane、其他URL入口与完整功能清单仍继续。[阶段一百二十七证据](../implementation/evidence/local-ssh-feature-parity/stage127)。
+
+
+## 阶段一百二十八：右侧区域的独立版本布局模型
+
+源码40698ef35仅新增workspace-view-v3模型与九项测试。V3复用原V2的资源、标签、树、URL与身份schema，另允许独立rightPaneLayout（tabs/activeTabId/version）、rightPaneOpen、activePaneArea及pane pinned标记；中心和右侧合计仍受原20工作区/64资源、单树16层和2MiB原始输入限制。先通过两侧合并的原V2验证检查所有引用、深度、重复资源和总容量，再解析V3并核对各侧独立选中项和实际焦点；隐藏或空右侧不取得焦点，中心可为空且不强迫打开隐藏右侧。严格schema拒绝未知字段，关闭区域不删除资源。
+
+兼容投影合并两侧标签到有效V2，保留所有资源及原浏览器状态，只在投影中去掉V3字段/固定标记。V3中心为空、隐藏右侧有标签时，V3全局焦点仍为null，V2投影必须按其既有合同选一个存活标签；不把投影焦点写回V3。未扩展的V2输入（包括无paneTabs的早期布局）原样保留，无自动升级或迁移。
+
+缺模块红例保存；最终连同原V1/V2 SQLite存储、pane-adapter和workspace-pane-state共39项150断言/5文件及桌面类型通过。新增两文件lint无警告；首轮测试夹具非空断言警告已改为实际存在检查，没有放宽产品类型。插件通过。旧8个关键模块逐字节保持，127的2205编译文件、86个MJS、3639个CLI/共享源码图文件及原随包CLI哈希保持；无新构建、实窗、RPC/IPC、存储或生产调用方。本阶段是尚未注册的内部模型，不宣称右侧窗格已恢复。下一步处理旧写入保留两侧归属与固定标记，再接真实私有SQLite和renderer。[阶段一百二十八证据](../implementation/evidence/local-ssh-feature-parity/stage128)。
