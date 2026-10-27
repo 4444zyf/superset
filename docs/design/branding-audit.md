@@ -98,3 +98,10 @@ Read-back confirms the current repository remains `4444zyf/superset-remix`, orig
 GitHub now reports the fork parent as `ParadevAI/Paradev`; this is a new remote observation, not a change to this fork's recorded Superset origin or original license. Keep the original Superset attribution and historical source links. About still contains upstream marketing and `https://superset.sh`; the earlier integration update returned 403, and this follow-up does not claim to change those settings. The description and website suggested above remain appropriate.
 
 The latest remote workflow inventory has five entries: Deploy Production is active, while CI, Deploy Preview, Release SSH Desktop Preview and Sandbox are disabled manually. This supersedes the earlier four-entry observation for current status. This audit did not run, enable or change a workflow; the feature branch retains its manual-only workflow policy.
+
+
+### Repository metadata read-back — 2026-10-27
+
+The renamed repository and origin remain `4444zyf/superset-remix`. Current feature-branch package metadata, brand manifest, README translations and modification notices point to it; main's README already explains the independent fork and links to the feature branch. The complete Workstation implementation has not been merged to main. Brand validation passes for 31 resources and plugin validation passes.
+
+About still uses upstream marketing, Website is `https://superset.sh`, and Issues is disabled. The owner should use the description “Superset Remix — Based on Superset. Independently maintained local and SSH workstation; unofficial fork.”, Website `https://github.com/4444zyf/superset-remix`, and enable Issues so the existing fork issue links work. This inspection made no repository-settings write; the earlier integration write returned HTTP 403. Preserve original authorship, Elastic License 2.0, technical `@superset/*` names and historical evidence URLs.

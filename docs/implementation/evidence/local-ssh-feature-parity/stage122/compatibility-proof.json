@@ -1,0 +1,35 @@
+{
+  "base": "54fe7648e",
+  "normalizedOldAstEqual": [
+    "packages/shared/src/browser-bridge.ts",
+    "packages/host-service/src/direct/browser-read-bridge.ts",
+    "packages/host-service/src/types.ts",
+    "packages/host-service/src/trpc/router/direct/direct.ts",
+    "apps/desktop/src/main/direct-app.ts",
+    "apps/desktop/src/main/lib/ssh-direct/workstation-browser-read-channel.ts",
+    "apps/desktop/scripts/verify-restore-controls.mjs",
+    "apps/desktop/scripts/verify-workstation-browser-ui.mjs"
+  ],
+  "byteEqual": [
+    "packages/host-service/src/direct/operations.ts",
+    "packages/host-service/src/direct/browser-cookie-import-operation.ts",
+    "packages/host-service/src/direct/browser-import-sources-rpc.ts",
+    "packages/host-service/src/trpc/router/browser/browser.ts",
+    "packages/shared/src/host-version.ts",
+    "apps/desktop/src/preload/index.ts",
+    "apps/desktop/src/main/lib/browser/browser-bridge-http.ts",
+    "apps/desktop/src/main/lib/browser/chrome-history-import.ts",
+    "apps/desktop/src/main/lib/browser/chrome-cookie-import.ts",
+    "apps/desktop/src/main/lib/browser/browser-import-service.ts",
+    "apps/desktop/src/main/lib/browser/clear-browser-session-data.ts",
+    "apps/desktop/src/main/lib/browser/browser-site-cookies.ts",
+    "apps/desktop/src/main/lib/ssh-direct/workstation-browser-bridge-panes.ts",
+    "apps/desktop/src/renderer/workstation/Workstation/Workstation.tsx",
+    "packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts",
+    "packages/cli/src/commands/browser/import-login/command.ts"
+  ],
+  "newMutation": "Protected direct.browserImportCookiesV1, durable journal and negotiated optional importCookiesV1; scalar counts only",
+  "newInteractions": "After the owned native failure, new source listing and resolution now pass the same original app home/config directory as GUI detection, avoiding implicit OS defaults. Explicit original GUI cookie import/forget/cookie clear invalidates new guarded imports; old action bodies and default importer calls preserved",
+  "keychainBudget": "180000ms ACK budget accounts for the original 120000ms Keychain prompt; controlled timers in tests",
+  "cliNamespaceStillPending": true
+}

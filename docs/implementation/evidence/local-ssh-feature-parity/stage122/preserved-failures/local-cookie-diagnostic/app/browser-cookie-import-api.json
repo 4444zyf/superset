@@ -1,0 +1,32 @@
+{
+  "source": "a0dca907e",
+  "mode": "Actual protected durable cookie import on an exact registered guest/session using original reader; Linux empty-profile success and real key-unavailable results, no positive credential or CLI claim",
+  "calls": [
+    {
+      "procedure": "direct.browserImportCookiesV1",
+      "input": {
+        "operationId": "83c1a827-9d68-4cc5-a69e-730cc425c826",
+        "workspaceId": "ea570c85-41ad-4bcc-bbde-b81854c75c8b",
+        "paneId": "1431957a-0cf9-49f9-a44c-95d58cad1b5f",
+        "sourceId": "/workspace/scratch/parity-122/local-cookie-diagnostic/config/google-chrome/Default"
+      },
+      "authenticated": true,
+      "status": 400,
+      "error": {
+        "message": "Browser cookie import failed or target is no longer current",
+        "code": -32600,
+        "data": {
+          "code": "BAD_REQUEST",
+          "httpStatus": 400,
+          "stack": "TRPCError: Browser cookie import failed or target is no longer current\n    at rpcError$4 (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:81231:10)\n    at execute (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:81262:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:49088:24\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:81216:14\n    at async DirectOperationStore.runMutationOperation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:48945:14)\n    at async resolveMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8120:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)",
+          "path": "direct.browserImportCookiesV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    }
+  ]
+}

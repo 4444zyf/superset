@@ -1,0 +1,385 @@
+{
+  "source": "8af01d714",
+  "mode": "Actual protected durable open API into the real Root and original parked Electron browser; workspace setup uses the existing durable accountless API, no open CLI or pin-UI claim",
+  "calls": [
+    {
+      "procedure": "direct.browserOpenV1",
+      "input": {
+        "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a",
+        "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41",
+        "url": "about:blank"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a",
+        "procedure": "browser.openV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41"
+        },
+        "result": {
+          "paneId": "ae7b6de8-a568-4b2e-8a06-592d61783867",
+          "url": "about:blank",
+          "title": ""
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserOpenV1",
+      "input": {
+        "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a",
+        "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41",
+        "url": "about:blank",
+        "target": "current-tab",
+        "show": false
+      },
+      "status": 200,
+      "result": {
+        "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a",
+        "procedure": "browser.openV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41"
+        },
+        "result": {
+          "paneId": "ae7b6de8-a568-4b2e-8a06-592d61783867",
+          "url": "about:blank",
+          "title": ""
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserOpenV1",
+      "input": {
+        "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a",
+        "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41",
+        "url": "about:blank",
+        "show": true
+      },
+      "status": 409,
+      "error": {
+        "message": "This operation ID has already been accepted with different inputs",
+        "code": -32009,
+        "data": {
+          "code": "CONFLICT",
+          "httpStatus": 409,
+          "stack": "TRPCError: This operation ID has already been accepted with different inputs\n    at DirectOperationStore.execute (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:49064:11)\n    at runBrowserOpenOperation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:81386:23)\n    at runDirectBrowserOpen (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:81423:10)\n    at /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:82020:100\n    at resolveMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8120:26)\n    at callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:26)\n    at Object.next (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8161:16)\n    at inputValidatorMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:7968:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)",
+          "path": "direct.browserOpenV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserOpenV1",
+      "input": {
+        "operationId": "a6889f9d-7286-4e82-8825-31a89fc99423",
+        "workspaceId": "676e4417-7c77-49f2-bb52-f8ddbb963fac",
+        "url": "about:blank"
+      },
+      "status": 404,
+      "error": {
+        "message": "Workspace not found",
+        "code": -32004,
+        "data": {
+          "code": "NOT_FOUND",
+          "httpStatus": 404,
+          "stack": "TRPCError: Workspace not found\n    at Object.pin (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:81436:17)\n    at /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:81394:35\n    at DirectOperationStore.runMutationOperation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:48945:20)\n    at runBrowserOpenOperation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:81393:21)\n    at runDirectBrowserOpen (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:81423:10)\n    at /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:82020:100\n    at resolveMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8120:26)\n    at callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:26)\n    at Object.next (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8161:16)\n    at inputValidatorMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:7968:17)",
+          "path": "direct.browserOpenV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserOpenV1",
+      "input": {
+        "operationId": "94a93eaa-61c4-4bf0-9b85-f90838298d80",
+        "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41",
+        "url": "about:blank",
+        "projectId": "f5cff1b9-cdd0-4e78-8333-45c17daba1d7"
+      },
+      "status": 400,
+      "error": {
+        "message": "[\n  {\n    \"code\": \"unrecognized_keys\",\n    \"keys\": [\n      \"projectId\"\n    ],\n    \"path\": [],\n    \"message\": \"Unrecognized key: \\\"projectId\\\"\"\n  }\n]",
+        "code": -32600,
+        "data": {
+          "code": "BAD_REQUEST",
+          "httpStatus": 400,
+          "stack": "TRPCError: [\n  {\n    \"code\": \"unrecognized_keys\",\n    \"keys\": [\n      \"projectId\"\n    ],\n    \"path\": [],\n    \"message\": \"Unrecognized key: \\\"projectId\\\"\"\n  }\n]\n    at inputValidatorMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:7962:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:72967:18\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)\n    at async procedure (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8180:20)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:3556:22\n    at async resolveResponse (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:3585:32)",
+          "path": "direct.browserOpenV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserOpenV1",
+      "input": {
+        "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41",
+        "url": "about:blank"
+      },
+      "status": 400,
+      "error": {
+        "message": "[\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"operationId\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  }\n]",
+        "code": -32600,
+        "data": {
+          "code": "BAD_REQUEST",
+          "httpStatus": 400,
+          "stack": "TRPCError: [\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"operationId\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  }\n]\n    at inputValidatorMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:7962:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:72967:18\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8155:20)\n    at async procedure (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:8180:20)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:3556:22\n    at async resolveResponse (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-DDCmBvlI.js:3585:32)",
+          "path": "direct.browserOpenV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserOpenV1",
+      "input": {
+        "operationId": "989538da-8870-44b5-9163-2650a1dd87f1",
+        "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41",
+        "url": "about:blank",
+        "target": "new-tab",
+        "show": true
+      },
+      "status": 200,
+      "result": {
+        "operationId": "989538da-8870-44b5-9163-2650a1dd87f1",
+        "procedure": "browser.openV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41"
+        },
+        "result": {
+          "paneId": "d8623f0e-031a-4efa-89cd-d03ec210db06",
+          "url": "about:blank",
+          "title": ""
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserOpenV1",
+      "input": {
+        "operationId": "b2a80d45-e0e9-47ec-a5a9-ddc4c8920594",
+        "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41",
+        "url": "about:blank"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "b2a80d45-e0e9-47ec-a5a9-ddc4c8920594",
+        "procedure": "browser.openV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41"
+        },
+        "result": {
+          "paneId": "1ec68de9-3040-4773-b70e-42d034ed02d6",
+          "url": "about:blank",
+          "title": ""
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserOpenV1",
+      "input": {
+        "operationId": "6266c230-aadc-4b6d-99bf-a9b9452721ab",
+        "workspaceId": "f93a54c6-2cdf-443d-a43e-a28e3e2a4e84",
+        "url": "http://localhost:38705/owned-open-api?request=9218bd02-5622-4156-a2b1-5ce1bb4cc6a1",
+        "target": "new-tab",
+        "show": false
+      },
+      "status": 200,
+      "result": {
+        "operationId": "6266c230-aadc-4b6d-99bf-a9b9452721ab",
+        "procedure": "browser.openV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "f93a54c6-2cdf-443d-a43e-a28e3e2a4e84"
+        },
+        "result": {
+          "paneId": "22ea8578-fc09-4747-8f2c-a3094c34358b",
+          "url": "http://localhost:38705/owned-open-api?request=9218bd02-5622-4156-a2b1-5ce1bb4cc6a1",
+          "title": ""
+        }
+      }
+    },
+    {
+      "procedure": "direct.operationStatus",
+      "input": {
+        "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a",
+        "procedure": "browser.openV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41"
+        },
+        "result": {
+          "paneId": "ae7b6de8-a568-4b2e-8a06-592d61783867",
+          "url": "about:blank",
+          "title": ""
+        }
+      }
+    },
+    {
+      "procedure": "direct.operationStatus",
+      "input": {
+        "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a",
+        "procedure": "browser.openV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41"
+        },
+        "result": {
+          "paneId": "ae7b6de8-a568-4b2e-8a06-592d61783867",
+          "url": "about:blank",
+          "title": ""
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserOpenV1",
+      "input": {
+        "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a",
+        "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41",
+        "url": "about:blank"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a",
+        "procedure": "browser.openV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41"
+        },
+        "result": {
+          "paneId": "ae7b6de8-a568-4b2e-8a06-592d61783867",
+          "url": "about:blank",
+          "title": ""
+        }
+      }
+    },
+    {
+      "procedure": "direct.operationStatus",
+      "input": {
+        "operationId": "6266c230-aadc-4b6d-99bf-a9b9452721ab"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "6266c230-aadc-4b6d-99bf-a9b9452721ab",
+        "procedure": "browser.openV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "f93a54c6-2cdf-443d-a43e-a28e3e2a4e84"
+        },
+        "result": {
+          "paneId": "22ea8578-fc09-4747-8f2c-a3094c34358b",
+          "url": "http://localhost:38705/owned-open-api?request=9218bd02-5622-4156-a2b1-5ce1bb4cc6a1",
+          "title": ""
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserOpenV1",
+      "input": {
+        "operationId": "6266c230-aadc-4b6d-99bf-a9b9452721ab",
+        "workspaceId": "f93a54c6-2cdf-443d-a43e-a28e3e2a4e84",
+        "url": "http://localhost:38705/owned-open-api?request=9218bd02-5622-4156-a2b1-5ce1bb4cc6a1",
+        "target": "new-tab",
+        "show": false
+      },
+      "status": 200,
+      "result": {
+        "operationId": "6266c230-aadc-4b6d-99bf-a9b9452721ab",
+        "procedure": "browser.openV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "f93a54c6-2cdf-443d-a43e-a28e3e2a4e84"
+        },
+        "result": {
+          "paneId": "22ea8578-fc09-4747-8f2c-a3094c34358b",
+          "url": "http://localhost:38705/owned-open-api?request=9218bd02-5622-4156-a2b1-5ce1bb4cc6a1",
+          "title": ""
+        }
+      }
+    }
+  ],
+  "setup": {
+    "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41",
+    "projectId": null,
+    "terminals": []
+  },
+  "closeHover": {
+    "point": {
+      "x": 881,
+      "y": 314,
+      "top": 304,
+      "bottom": 324
+    },
+    "realMouseMove": true
+  },
+  "rendererErrorsBeforeReopen": [],
+  "completed": {
+    "first": {
+      "operationId": "32252c2a-69c5-4c10-b62c-36ce0e74547a",
+      "procedure": "browser.openV1",
+      "status": "completed",
+      "entityIds": {
+        "workspaceId": "e8394253-08a1-43c7-b83f-2bec55406f41"
+      },
+      "result": {
+        "paneId": "ae7b6de8-a568-4b2e-8a06-592d61783867",
+        "url": "about:blank",
+        "title": ""
+      }
+    },
+    "http": {
+      "operationId": "6266c230-aadc-4b6d-99bf-a9b9452721ab",
+      "procedure": "browser.openV1",
+      "status": "completed",
+      "entityIds": {
+        "workspaceId": "f93a54c6-2cdf-443d-a43e-a28e3e2a4e84"
+      },
+      "result": {
+        "paneId": "22ea8578-fc09-4747-8f2c-a3094c34358b",
+        "url": "http://localhost:38705/owned-open-api?request=9218bd02-5622-4156-a2b1-5ce1bb4cc6a1",
+        "title": ""
+      }
+    },
+    "projectlessBrowserOnly": true,
+    "noTerminalCreated": true,
+    "backgroundSelectionAndFocusPreserved": true,
+    "explicitShow": true,
+    "newTabAndCurrentReplacement": true,
+    "defaultEquivalentDeduplication": true,
+    "httpRequestCount": 1,
+    "browserIds": [
+      "1ec68de9-3040-4773-b70e-42d034ed02d6",
+      "ae7b6de8-a568-4b2e-8a06-592d61783867"
+    ]
+  },
+  "reopened": {
+    "rendererErrors": [],
+    "noReplayOrRecreation": true,
+    "originalReceiptForClosedPane": true,
+    "requestCount": 1
+  }
+}

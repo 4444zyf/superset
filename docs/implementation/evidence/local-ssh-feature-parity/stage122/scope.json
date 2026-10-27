@@ -1,0 +1,102 @@
+{
+  "stage": 122,
+  "sourceCommit": "8af01d71471d2fae4221b4655ddcf26d71f19b23",
+  "sourcePreparationCommit": "a0dca907ef321e9ad2f30973b3dedd12f8b232e9",
+  "mutation": "direct.browserImportCookiesV1",
+  "procedure": "browser.importCookiesV1",
+  "mechanism": {
+    "strictStableOperationId": true,
+    "peerOptInAndDurableCapabilityRequired": true,
+    "originalReaderAndCookieImporter": true,
+    "currentRegisteredGuestAndActualSessionPinned": true,
+    "sourceResolvedUsingOriginalDesktopHomeAndConfigurationDirectory": true,
+    "singleReservationPerActualSession": true,
+    "originalPersistSupersetSharedSessionRetained": true,
+    "noPerSSHCookieIsolationClaim": true,
+    "retirementStopsSubsequentWritesAndHoldsReservationUntilSettlement": true,
+    "keychainPromptOriginalMs": 120000,
+    "newAckMs": 180000,
+    "unitTimersControlled": true,
+    "countsOnlyNoCookieValuesInResults": true
+  },
+  "tests": {
+    "initialRelevant": {
+      "tests": 288,
+      "assertions": 1110,
+      "files": 38,
+      "newTests": 33
+    },
+    "afterPathFix": {
+      "tests": 61,
+      "assertions": 169,
+      "files": 6
+    },
+    "hostSharedDesktopTypesPassed": true,
+    "desktopTypesPassedAgainAfterPathFix": true,
+    "oldContractsProof": "compatibility-proof.json",
+    "initialNativeFailurePreserved": "native-path-failure.json"
+  },
+  "limitations": [
+    "Linux only; native positive credential import and macOS Keychain/FDA not verified",
+    "Only owned empty Cookies database created and removed; no key injection",
+    "Cookie import CLI namespace adapter still pending; bundled CLI not rebuilt",
+    "Already issued underlying writes cannot be undone; unknown receipt must not be automatically retried",
+    "External SSH, physical Mac gestures and real authenticated vendor agents remain unverified"
+  ],
+  "nativeAcceptance": {
+    "allPassed": true,
+    "newCookieApiCalls": 30,
+    "priorBrowserApiCliCalls": 222,
+    "total": 252,
+    "sshRestoreSamples": 20,
+    "modes": [
+      "local",
+      "owned loopback SSH"
+    ],
+    "compiledFiles": 2205,
+    "consumedMjs": 84,
+    "manifestSha256": "446ad69606aa0bb0b98c8ef2f496704c004347d9a95b84b7a65543453b7db0b0",
+    "bundleCliUnchangedSha256": "f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb",
+    "preloadRequires": [
+      "electron"
+    ],
+    "allOwnedProcessesGone": true,
+    "x163Released": true,
+    "screenshotsViewed": [
+      "preserved first failure",
+      "local cookie terminal-before/background/reopened",
+      "SSH cookie terminal-before/background/reopened",
+      "SSH browser-reopened"
+    ],
+    "expectedCookieStatusesEach": [
+      200,
+      200,
+      409,
+      400,
+      400,
+      400,
+      400,
+      401,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ]
+  },
+  "repositoryAudit": {
+    "date": "2026-10-27",
+    "origin": "https://github.com/4444zyf/superset-remix.git",
+    "brandCheckResources": 31,
+    "pluginsPassed": true,
+    "defaultBranch": "main",
+    "defaultReadmeForkNoticePresent": true,
+    "fullWorkstationImplementationOnFeatureBranch": true,
+    "aboutDescriptionStillUpstream": true,
+    "homepageStillUpstream": "https://superset.sh",
+    "issuesEnabled": false,
+    "settingsMutationNotAttempted": "Earlier integration write was rejected with HTTP 403; this follow-up is read-only"
+  }
+}
