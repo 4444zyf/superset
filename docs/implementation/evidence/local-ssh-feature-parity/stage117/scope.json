@@ -1,0 +1,84 @@
+{
+  "sourceCommit": "7dd77e933afe946d07c96e40dcefcc7b5a13712c",
+  "feature": "Original source browser open command with explicit namespace and durable operation ID; account behavior preserved",
+  "tests": {
+    "cases": 51,
+    "assertions": 204,
+    "cliTypesExit": 0,
+    "i18nTypesExit": 0,
+    "strictLocales": 17,
+    "newMessagesPerLocale": 2,
+    "priorCatalogEntriesPreserved": true
+  },
+  "native": {
+    "cases": 2,
+    "newOpenCliCalls": 30,
+    "previousBrowserApiAndCliCalls": 158,
+    "totalCalls": 188,
+    "sshRestores": 20,
+    "expectedExitCodesEach": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "setup": "Independent projectless browser-only workspace C through original durable createSession API; existing API workspace B and terminal workspace A retained",
+    "verified": [
+      "source CLI flag parsing and original JSON result shape",
+      "background selection and terminal focus preserved",
+      "explicit show",
+      "new-tab and current unpinned browser replacement",
+      "canonical default equivalence and operation ID conflict",
+      "missing operation ID and foreign workspace rejection",
+      "owned HTTP navigation including SSH forwarding",
+      "durable receipts after normal reopen without HTTP replay or closed-pane recreation",
+      "original terminal execution, cwd and screenshot clipboard protection"
+    ]
+  },
+  "firstFailure": {
+    "file": "cli-tests-first.log.gz",
+    "reason": "New parser fixture omitted two argv executable entries and keyed operation-id by flag spelling instead of original builder key; corrected fixture only",
+    "testOutcome": "50 pass, 1 fail; final 51 pass"
+  },
+  "compiledFiles": 2205,
+  "fixtureCount": 81,
+  "productManifestSha256": "834b03391d27970cc4dfec728f328c03433003d2cfe19676b52fc90c64455bbb",
+  "bundledCliRebuilt": false,
+  "noActions": true,
+  "limitations": [
+    "Source CLI dev runner acceptance; bundled CLI installation and remote provisioning remain pending",
+    "Owned loopback SSH and Linux Electron only; external SSH, physical macOS and real vendor agents unverified",
+    "Pin control and pin persistence across restart not restored in this stage",
+    "Cross-connection background ownership has unit coverage; native new workspace uses the same owned connection",
+    "Other browser commands, right pane and overall feature parity remain incomplete"
+  ],
+  "sourceCliFilesVerified": 3586,
+  "screenshotsViewed": [
+    "local-cli-open-7dd77e/app/browser-open-cli-background-terminal.png",
+    "local-cli-open-7dd77e/app/browser-open-cli-explicit-show.png",
+    "local-cli-open-7dd77e/app/browser-open-cli-http-background-terminal.png",
+    "ssh-cli-open-7dd77e/app/browser-open-cli-background-terminal.png",
+    "ssh-cli-open-7dd77e/app/browser-open-cli-explicit-show.png",
+    "ssh-cli-open-7dd77e/app/browser-open-cli-http-background-terminal.png",
+    "ssh-cli-open-7dd77e/app/browser-reopened.png"
+  ],
+  "nativeExitCodes": [
+    0,
+    0
+  ],
+  "postNativeDocumentationChanges": [
+    "packages/cli/README.md"
+  ],
+  "nativeCompilationAndRuntimeSourceUnchanged": true
+}

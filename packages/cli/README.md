@@ -53,3 +53,17 @@ superset browser eval --namespace "$SUPERSET_HOME_DIR" --workspace <workspace-id
 Keep the operation ID for that exact workspace, pane and code. Repeating a completed ID returns its original result without running JavaScript again; changed input is refused. After a failure or lost connection, use `browser operation-status` with the same namespace and ID before issuing another evaluation. The CLI does not retry. A code exception leaves an unresolved receipt and repeating that ID does not execute it again.
 
 Evaluation requires durable operations and the selected backend's ready evaluation capability. Existing status queries need only the durable capability while that backend is running. JSON output retains the original `{ "result": ... }` shape; an `undefined` result omits the field and produces `{}`. Strings, structured values, `0`, `false` and `null` retain their original formatting. This is verified with the source CLI runner; the previously bundled executable remains unchanged.
+
+## Open a namespace browser pane
+
+The source `browser open` command accepts an explicit namespace and a stable operation ID:
+
+```bash
+superset browser open --namespace "$SUPERSET_HOME_DIR" --workspace <workspace-id> --url <url> --operation-id <uuid> --json
+```
+
+The default `--target current-tab` replaces an unpinned browser in the active pane tab, or creates a browser tab when needed. Use `--target new-tab` to create a new tab. Opening runs in the background by default, preserving the user's workspace, terminal selection and keyboard focus; add `--show` to switch to the requested browser. A projectless workspace can open a browser without creating a terminal.
+
+Retain the UUID for the exact intent. Repeating it returns the original completed result without opening another pane, even after that pane has been closed. Changing its workspace, URL, target or show intent is refused. Omitted defaults and explicit `--target current-tab --show false` are equivalent. On a failure or lost connection, inspect `browser operation-status` before opening another pane; the CLI never retries automatically. Opening requires both durable operations and a ready browser-open capability. Status inspection can read a saved receipt while that renderer is unavailable.
+
+Local and owned loopback SSH acceptance uses the original source CLI dev runner. The bundled CLI has not been rebuilt or installed remotely. Existing commands without `--namespace` retain their account and host behavior.
