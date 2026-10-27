@@ -1,0 +1,29 @@
+{
+  "feature": "Internal preparation for the original browser reload API; no new CLI reload command",
+  "newTests": 18,
+  "regression": {
+    "tests": 102,
+    "assertions": 476,
+    "files": 13
+  },
+  "types": [
+    "host-service",
+    "shared",
+    "desktop"
+  ],
+  "redTests": [
+    "tests-red.log.gz",
+    "bridge-red.log.gz",
+    "wire-red.log.gz"
+  ],
+  "oldContractsPreserved": true,
+  "publicRpcAdded": false,
+  "mainEnabled": false,
+  "newBuild": false,
+  "newNative": false,
+  "lint": "New files pass full Biome check. Two inherited control-character regex diagnostics in the unchanged navigation URL schema were left intact; changed existing files pass with that specific rule skipped and import assistance disabled. Old AST comparison confirms the pre-existing schema and code are unchanged.",
+  "limitations": [
+    "Main handler, protected versioned RPC and capability publication still pending",
+    "No native reload acceptance yet; latest native results belong to stage117 browser open"
+  ]
+}
