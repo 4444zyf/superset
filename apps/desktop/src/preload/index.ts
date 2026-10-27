@@ -1,7 +1,7 @@
 import {
 	WORKSTATION_BROWSER_OPEN_CHANNEL,
 	WORKSTATION_BROWSER_OPEN_AVAILABILITY_CHANNEL,
-} from "../shared/workstation-browser-open";
+} from "../shared/workstation-browser-open-channels";
 import { contextBridge, ipcRenderer } from "electron";
 import {
 	DIRECT_CHANNEL,

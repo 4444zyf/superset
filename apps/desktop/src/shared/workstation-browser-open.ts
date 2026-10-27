@@ -49,10 +49,10 @@ export type WorkstationBrowserOpenReply = WorkstationBrowserOpenIdentity &
 		| { ok: false; error: string }
 	);
 
-export const WORKSTATION_BROWSER_OPEN_CHANNEL =
-	"direct-workstation:browser-open";
-export const WORKSTATION_BROWSER_OPEN_AVAILABILITY_CHANNEL =
-	"direct-workstation:browser-open-availability";
+export {
+	WORKSTATION_BROWSER_OPEN_CHANNEL,
+	WORKSTATION_BROWSER_OPEN_AVAILABILITY_CHANNEL,
+} from "./workstation-browser-open-channels";
 export const browserOpenSubscriptionSchema = z.strictObject({
 	subscriptionId: z.string().uuid(),
 });
