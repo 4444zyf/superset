@@ -356,3 +356,12 @@ namespace切换直接归档原V3目标并用同版本验证/保存，保留两�
 先保存新协调器方法不存在的6项红例，再实现；新增共7项，与原布局/SQLite/restore回归共86项314断言/9文件和桌面类型通过。覆盖新右侧浏览器缺失/错误generation拒绝、验证期间连接代次或窗口更换不能提交、较新导航阻止较旧布局落盘、浏览器内容修改仍需原活动注册、右侧新增终端仍通过workspace.restoreResources确认，以及窗口owner变更后原恢复仅附着已有终端并保留两侧/固定状态。这里的controller为拥有的单元夹具，不冒充实际SSH后端或实窗。
 
 六份模块去掉明确V3新增项后完整AST相等，新浅层IPC schema与原V2对象AST直接相等；原存储/merge、V1/V2模型、renderer及host floor七文件逐字节保持。共享模型/API lint通过，旧主进程/preload/测试文件保留23条继承警告并跳过其原格式/整理噪声；插件通过。原2205编译文件、86个MJS、3639个CLI源码图及随包CLI哈希复核保持，未新构建/实窗/安装包/Actions。本阶段完成源码层受保护V3读写接线，右侧UI与相关renderer生命周期仍未启用；下一步接双区域pane-store适配与实际操作，再执行本地/拥有SSH实窗验收。[阶段一百三十证据](../implementation/evidence/local-ssh-feature-parity/stage130)。
+
+
+## 阶段一百三十一：双区域原 pane store 与原子状态合并
+
+源码65355363b仅新增workspace-pane-areas四个内部文件。沿原toPaneState恢复中心/右侧各自的实际@superset/panes store，将V3显式true/false固定标记恢复到原引擎的pane.pinned。两个store同步转移时只排一个microtask，订阅者取得完整before/after，不把来源已移除、目标尚未插入的瞬间保存为丢资源布局；原transferTabToIndex和transferPaneToSplit均直接参与测试。窗口快照读取在状态不变时返回同一对象，快照通知和用户编辑订阅分离；synchronize先交付已有用户意图，再接受持久快照的固定状态，不回声保存。dispose丢弃旧scope待派发通知，重复注册同一callback的旧cleanup不退订新注册。无变化的flag操作不制造快照反馈；受控测试按单批排空并快速拒绝额外任务，不引入同步死循环等待。
+
+新applyWorkspacePaneAreas先验证完整V3输入和精确connection/backend/namespace/uid/targetRevision/workspace/tab归属，使用稳定排序/中立全局选择的扁平状态调用原applyWorkspacePaneState，随后独立三方合并区域归属、区域内顺序/选择、可见性和固定字段，最后再次验证整份模型。稳定排序只用于原合并器核对，真实各侧顺序不会被排序覆盖。不同区域的标题/固定/选择、移动叠加并发标题可合并，冲突标题/固定、旧execution、未知资源和旧目标身份返回null且不修改调用方输入。中心为空、右侧隐藏时不从兼容投影合成右侧焦点；右侧浏览器取得焦点不关闭中心Files工具。新metadata key复用原key并补固定/区域字段，纯layout变化仍可由后续调用者按原防抖策略保存。
+
+缺模块红例保留；26项新增连同原模型、SQLite、restore、pane适配/状态共112项412断言/11文件、桌面类型和新四文件lint通过；初次唯一警告为夹具未使用的split导入，补上真实跨区域split持久化用例后清零。验证包括两个区域各自选择并发合并、实际重排、先同步未保存pin再接受权威false、过期回调清理和无变化反馈。十九份现有IPC/存储/renderer/原pane引擎与版本模块逐字节不变，127的2205编译文件、86个MJS、3639个CLI源码图及原随包CLI哈希保持。无新生产调用方、构建、实窗、安装包或Actions。本阶段仍是尚未注册的renderer核心；启用UI前先为原中心区域CLI browser-open及其V2回执接上V3兼容，再接单个workspace runtime注册、V3视图hook和原区域界面。[阶段一百三十一证据](../implementation/evidence/local-ssh-feature-parity/stage131)。
