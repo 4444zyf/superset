@@ -56,6 +56,41 @@ export const browserBridgeConsoleResultSchema = z.object({
 		)
 		.max(500),
 });
+export const browserBridgeImportSourcesResultSchema = z.object({
+	sources: z
+		.array(
+			z
+				.object({
+					id: z.string().min(1).max(8192),
+					browserName: z.string().min(1).max(512),
+					profileName: z.string().max(4096),
+					browserKey: z.string().min(1).max(128).optional(),
+				})
+				.passthrough(),
+		)
+		.max(512),
+});
+export type BrowserBridgeImportSourcesResult = z.infer<
+	typeof browserBridgeImportSourcesResultSchema
+>;
+const importSourcesRequestSchema = z.strictObject({
+	type: z.literal("import-sources-request"),
+	id: z.string().uuid(),
+});
+const importSourcesResultSchema = z.discriminatedUnion("ok", [
+	z.strictObject({
+		type: z.literal("import-sources-result"),
+		id: z.string().uuid(),
+		ok: z.literal(true),
+		result: browserBridgeImportSourcesResultSchema,
+	}),
+	z.strictObject({
+		type: z.literal("import-sources-result"),
+		id: z.string().uuid(),
+		ok: z.literal(false),
+		error: z.object({ message: z.string().max(4096) }),
+	}),
+]);
 export const browserBridgeCaptureRequestSchema = z.object({
 	type: z.literal("capture-request"),
 	id: z.string().uuid(),
@@ -193,6 +228,8 @@ const captureDoneSchema = z.discriminatedUnion("ok", [
 	}),
 ]);
 export const browserBridgePacketSchema = z.union([
+	importSourcesRequestSchema,
+	importSourcesResultSchema,
 	browserBridgeIdentitySchema.extend({
 		type: z.literal("hello"),
 		protocol: z.literal(1),

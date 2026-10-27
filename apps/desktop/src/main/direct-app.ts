@@ -17,8 +17,14 @@ import {
 	listAllChromiumProfiles,
 	hasUnreadableChromiumBrowser,
 } from "./lib/browser/chromium-profiles";
-import { readHistoryFromProfile } from "./lib/browser/chrome-history-import";
-import { importCookiesIntoSession } from "./lib/browser/chrome-cookie-import";
+import {
+	readHistoryFromProfile,
+	listLoginImportSources,
+} from "./lib/browser/chrome-history-import";
+import {
+	importCookiesIntoSession,
+	hasSafeStorageKey,
+} from "./lib/browser/chrome-cookie-import";
 import { requestFullDiskAccess } from "../lib/trpc/routers/permissions/native-permissions";
 import { opaqueScreenshot } from "./lib/browser/opaque-screenshot";
 import {
@@ -640,6 +646,10 @@ export async function startWorkstation(): Promise<void> {
 				() => !quitting && !browserOpenClosing && current(),
 			);
 		},
+		importSourcesV1: true,
+		importSources: async () => ({
+			sources: await listLoginImportSources(hasSafeStorageKey),
+		}),
 		reloadV1: true,
 		navigationV1: true,
 		evaluationV1: true,

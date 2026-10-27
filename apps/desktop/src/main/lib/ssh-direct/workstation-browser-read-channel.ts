@@ -1,4 +1,5 @@
 import {
+	browserBridgeImportSourcesResultSchema,
 	browserBridgeConsoleResultSchema,
 	browserBridgeListResultSchema,
 	encodeBrowserBridgePacket,
@@ -27,6 +28,8 @@ interface Entry {
 	ready: boolean;
 	captureReady: boolean;
 	captureId: string | null;
+	importSourcesReady: boolean;
+	importSourcesId: string | null;
 	reloadReady: boolean;
 	reloadId: string | null;
 	navigationReady: boolean;
@@ -56,6 +59,11 @@ export class WorkstationBrowserReadChannels {
 	private readonly entries = new Map<string, Entry>();
 	constructor(
 		private readonly dependencies: {
+			importSourcesV1?: boolean;
+			importSources?(
+				target: BrowserReadTarget,
+				current: () => boolean,
+			): Promise<unknown>;
 			reloadV1?: boolean;
 			navigationV1?: boolean;
 			evaluationV1?: boolean;
@@ -87,6 +95,12 @@ export class WorkstationBrowserReadChannels {
 				>;
 		},
 	) {}
+	private supportsImportSources(): boolean {
+		return (
+			this.dependencies.importSourcesV1 === true &&
+			!!this.dependencies.importSources
+		);
+	}
 	private supportsOpen(): boolean {
 		return (
 			this.dependencies.openV1 === true &&
@@ -175,6 +189,8 @@ export class WorkstationBrowserReadChannels {
 			ready: false,
 			captureReady: false,
 			captureId: null,
+			importSourcesReady: false,
+			importSourcesId: null,
 			reloadReady: false,
 			reloadId: null,
 			navigationReady: false,
@@ -220,6 +236,7 @@ export class WorkstationBrowserReadChannels {
 							"capturePngV1",
 							...(this.dependencies.navigationV1 ? ["navigateV1"] : []),
 							...(this.dependencies.reloadV1 ? ["reloadV1"] : []),
+							...(this.supportsImportSources() ? ["importSourcesV1"] : []),
 							...(this.dependencies.evaluationV1 ? ["evaluateV1"] : []),
 							...(this.supportsOpen() ? ["openV1"] : []),
 						],
@@ -253,6 +270,9 @@ export class WorkstationBrowserReadChannels {
 					entry.evaluationReady =
 						this.dependencies.evaluationV1 === true &&
 						packet.features.includes("evaluateV1");
+					entry.importSourcesReady =
+						this.supportsImportSources() &&
+						packet.features.includes("importSourcesV1");
 					entry.reloadReady =
 						this.dependencies.reloadV1 === true &&
 						packet.features.includes("reloadV1");
@@ -276,6 +296,15 @@ export class WorkstationBrowserReadChannels {
 						throw Error("Invalid evaluation request");
 					entry.evaluationId = packet.id;
 					void this.evaluate(entry, packet).catch(() =>
+						this.close(entry, 1011),
+					);
+					return;
+				}
+				if (packet.type === "import-sources-request") {
+					if (!entry.importSourcesReady || entry.importSourcesId !== null)
+						throw Error("Invalid browser source request");
+					entry.importSourcesId = packet.id;
+					void this.readImportSources(entry, packet).catch(() =>
 						this.close(entry, 1011),
 					);
 					return;
@@ -375,6 +404,50 @@ export class WorkstationBrowserReadChannels {
 		} finally {
 			if (release && entry.openRelease === release) this.releaseOpen(entry);
 			if (entry.openId === request.id) entry.openId = null;
+		}
+	}
+	private async readImportSources(
+		entry: Entry,
+		request: { id: string },
+	): Promise<void> {
+		try {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			if (!this.dependencies.importSources)
+				throw Error("Browser source listing is unavailable");
+			const result = await this.dependencies.importSources(entry.target, () =>
+				this.current(entry),
+			);
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			const value = browserBridgeImportSourcesResultSchema.parse(result);
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "import-sources-result",
+					id: request.id,
+					ok: true,
+					result: value,
+				}),
+			);
+		} catch {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "import-sources-result",
+					id: request.id,
+					ok: false,
+					error: { message: "Browser login sources are unavailable" },
+				}),
+			);
+		} finally {
+			if (entry.importSourcesId === request.id) entry.importSourcesId = null;
 		}
 	}
 	private async reload(
