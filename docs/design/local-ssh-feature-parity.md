@@ -257,3 +257,6 @@
 
 
 阶段一百一十二以332956a4f接可选scope/ready/accepting协议与受保护持久open RPC核心，真实DB读workspace/projectless元数据，完成回执不重查/重绑；同scope忙碌不取消已接受请求，换scope仅取消open。release红例补齐关闭/实际socket close/finally精确取消，101项host495断言、33项desktop139断言、8项shared42断言、6项真实WS/四处类型与兼容对照通过。main仍未启用openV1，也无真实renderer/保存/后台创建；不宣称open恢复，无新构建或实窗，原58b编译2205/79脚本/CLI哈希保持。继续真实接线。[阶段一百一十二证据](../implementation/evidence/local-ssh-feature-parity/stage112)。
+
+
+阶段一百一十三以7a7e15142补open内部原子保存：接受导航前、进入原保存队列及所有异步资源检查后的最终写入前核验作用域；真实renderer请求取消后，待完成的SQLite布局保存被拒绝。新增公开isCurrent复用完整owner/epoch/订阅/scope/id/目标检查，DTO移入共享类型供后续renderer使用。六项新用例，相关回归75项304断言、desktop类型/lint/插件及旧保存AST兼容对照通过。main/preload/renderer仍未接线，openV1未启用，不宣称open恢复；无新构建或实窗，原58b编译2205文件/79脚本/CLI哈希保持。继续实际接入。[阶段一百一十三证据](../implementation/evidence/local-ssh-feature-parity/stage113)。
