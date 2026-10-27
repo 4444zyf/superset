@@ -1,0 +1,30 @@
+{
+  "base": "90a3a0829",
+  "entireLegacyStoreAstEqualAfterNormalizingExplicitV3Branches": true,
+  "fullAstTraversal": true,
+  "unchangedMethodAst": [
+    "constructor",
+    "activateOwner",
+    "write",
+    "save",
+    "saveV2",
+    "forget",
+    "removeLocalNamespace",
+    "close"
+  ],
+  "byteEqual": [
+    "apps/desktop/src/shared/workspace-view.ts",
+    "apps/desktop/src/shared/workspace-view-v2.ts",
+    "apps/desktop/src/shared/workspace-view-v3.ts",
+    "apps/desktop/src/main/lib/ssh-direct/workspace-view-legacy-merge.ts",
+    "apps/desktop/src/main/direct-app.ts",
+    "apps/desktop/src/preload/index.ts",
+    "apps/desktop/src/shared/direct-workstation.ts",
+    "apps/desktop/src/renderer/workstation/Workstation/hooks/useWorkspaceViews/useWorkspaceViews.ts",
+    "apps/desktop/src/renderer/workstation/Workstation/components/WorkspaceWindow/WorkspaceWindow.tsx",
+    "packages/shared/src/host-version.ts"
+  ],
+  "newStorage": "Explicit saveV3/readV3 only; same SQLite table and original write transaction/CAS/owner; old data stays in original physical format until explicit V3 write",
+  "legacyCompatibility": "Only existing schema3 data takes the new merge/projection branch. selectLocalNamespace reads raw snapshot and selects V3 codec/persist only for stored schema3; V1/V2 codec/persist remains the default. New private pre-write read is read-only.",
+  "notYetRegistered": "No public IPC/RPC, renderer, preload or host change; native compiled product remains127 and is not proof of129"
+}

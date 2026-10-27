@@ -334,3 +334,14 @@ CLI72项/305断言、shared23项/104断言、host90项/436断言及四处类型�
 兼容投影合并两侧标签到有效V2，保留所有资源及原浏览器状态，只在投影中去掉V3字段/固定标记。V3中心为空、隐藏右侧有标签时，V3全局焦点仍为null，V2投影必须按其既有合同选一个存活标签；不把投影焦点写回V3。未扩展的V2输入（包括无paneTabs的早期布局）原样保留，无自动升级或迁移。
 
 缺模块红例保存；最终连同原V1/V2 SQLite存储、pane-adapter和workspace-pane-state共39项150断言/5文件及桌面类型通过。新增两文件lint无警告；首轮测试夹具非空断言警告已改为实际存在检查，没有放宽产品类型。插件通过。旧8个关键模块逐字节保持，127的2205编译文件、86个MJS、3639个CLI/共享源码图文件及原随包CLI哈希保持；无新构建、实窗、RPC/IPC、存储或生产调用方。本阶段是尚未注册的内部模型，不宣称右侧窗格已恢复。下一步处理旧写入保留两侧归属与固定标记，再接真实私有SQLite和renderer。[阶段一百二十八证据](../implementation/evidence/local-ssh-feature-parity/stage128)。
+
+
+## 阶段一百二十九：双区域私有 SQLite 与旧写入保留
+
+源码0345de431为原WorkspaceViewStore增加readV3/saveV3，复用原workspace_view单行、修订号CAS、窗口owner、BEGIN IMMEDIATE/COMMIT/ROLLBACK与namespace归档表；不加数据库迁移。只有明确saveV3才首次保存schemaVersion 3，原V1/V2数据继续原物理格式。旧read/readV2返回各自有效投影；旧save/saveV2遇到已有V3状态，合并其看不到的区域和固定信息后存回V3，再返回原格式。新存储版本仍严格校验原始大小、资源引用、两侧选中项与焦点；坏数据三个read均invalid，须显式forget后才能写。
+
+新mergeLegacyWorkspaceViewAreas保留现有目标标签的区域归属，分离出的纯右侧资源新标签继续在右；合并到既有目标标签的资源整体进入目标区域且不重复。固定状态只沿同pane/kind/resource/execution继承，显式false保留，资源或执行更换不会继承旧pin。未扩展的旧工作区和其他连接不获得新元数据；带区域状态的旧写入不能静默跨backend/namespace/serviceUid重绑。与原扁平投影比较后才判断是否发生实际焦点变化：不因V2投影为“中心空、隐藏右侧”选择了标签就揭示右侧，也不会在V1省略浏览器时把原右侧浏览器焦点移回中心。
+
+namespace切换直接归档原V3目标并用同版本验证/保存，保留两侧布局、固定字段及原autoConnect=false恢复规则；同身份不重复保存，归档身份不符不替换当前视图，forget仍事务内清理归档。新20项连同原V1/V2存储、V3模型、pane适配/状态、restore coordinator及local/browser restore共79项291断言/9文件通过。实际in-memory SQLite覆盖写入触发器失败回滚、owner替换、旧revision、坏行清除和namespace归档/恢复；不以mock替代事务。首轮坏数据夹具浅拷贝连带改变请求本体，已改structuredClone；类型检查发现联合数组push要求V1/V2/V3交集，现以兼容结构和1|2|3版本的显式类型声明修正，没有类型断言或放宽校验。最终桌面类型、新/改五文件lint、插件通过。
+
+原store整体在去除明确V3分支/调度后完整AST对照通过；constructor/activateOwner/write/save/saveV2/forget/removeLocalNamespace/close八个方法AST直接相同，十个既有协议/IPC/preload/renderer/版本文件逐字节不变。127的2205编译文件、86个MJS、3639个CLI/共享源码图和原随包CLI哈希保持，无新构建/实窗/安装包/Actions。V3类方法尚未暴露到coordinator/IPC或renderer，本阶段不能宣称右侧界面完成；下一步沿现有browser lease、目标校验和窗口生命周期接受保护的新读写，再接原双区域交互。[阶段一百二十九证据](../implementation/evidence/local-ssh-feature-parity/stage129)。
