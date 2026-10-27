@@ -46,10 +46,15 @@ export async function resolveBrowserEvaluationNamespace(input: string) {
 	return resolveNamespace(input, false, true);
 }
 
+export async function resolveBrowserOpenNamespace(input: string) {
+	return resolveNamespace(input, false, false, true);
+}
+
 async function resolveNamespace(
 	input: string,
 	allowNavigation: boolean,
 	allowEvaluation = false,
+	allowOpen = false,
 ) {
 	const uid = process.getuid?.();
 	if (uid === undefined || uid < 1)
@@ -200,15 +205,37 @@ async function resolveNamespace(
 						(init?.method ?? "GET") === "POST" &&
 						procedures.length === 1 &&
 						procedures[0] === "direct.browserEvaluateV1";
+					const opening =
+						allowOpen &&
+						(init?.method ?? "GET") === "POST" &&
+						procedures.length === 1 &&
+						procedures[0] === "direct.browserOpenV1";
 					if (
 						url.origin !== origin ||
 						!url.pathname.startsWith("/trpc/") ||
 						(!navigation &&
 							!evaluation &&
+							!opening &&
 							((init?.method ?? "GET") !== "GET" ||
 								procedures.some((path) => !readProcedures.has(path))))
 					)
 						throw new Error("Only read-only namespace procedures are allowed");
+					if (opening) {
+						if (
+							description.capabilities.durableOperations !== true ||
+							description.capabilities.workstationBrowserOpenV1 !== true
+						)
+							throw Error(
+								"This backend does not support the required browser-open capability",
+							);
+						const timeout = AbortSignal.timeout(20_000);
+						return request(url.pathname + url.search, {
+							...init,
+							signal: init?.signal
+								? AbortSignal.any([init.signal, timeout])
+								: timeout,
+						} as RequestInit);
+					}
 					if (navigation) {
 						if (
 							description.capabilities.durableOperations !== true ||

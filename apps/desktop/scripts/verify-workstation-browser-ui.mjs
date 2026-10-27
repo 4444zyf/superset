@@ -147,7 +147,7 @@ export async function verifyWorkstationBrowserUi(options) {
 	let started = false,
 		terminalTab,
 		browserReadCli,
-		navigationApi, navigationCli, evaluationApi, evaluationCli, openApi;
+		navigationApi, navigationCli, evaluationApi, evaluationCli, openApi, openCli;
 	try {
 		await click(`${selector} .xterm-screen`);
 		await getPage().call("Input.insertText", { text: command });
@@ -552,6 +552,11 @@ export async function verifyWorkstationBrowserUi(options) {
             openApi=await verifyWorkstationBrowserOpenApiUi(options,{scope,url,readProof,readView,workspace,terminalTab});
             report.openApi=openApi.report;save();
         }
+        if(process.argv.includes("--browser-open-cli")) {
+            const {verifyWorkstationBrowserOpenCliUi}=await import("./verify-workstation-browser-open-cli-ui.mjs");
+            openCli=await verifyWorkstationBrowserOpenCliUi(options,{scope,url,readProof,readView,workspace,terminalTab});
+            report.openCli=openCli.report;save();
+        }
 		await closeReopen();
 		await until(
 			async () =>
@@ -672,6 +677,7 @@ export async function verifyWorkstationBrowserUi(options) {
         if(evaluationApi)await evaluationApi.afterReopen();
         if(evaluationCli)await evaluationCli.afterReopen();
         if(openApi)await openApi.afterReopen();
+        if(openCli)await openCli.afterReopen();
 		await screenshot("browser-reopened");
 		save();
 	} finally {

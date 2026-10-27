@@ -1,10 +1,15 @@
 import { boolean, CLIError, string } from "@superset/cli-framework";
 import { command } from "../../../lib/command";
+import { namespaceOption } from "../../../lib/direct-namespace";
+import { operationIdOption } from "../../../lib/direct-namespace/browser-navigation";
+import { openDirectNamespace } from "../../../lib/direct-namespace/browser-open";
 import { resolveBrowserTarget } from "../shared";
 
 export default command({
 	description: "Open a URL in a workspace browser pane and return its pane id",
 	options: {
+		namespace: namespaceOption(),
+		operationId: operationIdOption(),
 		show: boolean().desc(
 			"Show the browser to the user by switching to its workspace",
 		),
@@ -14,7 +19,10 @@ export default command({
 		target: string().desc("`current-tab` (default) or `new-tab`"),
 	},
 	run: async ({ ctx, options }) => {
-		const { client } = await resolveBrowserTarget(ctx, options);
+		const direct = await openDirectNamespace(options);
+		const client = direct
+			? null
+			: (await resolveBrowserTarget(ctx, options)).client;
 		// Reject typos rather than silently falling back to current-tab.
 		if (
 			options.target &&
@@ -26,12 +34,14 @@ export default command({
 			);
 		}
 		const target = options.target === "new-tab" ? "new-tab" : "current-tab";
-		const result = await client.browser.open.mutate({
-			workspaceId: options.workspace,
-			url: options.url,
-			target,
-			show: options.show ?? false,
-		});
+		const result =
+			direct ??
+			(await client!.browser.open.mutate({
+				workspaceId: options.workspace,
+				url: options.url,
+				target,
+				show: options.show ?? false,
+			}));
 		return {
 			data: result,
 			message: `Opened ${result.url}\npane: ${result.paneId}`,

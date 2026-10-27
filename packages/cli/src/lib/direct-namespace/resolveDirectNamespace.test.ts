@@ -20,6 +20,7 @@ import browserConsole from "../../commands/browser/console/command";
 import evalBrowser from "../../commands/browser/eval/command";
 import listBrowser from "../../commands/browser/list/command";
 import navigateBrowser from "../../commands/browser/navigate/command";
+import openBrowser from "../../commands/browser/open/command";
 import operationStatus from "../../commands/browser/operation-status/command";
 import screenshotBrowser from "../../commands/browser/screenshot/command";
 import readTerminal from "../../commands/terminals/read/command";
@@ -29,6 +30,7 @@ import { readFromDirectNamespace } from "./readFromDirectNamespace";
 import {
 	resolveBrowserEvaluationNamespace,
 	resolveBrowserNavigationNamespace,
+	resolveBrowserOpenNamespace,
 	resolveDirectNamespace,
 } from "./resolveDirectNamespace";
 
@@ -87,6 +89,9 @@ async function fixture() {
 	}> = [];
 	let navigationResponse: { status: number; value: unknown } | null = null;
 	let receipt: unknown = null;
+	let openResponse: { status: number; value: unknown } | null = null;
+	let openResultOverride = false,
+		openResult: unknown;
 	let evaluationResult: unknown = 0;
 	let evaluationResponse: { status: number; value: unknown } | null = null;
 	const workspace = {
@@ -129,6 +134,28 @@ async function fixture() {
 		}
 		if (request.url === "/direct/describe") {
 			response.end(JSON.stringify(description));
+			return;
+		}
+		if (request.url?.startsWith("/trpc/direct.browserOpenV1?")) {
+			let body = "";
+			for await (const chunk of request) body += chunk;
+			const input = JSON.parse(body)["0"].json;
+			requests.at(-1)!.body = input;
+			receipt = {
+				operationId: input.operationId,
+				procedure: "browser.openV1",
+				status: "completed",
+				result: openResultOverride
+					? openResult
+					: { paneId: "owned-open", url: input.url, title: "Owned 标题" },
+			};
+			if (openResponse) {
+				response.statusCode = openResponse.status;
+				response.end(JSON.stringify(openResponse.value));
+			} else
+				response.end(
+					JSON.stringify([{ result: { data: SuperJSON.serialize(receipt) } }]),
+				);
 			return;
 		}
 		if (request.url?.startsWith("/trpc/direct.browserEvaluateV1?")) {
@@ -262,6 +289,13 @@ async function fixture() {
 		config,
 		endpoint,
 		requests,
+		setOpenResult(value: unknown) {
+			openResultOverride = true;
+			openResult = value;
+		},
+		setOpenResponse(value: typeof openResponse) {
+			openResponse = value;
+		},
 		setEvaluationResult(value: unknown) {
 			evaluationResult = value;
 		},
@@ -581,7 +615,8 @@ function runBrowser(
 		| typeof screenshotBrowser
 		| typeof navigateBrowser
 		| typeof operationStatus
-		| typeof evalBrowser,
+		| typeof evalBrowser
+		| typeof openBrowser,
 	options: Record<string, unknown>,
 ) {
 	return command.run({
@@ -1309,4 +1344,331 @@ test("incomplete or malformed evaluation receipts cannot be mistaken for success
 		).rejects.toThrow(`Evaluation receipt: ${status}`);
 	}
 	expect(f.requests.filter((r) => r.method === "POST")).toHaveLength(4);
+});
+
+test("namespace open uses one protected explicit-target mutation and preserves the existing output format", async () => {
+	const f = await fixture(),
+		operationId = crypto.randomUUID(),
+		url = "https://owned.invalid/中文";
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserOpenV1: true,
+		} as never,
+	});
+	expect(
+		await runBrowser(openBrowser, { namespace: f.homeDir, operationId, url }),
+	).toEqual({
+		data: { paneId: "owned-open", url, title: "Owned 标题" },
+		message: `Opened ${url}\npane: owned-open`,
+	});
+	expect(f.requests).toHaveLength(2);
+	expect(f.requests.at(-1)).toMatchObject({
+		method: "POST",
+		authenticated: true,
+		body: {
+			operationId,
+			workspaceId: "owned",
+			url,
+			target: "current-tab",
+			show: false,
+		},
+	});
+});
+test("namespace open forwards explicit new-tab and show intent without changing default fields", async () => {
+	const f = await fixture(),
+		operationId = crypto.randomUUID();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserOpenV1: true,
+		} as never,
+	});
+	await runBrowser(openBrowser, {
+		namespace: f.homeDir,
+		operationId,
+		url: "about:blank",
+		target: "new-tab",
+		show: true,
+	});
+	expect(f.requests.at(-1)?.body).toEqual({
+		operationId,
+		workspaceId: "owned",
+		url: "about:blank",
+		target: "new-tab",
+		show: true,
+	});
+});
+test("namespace open validates operation and target flags before credentials and leaves account routing intact", async () => {
+	const f = await fixture();
+	await expect(
+		runBrowser(openBrowser, { namespace: f.homeDir, url: "about:blank" }),
+	).rejects.toThrow("requires --operation-id");
+	await expect(
+		runBrowser(openBrowser, {
+			operationId: crypto.randomUUID(),
+			url: "about:blank",
+		}),
+	).rejects.toThrow("requires --namespace");
+	await expect(
+		runBrowser(openBrowser, {
+			namespace: f.homeDir,
+			host: "other",
+			operationId: crypto.randomUUID(),
+			url: "about:blank",
+		}),
+	).rejects.toThrow("either --namespace or --host");
+	await expect(
+		runBrowser(openBrowser, {
+			namespace: f.homeDir,
+			operationId: "invalid",
+			url: "about:blank",
+		}),
+	).rejects.toThrow();
+	await expect(
+		runBrowser(openBrowser, {
+			namespace: f.homeDir,
+			operationId: crypto.randomUUID(),
+			url: "about:blank",
+			target: "invalid",
+		}),
+	).rejects.toThrow();
+	await expect(runBrowser(openBrowser, { url: "about:blank" })).rejects.toThrow(
+		"No active organization",
+	);
+	expect(f.requests).toEqual([]);
+});
+test("open readiness and durable capability are required before the mutation is sent", async () => {
+	const f = await fixture();
+	for (const capabilities of [
+		{},
+		{ durableOperations: true },
+		{ workstationBrowserOpenV1: true },
+		{ durableOperations: true, workstationBrowserEvaluationV1: true },
+	]) {
+		f.setDescription({ capabilities: capabilities as never });
+		await expect(
+			runBrowser(openBrowser, {
+				namespace: f.homeDir,
+				operationId: crypto.randomUUID(),
+				url: "about:blank",
+			}),
+		).rejects.toThrow("capability");
+	}
+	expect(f.requests).toHaveLength(4);
+	expect(f.requests.every((r) => r.path === "/direct/describe")).toBe(true);
+});
+test("open, evaluation, navigation and read transports keep their single-mutation boundaries", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserOpenV1: true,
+			workstationBrowserEvaluationV1: true,
+			workstationBrowserNavigationV1: true,
+		} as never,
+	});
+	const opening = await resolveBrowserOpenNamespace(f.homeDir),
+		evaluation = await resolveBrowserEvaluationNamespace(f.homeDir),
+		navigation = await resolveBrowserNavigationNamespace(f.homeDir),
+		read = await resolveDirectNamespace(f.homeDir),
+		input = {
+			operationId: crypto.randomUUID(),
+			workspaceId: "owned",
+			url: "about:blank",
+		};
+	for (const target of [read, evaluation, navigation])
+		await expect(
+			target.client.direct.browserOpenV1.mutate(input),
+		).rejects.toThrow("read-only");
+	await expect(
+		opening.client.direct.browserEvaluateV1.mutate({
+			...input,
+			paneId: "pane",
+			code: "0",
+		}),
+	).rejects.toThrow("read-only");
+	await expect(
+		opening.client.direct.browserNavigateV1.mutate({
+			...input,
+			paneId: "pane",
+		}),
+	).rejects.toThrow("read-only");
+	await expect(
+		opening.client.direct.execute.mutate({} as never),
+	).rejects.toThrow("read-only");
+	const batch = await Promise.allSettled([
+		opening.client.direct.browserOpenV1.mutate(input),
+		opening.client.direct.browserOpenV1.mutate(input),
+	]);
+	expect(batch.map((result) => result.status)).toEqual([
+		"rejected",
+		"rejected",
+	]);
+	expect(f.requests).toHaveLength(4);
+});
+test("an opening failure includes its stable ID and status inspection advice without retrying", async () => {
+	const f = await fixture(),
+		operationId = crypto.randomUUID();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserOpenV1: true,
+		} as never,
+	});
+	f.setOpenResponse({
+		status: 412,
+		value: [
+			{
+				error: {
+					json: {
+						message: "This operation is unresolved",
+						code: -32012,
+						data: { code: "PRECONDITION_FAILED", httpStatus: 412 },
+					},
+				},
+			},
+		],
+	});
+	try {
+		await runBrowser(openBrowser, {
+			namespace: f.homeDir,
+			operationId,
+			url: "about:blank",
+		});
+		throw Error("Expected opening failure");
+	} catch (error) {
+		expect((error as Error).message).toContain("unresolved");
+		expect((error as { suggestion: string }).suggestion).toContain(operationId);
+		expect((error as { suggestion: string }).suggestion).toContain(
+			"operation-status",
+		);
+	}
+	expect(f.requests).toHaveLength(2);
+	expect(f.requests.filter((r) => r.method === "POST")).toHaveLength(1);
+});
+test("incomplete and malformed open receipts never report success or replay the intent", async () => {
+	const f = await fixture();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserOpenV1: true,
+		} as never,
+	});
+	let cases = 0;
+	for (const status of ["accepted", "failed", "unresolved", "completed"]) {
+		const operationId = crypto.randomUUID();
+		f.setOpenResponse({
+			status: 200,
+			value: [
+				{
+					result: {
+						data: SuperJSON.serialize({
+							operationId,
+							procedure: "browser.openV1",
+							status,
+						}),
+					},
+				},
+			],
+		});
+		await expect(
+			runBrowser(openBrowser, {
+				namespace: f.homeDir,
+				operationId,
+				url: "about:blank",
+			}),
+		).rejects.toThrow("Browser open receipt");
+		cases++;
+	}
+	f.setOpenResponse(null);
+	for (const result of [
+		null,
+		{},
+		{ paneId: "", url: "about:blank", title: "" },
+		{ paneId: "owned", url: false, title: "" },
+		{ paneId: "owned", url: "about:blank", title: 1 },
+	]) {
+		f.setOpenResult(result);
+		await expect(
+			runBrowser(openBrowser, {
+				namespace: f.homeDir,
+				operationId: crypto.randomUUID(),
+				url: "about:blank",
+			}),
+		).rejects.toThrow("Browser open receipt");
+		cases++;
+	}
+	expect(f.requests.filter((r) => r.method === "POST")).toHaveLength(cases);
+	expect(f.requests).toHaveLength(cases * 2);
+});
+test("completed open status remains available through a guarded GET after renderer readiness is lost", async () => {
+	const f = await fixture(),
+		operationId = crypto.randomUUID();
+	f.setDescription({
+		capabilities: {
+			durableOperations: true,
+			workstationBrowserOpenV1: true,
+		} as never,
+	});
+	await runBrowser(openBrowser, {
+		namespace: f.homeDir,
+		operationId,
+		url: "about:blank",
+	});
+	f.setDescription({ capabilities: { durableOperations: true } as never });
+	await expect(
+		runBrowser(openBrowser, {
+			namespace: f.homeDir,
+			operationId,
+			url: "about:blank",
+		}),
+	).rejects.toThrow("capability");
+	const status = await runBrowser(operationStatus, {
+		namespace: f.homeDir,
+		operationId,
+	});
+	expect(status).toEqual({
+		data: {
+			operationId,
+			procedure: "browser.openV1",
+			status: "completed",
+			result: { paneId: "owned-open", url: "about:blank", title: "Owned 标题" },
+		},
+		message: `${operationId}\tbrowser.openV1\tcompleted`,
+	});
+	expect(f.requests.filter((r) => r.method === "POST")).toHaveLength(1);
+	expect(f.requests.at(-1)?.method).toBe("GET");
+});
+test("the original open parser accepts namespace, stable operation ID, target and show flags", () => {
+	const configs = Object.fromEntries(
+		Object.entries(openBrowser.options!).map(([name, builder]) => [
+			name,
+			{ ...builder._.config, name: camelToKebab(name) },
+		]),
+	);
+	const parsed = parseArgv(
+		[
+			"bun",
+			"superset",
+			"--namespace",
+			"/owned",
+			"--operation-id",
+			"00000000-0000-4000-8000-000000000117",
+			"--workspace",
+			"workspace",
+			"--url",
+			"about:blank",
+			"--target",
+			"new-tab",
+			"--show",
+		],
+		configs,
+	);
+	expect(parsed.options.namespace).toBe("/owned");
+	expect(parsed.options.operationId).toBe(
+		"00000000-0000-4000-8000-000000000117",
+	);
+	expect(parsed.options.target).toBe("new-tab");
+	expect(parsed.options.show).toBe(true);
 });
