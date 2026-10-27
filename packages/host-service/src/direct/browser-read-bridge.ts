@@ -1,4 +1,10 @@
 import type { BrowserCookieImportInput } from "./browser-cookie-import-operation";
+import { BrowserCdpTransfer } from "./browser-cdp-transfer";
+import {
+	BROWSER_CDP_MAX_REQUEST_BYTES,
+	encodeBrowserCdpPacket,
+	parseBrowserCdpPacket,
+} from "@superset/shared/browser-cdp-bridge";
 import { BrowserCookieImportTransfer } from "./browser-cookie-import-transfer";
 import { BrowserImportSourcesTransfer } from "./browser-import-sources-transfer";
 import type { BrowserReloadInput } from "./browser-reload-operation";
@@ -38,10 +44,12 @@ export class DirectBrowserBridgeError extends Error {
 export interface DirectBrowserReadTransport {
 	send(raw: string): void;
 	close(code: number, reason: string): void;
+	bufferedAmount?(): number;
 }
 interface Peer {
 	transport: DirectBrowserReadTransport;
 	ready: boolean;
+	cdpV1: boolean;
 	capturePngV1: boolean;
 	importCookiesV1: boolean;
 	importSourcesV1: boolean;
@@ -73,6 +81,7 @@ export class DirectBrowserReadBridge {
 	private disposed = false;
 	private readonly schedule: typeof schedule;
 	private readonly capture: BrowserCaptureTransfer;
+	private readonly cdp: BrowserCdpTransfer;
 	private readonly cookieImportTransfer: BrowserCookieImportTransfer;
 	private readonly importSourcesTransfer: BrowserImportSourcesTransfer;
 	private readonly reload: BrowserReloadTransfer;
@@ -85,6 +94,7 @@ export class DirectBrowserReadBridge {
 	) {
 		this.identity = browserBridgeIdentitySchema.parse(identity);
 		this.schedule = options.schedule ?? schedule;
+		this.cdp = new BrowserCdpTransfer({ schedule: this.schedule });
 		this.openTransfer = new BrowserOpenTransfer({
 			schedule: this.schedule,
 			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
@@ -120,6 +130,43 @@ export class DirectBrowserReadBridge {
 	}
 	isReady(): boolean {
 		return !this.disposed && this.peer?.ready === true;
+	}
+	isCdpReady(): boolean {
+		return this.isReady() && this.peer?.cdpV1 === true;
+	}
+	connectCdp(
+		input: { workspaceId: string; paneId: string },
+		client: {
+			send(raw: string): void;
+			close(code: number, reason: string): void;
+		},
+	) {
+		const peer = this.peer;
+		if (!peer || !this.isCdpReady())
+			throw new DirectBrowserBridgeError(
+				"unavailable",
+				"Browser CDP bridge is unavailable",
+			);
+		return this.cdp.connect(input, client, {
+			current: () => this.peer === peer && this.isCdpReady(),
+			send: (packet) => {
+				if (
+					(peer.transport.bufferedAmount?.() ?? 0) >
+					BROWSER_CDP_MAX_REQUEST_BYTES
+				)
+					throw Error("Browser CDP bridge send queue is full");
+				peer.transport.send(encodeBrowserCdpPacket(packet));
+			},
+			invalidate: () =>
+				this.drop(
+					peer,
+					new DirectBrowserBridgeError(
+						"unavailable",
+						"Browser CDP disconnected",
+					),
+					1011,
+				),
+		});
 	}
 	isCaptureReady(): boolean {
 		return this.isReady() && this.peer?.capturePngV1 === true;
@@ -311,6 +358,7 @@ export class DirectBrowserReadBridge {
 		const peer: Peer = {
 			transport,
 			ready: false,
+			cdpV1: false,
 			capturePngV1: false,
 			importCookiesV1: false,
 			importSourcesV1: false,
@@ -367,6 +415,7 @@ export class DirectBrowserReadBridge {
 			operation.cancel();
 			operation.reject(error);
 		}
+		this.cdp.disconnect();
 		try {
 			peer.transport.close(code, error.message);
 		} catch {}
@@ -374,7 +423,16 @@ export class DirectBrowserReadBridge {
 	private receive(peer: Peer, raw: string): void {
 		if (this.peer !== peer) return;
 		try {
-			const packet = parseBrowserBridgePacket(raw);
+			let packet: BrowserBridgePacket;
+			try {
+				packet = parseBrowserBridgePacket(raw);
+			} catch (error) {
+				if (peer.ready && peer.cdpV1) {
+					this.cdp.receive(parseBrowserCdpPacket(raw));
+					return;
+				}
+				throw error;
+			}
 			if (!peer.ready) {
 				if (
 					packet.type !== "hello" ||
@@ -386,6 +444,7 @@ export class DirectBrowserReadBridge {
 					throw Error("Invalid bridge handshake");
 				peer.cancelHandshake();
 				peer.ready = true;
+				peer.cdpV1 = packet.features.includes("cdpV1");
 				peer.capturePngV1 = packet.features.includes("capturePngV1");
 				peer.importCookiesV1 = packet.features.includes("importCookiesV1");
 				peer.importSourcesV1 = packet.features.includes("importSourcesV1");
@@ -399,6 +458,7 @@ export class DirectBrowserReadBridge {
 					...this.identity,
 					features: [
 						"readV1",
+						...(peer.cdpV1 ? ["cdpV1"] : []),
 						...(peer.capturePngV1 ? ["capturePngV1"] : []),
 						...(peer.navigateV1 ? ["navigateV1"] : []),
 						...(peer.evaluateV1 ? ["evaluateV1"] : []),

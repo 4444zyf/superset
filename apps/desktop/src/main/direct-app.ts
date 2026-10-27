@@ -1,4 +1,5 @@
 import { WorkstationBrowserCookieImports } from "./lib/ssh-direct/workstation-browser-cookie-imports";
+import { WorkstationBrowserCdpSessions } from "./lib/ssh-direct/workstation-browser-cdp-sessions";
 import { WorkstationBrowserOpenRequests } from "./lib/ssh-direct/workstation-browser-open-requests";
 import { resolveGuestUrl } from "./lib/browser/browser-manager";
 import {
@@ -96,7 +97,7 @@ import {
 	workstationBrowserDeviceEmulationSchema,
 } from "../shared/workstation-browser";
 import { browserPageStateSchema } from "../shared/workspace-view-v2";
-import { browserManager } from "./lib/browser/browser-manager";
+import { browserManager, CdpBusyError } from "./lib/browser/browser-manager";
 import { lockProductProfile } from "./lib/product-identity";
 import { isSafeExternalUrl } from "./lib/safe-url/scheme";
 import { AutomaticReconnect } from "./lib/ssh-direct/automatic-reconnect";
@@ -588,7 +589,15 @@ export async function startWorkstation(): Promise<void> {
 			),
 		importCookies: importCookiesIntoSession,
 	});
+	const browserCdpSessions = new WorkstationBrowserCdpSessions({
+		registry: () => browserRegistry,
+		manager: browserManager,
+	});
 	browserReadChannels = new WorkstationBrowserReadChannels({
+		cdpV1: true,
+		pinCdp: (target, input, current) =>
+			browserCdpSessions.pin(target, input, current),
+		isCdpBusy: (error) => error instanceof CdpBusyError,
 		openV1: true,
 		openAvailability: (target) => {
 			const availability = browserOpenRequests!.availability();

@@ -45,6 +45,7 @@ export function describeDirectBackend(
 			Pick<
 				DirectBrowserReadBridge,
 				| "isCaptureReady"
+				| "isCdpReady"
 				| "isNavigationReady"
 				| "isCookieImportReady"
 				| "isImportSourcesReady"
@@ -84,6 +85,7 @@ export function describeDirectBackend(
 			workstationBrowserCaptureV1: browserReads?.isCaptureReady?.() === true,
 			workstationBrowserReadBridgeConnectV1: browserReads !== undefined,
 			workstationBrowserReadBridgeV1: browserReads?.isReady() === true,
+			workstationBrowserCdpV1: browserReads?.isCdpReady?.() === true,
 			workstationAgentHooksV1:
 				durableOperations &&
 				workspaceViewRestoreV1 &&

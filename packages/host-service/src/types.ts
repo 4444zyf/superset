@@ -46,6 +46,7 @@ export interface HostServiceContext {
 			Pick<
 				DirectBrowserReadBridge,
 				| "isCaptureReady"
+				| "isCdpReady"
 				| "capturePng"
 				| "isNavigationReady"
 				| "pinNavigation"

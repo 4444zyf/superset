@@ -1,5 +1,12 @@
 import { WorkstationBrowserCookieImportError } from "./workstation-browser-cookie-imports";
 import {
+	BROWSER_CDP_MAX_REQUEST_BYTES,
+	encodeBrowserCdpPacket,
+	parseBrowserCdpPacket,
+} from "@superset/shared/browser-cdp-bridge";
+import { WorkstationBrowserCdpChannel } from "./workstation-browser-cdp-channel";
+import type { PinnedWorkstationBrowserCdp } from "./workstation-browser-cdp-sessions";
+import {
 	browserBridgeCookieImportResultSchema,
 	browserBridgeImportSourcesResultSchema,
 	browserBridgeConsoleResultSchema,
@@ -23,11 +30,13 @@ export interface BrowserReadTarget {
 	ownerEpoch: number;
 	descriptor: DirectDescriptor;
 }
-type Socket = Pick<WebSocket, "addEventListener" | "send" | "close">;
+type Socket = Pick<WebSocket, "addEventListener" | "send" | "close"> &
+	Partial<Pick<WebSocket, "bufferedAmount">>;
 interface Entry {
 	target: BrowserReadTarget;
 	socket: Socket;
 	ready: boolean;
+	cdp: WorkstationBrowserCdpChannel | null;
 	captureReady: boolean;
 	captureId: string | null;
 	cookieImportReady: boolean;
@@ -64,6 +73,13 @@ export class WorkstationBrowserReadChannels {
 	private readonly entries = new Map<string, Entry>();
 	constructor(
 		private readonly dependencies: {
+			cdpV1?: boolean;
+			pinCdp?(
+				target: BrowserReadTarget,
+				input: { workspaceId: string; paneId: string },
+				current: () => boolean,
+			): PinnedWorkstationBrowserCdp;
+			isCdpBusy?(error: unknown): boolean;
 			importCookiesV1?: boolean;
 			pinCookieImport?(
 				target: BrowserReadTarget,
@@ -188,6 +204,7 @@ export class WorkstationBrowserReadChannels {
 	private close(entry: Entry, code = 1000): void {
 		if (entry.closing) return;
 		entry.closing = true;
+		entry.cdp?.closeAll();
 		this.releaseCookieImport(entry);
 		this.releaseOpen(entry);
 		try {
@@ -215,6 +232,7 @@ export class WorkstationBrowserReadChannels {
 			target,
 			socket,
 			ready: false,
+			cdp: null,
 			captureReady: false,
 			captureId: null,
 			cookieImportReady: false,
@@ -237,6 +255,7 @@ export class WorkstationBrowserReadChannels {
 		};
 		this.entries.set(id, entry);
 		socket.addEventListener("close", () => {
+			entry.cdp?.closeAll();
 			this.releaseCookieImport(entry);
 			this.releaseOpen(entry);
 			if (this.entries.get(id) !== entry) return;
@@ -266,6 +285,9 @@ export class WorkstationBrowserReadChannels {
 						features: [
 							"readV1",
 							"capturePngV1",
+							...(this.dependencies.cdpV1 && this.dependencies.pinCdp
+								? ["cdpV1"]
+								: []),
 							...(this.dependencies.navigationV1 ? ["navigateV1"] : []),
 							...(this.dependencies.reloadV1 ? ["reloadV1"] : []),
 							...(this.supportsImportSources() ? ["importSourcesV1"] : []),
@@ -286,7 +308,16 @@ export class WorkstationBrowserReadChannels {
 			}
 			try {
 				if (typeof event.data !== "string") throw Error("Expected text");
-				const packet = parseBrowserBridgePacket(event.data);
+				let packet: BrowserBridgePacket;
+				try {
+					packet = parseBrowserBridgePacket(event.data);
+				} catch (error) {
+					if (entry.ready && entry.cdp) {
+						entry.cdp.receive(parseBrowserCdpPacket(event.data));
+						return;
+					}
+					throw error;
+				}
 				if (!entry.ready) {
 					if (
 						packet.type !== "ready" ||
@@ -297,6 +328,27 @@ export class WorkstationBrowserReadChannels {
 					)
 						throw Error("Invalid ready");
 					entry.ready = true;
+					const pinCdp = this.dependencies.pinCdp;
+					if (
+						this.dependencies.cdpV1 &&
+						pinCdp &&
+						packet.features.includes("cdpV1")
+					)
+						entry.cdp = new WorkstationBrowserCdpChannel({
+							current: () => this.current(entry),
+							invalidate: () => this.close(entry, 1011),
+							isBusy: (error) => this.dependencies.isCdpBusy?.(error) ?? false,
+							pin: (input) =>
+								pinCdp(entry.target, input, () => this.current(entry)),
+							send: (packet) => {
+								if (
+									(entry.socket.bufferedAmount ?? 0) >
+									BROWSER_CDP_MAX_REQUEST_BYTES
+								)
+									throw Error("Browser CDP bridge send queue is full");
+								socket.send(encodeBrowserCdpPacket(packet));
+							},
+						});
 					entry.openNegotiated =
 						this.supportsOpen() && packet.features.includes("openV1");
 					entry.captureReady = packet.features.includes("capturePngV1");

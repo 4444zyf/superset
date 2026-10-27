@@ -1,5 +1,6 @@
 import type { NodeWebSocket } from "@hono/node-ws";
 import type { Hono } from "hono";
+import { browserCdpQueuedBytes } from "./browser-cdp-route";
 import {
 	DirectBrowserBridgeError,
 	type DirectBrowserReadBridge,
@@ -22,6 +23,7 @@ export function registerDirectBrowserReadRoute({
 				onOpen: (_event, socket) => {
 					try {
 						channel = bridge.attach({
+							bufferedAmount: () => browserCdpQueuedBytes(socket.raw),
 							send: (raw) => socket.send(raw),
 							close: (code, reason) => socket.close(code, reason),
 						});

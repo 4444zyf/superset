@@ -38,6 +38,7 @@ import type { HostAuthProvider } from "./providers/host-auth";
 import { runArchivedWorkspaceReconcile } from "./runtime/archived-workspace-reconcile";
 import { registerBrowserCdpRoute } from "./runtime/browser-bridge/browser-cdp-route";
 import { registerDirectBrowserReadRoute } from "./direct/browser-read-route";
+import { registerDirectBrowserCdpRoute } from "./direct/browser-cdp-route";
 import type { DirectBrowserReadBridge } from "./direct/browser-read-bridge";
 import { WorkspaceFilesystemManager } from "./runtime/filesystem";
 import type { GitCredentialProvider } from "./runtime/git";
@@ -577,12 +578,14 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 	);
 
 	registerEventBusRoute({ app, eventBus, upgradeWebSocket });
-	if (isDirect && config.directBrowserReads)
+	if (isDirect && config.directBrowserReads) {
 		registerDirectBrowserReadRoute({
 			app,
 			upgradeWebSocket,
 			bridge: config.directBrowserReads,
 		});
+		registerDirectBrowserCdpRoute({ app, upgradeWebSocket, bridge: config.directBrowserReads });
+	}
 	registerBrowserCdpRoute({
 		app,
 		upgradeWebSocket,
