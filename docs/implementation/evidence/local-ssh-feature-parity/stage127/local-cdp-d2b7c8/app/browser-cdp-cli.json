@@ -1,0 +1,302 @@
+{
+  "source": "d2b7c86fe51ba0ef7d89d53ab7490a3291436206",
+  "mode": "Original source CDP CLI with a target-scoped expiring credential into the actual single-guest target shim over local or owned SSH; every endpoint URL redacted",
+  "calls": [
+    {
+      "flags": [],
+      "workspaceId": "01c4d073-14ad-4bb5-b709-c5d1b5c8c519",
+      "paneId": "fbdd80a9-2b55-409d-b198-b38952c87fe1",
+      "code": 0,
+      "stdout": "{\"url\":\"ws://127.0.0.1:39063/direct/browser/fbdd80a9-2b55-409d-b198-b38952c87fe1/cdp-v1?workspaceId=01c4d073-14ad-4bb5-b709-c5d1b5c8c519&instanceId=03e1a558-478d-40e8-afb2-006b443d5517&token=%5BREDACTED%5D\"}",
+      "stderr": ""
+    },
+    {
+      "flags": [],
+      "workspaceId": "2b369f3b-bd18-43e1-9fea-1f847b215106",
+      "paneId": "fbdd80a9-2b55-409d-b198-b38952c87fe1",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error: No browser pane fbdd80a9-2b55-409d-b198-b38952c87fe1 in workspace 2b369f3b-bd18-43e1-9fea-1f847b215106\nHint: Run: superset browser list --workspace <id>\n"
+    },
+    {
+      "flags": [],
+      "workspaceId": "01c4d073-14ad-4bb5-b709-c5d1b5c8c519",
+      "paneId": "bf06c3cf-d939-4c76-93f0-b540eb38aa2d",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error: No browser pane bf06c3cf-d939-4c76-93f0-b540eb38aa2d in workspace 01c4d073-14ad-4bb5-b709-c5d1b5c8c519\nHint: Run: superset browser list --workspace <id>\n"
+    },
+    {
+      "flags": [
+        "--host",
+        "foreign-host"
+      ],
+      "workspaceId": "01c4d073-14ad-4bb5-b709-c5d1b5c8c519",
+      "paneId": "fbdd80a9-2b55-409d-b198-b38952c87fe1",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error: Pass either --namespace or --host, not both\n"
+    },
+    {
+      "flags": [],
+      "workspaceId": "01c4d073-14ad-4bb5-b709-c5d1b5c8c519",
+      "paneId": "fbdd80a9-2b55-409d-b198-b38952c87fe1",
+      "code": 0,
+      "stdout": "{\"url\":\"ws://127.0.0.1:39063/direct/browser/fbdd80a9-2b55-409d-b198-b38952c87fe1/cdp-v1?workspaceId=01c4d073-14ad-4bb5-b709-c5d1b5c8c519&instanceId=03e1a558-478d-40e8-afb2-006b443d5517&token=%5BREDACTED%5D\"}",
+      "stderr": ""
+    },
+    {
+      "flags": [],
+      "workspaceId": "01c4d073-14ad-4bb5-b709-c5d1b5c8c519",
+      "paneId": "fbdd80a9-2b55-409d-b198-b38952c87fe1",
+      "code": 0,
+      "stdout": "{\"url\":\"ws://127.0.0.1:39063/direct/browser/fbdd80a9-2b55-409d-b198-b38952c87fe1/cdp-v1?workspaceId=01c4d073-14ad-4bb5-b709-c5d1b5c8c519&instanceId=03e1a558-478d-40e8-afb2-006b443d5517&token=%5BREDACTED%5D\"}",
+      "stderr": ""
+    }
+  ],
+  "commands": [
+    {
+      "method": "Target.getTargets",
+      "withSession": false,
+      "ok": true
+    },
+    {
+      "method": "Target.attachToTarget",
+      "withSession": false,
+      "ok": true
+    },
+    {
+      "method": "Runtime.evaluate",
+      "withSession": true,
+      "ok": true
+    },
+    {
+      "method": "Runtime.evaluate",
+      "withSession": true,
+      "ok": true
+    },
+    {
+      "method": "Page.captureScreenshot",
+      "withSession": true,
+      "ok": true
+    },
+    {
+      "method": "Runtime.evaluate",
+      "withSession": true,
+      "ok": true
+    },
+    {
+      "method": "Runtime.evaluate",
+      "withSession": true,
+      "ok": true
+    },
+    {
+      "method": "Input.dispatchMouseEvent",
+      "withSession": true,
+      "ok": true
+    },
+    {
+      "method": "Input.dispatchMouseEvent",
+      "withSession": true,
+      "ok": true
+    },
+    {
+      "method": "Runtime.evaluate",
+      "withSession": true,
+      "ok": true
+    },
+    {
+      "method": "Target.getTargets",
+      "withSession": false,
+      "ok": true
+    },
+    {
+      "method": "Runtime.evaluate",
+      "withSession": false,
+      "ok": true
+    },
+    {
+      "method": "Target.getTargets",
+      "withSession": false,
+      "ok": true
+    },
+    {
+      "method": "Target.attachToTarget",
+      "withSession": false,
+      "ok": true
+    },
+    {
+      "method": "Runtime.evaluate",
+      "withSession": true,
+      "ok": true
+    },
+    {
+      "method": "Page.captureScreenshot",
+      "withSession": true,
+      "ok": true
+    }
+  ],
+  "authChecks": [
+    {
+      "kind": "scoped credential cannot read namespace describe",
+      "status": 401
+    },
+    {
+      "kind": "foreign pane",
+      "status": 401
+    },
+    {
+      "kind": "stale backend instance",
+      "status": 401
+    },
+    {
+      "kind": "desktop peer role",
+      "status": 401
+    }
+  ],
+  "completed": {
+    "target": {
+      "targetId": "pane-[\"workstation\",1,\"00000000-0000-4000-8000-000000000001\",\"85899cdd-3584-4197-8977-87c1ce8f9ba9\",\"a2fd36c1-e1eb-42ae-83e4-66b760267819\",\"03e1a558-478d-40e8-afb2-006b443d5517\",1,\"01c4d073-14ad-4bb5-b709-c5d1b5c8c519\",\"fbdd80a9-2b55-409d-b198-b38952c87fe1\",\"51166ca3-b8bd-4cf4-be11-bc9be2367444\"]",
+      "type": "page",
+      "title": "Owned browser next 中文 🙂",
+      "url": "http://localhost:39719/next?value=%E4%B8%AD%20hello#section",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "pane-context-[\"workstation\",1,\"00000000-0000-4000-8000-000000000001\",\"85899cdd-3584-4197-8977-87c1ce8f9ba9\",\"a2fd36c1-e1eb-42ae-83e4-66b760267819\",\"03e1a558-478d-40e8-afb2-006b443d5517\",1,\"01c4d073-14ad-4bb5-b709-c5d1b5c8c519\",\"fbdd80a9-2b55-409d-b198-b38952c87fe1\",\"51166ca3-b8bd-4cf4-be11-bc9be2367444\"]"
+    },
+    "captured": {
+      "file": "/workspace/scratch/parity-127/local-cdp-d2b7c8/app/browser-cdp-hidden-guest.png",
+      "bytes": 18382,
+      "sha256": "3b2fda79e37ca28a699343b0fb103d05c805281d1473a57e794e8a8fb861317f",
+      "image": {
+        "size": {
+          "width": 940,
+          "height": 437
+        },
+        "pixelSha256": "0512ea854bbfd1a6a19dbf1413fd77f4d4703d1a54e0d1af152c68e6894c332f",
+        "corner": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "clipboardUnchanged": true
+    },
+    "passiveBeforeInput": {
+      "selection": {
+        "connection": "00000000-0000-4000-8000-000000000001",
+        "workspace": "5a391aed-d7bf-4739-a83c-dcafd39d334f",
+        "tab": "f84d52d7-7a9c-4636-9181-9d499325425c",
+        "pane": "80082a51-0c11-4886-b595-15818cc35948",
+        "browsers": [
+          {
+            "paneId": "fbdd80a9-2b55-409d-b198-b38952c87fe1",
+            "url": "http://localhost:39719/next?value=%E4%B8%AD%20hello#section"
+          }
+        ]
+      },
+      "focus": {
+        "tag": "TEXTAREA",
+        "className": "xterm-helper-textarea"
+      }
+    },
+    "inputSelection": {
+      "connection": "00000000-0000-4000-8000-000000000001",
+      "workspace": "5a391aed-d7bf-4739-a83c-dcafd39d334f",
+      "tab": "c8d97fd0-c1bc-43fc-83e6-e38b9ce594dd",
+      "pane": "fbdd80a9-2b55-409d-b198-b38952c87fe1",
+      "browsers": [
+        {
+          "paneId": "fbdd80a9-2b55-409d-b198-b38952c87fe1",
+          "url": "http://localhost:39719/next?value=%E4%B8%AD%20hello#section"
+        }
+      ]
+    },
+    "originalInputDispatchFocusForwarded": true,
+    "parkedBefore": {
+      "visibility": "hidden",
+      "opacity": "",
+      "pointerEvents": "auto",
+      "width": 940,
+      "height": 437
+    },
+    "parkedDuring": {
+      "visibility": "visible",
+      "opacity": "0",
+      "pointerEvents": "none",
+      "width": 940,
+      "height": 437
+    },
+    "parkedAfter": {
+      "visibility": "hidden",
+      "opacity": "",
+      "pointerEvents": "none",
+      "width": 940,
+      "height": 437
+    },
+    "busyClose": {
+      "code": 1013,
+      "reason": "Browser CDP connection closed"
+    },
+    "firstClose": {
+      "code": 1000,
+      "reason": ""
+    },
+    "events": [],
+    "singleGuestTarget": true,
+    "noShellTarget": true,
+    "unicodeEvaluation": true,
+    "originalFlattenSession": true,
+    "originalInputDispatch": true,
+    "originalHiddenGuestWake": true,
+    "backgroundSelectionAndFocusPreserved": true,
+    "clipboardUnchanged": true,
+    "reconnectNoCommandReplay": true,
+    "heldForNormalWindowClose": true,
+    "allCredentialUrlsRedacted": true,
+    "rendererErrors": []
+  },
+  "reopened": {
+    "target": {
+      "targetId": "pane-[\"workstation\",1,\"00000000-0000-4000-8000-000000000001\",\"85899cdd-3584-4197-8977-87c1ce8f9ba9\",\"a2fd36c1-e1eb-42ae-83e4-66b760267819\",\"03e1a558-478d-40e8-afb2-006b443d5517\",1,\"01c4d073-14ad-4bb5-b709-c5d1b5c8c519\",\"fbdd80a9-2b55-409d-b198-b38952c87fe1\",\"a7402f68-4461-4b57-9145-4ff2fc9c453b\"]",
+      "type": "page",
+      "title": "Owned browser next 中文 🙂",
+      "url": "http://localhost:39719/next?value=%E4%B8%AD%20hello#section",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "pane-context-[\"workstation\",1,\"00000000-0000-4000-8000-000000000001\",\"85899cdd-3584-4197-8977-87c1ce8f9ba9\",\"a2fd36c1-e1eb-42ae-83e4-66b760267819\",\"03e1a558-478d-40e8-afb2-006b443d5517\",1,\"01c4d073-14ad-4bb5-b709-c5d1b5c8c519\",\"fbdd80a9-2b55-409d-b198-b38952c87fe1\",\"a7402f68-4461-4b57-9145-4ff2fc9c453b\"]"
+    },
+    "captured": {
+      "file": "/workspace/scratch/parity-127/local-cdp-d2b7c8/app/browser-cdp-reopened-guest.png",
+      "bytes": 18382,
+      "sha256": "3b2fda79e37ca28a699343b0fb103d05c805281d1473a57e794e8a8fb861317f",
+      "image": {
+        "size": {
+          "width": 940,
+          "height": 437
+        },
+        "pixelSha256": "0512ea854bbfd1a6a19dbf1413fd77f4d4703d1a54e0d1af152c68e6894c332f",
+        "corner": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "clipboardUnchanged": true
+    },
+    "priorClientRetired": {
+      "code": 1011,
+      "reason": "Browser CDP connection closed"
+    },
+    "priorClientDidNotReconnect": true,
+    "newGuestCounterZero": true,
+    "singleGuestTarget": true,
+    "noShellTarget": true,
+    "selectionAndFocusPreserved": true,
+    "clipboardUnchanged": true,
+    "allCredentialUrlsRedacted": true,
+    "rendererErrors": []
+  }
+}

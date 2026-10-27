@@ -1,0 +1,22 @@
+{
+  "initialSource": "21b6427b5416c11b2d225a56eb0abc97e8ccd737",
+  "failure": "Shared namespace resolver statically imported CLI framework, which imports Bun-only plugin module; Node native fixture failed before CDP tests",
+  "fix": "Move localized CLIError translation into CLI adapter and keep the shared resolver Node-compatible with a runtime-neutral error class",
+  "nodeSmokePassed": true,
+  "cliRegression": {
+    "tests": 72,
+    "assertions": 305,
+    "files": 5
+  },
+  "cliTypesPassed": true,
+  "i18nStrictPassedAgain": true,
+  "onlyConsumedSourceCliFilesChanged": [
+    "packages/cli/src/lib/direct-namespace/browser-cdp.ts",
+    "packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts"
+  ],
+  "compiledSourceRetained": "21b6427b5416c11b2d225a56eb0abc97e8ccd737",
+  "compiledFilesUnchanged": 2205,
+  "manifestSha256": "0bcfcaa63f165acb91fa26a6886ee2efe55ffcf94bd66f86f5f95bb2108bcf97",
+  "noRebuildNeededForCliOnlyCorrection": true,
+  "ownedProcessesAndX163GoneBeforeEdits": true
+}

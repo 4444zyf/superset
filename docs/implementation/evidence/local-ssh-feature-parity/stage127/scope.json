@@ -1,0 +1,110 @@
+{
+  "compiledSource": "11e497e5aa3a83c4f398308af92183124637233f",
+  "cliAndFixtureSource": "d2b7c86fe51ba0ef7d89d53ab7490a3291436206",
+  "sourceCommits": [
+    "21b6427b5416c11b2d225a56eb0abc97e8ccd737",
+    "157af3c01064f5e444c28d286fb9b99310c1b8b3",
+    "11e497e5aa3a83c4f398308af92183124637233f",
+    "d2b7c86fe51ba0ef7d89d53ab7490a3291436206"
+  ],
+  "native": "Linux source Electron; local and owned loopback SSH; source CLI runner; actual guest WebContents debugger and original single-page target shim",
+  "checks": {
+    "previousApiCli": 276,
+    "newCdpCli": 12,
+    "newAuthRejections": 8,
+    "total": 296,
+    "cdpCommands": 32,
+    "cdpSockets": 8,
+    "expectedBusySockets": 2,
+    "sshRestoreSamples": 20
+  },
+  "nativeProductGraphFrozen": true,
+  "failuresPreserved": [
+    "Node consumer accidentally imported Bun CLI framework; fixed runtime-neutral resolver error",
+    "outer production direct ingress omitted scoped token; extracted exact middleware for real layered WS tests and fixed it",
+    "fixture expected explicit CDP mouse input to preserve terminal selection; original guest mousedown intentionally selects browser, corrected fixture preserving product behavior"
+  ],
+  "screenshotsViewed": [
+    "local-cdp-d2b7c8/app/browser-cdp-terminal-before.png",
+    "local-cdp-d2b7c8/app/browser-cdp-background-terminal.png",
+    "local-cdp-d2b7c8/app/browser-cdp-hidden-guest.png",
+    "local-cdp-d2b7c8/app/browser-cdp-reopened-guest.png",
+    "local-cdp-d2b7c8/app/browser-cdp-reopened.png",
+    "ssh-cdp-d2b7c8/app/browser-cdp-terminal-before.png",
+    "ssh-cdp-d2b7c8/app/browser-cdp-background-terminal.png",
+    "ssh-cdp-d2b7c8/app/browser-cdp-hidden-guest.png",
+    "ssh-cdp-d2b7c8/app/browser-cdp-reopened-guest.png",
+    "ssh-cdp-d2b7c8/app/browser-cdp-reopened.png",
+    "local-cdp-11e497/app/failure.png",
+    "local-cdp-11e497/app/browser-cdp-hidden-guest.png"
+  ],
+  "rawCdpCapture": "Unmodified original Page.captureScreenshot; transparent pixels retained, unlike the separately normalized PNG CLI. Images viewed; no opaque-white equivalence claimed.",
+  "focus": "Passive attach/evaluation/capture preserves selected terminal and input focus. Explicit Input.dispatchMouseEvent triggers original pane-focus behavior; real tab click returns to terminal.",
+  "astAuditCorrection": "Fixed forEachChild callback returning Array.push number, which prematurely stops traversal. Full traversal now compares all nine127 modules and separately re-audits all seven126 modules at frozen b97; explicit normalizations narrowed to new imports/fields. Last-statement mutation smoke fails equality as expected.",
+  "noNewBinaryInstallerActions": true,
+  "bundledCliUnchanged": true,
+  "notVerified": [
+    "physical macOS",
+    "external SSH endpoint",
+    "real vendor agent authentication",
+    "Mac Keychain positive cookie import",
+    "all original features"
+  ],
+  "cleanup": [
+    {
+      "case": "local-cdp-21b642",
+      "cleanup": {
+        "ownedXorgPid": 348826,
+        "ownedXorgExit": 0,
+        "appExit": 1
+      },
+      "observedElectronPidsAbsentAtArchive": [
+        348957
+      ]
+    },
+    {
+      "case": "local-cdp-157af3",
+      "cleanup": {
+        "ownedXorgPid": 349415,
+        "ownedXorgExit": 0,
+        "appExit": 1
+      },
+      "observedElectronPidsAbsentAtArchive": [
+        349545
+      ]
+    },
+    {
+      "case": "local-cdp-11e497",
+      "cleanup": {
+        "ownedXorgPid": 351907,
+        "ownedXorgExit": 0,
+        "appExit": 1
+      },
+      "observedElectronPidsAbsentAtArchive": [
+        352040
+      ]
+    },
+    {
+      "case": "local-cdp-d2b7c8",
+      "cleanup": {
+        "ownedXorgPid": 353785,
+        "ownedXorgExit": 0,
+        "appExit": 0
+      },
+      "observedElectronPidsAbsentAtArchive": [
+        355251
+      ]
+    },
+    {
+      "case": "ssh-cdp-d2b7c8",
+      "cleanup": {
+        "ownedXorgPid": 355596,
+        "ownedXorgExit": 0,
+        "appExit": 0
+      },
+      "observedElectronPidsAbsentAtArchive": [
+        360918
+      ]
+    }
+  ]
+}

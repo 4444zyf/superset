@@ -1,0 +1,38 @@
+{
+  "base": "b81f69adc",
+  "normalizedOldAstEqual": [
+    "packages/cli/src/commands/browser/cdp/command.ts",
+    "packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts",
+    "packages/host-service/src/providers/host-auth/PskHostAuthProvider/PskHostAuthProvider.ts",
+    "packages/host-service/src/providers/host-auth/types.ts",
+    "packages/host-service/src/app.ts",
+    "packages/host-service/src/direct/browser-read-bridge.ts",
+    "packages/host-service/src/direct/browser-cdp-route.ts",
+    "packages/host-service/src/trpc/router/direct/direct.ts",
+    "apps/desktop/scripts/verify-workstation-browser-ui.mjs"
+  ],
+  "byteEqual": [
+    "apps/desktop/src/main/direct-app.ts",
+    "apps/desktop/src/main/lib/ssh-direct/workstation-browser-read-channel.ts",
+    "apps/desktop/src/main/lib/ssh-direct/workstation-browser-cdp-channel.ts",
+    "apps/desktop/src/main/lib/ssh-direct/workstation-browser-cdp-sessions.ts",
+    "apps/desktop/src/main/lib/browser/browser-manager.ts",
+    "apps/desktop/src/main/lib/browser/cdp-target-shim.ts",
+    "apps/desktop/src/main/lib/browser/browser-bridge.ts",
+    "apps/desktop/src/preload/index.ts",
+    "packages/shared/src/browser-bridge.ts",
+    "packages/shared/src/browser-cdp-bridge.ts",
+    "packages/host-service/src/direct/browser-cdp-transfer.ts",
+    "packages/host-service/src/direct/operations.ts",
+    "packages/host-service/src/direct/runtime.ts",
+    "packages/host-service/src/runtime/browser-bridge/browser-cdp-route.ts",
+    "packages/shared/src/host-version.ts"
+  ],
+  "sharedPackageOnlyAddsTokenExport": true,
+  "legacyPskAuthMethodsAndCloudCdpUnchanged": true,
+  "newAuthorization": "Only exact GET WebSocket upgrade direct/browser/:pane/cdp-v1, bound backend/namespace/instance/workspace/pane, standard HMAC-SHA256 and five-minute nonce-bearing token; no namespace PSK output and no other route accepts it",
+  "newEndpointCapability": "Requires optional workstationBrowserCdpEndpointV1 in addition to CDP/read readiness; old raw route still accepts original namespace authentication, optional instanceId only checks supplied value",
+  "cli": "Original account path, pane verification and output preserved; new explicit namespace URL alone chooses versioned path and scoped credential",
+  "catalogNewMessagesPerLocale": 1,
+  "nativeAcceptance": "Recorded separately in final-verification.json; this script checks source only"
+}

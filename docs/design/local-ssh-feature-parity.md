@@ -8,7 +8,7 @@
 
 内部浏览器已接入现有工作区标签/分屏，复用原运行时、工具栏、导航/查找、历史SQLite、所属SSH工作区的localhost转发、当前图标与V2持久化。阶段八十至九十一接回主页/终端URL与端口策略、原工具菜单/DevTools、设备预览、历史搜索/清空、浏览数据清理、下载、截图/系统图片剪贴板及显式历史/Cookie导入与原提示条、站点Cookie菜单。设置和菜单共用一个原导入弹窗，关闭父设置后继续保留，真实两端202条导入和正常重开通过。阶段九十六接回原设计模式浮层、目标端上下文/截图附件、新Agent启动和已有TUI反馈；本地/拥有SSH的合成Agent及正常重开通过，真实供应商认证仍未实测。Mac Cookie/Keychain/FDA尚未原生验证；不导入密码数据库。阶段一百零一通过原连接的鉴权WebSocket接通浏览器CLI源码的明确namespace list/console，本地及拥有SSH实窗完成12次成功读取/2次预期拒绝和正常重开，SSH含20次恢复；随包CLI二进制未重建。阶段一百零二接明确namespace截图：原capture/wake与有界分块，真实两端完成可见/隐藏/重开六张白底PNG，剪贴板不变，首轮透明背景问题与修复证据保留。阶段一百零四至一百零五接受保护持久导航和原CLI明确namespace navigate/operation-status，双端稳定ID去重、冲突拒绝、后台焦点与重开不回放通过。阶段一百一十六接通受保护持久open API的真实renderer/后台运行时与私有布局保存，两端28次新增调用及130次原浏览器API/CLI回归通过，默认后台保留终端焦点、显式show、当前/新标签与重开原回执不回放；阶段一百一十七接通原源码CLI的明确namespace open/稳定operation-id，两端新增30次CLI调用与原158次浏览器API/CLI回归通过；后台焦点、显式show、当前/新标签、冲突和正常重开不回放均验证，随包CLI二进制仍未重建。阶段一百一十九恢复受保护持久reload API，原普通/硬刷新方法、后台焦点、稳定ID去重及重开不回放通过两端24次新增调用和188次原回归；原CLI没有独立reload命令，本轮没有新增。rightPane、聊天/任务URL策略、CLI其余浏览器命令及其他功能仍在进行，不宣称整体对齐完成。最新设计反馈范围和失败记录见[阶段九十六](../implementation/evidence/local-ssh-feature-parity/stage96)，其他浏览器工具按各阶段实际验证范围。
 
-阶段一百二十恢复受保护的原登录来源查询，主窗口/连接归属、单槽和有界返回独立协商；两端10次新增来源API和原212次浏览器回归通过。实际桌面识别拥有的Chrome资料，但Linux登录列表保持原Keychain过滤后的空结果；不注入假登录来源。阶段一百二十二接通受保护的持久Cookie导入API，固定原实际guest/session并沿用原读取/写入和可选归属守卫；本地及拥有SSH两端新增30次导入API与原222次回归通过，SSH另含20次窗口恢复。Linux实际覆盖无Cookies文件的空导入和原密钥不可用结果，并用源文件变化及正常重开证明缓存回执没有再次探测/导入。原GUI与新接口统一使用桌面home/appData检测来源，初次目录不一致的失败已保存。只返回计数，不传Cookie值；未验证Mac实际凭据导入，阶段一百二十三为原CLI import-login接入明确namespace/稳定operation-id，原来源匹配、配置档选择、计数与密钥不可用输出保持；源路径只在拥有桌面解析，CLI视为不透明ID。两端新增24次真实CLI检查及原252次浏览器回归通过，总276，SSH含20次恢复。Linux保持原Keychain过滤的空登录列表，正向来源匹配和计数仅由独立Unix socket测试验证；不混称Mac正向凭据实测。随包CLI仍未重建；CDP、rightPane等继续。
+阶段一百二十恢复受保护的原登录来源查询，主窗口/连接归属、单槽和有界返回独立协商；两端10次新增来源API和原212次浏览器回归通过。实际桌面识别拥有的Chrome资料，但Linux登录列表保持原Keychain过滤后的空结果；不注入假登录来源。阶段一百二十二接通受保护的持久Cookie导入API，固定原实际guest/session并沿用原读取/写入和可选归属守卫；本地及拥有SSH两端新增30次导入API与原222次回归通过，SSH另含20次窗口恢复。Linux实际覆盖无Cookies文件的空导入和原密钥不可用结果，并用源文件变化及正常重开证明缓存回执没有再次探测/导入。原GUI与新接口统一使用桌面home/appData检测来源，初次目录不一致的失败已保存。只返回计数，不传Cookie值；未验证Mac实际凭据导入，阶段一百二十三为原CLI import-login接入明确namespace/稳定operation-id，原来源匹配、配置档选择、计数与密钥不可用输出保持；源路径只在拥有桌面解析，CLI视为不透明ID。两端新增24次真实CLI检查及原252次浏览器回归通过，总276，SSH含20次恢复。Linux保持原Keychain过滤的空登录列表，正向来源匹配和计数仅由独立Unix socket测试验证；不混称Mac正向凭据实测。阶段一百二十七接通原源码CLI cdp的明确namespace，返回绑定后端实例/工作区/页面、五分钟有效的派生凭据URL，不暴露namespace PSK；两端新增12次CLI与8次认证拒绝、32条实际CDP命令及原276次回归通过，SSH含20次恢复。被动调试保留终端焦点，显式鼠标输入沿原版选择浏览器；正常重开关闭旧连接且不回放命令。随包CLI仍未重建；rightPane与其他功能继续。
 
 ## 验收原则
 
@@ -46,7 +46,7 @@
 | Agent 配置、技能、MCP 与工具配置 | settings.agentConfigs、agentTooling | 部分：Agent目录、字段、图标及脚本已接 | 阶段三十五至四十、五十四接回目标端Agent配置和原表单；技能/MCP/工具配置及托管能力继续补齐 |
 | 插件清单、安装、更新与移除 | plugins/installed_plugins.json、原插件界面 | 待接入 | 同一声明式状态，目标机器执行 |
 | 端口发现、转发、浏览器打开 | ports、已有 direct forwarding | 已接主要流程 | 阶段六十八至七十二、七十八至八十接回发现、复制/明确外部或内嵌打开、确认单端口/当前工作区批量关闭和多转发；旧后端保留手动输入，其余管理继续核对 |
-| 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 部分：原页面、常用工具、数据列表及设计反馈已接 | 阶段七十三至九十六接回导航/查找、历史、基础工具/DevTools、设备预览、下载、截图、导入及原设计浮层/目标端附件/Agent反馈；一百零一至一百零八接CLI源码namespace list/console/screenshot/navigate/eval和operation-status并完成双端实窗，随包CLI未重建；阶段一百一十六接持久open API真实renderer，后台/显式show/当前与新标签、重开去重及两端28次新增调用通过；阶段一百一十七接CLI open namespace，双端新增30次CLI调用、后台/显式show/当前与新标签及重开去重通过；阶段一百一十九恢复受保护持久reload API，双端新增24次及原188次回归通过；rightPane与其余CLI桥继续补齐 |
+| 内嵌浏览器、导航、历史、开发工具 | 原 BrowserPane、browser router | 部分：原页面、常用工具、数据列表及设计反馈已接 | 阶段七十三至九十六接回导航/查找、历史、基础工具/DevTools、设备预览、下载、截图、导入及原设计浮层/目标端附件/Agent反馈；一百零一至一百零八接CLI源码namespace list/console/screenshot/navigate/eval和operation-status并完成双端实窗，随包CLI未重建；阶段一百一十六接持久open API真实renderer，后台/显式show/当前与新标签、重开去重及两端28次新增调用通过；阶段一百一十七接CLI open namespace，双端新增30次CLI调用、后台/显式show/当前与新标签及重开去重通过；阶段一百一十九恢复受保护持久reload API，双端新增24次及原188次回归通过；阶段一百二十三接CLI import-login，一百二十七接原CDP源码命令/单guest shim；九个现有browser源码命令均有明确namespace入口，实际正向Mac凭据与供应商工具另验；随包CLI未重建，rightPane与其他浏览器交互继续 |
 | 浏览器设置、数据导入与隔离 | 原 BrowserSettings | 部分：主页、终端/端口URL策略、清理和显式导入已接 | 阶段八十至九十接回私有SQLite、原设置/菜单/提示条导入与共享弹窗；其他设置继续补齐，不自动导入历史，Mac Cookie/Keychain/FDA未原生验证 |
 | 命令面板、全局快捷键与导航 | 原 commandPalette/hotkeys | 待接入 | 原注册表、设置与当前操作实际对应 |
 | 外观、语言、主题、字体 | AppearanceSettings、i18n/themes | 部分 | 原设置与组件真正响应 |
@@ -310,3 +310,18 @@
 22项新增Bun连同原桥接/manager/registry共203项813断言及host/desktop类型通过；新增6项真实Node WS与原6项合计12项通过：实际PSK401、hello/ready、确认前排队、文本/二进制中文Emoji、超过4MiB响应、忙碌/跨scope拒绝码、未协商关闭、peer实际断开和过大输入1009及Main释放。首个Node夹具close()无code实际1005而预期1000，已仅改成显式close(1000)，失败保留。7个既有文件去明确新增分支后整体AST等价，原函数/WS/auth、CLI、shared schema/floor字节对照通过。为避免无关格式变动恢复host app原格式，AST与已测版本全等；六个新文件lint通过，旧文件20条继承警告保留并对原大文件跳过继承格式噪声。Node新套件加入原本地integration:direct任务，没有Actions。
 
 这还不是新的实际Electron CDP验收：新源码已生产注册，但沿用的8af桌面编译产物不能代表新功能。提交后启动源码构建，具体结果与新的不可变产品/CLI图及本地/拥有SSH原生测试由下一阶段记录；未生成安装包/新CLI二进制。CLI cdp明确namespace、实际单guest target隔离、后台wake/焦点和正常重开仍需后续验收，不宣称整体浏览器/功能对齐完成。[阶段一百二十六证据](../implementation/evidence/local-ssh-feature-parity/stage126)。
+
+
+## 阶段一百二十七：原 CDP CLI 的指定 namespace、页面凭据与实窗验收
+
+源码21b6427b5接原browser cdp的明确namespace入口，沿原list验证pane，保持账号默认分支、错误和原{url}输出。只有ready CDP及新增workstationBrowserCdpEndpointV1能力才生成新路径；普通namespace resolver不返回凭据。新HMAC-SHA256凭据绑定backend/namespace/instance/workspace/pane，含随机nonce、五分钟到期；不会输出namespace PSK，也不能用于describe、其他pane、过期instance或桌面peer入口。同一凭据有效期内可再次建立连接，已建立连接直到主动关闭/所属连接退休；后端重启需新URL。原PSK验证主体与旧接口保留，新instanceId是可选字段，原云CDP路由与版本floor不变。原raw命令是临时协议，不进入持久操作journal，不自动重连或回放。
+
+157af3c01把resolver新错误改为运行时中立类型，Lingui/CLIError只留CLI adapter：首个实窗在Node消费者静态导入Bun框架时失败，未冒充验收。11e497e5a补齐生产外层direct ingress的窄范围认证；首个真实正向连接被外层旧PSK守卫拒绝，先前Node夹具只覆盖内层，现提取生产原middleware并让真实WS测试经过两层。原origin403、OPTIONS、tRPC交接、Bearer、仅Upgrade接受query PSK和维护503顺序/语义逐项对照并回归。新权限仅给精确GET/WebSocket的/direct/browser/:pane/cdp-v1路径，其他请求不接受该凭据。
+
+CLI72项/305断言、shared23项/104断言、host90项/436断言及四处类型检查通过；外层修复后35项/145断言、15项真实Node WS和host/desktop类型再次通过。新文案覆盖17目录，原6524个catalog块逐字节保留，严格编译通过。定向lint、品牌31资源和插件检查通过。本轮发现原AST辅助函数把Array.push返回值传给forEachChild，导致提前结束；已改为完整遍历并用末尾语句变更验证检查会失败，再实际对照本阶段9个完整模块及15个字节保留文件。另将阶段126固定b97cebbef与ca6d088c4的7个模块/15个字节文件完整重审，收窄只删除新增导入/字段的规则，全部通过；新证据替代早前不完整AST遍历作为依据。
+
+完整桌面源码构建11e497e5a工具退出0，2205编译文件manifest SHA256为33d5558d26fe6ae1333c9fe974104cbb36ef3f906f647ff99b8d548cef53d0b7；86个MJS和3639个CLI/共享源码及生成目录文件在本地/SSH全程固定，最后复核不变。第三次本地运行在显式CDP鼠标输入后误期待终端仍被选中而失败：原browserManager把guest mousedown转为pane-focus，工作站沿原回调选择浏览器。产品行为保持，d2b7c86fe仅修正夹具，先验证被动attach/eval/capture保留终端选择和键盘焦点，再验证显式鼠标输入选择浏览器，并用真实标签点击返回终端。三次失败的日志、截图/观测和清理记录保留；没有重发失败手势、增加期限或改DOM布局。
+
+最终local-cdp-d2b7c8和ssh-cdp-d2b7c8均工具退出0，每端6次CDP CLI调用/4次认证拒绝和16条实际CDP命令，合计新增20次检查、32条命令；连同原276次API/CLI，共296次检查。实际单page target不暴露应用shell，flatten session、中文Emoji求值、原Input.dispatchMouseEvent、后台wake和截图、第二连接1013而原连接继续、主动关闭1000、重新attach不重放均通过。正常关窗令持有连接退休，新窗新连接页面计数0；SSH另含20次原窗口恢复。每端五张新增PNG均已查看，保留原raw Page.captureScreenshot透明像素（940×437、角像素RGBA 0/0/0/0），不混称已规范化为白底的截图CLI；剪贴板未变。所有接受/失败运行的app、Xorg及报告进程已清理。
+
+随包CLI SHA256仍为f89552f7f0d9402b8f48eb2e4ecf0b97eaa5cd5438b64658ccf79534515487bb，没有新CLI二进制、安装包或Actions。此为Linux源码Electron和拥有的loopback SSH，未扩称实体Mac、外部SSH、Mac正向凭据或真实供应商Agent/Playwright验收。九个现有browser源码命令已有明确namespace路径，rightPane、其他URL入口与完整功能清单仍继续。[阶段一百二十七证据](../implementation/evidence/local-ssh-feature-parity/stage127)。

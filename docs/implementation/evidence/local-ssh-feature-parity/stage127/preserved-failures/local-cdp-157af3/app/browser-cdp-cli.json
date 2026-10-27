@@ -1,0 +1,60 @@
+{
+  "source": "157af3c01064f5e444c28d286fb9b99310c1b8b3",
+  "mode": "Original source CDP CLI with a target-scoped expiring credential into the actual single-guest target shim over local or owned SSH; every endpoint URL redacted",
+  "calls": [
+    {
+      "flags": [],
+      "workspaceId": "d71400d2-4549-4690-9cc5-e17ee4fe1d96",
+      "paneId": "795f95cc-c471-4a2a-902e-49fa93bee904",
+      "code": 0,
+      "stdout": "{\"url\":\"ws://127.0.0.1:38933/direct/browser/795f95cc-c471-4a2a-902e-49fa93bee904/cdp-v1?workspaceId=d71400d2-4549-4690-9cc5-e17ee4fe1d96&instanceId=51f13b50-f209-486d-b238-ab575f91f62f&token=%5BREDACTED%5D\"}",
+      "stderr": ""
+    },
+    {
+      "flags": [],
+      "workspaceId": "e80b5609-9a7e-4ee9-ab01-85ab2c9c8b87",
+      "paneId": "795f95cc-c471-4a2a-902e-49fa93bee904",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error: No browser pane 795f95cc-c471-4a2a-902e-49fa93bee904 in workspace e80b5609-9a7e-4ee9-ab01-85ab2c9c8b87\nHint: Run: superset browser list --workspace <id>\n"
+    },
+    {
+      "flags": [],
+      "workspaceId": "d71400d2-4549-4690-9cc5-e17ee4fe1d96",
+      "paneId": "5d147b40-6a27-48bc-8bf1-b6ee2fbb9915",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error: No browser pane 5d147b40-6a27-48bc-8bf1-b6ee2fbb9915 in workspace d71400d2-4549-4690-9cc5-e17ee4fe1d96\nHint: Run: superset browser list --workspace <id>\n"
+    },
+    {
+      "flags": [
+        "--host",
+        "foreign-host"
+      ],
+      "workspaceId": "d71400d2-4549-4690-9cc5-e17ee4fe1d96",
+      "paneId": "795f95cc-c471-4a2a-902e-49fa93bee904",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error: Pass either --namespace or --host, not both\n"
+    }
+  ],
+  "commands": [],
+  "authChecks": [
+    {
+      "kind": "scoped credential cannot read namespace describe",
+      "status": 401
+    },
+    {
+      "kind": "foreign pane",
+      "status": 401
+    },
+    {
+      "kind": "stale backend instance",
+      "status": 401
+    },
+    {
+      "kind": "desktop peer role",
+      "status": 401
+    }
+  ]
+}

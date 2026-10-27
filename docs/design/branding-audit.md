@@ -105,3 +105,6 @@ The latest remote workflow inventory has five entries: Deploy Production is acti
 The renamed repository and origin remain `4444zyf/superset-remix`. Current feature-branch package metadata, brand manifest, README translations and modification notices point to it; main's README already explains the independent fork and links to the feature branch. The complete Workstation implementation has not been merged to main. Brand validation passes for 31 resources and plugin validation passes.
 
 About still uses upstream marketing, Website is `https://superset.sh`, and Issues is disabled. The owner should use the description “Superset Remix — Based on Superset. Independently maintained local and SSH workstation; unofficial fork.”, Website `https://github.com/4444zyf/superset-remix`, and enable Issues so the existing fork issue links work. This inspection made no repository-settings write; the earlier integration write returned HTTP 403. Preserve original authorship, Elastic License 2.0, technical `@superset/*` names and historical evidence URLs.
+
+
+2026-10-27只读复核：新仓库及origin、main顶部Superset Remix / “Based on Superset”来源说明保持正确。About仍是上游宣传语，网站仍为https://superset.sh；沿用上述独立维护说明及本仓库地址的修改建议，未重试此前403的设置写入。Issues仍未启用，仓库所有者启用后当前fork问题反馈链接才可使用。此次未变更远端设置、默认分支或触发Actions。
