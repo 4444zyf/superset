@@ -7,13 +7,20 @@ import {
 } from "../../../../../shared/workspace-view-v3";
 import { fromPaneLayout } from "../pane-adapter/pane-adapter";
 import { buildPaneTree } from "../pane-layout/pane-layout";
-import { readWorkspacePaneAreas } from "../workspace-pane-areas/workspace-pane-areas";
+import {
+	readWorkspacePaneAreas,
+	type WorkspacePaneAreasState,
+} from "../workspace-pane-areas/workspace-pane-areas";
+import { applyWorkspacePaneAreas } from "../workspace-pane-areas/workspace-pane-areas-state";
 import { openWorkstationBrowserView } from "./workspace-browser-open-view";
 
 type Input = Omit<
 	Parameters<typeof openWorkstationBrowserView>[0],
 	"snapshot"
-> & { snapshot: WorkspaceViewSnapshotV3 | null };
+> & {
+	snapshot: WorkspaceViewSnapshotV3 | null;
+	runtimeAreas?: WorkspacePaneAreasState;
+};
 
 export function projectBrowserOpenSnapshotV2(
 	snapshot: WorkspaceViewSnapshotV3,
@@ -27,7 +34,11 @@ export function projectBrowserOpenSnapshotV2(
 	};
 }
 
-export function openWorkstationBrowserViewV3({ snapshot, ...args }: Input) {
+export function openWorkstationBrowserViewV3({
+	snapshot,
+	runtimeAreas,
+	...args
+}: Input) {
 	const input = snapshot
 		? (({ schemaVersion: _, revision: __, updatedAt: ___, ...view }) => view)(
 				snapshot,
@@ -39,7 +50,32 @@ export function openWorkstationBrowserViewV3({ snapshot, ...args }: Input) {
 				height: 850,
 				maximized: false,
 			});
-	const view = validateWorkspaceViewV3(input);
+	let view = validateWorkspaceViewV3(input);
+	if (runtimeAreas) {
+		const target = view.targets.find(
+			(item) => item.connectionId === args.input.descriptor.connectionId,
+		);
+		const workspace = target?.workspaces.find(
+			(item) => item.workspaceId === args.input.workspaceId,
+		);
+		if (!target || !workspace) throw Error("Workspace pane layout changed");
+		const merged = applyWorkspacePaneAreas(
+			view,
+			{
+				connectionId: target.connectionId,
+				backendId: target.backendId,
+				namespaceId: target.namespaceId,
+				serviceUid: target.serviceUid,
+				targetRevision: target.targetRevision,
+				workspaceId: workspace.workspaceId,
+				tabId: workspace.tabId,
+			},
+			runtimeAreas,
+			readWorkspacePaneAreas(workspace),
+		);
+		if (!merged) throw Error("Workspace pane layout changed");
+		view = merged;
+	}
 	const originalTarget = view.targets.find(
 		(t) => t.connectionId === args.input.descriptor.connectionId,
 	);

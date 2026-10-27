@@ -1,3 +1,4 @@
+import { flushWorkstationPaneRuntimes } from "./workstation-pane-runtime";
 import { expect, test } from "bun:test";
 import { createWorkspaceStore, type WorkspaceState } from "@superset/panes";
 import type { DirectWorkstationApi } from "shared/direct-workstation";
@@ -254,5 +255,105 @@ test("an optional whole-area fingerprint invalidates a center capture when only 
 		);
 	} finally {
 		off();
+	}
+});
+
+test("registered pane flushes wait for every current port and a retired registration cannot flush", async () => {
+	const f = fixture(),
+		gate = Promise.withResolvers<void>();
+	let oldCalls = 0,
+		newCalls = 0,
+		otherCalls = 0,
+		finished = false;
+	const old = registerWorkstationPaneRuntime(
+		f.api,
+		f.descriptor,
+		"workspace",
+		"workspace-tab",
+		{
+			...f.port,
+			async flush() {
+				oldCalls++;
+			},
+		},
+	);
+	const current = registerWorkstationPaneRuntime(
+		f.api,
+		f.descriptor,
+		"workspace",
+		"workspace-tab",
+		{
+			...f.port,
+			async flush() {
+				newCalls++;
+				await gate.promise;
+			},
+		},
+	);
+	const other = registerWorkstationPaneRuntime(
+		f.api,
+		f.descriptor,
+		"other",
+		"other-tab",
+		{
+			...f.port,
+			async flush() {
+				otherCalls++;
+			},
+		},
+	);
+	try {
+		old();
+		const pending = flushWorkstationPaneRuntimes(f.api).then(() => {
+			finished = true;
+		});
+		expect(oldCalls).toBe(0);
+		expect(newCalls).toBe(1);
+		expect(otherCalls).toBe(1);
+		expect(finished).toBe(false);
+		gate.resolve();
+		await pending;
+		expect(finished).toBe(true);
+	} finally {
+		gate.resolve();
+		old();
+		current();
+		other();
+	}
+});
+test("a failed port flush still drains its peers and reports the original failure", async () => {
+	const f = fixture(),
+		error = Error("owned flush failure");
+	let peer = 0;
+	const off = registerWorkstationPaneRuntime(
+		f.api,
+		f.descriptor,
+		"workspace",
+		"workspace-tab",
+		{
+			...f.port,
+			async flush() {
+				throw error;
+			},
+		},
+	);
+	const other = registerWorkstationPaneRuntime(
+		f.api,
+		f.descriptor,
+		"other",
+		"other-tab",
+		{
+			...f.port,
+			async flush() {
+				peer++;
+			},
+		},
+	);
+	try {
+		await expect(flushWorkstationPaneRuntimes(f.api)).rejects.toBe(error);
+		expect(peer).toBe(1);
+	} finally {
+		off();
+		other();
 	}
 });

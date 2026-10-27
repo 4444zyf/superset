@@ -1,5 +1,9 @@
 import { afterEach, expect, test } from "bun:test";
-import { createWorkspaceStore, transferTabToIndex } from "@superset/panes";
+import {
+	createWorkspaceStore,
+	transferPaneToSplit,
+	transferTabToIndex,
+} from "@superset/panes";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import type {
 	DirectDescriptor,
@@ -20,10 +24,13 @@ import {
 import { fromPaneLayout } from "../../utils/pane-adapter/pane-adapter";
 import { buildPaneTree } from "../../utils/pane-layout/pane-layout";
 import { projectBrowserOpenSnapshotV2 } from "../../utils/workspace-browser-open/workspace-browser-open-view-v3";
+import { createWorkspacePaneAreaEdits } from "../../utils/workspace-pane-area-edits/workspace-pane-area-edits";
 import {
 	createWorkspacePaneAreas,
 	readWorkspacePaneAreas,
+	workspacePaneAreasStructureKey,
 } from "../../utils/workspace-pane-areas/workspace-pane-areas";
+import { registerWorkstationPaneRuntime } from "../../utils/workstation-pane-runtime/workstation-pane-runtime";
 import { useWorkspaceViews } from "./useWorkspaceViews";
 
 afterEach(cleanup);
@@ -554,4 +561,205 @@ test("selecting an existing chat uses the chat owner area rather than the pane t
 		"browser-resource",
 	);
 	expect(f.errors).toEqual([]);
+});
+test("paired user selection becomes optimistic before its queued save so a browser refresh can preserve it", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const areas = createWorkspacePaneAreas(workspace(f.backing()), {
+			scheduleMicrotask() {},
+		}),
+		before = areas.read();
+	try {
+		areas.activate("right");
+		f.gate();
+		let pending: Promise<unknown> | undefined;
+		act(() => {
+			pending = f.hook.result.current.savePaneAreas(
+				"workspace",
+				areas.read(),
+				before,
+			);
+		});
+		expect(workspace(required(f.hook.result.current.view)).activePaneArea).toBe(
+			"right",
+		);
+		expect(f.saves3).toHaveLength(0);
+		await act(async () => {
+			f.release();
+			await pending;
+		});
+		expect(workspace(f.backing()).activePaneArea).toBe("right");
+		expect(f.errors).toEqual([]);
+	} finally {
+		areas.dispose();
+	}
+});
+test("an explicit pane edit scope saves a mounted background connection instead of the selected one", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const other = structuredClone(required(f.backing().targets[0]));
+	other.connectionId = "other";
+	other.backendId = "other-backend";
+	f.backing().targets.push(other);
+	await act(async () => {
+		await f.hook.result.current.read();
+	});
+	const areas = createWorkspacePaneAreas(required(other.workspaces[0]), {
+			scheduleMicrotask() {},
+		}),
+		before = areas.read();
+	try {
+		areas.activate("right");
+		const scope = {
+			connectionId: other.connectionId,
+			backendId: other.backendId,
+			namespaceId: other.namespaceId,
+			serviceUid: other.serviceUid,
+			targetRevision: other.targetRevision,
+			workspaceId: "workspace",
+			tabId: "workspace-tab",
+		};
+		await act(async () => {
+			await f.hook.result.current.savePaneAreas(
+				"workspace",
+				areas.read(),
+				before,
+				scope,
+			);
+		});
+		expect(
+			f.backing().targets.find((t) => t.connectionId === "local")?.workspaces[0]
+				?.rightPaneOpen,
+		).toBe(false);
+		expect(
+			f.backing().targets.find((t) => t.connectionId === "other")?.workspaces[0]
+				?.activePaneArea,
+		).toBe("right");
+		expect(f.errors).toEqual([]);
+	} finally {
+		areas.dispose();
+	}
+});
+test("a pane edit with an old explicit namespace scope cannot save or optimistically replace the current view", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const areas = createWorkspacePaneAreas(workspace(f.backing()), {
+			scheduleMicrotask() {},
+		}),
+		before = areas.read(),
+		target = required(f.backing().targets[0]);
+	try {
+		areas.activate("right");
+		await act(async () => {
+			await f.hook.result.current.savePaneAreas(
+				"workspace",
+				areas.read(),
+				before,
+				{
+					connectionId: target.connectionId,
+					backendId: target.backendId,
+					namespaceId: "old",
+					serviceUid: target.serviceUid,
+					targetRevision: target.targetRevision,
+					workspaceId: "workspace",
+					tabId: "workspace-tab",
+				},
+			);
+		});
+		expect(f.saves3).toHaveLength(0);
+		expect(workspace(required(f.hook.result.current.view)).activePaneArea).toBe(
+			"center",
+		);
+	} finally {
+		areas.dispose();
+	}
+});
+
+test("the existing hook flush drains a registered paired runtime and its pending original resize before acknowledging", async () => {
+	const f = setup();
+	await waitFor(() => expect(f.hook.result.current.view?.revision).toBe(1));
+	const areas = createWorkspacePaneAreas(workspace(f.backing()), {
+			scheduleMicrotask() {},
+		}),
+		timers = new Set<() => void>();
+	const target = required(f.backing().targets[0]),
+		scope = {
+			connectionId: target.connectionId,
+			backendId: target.backendId,
+			namespaceId: target.namespaceId,
+			serviceUid: target.serviceUid,
+			targetRevision: target.targetRevision,
+			workspaceId: "workspace",
+			tabId: "workspace-tab",
+		};
+	const edits = createWorkspacePaneAreaEdits({
+		save: (next, before) =>
+			f.hook.result.current.savePaneAreas("workspace", next, before, scope),
+		schedule(callback) {
+			timers.add(callback);
+			return () => {
+				timers.delete(callback);
+			};
+		},
+	});
+	const offEdit = areas.subscribeEdits((next, before) =>
+		edits.push(next, before),
+	);
+	const offRuntime = registerWorkstationPaneRuntime(
+		f.api,
+		f.descriptor,
+		"workspace",
+		"workspace-tab",
+		{
+			read: () => areas.center.getState(),
+			readAreas: () => areas.read(),
+			replace: (state) => {
+				areas.replaceFromRuntime("center", state);
+			},
+			subscribe: (listener) => areas.subscribe(listener),
+			fingerprint: () => workspacePaneAreasStructureKey(areas.read()),
+			async flush() {
+				areas.flush();
+				await edits.flush();
+			},
+		},
+	);
+	try {
+		await act(async () => {
+			transferPaneToSplit({
+				source: areas.right,
+				target: areas.center,
+				paneId: "browser",
+				targetPaneId: "terminal",
+				position: "right",
+			});
+			areas.flush();
+			await edits.flush();
+		});
+		expect(f.saves3).toHaveLength(1);
+		areas.center
+			.getState()
+			.resizeSplit({ tabId: "center-tab", path: [], splitPercentage: 71 });
+		areas.flush();
+		const staleTimers = [...timers];
+		expect(f.saves3).toHaveLength(1);
+		expect(timers.size).toBe(1);
+		await act(async () => {
+			await f.hook.result.current.flush();
+		});
+		expect(f.saves3).toHaveLength(2);
+		expect(workspace(f.backing()).paneTabs?.[0]?.layout).toMatchObject({
+			ratio: 0.71,
+		});
+		expect(timers.size).toBe(0);
+		for (const callback of staleTimers) callback();
+		await edits.flush();
+		expect(f.saves3).toHaveLength(2);
+		expect(f.errors).toEqual([]);
+	} finally {
+		offRuntime();
+		offEdit();
+		edits.dispose();
+		areas.dispose();
+	}
 });

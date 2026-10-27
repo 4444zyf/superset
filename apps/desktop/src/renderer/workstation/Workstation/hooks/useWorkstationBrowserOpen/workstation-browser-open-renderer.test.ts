@@ -588,3 +588,139 @@ test("retiring a main request during an asynchronous view refresh prevents backg
  expect(document.querySelectorAll("webview")).toHaveLength(0);
  }finally{f.close();}
 });
+function pairedRuntime(f: ReturnType<typeof fixture>) {
+	const workspace = f
+		.areaSnapshot()
+		?.targets.find((t) => t.connectionId === f.input.descriptor.connectionId)
+		?.workspaces[0];
+	if (!workspace) throw Error("Missing paired runtime workspace");
+	const areas = createWorkspacePaneAreas(workspace, { scheduleMicrotask() {} });
+	const off = registerWorkstationPaneRuntime(
+		f.api,
+		f.input.descriptor,
+		f.input.workspaceId,
+		workspace.tabId,
+		{
+			read: () => areas.center.getState(),
+			readAreas: () => areas.read(),
+			replace: (state) => {
+				if (!areas.replaceFromRuntime("center", state))
+					throw Error("Retired paired runtime");
+			},
+			subscribe: (listener) => areas.subscribe(listener),
+			fingerprint: () => workspacePaneAreasStructureKey(areas.read()),
+		},
+	);
+	return { areas, off };
+}
+test("a right structural edit during asynchronous V3 acceptance cancels the already-saved center request", async () => {
+	const f = fixture(false, false, true, true),
+		r = pairedRuntime(f);
+	try {
+		await f.ready.promise;
+		const receipt = f
+			.execute()()
+			.catch((error) => error);
+		await f.accepted.promise;
+		expect(f.areaSaves()).toBe(1);
+		expect(r.areas.center.getState().tabs).toHaveLength(2);
+		expect(f.requests.availability().accepting).toBe(false);
+		r.areas.right
+			.getState()
+			.setPanePinned({ paneId: "right-browser", pinned: true });
+		r.areas.flush();
+		expect(f.requests.availability().accepting).toBe(true);
+		expect((await receipt).message).toContain("layout changed");
+		expect(document.querySelectorAll("webview")).toHaveLength(0);
+		f.acceptGate.resolve();
+	} finally {
+		r.off();
+		r.areas.dispose();
+		f.close();
+	}
+});
+test("authorized paired replacement does not cancel its own V3 open and retains the original right store", async () => {
+	const f = fixture(false, false, true, true),
+		r = pairedRuntime(f),
+		created = Promise.withResolvers<Element>();
+	const observer = new MutationObserver(() => {
+		const guest = document.querySelector("webview");
+		if (guest) created.resolve(guest);
+	});
+	observer.observe(document.body, { childList: true, subtree: true });
+	try {
+		const right = r.areas.right.getState();
+		await f.ready.promise;
+		const receipt = f
+			.execute()()
+			.catch((error) => error);
+		await f.accepted.promise;
+		expect(f.requests.availability().accepting).toBe(false);
+		expect(r.areas.right.getState()).toBe(right);
+		expect(r.areas.read().activePaneArea).toBe("right");
+		f.acceptGate.resolve();
+		const guest = await created.promise;
+		Object.assign(guest, {
+			getWebContentsId: () => 42,
+			executeJavaScript: async () => {
+				throw Error("No viewport stream in owned unit guest");
+			},
+		});
+		guest.dispatchEvent(new Event("dom-ready"));
+		await f.registerStarted.promise;
+		f.registerGate.resolve();
+		expect((await receipt).paneId).toBeDefined();
+		expect(f.areaSaves()).toBe(1);
+		expect(f.terminalCalls()).toBe(0);
+	} finally {
+		observer.disconnect();
+		r.off();
+		r.areas.dispose();
+		f.close();
+	}
+});
+
+test("a right edit captured before the V3 open is saved travels with the center operation", async () => {
+	const f = fixture(false, false, true),
+		r = pairedRuntime(f);
+	try {
+		const read = f.api.getWorkspaceViewV3;
+		if (!read) throw Error("Missing V3 reader");
+		f.api.getWorkspaceViewV3 = async () => {
+			r.areas.right
+				.getState()
+				.setPanePinned({ paneId: "right-browser", pinned: true });
+			r.areas.flush();
+			return read.call(f.api);
+		};
+		await f.ready.promise;
+		const receipt = f
+			.execute()()
+			.catch((error) => error);
+		await f.accepted.promise;
+		const saved = f
+			.areaSnapshot()
+			?.targets.find((t) => t.connectionId === f.input.descriptor.connectionId)
+			?.workspaces[0];
+		expect(saved?.panes.find((p) => p.paneId === "right-browser")?.pinned).toBe(
+			true,
+		);
+		const guest = [...document.querySelectorAll("webview")].at(-1);
+		if (!guest) throw Error("Missing background guest");
+		Object.assign(guest, {
+			getWebContentsId: () => 42,
+			executeJavaScript: async () => {
+				throw Error("No viewport stream in owned unit guest");
+			},
+		});
+		guest.dispatchEvent(new Event("dom-ready"));
+		await f.registerStarted.promise;
+		f.registerGate.resolve();
+		expect((await receipt).paneId).toBeDefined();
+		expect(f.areaSaves()).toBe(1);
+	} finally {
+		r.off();
+		r.areas.dispose();
+		f.close();
+	}
+});

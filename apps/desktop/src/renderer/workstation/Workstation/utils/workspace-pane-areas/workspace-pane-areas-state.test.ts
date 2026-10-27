@@ -11,7 +11,9 @@ import {
 } from "../../../../../shared/workspace-view-v3";
 import {
 	createWorkspacePaneAreas,
+	readWorkspacePaneAreas,
 	workspacePaneAreasMetadataKey,
+	workspacePaneAreasStructureKey,
 } from "./workspace-pane-areas";
 import {
 	applyWorkspacePaneAreas,
@@ -362,13 +364,108 @@ test("focusing the right browser does not close the center Files tool", () => {
 	expect(saved.activePaneId).toBe("browser");
 });
 test("a selection-only edit preserves a newly saved browser resource", () => {
-	const e = edit(areas => { areas.activate("right"); });
-	const current = structuredClone(e.source), w = workspace(current);
-	w.panes.push({ paneId: "opened-browser", kind: "browser", resourceId: "opened-page", browser: { url: "about:blank", pageTitle: "", faviconUrl: null } });
-	w.layout = { type: "split", axis: "vertical", ratio: 0.5, first: required(w.layout), second: { type: "pane", paneId: "opened-browser" } };
-	required(w.paneTabs?.[0]).layout = { type: "split", axis: "horizontal", ratio: 0.5, first: { type: "pane", paneId: "terminal" }, second: { type: "pane", paneId: "opened-browser" } };
-	const saved = workspace(required(applyWorkspacePaneAreas(current, e.scope, e.next, e.before)));
-	expect(saved.panes.map(p => p.resourceId)).toEqual(["pty", "browser-resource", "opened-page"]);
+	const e = edit((areas) => {
+		areas.activate("right");
+	});
+	const current = structuredClone(e.source),
+		w = workspace(current);
+	w.panes.push({
+		paneId: "opened-browser",
+		kind: "browser",
+		resourceId: "opened-page",
+		browser: { url: "about:blank", pageTitle: "", faviconUrl: null },
+	});
+	w.layout = {
+		type: "split",
+		axis: "vertical",
+		ratio: 0.5,
+		first: required(w.layout),
+		second: { type: "pane", paneId: "opened-browser" },
+	};
+	required(w.paneTabs?.[0]).layout = {
+		type: "split",
+		axis: "horizontal",
+		ratio: 0.5,
+		first: { type: "pane", paneId: "terminal" },
+		second: { type: "pane", paneId: "opened-browser" },
+	};
+	const saved = workspace(
+		required(applyWorkspacePaneAreas(current, e.scope, e.next, e.before)),
+	);
+	expect(saved.panes.map((p) => p.resourceId)).toEqual([
+		"pty",
+		"browser-resource",
+		"opened-page",
+	]);
 	expect(saved.activePaneId).toBe("browser");
 	expect(saved.paneTabs?.[0]?.layout).toEqual(w.paneTabs?.[0]?.layout);
+});
+
+test("a resize immediately after an original split save accepts the canonical equivalent before layout", () => {
+	const view = fixture(),
+		areas = createWorkspacePaneAreas(workspace(view), {
+			scheduleMicrotask() {},
+		});
+	try {
+		const before = areas.read();
+		transferPaneToSplit({
+			source: areas.right,
+			target: areas.center,
+			paneId: "browser",
+			targetPaneId: "terminal",
+			position: "right",
+		});
+		const split = areas.read(),
+			saved = required(
+				applyWorkspacePaneAreas(view, scope(view), split, before),
+			);
+		expect(workspacePaneAreasStructureKey(split)).toBe(
+			workspacePaneAreasStructureKey(readWorkspacePaneAreas(workspace(saved))),
+		);
+		areas.center
+			.getState()
+			.resizeSplit({ tabId: "center-tab", path: [], splitPercentage: 71 });
+		const resized = required(
+			applyWorkspacePaneAreas(saved, scope(saved), areas.read(), split),
+		);
+		expect(workspace(resized).paneTabs?.[0]?.layout).toMatchObject({
+			ratio: 0.71,
+		});
+	} finally {
+		areas.dispose();
+	}
+});
+
+test("an invalid deep runtime layout has a bounded fingerprint and cannot be persisted", () => {
+	const view = fixture(),
+		areas = createWorkspacePaneAreas(workspace(view), {
+			scheduleMicrotask() {},
+		}),
+		before = areas.read();
+	try {
+		const tabs = structuredClone(before.center.tabs),
+			tab = required(tabs[0]);
+		for (let depth = 0; depth < 18; depth++)
+			tab.layout = {
+				type: "split",
+				direction: "horizontal",
+				first: tab.layout,
+				second: { type: "pane", paneId: "terminal" },
+			};
+		const next = {
+			...before,
+			center: {
+				version: 1 as const,
+				activeTabId: before.center.activeTabId,
+				tabs,
+			},
+		};
+		expect(workspacePaneAreasStructureKey(next)).toBe(
+			"invalid-pane-area-layout",
+		);
+		expect(applyWorkspacePaneAreas(view, scope(view), next, before)).toBeNull();
+		expect(workspace(view).panes).toHaveLength(2);
+	} finally {
+		areas.dispose();
+	}
 });

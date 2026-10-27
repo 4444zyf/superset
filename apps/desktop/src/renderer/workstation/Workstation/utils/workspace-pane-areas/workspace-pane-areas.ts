@@ -4,6 +4,8 @@ import { toPaneState } from "../pane-adapter/pane-adapter";
 import { paneStateMetadataKey } from "../workspace-pane-state/workspace-pane-state";
 import { workstationPaneRuntimeStructure } from "../workstation-pane-runtime/workstation-pane-runtime";
 
+import { canonicalWorkspacePaneState } from "./canonical-workspace-pane-state";
+
 type PaneData = WorkspaceViewV3["panes"][number];
 type State = WorkspaceState<PaneData>;
 export type WorkspacePaneArea = "center" | "right";
@@ -13,13 +15,32 @@ export interface WorkspacePaneAreasState {
 	activePaneArea: WorkspacePaneArea;
 	rightPaneOpen: boolean;
 }
+export function captureWorkspacePaneAreas(
+	state: WorkspacePaneAreasState,
+): WorkspacePaneAreasState {
+	const area = (value: State): State => ({
+		version: 1,
+		activeTabId: value.activeTabId,
+		tabs: structuredClone(value.tabs),
+	});
+	return {
+		activePaneArea: state.activePaneArea,
+		rightPaneOpen: state.rightPaneOpen,
+		center: area(state.center),
+		right: area(state.right),
+	};
+}
 export function stateForLegacyMetadataMerge(
 	state: WorkspacePaneAreasState,
 ): State {
 	const tabs = [...state.center.tabs, ...state.right.tabs].sort((a, b) =>
 		a.id.localeCompare(b.id),
 	);
-	return { version: 1, tabs, activeTabId: tabs[0]?.id ?? null };
+	return canonicalWorkspacePaneState({
+		version: 1,
+		tabs,
+		activeTabId: tabs[0]?.id ?? null,
+	});
 }
 export function selectedWorkspacePane(state: State): string | null {
 	return (
@@ -100,10 +121,16 @@ export function workspacePaneAreasMetadataKey(
 export function workspacePaneAreasStructureKey(
 	state: WorkspacePaneAreasState,
 ): string {
-	return JSON.stringify([
-		workstationPaneRuntimeStructure(state.center),
-		workstationPaneRuntimeStructure(state.right),
-	]);
+	try {
+		return JSON.stringify([
+			workstationPaneRuntimeStructure(
+				canonicalWorkspacePaneState(state.center),
+			),
+			workstationPaneRuntimeStructure(canonicalWorkspacePaneState(state.right)),
+		]);
+	} catch {
+		return "invalid-pane-area-layout";
+	}
 }
 function fingerprint(state: WorkspacePaneAreasState): string {
 	const layouts = (value: State) =>
@@ -222,6 +249,22 @@ export function createWorkspacePaneAreas(
 			rightPaneOpen = open;
 			if (!open && activePaneArea === "right") activePaneArea = "center";
 			queue(before);
+		},
+		replaceFromRuntime(area: WorkspacePaneArea, next: State): boolean {
+			if (disposed) return false;
+			flush();
+			if (disposed) return false;
+			const before = read();
+			syncing = true;
+			try {
+				(area === "center" ? center : right).getState().replaceState(next);
+				if (activePaneArea === "right" && !right.getState().activeTabId)
+					activePaneArea = "center";
+			} finally {
+				syncing = false;
+			}
+			if (read() !== before) notifySnapshots();
+			return true;
 		},
 		synchronize(next: WorkspaceViewV3): void {
 			if (disposed) return;

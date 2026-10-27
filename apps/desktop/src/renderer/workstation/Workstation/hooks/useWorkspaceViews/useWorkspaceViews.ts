@@ -39,12 +39,19 @@ import type {
 import { createWorkspaceViewAreaStorage } from "./utils/workspace-view-area-storage/workspace-view-area-storage";
 import { projectBrowserOpenSnapshotV2 } from "../../utils/workspace-browser-open/workspace-browser-open-view-v3";
 import type { WorkspacePaneAreasState } from "../../utils/workspace-pane-areas/workspace-pane-areas";
-import { applyWorkspacePaneAreas } from "../../utils/workspace-pane-areas/workspace-pane-areas-state";
+import {
+	applyWorkspacePaneAreas,
+	type WorkspacePaneAreasScope,
+} from "../../utils/workspace-pane-areas/workspace-pane-areas-state";
 import {
 	editWorkspacePaneArea,
 	type WorkspacePaneAreaEdit,
 } from "../../utils/workspace-pane-area-edit/workspace-pane-area-edit";
-import { readWorkspacePaneAreas } from "../../utils/workspace-pane-areas/workspace-pane-areas";
+import {
+	captureWorkspacePaneAreas,
+	readWorkspacePaneAreas,
+} from "../../utils/workspace-pane-areas/workspace-pane-areas";
+import { flushWorkstationPaneRuntimes } from "../../utils/workstation-pane-runtime/workstation-pane-runtime";
 type WorkspaceViewSnapshot = WorkspaceViewSnapshotV2 | WorkspaceViewSnapshotV3;
 import type { RemoteWorkspace } from "../../types";
 import { sanitizeUrl } from "renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/BrowserPane/sanitizeUrl";
@@ -383,10 +390,11 @@ export function useWorkspaceViews(
 		const action = deferred.current;
 		deferred.current = null;
 		if (action) await action();
+		if (areaStorage) await flushWorkstationPaneRuntimes(api);
 		await drainBrowserPages();
 		await pendingTerminalAction.current;
 		await queue.current;
-	}, [drainBrowserPages]);
+	}, [drainBrowserPages, areaStorage, api]);
 	const trackTerminalAction = useCallback((action: () => Promise<void>) => {
 		if (pendingTerminalAction.current) return pendingTerminalAction.current;
 		setBusy(true);
@@ -1395,42 +1403,45 @@ export function useWorkspaceViews(
 			workspaceId: string,
 			next: WorkspacePaneAreasState,
 			before: WorkspacePaneAreasState,
+			sourceScope?: WorkspacePaneAreasScope,
 		) => {
 			if (!areaStorage || viewRef.current?.schemaVersion !== 3) return null;
-			const target = viewRef.current.targets.find(
-				(item) => item.connectionId === targetId(),
+			if (sourceScope && sourceScope.workspaceId !== workspaceId) return null;
+			const current = viewRef.current;
+			const target = current.targets.find(
+				(item) =>
+					item.connectionId === (sourceScope?.connectionId ?? targetId()),
 			);
 			const workspace = target?.workspaces.find(
 				(item) => item.workspaceId === workspaceId,
 			);
 			if (!target || !workspace) return null;
-			const scope = {
-				connectionId: target.connectionId,
-				backendId: target.backendId,
-				namespaceId: target.namespaceId,
-				serviceUid: target.serviceUid,
-				targetRevision: target.targetRevision,
-				workspaceId,
-				tabId: workspace.tabId,
-			};
-			const capture = (
-				state: WorkspacePaneAreasState,
-			): WorkspacePaneAreasState => ({
-				activePaneArea: state.activePaneArea,
-				rightPaneOpen: state.rightPaneOpen,
-				center: {
-					version: 1,
-					activeTabId: state.center.activeTabId,
-					tabs: structuredClone(state.center.tabs),
-				},
-				right: {
-					version: 1,
-					activeTabId: state.right.activeTabId,
-					tabs: structuredClone(state.right.tabs),
-				},
-			});
-			const capturedNext = capture(next),
-				capturedBefore = capture(before);
+			const scope = sourceScope
+				? { ...sourceScope }
+				: {
+						connectionId: target.connectionId,
+						backendId: target.backendId,
+						namespaceId: target.namespaceId,
+						serviceUid: target.serviceUid,
+						targetRevision: target.targetRevision,
+						workspaceId,
+						tabId: workspace.tabId,
+					};
+			const capturedNext = captureWorkspacePaneAreas(next),
+				capturedBefore = captureWorkspacePaneAreas(before);
+			const optimistic = applyWorkspacePaneAreas(
+				inputFor(current),
+				scope,
+				capturedNext,
+				capturedBefore,
+			);
+			if (optimistic)
+				setSaved({
+					...optimistic,
+					schemaVersion: 3,
+					revision: current.revision,
+					updatedAt: current.updatedAt,
+				});
 			return mutate((input) => {
 				const merged = applyWorkspacePaneAreas(
 					input,
@@ -1442,7 +1453,7 @@ export function useWorkspaceViews(
 				Object.assign(input, merged);
 			}, false);
 		},
-		[areaStorage, mutate, targetId],
+		[areaStorage, mutate, targetId, setSaved],
 	);
 	const restoreManual = useCallback(async () => {
 		navigate();

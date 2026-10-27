@@ -5,10 +5,13 @@ import type {
 	DirectWorkstationApi,
 } from "shared/direct-workstation";
 import type { WorkspacePaneV2 } from "shared/workspace-view-v2";
+import type { WorkspacePaneAreasState } from "../workspace-pane-areas/workspace-pane-areas";
 type State = WorkspaceState<WorkspacePaneV2>;
 interface Port {
 	read(): State;
+	readAreas?(): WorkspacePaneAreasState;
 	fingerprint?(): string;
+	flush?(): Promise<void>;
 	replace(state: State): void;
 	subscribe(listener: () => void): () => void;
 }
@@ -141,6 +144,7 @@ export function captureWorkstationPaneRuntime(
 		current() && readFingerprint(entry.port) === fingerprint;
 	return {
 		state: previous,
+		areas: entry.port.readAreas?.(),
 		isCurrent: current,
 		unchanged,
 		watch(listener: () => void) {
@@ -160,4 +164,22 @@ export function captureWorkstationPaneRuntime(
 			);
 		},
 	};
+}
+
+export async function flushWorkstationPaneRuntimes(
+	api: DirectWorkstationApi,
+): Promise<void> {
+	const entries = scopes.get(api);
+	if (!entries) return;
+	const results = await Promise.allSettled(
+		Array.from(entries.values(), (entry) => {
+			try {
+				return entry.port.flush?.() ?? Promise.resolve();
+			} catch (error) {
+				return Promise.reject(error);
+			}
+		}),
+	);
+	for (const result of results)
+		if (result.status === "rejected") throw result.reason;
 }

@@ -155,6 +155,7 @@ export function startWorkstationBrowserOpenRenderer(
 							input,
 							...ids,
 							runtimeState: runtime?.state,
+							runtimeAreas: runtime?.areas,
 						})
 					: null;
 				const opened =
@@ -190,6 +191,20 @@ export function startWorkstationBrowserOpenRenderer(
 				stop();
 				stop = () => {};
 				runtime?.apply(opened.state, input.show);
+				if (areaBefore && runtime && oldWorkspace) {
+					const updated = captureWorkstationPaneRuntime(
+						api,
+						input.descriptor,
+						input.workspaceId,
+						oldWorkspace.tabId,
+					);
+					if (!updated) throw Error("Workspace pane layout changed");
+					stop = updated.watch(() => {
+						if (updated.unchanged()) return;
+						abort.abort();
+						fail("Workspace pane layout changed");
+					});
+				}
 				const browsers = workstationBrowsers(api),
 					pane = opened.pane;
 				if (pane.kind !== "browser")

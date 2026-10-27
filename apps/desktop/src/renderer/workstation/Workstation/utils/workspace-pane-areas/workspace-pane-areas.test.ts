@@ -267,3 +267,52 @@ test("the browser-open structure stamp ignores selections but includes right-sid
 		f.areas.dispose();
 	}
 });
+test("an authorized center runtime replacement first flushes user selection and never echoes a durable save", () => {
+	const f = runtime();
+	let snapshots = 0;
+	f.areas.subscribe(() => {
+		snapshots++;
+	});
+	try {
+		const right = f.areas.right.getState(),
+			current = f.areas.center.getState();
+		const replacement = {
+			version: 1 as const,
+			activeTabId: current.activeTabId,
+			tabs: structuredClone(current.tabs),
+		};
+		required(replacement.tabs[0]).titleOverride = "Main committed";
+		f.areas.activate("right");
+		expect(f.areas.replaceFromRuntime("center", replacement)).toBe(true);
+		expect(f.events).toHaveLength(1);
+		expect(f.events[0]?.next.activePaneArea).toBe("right");
+		expect(f.areas.center.getState().tabs[0]?.titleOverride).toBe(
+			"Main committed",
+		);
+		expect(f.areas.center.getState().tabs[0]?.panes.terminal?.pinned).toBe(
+			true,
+		);
+		expect(f.areas.right.getState()).toBe(right);
+		expect(snapshots).toBe(2);
+		f.drain();
+		expect(f.events).toHaveLength(1);
+		expect(snapshots).toBe(2);
+	} finally {
+		f.areas.dispose();
+	}
+});
+test("a listener that disposes the area during the pending edit flush prevents a later runtime replacement", () => {
+	const f = runtime(),
+		current = f.areas.center.getState();
+	f.areas.subscribeEdits(() => f.areas.dispose());
+	f.areas.activate("right");
+	expect(
+		f.areas.replaceFromRuntime("center", {
+			version: 1,
+			activeTabId: null,
+			tabs: [],
+		}),
+	).toBe(false);
+	expect(f.areas.center.getState().tabs).toBe(current.tabs);
+	f.drain();
+});
