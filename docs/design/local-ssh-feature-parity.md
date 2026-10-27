@@ -345,3 +345,14 @@ CLI72项/305断言、shared23项/104断言、host90项/436断言及四处类型�
 namespace切换直接归档原V3目标并用同版本验证/保存，保留两侧布局、固定字段及原autoConnect=false恢复规则；同身份不重复保存，归档身份不符不替换当前视图，forget仍事务内清理归档。新20项连同原V1/V2存储、V3模型、pane适配/状态、restore coordinator及local/browser restore共79项291断言/9文件通过。实际in-memory SQLite覆盖写入触发器失败回滚、owner替换、旧revision、坏行清除和namespace归档/恢复；不以mock替代事务。首轮坏数据夹具浅拷贝连带改变请求本体，已改structuredClone；类型检查发现联合数组push要求V1/V2/V3交集，现以兼容结构和1|2|3版本的显式类型声明修正，没有类型断言或放宽校验。最终桌面类型、新/改五文件lint、插件通过。
 
 原store整体在去除明确V3分支/调度后完整AST对照通过；constructor/activateOwner/write/save/saveV2/forget/removeLocalNamespace/close八个方法AST直接相同，十个既有协议/IPC/preload/renderer/版本文件逐字节不变。127的2205编译文件、86个MJS、3639个CLI/共享源码图和原随包CLI哈希保持，无新构建/实窗/安装包/Actions。V3类方法尚未暴露到coordinator/IPC或renderer，本阶段不能宣称右侧界面完成；下一步沿现有browser lease、目标校验和窗口生命周期接受保护的新读写，再接原双区域交互。[阶段一百二十九证据](../implementation/evidence/local-ssh-feature-parity/stage129)。
+
+
+## 阶段一百三十：V3 协调器与受保护桌面 IPC
+
+源码a6e6f801e新增可选getWorkspaceViewV3/saveWorkspaceViewV3、对应preload转发及主进程case。沿原DIRECT_CHANNEL的受信sender/frame校验与捕获owner，浅层严格请求wrapper和V2的revision/navigation/browserLeases字段、UUID/代次与10项上限完全同构；递归view仍为unknown，进入有原始大小/深度保护的V3验证后才使用。旧输入/输出、旧API方法和版本floor保持，新renderer尚未调用V3。
+
+原WorkspaceRestoreCoordinator仅显式version3选择新codec、用于原V1资源核对的兼容投影和saveV3。原validateBrowserView直接检查完整V3资源目录，规范化目标身份和终端执行ID，不经过丢弃区域/固定标记的返回投影；该检查方法及30个既有协调器方法AST直接不变。原lease、浏览器工作区查询、活动注册、owner/epoch、导航和队列检查全部沿用，旧1/2分支保持。新readV3带当前navigationRevision，错误返回规则沿原版本。
+
+先保存新协调器方法不存在的6项红例，再实现；新增共7项，与原布局/SQLite/restore回归共86项314断言/9文件和桌面类型通过。覆盖新右侧浏览器缺失/错误generation拒绝、验证期间连接代次或窗口更换不能提交、较新导航阻止较旧布局落盘、浏览器内容修改仍需原活动注册、右侧新增终端仍通过workspace.restoreResources确认，以及窗口owner变更后原恢复仅附着已有终端并保留两侧/固定状态。这里的controller为拥有的单元夹具，不冒充实际SSH后端或实窗。
+
+六份模块去掉明确V3新增项后完整AST相等，新浅层IPC schema与原V2对象AST直接相等；原存储/merge、V1/V2模型、renderer及host floor七文件逐字节保持。共享模型/API lint通过，旧主进程/preload/测试文件保留23条继承警告并跳过其原格式/整理噪声；插件通过。原2205编译文件、86个MJS、3639个CLI源码图及随包CLI哈希复核保持，未新构建/实窗/安装包/Actions。本阶段完成源码层受保护V3读写接线，右侧UI与相关renderer生命周期仍未启用；下一步接双区域pane-store适配与实际操作，再执行本地/拥有SSH实窗验收。[阶段一百三十证据](../implementation/evidence/local-ssh-feature-parity/stage130)。
