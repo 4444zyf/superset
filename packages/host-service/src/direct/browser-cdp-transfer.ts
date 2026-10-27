@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import {
 	assertBrowserCdpRaw,
 	BROWSER_CDP_ACK_TIMEOUT_MS,
-	BROWSER_CDP_MAX_RAW_BYTES,
+	BROWSER_CDP_MAX_REQUEST_BYTES,
+	BROWSER_CDP_MAX_RESPONSE_BYTES,
 	type BrowserCdpPacket,
 	browserCdpPacketSchema,
 } from "@superset/shared/browser-cdp-bridge";
@@ -93,7 +94,7 @@ export class BrowserCdpTransfer {
 					entry.queuedBytes += new TextEncoder().encode(raw).byteLength;
 					if (
 						entry.queued.length >= 64 ||
-						entry.queuedBytes > BROWSER_CDP_MAX_RAW_BYTES
+						entry.queuedBytes > BROWSER_CDP_MAX_REQUEST_BYTES
 					) {
 						this.close(entry, 1009, true);
 						return;
@@ -101,7 +102,7 @@ export class BrowserCdpTransfer {
 					entry.queued.push(raw);
 					return;
 				}
-				this.send(entry, { type: "cdp-message", sessionId: entry.id, raw });
+				this.send(entry, { type: "cdp-input", sessionId: entry.id, raw });
 			},
 		};
 	}
@@ -110,7 +111,8 @@ export class BrowserCdpTransfer {
 			this.close(entry, 1011, false);
 	}
 	receive(packet: BrowserCdpPacket): void {
-		if (packet.type === "cdp-open") throw Error("Invalid CDP bridge direction");
+		if (packet.type === "cdp-open" || packet.type === "cdp-input")
+			throw Error("Invalid CDP bridge direction");
 		const entry = this.entries.get(packet.sessionId);
 		if (!entry || !this.current(entry)) return;
 		if (packet.type === "cdp-close") {
@@ -129,11 +131,11 @@ export class BrowserCdpTransfer {
 			entry.queued = [];
 			entry.queuedBytes = 0;
 			for (const raw of queued)
-				this.send(entry, { type: "cdp-message", sessionId: entry.id, raw });
+				this.send(entry, { type: "cdp-input", sessionId: entry.id, raw });
 			return;
 		}
 		try {
-			assertBrowserCdpRaw(packet.raw);
+			assertBrowserCdpRaw(packet.raw, BROWSER_CDP_MAX_RESPONSE_BYTES);
 			entry.client.send(packet.raw);
 		} catch {
 			this.close(entry, 1011, true);

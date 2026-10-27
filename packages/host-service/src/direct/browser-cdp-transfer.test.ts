@@ -85,13 +85,13 @@ test("a CDP connection pins its peer, queues client frames and flushes once afte
 		ok: true,
 	});
 	expect(f.packets[1]).toEqual({
-		type: "cdp-message",
+		type: "cdp-input",
 		sessionId: p.sessionId,
 		raw: ' {"id":1,"method":"Target.getTargets"} ',
 	});
 	expect(f.timers[0]?.cancelled).toBe(true);
 	f.transfer.receive({
-		type: "cdp-message",
+		type: "cdp-output",
 		sessionId: p.sessionId,
 		raw: '{"id":1,"result":{"中文":"🙂"}}',
 	});
@@ -183,7 +183,7 @@ test("closing a pending client cancels the ack timer and tells Main to release o
 		sessionId: p.sessionId,
 		ok: true,
 	});
-	expect(f.packets.filter((p) => p.type === "cdp-message")).toEqual([]);
+	expect(f.packets.filter((p) => p.type === "cdp-input")).toEqual([]);
 });
 test("retired peers cannot send incoming commands or return outgoing events", () => {
 	for (const direction of ["inbound", "outbound"]) {
@@ -199,7 +199,7 @@ test("retired peers cannot send incoming commands or return outgoing events", ()
 		if (direction === "inbound") c.receive("stale");
 		else
 			f.transfer.receive({
-				type: "cdp-message",
+				type: "cdp-output",
 				sessionId: p.sessionId,
 				raw: "stale",
 			});
@@ -214,7 +214,7 @@ test("disconnect clears pending and live clients before a replacement peer can a
 		p = opening(f);
 	f.transfer.disconnect();
 	f.transfer.receive({
-		type: "cdp-message",
+		type: "cdp-output",
 		sessionId: p.sessionId,
 		raw: "old",
 	});
@@ -254,7 +254,7 @@ test("CDP client callbacks cannot throw through the browser bridge receive handl
 	});
 	expect(() =>
 		f.transfer.receive({
-			type: "cdp-message",
+			type: "cdp-output",
 			sessionId: p.sessionId,
 			raw: "event",
 		}),
@@ -327,4 +327,21 @@ test("request metadata cannot replace the generated CDP session identity", () =>
 	expect(opened[1]?.sessionId).not.toBe(original.sessionId);
 	f.transfer.disconnect();
 	expect(f.closes).toHaveLength(2);
+});
+
+test("CDP responses larger than the original input budget remain available to the client", () => {
+	const f = fixture();
+	f.connect();
+	const p = opening(f);
+	f.transfer.receive({
+		type: "cdp-open-result",
+		sessionId: p.sessionId,
+		ok: true,
+	});
+	const raw =
+		'{"id":1,"result":{"data":"' + "x".repeat(4 * 1024 * 1024) + '"}}';
+	f.transfer.receive({ type: "cdp-output", sessionId: p.sessionId, raw });
+	expect(f.messages).toHaveLength(1);
+	expect(f.messages[0] === raw).toBe(true);
+	expect(f.closes).toEqual([]);
 });

@@ -1,15 +1,24 @@
 import { z } from "zod";
+import { BROWSER_CAPTURE_MAX_BASE64_CHARS } from "./browser-bridge";
 
-export const BROWSER_CDP_MAX_RAW_BYTES = 4 * 1024 * 1024;
+export const BROWSER_CDP_MAX_REQUEST_BYTES = 4 * 1024 * 1024;
+export const BROWSER_CDP_MAX_RESPONSE_BYTES =
+	BROWSER_CAPTURE_MAX_BASE64_CHARS + 64 * 1024;
 export const BROWSER_CDP_MAX_PACKET_BYTES =
-	BROWSER_CDP_MAX_RAW_BYTES * 6 + 4096;
+	Math.max(
+		BROWSER_CDP_MAX_REQUEST_BYTES * 6,
+		BROWSER_CDP_MAX_RESPONSE_BYTES * 2,
+	) + 4096;
 export const BROWSER_CDP_ACK_TIMEOUT_MS = 15_000;
 
-export function assertBrowserCdpRaw(raw: string): void {
+export function assertBrowserCdpRaw(
+	raw: string,
+	maxBytes = BROWSER_CDP_MAX_REQUEST_BYTES,
+): void {
 	if (
 		typeof raw !== "string" ||
-		raw.length > BROWSER_CDP_MAX_RAW_BYTES ||
-		new TextEncoder().encode(raw).byteLength > BROWSER_CDP_MAX_RAW_BYTES
+		raw.length > maxBytes ||
+		new TextEncoder().encode(raw).byteLength > maxBytes
 	)
 		throw Error("Browser CDP message is too large or is not text");
 }
@@ -23,13 +32,11 @@ const code = z.union([
 	z.literal(1011),
 	z.literal(1013),
 ]);
-const raw = z
-	.string()
-	.max(BROWSER_CDP_MAX_RAW_BYTES)
-	.refine(
-		(value) =>
-			new TextEncoder().encode(value).byteLength <= BROWSER_CDP_MAX_RAW_BYTES,
-	);
+const rawSchema = (maxBytes: number) =>
+	z
+		.string()
+		.max(maxBytes)
+		.refine((value) => new TextEncoder().encode(value).byteLength <= maxBytes);
 const openResultSchema = z.discriminatedUnion("ok", [
 	z.strictObject({
 		type: z.literal("cdp-open-result"),
@@ -51,7 +58,16 @@ export const browserCdpPacketSchema = z.discriminatedUnion("type", [
 		paneId: z.string().min(1).max(256),
 	}),
 	openResultSchema,
-	z.strictObject({ type: z.literal("cdp-message"), sessionId, raw }),
+	z.strictObject({
+		type: z.literal("cdp-input"),
+		sessionId,
+		raw: rawSchema(BROWSER_CDP_MAX_REQUEST_BYTES),
+	}),
+	z.strictObject({
+		type: z.literal("cdp-output"),
+		sessionId,
+		raw: rawSchema(BROWSER_CDP_MAX_RESPONSE_BYTES),
+	}),
 	z.strictObject({ type: z.literal("cdp-close"), sessionId, code }),
 ]);
 export type BrowserCdpPacket = z.infer<typeof browserCdpPacketSchema>;
