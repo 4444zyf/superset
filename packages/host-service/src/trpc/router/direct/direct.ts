@@ -1,3 +1,5 @@
+import { browserReloadOperationSchema } from "../../../direct/browser-reload-operation";
+import { runDirectBrowserReload } from "../../../direct/browser-reload-rpc";
 import { runDirectBrowserOpen } from "../../../direct/browser-open-rpc";
 import { browserOpenOperationSchema } from "../../../direct/browser-open-operation";
 import os from "node:os";
@@ -41,6 +43,7 @@ export function describeDirectBackend(
 				DirectBrowserReadBridge,
 				| "isCaptureReady"
 				| "isNavigationReady"
+				| "isReloadReady"
 				| "isEvaluationReady"
 				| "isOpenReady"
 			>
@@ -61,6 +64,8 @@ export function describeDirectBackend(
 		cloudAccountRequired: false,
 		chatHarnesses: directChatHarnesses(),
 		capabilities: {
+			workstationBrowserReloadV1:
+				durableOperations && browserReads?.isReloadReady?.() === true,
 			workstationBrowserOpenV1:
 				durableOperations && browserReads?.isOpenReady?.() === true,
 			workstationBrowserEvaluationV1:
@@ -317,6 +322,9 @@ export const directRouter = router({
 	browserOpenV1: protectedProcedure
 		.input(browserOpenOperationSchema)
 		.mutation(({ ctx, input }) => runDirectBrowserOpen(ctx, input)),
+	browserReloadV1: protectedProcedure
+		.input(browserReloadOperationSchema)
+		.mutation(({ ctx, input }) => runDirectBrowserReload(ctx, input)),
 	browserEvaluateV1: protectedProcedure
 		.input(browserEvaluationOperationSchema)
 		.mutation(({ ctx, input }) => runDirectBrowserEvaluation(ctx, input)),

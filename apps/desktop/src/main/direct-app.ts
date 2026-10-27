@@ -640,6 +640,7 @@ export async function startWorkstation(): Promise<void> {
 				() => !quitting && !browserOpenClosing && current(),
 			);
 		},
+		reloadV1: true,
 		navigationV1: true,
 		evaluationV1: true,
 		getTarget: (id) => {

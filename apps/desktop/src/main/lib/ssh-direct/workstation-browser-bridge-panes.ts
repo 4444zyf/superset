@@ -22,7 +22,15 @@ interface Dependencies {
 		getWebContents(
 			paneId: string,
 			workspaceId: string,
-		): Pick<Electron.WebContents, "getURL" | "getTitle" | "isLoading"> | null;
+		):
+			| (Pick<Electron.WebContents, "getURL" | "getTitle" | "isLoading"> &
+					Partial<
+						Pick<
+							Electron.WebContents,
+							"reload" | "reloadIgnoringCache" | "isDestroyed"
+						>
+					>)
+			| null;
 	};
 	normalizePng?(base64: string): string;
 	navigate?(
@@ -69,6 +77,39 @@ export function currentWorkstationBrowserBridgePanes({
 		return pin(pane);
 	};
 	return {
+		pinReload(
+			paneId: string,
+			workspaceId: string,
+			hard: boolean,
+		): () => Promise<{ ok: true }> {
+			const { pane, key } = requirePane(paneId, workspaceId);
+			const guest = manager.getWebContents(key, pane.workspaceId);
+			assertPinned(pane, key);
+			if (
+				!guest ||
+				typeof guest.reload !== "function" ||
+				typeof guest.reloadIgnoringCache !== "function" ||
+				typeof guest.isDestroyed !== "function"
+			)
+				throw Error("Browser reload is unavailable");
+			const reload = hard ? guest.reloadIgnoringCache : guest.reload;
+			let dispatched = false;
+			return async () => {
+				assertPinned(pane, key);
+				if (dispatched)
+					throw Error("The pinned browser reload was already dispatched");
+				if (
+					manager.getWebContents(key, pane.workspaceId) !== guest ||
+					guest.isDestroyed?.()
+				)
+					throw Error("Browser guest is no longer current");
+				assertPinned(pane, key);
+				dispatched = true;
+				reload.call(guest);
+				assertPinned(pane, key);
+				return { ok: true };
+			};
+		},
 		pinEvaluation(
 			paneId: string,
 			workspaceId: string,

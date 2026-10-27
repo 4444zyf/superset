@@ -49,6 +49,8 @@ export interface HostServiceContext {
 				| "capturePng"
 				| "isNavigationReady"
 				| "pinNavigation"
+				| "isReloadReady"
+				| "pinReload"
 				| "isEvaluationReady"
 				| "pinEvaluation"
 				| "isOpenReady"

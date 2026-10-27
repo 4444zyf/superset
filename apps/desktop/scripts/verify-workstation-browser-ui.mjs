@@ -147,7 +147,7 @@ export async function verifyWorkstationBrowserUi(options) {
 	let started = false,
 		terminalTab,
 		browserReadCli,
-		navigationApi, navigationCli, evaluationApi, evaluationCli, openApi, openCli;
+		navigationApi, navigationCli, evaluationApi, evaluationCli, openApi, openCli, reloadApi;
 	try {
 		await click(`${selector} .xterm-screen`);
 		await getPage().call("Input.insertText", { text: command });
@@ -557,6 +557,11 @@ export async function verifyWorkstationBrowserUi(options) {
             openCli=await verifyWorkstationBrowserOpenCliUi(options,{scope,url,readProof,readView,workspace,terminalTab});
             report.openCli=openCli.report;save();
         }
+        if(process.argv.includes("--browser-reload-api")) {
+            const {verifyWorkstationBrowserReloadApiUi}=await import("./verify-workstation-browser-reload-api-ui.mjs");
+            reloadApi=await verifyWorkstationBrowserReloadApiUi(options,{scope,readProof,guestRead,readView,workspace,terminalTab});
+            report.reloadApi=reloadApi.report;save();
+        }
 		await closeReopen();
 		await until(
 			async () =>
@@ -678,6 +683,7 @@ export async function verifyWorkstationBrowserUi(options) {
         if(evaluationCli)await evaluationCli.afterReopen();
         if(openApi)await openApi.afterReopen();
         if(openCli)await openCli.afterReopen();
+        if(reloadApi)await reloadApi.afterReopen();
 		await screenshot("browser-reopened");
 		save();
 	} finally {

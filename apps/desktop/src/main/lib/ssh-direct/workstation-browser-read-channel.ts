@@ -27,6 +27,8 @@ interface Entry {
 	ready: boolean;
 	captureReady: boolean;
 	captureId: string | null;
+	reloadReady: boolean;
+	reloadId: string | null;
 	navigationReady: boolean;
 	evaluationReady: boolean;
 	evaluationId: string | null;
@@ -54,6 +56,7 @@ export class WorkstationBrowserReadChannels {
 	private readonly entries = new Map<string, Entry>();
 	constructor(
 		private readonly dependencies: {
+			reloadV1?: boolean;
 			navigationV1?: boolean;
 			evaluationV1?: boolean;
 			openV1?: boolean;
@@ -79,7 +82,7 @@ export class WorkstationBrowserReadChannels {
 				Partial<
 					Pick<
 						ReturnType<typeof currentWorkstationBrowserBridgePanes>,
-						"pinNavigation" | "pinEvaluation"
+						"pinNavigation" | "pinEvaluation" | "pinReload"
 					>
 				>;
 		},
@@ -172,6 +175,8 @@ export class WorkstationBrowserReadChannels {
 			ready: false,
 			captureReady: false,
 			captureId: null,
+			reloadReady: false,
+			reloadId: null,
 			navigationReady: false,
 			evaluationReady: false,
 			evaluationId: null,
@@ -214,6 +219,7 @@ export class WorkstationBrowserReadChannels {
 							"readV1",
 							"capturePngV1",
 							...(this.dependencies.navigationV1 ? ["navigateV1"] : []),
+							...(this.dependencies.reloadV1 ? ["reloadV1"] : []),
 							...(this.dependencies.evaluationV1 ? ["evaluateV1"] : []),
 							...(this.supportsOpen() ? ["openV1"] : []),
 						],
@@ -247,6 +253,9 @@ export class WorkstationBrowserReadChannels {
 					entry.evaluationReady =
 						this.dependencies.evaluationV1 === true &&
 						packet.features.includes("evaluateV1");
+					entry.reloadReady =
+						this.dependencies.reloadV1 === true &&
+						packet.features.includes("reloadV1");
 					entry.navigationReady =
 						this.dependencies.navigationV1 === true &&
 						packet.features.includes("navigateV1");
@@ -269,6 +278,13 @@ export class WorkstationBrowserReadChannels {
 					void this.evaluate(entry, packet).catch(() =>
 						this.close(entry, 1011),
 					);
+					return;
+				}
+				if (packet.type === "reload-request") {
+					if (!entry.reloadReady || entry.reloadId !== null)
+						throw Error("Invalid reload request");
+					entry.reloadId = packet.id;
+					void this.reload(entry, packet).catch(() => this.close(entry, 1011));
 					return;
 				}
 				if (packet.type === "navigate-request") {
@@ -359,6 +375,54 @@ export class WorkstationBrowserReadChannels {
 		} finally {
 			if (release && entry.openRelease === release) this.releaseOpen(entry);
 			if (entry.openId === request.id) entry.openId = null;
+		}
+	}
+	private async reload(
+		entry: Entry,
+		request: { id: string; paneId: string; workspaceId: string; hard: boolean },
+	): Promise<void> {
+		try {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			const panes = this.dependencies.panes(entry.target, () =>
+				this.current(entry),
+			);
+			if (!panes.pinReload) throw Error("Browser reload is unavailable");
+			await panes.pinReload(
+				request.paneId,
+				request.workspaceId,
+				request.hard,
+			)();
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "reload-result",
+					id: request.id,
+					ok: true,
+				}),
+			);
+		} catch {
+			if (!this.current(entry)) {
+				this.close(entry);
+				return;
+			}
+			entry.socket.send(
+				encodeBrowserBridgePacket({
+					type: "reload-result",
+					id: request.id,
+					ok: false,
+					error: {
+						message: "Browser reload failed or pane is no longer current",
+					},
+				}),
+			);
+		} finally {
+			if (entry.reloadId === request.id) entry.reloadId = null;
 		}
 	}
 	private async navigate(

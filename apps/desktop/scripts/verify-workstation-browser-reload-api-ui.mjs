@@ -1,0 +1,32 @@
+import assert from "node:assert/strict";
+import {randomUUID} from "node:crypto";
+import {writeFileSync} from "node:fs";
+import {join} from "node:path";
+import {resolveDirectNamespace} from "../../../packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts";
+import {agentUiDriver} from "./verify-workstation-agent-ui-driver.mjs";
+export async function verifyWorkstationBrowserReloadApiUi(options,{scope,readProof,guestRead,readView,workspace,terminalTab}){
+ const {until}=agentUiDriver(options),controls=options.controls.forNamespace?.(scope.d.namespaceId)??options.controls;
+ const report={source:process.env.GITHUB_SHA,mode:"Protected durable reload API invokes the original guest reload methods on the exact registered page; no new CLI command",calls:[]};
+ const save=()=>writeFileSync(join(options.output,"browser-reload-api.json"),JSON.stringify(report,null,2)+"\n");
+ const ready=()=>until(async()=>{const description=(await resolveDirectNamespace(controls.browserNamespaceHome())).description;assert.equal(description.namespaceId,scope.d.namespaceId);assert.equal(description.backendId,scope.d.backendId);return description.capabilities.workstationBrowserReloadV1===true;},"owned reload peer ready");
+ const request=async(procedure,input)=>{const result=await controls.browserReloadRequest(procedure,input);report.calls.push({procedure,input,...result});save();return result;};
+ await ready();const original=workspace(await readView()),browserTab=original.activePaneTabId,pane=original.panes.find(p=>p.kind==="browser");assert.ok(pane);assert.ok(pane.browser.url.includes("/next?"));
+ const url=pane.browser.url,path=new URL(url).pathname+new URL(url).search,rawGuestBefore=await guestRead("location.href");assert.equal(typeof rawGuestBefore,"string");
+ const count=async()=>(await readProof()).requests.filter(p=>p===path).length;
+ const baseline=await count();assert.ok(baseline>0);
+ await options.click(`[data-workstation-pane-tabs] [data-tab-id="${terminalTab}"]`);await until(async()=>workspace(await readView()).activePaneTabId===terminalTab,"terminal selected before background reload");
+ const focus=()=>options.getPage().evaluate("({tag:document.activeElement?.tagName,className:document.activeElement?.className})");await until(async()=>{const f=await focus();return f.tag==="TEXTAREA"&&typeof f.className==="string"&&f.className.includes("xterm-helper-textarea");},"terminal input settled before background reload");const focusBefore=await focus();
+ await options.screenshot("browser-reload-terminal-before");
+ const input={operationId:randomUUID(),workspaceId:scope.w.workspaceId,paneId:pane.paneId},first=await request("direct.browserReloadV1",input);assert.equal(first.status,200);assert.equal(first.result.status,"completed");assert.deepEqual(first.result.result,{ok:true});
+ await until(async()=>await count()===baseline+1,"one actual HTTP request after normal reload");assert.equal(workspace(await readView()).activePaneTabId,terminalTab);assert.deepEqual(await focus(),focusBefore);
+ assert.deepEqual((await request("direct.browserReloadV1",{...input,hard:false})).result,first.result);assert.equal(await count(),baseline+1);
+ assert.equal((await request("direct.browserReloadV1",{...input,hard:true})).status,409);
+ const foreign=await request("direct.browserReloadV1",{...input,operationId:randomUUID(),workspaceId:randomUUID()});assert.equal(foreign.status,400);
+ const invalid=await request("direct.browserReloadV1",{...input,operationId:randomUUID(),hard:"false"});assert.equal(invalid.status,400);
+ const hardInput={...input,operationId:randomUUID(),hard:true},hard=await request("direct.browserReloadV1",hardInput);assert.equal(hard.status,200);assert.equal(hard.result.status,"completed");assert.deepEqual(hard.result.result,{ok:true});
+ await until(async()=>await count()===baseline+2,"one actual HTTP request after hard reload");assert.deepEqual((await request("direct.operationStatus",{operationId:input.operationId})).result,first.result);assert.deepEqual((await request("direct.operationStatus",{operationId:hardInput.operationId})).result,hard.result);
+ assert.equal(workspace(await readView()).activePaneTabId,terminalTab);assert.deepEqual(await focus(),focusBefore);assert.equal(workspace(await readView()).panes.find(p=>p.paneId===pane.paneId).browser.url,url);await options.screenshot("browser-reload-background-terminal");
+ await options.click(`[data-workstation-pane-tabs] [data-tab-id="${browserTab}"]`);await until(async()=>(await guestRead("document.title"))==="Owned browser next 中文 🙂","reloaded actual owned browser page visible");assert.equal(await guestRead("location.href"),rawGuestBefore);await options.screenshot("browser-reload-page");assert.deepEqual(options.getPage().errors,[]);
+ report.completed={first:first.result,hard:hard.result,baseline,requestsAfter:await count(),oneRequestPerNewOperation:true,defaultEquivalentDeduplication:true,backgroundSelectionAndFocusPreserved:true,canonicalUrl:url,rawGuestBefore,rawGuestAfter:await guestRead("location.href"),rendererErrors:options.getPage().errors};save();
+ return{report,async afterReopen(){await ready();const before=await count(),raw=await guestRead("location.href");assert.deepEqual((await request("direct.operationStatus",{operationId:input.operationId})).result,first.result);assert.deepEqual((await request("direct.browserReloadV1",input)).result,first.result);assert.deepEqual((await request("direct.operationStatus",{operationId:hardInput.operationId})).result,hard.result);assert.deepEqual((await request("direct.browserReloadV1",hardInput)).result,hard.result);assert.equal(await count(),before);assert.equal(await guestRead("location.href"),raw);assert.deepEqual(options.getPage().errors,[]);report.reopened={persisted:true,noReloadReplay:true,requestCountBefore:before,requestCountAfter:await count(),rendererErrors:options.getPage().errors};save();}};
+}
