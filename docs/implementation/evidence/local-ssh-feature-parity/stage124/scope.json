@@ -1,0 +1,26 @@
+{
+  "stage": 124,
+  "source": "4f3cdad4a2d7c15e3f4eca3ec2fa352e2718a91b",
+  "feature": "Private CDP session ownership coordinator around unchanged original browserManager.attachCdp",
+  "tests": {
+    "new": 11,
+    "total": 69,
+    "assertions": 218,
+    "files": 4,
+    "desktopTypesPassed": true,
+    "lintPassed": true,
+    "redMissingModule": "red.log",
+    "redCallbackAndDetachFailure": "teardown-red.log",
+    "redStalePinRevival": "stale-revival-red.log"
+  },
+  "behavior": [
+    "Pin copied owner/descriptor/registration/key and actual guest before attach",
+    "One open attempt; release or refused stale attempt cannot revive",
+    "Original raw frames and busy error preserved",
+    "Stale inbound/outbound frames withheld and original exact handle released once",
+    "Native detach clears old handle so old release cannot detach a new debugger",
+    "Synchronous attach/detach and failed event callbacks cannot leak a live handle or throw into Main"
+  ],
+  "scope": "Internal source preparation only; no new protocol/public capability/Main registration/CLI path, build or native acceptance; CDP is not yet restored",
+  "preservation": "preservation-proof.json"
+}
