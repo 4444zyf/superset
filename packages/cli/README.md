@@ -67,3 +67,16 @@ The default `--target current-tab` replaces an unpinned browser in the active pa
 Retain the UUID for the exact intent. Repeating it returns the original completed result without opening another pane, even after that pane has been closed. Changing its workspace, URL, target or show intent is refused. Omitted defaults and explicit `--target current-tab --show false` are equivalent. On a failure or lost connection, inspect `browser operation-status` before opening another pane; the CLI never retries automatically. Opening requires both durable operations and a ready browser-open capability. Status inspection can read a saved receipt while that renderer is unavailable.
 
 Local and owned loopback SSH acceptance uses the original source CLI dev runner. The bundled CLI has not been rebuilt or installed remotely. Existing commands without `--namespace` retain their account and host behavior.
+
+The existing login-import command also accepts an explicit namespace:
+
+```sh
+superset browser import-login --namespace "$SUPERSET_HOME_DIR" --workspace <workspace-id> --pane <pane-id> --json
+superset browser import-login --namespace "$SUPERSET_HOME_DIR" --workspace <workspace-id> --pane <pane-id> --from Chrome --profile Main --operation-id <uuid> --json
+```
+
+Listing needs no operation ID. Importing with `--from` requires a UUID for that exact workspace, pane and detected source. Browser and profile matching, counts and the Keychain-unavailable output use the original command. Sources belong to the attached desktop machine; the source identifier is opaque to the CLI, including when the CLI runs on an SSH backend. The CLI does not resolve or inspect that desktop path locally. Linux retains the original Keychain-based empty login list.
+
+The source query requires the negotiated source-list capability, and importing also requires durable operations and the ready cookie-import capability. The dedicated import transport can send only one versioned cookie-import mutation. A completed ID returns its saved counts, including a saved `keyUnavailable: true`, without rereading or reimporting cookies. After granting Keychain access, a deliberate new import needs a new ID. On any failure or lost connection, inspect the original ID with `browser operation-status` before attempting another import; the CLI never retries automatically. The client request budget is 20 seconds while the desktop may still be waiting on the original 120-second Keychain prompt, so a client timeout does not mean the operation stopped. A pending or unresolved result must be inspected rather than replayed.
+
+This is source CLI support; the bundled CLI binary has not been rebuilt. Native validation currently covers Linux empty-list/rejection behavior and original durable API receipt inspection on local and owned SSH targets. Positive source matching/import output is covered through an owned Unix-socket test endpoint; macOS credential import and a positive native CLI import remain unverified.

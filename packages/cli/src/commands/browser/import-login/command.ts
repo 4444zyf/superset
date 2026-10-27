@@ -1,5 +1,8 @@
 import { CLIError, string } from "@superset/cli-framework";
 import { command } from "../../../lib/command";
+import { namespaceOption } from "../../../lib/direct-namespace";
+import { importLoginDirectNamespace } from "../../../lib/direct-namespace/browser-import-login";
+import { operationIdOption } from "../../../lib/direct-namespace/browser-navigation";
 import { resolveBrowserTarget } from "../shared";
 import { matchSources } from "./utils/matchSources";
 
@@ -7,6 +10,8 @@ export default command({
 	description:
 		"Import logins (cookies) from a system browser into a browser pane's session",
 	options: {
+		namespace: namespaceOption(),
+		operationId: operationIdOption(),
 		workspace: string().required().desc("Workspace ID"),
 		host: string().desc("Host the workspace lives on (default: this machine)"),
 		pane: string().required().desc("Pane ID (from `superset browser list`)"),
@@ -18,7 +23,9 @@ export default command({
 		),
 	},
 	run: async ({ ctx, options }) => {
-		const { client } = await resolveBrowserTarget(ctx, options);
+		const client =
+			(await importLoginDirectNamespace(options)) ??
+			(await resolveBrowserTarget(ctx, options)).client;
 		const { sources } = await client.browser.importSources.query();
 
 		const describe = (s: (typeof sources)[number]) =>

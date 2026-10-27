@@ -10,6 +10,7 @@ import SuperJSON from "superjson";
 
 const origin = "http://superset-remix.invalid";
 const readProcedures = new Map([
+	["direct.browserImportSourcesV1", "workstationBrowserImportSourcesV1"],
 	["direct.operationStatus", "durableOperations"],
 	["direct.browserCaptureV1", "workstationBrowserCaptureV1"],
 	["direct.browserReadV1", "workstationBrowserReadBridgeV1"],
@@ -50,11 +51,16 @@ export async function resolveBrowserOpenNamespace(input: string) {
 	return resolveNamespace(input, false, false, true);
 }
 
+export async function resolveBrowserImportNamespace(input: string) {
+	return resolveNamespace(input, false, false, false, true);
+}
+
 async function resolveNamespace(
 	input: string,
 	allowNavigation: boolean,
 	allowEvaluation = false,
 	allowOpen = false,
+	allowImport = false,
 ) {
 	const uid = process.getuid?.();
 	if (uid === undefined || uid < 1)
@@ -210,16 +216,38 @@ async function resolveNamespace(
 						(init?.method ?? "GET") === "POST" &&
 						procedures.length === 1 &&
 						procedures[0] === "direct.browserOpenV1";
+					const importing =
+						allowImport &&
+						(init?.method ?? "GET") === "POST" &&
+						procedures.length === 1 &&
+						procedures[0] === "direct.browserImportCookiesV1";
 					if (
 						url.origin !== origin ||
 						!url.pathname.startsWith("/trpc/") ||
 						(!navigation &&
 							!evaluation &&
 							!opening &&
+							!importing &&
 							((init?.method ?? "GET") !== "GET" ||
 								procedures.some((path) => !readProcedures.has(path))))
 					)
 						throw new Error("Only read-only namespace procedures are allowed");
+					if (importing) {
+						if (
+							description.capabilities.durableOperations !== true ||
+							description.capabilities.workstationBrowserCookieImportV1 !== true
+						)
+							throw Error(
+								"This backend does not support the required browser-import capability",
+							);
+						const timeout = AbortSignal.timeout(20_000);
+						return request(url.pathname + url.search, {
+							...init,
+							signal: init?.signal
+								? AbortSignal.any([init.signal, timeout])
+								: timeout,
+						} as RequestInit);
+					}
 					if (opening) {
 						if (
 							description.capabilities.durableOperations !== true ||

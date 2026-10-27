@@ -147,7 +147,7 @@ export async function verifyWorkstationBrowserUi(options) {
 	let started = false,
 		terminalTab,
 		browserReadCli,
-		navigationApi, navigationCli, evaluationApi, evaluationCli, openApi, openCli, reloadApi, importSourcesApi, cookieImportApi;
+		navigationApi, navigationCli, evaluationApi, evaluationCli, openApi, openCli, reloadApi, importSourcesApi, cookieImportApi, importLoginCli;
 	try {
 		await click(`${selector} .xterm-screen`);
 		await getPage().call("Input.insertText", { text: command });
@@ -572,6 +572,11 @@ export async function verifyWorkstationBrowserUi(options) {
             cookieImportApi=await verifyWorkstationBrowserCookieImportApiUi(options,{scope,readView,workspace,terminalTab});
             report.cookieImportApi=cookieImportApi.report;save();
         }
+        if(process.argv.includes("--browser-import-login-cli")) {
+            const {verifyWorkstationBrowserImportLoginCliUi}=await import("./verify-workstation-browser-import-login-cli-ui.mjs");
+            importLoginCli=await verifyWorkstationBrowserImportLoginCliUi(options,{scope,readView,workspace,terminalTab,cookieImportApi});
+            report.importLoginCli=importLoginCli.report;save();
+        }
 		await closeReopen();
 		await until(
 			async () =>
@@ -696,6 +701,7 @@ export async function verifyWorkstationBrowserUi(options) {
         if(reloadApi)await reloadApi.afterReopen();
         if(importSourcesApi)await importSourcesApi.afterReopen();
         if(cookieImportApi)await cookieImportApi.afterReopen();
+        if(importLoginCli)await importLoginCli.afterReopen();
 		await screenshot("browser-reopened");
 		save();
 	} finally {
