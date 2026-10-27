@@ -263,3 +263,6 @@
 
 
 阶段一百一十四以fd01cbd63接main/preload打开请求与实际owner/epoch、连接/namespace及允许关闭/退出生命周期；严格新IPC、原子保存、真实注册pane回执验证，就绪仍需Root握手。首轮实窗暴露preload误带zod导致启动失败，失败证据保留；da67b8155将通道常量拆为无依赖模块，编译preload只require electron。79项332断言、desktop类型/lint/旧AST对照及完整构建通过；修复后同一产品两端130次既有浏览器API/CLI回归及SSH20恢复通过，后台焦点/PTY/执行/cwd/剪贴板/正常重开保持，2205编译文件/79脚本/CLI哈希固定、所有自有进程清理。Root尚无open处理器，不宣称open恢复或新增open实窗通过；继续实际renderer/后台创建。[阶段一百一十四证据](../implementation/evidence/local-ssh-feature-parity/stage114)。
+
+
+阶段一百一十五以e827476ae补后台guest注册等待接口，沿原core.openBackground创建/复用1280×720停放guest，无挂载或聚焦；必须等真实main注册完成才确认，不等页面加载。取消单个等待不影响其他等待，移除/注册替换/同步及异步失败拒绝旧等待，最多八个并清理取消监听。八项新用例连同原runtime/design/layout/main共36项171断言、desktop类型/lint/兼容对照通过。夹具曾重设模拟guestId导致超时，修正getter并在等待前断言实际替换；导航时序改用受控started承诺，无加长期限或重试掩盖。Root尚无消费方，无新构建或实窗；原da67产品2205文件/79脚本/CLI哈希保持。继续布局与Root接入。[阶段一百一十五证据](../implementation/evidence/local-ssh-feature-parity/stage115)。
