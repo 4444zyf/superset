@@ -21,7 +21,12 @@ import type {
 } from "shared/workspace-view-v2";
 
 type BrowserPane = Extract<WorkspacePaneV2, { kind: "browser" }>;
+interface RegistrationWaiter {
+	finish(error?: Error): void;
+}
 interface Runtime {
+	waiters: Set<RegistrationWaiter>;
+	registrationError: Error | null;
 	id: string;
 	descriptor: DirectDescriptor;
 	workspaceId: string;
@@ -136,14 +141,34 @@ export class WorkstationBrowsers {
 							paneId: runtime.pane.paneId,
 							registrationId: crypto.randomUUID(),
 						};
+						if (runtime.registration)
+							this.finishRegistration(
+								runtime,
+								new Error("Browser registration changed"),
+							);
+						runtime.registrationError = null;
 						runtime.registration = registration;
 						runtime.registered = false;
-						const ready = api.browser.register({
-							...registration,
-							webContentsId,
-						});
-						runtime.ready = ready;
-						await ready;
+						try {
+							const ready = api.browser.register({
+								...registration,
+								webContentsId,
+							});
+							runtime.ready = ready;
+							await ready;
+						} catch (error) {
+							if (
+								this.entries.get(paneId) === runtime &&
+								runtime.registration === registration
+							) {
+								runtime.registrationError =
+									error instanceof Error
+										? error
+										: new Error("Browser registration failed");
+								this.finishRegistration(runtime, runtime.registrationError);
+							}
+							throw error;
+						}
 						if (
 							this.entries.get(paneId) !== runtime ||
 							runtime.registration !== registration
@@ -152,6 +177,7 @@ export class WorkstationBrowsers {
 							return;
 						}
 						runtime.registered = true;
+						this.finishRegistration(runtime);
 						await this.navigate(paneId, runtime.desiredUrl);
 					},
 				},
@@ -161,6 +187,10 @@ export class WorkstationBrowsers {
 						if (!runtime) return;
 						this.exitDesignMode(paneId);
 						const registration = runtime.registration;
+						this.finishRegistration(
+							runtime,
+							new Error("Browser registration removed"),
+						);
 						runtime.registration = null;
 						runtime.ready = null;
 						runtime.registered = false;
@@ -299,6 +329,8 @@ export class WorkstationBrowsers {
 				else throw Error("Browser pane limit exceeded");
 			}
 			runtime = {
+				waiters: new Set(),
+				registrationError: null,
 				id,
 				descriptor: { ...descriptor },
 				workspaceId,
@@ -400,6 +432,65 @@ export class WorkstationBrowsers {
 	detach(id: string): void {
 		this.exitDesignMode(id);
 		this.core.detach(id);
+	}
+	private finishRegistration(runtime: Runtime, error?: Error): void {
+		for (const waiter of [...runtime.waiters]) waiter.finish(error);
+	}
+	openBackground(
+		id: string,
+		signal?: AbortSignal,
+	): Promise<WorkstationBrowserPane> {
+		const runtime = this.entries.get(id);
+		if (!runtime)
+			return Promise.reject(new Error("Browser runtime was removed"));
+		if (signal?.aborted)
+			return Promise.reject(new Error("Browser open was cancelled"));
+		if (runtime.registered && runtime.registration)
+			return Promise.resolve({ ...runtime.registration });
+		if (runtime.registrationError)
+			return Promise.reject(runtime.registrationError);
+		if (!this.api.browser?.navigate)
+			return Promise.reject(new Error("Browser runtime is unavailable"));
+		if (runtime.waiters.size >= 8)
+			return Promise.reject(
+				new Error("Browser registration waiter limit exceeded"),
+			);
+		const pending = new Promise<WorkstationBrowserPane>((resolve, reject) => {
+			const cancelled = () =>
+				waiter.finish(new Error("Browser open was cancelled"));
+			const waiter: RegistrationWaiter = {
+				finish: (error) => {
+					if (!runtime.waiters.delete(waiter)) return;
+					signal?.removeEventListener("abort", cancelled);
+					if (error) reject(error);
+					else if (
+						this.entries.get(id) === runtime &&
+						runtime.registered &&
+						runtime.registration
+					)
+						resolve({ ...runtime.registration });
+					else reject(new Error("Browser registration is unavailable"));
+				},
+			};
+			runtime.waiters.add(waiter);
+			signal?.addEventListener("abort", cancelled, { once: true });
+		});
+		try {
+			this.core.openBackground(
+				id,
+				"about:blank",
+				runtime.workspaceId,
+				(state) => this.persist(runtime, state),
+			);
+		} catch (error) {
+			this.finishRegistration(
+				runtime,
+				error instanceof Error
+					? error
+					: new Error("Browser background creation failed"),
+			);
+		}
+		return pending;
 	}
 	registration(id: string): WorkstationBrowserPane | null {
 		return this.entries.get(id)?.registration ?? null;
@@ -530,6 +621,12 @@ export class WorkstationBrowsers {
 		}
 	}
 	destroy(id: string): void {
+		const runtime = this.entries.get(id);
+		if (runtime)
+			this.finishRegistration(
+				runtime,
+				new Error("Browser runtime was removed"),
+			);
 		this.exitDesignMode(id);
 		this.devices.reset(id);
 		this.entries.get(id)?.offState?.();
