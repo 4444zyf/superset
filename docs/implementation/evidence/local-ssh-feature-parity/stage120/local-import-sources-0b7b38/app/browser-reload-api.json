@@ -1,0 +1,295 @@
+{
+  "source": "0b7b38be1",
+  "mode": "Protected durable reload API invokes the original guest reload methods on the exact registered page; no new CLI command",
+  "calls": [
+    {
+      "procedure": "direct.browserReloadV1",
+      "input": {
+        "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56",
+        "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e",
+        "paneId": "5bcaa06b-3653-43a8-827c-c2545027fa86"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56",
+        "procedure": "browser.reloadV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e"
+        },
+        "result": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserReloadV1",
+      "input": {
+        "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56",
+        "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e",
+        "paneId": "5bcaa06b-3653-43a8-827c-c2545027fa86",
+        "hard": false
+      },
+      "status": 200,
+      "result": {
+        "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56",
+        "procedure": "browser.reloadV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e"
+        },
+        "result": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserReloadV1",
+      "input": {
+        "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56",
+        "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e",
+        "paneId": "5bcaa06b-3653-43a8-827c-c2545027fa86",
+        "hard": true
+      },
+      "status": 409,
+      "error": {
+        "message": "This operation ID has already been accepted with different inputs",
+        "code": -32009,
+        "data": {
+          "code": "CONFLICT",
+          "httpStatus": 409,
+          "stack": "TRPCError: This operation ID has already been accepted with different inputs\n    at DirectOperationStore.execute (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:49064:11)\n    at runBrowserReloadOperation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:81091:23)\n    at runDirectBrowserReload (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:81128:10)\n    at /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:81807:104\n    at resolveMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8120:26)\n    at callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:26)\n    at Object.next (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8161:16)\n    at inputValidatorMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:7968:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)",
+          "path": "direct.browserReloadV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserReloadV1",
+      "input": {
+        "operationId": "cb140139-2d7e-4aab-980a-dab2499ff923",
+        "workspaceId": "daf8d528-564e-428b-a348-fe02d9d6a551",
+        "paneId": "5bcaa06b-3653-43a8-827c-c2545027fa86"
+      },
+      "status": 400,
+      "error": {
+        "message": "Browser reload failed or pane is no longer current",
+        "code": -32600,
+        "data": {
+          "code": "BAD_REQUEST",
+          "httpStatus": 400,
+          "stack": "TRPCError: Browser reload failed or pane is no longer current\n    at rpcError$3 (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:81116:10)\n    at execute (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:81147:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:49088:24\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:81101:14\n    at async DirectOperationStore.runMutationOperation (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:48945:14)\n    at async resolveMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8120:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)",
+          "path": "direct.browserReloadV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserReloadV1",
+      "input": {
+        "operationId": "ffbb7ea4-5236-4e1d-876b-5a8365a573c4",
+        "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e",
+        "paneId": "5bcaa06b-3653-43a8-827c-c2545027fa86",
+        "hard": "false"
+      },
+      "status": 400,
+      "error": {
+        "message": "[\n  {\n    \"expected\": \"boolean\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"hard\"\n    ],\n    \"message\": \"Invalid input: expected boolean, received string\"\n  }\n]",
+        "code": -32600,
+        "data": {
+          "code": "BAD_REQUEST",
+          "httpStatus": 400,
+          "stack": "TRPCError: [\n  {\n    \"expected\": \"boolean\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"hard\"\n    ],\n    \"message\": \"Invalid input: expected boolean, received string\"\n  }\n]\n    at inputValidatorMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:7962:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:72967:18\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)\n    at async procedure (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8180:20)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:3556:22\n    at async resolveResponse (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:3585:32)",
+          "path": "direct.browserReloadV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserReloadV1",
+      "input": {
+        "operationId": "f5fe981b-9960-4e3f-b800-2ecb3deb0661",
+        "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e",
+        "paneId": "5bcaa06b-3653-43a8-827c-c2545027fa86",
+        "hard": true
+      },
+      "status": 200,
+      "result": {
+        "operationId": "f5fe981b-9960-4e3f-b800-2ecb3deb0661",
+        "procedure": "browser.reloadV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e"
+        },
+        "result": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "procedure": "direct.operationStatus",
+      "input": {
+        "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56",
+        "procedure": "browser.reloadV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e"
+        },
+        "result": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "procedure": "direct.operationStatus",
+      "input": {
+        "operationId": "f5fe981b-9960-4e3f-b800-2ecb3deb0661"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "f5fe981b-9960-4e3f-b800-2ecb3deb0661",
+        "procedure": "browser.reloadV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e"
+        },
+        "result": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "procedure": "direct.operationStatus",
+      "input": {
+        "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56",
+        "procedure": "browser.reloadV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e"
+        },
+        "result": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserReloadV1",
+      "input": {
+        "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56",
+        "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e",
+        "paneId": "5bcaa06b-3653-43a8-827c-c2545027fa86"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56",
+        "procedure": "browser.reloadV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e"
+        },
+        "result": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "procedure": "direct.operationStatus",
+      "input": {
+        "operationId": "f5fe981b-9960-4e3f-b800-2ecb3deb0661"
+      },
+      "status": 200,
+      "result": {
+        "operationId": "f5fe981b-9960-4e3f-b800-2ecb3deb0661",
+        "procedure": "browser.reloadV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e"
+        },
+        "result": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "procedure": "direct.browserReloadV1",
+      "input": {
+        "operationId": "f5fe981b-9960-4e3f-b800-2ecb3deb0661",
+        "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e",
+        "paneId": "5bcaa06b-3653-43a8-827c-c2545027fa86",
+        "hard": true
+      },
+      "status": 200,
+      "result": {
+        "operationId": "f5fe981b-9960-4e3f-b800-2ecb3deb0661",
+        "procedure": "browser.reloadV1",
+        "status": "completed",
+        "entityIds": {
+          "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e"
+        },
+        "result": {
+          "ok": true
+        }
+      }
+    }
+  ],
+  "completed": {
+    "first": {
+      "operationId": "7b14f3b5-ca6a-4634-a18d-629bea4ebe56",
+      "procedure": "browser.reloadV1",
+      "status": "completed",
+      "entityIds": {
+        "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e"
+      },
+      "result": {
+        "ok": true
+      }
+    },
+    "hard": {
+      "operationId": "f5fe981b-9960-4e3f-b800-2ecb3deb0661",
+      "procedure": "browser.reloadV1",
+      "status": "completed",
+      "entityIds": {
+        "workspaceId": "eb9fe0d5-cc36-40c6-956c-d35fc9985e5e"
+      },
+      "result": {
+        "ok": true
+      }
+    },
+    "baseline": 5,
+    "requestsAfter": 7,
+    "oneRequestPerNewOperation": true,
+    "defaultEquivalentDeduplication": true,
+    "backgroundSelectionAndFocusPreserved": true,
+    "canonicalUrl": "http://localhost:36615/next?value=%E4%B8%AD%20hello#section",
+    "rawGuestBefore": "http://localhost:36615/next?value=%E4%B8%AD%20hello#section",
+    "rawGuestAfter": "http://localhost:36615/next?value=%E4%B8%AD%20hello#section",
+    "rendererErrors": []
+  },
+  "reopened": {
+    "persisted": true,
+    "noReloadReplay": true,
+    "requestCountBefore": 8,
+    "requestCountAfter": 8,
+    "rendererErrors": []
+  }
+}

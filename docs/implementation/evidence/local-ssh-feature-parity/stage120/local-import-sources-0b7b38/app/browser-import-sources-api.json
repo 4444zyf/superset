@@ -1,0 +1,108 @@
+{
+  "source": "0b7b38be1",
+  "mode": "Actual protected sources query over local or owned SSH backend into the original desktop listing; Linux retains the original no-Keychain empty login list; no import or CLI mutation claim",
+  "calls": [
+    {
+      "authenticated": true,
+      "status": 200,
+      "result": {
+        "sources": []
+      }
+    },
+    {
+      "input": {
+        "profileDir": "/owned-but-not-an-input"
+      },
+      "authenticated": true,
+      "status": 400,
+      "error": {
+        "message": "[\n  {\n    \"expected\": \"undefined\",\n    \"code\": \"invalid_type\",\n    \"path\": [],\n    \"message\": \"Invalid input: expected undefined, received object\"\n  }\n]",
+        "code": -32600,
+        "data": {
+          "code": "BAD_REQUEST",
+          "httpStatus": 400,
+          "stack": "TRPCError: [\n  {\n    \"expected\": \"undefined\",\n    \"code\": \"invalid_type\",\n    \"path\": [],\n    \"message\": \"Invalid input: expected undefined, received object\"\n  }\n]\n    at inputValidatorMiddleware (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:7962:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:72967:18\n    at async callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:20)\n    at async procedure (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8180:20)\n    at async /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:3556:22\n    at async resolveResponse (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:3585:32)",
+          "path": "direct.browserImportSourcesV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "authenticated": false,
+      "status": 401,
+      "error": {
+        "message": "Invalid or missing authentication token.",
+        "code": -32001,
+        "data": {
+          "code": "UNAUTHORIZED",
+          "httpStatus": 401,
+          "stack": "TRPCError: Invalid or missing authentication token.\n    at /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:72988:49\n    at callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:26)\n    at next (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8161:16)\n    at /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:72967:24\n    at callRecursive (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8155:26)\n    at procedure (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:8180:26)\n    at /workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:3556:28\n    at Array.map (<anonymous>)\n    at resolveResponse (/workspace/superset/apps/desktop/dist/main/chunks/PskHostAuthProvider-D-ZHlA4v.js:3527:33)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)",
+          "path": "direct.browserImportSourcesV1",
+          "teardownFailure": null,
+          "projectNotSetup": null,
+          "deleteInProgress": null,
+          "i18nKey": null,
+          "i18nParams": null
+        }
+      }
+    },
+    {
+      "authenticated": true,
+      "status": 200,
+      "result": {
+        "sources": []
+      }
+    },
+    {
+      "authenticated": true,
+      "status": 200,
+      "result": {
+        "sources": []
+      }
+    }
+  ],
+  "completed": {
+    "detectedOwnedProfile": {
+      "id": "/workspace/scratch/parity-120/local-import-sources-0b7b38/config/google-chrome/Default",
+      "browserKey": "chrome",
+      "browserName": "Google Chrome",
+      "profileName": "Owned Login Sources 中文"
+    },
+    "loginSources": {
+      "sources": []
+    },
+    "sameOriginalLinuxKeychainFilter": true,
+    "sourceFilesUnchanged": [
+      {
+        "path": "/workspace/scratch/parity-120/local-import-sources-0b7b38/config/google-chrome/Default/History",
+        "sha256": "fb8beccb1d62d94eaf85f4ab481d9ee027026648333e4481856267997548bc44"
+      },
+      {
+        "path": "/workspace/scratch/parity-120/local-import-sources-0b7b38/config/google-chrome/Local State",
+        "sha256": "41ee48c4bce1fa45f6ed4a65fe25712f78aeade2009b7deef60e0da71e0af6b9"
+      }
+    ],
+    "selectionAndFocusPreserved": true,
+    "invalidInputAndUnauthorizedRejected": true,
+    "rendererErrors": []
+  },
+  "reopened": {
+    "sameOriginalLinuxKeychainFilter": true,
+    "sourceFilesUnchanged": [
+      {
+        "path": "/workspace/scratch/parity-120/local-import-sources-0b7b38/config/google-chrome/Default/History",
+        "sha256": "fb8beccb1d62d94eaf85f4ab481d9ee027026648333e4481856267997548bc44"
+      },
+      {
+        "path": "/workspace/scratch/parity-120/local-import-sources-0b7b38/config/google-chrome/Local State",
+        "sha256": "41ee48c4bce1fa45f6ed4a65fe25712f78aeade2009b7deef60e0da71e0af6b9"
+      }
+    ],
+    "selectionAndFocusPreserved": true,
+    "rendererErrors": []
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "sourceCommit": "0b7b38be187c92652c2852d2906a04e31ba76ef2",
+  "feature": "Protected read-only browser login source discovery through the actual owning desktop using the original Keychain filter; cookie mutation and namespace CLI still pending",
+  "tests": {
+    "cases": 206,
+    "assertions": 845,
+    "files": 27,
+    "newCases": 18,
+    "hostTypesExit": 0,
+    "sharedTypesExit": 0,
+    "desktopTypesExit": 0
+  },
+  "native": {
+    "cases": 2,
+    "newSourceApiCalls": 10,
+    "previousBrowserApiAndCliCalls": 212,
+    "totalCalls": 222,
+    "sshRestores": 20,
+    "statusesEach": [
+      200,
+      400,
+      401,
+      200,
+      200
+    ],
+    "seed": "Fresh owned Chrome Default with valid empty SQLite History and Local State profile name; no cookies or real user data",
+    "verified": [
+      "original desktop GUI source getter detects the owned profile",
+      "actual Linux login source query is empty because original hasSafeStorageKey returns false off macOS",
+      "query rejects path arguments and unauthorized requests",
+      "History and Local State hashes unchanged across reads and normal app reopen",
+      "workspace selection and keyboard focus preserved",
+      "existing browser API and source CLI operations still pass with the real original import hint visible",
+      "original PTY execution/cwd/clipboard guards retained"
+    ]
+  },
+  "compiledFiles": 2205,
+  "fixtureCount": 83,
+  "manifestSha256": "ad3ce7c431e5314ad6a60558e838c477548d0f6cd3bca088c4ac52137a0f4372",
+  "bundledCliRebuilt": false,
+  "runtimeGraphsUnchangedDuringNative": true,
+  "noActions": true,
+  "typeFailuresRetained": [
+    {
+      "file": "shared-types.log.gz",
+      "fix": "Literal discriminants in the new test narrowed with const; runtime product unchanged."
+    },
+    {
+      "file": "desktop-types.log.gz",
+      "fix": "The new listing callback returns unknown at its trust boundary and the existing handler validates it with Zod after awaiting; this retains original source metadata without imposing a new index signature on the original ChromeImportSource interface."
+    }
+  ],
+  "lint": "New files pass full Biome check. Changed old files pass without import assistance and with the inherited control-character regex rule skipped; ten inherited warnings retained. Old AST proof preserves original code.",
+  "screenshotsViewed": [
+    "local-import-sources-0b7b38/app/browser-import-sources-read-only.png",
+    "local-import-sources-0b7b38/app/browser-import-sources-reopened.png",
+    "ssh-import-sources-0b7b38/app/browser-import-sources-read-only.png",
+    "ssh-import-sources-0b7b38/app/browser-import-sources-reopened.png",
+    "ssh-import-sources-0b7b38/app/browser-reopened.png"
+  ],
+  "limitations": [
+    "Native positive Keychain-backed login sources not verified; Linux preserves the original empty result rather than injecting credentials or faking sources",
+    "Actual Cookie import operation and source CLI namespace adapter remain pending",
+    "Physical macOS, external SSH and real vendor agents remain unverified",
+    "No packaged CLI rebuild, installer, sealed backend archive or Actions run"
+  ]
+}
