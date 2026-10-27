@@ -1,3 +1,5 @@
+import type { BrowserReloadInput } from "./browser-reload-operation";
+import { BrowserReloadTransfer } from "./browser-reload-transfer";
 import { BrowserOpenTransfer } from "./browser-open-transfer";
 import type { BrowserOpenInput } from "./browser-open-operation";
 import { randomUUID } from "node:crypto";
@@ -38,6 +40,7 @@ interface Peer {
 	transport: DirectBrowserReadTransport;
 	ready: boolean;
 	capturePngV1: boolean;
+	reloadV1: boolean;
 	navigateV1: boolean;
 	evaluateV1: boolean;
 	openV1: boolean;
@@ -65,6 +68,7 @@ export class DirectBrowserReadBridge {
 	private disposed = false;
 	private readonly schedule: typeof schedule;
 	private readonly capture: BrowserCaptureTransfer;
+	private readonly reload: BrowserReloadTransfer;
 	private readonly navigation: BrowserNavigationTransfer;
 	private readonly evaluation: BrowserEvaluationTransfer;
 	private readonly openTransfer: BrowserOpenTransfer;
@@ -79,6 +83,10 @@ export class DirectBrowserReadBridge {
 			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
 		});
 		this.evaluation = new BrowserEvaluationTransfer({
+			schedule: this.schedule,
+			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
+		});
+		this.reload = new BrowserReloadTransfer({
 			schedule: this.schedule,
 			failure: (kind, message) => new DirectBrowserBridgeError(kind, message),
 		});
@@ -103,6 +111,32 @@ export class DirectBrowserReadBridge {
 	}
 	capturePng(workspaceId: string, paneId: string): Promise<{ base64: string }> {
 		return this.capture.capturePng(workspaceId, paneId);
+	}
+	isReloadReady(): boolean {
+		return this.isReady() && this.peer?.reloadV1 === true;
+	}
+	pinReload(input: BrowserReloadInput) {
+		const peer = this.peer;
+		if (!peer || !this.isReloadReady())
+			throw new DirectBrowserBridgeError(
+				"unavailable",
+				"Browser reload bridge is unavailable",
+			);
+		return this.reload.pin(input, {
+			current: () => this.peer === peer && this.isReloadReady(),
+			send: (packet) => this.send(peer, packet),
+			invalidate: (error) =>
+				this.drop(
+					peer,
+					error instanceof DirectBrowserBridgeError
+						? error
+						: new DirectBrowserBridgeError(
+								"unavailable",
+								"Browser reload disconnected",
+							),
+					1011,
+				),
+		});
 	}
 	isNavigationReady(): boolean {
 		return this.isReady() && this.peer?.navigateV1 === true;
@@ -209,6 +243,7 @@ export class DirectBrowserReadBridge {
 			transport,
 			ready: false,
 			capturePngV1: false,
+			reloadV1: false,
 			navigateV1: false,
 			evaluateV1: false,
 			openV1: false,
@@ -248,6 +283,7 @@ export class DirectBrowserReadBridge {
 		if (this.peer !== peer) return;
 		this.peer = null;
 		this.capture.disconnect(error);
+		this.reload.disconnect(error);
 		this.navigation.disconnect(error);
 		this.evaluation.disconnect(error);
 		this.openTransfer.disconnect(error);
@@ -278,6 +314,7 @@ export class DirectBrowserReadBridge {
 				peer.cancelHandshake();
 				peer.ready = true;
 				peer.capturePngV1 = packet.features.includes("capturePngV1");
+				peer.reloadV1 = packet.features.includes("reloadV1");
 				peer.navigateV1 = packet.features.includes("navigateV1");
 				peer.evaluateV1 = packet.features.includes("evaluateV1");
 				peer.openV1 = packet.features.includes("openV1");
@@ -291,6 +328,7 @@ export class DirectBrowserReadBridge {
 						...(peer.navigateV1 ? ["navigateV1"] : []),
 						...(peer.evaluateV1 ? ["evaluateV1"] : []),
 						...(peer.openV1 ? ["openV1"] : []),
+						...(peer.reloadV1 ? ["reloadV1"] : []),
 					],
 				});
 				return;
@@ -318,6 +356,11 @@ export class DirectBrowserReadBridge {
 				if (!peer.evaluateV1)
 					throw Error("Evaluation feature was not negotiated");
 				this.evaluation.receive(packet);
+				return;
+			}
+			if (packet.type === "reload-result") {
+				if (!peer.reloadV1) throw Error("Reload feature was not negotiated");
+				this.reload.receive(packet);
 				return;
 			}
 			if (packet.type === "navigate-result") {

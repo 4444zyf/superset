@@ -62,6 +62,13 @@ export const browserBridgeCaptureRequestSchema = z.object({
 	workspaceId,
 	paneId: z.string().min(1).max(256),
 });
+export const browserBridgeReloadRequestSchema = z.strictObject({
+	type: z.literal("reload-request"),
+	id: z.string().uuid(),
+	workspaceId,
+	paneId: z.string().min(1).max(256),
+	hard: z.boolean(),
+});
 export const browserBridgeNavigateRequestSchema = z.strictObject({
 	type: z.literal("navigate-request"),
 	id: z.string().uuid(),
@@ -131,6 +138,19 @@ const openResultSchema = z.discriminatedUnion("ok", [
 		scopeId: z.string().uuid(),
 		ok: z.literal(false),
 		error: z.object({ message: z.string().max(4096) }),
+	}),
+]);
+const reloadResultSchema = z.discriminatedUnion("ok", [
+	z.strictObject({
+		type: z.literal("reload-result"),
+		id: z.string().uuid(),
+		ok: z.literal(true),
+	}),
+	z.strictObject({
+		type: z.literal("reload-result"),
+		id: z.string().uuid(),
+		ok: z.literal(false),
+		error: z.strictObject({ message: z.string().max(4096) }),
 	}),
 ]);
 const navigateResultSchema = z.discriminatedUnion("ok", [
@@ -203,6 +223,8 @@ export const browserBridgePacketSchema = z.union([
 	browserBridgeCaptureRequestSchema,
 	captureChunkSchema,
 	captureDoneSchema,
+	browserBridgeReloadRequestSchema,
+	reloadResultSchema,
 	browserBridgeNavigateRequestSchema,
 	navigateResultSchema,
 	browserBridgeEvaluateRequestSchema,
