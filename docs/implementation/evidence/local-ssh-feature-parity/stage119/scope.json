@@ -1,0 +1,72 @@
+{
+  "sourceCommit": "dfe532e6abdc8947f9ec3df569801762c90c4887",
+  "feature": "Protected versioned durable browser reload API into the original actual guest; legacy browser.reload and GUI paths preserved; no new CLI command",
+  "tests": {
+    "cases": 181,
+    "assertions": 759,
+    "files": 21,
+    "newTests": 14,
+    "hostTypesExit": 0,
+    "desktopTypesExit": 0
+  },
+  "native": {
+    "cases": 2,
+    "newReloadCalls": 24,
+    "originalBrowserApiAndCliCalls": 188,
+    "totalCalls": 212,
+    "sshRestores": 20,
+    "statusesEach": [
+      200,
+      200,
+      409,
+      400,
+      400,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "verified": [
+      "ordinary and hard reload dispatch to the original owned page",
+      "one HTTP request per new operation",
+      "omitted hard and explicit false deduplicate",
+      "changed cache intent conflicts",
+      "foreign workspace and malformed cache intent rejected",
+      "background terminal selection and keyboard focus preserved",
+      "canonical URL and actual forwarded guest URL retained",
+      "normal reopen receipts do not issue another reload",
+      "original terminal execution/cwd and capture clipboard guards remain intact"
+    ]
+  },
+  "compiledFiles": 2205,
+  "fixtureCount": 82,
+  "productManifestSha256": "447cc3d8beecc17f7ddd81a4e698865481bb961913175d293ff1affd293fa328",
+  "runtimeSourceUnchangedDuringNative": true,
+  "bundledCliRebuilt": false,
+  "newCliCommandAdded": false,
+  "noActions": true,
+  "fixtureTypeFailureRetained": {
+    "file": "desktop-types.log.gz",
+    "cause": "Registry fixture input is unknown; narrow it to the owned test pane type. Product source unchanged by this fix.",
+    "final": "desktop-types-final.log.gz exits 0"
+  },
+  "lint": "New files pass full Biome check. Existing files pass without import assistance and with the inherited control-character regex rule skipped; ten inherited warnings remain. Old AST proof verifies preserved source.",
+  "screenshotsViewed": [
+    "local-reload-dfe532/app/browser-reload-terminal-before.png",
+    "local-reload-dfe532/app/browser-reload-background-terminal.png",
+    "local-reload-dfe532/app/browser-reload-page.png",
+    "ssh-reload-dfe532/app/browser-reload-terminal-before.png",
+    "ssh-reload-dfe532/app/browser-reload-background-terminal.png",
+    "ssh-reload-dfe532/app/browser-reload-page.png",
+    "ssh-reload-dfe532/app/browser-reopened.png"
+  ],
+  "limitations": [
+    "Receipt acknowledges dispatch, not successful page load; native HTTP and page checks recorded separately",
+    "Method selection is unit-verified and both modes reach the actual native page; owned HTTP pages use no-store, so this is not an independent cache eviction test",
+    "Linux source Electron and owned loopback SSH only; no physical macOS, external SSH or real vendor agent acceptance",
+    "Browser import-login/CDP source CLI, right pane and overall feature parity remain pending"
+  ]
+}
