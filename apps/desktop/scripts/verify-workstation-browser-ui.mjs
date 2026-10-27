@@ -270,11 +270,7 @@ export async function verifyWorkstationBrowserUi(options) {
 			report.navigationApi = navigationApi.report;
 			save();
 		}
-        if(process.argv.includes("--browser-open-api")) {
-            const {verifyWorkstationBrowserOpenApiUi}=await import("./verify-workstation-browser-open-api-ui.mjs");
-            openApi=await verifyWorkstationBrowserOpenApiUi(options,{scope,url,readProof,readView,workspace,terminalTab});
-            report.openApi=openApi.report;save();
-        }
+
 		if (process.argv.includes("--browser-design")) {
 			const { verifyWorkstationBrowserDesignUi } = await import("./verify-workstation-browser-design-ui.mjs");
 			report.design = await verifyWorkstationBrowserDesignUi(options, {scope, url, marker, readProof, guestRead, key, readView, workspace, terminalTab});
@@ -551,6 +547,11 @@ export async function verifyWorkstationBrowserUi(options) {
 		report.rendererBeforeReopen = getPage().errors;
 		assert.deepEqual(report.rendererBeforeReopen, []);
 		save();
+        if(process.argv.includes("--browser-open-api")) {
+            const {verifyWorkstationBrowserOpenApiUi}=await import("./verify-workstation-browser-open-api-ui.mjs");
+            openApi=await verifyWorkstationBrowserOpenApiUi(options,{scope,url,readProof,readView,workspace,terminalTab});
+            report.openApi=openApi.report;save();
+        }
 		await closeReopen();
 		await until(
 			async () =>
