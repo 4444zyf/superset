@@ -5,7 +5,7 @@ import {join} from "node:path";
 import {resolveDirectNamespace} from "../../../packages/cli/src/lib/direct-namespace/resolveDirectNamespace.ts";
 import {agentUiDriver} from "./verify-workstation-agent-ui-driver.mjs";
 export async function verifyWorkstationBrowserOpenApiUi(options,{scope,url,readProof,readView,workspace,terminalTab}){
- const {until}=agentUiDriver(options),controls=options.controls.forNamespace?.(scope.d.namespaceId)??options.controls;
+ const {until,rect}=agentUiDriver(options),controls=options.controls.forNamespace?.(scope.d.namespaceId)??options.controls;
  const report={source:process.env.GITHUB_SHA,mode:"Actual protected durable open API into the real Root and original parked Electron browser; workspace setup uses the existing durable accountless API, no open CLI or pin-UI claim",calls:[]};
  const save=()=>writeFileSync(join(options.output,"browser-open-api.json"),JSON.stringify(report,null,2)+"\n");
  const ready=()=>until(async()=>{const description=(await resolveDirectNamespace(controls.browserNamespaceHome())).description;assert.equal(description.namespaceId,scope.d.namespaceId);return description.capabilities.workstationBrowserOpenV1===true;},"owned browser open renderer ready");
@@ -40,7 +40,11 @@ export async function verifyWorkstationBrowserOpenApiUi(options,{scope,url,readP
  await until(async()=>await count()===1,"owned HTTP page loaded through actual browser open navigation");assert.equal(workspace(await readView()).panes.find(p=>p.paneId===http.result.result.paneId)?.browser.url,httpUrl);assert.deepEqual(selected(await readView()),beforeHttp);assert.deepEqual(await focus(),httpFocus);
  await options.screenshot("browser-open-http-background-terminal");
  const added=workspace(await readView()).paneTabs.find(tab=>tab.layout.type==="pane"&&tab.layout.paneId===http.result.result.paneId);assert.ok(added);
- await options.click(`[data-workstation-pane-tabs] [data-tab-id="${added.tabId}"] button[aria-label="Close tab"]`);await until(async()=>!workspace(await readView()).panes.some(p=>p.paneId===http.result.result.paneId),"original UI closes only added browser tab");
+ const closeSelector=`[data-workstation-pane-tabs] [data-tab-id="${added.tabId}"] button[aria-label="Close tab"]`,closePoint=await rect(closeSelector);assert.ok(closePoint);
+ await options.getPage().call("Input.dispatchMouseEvent",{type:"mouseMoved",x:closePoint.x,y:closePoint.y});
+ await until(()=>options.getPage().evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(closeSelector)});if(!e)return false;const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2),style=getComputedStyle(e);return style.pointerEvents==='auto'&&Number(style.opacity)===1&&(hit===e||e.contains(hit));})()`),"original close button is revealed by real hover");
+ report.closeHover={point:closePoint,realMouseMove:true};save();
+ await options.click(closeSelector);await until(async()=>!workspace(await readView()).panes.some(p=>p.paneId===http.result.result.paneId),"original UI closes only added browser tab");
  await options.click(`[data-workstation-pane-tabs] [data-tab-id="${originalBrowserTab}"]`);assert.deepEqual(workspace(await readView()).panes.filter(p=>p.kind==="browser").map(p=>p.paneId),originalBrowserIds);
  assert.deepEqual((await rpc("terminal.list","query",{workspaceId:id})).sessions,[]);const cached=await request("direct.operationStatus",{operationId:firstInput.operationId});assert.deepEqual(cached.result,first.result);
  const ids=row(await readView(),id).panes.map(p=>p.paneId).sort();report.completed={first:first.result,http:http.result,projectlessBrowserOnly:true,noTerminalCreated:true,backgroundSelectionAndFocusPreserved:true,explicitShow:true,newTabAndCurrentReplacement:true,defaultEquivalentDeduplication:true,httpRequestCount:await count(),browserIds:ids};save();
