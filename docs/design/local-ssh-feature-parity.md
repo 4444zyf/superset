@@ -260,3 +260,6 @@
 
 
 阶段一百一十三以7a7e15142补open内部原子保存：接受导航前、进入原保存队列及所有异步资源检查后的最终写入前核验作用域；真实renderer请求取消后，待完成的SQLite布局保存被拒绝。新增公开isCurrent复用完整owner/epoch/订阅/scope/id/目标检查，DTO移入共享类型供后续renderer使用。六项新用例，相关回归75项304断言、desktop类型/lint/插件及旧保存AST兼容对照通过。main/preload/renderer仍未接线，openV1未启用，不宣称open恢复；无新构建或实窗，原58b编译2205文件/79脚本/CLI哈希保持。继续实际接入。[阶段一百一十三证据](../implementation/evidence/local-ssh-feature-parity/stage113)。
+
+
+阶段一百一十四以fd01cbd63接main/preload打开请求与实际owner/epoch、连接/namespace及允许关闭/退出生命周期；严格新IPC、原子保存、真实注册pane回执验证，就绪仍需Root握手。首轮实窗暴露preload误带zod导致启动失败，失败证据保留；da67b8155将通道常量拆为无依赖模块，编译preload只require electron。79项332断言、desktop类型/lint/旧AST对照及完整构建通过；修复后同一产品两端130次既有浏览器API/CLI回归及SSH20恢复通过，后台焦点/PTY/执行/cwd/剪贴板/正常重开保持，2205编译文件/79脚本/CLI哈希固定、所有自有进程清理。Root尚无open处理器，不宣称open恢复或新增open实窗通过；继续实际renderer/后台创建。[阶段一百一十四证据](../implementation/evidence/local-ssh-feature-parity/stage114)。

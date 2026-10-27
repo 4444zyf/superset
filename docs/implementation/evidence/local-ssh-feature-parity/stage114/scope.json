@@ -1,0 +1,27 @@
+{
+  "sourceCommit": "da67b81551f8a03cb6a363e0311c0b5211f9ee61",
+  "mainPreloadCommit": "fd01cbd638e13ba0d6657f96e221d15b3eba7458",
+  "mainPreloadBound": true,
+  "rendererOpenHandler": false,
+  "openFeatureRestored": false,
+  "firstNativeFailure": "fd01 sandbox preload imported schema module and required unavailable zod; failure retained",
+  "fix": "da67 keeps preload channel strings in a runtime-dependency-free module; compiled preload requires electron only",
+  "regression": {
+    "tests": 79,
+    "assertions": 332,
+    "files": 7
+  },
+  "native": "Original browser/API/CLI regression only, not browser-open acceptance",
+  "screenshotsViewed": [
+    "local-cli-eval-fd01cb/app/failure.png",
+    "local-cli-eval-da67b8/app/browser-evaluation-cli-background-terminal.png",
+    "ssh-cli-eval-da67b8/app/browser-evaluation-cli-background-terminal.png",
+    "ssh-cli-eval-da67b8/app/browser-reopened.png"
+  ],
+  "notCovered": [
+    "physical macOS",
+    "external SSH target",
+    "actual vendor agent TUI",
+    "browser open renderer"
+  ]
+}
