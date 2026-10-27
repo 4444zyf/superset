@@ -39,6 +39,7 @@ import { runArchivedWorkspaceReconcile } from "./runtime/archived-workspace-reco
 import { registerBrowserCdpRoute } from "./runtime/browser-bridge/browser-cdp-route";
 import { registerDirectBrowserReadRoute } from "./direct/browser-read-route";
 import { registerDirectBrowserCdpRoute } from "./direct/browser-cdp-route";
+import { authorizeDirectBrowserCdpUpgrade } from "./direct/browser-cdp-auth";
 import type { DirectBrowserReadBridge } from "./direct/browser-read-bridge";
 import { WorkspaceFilesystemManager } from "./runtime/filesystem";
 import type { GitCredentialProvider } from "./runtime/git";
@@ -467,7 +468,8 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 		const token = c.req.query("token");
 		const authorized =
 			(await providers.hostAuth.validate(c.req.raw)) ||
-			(token && (await providers.hostAuth.validateToken(token)));
+			(token && (await providers.hostAuth.validateToken(token))) ||
+			(isDirect && await authorizeDirectBrowserCdpUpgrade(c.req.raw, config.direct, providers.hostAuth));
 		if (!authorized) return c.json({ error: "Unauthorized" }, 401);
 		return next();
 	};

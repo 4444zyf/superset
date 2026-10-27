@@ -80,3 +80,13 @@ Listing needs no operation ID. Importing with `--from` requires a UUID for that 
 The source query requires the negotiated source-list capability, and importing also requires durable operations and the ready cookie-import capability. The dedicated import transport can send only one versioned cookie-import mutation. A completed ID returns its saved counts, including a saved `keyUnavailable: true`, without rereading or reimporting cookies. After granting Keychain access, a deliberate new import needs a new ID. On any failure or lost connection, inspect the original ID with `browser operation-status` before attempting another import; the CLI never retries automatically. The client request budget is 20 seconds while the desktop may still be waiting on the original 120-second Keychain prompt, so a client timeout does not mean the operation stopped. A pending or unresolved result must be inspected rather than replayed.
 
 This is source CLI support; the bundled CLI binary has not been rebuilt. Native validation currently covers Linux empty-list/rejection behavior and original durable API receipt inspection on local and owned SSH targets. Positive source matching/import output is covered through an owned Unix-socket test endpoint; macOS credential import and a positive native CLI import remain unverified.
+
+The original raw CDP endpoint command supports an explicit namespace:
+
+```sh
+superset browser cdp --namespace "$SUPERSET_HOME_DIR" --workspace <workspace-id> --pane <pane-id> --json
+```
+
+It verifies the pane through the selected backend and returns the original `{ url }` shape. The new URL is limited to that backend instance, workspace and browser pane; it contains a derived credential rather than the namespace PSK. Open a new connection within five minutes of generating it. An established connection lasts until it is closed or the owning desktop connection retires. Generate a fresh URL after a backend restart. Keep the returned URL out of shared logs.
+
+The raw CDP connection reuses the original single-page target shim, debugger and hidden-pane wake. It is an ephemeral protocol: the bridge does not journal commands or replay them after disconnects. The CLI requires both ready CDP and instance-bound endpoint capabilities; older backends are rejected explicitly. `--host` and `--namespace` cannot be combined. The original account-based command remains the default when no namespace is supplied. This remains source CLI support until a separately requested binary build.

@@ -1,5 +1,9 @@
 import { lstatSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
+import { msg } from "@lingui/core/macro";
+import { CLIError } from "@superset/cli-framework";
+import { i18n } from "@superset/i18n";
+import { mintBrowserCdpToken } from "@superset/shared/browser-cdp-token";
 import { privateSocketFetch } from "@superset/direct-connection/private-socket";
 import { readPrivateBackendFile } from "@superset/direct-install/health";
 import type { AppRouter } from "@superset/host-service/trpc";
@@ -55,12 +59,40 @@ export async function resolveBrowserImportNamespace(input: string) {
 	return resolveNamespace(input, false, false, false, true);
 }
 
+export async function resolveBrowserCdpNamespace(
+	input: string,
+	scope: { workspaceId: string; paneId: string },
+) {
+	const target = await resolveNamespace(
+		input,
+		false,
+		false,
+		false,
+		false,
+		scope,
+	);
+	if (!target.ws)
+		throw new CLIError(
+			i18n._(
+				msg({
+					message: "Browser CDP is unavailable for the selected namespace",
+				}),
+			),
+		);
+	return {
+		description: target.description,
+		client: target.client,
+		ws: target.ws,
+	};
+}
+
 async function resolveNamespace(
 	input: string,
 	allowNavigation: boolean,
 	allowEvaluation = false,
 	allowOpen = false,
 	allowImport = false,
+	cdpScope?: { workspaceId: string; paneId: string },
 ) {
 	const uid = process.getuid?.();
 	if (uid === undefined || uid < 1)
@@ -319,5 +351,26 @@ async function resolveNamespace(
 			}),
 		],
 	});
-	return { description, client };
+	return {
+		description,
+		client,
+		...(cdpScope &&
+		description.capabilities.workstationBrowserCdpV1 === true &&
+		description.capabilities.workstationBrowserCdpEndpointV1 === true &&
+		description.capabilities.workstationBrowserReadBridgeV1 === true
+			? {
+					ws: {
+						baseWsUrl: `ws://127.0.0.1:${endpoint.port}/direct`,
+						token: mintBrowserCdpToken(secret, {
+							backendId: endpoint.backendId,
+							namespaceId: endpoint.namespaceId,
+							instanceId: endpoint.instanceId,
+							workspaceId: cdpScope.workspaceId,
+							paneId: cdpScope.paneId,
+						}),
+						instanceId: endpoint.instanceId,
+					},
+				}
+			: {}),
+	};
 }

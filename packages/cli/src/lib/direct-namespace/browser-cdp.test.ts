@@ -1,0 +1,274 @@
+import { afterEach, expect, test } from "bun:test";
+import {
+	chmodSync,
+	mkdirSync,
+	mkdtempSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
+import { createServer, type Server } from "node:http";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { camelToKebab, parseArgv } from "@superset/cli-framework";
+import { verifyBrowserCdpToken } from "@superset/shared/browser-cdp-token";
+import { directBackendSocketPath } from "@superset/shared/direct-backend-socket";
+import SuperJSON from "superjson";
+import cdp from "../../commands/browser/cdp/command";
+import { createUnavailableApiClient } from "../api-client";
+import {
+	resolveBrowserCdpNamespace,
+	resolveDirectNamespace,
+} from "./resolveDirectNamespace";
+
+const roots: string[] = [],
+	servers: Server[] = [];
+afterEach(async () => {
+	for (const s of servers.splice(0))
+		await new Promise<void>((r) => s.close(() => r()));
+	for (const p of roots.splice(0)) rmSync(p, { recursive: true, force: true });
+});
+async function fixture() {
+	const homeDir = mkdtempSync(join(tmpdir(), "remix-cli-cdp-"));
+	roots.push(homeDir);
+	for (const name of ["state", "credentials"])
+		mkdirSync(join(homeDir, name), { mode: 0o700 });
+	const config = {
+		backendId: crypto.randomUUID(),
+		namespaceId: crypto.randomUUID(),
+		homeDir,
+		secretFile: join(homeDir, "credentials/host-secret"),
+		migrationsFolder: join(homeDir, "migrations"),
+		allowedOrigins: [],
+		installationMode: "local",
+	};
+	const endpoint = {
+		backendId: config.backendId,
+		namespaceId: config.namespaceId,
+		instanceId: "owned-cdp-instance",
+		serviceUid: process.getuid?.() ?? 1000,
+		runtimeMode: "direct",
+		protocolVersion: 1,
+		port: 43219,
+		socketPath: directBackendSocketPath({
+			...config,
+			uid: process.getuid?.() ?? 1000,
+		}),
+	};
+	const socketRoot = join(endpoint.socketPath, "..");
+	mkdirSync(socketRoot, { recursive: true, mode: 0o700 });
+	roots.push(socketRoot);
+	const write = (path: string, value: unknown) =>
+		writeFileSync(
+			join(homeDir, path),
+			typeof value === "string" ? value : JSON.stringify(value),
+			{ mode: 0o600 },
+		);
+	write("service-config.json", config);
+	write("identity.json", {
+		backendId: config.backendId,
+		namespaceId: config.namespaceId,
+	});
+	write("state/endpoint.json", endpoint);
+	write("credentials/host-secret", "a".repeat(64));
+	const capabilities: Record<string, unknown> = {
+		workstationBrowserCdpV1: true,
+		workstationBrowserCdpEndpointV1: true,
+		workstationBrowserReadBridgeV1: true,
+		durableOperations: false,
+	};
+	const requests: Array<{
+		path: string;
+		method: string;
+		authenticated: boolean;
+		input?: unknown;
+	}> = [];
+	const server = createServer((req, res) => {
+		const path = (req.url ?? "").split("?")[0] ?? "",
+			authenticated = req.headers.authorization === `Bearer ${"a".repeat(64)}`;
+		const call = {
+			path,
+			method: req.method ?? "GET",
+			authenticated,
+			input: undefined as unknown,
+		};
+		requests.push(call);
+		res.setHeader("Content-Type", "application/json");
+		if (!authenticated) {
+			res.writeHead(401);
+			res.end("{}");
+			return;
+		}
+		if (path === "/direct/describe") {
+			res.end(JSON.stringify({ ...endpoint, capabilities }));
+			return;
+		}
+		if (path !== "/trpc/direct.browserReadV1")
+			throw Error("Unexpected fixture procedure");
+		const url = new URL(req.url ?? "", "http://owned.invalid"),
+			input = JSON.parse(url.searchParams.get("input") ?? "{}")["0"].json;
+		call.input = input;
+		const value = {
+			panes:
+				input.workspaceId === "workspace"
+					? [
+							{
+								paneId: "pane-α",
+								workspaceId: "workspace",
+								url: "about:blank",
+								title: "Owned 中文",
+								isLoading: false,
+							},
+						]
+					: [],
+		};
+		res.end(JSON.stringify([{ result: { data: SuperJSON.serialize(value) } }]));
+	});
+	servers.push(server);
+	await new Promise<void>((r) => server.listen(endpoint.socketPath, r));
+	chmodSync(endpoint.socketPath, 0o600);
+	return { homeDir, endpoint, capabilities, requests, write };
+}
+function run(options: Record<string, unknown>) {
+	return cdp.run({
+		ctx: {
+			config: {},
+			bearer: "",
+			authSource: "direct",
+			api: createUnavailableApiClient(),
+		},
+		args: {} as never,
+		options: { workspace: "workspace", pane: "pane-α", ...options } as never,
+		signal: new AbortController().signal,
+	}) as Promise<{ data: { url: string }; message: string }>;
+}
+test("the original CDP parser accepts an explicit namespace with its existing workspace and pane flags", () => {
+	const configs = Object.fromEntries(
+		Object.entries(cdp.options ?? {}).map(([name, b]) => [
+			name,
+			{ ...b._.config, name: camelToKebab(name) },
+		]),
+	);
+	expect(
+		parseArgv(
+			[
+				"bun",
+				"superset",
+				"--namespace",
+				"/Owned namespace",
+				"--workspace",
+				"workspace",
+				"--pane",
+				"pane-α",
+			],
+			configs,
+		).options,
+	).toMatchObject({
+		namespace: "/Owned namespace",
+		workspace: "workspace",
+		pane: "pane-α",
+	});
+});
+test("namespace CDP verifies the pane and returns the original output format with an instance-bound endpoint", async () => {
+	const f = await fixture(),
+		result = await run({ namespace: f.homeDir }),
+		url = new URL(result.data.url);
+	expect(url.protocol).toBe("ws:");
+	expect(url.hostname).toBe("127.0.0.1");
+	expect(url.port).toBe(String(f.endpoint.port));
+	expect(url.pathname).toBe("/direct/browser/pane-%CE%B1/cdp-v1");
+	expect(url.searchParams.get("workspaceId")).toBe("workspace");
+	expect(url.searchParams.get("instanceId")).toBe(f.endpoint.instanceId);
+	expect(url.searchParams.get("token")).not.toBe("a".repeat(64));
+	expect(
+		verifyBrowserCdpToken(
+			"a".repeat(64),
+			{ ...f.endpoint, workspaceId: "workspace", paneId: "pane-α" },
+			url.searchParams.get("token") ?? "",
+		),
+	).toBe(true);
+	expect(result.message).toBe(
+		result.data.url +
+			"\n\nNote: this URL contains an auth token — treat it as a secret.",
+	);
+	expect(f.requests.map((r) => r.path)).toEqual([
+		"/direct/describe",
+		"/trpc/direct.browserReadV1",
+	]);
+	expect(f.requests.every((r) => r.authenticated && r.method === "GET")).toBe(
+		true,
+	);
+	expect(f.requests[1]?.input).toEqual({
+		type: "list",
+		workspaceId: "workspace",
+	});
+});
+test("missing or foreign panes retain the original errors and never return a credential URL", async () => {
+	const f = await fixture();
+	for (const options of [{ pane: "missing" }, { workspace: "foreign" }]) {
+		try {
+			await run({ namespace: f.homeDir, ...options });
+			throw Error("Expected original missing pane rejection");
+		} catch (error) {
+			expect(String(error)).toContain("No browser pane");
+			expect((error as { suggestion?: string }).suggestion).toBe(
+				"Run: superset browser list --workspace <id>",
+			);
+			expect(String(error)).not.toContain("token=");
+		}
+	}
+});
+test("CDP, instance-endpoint and read capabilities are required before exposing endpoint credentials", async () => {
+	const f = await fixture();
+	for (const key of [
+		"workstationBrowserCdpV1",
+		"workstationBrowserCdpEndpointV1",
+		"workstationBrowserReadBridgeV1",
+	]) {
+		f.capabilities[key] = false;
+		await expect(run({ namespace: f.homeDir })).rejects.toThrow(
+			"CDP is unavailable",
+		);
+		f.capabilities[key] = true;
+	}
+	expect(f.requests.every((r) => r.path === "/direct/describe")).toBe(true);
+});
+test("ordinary namespace resolution does not expose WebSocket credentials and CDP resolution cannot POST", async () => {
+	const f = await fixture(),
+		read = await resolveDirectNamespace(f.homeDir);
+	expect(Object.hasOwn(read, "ws")).toBe(false);
+	const t = await resolveBrowserCdpNamespace(f.homeDir, {
+		workspaceId: "workspace",
+		paneId: "pane-α",
+	});
+	expect(t.ws.instanceId).toBe(f.endpoint.instanceId);
+	await expect(
+		t.client.direct.browserEvaluateV1.mutate({
+			operationId: crypto.randomUUID(),
+			workspaceId: "workspace",
+			paneId: "pane-α",
+			code: "1",
+		}),
+	).rejects.toThrow("read-only");
+	expect(f.requests.every((r) => r.method === "GET")).toBe(true);
+});
+test("namespace CDP rejects ambiguous flags before credentials and preserves the original account route", async () => {
+	await expect(
+		run({ namespace: "/does-not-exist", host: "host" }),
+	).rejects.toThrow("not both");
+	await expect(run({})).rejects.toThrow("organization");
+});
+test("an endpoint epoch changing before pane verification cannot print an old CDP credential URL", async () => {
+	const f = await fixture(),
+		target = await resolveBrowserCdpNamespace(f.homeDir, {
+			workspaceId: "workspace",
+			paneId: "pane-α",
+		});
+	f.write("state/endpoint.json", { ...f.endpoint, instanceId: "replacement" });
+	await expect(
+		target.client.direct.browserReadV1.query({
+			type: "list",
+			workspaceId: "workspace",
+		}),
+	).rejects.toThrow("backend changed");
+	expect(f.requests.map((r) => r.path)).toEqual(["/direct/describe"]);
+});

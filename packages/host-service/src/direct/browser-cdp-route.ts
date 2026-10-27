@@ -29,6 +29,7 @@ export function registerDirectBrowserCdpRoute({
 		upgradeWebSocket((context) => {
 			const workspaceId = context.req.query("workspaceId") ?? "",
 				paneId = context.req.param("paneId") ?? "";
+			const instanceId = context.req.query("instanceId");
 			let channel: ReturnType<DirectBrowserReadBridge["connectCdp"]> | null =
 				null;
 			return {
@@ -37,14 +38,20 @@ export function registerDirectBrowserCdpRoute({
 						!workspaceId ||
 						workspaceId.length > 256 ||
 						!paneId ||
-						paneId.length > 256
+						paneId.length > 256 ||
+						(instanceId !== undefined &&
+							(instanceId.length < 1 || instanceId.length > 128))
 					) {
 						socket.close(1008, "Browser CDP scope is required");
 						return;
 					}
 					try {
 						channel = bridge.connectCdp(
-							{ workspaceId, paneId },
+							{
+								workspaceId,
+								paneId,
+								...(instanceId !== undefined ? { instanceId } : {}),
+							},
 							{
 								send: (raw) => {
 									if (

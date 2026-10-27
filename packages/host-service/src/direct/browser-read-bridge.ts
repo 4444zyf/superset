@@ -135,12 +135,20 @@ export class DirectBrowserReadBridge {
 		return this.isReady() && this.peer?.cdpV1 === true;
 	}
 	connectCdp(
-		input: { workspaceId: string; paneId: string },
+		input: { workspaceId: string; paneId: string; instanceId?: string },
 		client: {
 			send(raw: string): void;
 			close(code: number, reason: string): void;
 		},
 	) {
+		if (
+			input.instanceId !== undefined &&
+			input.instanceId !== this.identity.instanceId
+		)
+			throw new DirectBrowserBridgeError(
+				"unavailable",
+				"Browser CDP endpoint instance changed",
+			);
 		const peer = this.peer;
 		if (!peer || !this.isCdpReady())
 			throw new DirectBrowserBridgeError(

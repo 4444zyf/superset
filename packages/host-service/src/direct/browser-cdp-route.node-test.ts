@@ -12,8 +12,13 @@ import {
 	encodeBrowserCdpPacket,
 	parseBrowserCdpPacket,
 } from "@superset/shared/browser-cdp-bridge";
+import {
+	BROWSER_CDP_TOKEN_TTL_MS,
+	mintBrowserCdpToken,
+} from "@superset/shared/browser-cdp-token";
 import { Hono } from "hono";
 import { PskHostAuthProvider } from "../providers/host-auth/PskHostAuthProvider/PskHostAuthProvider.ts";
+import { authorizeDirectBrowserCdpUpgrade } from "./browser-cdp-auth.ts";
 import { registerDirectBrowserCdpRoute } from "./browser-cdp-route.ts";
 import { DirectBrowserReadBridge } from "./browser-read-bridge.ts";
 import { registerDirectBrowserReadRoute } from "./browser-read-route.ts";
@@ -32,7 +37,8 @@ async function fixture() {
 		const token = context.req.query("token");
 		if (
 			!(await auth.validate(context.req.raw)) &&
-			!(token && (await auth.validateToken(token)))
+			!(token && (await auth.validateToken(token))) &&
+			!(await authorizeDirectBrowserCdpUpgrade(context.req.raw, identity, auth))
 		)
 			return context.json({ error: "Unauthorized" }, 401);
 		return next();
@@ -48,9 +54,9 @@ async function fixture() {
 	const port = await listening.promise;
 	injectWebSocket(server);
 	const clients: Array<{ socket: WebSocket; closed: Promise<CloseEvent> }> = [];
-	async function dial(path: string) {
+	async function dial(path: string, endpointToken = secret) {
 		const socket = new WebSocket(
-				`ws://127.0.0.1:${port}${path}${path.includes("?") ? "&" : "?"}token=${secret}`,
+				`ws://127.0.0.1:${port}${path}${path.includes("?") ? "&" : "?"}token=${encodeURIComponent(endpointToken)}`,
 			),
 			queue: string[] = [],
 			waiting: Array<(raw: string) => void> = [];
@@ -306,6 +312,128 @@ test(
 			c.socket.send(new Uint8Array(4 * 1024 * 1024 + 1));
 			assert.equal((await c.closed).code, 1009);
 			assert.equal(parseBrowserCdpPacket(await p.next()).type, "cdp-close");
+			assert.equal(f.bridge.isCdpReady(), true);
+		} finally {
+			await f.close();
+		}
+	},
+);
+
+test(
+	"an instance-bound CDP URL cannot bind to a restarted backend",
+	{ timeout: 5000 },
+	async () => {
+		const f = await fixture();
+		try {
+			const p = await f.peer(),
+				c = await f.dial(
+					"/direct/browser/pane/cdp-v1?workspaceId=workspace&instanceId=stale",
+				);
+			assert.equal((await c.closed).code, 1011);
+			assert.equal(p.queue.length, 0);
+			assert.equal(f.bridge.isCdpReady(), true);
+		} finally {
+			await f.close();
+		}
+	},
+);
+
+test(
+	"real CDP upgrades accept target-scoped credentials without exposing the namespace PSK",
+	{ timeout: 5000 },
+	async () => {
+		const f = await fixture();
+		try {
+			const p = await f.peer(),
+				scope = { ...identity, workspaceId: "workspace", paneId: "pane" },
+				token = mintBrowserCdpToken(secret, scope);
+			assert.notEqual(token, secret);
+			const c = await f.dial(
+					`/direct/browser/pane/cdp-v1?workspaceId=workspace&instanceId=${identity.instanceId}`,
+					token,
+				),
+				open = parseBrowserCdpPacket(await p.next());
+			assert.equal(open.type, "cdp-open");
+			p.socket.send(
+				encodeBrowserCdpPacket({
+					type: "cdp-open-result",
+					sessionId: open.sessionId,
+					ok: true,
+				}),
+			);
+			c.socket.send('{"id":1,"method":"Target.getTargets"}');
+			assert.equal(parseBrowserCdpPacket(await p.next()).type, "cdp-input");
+			p.socket.send(
+				encodeBrowserCdpPacket({
+					type: "cdp-output",
+					sessionId: open.sessionId,
+					raw: '{"id":1,"result":{}}',
+				}),
+			);
+			assert.equal(await c.next(), '{"id":1,"result":{}}');
+		} finally {
+			await f.close();
+		}
+	},
+);
+
+test(
+	"scoped credentials cannot reserve another pane, instance or peer and expired credentials fail immediately",
+	{ timeout: 5000 },
+	async () => {
+		const f = await fixture();
+		try {
+			const p = await f.peer(),
+				scope = { ...identity, workspaceId: "workspace", paneId: "pane" },
+				token = mintBrowserCdpToken(secret, scope),
+				expired = mintBrowserCdpToken(
+					secret,
+					scope,
+					Date.now() - BROWSER_CDP_TOKEN_TTL_MS - 1,
+				);
+			for (const [path, value] of [
+				[
+					`/direct/browser/foreign/cdp-v1?workspaceId=workspace&instanceId=${identity.instanceId}`,
+					token,
+				],
+				[
+					"/direct/browser/pane/cdp-v1?workspaceId=workspace&instanceId=stale",
+					token,
+				],
+				["/direct/browser-read/v1", token],
+				[
+					`/direct/browser/pane/cdp-v1?workspaceId=workspace&instanceId=${identity.instanceId}`,
+					expired,
+				],
+			] as const) {
+				const status = await new Promise<number>((resolve, reject) => {
+					const req = request(
+						{
+							hostname: "127.0.0.1",
+							port: f.port,
+							path: `${path}${path.includes("?") ? "&" : "?"}token=${encodeURIComponent(value ?? "")}`,
+							headers: {
+								Connection: "Upgrade",
+								Upgrade: "websocket",
+								"Sec-WebSocket-Version": "13",
+								"Sec-WebSocket-Key": randomBytes(16).toString("base64"),
+							},
+						},
+						(res) => {
+							res.resume();
+							resolve(res.statusCode ?? 0);
+						},
+					);
+					req.once("error", () => reject(Error("Owned auth request failed")));
+					req.once("upgrade", (_res, socket) => {
+						socket.destroy();
+						reject(Error("Scoped token was unexpectedly accepted"));
+					});
+					req.end();
+				});
+				assert.equal(status, 401);
+			}
+			assert.equal(p.queue.length, 0);
 			assert.equal(f.bridge.isCdpReady(), true);
 		} finally {
 			await f.close();

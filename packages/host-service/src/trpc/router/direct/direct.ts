@@ -86,6 +86,7 @@ export function describeDirectBackend(
 			workstationBrowserReadBridgeConnectV1: browserReads !== undefined,
 			workstationBrowserReadBridgeV1: browserReads?.isReady() === true,
 			workstationBrowserCdpV1: browserReads?.isCdpReady?.() === true,
+			workstationBrowserCdpEndpointV1: browserReads?.isCdpReady?.() === true,
 			workstationAgentHooksV1:
 				durableOperations &&
 				workspaceViewRestoreV1 &&

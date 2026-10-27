@@ -147,7 +147,7 @@ export async function verifyWorkstationBrowserUi(options) {
 	let started = false,
 		terminalTab,
 		browserReadCli,
-		navigationApi, navigationCli, evaluationApi, evaluationCli, openApi, openCli, reloadApi, importSourcesApi, cookieImportApi, importLoginCli;
+		navigationApi, navigationCli, evaluationApi, evaluationCli, openApi, openCli, reloadApi, importSourcesApi, cookieImportApi, importLoginCli, cdpCli;
 	try {
 		await click(`${selector} .xterm-screen`);
 		await getPage().call("Input.insertText", { text: command });
@@ -577,6 +577,11 @@ export async function verifyWorkstationBrowserUi(options) {
             importLoginCli=await verifyWorkstationBrowserImportLoginCliUi(options,{scope,readView,workspace,terminalTab,cookieImportApi});
             report.importLoginCli=importLoginCli.report;save();
         }
+        if(process.argv.includes("--browser-cdp-cli")) {
+            const {verifyWorkstationBrowserCdpCliUi}=await import("./verify-workstation-browser-cdp-cli-ui.mjs");
+            cdpCli=await verifyWorkstationBrowserCdpCliUi(options,{scope,readView,workspace,terminalTab,guestRead});
+            report.cdpCli=cdpCli.report;save();
+        }
 		await closeReopen();
 		await until(
 			async () =>
@@ -702,9 +707,11 @@ export async function verifyWorkstationBrowserUi(options) {
         if(importSourcesApi)await importSourcesApi.afterReopen();
         if(cookieImportApi)await cookieImportApi.afterReopen();
         if(importLoginCli)await importLoginCli.afterReopen();
+        if(cdpCli)await cdpCli.afterReopen();
 		await screenshot("browser-reopened");
 		save();
 	} finally {
+        try { if(cdpCli)await cdpCli.cleanup(); } finally {
 		report.guestEvents = await evaluate("window.__ownedBrowserEvents ?? []");
 		report.finalView = workspace(await readView());
 		save();
@@ -728,5 +735,6 @@ export async function verifyWorkstationBrowserUi(options) {
 			report.cleanup = await readProof();
 			save();
 		}
+        }
 	}
 }

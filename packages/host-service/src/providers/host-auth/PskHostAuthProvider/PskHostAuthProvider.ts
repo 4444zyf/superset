@@ -1,4 +1,8 @@
 import { timingSafeEqual } from "node:crypto";
+import {
+	type BrowserCdpTokenScope,
+	verifyBrowserCdpToken,
+} from "@superset/shared/browser-cdp-token";
 import type { HostAuthProvider } from "../types";
 
 export class PskHostAuthProvider implements HostAuthProvider {
@@ -16,6 +20,9 @@ export class PskHostAuthProvider implements HostAuthProvider {
 
 	validateToken(token: string): boolean {
 		return this.safeEqual(token);
+	}
+	validateBrowserCdpToken(token: string, scope: BrowserCdpTokenScope): boolean {
+		return verifyBrowserCdpToken(this.secretBuffer, scope, token);
 	}
 
 	private safeEqual(input: string): boolean {

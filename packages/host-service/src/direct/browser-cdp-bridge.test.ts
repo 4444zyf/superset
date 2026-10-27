@@ -236,3 +236,22 @@ test("a full CDP peer send queue retires only its captured connection epoch", ()
 	expect(f.closes).toEqual([1011]);
 	expect(f.peerCloses).toHaveLength(1);
 });
+
+test("an explicit stale CDP endpoint instance cannot allocate a new session", () => {
+	const f = fixture();
+	f.hello();
+	expect(() =>
+		f.bridge.connectCdp(
+			{ workspaceId: "workspace", paneId: "pane", instanceId: "stale" },
+			{ send: () => {}, close: () => {} },
+		),
+	).toThrow();
+	expect(f.sent).toHaveLength(1);
+	const description = describeDirectBackend(
+		{ ...identity, serviceUid: 1000 } as never,
+		false,
+		false,
+		f.bridge,
+	);
+	expect(description.capabilities.workstationBrowserCdpEndpointV1).toBe(true);
+});
